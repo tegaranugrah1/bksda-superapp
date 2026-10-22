@@ -252,16 +252,6 @@ export default function InboxSuratCutiPage() {
             Seluruh riwayat surat penetapan cuti resmi dan pengajuan mandiri dari pegawai BKSDA Kalimantan Timur.
           </p>
         </div>
-
-        {/* Tombol Catat Surat Izin */}
-        <Button
-          type="button"
-          onClick={() => setIsCatatModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-2 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Catat Surat Izin
-        </Button>
       </div>
 
       {/* Filter Toolbar */}
@@ -317,9 +307,21 @@ export default function InboxSuratCutiPage() {
           </div>
         </div>
 
-        <span className="text-xs font-semibold text-slate-500 shrink-0">
-          Total <span className="font-bold text-slate-900 dark:text-slate-100">{totalRecords}</span> Data Cuti
-        </span>
+        <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end">
+          <span className="text-xs font-semibold text-slate-500 shrink-0">
+            Total <span className="font-bold text-slate-900 dark:text-slate-100">{totalRecords}</span> Data Cuti
+          </span>
+
+          <Button
+            type="button"
+            onClick={() => setIsCatatModalOpen(true)}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-1.5 h-9 px-3.5 shadow-xs shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Catat Surat Izin
+          </Button>
+        </div>
       </div>
 
       {/* Data Table */}

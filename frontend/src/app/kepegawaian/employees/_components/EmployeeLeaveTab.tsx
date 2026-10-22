@@ -1108,22 +1108,41 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
             </div>
 
-            {/* Grid Baris 2: Jenis Cuti */}
-            <div>
-              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-                Jenis Cuti / Izin <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={recordForm.jenis_cuti}
-                onChange={(e) => handleJenisCutiChange(e.target.value)}
-                className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
-              >
-                {availableLeaveTypeNames.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+            {/* Grid Baris 2: Jenis Cuti & Alasan Cuti (1 Baris Side-by-Side) */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-6">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Jenis Cuti / Izin <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={recordForm.jenis_cuti}
+                  onChange={(e) => handleJenisCutiChange(e.target.value)}
+                  className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
+                >
+                  {availableLeaveTypeNames.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700">
+                    Alasan / Keperluan Cuti
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium">
+                    Opsional
+                  </span>
+                </div>
+                <Input
+                  value={recordForm.alasan_cuti}
+                  onChange={(e) => setRecordForm({ ...recordForm, alasan_cuti: e.target.value })}
+                  placeholder="Opsional (otomatis sesuai jenis cuti)"
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
             </div>
 
             {/* Grid Baris 3: Rentang Tanggal Mulai & Selesai */}
@@ -1192,7 +1211,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   <span>
                     {(selectedLeaveType
                       ? selectedLeaveType.hitung_hari === "hari_kerja"
-                      : recordForm.jenis_cuti.toLowerCase().includes("tahunan"))
+                        : recordForm.jenis_cuti.toLowerCase().includes("tahunan"))
                       ? "Otomatis dihitung hari kerja (Senin - Jumat)."
                       : "Otomatis dihitung hari kalender penuh."}
                     {" Dapat diedit manual jika terdapat libur nasional."}
@@ -1201,41 +1220,27 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
             </div>
 
-            {/* Baris 5: Alasan Cuti (Keterangan Hanya Alasan) */}
-            <div>
-              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-                <span>Alasan Cuti</span>
-                <span className="text-[10px] text-slate-400 font-normal">Opsional (bisa dikosongkan untuk data lama)</span>
-              </label>
-              <Input
-                value={recordForm.alasan_cuti}
-                onChange={(e) => setRecordForm({ ...recordForm, alasan_cuti: e.target.value })}
-                placeholder="Contoh: Keperluan keluarga mendesak / Melahirkan / Menikahkan anak (Opsional)"
-                className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
-              />
-            </div>
-
-            {/* Baris 6: Berkas Scan Surat Cuti (Opsional - 2 Berkas) */}
-            <div className="space-y-3">
-              {/* Slot 1: Scan Formulir Cuti */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-blue-500" />
-                    1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
+            {/* Baris 5: Berkas Scan Surat Cuti (1 Baris - 2 Slot Side-by-Side) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* Slot 1: Scan Surat Pengantar dan Formulir Cuti */}
+              <div className="flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-1 gap-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 truncate">
+                    <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="truncate">1. Scan Surat Pengantar & Formulir</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                     Opsional
                   </span>
                 </div>
 
                 {editingRecord?.scan_formulir_nama && !fileScanFormulir && (
-                  <div className="mb-1.5 p-2 rounded-lg bg-blue-50 border border-blue-200 text-[11px] text-blue-800 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 truncate">
+                  <div className="mb-1.5 p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-[11px] text-blue-800 flex items-center justify-between gap-1">
+                    <span className="flex items-center gap-1 truncate">
                       <FileCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      Berkas saat ini: <b>{editingRecord.scan_formulir_nama}</b>
+                      <span className="truncate font-semibold">{editingRecord.scan_formulir_nama}</span>
                     </span>
-                    <span className="text-[10px] text-blue-600 font-medium">Tersimpan</span>
+                    <span className="text-[10px] text-blue-600 font-medium shrink-0">Tersimpan</span>
                   </div>
                 )}
 
@@ -1255,22 +1260,19 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     }}
                     className="hidden"
                   />
-                  <label htmlFor="file_scan_formulir_manual" className="cursor-pointer block space-y-1">
+                  <label htmlFor="file_scan_formulir_manual" className="cursor-pointer block">
                     {fileScanFormulir ? (
                       <div className="flex items-center justify-center gap-1.5 text-blue-600 font-semibold text-xs">
-                        <FileCheck className="w-4 h-4" />
-                        <span className="truncate max-w-xs">{fileScanFormulir.name}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          ({(fileScanFormulir.size / 1024 / 1024).toFixed(2)} MB)
+                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanFormulir.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                          ({(fileScanFormulir.size / 1024 / 1024).toFixed(1)} MB)
                         </span>
                       </div>
                     ) : (
-                      <>
-                        <p className="text-xs font-semibold text-slate-700">
-                          {editingRecord?.scan_formulir_nama ? "Ganti Berkas Scan Formulir" : "Pilih Berkas Scan Formulir Permohonan"}
-                        </p>
-                        <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
-                      </>
+                      <span className="text-slate-600 text-[11px] font-medium block truncate">
+                        {editingRecord?.scan_formulir_nama ? "Ganti Berkas Pengantar & Formulir" : "Pilih Scan Pengantar & Formulir"}
+                      </span>
                     )}
                   </label>
                 </div>
@@ -1278,32 +1280,32 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   <button
                     type="button"
                     onClick={() => setFileScanFormulir(null)}
-                    className="text-[10px] text-rose-500 hover:underline mt-1"
+                    className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
                   >
-                    Batalkan pilihan berkas formulir
+                    Batalkan pilihan berkas
                   </button>
                 )}
               </div>
 
               {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    2. Surat Izin Cuti Resmi (TTE Kepala Balai)
+              <div className="flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-1 gap-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 truncate">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="truncate">2. Scan Surat Izin Resmi (TTE)</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                     Opsional
                   </span>
                 </div>
 
                 {(editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama) && !fileScanSuratIzin && (
-                  <div className="mb-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 truncate">
+                  <div className="mb-1.5 p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between gap-1">
+                    <span className="flex items-center gap-1 truncate">
                       <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      Berkas saat ini: <b>{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</b>
+                      <span className="truncate font-semibold">{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</span>
                     </span>
-                    <span className="text-[10px] text-emerald-600 font-medium">Tersimpan</span>
+                    <span className="text-[10px] text-emerald-600 font-medium shrink-0">Tersimpan</span>
                   </div>
                 )}
 
@@ -1323,22 +1325,19 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     }}
                     className="hidden"
                   />
-                  <label htmlFor="file_scan_surat_izin_manual" className="cursor-pointer block space-y-1">
+                  <label htmlFor="file_scan_surat_izin_manual" className="cursor-pointer block">
                     {fileScanSuratIzin ? (
                       <div className="flex items-center justify-center gap-1.5 text-emerald-600 font-semibold text-xs">
-                        <FileCheck className="w-4 h-4" />
-                        <span className="truncate max-w-xs">{fileScanSuratIzin.name}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(2)} MB)
+                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanSuratIzin.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                          ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(1)} MB)
                         </span>
                       </div>
                     ) : (
-                      <>
-                        <p className="text-xs font-semibold text-slate-700">
-                          {editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama ? "Ganti Berkas Surat Izin Resmi" : "Pilih Berkas Surat Izin Cuti Resmi (TTE)"}
-                        </p>
-                        <p className="text-[10px] text-slate-400">PDF, JPG, atau PNG (Maks. 10MB)</p>
-                      </>
+                      <span className="text-slate-600 text-[11px] font-medium block truncate">
+                        {editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama ? "Ganti Berkas Surat Izin" : "Pilih Surat Izin Resmi / TTE"}
+                      </span>
                     )}
                   </label>
                 </div>
@@ -1346,20 +1345,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   <button
                     type="button"
                     onClick={() => setFileScanSuratIzin(null)}
-                    className="text-[10px] text-rose-500 hover:underline mt-1"
+                    className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
                   >
                     Batalkan pilihan surat izin
                   </button>
                 )}
               </div>
-            </div>
-
-            {/* Contextual Notice */}
-            <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-blue-50/60 border border-blue-100/80 text-xs text-blue-900">
-              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-[11px] leading-relaxed text-slate-600">
-                Data surat penetapan ini akan tersimpan pada riwayat resmi buku kendali cuti pegawai dan menyelaraskan saldo cuti terpakai pada tahun yang bersangkutan.
-              </p>
             </div>
 
             {/* Footer */}

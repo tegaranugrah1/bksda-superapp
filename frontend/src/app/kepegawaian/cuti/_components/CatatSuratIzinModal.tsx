@@ -8,6 +8,7 @@ import {
   FileCheck,
   FileCheck2,
   FileText,
+  Info,
   Loader2,
   UploadCloud,
   User,
@@ -15,6 +16,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EmployeeSelect, type Employee } from "@/components/ui/employee-select";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -122,6 +131,10 @@ export function CatatSuratIzinModal({
     sisa_cuti_n2?: number;
     cuti_terpakai_n2?: number;
     cuti_terpakai_n0?: number;
+    hak_n1_diakui?: number;
+    hak_n2_diakui?: number;
+    total_hak_cuti?: number;
+    is_eligible_24_days?: boolean;
     sisa_cuti_tersedia?: number;
   } | null>(null);
 
@@ -211,24 +224,44 @@ export function CatatSuratIzinModal({
     }));
   };
 
-  // Quota breakdown calculation
+  // Quota breakdown calculation matching EmployeeLeaveTab (PerBKN 24/2017 & 7/2021)
   const calc = useMemo(() => {
     if (!leaveBalance) return null;
-    const hakN = Math.max(0, leaveBalance.hak_cuti_n || 12);
-    const sisaN1Raw = Math.max(0, leaveBalance.sisa_cuti_n1 || 0);
-    const usedN1 = Math.max(0, leaveBalance.cuti_terpakai_n1 || 0);
-    const hakN1 = Math.min(6, Math.max(0, sisaN1Raw - usedN1));
+    const hakN = Math.max(0, leaveBalance.hak_cuti_n ?? 12);
+    const sisaN1Raw = Math.max(0, leaveBalance.sisa_cuti_n1 ?? 0);
+    const hakN1 = typeof leaveBalance.hak_n1_diakui === "number"
+      ? leaveBalance.hak_n1_diakui
+      : Math.min(6, sisaN1Raw);
 
-    const sisaN2Raw = Math.max(0, leaveBalance.sisa_cuti_n2 || 0);
-    const usedN2 = Math.max(0, leaveBalance.cuti_terpakai_n2 || 0);
-    const hakN2 = Math.min(6, Math.max(0, sisaN2Raw - usedN2));
+    const usedN1 = Math.max(0, leaveBalance.cuti_terpakai_n1 ?? 0);
+    const usedN2 = Math.max(0, leaveBalance.cuti_terpakai_n2 ?? 0);
+    const sisaN2Raw = Math.max(0, leaveBalance.sisa_cuti_n2 ?? 0);
 
-    const maxCumulated = Math.min(6, hakN1 + hakN2);
-    const totalHakTahunIni = hakN + maxCumulated;
-    const usedN0 = Math.max(0, leaveBalance.cuti_terpakai_n0 || 0);
-    const sisaTersedia = Math.max(0, totalHakTahunIni - usedN0);
+    const isEligible24 = typeof leaveBalance.is_eligible_24_days === "boolean"
+      ? leaveBalance.is_eligible_24_days
+      : (usedN1 === 0 && usedN2 === 0 && sisaN1Raw >= 12 && sisaN2Raw >= 12);
+    const hakN2 = typeof leaveBalance.hak_n2_diakui === "number"
+      ? leaveBalance.hak_n2_diakui
+      : (isEligible24 ? 6 : 0);
 
-    return { hakN, hakN1, hakN2, usedN0, sisaTersedia };
+    const totalHak = typeof leaveBalance.total_hak_cuti === "number"
+      ? leaveBalance.total_hak_cuti
+      : (hakN + hakN1 + hakN2);
+
+    const usedN0 = Math.max(0, leaveBalance.cuti_terpakai_n0 ?? 0);
+    const sisaTersedia = typeof leaveBalance.sisa_cuti_tersedia === "number"
+      ? leaveBalance.sisa_cuti_tersedia
+      : Math.max(0, totalHak - usedN0);
+
+    return {
+      hakN,
+      hakN1,
+      hakN2,
+      isEligible24,
+      totalHak,
+      usedN0,
+      sisaTersedia,
+    };
   }, [leaveBalance]);
 
   const matchedLeaveType = leaveTypes.find(
@@ -320,47 +353,30 @@ export function CatatSuratIzinModal({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !isSubmitting) onClose();
-      }}
-    >
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl p-6 space-y-4 my-8">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-w-[95vw] p-6 max-h-[92vh] overflow-y-auto">
         {/* Header Modal */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <DialogHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <DialogTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
                 Catat Surat Izin Penetapan Cuti
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Pencatatan data surat keputusan izin cuti resmi (SI / ST) langsung ke buku kendali pegawai.
-              </p>
+              </DialogDescription>
             </div>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="h-8 w-8 p-0 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1 pb-1">
           {/* Step 1: Pemilihan Pegawai */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               Pilih Pegawai <span className="text-rose-500">*</span>
             </label>
@@ -371,13 +387,13 @@ export function CatatSuratIzinModal({
               }}
               placeholder="Cari nama atau NIP pegawai..."
               disabled={isSubmitting}
-              className="text-xs h-9.5 rounded-xl border-slate-200 dark:border-slate-700"
+              className="text-xs h-9 rounded-md border-slate-200 dark:border-slate-700 bg-slate-50/50 focus:bg-white"
             />
           </div>
 
           {/* Loading Sisa Kuota Cuti */}
           {selectedEmployee && leaveLoading && (
-            <div className="flex items-center justify-center gap-2 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-blue-600 dark:text-blue-400">
+            <div className="flex items-center justify-center gap-2 p-3 rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-blue-600 dark:text-blue-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>Memuat sisa kuota cuti pegawai ({selectedEmployee.name})...</span>
             </div>
@@ -385,14 +401,14 @@ export function CatatSuratIzinModal({
 
           {/* Interactive Employee Leave Balance Card */}
           {selectedEmployee && !leaveLoading && calc && (
-            <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-linear-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/80 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-900/80 p-3.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-linear-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/80 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-900/80 p-3 mt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-                    <Award className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <Award className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     <span>Sisa Kuota Cuti Pegawai (Tahun {leaveYear}):</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-600 dark:text-slate-400">
                     <span>Pokok: <b>{calc.hakN}</b></span>
                     <span>•</span>
                     <span>N-1: <b>+{calc.hakN1}</b></span>
@@ -404,7 +420,7 @@ export function CatatSuratIzinModal({
                 </div>
                 <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Kuota Tersedia</span>
-                  <span className="text-xl font-extrabold text-blue-700 dark:text-blue-400">
+                  <span className="text-lg font-extrabold text-blue-700 dark:text-blue-400">
                     {calc.sisaTersedia} <span className="text-xs font-bold">Hari</span>
                   </span>
                 </div>
@@ -412,7 +428,7 @@ export function CatatSuratIzinModal({
 
               {/* Live simulation of remaining balance if Cuti Tahunan */}
               {isTahunan && form.jumlah_hari > 0 && (
-                <div className="mt-2.5 pt-2 border-t border-blue-100/70 dark:border-slate-700 flex items-center justify-between text-[11px]">
+                <div className="mt-2 pt-2 border-t border-blue-100/70 dark:border-slate-700 flex items-center justify-between text-[11px]">
                   <span className="text-slate-600 dark:text-slate-400">
                     Simulasi sisa setelah cuti ini ({form.jumlah_hari} hari):
                   </span>
@@ -434,9 +450,9 @@ export function CatatSuratIzinModal({
 
           {/* Form Fields (Hanya aktif/tampil jika pegawai sudah dipilih) */}
           {selectedEmployee && (
-            <div className="space-y-3.5 pt-1">
+            <div className="space-y-3.5">
               {/* Row 1: Nomor Surat & Tanggal Terbit */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
                 <div className="sm:col-span-7">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                     Nomor Surat Persetujuan (SI / ST) <span className="text-rose-500">*</span>
@@ -446,7 +462,7 @@ export function CatatSuratIzinModal({
                     value={form.nomor_pengajuan}
                     onChange={(e) => setForm({ ...form, nomor_pengajuan: e.target.value })}
                     placeholder="Contoh: SI.123/K.18/TU/KSA/05/2026"
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
+                    className="mt-1 text-xs font-mono h-9 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
                   />
                 </div>
                 <div className="sm:col-span-5">
@@ -458,21 +474,21 @@ export function CatatSuratIzinModal({
                     required
                     value={form.tanggal_pengajuan}
                     onChange={(e) => setForm({ ...form, tanggal_pengajuan: e.target.value })}
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
+                    className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
                   />
                 </div>
               </div>
 
-              {/* Row 2: Jenis Cuti & Durasi */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div className="sm:col-span-7">
+              {/* Row 2: Jenis Cuti & Alasan Cuti (1 Baris Side-by-Side) */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+                <div className="sm:col-span-6">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                     Jenis Cuti <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={form.jenis_cuti}
                     onChange={(e) => handleDateChange(form.tanggal_mulai, form.tanggal_selesai, e.target.value)}
-                    className="w-full h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 mt-1 outline-none"
+                    className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
                   >
                     {leaveTypes.length > 0
                       ? leaveTypes.map((t) => (
@@ -487,11 +503,63 @@ export function CatatSuratIzinModal({
                         ))}
                   </select>
                 </div>
-                <div className="sm:col-span-5">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Durasi Cuti
+
+                <div className="sm:col-span-6">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Alasan / Keperluan Cuti
+                    </label>
+                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-medium">
+                      Opsional
+                    </span>
+                  </div>
+                  <Input
+                    value={form.alasan_cuti}
+                    onChange={(e) => setForm({ ...form, alasan_cuti: e.target.value })}
+                    placeholder="Opsional (otomatis sesuai jenis cuti)"
+                    className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Tanggal Mulai & Tanggal Selesai (Di atas Lama Cuti) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                    Tanggal Mulai Pelaksanaan <span className="text-rose-500">*</span>
                   </label>
-                  <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="date"
+                    required
+                    value={form.tanggal_mulai}
+                    onChange={(e) => handleDateChange(e.target.value, form.tanggal_selesai, form.jenis_cuti)}
+                    className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                    Tanggal Selesai Pelaksanaan <span className="text-rose-500">*</span>
+                  </label>
+                  <Input
+                    type="date"
+                    required
+                    value={form.tanggal_selesai}
+                    onChange={(e) => handleDateChange(form.tanggal_mulai, e.target.value, form.jenis_cuti)}
+                    className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Lama Cuti (Di bawah Tanggal Mulai & Selesai) */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
+                <div className="sm:col-span-5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span>Lama Cuti <span className="text-rose-500">*</span></span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      {isTahunan ? "Hari Kerja" : "Hari Kalender"}
+                    </span>
+                  </label>
+                  <div className="relative mt-1">
                     <Input
                       type="number"
                       min={1}
@@ -499,98 +567,42 @@ export function CatatSuratIzinModal({
                       required
                       value={form.jumlah_hari}
                       onChange={(e) => setForm({ ...form, jumlah_hari: Math.max(1, parseInt(e.target.value, 10) || 1) })}
-                      className="h-9 text-xs font-bold text-blue-700 dark:text-blue-400 border-slate-200 dark:border-slate-700"
+                      className="text-xs font-bold h-9 pr-14 bg-slate-50/50 focus:bg-white transition-colors border-slate-200 dark:border-slate-700"
                     />
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
-                      Hari {isTahunan ? "(Kerja)" : "(Kalender)"}
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[11px] font-medium text-slate-400">
+                      Hari
+                    </div>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-7 flex flex-col justify-end">
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span>
+                      {isTahunan
+                        ? "Otomatis dihitung hari kerja (Senin - Jumat)."
+                        : "Otomatis dihitung hari kalender penuh."}
+                      {" Dapat diedit manual jika terdapat libur nasional."}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Row 3: Tanggal Mulai & Tanggal Selesai */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                    Tanggal Mulai Cuti <span className="text-rose-500">*</span>
-                  </label>
-                  <Input
-                    type="date"
-                    required
-                    value={form.tanggal_mulai}
-                    onChange={(e) => handleDateChange(e.target.value, form.tanggal_selesai, form.jenis_cuti)}
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                    Tanggal Selesai Cuti <span className="text-rose-500">*</span>
-                  </label>
-                  <Input
-                    type="date"
-                    required
-                    value={form.tanggal_selesai}
-                    onChange={(e) => handleDateChange(form.tanggal_mulai, e.target.value, form.jenis_cuti)}
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-              </div>
-
-              {/* Row 4: Alasan Cuti */}
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                  Alasan / Keperluan Cuti <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  required
-                  value={form.alasan_cuti}
-                  onChange={(e) => setForm({ ...form, alasan_cuti: e.target.value })}
-                  placeholder="Contoh: Melaksanakan cuti tahunan bersama keluarga"
-                  className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                />
-              </div>
-
-              {/* Row 5: Alamat & Telepon */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Alamat Selama Menjalankan Cuti
-                  </label>
-                  <Input
-                    value={form.alamat_menjalankan_cuti}
-                    onChange={(e) => setForm({ ...form, alamat_menjalankan_cuti: e.target.value })}
-                    placeholder="Contoh: Samarinda / Balikpapan"
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    No. Telepon / WhatsApp
-                  </label>
-                  <Input
-                    value={form.telepon}
-                    onChange={(e) => setForm({ ...form, telepon: e.target.value })}
-                    placeholder="Contoh: 08123456789"
-                    className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-              </div>
-
-              {/* Row 6: Berkas Scan Surat Cuti (2 Slot) */}
-              <div className="space-y-3 pt-1">
+              {/* Row 5: Berkas Scan Surat Cuti (1 Baris - 2 Slot Side-by-Side) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 {/* Slot 1: Scan Surat Pengantar dan Formulir Cuti */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-blue-500" />
-                      1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
+                <div className="flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1 gap-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                      <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span className="truncate">1. Scan Surat Pengantar & Formulir</span>
                     </label>
-                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                       Opsional
                     </span>
                   </div>
 
-                  <div className="border border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-500 rounded-xl p-2.5 text-center bg-slate-50/50 dark:bg-slate-800/30 transition-colors">
+                  <div className="border border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-xl p-2.5 text-center bg-slate-50/50 dark:bg-slate-800/30 transition-colors">
                     <input
                       type="file"
                       id="file_scan_formulir_catat"
@@ -608,15 +620,15 @@ export function CatatSuratIzinModal({
                     <label htmlFor="file_scan_formulir_catat" className="cursor-pointer block">
                       {fileScanFormulir ? (
                         <div className="flex items-center justify-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold text-xs">
-                          <FileCheck className="w-4 h-4" />
-                          <span className="truncate max-w-xs">{fileScanFormulir.name}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            ({(fileScanFormulir.size / 1024 / 1024).toFixed(2)} MB)
+                          <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanFormulir.name}</span>
+                          <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                            ({(fileScanFormulir.size / 1024 / 1024).toFixed(1)} MB)
                           </span>
                         </div>
                       ) : (
-                        <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium">
-                          Pilih Berkas Scan Surat Pengantar & Formulir (PDF / Gambar)
+                        <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium block truncate">
+                          Pilih Scan Pengantar & Formulir
                         </span>
                       )}
                     </label>
@@ -625,26 +637,26 @@ export function CatatSuratIzinModal({
                     <button
                       type="button"
                       onClick={() => setFileScanFormulir(null)}
-                      className="text-[10px] text-rose-500 hover:underline mt-1"
+                      className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
                     >
-                      Hapus lampiran ini
+                      Batalkan pilihan berkas
                     </button>
                   )}
                 </div>
 
                 {/* Slot 2: Scan Surat Izin Resmi Penetapan Cuti */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
-                      2. Scan Surat Izin Resmi Penetapan Cuti
+                <div className="flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-1 gap-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span className="truncate">2. Scan Surat Izin Resmi (TTE)</span>
                     </label>
-                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                       Opsional
                     </span>
                   </div>
 
-                  <div className="border border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 rounded-xl p-2.5 text-center bg-slate-50/50 dark:bg-slate-800/30 transition-colors">
+                  <div className="border border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-xl p-2.5 text-center bg-slate-50/50 dark:bg-slate-800/30 transition-colors">
                     <input
                       type="file"
                       id="file_scan_surat_izin_catat"
@@ -662,15 +674,15 @@ export function CatatSuratIzinModal({
                     <label htmlFor="file_scan_surat_izin_catat" className="cursor-pointer block">
                       {fileScanSuratIzin ? (
                         <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
-                          <FileCheck className="w-4 h-4" />
-                          <span className="truncate max-w-xs">{fileScanSuratIzin.name}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(2)} MB)
+                          <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanSuratIzin.name}</span>
+                          <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                            ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(1)} MB)
                           </span>
                         </div>
                       ) : (
-                        <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium">
-                          Pilih Berkas Surat Izin Resmi / TTE (PDF / Gambar)
+                        <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium block truncate">
+                          Pilih Surat Izin Resmi / TTE
                         </span>
                       )}
                     </label>
@@ -679,44 +691,33 @@ export function CatatSuratIzinModal({
                     <button
                       type="button"
                       onClick={() => setFileScanSuratIzin(null)}
-                      className="text-[10px] text-rose-500 hover:underline mt-1"
+                      className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
                     >
-                      Hapus lampiran ini
+                      Batalkan pilihan surat izin
                     </button>
                   )}
                 </div>
-              </div>
-
-              {/* Row 7: Catatan Persetujuan */}
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Catatan Persetujuan (Opsional)
-                </label>
-                <Input
-                  value={form.catatan_atasan}
-                  onChange={(e) => setForm({ ...form, catatan_atasan: e.target.value })}
-                  placeholder="Contoh: Disetujui Kepala Balai KSDA Kaltim"
-                  className="h-9 text-xs mt-1 border-slate-200 dark:border-slate-700"
-                />
               </div>
             </div>
           )}
 
           {/* Footer Buttons */}
-          <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+          <DialogFooter className="gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <Button
-              variant="ghost"
+              variant="outline"
               type="button"
+              size="sm"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-xl"
+              className="text-xs font-semibold"
             >
               Batal
             </Button>
             <Button
               type="submit"
+              size="sm"
               disabled={isSubmitting || !selectedEmployee}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs gap-1.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 shadow-xs"
             >
               {isSubmitting ? (
                 <>
@@ -727,9 +728,9 @@ export function CatatSuratIzinModal({
                 "Simpan Surat Izin"
               )}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
