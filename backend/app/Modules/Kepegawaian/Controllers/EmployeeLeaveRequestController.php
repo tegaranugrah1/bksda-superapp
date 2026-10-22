@@ -168,6 +168,12 @@ class EmployeeLeaveRequestController extends Controller
             $jumlahHari = $start->diffInDays($end) + 1;
         }
 
+        if ($employee->is_pppk && str_contains(strtolower($validated['jenis_cuti']), 'alasan penting')) {
+            return response()->json([
+                'message' => 'Pegawai PPPK tidak berhak mengajukan Cuti Karena Alasan Penting.',
+            ], 422);
+        }
+
         if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
             return response()->json([
                 'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
@@ -199,7 +205,7 @@ class EmployeeLeaveRequestController extends Controller
             ->where('year', $year)
             ->first();
 
-        $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n ?: 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
+        $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
         $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
         $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
 

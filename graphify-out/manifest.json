@@ -25,8 +25,8 @@
     "semantic_hash": "bedad33fc7282b38fbf26d920744b93b"
   },
   "backend/app/Http/Middleware/CheckModuleAccess.php": {
-    "mtime": 1792373159.605749,
-    "ast_hash": "2b8d477306cceba314b10f0c353852ad",
+    "mtime": 1792658197.525877,
+    "ast_hash": "3b5936a2feb5f0e393c25be000d22bb6",
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/CheckPermission.php": {
@@ -1010,23 +1010,23 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1792630763.3801136,
-    "ast_hash": "4b69068ea4fba3c06b58084c5fd03348",
+    "mtime": 1792657653.7870061,
+    "ast_hash": "e216cd5022c5bbb2bfde205a91286a1f",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1792656529.794922,
-    "ast_hash": "8b813247e96cb846a71855bd2b78075f",
+    "mtime": 1792657685.9527113,
+    "ast_hash": "2147348e0bfa524ee417c2ebc0949d54",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
-    "mtime": 1790324134.904199,
-    "ast_hash": "2d7640e9bef12ed93ec0817ae3689445",
+    "mtime": 1792657635.9585686,
+    "ast_hash": "bfb13c4df5ac43e086b4fce2981fa3cc",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php": {
-    "mtime": 1792377427.9510047,
-    "ast_hash": "4ed05bab9e45d6bcaa1a2c4932ac2530",
+    "mtime": 1792657571.443094,
+    "ast_hash": "f398ba73adaa886067c3922937f0a76c",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeaveRequest.php": {
@@ -2480,8 +2480,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/LeaveRequestDialog.tsx": {
-    "mtime": 1792569522.7819245,
-    "ast_hash": "33dd0d6d21435320b5b4a2fac65d4cab",
+    "mtime": 1792657755.24401,
+    "ast_hash": "fa8c5fb168141198f4fe6baa282f2ef2",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
@@ -6680,8 +6680,8 @@
     "semantic_hash": ""
   },
   "backend/tests/portal_security_check.php": {
-    "mtime": 1792569643.5170958,
-    "ast_hash": "882a59442cdb558a5a861feed96cf4ef",
+    "mtime": 1792658237.6558585,
+    "ast_hash": "126ea523ff27d51b266f5b1fa8be0629",
     "semantic_hash": ""
   },
   "skills-lock.json": {
@@ -6805,8 +6805,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php": {
-    "mtime": 1792630819.4694128,
-    "ast_hash": "ac77da793f53b40de00205b9bc1cb7aa",
+    "mtime": 1792657793.9049933,
+    "ast_hash": "134893119cee17368351f3a3d00bb67e",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/LeaveType.php": {
@@ -6907,6 +6907,16 @@
   "frontend/src/app/surat/settings/page.tsx": {
     "mtime": 1792647943.5395243,
     "ast_hash": "867b607c9c54c19e299df0b5aab45c78",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_22_000003_adjust_cpns_2025_leave_balances.php": {
+    "mtime": 1792657531.2347364,
+    "ast_hash": "50ad6a427576bc6d2223af229ee76881",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/KeuanganVisumTest.php": {
+    "mtime": 1792658219.1129932,
+    "ast_hash": "c3d0904e7243a70ee190c9aaa5864a8d",
     "semantic_hash": ""
   }
 }

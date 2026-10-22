@@ -77,6 +77,18 @@ class CheckModuleAccess
                 }
             }
 
+            // Special exception for Keuangan module: Allow regular employees to read Visum SPD templates & settings for travel document generation
+            if (in_array('keuangan', $moduleNames)) {
+                if ($request->isMethod('GET') && (
+                    $request->is('api/keuangan/visum/settings') ||
+                    $request->is('api/keuangan/visum/templates') ||
+                    $request->is('keuangan/visum/settings') ||
+                    $request->is('keuangan/visum/templates')
+                )) {
+                    return $next($request);
+                }
+            }
+
             return response()->json([
                 'error' => 'Forbidden',
                 'message' => 'Anda tidak memiliki hak akses ke modul ini.',

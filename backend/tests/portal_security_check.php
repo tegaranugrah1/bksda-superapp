@@ -1394,6 +1394,10 @@ assert(str_contains($kpgLeaveCtrlCode, "strip_tags(trim((string) \$validated['ca
 $kpgExportCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php');
 assert(str_contains($kpgExportCode, "preg_match('/^[=+\\-@\\t\\r]/', \$trimmed)"), 'EmployeeIncomingLettersExport safeCell must guard against formula injection including whitespace, tabs, and CR');
 
+// Visum SPD Read-Only Access Invariant for regular portal employees
+$checkModVisumCode = file_get_contents(__DIR__ . '/../app/Http/Middleware/CheckModuleAccess.php');
+assert(str_contains($checkModVisumCode, "in_array('keuangan', \$moduleNames)") && str_contains($checkModVisumCode, "\$request->isMethod('GET')") && str_contains($checkModVisumCode, "'api/keuangan/visum/settings'") && str_contains($checkModVisumCode, "'api/keuangan/visum/templates'"), 'CheckModuleAccess must permit GET on visum settings and templates for travel document generation');
+
 echo "PASS: portal_security_check completed successfully.\n";
 
 

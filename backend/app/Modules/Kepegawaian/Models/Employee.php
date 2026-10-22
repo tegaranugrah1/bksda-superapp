@@ -71,7 +71,41 @@ class Employee extends Model
     protected $appends = [
         'is_seksi',
         'seksi_wilayah',
+        'is_pppk',
+        'is_cpns2025',
     ];
+
+    /**
+     * Accessor: Cek apakah pegawai berstatus PPPK (P3K)
+     * Ditandai dengan NIP pos 13-14 bernilai '21' atau memuat pppk/p3k pada pangkat/jabatan
+     */
+    public function getIsPppkAttribute(): bool
+    {
+        if (empty($this->nip)) {
+            return false;
+        }
+
+        $cleanNip = preg_replace('/\s+/', '', (string) $this->nip);
+        if (strlen($cleanNip) >= 14 && substr($cleanNip, 12, 2) === '21') {
+            return true;
+        }
+
+        $gol = strtolower($this->pangkat_golongan ?? '');
+        $jab = strtolower($this->jabatan ?? '');
+        return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k');
+    }
+
+    /**
+     * Accessor: Cek apakah pegawai merupakan CPNS pengangkatan 2025 (NIP mengandung 202506)
+     */
+    public function getIsCpns2025Attribute(): bool
+    {
+        if (empty($this->nip)) {
+            return false;
+        }
+        $cleanNip = preg_replace('/\s+/', '', (string) $this->nip);
+        return str_contains($cleanNip, '202506');
+    }
 
     /**
      * Accessor: Cek apakah pegawai bertugas di Seksi Konservasi Wilayah (I, II, atau III)

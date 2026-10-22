@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { authStore, parseAuthSnapshot } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { Calendar, Send, X, MapPin, Phone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,11 @@ const JENIS_CUTI_OPTIONS = [
 export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDialogProps) {
   const todayStr = new Date().toISOString().split("T")[0];
   const currentYear = new Date().getFullYear();
+
+  const currentUser = parseAuthSnapshot(authStore.getSnapshot()).user;
+  const cleanNip = (currentUser?.username || "").replace(/\s+/g, "");
+  // PPPK: digit ke 13-14 pada NIP bernilai '21'
+  const isPppkUser = cleanNip.length >= 14 && cleanNip.substring(12, 14) === "21";
 
   const [leaveBalance, setLeaveBalance] = useState<{
     sisa_cuti_tersedia: number;
@@ -112,6 +118,15 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     ? selectedLeaveType.hitung_hari === "hari_kerja"
     : form.jenis_cuti.toLowerCase().includes("tahunan");
 
+  // Opsi jenis cuti: untuk PPPK opsi 'Cuti Karena Alasan Penting' otomatis disembunyikan
+  const availableLeaveOptions = useMemo(() => {
+    const baseList = leaveTypes.length > 0 ? leaveTypes.map((lt) => lt.nama) : JENIS_CUTI_OPTIONS;
+    if (isPppkUser) {
+      return baseList.filter((nama) => !nama.toLowerCase().includes("alasan penting"));
+    }
+    return baseList;
+  }, [leaveTypes, isPppkUser]);
+
   const calculatedDays = React.useMemo(() => {
     if (!form.tanggal_mulai || !form.tanggal_selesai) return 1;
     const [sy, sm, sd] = form.tanggal_mulai.split("-").map(Number);
@@ -195,6 +210,10 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
           onSubmit={(e) => {
             e.preventDefault();
             if (submitMutation.isPending) return;
+            if (isPppkUser && form.jenis_cuti.toLowerCase().includes("alasan penting")) {
+              toast.error("Pegawai PPPK tidak berhak mengajukan Cuti Karena Alasan Penting.");
+              return;
+            }
             if (calculatedDays <= 0) {
               toast.error("Tanggal selesai tidak boleh sebelum tanggal mulai.");
               return;
@@ -260,13 +279,11 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               onChange={(e) => setForm({ ...form, jenis_cuti: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
             >
-              {(leaveTypes.length > 0 ? leaveTypes.map((lt) => lt.nama) : JENIS_CUTI_OPTIONS).map(
-                (opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                )
-              )}
+              {availableLeaveOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
             </select>
           </div>
 

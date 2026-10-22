@@ -79,7 +79,7 @@ class EmployeeLeave extends Model
      */
     public function getTotalHakCutiAttribute(): int
     {
-        $n = (int) ($this->hak_cuti_n ?: 12);
+        $n = $this->hak_cuti_n !== null ? (int) $this->hak_cuti_n : 12;
         return $n + $this->hak_n1_diakui + $this->hak_n2_diakui;
     }
 

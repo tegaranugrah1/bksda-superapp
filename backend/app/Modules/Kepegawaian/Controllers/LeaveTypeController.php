@@ -42,6 +42,15 @@ class LeaveTypeController extends Controller
             });
         }
 
+        // Filter out Cuti Karena Alasan Penting untuk pegawai PPPK (P3K)
+        if ($user) {
+            $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+            if ($employee && $employee->is_pppk) {
+                $query->where('kode', '!=', 'CAP')
+                      ->whereRaw("LOWER(nama) NOT LIKE '%alasan penting%'");
+            }
+        }
+
         $items = $query->orderBy('urutan', 'asc')->orderBy('id', 'asc')->get();
 
         return response()->json([

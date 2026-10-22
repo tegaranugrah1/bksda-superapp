@@ -52,12 +52,18 @@ class EmployeeLeaveController extends Controller
                 ->where('year', $year - 2)
                 ->first();
 
+            $isCpns2025 = $employee->is_cpns2025;
+            $defaultHakN = ($isCpns2025 && $year === 2025) ? 0 : 12;
+            $defaultSisaN1 = ($isCpns2025 && $year === 2026)
+                ? 0
+                : ($prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0);
+
             // Create in-memory draft if not saved in DB yet
             $leave = new EmployeeLeave([
                 'employee_id' => $employeeId,
                 'year' => $year,
-                'hak_cuti_n' => 12,
-                'sisa_cuti_n1' => $prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0,
+                'hak_cuti_n' => $defaultHakN,
+                'sisa_cuti_n1' => $defaultSisaN1,
                 'cuti_terpakai_n1' => $prevLeave ? (int) $prevLeave->cuti_terpakai_n0 : 0,
                 'sisa_cuti_n2' => $prev2Leave ? max(0, $prev2Leave->sisa_cuti_tersedia) : 0,
                 'cuti_terpakai_n2' => $prev2Leave ? (int) $prev2Leave->cuti_terpakai_n0 : 0,
