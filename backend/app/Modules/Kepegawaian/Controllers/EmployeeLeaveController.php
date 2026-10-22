@@ -143,7 +143,7 @@ class EmployeeLeaveController extends Controller
         $employee = Employee::findOrFail($employeeId);
 
         $validated = $request->validate([
-            'nomor_pengajuan' => 'required|string|max:255',
+            'nomor_pengajuan' => 'nullable|string|max:255',
             'tanggal_pengajuan' => 'required|date',
             'jenis_cuti' => 'required|string|max:100',
             'alasan_cuti' => 'nullable|string|max:500',
@@ -184,7 +184,7 @@ class EmployeeLeaveController extends Controller
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
-                'nomor_pengajuan' => strip_tags(trim($validated['nomor_pengajuan'])),
+                'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
                 'jenis_cuti' => strip_tags(trim($validated['jenis_cuti'])),
                 'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'] ?? $validated['jenis_cuti'])),
@@ -257,7 +257,7 @@ class EmployeeLeaveController extends Controller
         $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->findOrFail($requestId);
 
         $validated = $request->validate([
-            'nomor_pengajuan' => 'required|string|max:255',
+            'nomor_pengajuan' => 'nullable|string|max:255',
             'tanggal_pengajuan' => 'required|date',
             'jenis_cuti' => 'required|string|max:100',
             'alasan_cuti' => 'nullable|string|max:500',
@@ -280,7 +280,7 @@ class EmployeeLeaveController extends Controller
         DB::beginTransaction();
         try {
             $updatePayload = [
-                'nomor_pengajuan' => strip_tags(trim($validated['nomor_pengajuan'])),
+                'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
                 'jenis_cuti' => strip_tags(trim($validated['jenis_cuti'])),
                 'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'] ?? $validated['jenis_cuti'])),

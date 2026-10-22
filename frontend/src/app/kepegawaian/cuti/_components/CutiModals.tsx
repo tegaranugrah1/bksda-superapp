@@ -9,7 +9,7 @@ export { ScanViewerModal } from "./ScanViewerModal";
 
 export interface LeaveRequestItem {
   id: number;
-  nomor_pengajuan: string;
+  nomor_pengajuan: string | null;
   tanggal_pengajuan: string;
   jenis_cuti: string;
   alasan_cuti: string;
@@ -48,6 +48,7 @@ export interface LeaveRequestItem {
 }
 
 export interface EditFormState {
+  nomor_pengajuan: string;
   jenis_cuti: string;
   alasan_cuti: string;
   tanggal_mulai: string;
@@ -98,6 +99,22 @@ export function EditLeaveModal({
           }}
           className="space-y-4 text-xs"
         >
+          <div>
+            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+              Nomor Surat Penetapan Resmi (SI)
+            </label>
+            <input
+              type="text"
+              value={editForm.nomor_pengajuan}
+              onChange={(e) => setEditForm({ ...editForm, nomor_pengajuan: e.target.value })}
+              placeholder="Contoh: SI.12/K.18/TU/KSA/03/2026 (kosongkan jika belum diterbitkan)"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-[10px] text-slate-400 mt-0.5 block">
+              Nomor surat penetapan diisi oleh admin kepegawaian setelah surat izin terbit.
+            </span>
+          </div>
+
           <div>
             <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Jenis Cuti</label>
             <select

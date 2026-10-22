@@ -147,9 +147,13 @@ export function MyLeaveTab({
                       );
                     })()}
                   </div>
-                  {item.nomor_pengajuan && (
+                  {item.nomor_pengajuan ? (
                     <div className="font-mono text-[10px] text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-900 px-1.5 py-0.5 rounded mt-1 inline-block">
                       SI: {item.nomor_pengajuan}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-slate-400 dark:text-slate-500 italic mt-1">
+                      (Nomor surat penetapan belum diterbitkan)
                     </div>
                   )}
                 </div>
@@ -173,6 +177,12 @@ export function MyLeaveTab({
                     <span>{item.alasan_cuti}</span>
                   )}
                 </p>
+                {item.catatan_atasan && (
+                  <div className="text-[11px] text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 rounded-lg p-2 font-medium mt-1.5">
+                    <span className="font-bold">Catatan Persetujuan: </span>
+                    {item.catatan_atasan}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200/40 dark:border-slate-800 text-[11px]">

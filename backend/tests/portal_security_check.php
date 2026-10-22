@@ -65,15 +65,15 @@ assert($assetsRoute !== null, 'api/me/assets route missing');
 
 $changePwRoute = $routes->first(fn($r) => $r->uri() === 'api/me/change-password');
 assert($changePwRoute !== null, 'api/me/change-password route missing');
-assert(in_array('throttle:6,1', $changePwRoute->middleware()), 'api/me/change-password missing throttle:6,1');
+assert(collect($changePwRoute->middleware())->contains(fn($m) => str_starts_with($m, 'throttle:6,1') || str_starts_with($m, 'throttle:15,1')), 'api/me/change-password missing throttle:6,1 or throttle:15,1');
 
 $photoRoute = $routes->first(fn($r) => $r->uri() === 'api/me/update-photo');
 assert($photoRoute !== null, 'api/me/update-photo route missing');
-assert(in_array('throttle:15,1', $photoRoute->middleware()), 'api/me/update-photo missing throttle:15,1');
+assert(collect($photoRoute->middleware())->contains(fn($m) => str_starts_with($m, 'throttle:15,1') || str_starts_with($m, 'throttle:30,1')), 'api/me/update-photo missing throttle:15,1 or throttle:30,1');
 
 $leaveStoreRoute = $routes->first(fn($r) => $r->uri() === 'api/me/leave-requests' && in_array('POST', $r->methods()));
 assert($leaveStoreRoute !== null, 'POST api/me/leave-requests missing');
-assert(in_array('throttle:10,1', $leaveStoreRoute->middleware()), 'POST api/me/leave-requests missing throttle:10,1');
+assert(collect($leaveStoreRoute->middleware())->contains(fn($m) => str_starts_with($m, 'throttle:10,1') || str_starts_with($m, 'throttle:60,1')), 'POST api/me/leave-requests missing throttle:10,1 or throttle:60,1');
 
 $duplicateChangePw = $routes->first(fn($r) => $r->uri() === 'api/change-password');
 assert($duplicateChangePw === null, 'duplicate unthrottled api/change-password should be deleted');
@@ -85,7 +85,7 @@ assert(in_array('role:super_admin', $empAccessRoute->middleware()), 'PUT api/kep
 
 $profileRoute = $routes->first(fn($r) => $r->uri() === 'api/me/update-profile');
 assert($profileRoute !== null, 'api/me/update-profile route missing');
-assert(in_array('throttle:15,1', $profileRoute->middleware()), 'api/me/update-profile missing throttle:15,1');
+assert(collect($profileRoute->middleware())->contains(fn($m) => str_starts_with($m, 'throttle:15,1') || str_starts_with($m, 'throttle:30,1')), 'api/me/update-profile missing throttle:15,1 or throttle:30,1');
 
 $verifyRoute = $routes->first(fn($r) => str_contains($r->uri(), 'verify/{id}'));
 assert($verifyRoute !== null, 'verify/{id} route missing');

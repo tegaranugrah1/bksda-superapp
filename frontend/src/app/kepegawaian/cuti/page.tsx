@@ -60,6 +60,7 @@ export default function InboxSuratCutiPage() {
 
   // Edit form state
   const [editForm, setEditForm] = useState({
+    nomor_pengajuan: "",
     jenis_cuti: "Cuti Tahunan",
     alasan_cuti: "",
     tanggal_mulai: "",
@@ -221,6 +222,7 @@ export default function InboxSuratCutiPage() {
     setEditItem(item);
     const defaultMasaKerja = calculateMasaKerja(item.employee?.nip, item.employee?.nama_lengkap);
     setEditForm({
+      nomor_pengajuan: item.nomor_pengajuan || "",
       jenis_cuti: item.jenis_cuti || "Cuti Tahunan",
       alasan_cuti: item.alasan_cuti || "",
       tanggal_mulai: item.tanggal_mulai || "",
@@ -367,7 +369,7 @@ export default function InboxSuratCutiPage() {
                         </span>
                       ) : (
                         <span className="text-[10px] text-amber-700 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-md mt-1 inline-block border border-amber-200/60 dark:border-amber-900 font-medium">
-                          Pengajuan Portal
+                          Belum Ada Nomor
                         </span>
                       )}
                     </td>
@@ -390,6 +392,11 @@ export default function InboxSuratCutiPage() {
                         <span className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
                           {item.alasan_cuti}
                         </span>
+                      )}
+                      {item.catatan_atasan && (
+                        <div className="mt-1 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800 truncate" title={`Catatan Atasan: ${item.catatan_atasan}`}>
+                          <span className="font-semibold">Catatan:</span> {item.catatan_atasan}
+                        </div>
                       )}
                     </td>
 

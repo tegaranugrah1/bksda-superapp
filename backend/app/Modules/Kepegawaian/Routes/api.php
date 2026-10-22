@@ -7,12 +7,16 @@ use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
 
-// Protected routes for internal employee selection & templates (requires login)
+// Protected routes for internal employee selection, templates, & master cuti (requires login)
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/employees/select', [EmployeeController::class, 'select'])
         ->middleware('throttle:120,1');
     Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
         ->middleware('throttle:120,1');
+    Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index'])
+        ->middleware('throttle:240,1,leave_types');
+    Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show'])
+        ->middleware('throttle:240,1,leave_types_show');
 });
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
@@ -63,9 +67,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::delete('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'destroy']);
     });
 
-    // --- MASTER JENIS SURAT CUTI ---
-    Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index']);
-    Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show']);
+    // --- MASTER JENIS SURAT CUTI (ADMIN MUTATIONS) ---
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'store']);
         Route::put('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'update']);

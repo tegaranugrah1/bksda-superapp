@@ -4,10 +4,11 @@ import React from "react";
 
 export interface LeaveRequestPrintData {
   id?: number;
-  nomor_pengajuan?: string;
+  nomor_pengajuan?: string | null;
   tanggal_pengajuan: string;
   jenis_cuti: string;
   alasan_cuti: string;
+  catatan_atasan?: string | null;
   jumlah_hari: number;
   tanggal_mulai: string;
   tanggal_selesai: string;
@@ -359,7 +360,12 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           </tr>
           <tr>
             <td colSpan={4} className="p-2">
-              <div className="flex justify-end">
+              <div className="flex justify-between items-end">
+                <div className="text-left text-[9px] max-w-[50%]">
+                  {data.catatan_atasan && (
+                    <p className="italic text-gray-700">Catatan: {data.catatan_atasan}</p>
+                  )}
+                </div>
                 <div className="text-center w-70 h-20 flex flex-col justify-between">
                   <p className="text-[9px] font-semibold">{atasanTitle},</p>
                   <div className="h-6" />

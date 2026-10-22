@@ -246,7 +246,7 @@ class EmployeeLeaveRequestController extends Controller
         try {
             $leaveReq = EmployeeLeaveRequest::create([
                 'employee_id' => $employee->id,
-                'nomor_pengajuan' => 'CUTI/' . $year . '/' . sprintf('%03d', (EmployeeLeaveRequest::withTrashed()->max('id') ?? 0) + 1),
+                'nomor_pengajuan' => null, // Saat pengajuan belum ada nomornya dahulu, nanti diisi oleh admin kepegawaian
                 'tanggal_pengajuan' => Carbon::now()->format('Y-m-d'),
                 'jenis_cuti' => $validated['jenis_cuti'],
                 'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'])),
@@ -757,6 +757,7 @@ class EmployeeLeaveRequestController extends Controller
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
 
         $validated = $request->validate([
+            'nomor_pengajuan' => 'nullable|string|max:255',
             'jenis_cuti' => 'required|string',
             'alasan_cuti' => 'required|string',
             'tanggal_mulai' => 'required|date',
@@ -798,7 +799,7 @@ class EmployeeLeaveRequestController extends Controller
                 }
             }
 
-            $leaveReq->update([
+            $updateFields = [
                 'jenis_cuti' => $validated['jenis_cuti'],
                 'alasan_cuti' => $validated['alasan_cuti'],
                 'jumlah_hari' => $newJumlahHari,
@@ -807,7 +808,12 @@ class EmployeeLeaveRequestController extends Controller
                 'alamat_menjalankan_cuti' => $validated['alamat_menjalankan_cuti'],
                 'telepon' => $validated['telepon'],
                 'masa_kerja' => $validated['masa_kerja'] ?? $leaveReq->masa_kerja,
-            ]);
+            ];
+            if (array_key_exists('nomor_pengajuan', $validated)) {
+                $updateFields['nomor_pengajuan'] = !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null;
+            }
+
+            $leaveReq->update($updateFields);
 
             if ($newIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $newYear = Carbon::parse($validated['tanggal_mulai'])->year;

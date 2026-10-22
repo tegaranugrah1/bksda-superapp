@@ -59,13 +59,21 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
         })
         .catch(() => {});
 
-      api.get("/api/kepegawaian/leave-types")
+      api.get("/me/leave-types")
         .then((res) => {
           if (res?.data?.data && Array.isArray(res.data.data)) {
             setLeaveTypes(res.data.data);
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          api.get("/kepegawaian/leave-types")
+            .then((res) => {
+              if (res?.data?.data && Array.isArray(res.data.data)) {
+                setLeaveTypes(res.data.data);
+              }
+            })
+            .catch(() => {});
+        });
     }
   }, [open, currentYear]);
 
