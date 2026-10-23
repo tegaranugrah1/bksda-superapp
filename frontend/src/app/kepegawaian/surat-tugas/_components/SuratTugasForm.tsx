@@ -61,6 +61,8 @@ import {
   isBuruhEmployee,
   syncEmployeesWithBuruhCount,
   extractBuruhCount,
+  getEmployeeCity,
+  detectDefaultKotaAsal,
   type DasarItem,
   type Employee,
   type StTemplate,
@@ -218,6 +220,8 @@ export function SuratTugasForm({
   const [employeeDates, setEmployeeDates] = useState<
     Record<string, { mulai: string; selesai: string }>
   >({});
+  const [employeeDepartures, setEmployeeDepartures] = useState<Record<string, string>>({});
+  const [showDepartureColumn, setShowDepartureColumn] = useState(false);
   const [judulLampiranBedaHari, setJudulLampiranBedaHari] = useState(
     "DAFTAR PEGAWAI MENGIKUTI PATROLI"
   );
@@ -411,53 +415,24 @@ export function SuratTugasForm({
       setKotaAsal("Samarinda");
       return;
     }
-    const depts = selectedEmployees
-      .filter((e) => !isBuruhEmployee(e))
-      .map((e) =>
-        ((e as any).department || (e as any).satuan_kerja || "").toLowerCase()
-      );
-
-    const isAllSeksi1 = depts.every(
-      (d) =>
-        d.includes("seksi i") ||
-        d.includes("seksi 1") ||
-        d.includes("wilayah i") ||
-        d.includes("berau") ||
-        d.includes("skw i")
-    );
-    if (isAllSeksi1) {
-      setKotaAsal("Berau");
-      return;
+    if (mode === "create") {
+      setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
     }
+  }, [selectedEmployees, mode]);
 
-    const isAllSeksi2 = depts.every(
-      (d) =>
-        d.includes("seksi ii") ||
-        d.includes("seksi 2") ||
-        d.includes("wilayah ii") ||
-        d.includes("tenggarong") ||
-        d.includes("skw ii")
-    );
-    if (isAllSeksi2) {
-      setKotaAsal("Tenggarong");
-      return;
-    }
-
-    const isAllSeksi3 = depts.every(
-      (d) =>
-        d.includes("seksi iii") ||
-        d.includes("seksi 3") ||
-        d.includes("wilayah iii") ||
-        d.includes("balikpapan") ||
-        d.includes("skw iii")
-    );
-    if (isAllSeksi3) {
-      setKotaAsal("Balikpapan");
-      return;
-    }
-
-    setKotaAsal("Samarinda");
-  }, [selectedEmployees]);
+  // Sinkronisasi tempat keberangkatan default untuk setiap personel
+  useEffect(() => {
+    setEmployeeDepartures((prev) => {
+      const next = { ...prev };
+      selectedEmployees.forEach((emp) => {
+        const empKey = String(emp.id);
+        if (!next[empKey]) {
+          next[empKey] = getEmployeeCity(emp, kotaAsal || "Samarinda");
+        }
+      });
+      return next;
+    });
+  }, [selectedEmployees, kotaAsal]);
 
   // Edit Mode: Fetch and hydrate existing letter
   useEffect(() => {
@@ -603,6 +578,24 @@ export function SuratTugasForm({
             ...snapshotConfig.employee_dates as Record<string, { mulai: string; selesai: string }>,
             ...prev,
           }));
+        }
+        if (
+          snapshotConfig.employee_departures &&
+          typeof snapshotConfig.employee_departures === "object" &&
+          !Array.isArray(snapshotConfig.employee_departures)
+        ) {
+          setEmployeeDepartures((prev) => ({
+            ...snapshotConfig.employee_departures as Record<string, string>,
+            ...prev,
+          }));
+        }
+        if (typeof snapshotConfig.show_departure_column === "boolean") {
+          setShowDepartureColumn(snapshotConfig.show_departure_column);
+        } else if (
+          typeof snapshotConfig.show_departure_column === "number" ||
+          typeof snapshotConfig.show_departure_column === "string"
+        ) {
+          setShowDepartureColumn(Boolean(Number(snapshotConfig.show_departure_column)));
         }
         if (typeof snapshotConfig.header_title === "string") {
           setHeaderTitle(snapshotConfig.header_title);
@@ -1389,6 +1382,8 @@ export function SuratTugasForm({
           configuration: {
             judul_lampiran_beda_hari: judulLampiranBedaHari,
             employee_dates: employeeDates,
+            employee_departures: showDepartureColumn ? employeeDepartures : {},
+            show_departure_column: showDepartureColumn,
           },
         }
       : undefined;
@@ -1767,24 +1762,53 @@ export function SuratTugasForm({
                 )}
               </div>
 
-              {/* Judul Lampiran Beda Hari */}
+              {/* Judul Lampiran & Opsi Kolom Tempat Keberangkatan (Beda Hari) */}
               {isBedaHariTemplate && (
-                <div className="space-y-1.5 p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900/50">
-                  <label className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Judul Lampiran Beda Hari
-                  </label>
-                  <input
-                    type="text"
-                    value={judulLampiranBedaHari}
-                    disabled={isPublished}
-                    onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
-                    placeholder="DAFTAR PEGAWAI MENGIKUTI PATROLI"
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-semibold outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
-                  />
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
-                    Judul tabel lampiran untuk jadwal masing-masing personel.
-                  </p>
+                <div className="space-y-2 p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900/50">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Judul Lampiran Beda Hari
+                    </label>
+                    <input
+                      type="text"
+                      value={judulLampiranBedaHari}
+                      disabled={isPublished}
+                      onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
+                      placeholder="DAFTAR PEGAWAI MENGIKUTI PATROLI"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-semibold outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                      Judul tabel lampiran untuk jadwal masing-masing personel.
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-blue-200/60 dark:border-blue-900/40 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                        Sertakan Kolom Tempat Keberangkatan?
+                      </p>
+                      <p className="text-[10px] text-blue-700/90 dark:text-blue-400/90 leading-tight">
+                        Tampilkan kolom Tempat Keberangkatan pada tabel lampiran Halaman 2.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isPublished}
+                      onClick={() => setShowDepartureColumn((prev) => !prev)}
+                      className={cn(
+                        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50",
+                        showDepartureColumn ? "bg-blue-600" : "bg-slate-300 dark:bg-zinc-700"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                          showDepartureColumn ? "translate-x-4" : "translate-x-0"
+                        )}
+                      />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1909,7 +1933,7 @@ export function SuratTugasForm({
                       </div>
 
                       {isBedaHariTemplate && (
-                        <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-700/70 grid grid-cols-2 gap-2">
+                        <div className={cn("pt-2 border-t border-slate-200/70 dark:border-zinc-700/70 grid gap-2", showDepartureColumn ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2")}>
                           <div className="space-y-1">
                             <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
                               <Calendar className="w-2.5 h-2.5 text-blue-500" />
@@ -1954,6 +1978,28 @@ export function SuratTugasForm({
                               className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                             />
                           </div>
+                          {showDepartureColumn && (
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
+                                Keberangkatan
+                              </label>
+                              <input
+                                type="text"
+                                list="builder-keberangkatan-suggestions"
+                                value={employeeDepartures[empKey] || employeeDepartures[emp.id] || getEmployeeCity(emp) || kotaAsal || "Samarinda"}
+                                disabled={isPublished}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setEmployeeDepartures((prev) => ({
+                                    ...prev,
+                                    [empKey]: val,
+                                  }));
+                                }}
+                                placeholder="Kota Asal"
+                                className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2239,13 +2285,25 @@ export function SuratTugasForm({
               kopImageUrl={kopImageUrl}
               templateType={templateType}
               employeeDates={employeeDates}
+              employeeDepartures={employeeDepartures}
+              showDepartureColumn={isBedaHariTemplate && showDepartureColumn}
+              defaultTanggalMulai={tanggalMulai}
+              defaultTanggalSelesai={tanggalSelesai}
               judulLampiranBedaHari={judulLampiranBedaHari}
               sumberDana={sumberDana}
             />
           </div>
         </div>
       </main>
+
+      <datalist id="builder-keberangkatan-suggestions">
+        <option value="Samarinda" />
+        <option value="Balikpapan" />
+        <option value="Tenggarong" />
+        <option value="Berau" />
+      </datalist>
     </div>
   );
 }
 export default SuratTugasForm;
+

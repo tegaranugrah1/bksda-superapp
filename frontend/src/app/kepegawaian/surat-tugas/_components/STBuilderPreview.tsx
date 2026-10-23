@@ -136,6 +136,11 @@ interface PreviewProps {
   sumberDana?: string;
   templateType?: string | null;
   employeeDates?: Record<string, EmployeeDateRange>;
+  employeeDepartures?: Record<string, string>;
+  showDepartureColumn?: boolean;
+  enableLampiran?: boolean;
+  defaultTanggalMulai?: string;
+  defaultTanggalSelesai?: string;
   judulLampiranBedaHari?: string;
   kopImageUrl?: string | null;
 }
@@ -165,6 +170,11 @@ export default function STBuilderPreview({
   sumberDana = "dipa",
   templateType = null,
   employeeDates = {},
+  employeeDepartures = {},
+  showDepartureColumn,
+  enableLampiran = false,
+  defaultTanggalMulai,
+  defaultTanggalSelesai,
   judulLampiranBedaHari = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
   kopImageUrl = null,
 }: PreviewProps) {
@@ -178,8 +188,10 @@ export default function STBuilderPreview({
   const activeMandate = signerAuthorityMandate !== undefined 
     ? signerAuthorityMandate 
     : (isFolu ? "a.n. Sekretaris Direktorat Jenderal KSDAE\nselaku Koordinator Kegiatan Implementing\nPartner FOLU NC 2&3" : null);
-  const isBmnTemplate = templateType === "bmn-pemeriksaan";
-  const isBedaHariTemplate = templateType === "beda-hari";
+  const isBmnTemplate = templateType === "bmn-pemeriksaan" || templateType === "bmn";
+  const isBedaHariTemplate = templateType === "beda-hari" || templateType === "beda_hari";
+  const isLampiranActive = isBedaHariTemplate;
+  const activeShowDepartureColumn = isBedaHariTemplate && Boolean(showDepartureColumn);
   const isPlhTemplate = templateType === "plh";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
@@ -352,7 +364,7 @@ export default function STBuilderPreview({
                     <td style={{ width: "110px", verticalAlign: "top", padding: "1px 0" }}>Kepada</td>
                     <td style={{ width: "12px", verticalAlign: "top", padding: "1px 0" }}>:</td>
                     <td style={{ verticalAlign: "top", padding: "1px 0" }}>
-                      {isBedaHariTemplate ? (
+                      {isLampiranActive ? (
                         <div style={{ padding: "2px 0" }}>Daftar nama terlampir.</div>
                       ) : selectedEmployees.length === 0 ? (
                         <div style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
@@ -567,8 +579,8 @@ export default function STBuilderPreview({
         </tbody>
       </table>
 
-      {/* === HALAMAN 2: LAMPIRAN BEDA HARI === */}
-      {isBedaHariTemplate && (
+      {/* === HALAMAN 2: LAMPIRAN (BEDA HARI / TEMPAT KEBERANGKATAN) === */}
+      {isLampiranActive && (
         <div
           className="st-lampiran-page-wrapper"
           style={{
@@ -588,6 +600,11 @@ export default function STBuilderPreview({
             tanggalSurat={tanggalSurat}
             selectedEmployees={selectedEmployees}
             employeeDates={employeeDates}
+            employeeDepartures={employeeDepartures}
+            showDepartureColumn={activeShowDepartureColumn}
+            defaultTanggalMulai={defaultTanggalMulai}
+            defaultTanggalSelesai={defaultTanggalSelesai}
+            defaultKotaAsal={kotaSurat}
             kepalaBalai={kepalaBalai}
             judulLampiran={judulLampiranBedaHari}
           />

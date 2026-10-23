@@ -424,15 +424,30 @@ class AssignmentLetterController extends Controller
                 'template_type' => $validated['template_type'] ?? null,
                 'template_id' => $template?->id,
                 'template_version' => $template?->version,
-                'template_snapshot' => $this->templateService->snapshot(
-                    $template,
-                    [
-                        'menimbang' => $validated['menimbang'] ?? null,
-                        'dasar' => $validated['dasar'] ?? null,
-                        'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
-                        'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
-                    ]
-                ),
+                'template_snapshot' => (function () use ($template, $validated, $request) {
+                    $baseSnapshot = $this->templateService->snapshot(
+                        $template,
+                        [
+                            'menimbang' => $validated['menimbang'] ?? null,
+                            'dasar' => $validated['dasar'] ?? null,
+                            'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
+                            'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
+                        ]
+                    );
+                    $reqSnapshot = $request->input('template_snapshot');
+                    if (is_array($reqSnapshot)) {
+                        if ($baseSnapshot) {
+                            $baseConfig = $baseSnapshot['configuration'] ?? [];
+                            $reqConfig = $reqSnapshot['configuration'] ?? [];
+                            if (is_array($reqConfig)) {
+                                $baseSnapshot['configuration'] = array_merge($baseConfig, $reqConfig);
+                            }
+                            return $baseSnapshot;
+                        }
+                        return $reqSnapshot;
+                    }
+                    return $baseSnapshot;
+                })(),
                 'menimbang' => $validated['menimbang'] ?? null,
                 'dasar' => $validated['dasar'] ?? null,
                 'tembusan' => $validated['tembusan'] ?? null,
@@ -561,14 +576,30 @@ class AssignmentLetterController extends Controller
                 'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
                 'template_type' => $validated['template_type'] ?? null,
                 'template_id' => $validated['template_id'] ?? $surat->template_id,
-                'template_snapshot' => $updateTemplate
-                    ? $this->templateService->snapshot($updateTemplate, [
-                        'menimbang' => $request->input('menimbang', $surat->menimbang),
-                        'dasar' => $request->input('dasar', $surat->dasar),
-                        'penandatangan_nama' => $validated['penandatangan_nama'] ?? $surat->penandatangan_nama,
-                        'penandatangan_nip' => $validated['penandatangan_nip'] ?? $surat->penandatangan_nip,
-                    ])
-                    : $surat->template_snapshot,
+                'template_snapshot' => (function () use ($updateTemplate, $validated, $request, $surat) {
+                    $baseSnapshot = $updateTemplate
+                        ? $this->templateService->snapshot($updateTemplate, [
+                            'menimbang' => $request->input('menimbang', $surat->menimbang),
+                            'dasar' => $request->input('dasar', $surat->dasar),
+                            'penandatangan_nama' => $validated['penandatangan_nama'] ?? $surat->penandatangan_nama,
+                            'penandatangan_nip' => $validated['penandatangan_nip'] ?? $surat->penandatangan_nip,
+                        ])
+                        : ($surat->template_snapshot ?? []);
+
+                    $reqSnapshot = $request->input('template_snapshot');
+                    if (is_array($reqSnapshot)) {
+                        if ($baseSnapshot) {
+                            $baseConfig = $baseSnapshot['configuration'] ?? [];
+                            $reqConfig = $reqSnapshot['configuration'] ?? [];
+                            if (is_array($reqConfig)) {
+                                $baseSnapshot['configuration'] = array_merge($baseConfig, $reqConfig);
+                            }
+                            return $baseSnapshot;
+                        }
+                        return $reqSnapshot;
+                    }
+                    return $baseSnapshot;
+                })(),
                 'template_version' => $updateTemplate?->version ?? $surat->template_version,
                 'menimbang' => $request->input('menimbang', $surat->menimbang),
                 'dasar' => $request->input('dasar', $surat->dasar),

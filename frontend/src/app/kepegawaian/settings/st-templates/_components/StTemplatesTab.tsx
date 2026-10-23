@@ -36,9 +36,9 @@ import {
 type TemplateKind = StTemplate["type"];
 
 const TEMPLATE_TYPES: Array<{ value: TemplateKind; label: string }> = [
-  { value: "standard", label: "Standard" },
+  { value: "standard", label: "Standard (Tanpa Lampiran)" },
   { value: "bmn", label: "BMN" },
-  { value: "beda_hari", label: "Beda Hari" },
+  { value: "beda_hari", label: "Beda Hari (Ada Lampiran Tabel Jadwal)" },
   { value: "plh", label: "PLH" },
   { value: "custom", label: "Custom" },
 ];
@@ -684,6 +684,11 @@ export function StTemplatesTab() {
                       </option>
                     ))}
                   </select>
+                  {templateType === "beda_hari" && (
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 leading-relaxed">
+                      Template Beda Hari otomatis menyertakan <b>Lampiran Surat Tugas (Halaman 2)</b> untuk tabel jadwal masing-masing personil, dan bagian &ldquo;Kepada&rdquo; di halaman 1 otomatis bertuliskan <i>&ldquo;Daftar nama terlampir.&rdquo;</i>.
+                    </p>
+                  )}
                 </label>
                 <div className="flex flex-col justify-center space-y-2 pt-2 sm:pt-4">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1633,16 +1638,50 @@ export function StTemplatesTab() {
                                 },
                               ]
                         }
+                        templateType={templateType}
                         untukItems={untukItems}
-                        selectedEmployees={[
-                          {
-                            id: "emp-sample-1",
-                            nama_lengkap: "Contoh Pelaksana Tugas, S.Hut.",
-                            name: "Contoh Pelaksana Tugas, S.Hut.",
-                            nip: "19850101 201001 1 001",
-                            jabatan: "Pengendali Ekosistem Hutan",
+                        selectedEmployees={
+                          templateType === "beda_hari"
+                            ? [
+                                {
+                                  id: "emp-sample-1",
+                                  nama_lengkap: "Contoh Pelaksana Tugas 1, S.Hut.",
+                                  name: "Contoh Pelaksana Tugas 1, S.Hut.",
+                                  nip: "19850101 201001 1 001",
+                                  jabatan: "Pengendali Ekosistem Hutan",
+                                },
+                                {
+                                  id: "emp-sample-2",
+                                  nama_lengkap: "Contoh Pelaksana Tugas 2, A.Md.",
+                                  name: "Contoh Pelaksana Tugas 2, A.Md.",
+                                  nip: "19900202 201502 1 002",
+                                  jabatan: "Polisi Kehutanan Terampil",
+                                },
+                              ]
+                            : [
+                                {
+                                  id: "emp-sample-1",
+                                  nama_lengkap: "Contoh Pelaksana Tugas, S.Hut.",
+                                  name: "Contoh Pelaksana Tugas, S.Hut.",
+                                  nip: "19850101 201001 1 001",
+                                  jabatan: "Pengendali Ekosistem Hutan",
+                                },
+                              ]
+                        }
+                        employeeDates={{
+                          "emp-sample-1": {
+                            mulai: `${currentYear}-09-15`,
+                            selesai: `${currentYear}-09-17`,
                           },
-                        ]}
+                          "emp-sample-2": {
+                            mulai: `${currentYear}-09-16`,
+                            selesai: `${currentYear}-09-19`,
+                          },
+                        }}
+                        employeeDepartures={{
+                          "emp-sample-1": "Samarinda",
+                          "emp-sample-2": "Balikpapan",
+                        }}
                         buildUntukText={() =>
                           defaultKegiatan.trim() ||
                           "Melaksanakan koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi."
@@ -1717,7 +1756,17 @@ export function StTemplatesTab() {
                           {template.description || "Tidak ada deskripsi"}
                         </div>
                       </td>
-                      <td className="px-5 py-4 uppercase font-mono text-xs">{template.type}</td>
+                      <td className="px-5 py-4 text-xs">
+                        {template.type === "beda_hari" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/60">
+                            Beda Hari • Ada Lampiran
+                          </span>
+                        ) : (
+                          <span className="uppercase font-mono text-xs text-slate-600 dark:text-zinc-400">
+                            {template.type}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-5 py-4 text-xs">
                         <div className="font-medium text-slate-700 dark:text-zinc-200">
                           {template.default_signer_name || "Default manual"}

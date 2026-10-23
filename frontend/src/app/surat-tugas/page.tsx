@@ -17,6 +17,12 @@ import {
 } from "./_components/SuratTugasDetailStep";
 import { SuratTugasSuccessStep } from "./_components/SuratTugasSuccessStep";
 
+import {
+  getEmployeeCity,
+  formatKotaAsal,
+  detectDefaultKotaAsal,
+} from "@/app/kepegawaian/surat-tugas/_lib";
+
 export default function SuratTugasForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -80,71 +86,31 @@ export default function SuratTugasForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBedaHari, setIsBedaHari] = useState(false);
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
+  const [employeeDepartures, setEmployeeDepartures] = useState<Record<string, string>>({});
+  const [showDepartureColumn, setShowDepartureColumn] = useState(false);
   const [hasBuruh, setHasBuruh] = useState(false);
   const [jumlahBuruh, setJumlahBuruh] = useState(1);
 
-  // Helper: Dapatkan kota penempatan untuk seorang pegawai
-  const getEmployeeCity = (emp: Employee): string => {
-    // 1. Prioritaskan flag resmi backend seksi_wilayah
-    if (emp.seksi_wilayah === "I") return "Berau";
-    if (emp.seksi_wilayah === "II") return "Tenggarong";
-    if (emp.seksi_wilayah === "III") return "Balikpapan";
-
-    // 2. Fallback pencocokan string satuan_kerja / department
-    // Urutkan III -> II -> I untuk menghindari tabrakan substring romawi
-    const dept = (emp.department || "").toLowerCase();
-
-    if (
-      dept.includes("wilayah iii") ||
-      dept.includes("wil iii") ||
-      dept.includes("seksi iii") ||
-      dept.includes("skw iii") ||
-      dept.includes("seksi 3") ||
-      dept.includes("balikpapan")
-    ) {
-      return "Balikpapan";
-    }
-
-    if (
-      dept.includes("wilayah ii") ||
-      dept.includes("wil ii") ||
-      dept.includes("seksi ii") ||
-      dept.includes("skw ii") ||
-      dept.includes("seksi 2") ||
-      dept.includes("tenggarong")
-    ) {
-      return "Tenggarong";
-    }
-
-    if (
-      dept.includes("wilayah i") ||
-      dept.includes("wil i") ||
-      dept.includes("seksi i") ||
-      dept.includes("skw i") ||
-      dept.includes("seksi 1") ||
-      dept.includes("berau")
-    ) {
-      return "Berau";
-    }
-
-    return "Samarinda";
-  };
-
-  // Helper: Format gabungan nama kota unik, contoh: "Samarinda dan Tenggarong"
-  const formatKotaAsal = (cities: string[]): string => {
-    const uniqueCities = Array.from(new Set(cities.filter(Boolean)));
-    if (uniqueCities.length === 0) return "Samarinda";
-    if (uniqueCities.length === 1) return uniqueCities[0];
-    if (uniqueCities.length === 2) return `${uniqueCities[0]} dan ${uniqueCities[1]}`;
-    return `${uniqueCities.slice(0, -1).join(", ")} dan ${uniqueCities[uniqueCities.length - 1]}`;
-  };
-
-  // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
-  const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
-    if (!employees || employees.length === 0) return "Samarinda";
-    const cities = employees.map(getEmployeeCity);
-    return formatKotaAsal(cities);
-  }, []);
+  // Sync employee departures whenever employees or buruh change
+  useEffect(() => {
+    setEmployeeDepartures((prev) => {
+      const next = { ...prev };
+      selectedEmployees.forEach((emp) => {
+        if (!next[emp.id]) {
+          next[emp.id] = getEmployeeCity(emp);
+        }
+      });
+      if (hasBuruh) {
+        for (let i = 1; i <= jumlahBuruh; i++) {
+          const pmKey = `pm-${i}`;
+          if (!next[pmKey]) {
+            next[pmKey] = kotaAsal || "Samarinda";
+          }
+        }
+      }
+      return next;
+    });
+  }, [selectedEmployees, hasBuruh, jumlahBuruh, kotaAsal]);
 
   useEffect(() => {
     if (selectedEmployees.length > 0) {
@@ -152,7 +118,7 @@ export default function SuratTugasForm() {
     } else {
       setKotaAsal("Samarinda");
     }
-  }, [selectedEmployees, detectDefaultKotaAsal]);
+  }, [selectedEmployees]);
 
   // Deteksi apakah ada pejabat struktural (Kasubag TU / Kepala Seksi) yang ikut perjalanan
   const hasPejabatStruktural = selectedEmployees.some((emp) => {
@@ -298,6 +264,17 @@ export default function SuratTugasForm() {
       if (formData.sumber_dana === "other") {
         submitData.append("sumber_dana_other", formData.sumber_dana_other);
       }
+
+      if (isBedaHari) {
+        submitData.append("template_snapshot[configuration][show_departure_column]", showDepartureColumn ? "1" : "0");
+        if (showDepartureColumn) {
+          Object.entries(employeeDepartures).forEach(([key, val]) => {
+            if (val) {
+              submitData.append(`template_snapshot[configuration][employee_departures][${key}]`, val);
+            }
+          });
+        }
+      }
       
       let finalKeterangan = formData.keterangan?.trim() || "";
       if (isBedaHari) {
@@ -429,6 +406,10 @@ export default function SuratTugasForm() {
             setIsBedaHari={setIsBedaHari}
             employeeDates={employeeDates}
             setEmployeeDates={setEmployeeDates}
+            employeeDepartures={employeeDepartures}
+            setEmployeeDepartures={setEmployeeDepartures}
+            showDepartureColumn={showDepartureColumn}
+            setShowDepartureColumn={setShowDepartureColumn}
             hasBuruh={hasBuruh}
             setHasBuruh={setHasBuruh}
             jumlahBuruh={jumlahBuruh}

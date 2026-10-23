@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateIndonesian, formatNIP, formatNipLabel } from "@/lib/letter-utils";
-import { isBuruhEmployee } from "../_lib";
+import { isBuruhEmployee, getEmployeeCity } from "../_lib";
 
 interface Employee {
   id: string | number;
@@ -13,6 +13,11 @@ interface Employee {
   is_buruh?: boolean;
   nip_label?: string;
   pangkat_golongan?: string;
+  department?: string;
+  satuan_kerja?: string;
+  unit_kerja?: string;
+  seksi_wilayah?: string | null;
+  kota_asal?: string;
 }
 
 export interface EmployeeDateRange {
@@ -28,19 +33,64 @@ interface STLampiranBedaHariProps {
   tanggalSurat: string;
   selectedEmployees: Employee[];
   employeeDates: Record<string, EmployeeDateRange>;
+  employeeDepartures?: Record<string, string>;
+  showDepartureColumn?: boolean;
+  defaultTanggalMulai?: string;
+  defaultTanggalSelesai?: string;
+  defaultKotaAsal?: string;
   kepalaBalai: { name: string; nip: string };
   judulLampiran?: string;
 }
 
 /**
- * Format range tanggal "DD - DD MMM YYYY" jika satu bulan,
- * "DD MMM - DD MMM YYYY" jika beda bulan/tahun.
+ * Format range tanggal untuk tabel lampiran.
+ * Menampilkan tanggal/hari di baris pertama dan bulan + tahun di baris kedua
+ * agar proporsional dan muat sempurna di kolom Tanggal.
  */
-function formatDateRange(mulai: string, selesai: string): string {
-  if (!mulai || !selesai) return "...";
+function renderDateRange(mulai: string, selesai: string): React.ReactNode {
+  if (!mulai && !selesai) return "...";
+  if (mulai && !selesai) {
+    const d = new Date(mulai);
+    if (Number.isNaN(d.getTime())) return mulai;
+    const day = d.getDate();
+    const monthYear = d.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return (
+      <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+        <span>{day}</span>
+        <br />
+        <span>{monthYear}</span>
+      </span>
+    );
+  }
+  if (!mulai && selesai) {
+    const d = new Date(selesai);
+    if (Number.isNaN(d.getTime())) return selesai;
+    const day = d.getDate();
+    const monthYear = d.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return (
+      <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+        <span>{day}</span>
+        <br />
+        <span>{monthYear}</span>
+      </span>
+    );
+  }
+
   const start = new Date(mulai);
   const end = new Date(selesai);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "...";
+
+  if (mulai === selesai || start.getTime() === end.getTime()) {
+    const day = start.getDate();
+    const monthYear = start.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return (
+      <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+        <span>{day}</span>
+        <br />
+        <span>{monthYear}</span>
+      </span>
+    );
+  }
 
   const sameMonth =
     start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
@@ -48,15 +98,39 @@ function formatDateRange(mulai: string, selesai: string): string {
 
   if (sameMonth) {
     const startDay = start.getDate();
-    const endFormatted = formatDateIndonesian(selesai);
-    return `${startDay} – ${endFormatted}`;
+    const endDay = end.getDate();
+    const monthYear = end.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+    return (
+      <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+        <span>{startDay} – {endDay}</span>
+        <br />
+        <span>{monthYear}</span>
+      </span>
+    );
   }
+
   if (sameYear) {
-    const startShort = formatDateIndonesian(mulai).replace(/\s\d{4}$/, "");
-    const endFormatted = formatDateIndonesian(selesai);
-    return `${startShort} – ${endFormatted}`;
+    const startMonth = start.toLocaleDateString("id-ID", { month: "long" });
+    const endMonth = end.toLocaleDateString("id-ID", { month: "long" });
+    const year = end.getFullYear();
+    return (
+      <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+        <span>{start.getDate()} {startMonth} –</span>
+        <br />
+        <span>{end.getDate()} {endMonth} {year}</span>
+      </span>
+    );
   }
-  return `${formatDateIndonesian(mulai)} – ${formatDateIndonesian(selesai)}`;
+
+  const startFormatted = start.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  const endFormatted = end.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+  return (
+    <span style={{ display: "inline-block", lineHeight: "1.25" }}>
+      <span>{startFormatted} –</span>
+      <br />
+      <span>{endFormatted}</span>
+    </span>
+  );
 }
 
 export default function STLampiranBedaHari({
@@ -67,6 +141,11 @@ export default function STLampiranBedaHari({
   tanggalSurat,
   selectedEmployees,
   employeeDates,
+  employeeDepartures = {},
+  showDepartureColumn = false,
+  defaultTanggalMulai,
+  defaultTanggalSelesai,
+  defaultKotaAsal = "Samarinda",
   kepalaBalai,
   judulLampiran = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
 }: STLampiranBedaHariProps) {
@@ -138,26 +217,43 @@ export default function STLampiranBedaHari({
         <thead>
           <tr>
             <th style={cellHeaderStyle("5%")}>No.</th>
-            <th style={cellHeaderStyle("40%")}>Nama / NIP / NIPPPK</th>
-            <th style={cellHeaderStyle("29%")}>Jabatan</th>
-            <th style={cellHeaderStyle("26%")}>Tanggal</th>
+            <th style={cellHeaderStyle(showDepartureColumn ? "32%" : "40%")}>Nama / NIP / NIPPPK</th>
+            <th style={cellHeaderStyle(showDepartureColumn ? "23%" : "29%")}>Jabatan</th>
+            {showDepartureColumn && (
+              <th style={cellHeaderStyle("20%")}>Tempat Keberangkatan</th>
+            )}
+            <th style={cellHeaderStyle(showDepartureColumn ? "20%" : "26%")}>Tanggal</th>
           </tr>
         </thead>
         <tbody>
           {selectedEmployees.length === 0 ? (
             <tr>
-              <td colSpan={4} style={{ ...cellBodyStyle, textAlign: "center", fontStyle: "italic", color: "#999" }}>
+              <td
+                colSpan={showDepartureColumn ? 5 : 4}
+                style={{ ...cellBodyStyle, textAlign: "center", fontStyle: "italic", color: "#999" }}
+              >
                 ( Belum ada pegawai dipilih )
               </td>
             </tr>
           ) : (
             selectedEmployees.map((emp, idx) => {
               const range =
-                employeeDates[String(emp.id)] || employeeDates[emp.id] || { mulai: "", selesai: "" };
+                employeeDates[String(emp.id)] ||
+                employeeDates[emp.id] || {
+                  mulai: defaultTanggalMulai || "",
+                  selesai: defaultTanggalSelesai || defaultTanggalMulai || "",
+                };
               const namaLengkap = emp.nama_lengkap || emp.name || "";
               const isBuruh = isBuruhEmployee(emp);
               const formattedNip = isBuruh ? "" : formatNIP(emp.nip || "");
-              const tanggalRange = formatDateRange(range.mulai, range.selesai);
+              const departure =
+                employeeDepartures[String(emp.id)] ||
+                employeeDepartures[emp.id] ||
+                emp.kota_asal ||
+                getEmployeeCity(emp, defaultKotaAsal) ||
+                defaultKotaAsal ||
+                "Samarinda";
+
               return (
                 <tr key={emp.id}>
                   <td style={{ ...cellBodyStyle, textAlign: "center" }}>{idx + 1}.</td>
@@ -171,7 +267,12 @@ export default function STLampiranBedaHari({
                     )}
                   </td>
                   <td style={cellBodyStyle}>{emp.jabatan || "-"}</td>
-                  <td style={{ ...cellBodyStyle, whiteSpace: "nowrap", fontSize: "10pt" }}>{tanggalRange}</td>
+                  {showDepartureColumn && (
+                    <td style={{ ...cellBodyStyle, textAlign: "center" }}>{departure}</td>
+                  )}
+                  <td style={{ ...cellBodyStyle, textAlign: "center", fontSize: "10pt" }}>
+                    {renderDateRange(range.mulai, range.selesai)}
+                  </td>
                 </tr>
               );
             })
@@ -214,17 +315,19 @@ export default function STLampiranBedaHari({
 
 const cellHeaderStyle = (width: string): React.CSSProperties => ({
   border: "1px solid #000",
-  padding: "4px 6px",
+  padding: "4px 5px",
   textAlign: "center",
   fontWeight: "bold",
   width,
   lineHeight: "1.2",
+  boxSizing: "border-box",
 });
 
 const cellBodyStyle: React.CSSProperties = {
   border: "1px solid #000",
-  padding: "4px 6px",
+  padding: "4px 5px",
   verticalAlign: "middle",
-  lineHeight: "1.2",
+  lineHeight: "1.25",
   overflowWrap: "break-word",
+  boxSizing: "border-box",
 };

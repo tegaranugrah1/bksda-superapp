@@ -8,4 +8,5 @@ export * from "./plh-helpers";
 export * from "./untuk-helpers";
 export * from "./activity-helpers";
 export * from "./buruh-helpers";
+export * from "./departure-helpers";
 export * from "./print-st";

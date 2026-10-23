@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
 import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { getEmployeeCity, hasMultipleDepartures } from "@/app/kepegawaian/surat-tugas/_lib";
 import { formatNipLabel } from "@/lib/letter-utils";
 import api from "@/lib/api";
 
@@ -67,6 +68,10 @@ interface SuratTugasDetailStepProps {
   setIsBedaHari: (val: boolean) => void;
   employeeDates: Record<string, { mulai: string; selesai: string }>;
   setEmployeeDates: React.Dispatch<React.SetStateAction<Record<string, { mulai: string; selesai: string }>>>;
+  employeeDepartures?: Record<string, string>;
+  setEmployeeDepartures?: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  showDepartureColumn?: boolean;
+  setShowDepartureColumn?: (val: boolean) => void;
   hasBuruh: boolean;
   setHasBuruh: (val: boolean) => void;
   jumlahBuruh: number;
@@ -108,6 +113,10 @@ export function SuratTugasDetailStep({
   setIsBedaHari,
   employeeDates,
   setEmployeeDates,
+  employeeDepartures = {},
+  setEmployeeDepartures,
+  showDepartureColumn = false,
+  setShowDepartureColumn,
   hasBuruh,
   setHasBuruh,
   jumlahBuruh,
@@ -142,6 +151,18 @@ export function SuratTugasDetailStep({
       })
       .catch(() => {});
   }, []);
+
+  const hasDetectedDifferentDepartures = React.useMemo(() => {
+    const list: string[] = selectedEmployees.map(
+      (emp) => employeeDepartures[emp.id] || getEmployeeCity(emp, kotaAsal)
+    );
+    if (hasBuruh) {
+      for (let i = 1; i <= jumlahBuruh; i++) {
+        list.push(employeeDepartures[`pm-${i}`] || kotaAsal || "Samarinda");
+      }
+    }
+    return hasMultipleDepartures(list);
+  }, [selectedEmployees, employeeDepartures, hasBuruh, jumlahBuruh, kotaAsal]);
 
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
@@ -453,7 +474,36 @@ export function SuratTugasDetailStep({
                   </div>
 
                   {isBedaHari && (
-                    <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 space-y-2.5 animate-in fade-in duration-200">
+                    <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 space-y-3 animate-in fade-in duration-200">
+                      {/* Opsi Kolom Tempat Keberangkatan di Lampiran */}
+                      <div className="p-3 bg-white/80 dark:bg-zinc-900/80 rounded-xl border border-amber-200/70 dark:border-amber-800/40 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold text-amber-950 dark:text-amber-200">
+                            Sertakan Tempat Keberangkatan di Lampiran?
+                          </p>
+                          <p className="text-[11px] text-amber-700/90 dark:text-amber-400/90 mt-0.5">
+                            {hasDetectedDifferentDepartures
+                              ? "Terdeteksi tempat keberangkatan berbeda antar-personel. Aktifkan untuk menampilkan kolom Tempat Keberangkatan di tabel lampiran."
+                              : "Aktifkan jika ingin menambahkan kolom Tempat Keberangkatan per personel di tabel lampiran."}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowDepartureColumn?.(!showDepartureColumn)}
+                          className={cn(
+                            "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                            showDepartureColumn ? "bg-amber-600" : "bg-slate-300 dark:bg-zinc-700"
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                              showDepartureColumn ? "translate-x-4" : "translate-x-0"
+                            )}
+                          />
+                        </button>
+                      </div>
+
                       <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                         Rincian Tanggal Tugas Per Personel:
                       </p>
@@ -476,7 +526,14 @@ export function SuratTugasDetailStep({
                                   {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
                                 </p>
                               </div>
-                              <div className="grid grid-cols-2 gap-2 w-full md:w-auto shrink-0">
+                              <div
+                                className={cn(
+                                  "grid gap-2 w-full md:w-auto shrink-0",
+                                  showDepartureColumn
+                                    ? "grid-cols-1 sm:grid-cols-3"
+                                    : "grid-cols-1 sm:grid-cols-2"
+                                )}
+                              >
                                 <div>
                                   <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
                                     Mulai
@@ -496,7 +553,7 @@ export function SuratTugasDetailStep({
                                         },
                                       }));
                                     }}
-                                    className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                    className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
                                   />
                                 </div>
                                 <div>
@@ -519,9 +576,35 @@ export function SuratTugasDetailStep({
                                         },
                                       }));
                                     }}
-                                    className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                    className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
                                   />
                                 </div>
+                                {showDepartureColumn && (
+                                  <div>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                      Keberangkatan
+                                    </label>
+                                    <input
+                                      type="text"
+                                      list="kota-keberangkatan-suggestions"
+                                      value={
+                                        employeeDepartures[emp.id] ||
+                                        getEmployeeCity(emp) ||
+                                        kotaAsal ||
+                                        "Samarinda"
+                                      }
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEmployeeDepartures?.((prev) => ({
+                                          ...prev,
+                                          [emp.id]: val,
+                                        }));
+                                      }}
+                                      placeholder="Kota Asal"
+                                      className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
+                                    />
+                                  </div>
+                                )}
                               </div>
                             </div>
                           );
@@ -546,7 +629,14 @@ export function SuratTugasDetailStep({
                                     Buruh / Tenaga Lapangan • Jabatan: -
                                   </p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 w-full md:w-auto shrink-0">
+                                <div
+                                  className={cn(
+                                    "grid gap-2 w-full md:w-auto shrink-0",
+                                    showDepartureColumn
+                                      ? "grid-cols-1 sm:grid-cols-3"
+                                      : "grid-cols-1 sm:grid-cols-2"
+                                  )}
+                                >
                                   <div>
                                     <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
                                       Mulai
@@ -566,7 +656,7 @@ export function SuratTugasDetailStep({
                                           },
                                         }));
                                       }}
-                                      className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                      className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
                                     />
                                   </div>
                                   <div>
@@ -589,9 +679,30 @@ export function SuratTugasDetailStep({
                                           },
                                         }));
                                       }}
-                                      className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                      className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
                                     />
                                   </div>
+                                  {showDepartureColumn && (
+                                    <div>
+                                      <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                        Keberangkatan
+                                      </label>
+                                      <input
+                                        type="text"
+                                        list="kota-keberangkatan-suggestions"
+                                        value={employeeDepartures[pmId] || kotaAsal || "Samarinda"}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setEmployeeDepartures?.((prev) => ({
+                                            ...prev,
+                                            [pmId]: val,
+                                          }));
+                                        }}
+                                        placeholder="Kota Asal"
+                                        className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -998,6 +1109,13 @@ export function SuratTugasDetailStep({
           </Button>
         </div>
       </form>
+
+      <datalist id="kota-keberangkatan-suggestions">
+        <option value="Samarinda" />
+        <option value="Balikpapan" />
+        <option value="Tenggarong" />
+        <option value="Berau" />
+      </datalist>
     </div>
   );
 }
