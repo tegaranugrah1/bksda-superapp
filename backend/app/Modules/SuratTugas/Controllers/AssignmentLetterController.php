@@ -77,7 +77,7 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
@@ -108,7 +108,7 @@ class AssignmentLetterController extends Controller
     public function myDownload(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $user = $request->user();
@@ -509,7 +509,7 @@ class AssignmentLetterController extends Controller
     public function show(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
@@ -528,7 +528,7 @@ class AssignmentLetterController extends Controller
     public function update(AssignmentLetterRequest $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $validated = $request->validated();
@@ -655,7 +655,7 @@ class AssignmentLetterController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $user = $request->user();
@@ -691,7 +691,7 @@ class AssignmentLetterController extends Controller
     public function destroy(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::findOrFail($cleanId);
@@ -726,7 +726,7 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
@@ -751,7 +751,7 @@ class AssignmentLetterController extends Controller
         }
 
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
@@ -855,7 +855,7 @@ class AssignmentLetterController extends Controller
     public function downloadPdf(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $surat = AssignmentLetter::withTrashed()->with('employees')->findOrFail($cleanId);
@@ -897,7 +897,7 @@ class AssignmentLetterController extends Controller
     public function verify(string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json([
                 'valid' => false,
                 'message' => 'Dokumen Surat Tugas tidak ditemukan dalam database resmi.',
@@ -935,7 +935,7 @@ class AssignmentLetterController extends Controller
     public function approve(Request $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
-        if (! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
+        if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $user = $request->user();

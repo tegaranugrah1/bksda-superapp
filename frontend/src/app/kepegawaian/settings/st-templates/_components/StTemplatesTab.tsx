@@ -263,6 +263,21 @@ export function StTemplatesTab() {
     }, 700);
   };
 
+  const handleAddDasarItem = () => {
+    setDasarItems((prev) => {
+      const fundingIdx = prev.findIndex((item) => isFundingDasarText(item.text, expenseTemplates));
+      const newItem: DasarItem = { id: Math.random().toString(), text: "" };
+      if (fundingIdx !== -1) {
+        const next = [...prev];
+        const [fundingItem] = next.splice(fundingIdx, 1);
+        next.push(newItem);
+        next.push(fundingItem);
+        return next;
+      }
+      return [...prev, newItem];
+    });
+  };
+
   const resetTemplateForm = () => {
     setEditTemplateId(null);
     setTemplateName("");
@@ -993,6 +1008,7 @@ export function StTemplatesTab() {
                     title="Default Dasar"
                     items={dasarItems}
                     onChange={setDasarItems}
+                    onAddItem={handleAddDasarItem}
                     marker="number"
                     getItemBadge={(item) => {
                       if (isFundingDasarText(item.text, expenseTemplates)) {

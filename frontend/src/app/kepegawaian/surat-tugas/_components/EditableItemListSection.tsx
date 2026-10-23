@@ -10,6 +10,7 @@ interface EditableItemListSectionProps {
   description?: React.ReactNode;
   items: DasarItem[];
   onChange: (items: DasarItem[]) => void;
+  onAddItem?: () => void;
   /** Penanda penomoran: huruf (a, b, c) untuk Menimbang, angka (1, 2, 3) untuk Dasar. */
   marker: "letter" | "number";
   /** Offset indeks penomoran awal, default: 0 (misal: 1 agar nomor mulai dari 2) */
@@ -28,13 +29,19 @@ export function EditableItemListSection({
   description,
   items,
   onChange,
+  onAddItem,
   marker,
   startIndex = 0,
   getItemBadge,
   disabled = false,
 }: EditableItemListSectionProps) {
-  const addItem = () =>
-    onChange([...items, { id: Math.random().toString(), text: "" }]);
+  const addItem = () => {
+    if (onAddItem) {
+      onAddItem();
+    } else {
+      onChange([...items, { id: Math.random().toString(), text: "" }]);
+    }
+  };
 
   const updateItem = (idx: number, text: string) => {
     const next = [...items];

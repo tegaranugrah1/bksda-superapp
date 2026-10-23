@@ -15,6 +15,7 @@ import {
   Eye,
   GripVertical,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ import {
   getDefaultUntukItems,
   isGeneratedBiayaItem,
   isSingleDayActivityPrefix,
+  isFundingDasarText,
   normalizeSumberDana,
   shouldRenderAsSingleDayActivity,
   splitStoredUntukItems,
@@ -268,14 +270,16 @@ export function SuratTugasForm({
     setDasarItems((prev) => {
       const newItems = [...prev];
       const existingIdx = newItems.findIndex(
-        (item) => item.id === "funding-dasar" || (item.text && item.text.toLowerCase().includes("dipa"))
+        (item) => item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)
       );
       if (fundingText) {
         if (existingIdx !== -1) {
-          newItems[existingIdx] = {
-            id: newItems[existingIdx].id || "funding-dasar",
+          const existingId = newItems[existingIdx].id || "funding-dasar";
+          newItems.splice(existingIdx, 1);
+          newItems.push({
+            id: existingId,
             text: fundingText,
-          };
+          });
         } else {
           newItems.push({ id: "funding-dasar", text: fundingText });
         }
@@ -283,6 +287,23 @@ export function SuratTugasForm({
         newItems.splice(existingIdx, 1);
       }
       return newItems;
+    });
+  };
+
+  const handleAddDasarItem = () => {
+    setDasarItems((prev) => {
+      const fundingIdx = prev.findIndex(
+        (item) => item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)
+      );
+      const newItem: DasarItem = { id: Math.random().toString(), text: "" };
+      if (fundingIdx !== -1) {
+        const next = [...prev];
+        const [fundingItem] = next.splice(fundingIdx, 1);
+        next.push(newItem);
+        next.push(fundingItem);
+        return next;
+      }
+      return [...prev, newItem];
     });
   };
 
@@ -1605,6 +1626,18 @@ export function SuratTugasForm({
                 title="Dasar"
                 items={dasarItems}
                 onChange={setDasarItems}
+                onAddItem={handleAddDasarItem}
+                getItemBadge={(item) => {
+                  if (item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)) {
+                    return (
+                      <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span>Dasar Anggaran (Selalu di Akhir)</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
                 marker="number"
                 disabled={isPublished}
               />
