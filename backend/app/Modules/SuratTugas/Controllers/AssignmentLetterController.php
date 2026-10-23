@@ -262,6 +262,7 @@ class AssignmentLetterController extends Controller
             'tembusan' => $letter->tembusan,
             'penandatangan_nama' => $letter->penandatangan_nama,
             'penandatangan_nip' => $letter->penandatangan_nip,
+            'jumlah_buruh' => (int) ($letter->jumlah_buruh ?? 0),
             'personel_summary' => $personelSummary ?: null,
             'personel_count' => $employees->count(),
             'employees' => $employees->map(fn ($e) => [
@@ -325,6 +326,7 @@ class AssignmentLetterController extends Controller
             'template_type' => $letter->template_type,
             'nama_plh' => $letter->nama_plh,
             'has_seksi_employee' => (bool) $letter->has_seksi_employee,
+            'jumlah_buruh' => (int) ($letter->jumlah_buruh ?? 0),
             'menimbang' => $letter->menimbang,
             'dasar' => $letter->dasar,
             'tembusan' => $letter->tembusan,
@@ -438,6 +440,7 @@ class AssignmentLetterController extends Controller
                 'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
                 'nama_plh' => $request->input('nama_plh'),
                 'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
+                'jumlah_buruh' => (int) $request->input('jumlah_buruh', 0),
                 'tanda_setuju' => $request->input('tanda_setuju'),
                 'keterangan' => $request->input('keterangan'),
                 'status' => 'draft',
@@ -592,6 +595,9 @@ class AssignmentLetterController extends Controller
             }
             if ($request->has('has_seksi_employee')) {
                 $updateData['has_seksi_employee'] = (bool) $request->input('has_seksi_employee');
+            }
+            if ($request->has('jumlah_buruh')) {
+                $updateData['jumlah_buruh'] = max(0, min(100, (int) $request->input('jumlah_buruh')));
             }
             if ($request->has('tanda_setuju')) {
                 $updateData['tanda_setuju'] = $request->input('tanda_setuju');

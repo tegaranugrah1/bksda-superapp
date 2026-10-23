@@ -67,6 +67,10 @@ interface SuratTugasDetailStepProps {
   setIsBedaHari: (val: boolean) => void;
   employeeDates: Record<string, { mulai: string; selesai: string }>;
   setEmployeeDates: React.Dispatch<React.SetStateAction<Record<string, { mulai: string; selesai: string }>>>;
+  hasBuruh: boolean;
+  setHasBuruh: (val: boolean) => void;
+  jumlahBuruh: number;
+  setJumlahBuruh: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export function SuratTugasDetailStep({
@@ -104,6 +108,10 @@ export function SuratTugasDetailStep({
   setIsBedaHari,
   employeeDates,
   setEmployeeDates,
+  hasBuruh,
+  setHasBuruh,
+  jumlahBuruh,
+  setJumlahBuruh,
 }: SuratTugasDetailStepProps) {
   const [expenseOptions, setExpenseOptions] = React.useState<Array<{ id: string; label: string }>>([
     { id: "DIPA", label: "DIPA Balai KSDA Kalimantan Timur" },
@@ -518,11 +526,158 @@ export function SuratTugasDetailStep({
                             </div>
                           );
                         })}
+                        {hasBuruh &&
+                          Array.from({ length: jumlahBuruh }).map((_, pIdx) => {
+                            const pmId = `pm-${pIdx + 1}`;
+                            const dates = employeeDates[pmId] || {
+                              mulai: formData.tanggal_mulai || "",
+                              selesai: formData.tanggal_selesai || "",
+                            };
+                            return (
+                              <div
+                                key={pmId}
+                                className="p-3 bg-white dark:bg-zinc-900 border border-emerald-200/80 dark:border-emerald-800/40 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate">
+                                    {selectedEmployees.length + pIdx + 1}. PM (Buruh {pIdx + 1})
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 truncate">
+                                    Buruh / Tenaga Lapangan • Jabatan: -
+                                  </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 w-full md:w-auto shrink-0">
+                                  <div>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                      Mulai
+                                    </label>
+                                    <input
+                                      type="date"
+                                      required={isBedaHari}
+                                      value={dates.mulai}
+                                      onClick={(e) => e.currentTarget.showPicker?.()}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEmployeeDates((prev) => ({
+                                          ...prev,
+                                          [pmId]: {
+                                            mulai: val,
+                                            selesai: prev[pmId]?.selesai || val,
+                                          },
+                                        }));
+                                      }}
+                                      className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                      Selesai
+                                    </label>
+                                    <input
+                                      type="date"
+                                      required={isBedaHari}
+                                      min={dates.mulai}
+                                      value={dates.selesai}
+                                      onClick={(e) => e.currentTarget.showPicker?.()}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEmployeeDates((prev) => ({
+                                          ...prev,
+                                          [pmId]: {
+                                            mulai: prev[pmId]?.mulai || val,
+                                            selesai: val,
+                                          },
+                                        }));
+                                      }}
+                                      className="w-full md:w-36 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
                     </div>
                   )}
                 </div>
               )}
+
+              {/* Toggle Buruh / Tenaga Lapangan (PM) */}
+              <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                      Apakah ada Buruh / Tenaga Lapangan (PM)?
+                    </p>
+                    <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400/90 mt-0.5">
+                      Aktifkan jika penugasan menyertakan buruh (format: Nama: <b>PM</b>, Jabatan: <b>-</b>).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextVal = !hasBuruh;
+                      setHasBuruh(nextVal);
+                      if (nextVal && jumlahBuruh < 1) {
+                        setJumlahBuruh(1);
+                      }
+                    }}
+                    className={cn(
+                      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                      hasBuruh ? "bg-emerald-600" : "bg-slate-300 dark:bg-zinc-700"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                        hasBuruh ? "translate-x-5" : "translate-x-0"
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {hasBuruh && (
+                  <div className="pt-3 border-t border-emerald-200/60 dark:border-emerald-900/40 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                    <div>
+                      <label className="text-xs font-bold text-emerald-900 dark:text-emerald-200 block">
+                        Jumlah Buruh (Orang)
+                      </label>
+                      <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80">
+                        Berapa orang buruh yang diikutsertakan?
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setJumlahBuruh((prev) => Math.max(1, prev - 1))}
+                        disabled={jumlahBuruh <= 1}
+                        className="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={jumlahBuruh}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setJumlahBuruh(isNaN(val) ? 1 : Math.max(1, Math.min(100, val)));
+                        }}
+                        className="w-16 px-2 py-1.5 text-center bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded-lg text-sm font-bold text-slate-800 dark:text-zinc-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setJumlahBuruh((prev) => Math.min(100, prev + 1))}
+                        disabled={jumlahBuruh >= 100}
+                        className="w-8 h-8 rounded-lg bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

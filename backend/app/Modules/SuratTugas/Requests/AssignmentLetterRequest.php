@@ -48,6 +48,7 @@ class AssignmentLetterRequest extends FormRequest
             'employees.*.tanggal_selesai' => 'nullable|date',
             'nama_plh' => 'nullable|string|max:255',
             'has_seksi_employee' => 'nullable|boolean',
+            'jumlah_buruh' => 'nullable|integer|min:0|max:100',
             'tanda_setuju' => 'nullable|string|max:50',
             'keterangan' => 'nullable|string',
             'template_snapshot' => 'nullable|array',

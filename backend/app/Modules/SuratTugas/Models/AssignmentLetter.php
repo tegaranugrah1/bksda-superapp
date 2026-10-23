@@ -35,6 +35,7 @@ class AssignmentLetter extends Model
         'sumber_dana_other',
         'nama_plh',
         'has_seksi_employee',
+        'jumlah_buruh',
         'tanda_setuju',
         'keterangan',
         'menimbang',
@@ -55,6 +56,7 @@ class AssignmentLetter extends Model
         'tembusan' => 'array',
         'template_snapshot' => 'array',
         'has_seksi_employee' => 'boolean',
+        'jumlah_buruh' => 'integer',
     ];
 
     public function creator(): BelongsTo

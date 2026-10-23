@@ -98,11 +98,12 @@ function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
 }
 
 interface Employee {
-  id: string;
+  id: string | number;
   nama_lengkap: string;
   name?: string;
   nip: string;
   jabatan: string;
+  is_buruh?: boolean;
 }
 
 interface DasarItem {
@@ -372,11 +373,13 @@ export default function STBuilderPreview({
                                           <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
                                           <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                         </tr>
-                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
-                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                          <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
-                                        </tr>
+                                        {Boolean(emp.nip && emp.nip.trim() && emp.nip !== "-" && !emp.nip.startsWith("MMP-") && !emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
+                                          <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
+                                            <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
+                                            <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
+                                            <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
+                                          </tr>
+                                        )}
                                         <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                                           <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Jabatan</td>
                                           <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>

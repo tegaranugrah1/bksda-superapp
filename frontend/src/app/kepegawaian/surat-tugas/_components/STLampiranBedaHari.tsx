@@ -1,14 +1,16 @@
 "use client";
 
 import { formatDateIndonesian, formatNIP, formatNipLabel } from "@/lib/letter-utils";
+import { isBuruhEmployee } from "../_lib";
 
 interface Employee {
-  id: string;
+  id: string | number;
   nama_lengkap: string;
   name?: string;
   nip: string;
   jabatan: string;
   is_pppk?: boolean;
+  is_buruh?: boolean;
   nip_label?: string;
   pangkat_golongan?: string;
 }
@@ -153,14 +155,15 @@ export default function STLampiranBedaHari({
               const range =
                 employeeDates[String(emp.id)] || employeeDates[emp.id] || { mulai: "", selesai: "" };
               const namaLengkap = emp.nama_lengkap || emp.name || "";
-              const formattedNip = formatNIP(emp.nip || "");
+              const isBuruh = isBuruhEmployee(emp);
+              const formattedNip = isBuruh ? "" : formatNIP(emp.nip || "");
               const tanggalRange = formatDateRange(range.mulai, range.selesai);
               return (
                 <tr key={emp.id}>
                   <td style={{ ...cellBodyStyle, textAlign: "center" }}>{idx + 1}.</td>
                   <td style={cellBodyStyle}>
                     <span style={{ fontWeight: "bold" }}>{namaLengkap}</span>
-                    {formattedNip && (
+                    {!isBuruh && formattedNip && (
                       <>
                         <br />
                         <span style={{ whiteSpace: "nowrap" }}>{formatNipLabel(emp, true)} {formattedNip}</span>

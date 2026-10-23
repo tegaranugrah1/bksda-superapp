@@ -80,6 +80,8 @@ export default function SuratTugasForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBedaHari, setIsBedaHari] = useState(false);
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
+  const [hasBuruh, setHasBuruh] = useState(false);
+  const [jumlahBuruh, setJumlahBuruh] = useState(1);
 
   // Helper: Dapatkan kota penempatan untuk seorang pegawai
   const getEmployeeCity = (emp: Employee): string => {
@@ -291,6 +293,7 @@ export default function SuratTugasForm() {
       submitData.append("tanggal_selesai", formData.tanggal_selesai);
       submitData.append("sumber_dana", formData.sumber_dana);
       submitData.append("template_type", isBedaHari ? "beda-hari" : "standard");
+      submitData.append("jumlah_buruh", hasBuruh ? String(jumlahBuruh) : "0");
 
       if (formData.sumber_dana === "other") {
         submitData.append("sumber_dana_other", formData.sumber_dana_other);
@@ -298,7 +301,14 @@ export default function SuratTugasForm() {
       
       let finalKeterangan = formData.keterangan?.trim() || "";
       if (isBedaHari) {
-        const scheduleLines = selectedEmployees.map((emp, index) => {
+        const buruhList = hasBuruh
+          ? Array.from({ length: jumlahBuruh }, (_, i) => ({
+              id: `pm-${i + 1}`,
+              name: "PM",
+            }))
+          : [];
+        const allPersons = [...selectedEmployees, ...buruhList];
+        const scheduleLines = allPersons.map((emp, index) => {
           const dates = employeeDates[emp.id] || {
             mulai: formData.tanggal_mulai,
             selesai: formData.tanggal_selesai,
@@ -419,6 +429,10 @@ export default function SuratTugasForm() {
             setIsBedaHari={setIsBedaHari}
             employeeDates={employeeDates}
             setEmployeeDates={setEmployeeDates}
+            hasBuruh={hasBuruh}
+            setHasBuruh={setHasBuruh}
+            jumlahBuruh={jumlahBuruh}
+            setJumlahBuruh={setJumlahBuruh}
           />
         )}
         {step === 3 && <SuratTugasSuccessStep />}

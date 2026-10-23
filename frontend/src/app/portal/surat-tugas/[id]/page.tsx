@@ -30,6 +30,7 @@ interface SuratTugasDetail {
   transportasi: string | null;
   anggaran_dari: string | null;
   created_at: string;
+  jumlah_buruh?: number;
   employees: Employee[];
   creator?: { id: number; name: string };
   approver?: { id: number; name: string };
@@ -318,6 +319,17 @@ export default function SuratTugasPreviewPage() {
                           <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{emp.jabatan || "-"}</td>
                         </tr>
                       ))}
+                      {Boolean(data.jumlah_buruh && data.jumlah_buruh > 0) &&
+                        Array.from({ length: data.jumlah_buruh! }).map((_, bIdx) => (
+                          <tr key={`pm-${bIdx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                              {(data.employees?.length || 0) + bIdx + 1}
+                            </td>
+                            <td className="px-4 py-2 font-bold text-slate-700 dark:text-slate-300">PM</td>
+                            <td className="px-4 py-2 text-slate-600 dark:text-slate-400">-</td>
+                            <td className="px-4 py-2 text-slate-600 dark:text-slate-400">-</td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>

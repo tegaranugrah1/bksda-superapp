@@ -14,6 +14,7 @@ export interface Employee {
   unit_kerja?: string;
   is_pppk?: boolean;
   nip_label?: string;
+  is_buruh?: boolean;
 }
 
 export interface DasarItem {

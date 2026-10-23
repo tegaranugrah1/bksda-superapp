@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
@@ -57,6 +58,9 @@ import {
   toDasarItems,
   normalizeEmployeeForSelection,
   printSuratTugas,
+  isBuruhEmployee,
+  syncEmployeesWithBuruhCount,
+  extractBuruhCount,
   type DasarItem,
   type Employee,
   type StTemplate,
@@ -150,6 +154,52 @@ export function SuratTugasForm({
   }>({});
   const [pendingPlhEmployeeName, setPendingPlhEmployeeName] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
+  const [hasBuruh, setHasBuruh] = useState(false);
+  const [jumlahBuruh, setJumlahBuruh] = useState(0);
+
+  const handleToggleBuruh = (nextVal: boolean) => {
+    setHasBuruh(nextVal);
+    const nextCount = nextVal ? (jumlahBuruh > 0 ? jumlahBuruh : 1) : 0;
+    if (nextVal && jumlahBuruh < 1) {
+      setJumlahBuruh(1);
+    }
+    setSelectedEmployees((prev) => syncEmployeesWithBuruhCount(prev, nextCount));
+    if (nextVal) {
+      setEmployeeDates((prev) => {
+        const nextDates = { ...prev };
+        const defaultMulai = tanggalMulai || new Date().toISOString().substring(0, 10);
+        const defaultSelesai = tanggalSelesai || defaultMulai;
+        for (let i = 1; i <= (nextCount || 1); i++) {
+          const pmKey = `pm-${i}`;
+          if (!nextDates[pmKey]) {
+            nextDates[pmKey] = { mulai: defaultMulai, selesai: defaultSelesai };
+          }
+        }
+        return nextDates;
+      });
+    }
+  };
+
+  const handleBuruhCountChange = (newCount: number) => {
+    const count = Math.max(0, Math.min(100, newCount));
+    setJumlahBuruh(count);
+    setHasBuruh(count > 0);
+    setSelectedEmployees((prev) => syncEmployeesWithBuruhCount(prev, count));
+    if (count > 0) {
+      setEmployeeDates((prev) => {
+        const nextDates = { ...prev };
+        const defaultMulai = tanggalMulai || new Date().toISOString().substring(0, 10);
+        const defaultSelesai = tanggalSelesai || defaultMulai;
+        for (let i = 1; i <= count; i++) {
+          const pmKey = `pm-${i}`;
+          if (!nextDates[pmKey]) {
+            nextDates[pmKey] = { mulai: defaultMulai, selesai: defaultSelesai };
+          }
+        }
+        return nextDates;
+      });
+    }
+  };
 
   // Template PLH hanya boleh dipilih jika pegawai yang ditugaskan mencakup Kasubbag TU atau Kepala Seksi (atau surat ini sudah berjenis PLH)
   const canSelectPlh = useMemo(() => {
@@ -361,9 +411,11 @@ export function SuratTugasForm({
       setKotaAsal("Samarinda");
       return;
     }
-    const depts = selectedEmployees.map((e) =>
-      ((e as any).department || (e as any).satuan_kerja || "").toLowerCase()
-    );
+    const depts = selectedEmployees
+      .filter((e) => !isBuruhEmployee(e))
+      .map((e) =>
+        ((e as any).department || (e as any).satuan_kerja || "").toLowerCase()
+      );
 
     const isAllSeksi1 = depts.every(
       (d) =>
@@ -453,11 +505,18 @@ export function SuratTugasForm({
         }
 
         const loadedEmployees = data.employees || data.personel || [];
-        setSelectedEmployees(loadedEmployees);
+        const buruhCount = Number(data.jumlah_buruh || 0);
+        setHasBuruh(buruhCount > 0);
+        setJumlahBuruh(buruhCount);
+
+        const allLoadedEmployees = buruhCount > 0
+          ? syncEmployeesWithBuruhCount(loadedEmployees, buruhCount)
+          : loadedEmployees;
+        setSelectedEmployees(allLoadedEmployees);
 
         // Hydrate employeeDates:
         const initialDates: Record<string, { mulai: string; selesai: string }> = {};
-        loadedEmployees.forEach((emp: any) => {
+        allLoadedEmployees.forEach((emp: any) => {
           const empMulai = emp.tanggal_mulai || emp.pivot?.tanggal_mulai;
           const empSelesai = emp.tanggal_selesai || emp.pivot?.tanggal_selesai;
           if (empMulai && empSelesai) {
@@ -470,7 +529,7 @@ export function SuratTugasForm({
 
         // Fallback: jika template beda-hari dan ada pegawai belum punya tanggal di pivot, parse dari keterangan
         if (data.keterangan && data.keterangan.includes("[Jadwal Personel Berbeda Hari]")) {
-          loadedEmployees.forEach((emp: any) => {
+          allLoadedEmployees.forEach((emp: any) => {
             if (!initialDates[String(emp.id)]) {
               const nameEscaped = (emp.nama_lengkap || emp.name || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
               const nipEscaped = (emp.nip || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -497,7 +556,7 @@ export function SuratTugasForm({
 
         // Fallback default jika masih kosong pada template beda-hari
         if (data.template_type === "beda-hari") {
-          loadedEmployees.forEach((emp: any) => {
+          allLoadedEmployees.forEach((emp: any) => {
             if (!initialDates[String(emp.id)] && loadedTanggalMulai && loadedTanggalSelesai) {
               initialDates[String(emp.id)] = {
                 mulai: loadedTanggalMulai,
@@ -1314,7 +1373,8 @@ export function SuratTugasForm({
       updatedKeterangan = baseKeterangan ? `${baseKeterangan}\n\n${scheduleBlock}` : scheduleBlock;
     }
 
-    const employeesPayload = selectedEmployees.map((employee) => ({
+    const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
+    const employeesPayload = realEmployees.map((employee) => ({
       id: employee.id,
       tanggal_mulai: isBedaHariTemplate
         ? (employeeDates[String(employee.id)]?.mulai || employeeDates[employee.id]?.mulai || effectiveMulai)
@@ -1355,7 +1415,8 @@ export function SuratTugasForm({
       penandatangan_nama: kepalaBalai.name || DEFAULT_KEPALA_BALAI.name,
       penandatangan_nip: formatNIP(kepalaBalai.nip || DEFAULT_KEPALA_BALAI.nip),
       employees: employeesPayload,
-      employee_ids: selectedEmployees.map((e) => e.id),
+      employee_ids: realEmployees.map((e) => e.id),
+      jumlah_buruh: hasBuruh ? (jumlahBuruh || extractBuruhCount(selectedEmployees)) : 0,
       keterangan: updatedKeterangan,
       template_snapshot: templateSnapshotPayload,
       ...(status ? { status } : {}),
@@ -1364,7 +1425,8 @@ export function SuratTugasForm({
 
   // Actions
   const handleSaveDraft = async () => {
-    if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
+    if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!getTempatTujuanForPayload()) {
       return toast.error(
         isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi."
@@ -1406,7 +1468,8 @@ export function SuratTugasForm({
 
   const handleApprove = async () => {
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
-    if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
+    if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!getTempatTujuanForPayload()) {
       return toast.error(
         isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi."
@@ -1449,7 +1512,8 @@ export function SuratTugasForm({
   const handleSubmitForApproval = async () => {
     if (!letterId) return;
     if (!stNumber) return toast.error("Nomor surat harus diisi.");
-    if (selectedEmployees.length === 0) return toast.error("Personil harus dipilih.");
+    const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
+    if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
     try {
@@ -1724,6 +1788,75 @@ export function SuratTugasForm({
                 </div>
               )}
 
+              {/* Buruh / Tenaga Lapangan (PM) Card */}
+              <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                      Buruh / Tenaga Lapangan (PM)
+                    </p>
+                    <p className="text-[10px] text-emerald-700/90 dark:text-emerald-400/90 mt-0.5">
+                      Tambahkan buruh jika diperlukan (format Nama: <b>PM</b>, Jabatan: <b>-</b>).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isPublished}
+                    onClick={() => handleToggleBuruh(!hasBuruh)}
+                    className={cn(
+                      "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50",
+                      hasBuruh ? "bg-emerald-600" : "bg-slate-300 dark:bg-zinc-700"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                        hasBuruh ? "translate-x-4" : "translate-x-0"
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {hasBuruh && (
+                  <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-900/40 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                    <span className="text-[11px] font-semibold text-emerald-900 dark:text-emerald-200">
+                      Jumlah Buruh:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={isPublished || jumlahBuruh <= 1}
+                        onClick={() => handleBuruhCountChange(jumlahBuruh - 1)}
+                        className="w-6 h-6 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        disabled={isPublished}
+                        value={jumlahBuruh}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          handleBuruhCountChange(isNaN(val) ? 1 : Math.max(1, Math.min(100, val)));
+                        }}
+                        className="w-12 px-1 py-1 text-center bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded-md text-xs font-bold text-slate-800 dark:text-zinc-100"
+                      />
+                      <button
+                        type="button"
+                        disabled={isPublished || jumlahBuruh >= 100}
+                        onClick={() => handleBuruhCountChange(jumlahBuruh + 1)}
+                        className="w-6 h-6 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                      <span className="text-xs text-emerald-800 dark:text-emerald-300 ml-1">orang</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Selected Employees Table */}
               <div className="space-y-2">
                 {selectedEmployees.map((emp, index) => {
@@ -1741,17 +1874,25 @@ export function SuratTugasForm({
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                            {index + 1}. {emp.nama_lengkap || emp.name}
+                            {index + 1}. {emp.nama_lengkap || emp.name} {isBuruhEmployee(emp) ? "(Buruh Lapangan)" : ""}
                           </p>
                           <p className="text-[10px] text-zinc-400 truncate">
-                            {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip} • ` : ""}{emp.jabatan || emp.position || "-"}
+                            {isBuruhEmployee(emp)
+                              ? "Tenaga Lapangan / Buruh • Jabatan: -"
+                              : `${emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip} • ` : ""}${emp.jabatan || emp.position || "-"}`}
                           </p>
                         </div>
                         {!isPublished && (
                           <button
                             type="button"
                             onClick={() => {
-                              setSelectedEmployees((prev) => prev.filter((e) => e.id !== emp.id));
+                              setSelectedEmployees((prev) => {
+                                const next = prev.filter((e) => e.id !== emp.id);
+                                const remainingBuruh = extractBuruhCount(next);
+                                setJumlahBuruh(remainingBuruh);
+                                setHasBuruh(remainingBuruh > 0);
+                                return next;
+                              });
                               setEmployeeDates((prev) => {
                                 const next = { ...prev };
                                 delete next[empKey];
