@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
+import { isPppk } from "@/lib/letter-utils";
 import type { Employee } from "../_lib";
 
 interface ApiResponse {
@@ -93,7 +94,7 @@ export default function EmployeeListPage() {
             <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-4">Profil Pegawai</th>
-                <th className="px-6 py-4">NIP</th>
+                <th className="px-6 py-4">NIP / NIPPPK</th>
                 <th className="px-6 py-4">Jabatan</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -117,7 +118,18 @@ export default function EmployeeListPage() {
                       </Link>
                       <p className="text-[11px] text-zinc-500">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{emp.nip?.startsWith("MMP-") ? "-" : emp.nip}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                      {emp.nip?.startsWith("MMP-") ? (
+                        "-"
+                      ) : isPppk(emp) ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">NIPPPK</span>
+                          {emp.nip}
+                        </span>
+                      ) : (
+                        emp.nip
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{emp.jabatan || "-"}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${

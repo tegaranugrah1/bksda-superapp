@@ -124,6 +124,57 @@ export function formatNIP(nip: string | null | undefined): string {
     return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
 }
 
+export type NipIdentifiable =
+    | {
+          nip?: string | null;
+          pangkat_golongan?: string | null;
+          pangkatGol?: string | null;
+          jabatan?: string | null;
+          position?: string | null;
+          is_pppk?: boolean | null;
+          nip_label?: string | null;
+          role?: string | null;
+      }
+    | string
+    | null
+    | undefined;
+
+/**
+ * Cek apakah seorang pegawai berstatus PPPK (P3K).
+ * Sesuai aturan BKN, NIP PPPK memiliki kode '21' pada digit ke 13-14 (0-indexed 12-14),
+ * atau pangkat/golongan/jabatan memuat "pppk" / "p3k".
+ */
+export function isPppk(emp?: NipIdentifiable): boolean {
+    if (!emp) return false;
+    if (typeof emp === 'string') {
+        const clean = emp.replace(/\s+/g, '');
+        return clean.length >= 14 && clean.substring(12, 14) === '21';
+    }
+    if (typeof emp.is_pppk === 'boolean') {
+        return emp.is_pppk;
+    }
+    if (typeof emp.nip_label === 'string' && emp.nip_label.toUpperCase().includes('PPPK')) {
+        return true;
+    }
+    const nip = (emp.nip || '').replace(/\s+/g, '');
+    if (nip.length >= 14 && nip.substring(12, 14) === '21') {
+        return true;
+    }
+    const gol = (emp.pangkat_golongan || emp.pangkatGol || '').toLowerCase();
+    const jab = (emp.jabatan || emp.position || '').toLowerCase();
+    return gol.includes('pppk') || jab.includes('pppk') || gol.includes('p3k');
+}
+
+/**
+ * Mendapatkan label NIP yang sesuai: "NIPPPK" untuk PPPK, dan "NIP" untuk PNS/umum.
+ * withDot = true akan menghasilkan "NIPPPK." atau "NIP."
+ */
+export function formatNipLabel(emp?: NipIdentifiable, withDot = false): string {
+    const label = isPppk(emp) ? 'NIPPPK' : 'NIP';
+    return withDot ? `${label}.` : label;
+}
+
+
 export function extractFoluKawasan(namaKegiatan: string, tempatKegiatan?: string): string {
     const explicitPlace = tempatKegiatan?.trim().replace(/[;,.]$/, '');
     if (explicitPlace) return explicitPlace;

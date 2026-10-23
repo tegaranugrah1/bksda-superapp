@@ -31,6 +31,7 @@ import {
   formatDateIndonesian,
   formatDateRangeIndonesian,
   formatNIP,
+  formatNipLabel,
   daysBetween,
   numberToWords,
   buildFoluMenimbangText,
@@ -1694,7 +1695,7 @@ export function SuratTugasForm({
                           {emp.nama_lengkap || emp.name}
                         </p>
                         <p className="text-[10px] text-zinc-400">
-                          {emp.nip ? `NIP. ${emp.nip}` : "Non-NIP"} • {emp.jabatan || "-"}
+                          {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.jabatan || "-"}
                         </p>
                       </button>
                     ))}
@@ -1743,7 +1744,7 @@ export function SuratTugasForm({
                             {index + 1}. {emp.nama_lengkap || emp.name}
                           </p>
                           <p className="text-[10px] text-zinc-400 truncate">
-                            {emp.nip ? `NIP. ${emp.nip} • ` : ""}{emp.jabatan || emp.position || "-"}
+                            {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip} • ` : ""}{emp.jabatan || emp.position || "-"}
                           </p>
                         </div>
                         {!isPublished && (

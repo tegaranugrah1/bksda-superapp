@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDateIndonesian, formatNIP } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatNIP, formatNipLabel } from "@/lib/letter-utils";
 
 interface Employee {
   id: string;
@@ -8,6 +8,9 @@ interface Employee {
   name?: string;
   nip: string;
   jabatan: string;
+  is_pppk?: boolean;
+  nip_label?: string;
+  pangkat_golongan?: string;
 }
 
 export interface EmployeeDateRange {
@@ -133,7 +136,7 @@ export default function STLampiranBedaHari({
         <thead>
           <tr>
             <th style={cellHeaderStyle("5%")}>No.</th>
-            <th style={cellHeaderStyle("40%")}>Nama/NIP</th>
+            <th style={cellHeaderStyle("40%")}>Nama / NIP / NIPPPK</th>
             <th style={cellHeaderStyle("29%")}>Jabatan</th>
             <th style={cellHeaderStyle("26%")}>Tanggal</th>
           </tr>
@@ -160,7 +163,7 @@ export default function STLampiranBedaHari({
                     {formattedNip && (
                       <>
                         <br />
-                        <span style={{ whiteSpace: "nowrap" }}>NIP. {formattedNip}</span>
+                        <span style={{ whiteSpace: "nowrap" }}>{formatNipLabel(emp, true)} {formattedNip}</span>
                       </>
                     )}
                   </td>
@@ -200,7 +203,7 @@ export default function STLampiranBedaHari({
           ${"{ttd_pengirim}"}
         </p>
         <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-        <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+        <p style={{ margin: 0 }}>{formatNipLabel(kepalaBalai, true)} {formatNIP(kepalaBalai.nip)}</p>
       </div>
     </div>
   );

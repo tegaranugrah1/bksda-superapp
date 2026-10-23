@@ -10,6 +10,7 @@ import { AssignmentLetterHistory } from "../_components/AssignmentLetterHistory"
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
 import { calculateMasaKerja } from "../../_lib/employee-helpers";
+import { formatNipLabel } from "@/lib/letter-utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -253,7 +254,7 @@ export default function EmployeeDetailPage() {
                   {employee.is_active ? "Aktif" : "Non-Aktif"}
                 </span>
               </div>
-              <p className="text-sm text-slate-500 font-mono mt-0.5">{employee.nip}</p>
+              <p className="text-sm text-slate-500 font-mono mt-0.5">{formatNipLabel(employee, true)} {employee.nip}</p>
             </div>
           </div>
 
@@ -349,7 +350,7 @@ export default function EmployeeDetailPage() {
 
             {!isEditing ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <BioItem label="NIP" value={employee.nip} />
+                <BioItem label={formatNipLabel(employee)} value={employee.nip} />
                 <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
                 <BioItem label="Jabatan" value={employee.jabatan || "-"} />
                 <BioItem label="Pangkat / Golongan" value={employee.pangkat_golongan || "-"} />
@@ -359,7 +360,7 @@ export default function EmployeeDetailPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <BioField label="NIP">
+                <BioField label={formatNipLabel(employee)}>
                   <input
                     type="text"
                     value={editForm.nip}

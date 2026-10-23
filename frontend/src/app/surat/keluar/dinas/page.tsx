@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { formatNipLabel } from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,7 +132,7 @@ function PartySelectorBlock({
             {employeeOptions?.map((emp: any) => {
               const empName = emp.nama_lengkap || emp.name || emp.nama || "Tanpa Nama";
               const empPos = emp.jabatan || emp.position || "";
-              const empNip = emp.nip ? `(NIP. ${emp.nip})` : "";
+              const empNip = emp.nip ? `(${formatNipLabel(emp, true)} ${emp.nip})` : "";
               return (
                 <option key={emp.id} value={emp.id}>
                   {empName}{empPos ? ` — ${empPos}` : ""}{empNip ? ` ${empNip}` : ""}
@@ -1428,7 +1429,7 @@ function GenerateSuratDinasContent() {
                       {employeeOptions?.map((emp: any) => {
                         const empName = emp.nama_lengkap || emp.name || emp.nama || "Tanpa Nama";
                         const empPos = emp.jabatan || emp.position || "";
-                        const empNip = emp.nip ? `(NIP. ${emp.nip})` : "";
+                        const empNip = emp.nip ? `(${formatNipLabel(emp, true)} ${emp.nip})` : "";
                         return (
                           <option key={emp.id} value={emp.id}>
                             {empName}{empPos ? ` — ${empPos}` : ""}{empNip ? ` ${empNip}` : ""}
@@ -1487,7 +1488,7 @@ function GenerateSuratDinasContent() {
                       {employeeOptions?.map((emp: any) => {
                         const empName = emp.nama_lengkap || emp.name || emp.nama || "Tanpa Nama";
                         const empPos = emp.jabatan || emp.position || "";
-                        const empNip = emp.nip ? `(NIP. ${emp.nip})` : "";
+                        const empNip = emp.nip ? `(${formatNipLabel(emp, true)} ${emp.nip})` : "";
                         return (
                           <option key={emp.id} value={emp.id}>
                             {empName}{empPos ? ` — ${empPos}` : ""}{empNip ? ` ${empNip}` : ""}

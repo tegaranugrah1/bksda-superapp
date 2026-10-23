@@ -2,6 +2,7 @@
 
 import React from "react";
 import { toast } from "sonner";
+import { formatNipLabel, isPppk } from "@/lib/letter-utils";
 
 export type TemplateType =
   | "surat_dinas"
@@ -1122,7 +1123,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {penerimaPengantar?.partyType === "internal" ? "${ttd_pengirim}" : "${ttd_penerima}"}
                 </div>
                 <p className="font-bold">{penerimaPengantar?.nama || "..........................................."}</p>
-                <p>{(penerimaPengantar?.idType === "NIK" ? "NIK. " : "NIP. ") + (penerimaPengantar?.nip || "...........................................")}</p>
+                <p>{(penerimaPengantar?.idType === "NIK" ? "NIK. " : `${formatNipLabel(penerimaPengantar, true)} `) + (penerimaPengantar?.nip || "...........................................")}</p>
               </div>
               <div>
                 <p>&nbsp;</p>
@@ -1132,7 +1133,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {"${ttd_pengirim}"}
                 </div>
                 <p className="font-bold">{namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                <p>NIP. {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                <p>{formatNipLabel(nipPenandatangan, true)} {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
               </div>
             </div>
           </div>
@@ -1150,14 +1151,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
             <p className="mb-2">Yang bertanda tangan di bawah ini :</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
-              <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+              <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
               <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pejabatMenerangkan?.pangkatGol || "Pembina Tk. I (IV/b)"}</span></div>
               <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
             </div>
 
             <p className="mb-2">Dengan ini menyatakan dengan sesungguhnya, bahwa :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
-              <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
+              <div className="flex"><span className="w-36">Nama, {formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
               <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
               <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
             </div>
@@ -1175,7 +1176,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mb-2">Yang bertanda tangan di bawah ini :</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
               <div className="flex"><span className="w-32">Nama</span><span className="w-4">:</span><span className="font-bold">{pemberiKuasa?.nama || namaPenandatangan}</span></div>
-              <div className="flex"><span className="w-32">NIP</span><span className="w-4">:</span><span>{pemberiKuasa?.nip || nipPenandatangan}</span></div>
+              <div className="flex"><span className="w-32">{formatNipLabel(pemberiKuasa || nipPenandatangan)}</span><span className="w-4">:</span><span>{pemberiKuasa?.nip || nipPenandatangan}</span></div>
               <div className="flex"><span className="w-32">Jabatan</span><span className="w-4">:</span><span>{pemberiKuasa?.jabatan || jabatanPenandatangan}</span></div>
               <div className="flex"><span className="w-32">Alamat</span><span className="w-4">:</span><span>{pemberiKuasa?.alamat || "Samarinda"}</span></div>
             </div>
@@ -1183,7 +1184,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mb-2">Memberi kuasa kepada :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
               <div className="flex"><span className="w-32">Nama</span><span className="w-4">:</span><span className="font-bold">{penerimaKuasa?.nama}</span></div>
-              <div className="flex"><span className="w-32">NIP</span><span className="w-4">:</span><span>{penerimaKuasa?.nip || "-"}</span></div>
+              <div className="flex"><span className="w-32">{formatNipLabel(penerimaKuasa)}</span><span className="w-4">:</span><span>{penerimaKuasa?.nip || "-"}</span></div>
               <div className="flex"><span className="w-32">Jabatan</span><span className="w-4">:</span><span>{penerimaKuasa?.jabatan}</span></div>
               <div className="flex"><span className="w-32">Alamat</span><span className="w-4">:</span><span>{penerimaKuasa?.alamat}</span></div>
             </div>
@@ -1210,7 +1211,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <div className="space-y-3 mb-4 text-[11pt]">
                 <p>Dengan hormat kami harapkan kehadiran Saudara :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
                   <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
                   <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
                   <div className="flex"><span className="w-36">Unit Organisasi</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.unit || "Balai KSDA Kalimantan Timur"}</span></div>
@@ -1218,7 +1219,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
                 <p>Untuk menghadap kepada :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
                   <div className="flex"><span className="w-36">Hari, Tanggal</span><span className="w-4">:</span><span className="font-normal">{acaraHariTanggal}</span></div>
                   <div className="flex"><span className="w-36">Waktu</span><span className="w-4">:</span><span>{acaraWaktu}</span></div>
                   <div className="flex"><span className="w-36">Tempat</span><span className="w-4">:</span><span>{acaraTempat}</span></div>
@@ -1229,7 +1230,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <div className="space-y-3 mb-4 text-[11pt]">
                 <p>Yang bertanda tangan di bawah ini :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
                   <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
                 </div>
 
@@ -1271,7 +1272,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               return (
                 <div className="surat-izin-cuti-body text-justify">
                   <p className="surat-izin-cuti-p">
-                    1. Diberikan Cuti {jenisCutiClean} kepada Pegawai Negeri Sipil :
+                    1. Diberikan Cuti {jenisCutiClean} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
                   </p>
 
                   <table className="surat-izin-cuti-table">
@@ -1282,7 +1283,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                         <td className="sic-val font-bold">{pegawai?.nama || pegawaiDiterangkan?.nama || "-"}</td>
                       </tr>
                       <tr>
-                        <td className="sic-label">NIP</td>
+                        <td className="sic-label">{formatNipLabel(pegawai || pegawaiDiterangkan)}</td>
                         <td className="sic-colon">:</td>
                         <td className="sic-val">{pegawai?.nip || pegawaiDiterangkan?.nip || "-"}</td>
                       </tr>
@@ -1513,13 +1514,13 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mt-4 mb-2">Yang bertanda tangan di bawah ini:</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
               <div className="flex"><span className="w-36">nama</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan}</span></div>
-              <div className="flex"><span className="w-36">NIP</span><span className="w-4">:</span><span>{pejabatMenerangkan?.nip || nipPenandatangan}</span></div>
+              <div className="flex"><span className="w-36">{formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span>{pejabatMenerangkan?.nip || nipPenandatangan}</span></div>
               <div className="flex"><span className="w-36">jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
             </div>
             <p className="mt-4 mb-2">dengan ini menerangkan bahwa :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
               <div className="flex"><span className="w-36">nama</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama}</span></div>
-              <div className="flex"><span className="w-36">NIP</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.nip}</span></div>
+              <div className="flex"><span className="w-36">{formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.nip}</span></div>
               <div className="flex"><span className="w-36">pangkat/gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
               <div className="flex"><span className="w-36">jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
             </div>
@@ -1534,7 +1535,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             </div>
             <p className="mb-3 text-justify">Pada hari ini, {hariTanggalAcara || "..."} bertempat di {lokasiDibuat || "Samarinda"}, kami masing-masing:</p>
             <div className="pl-4 space-y-2 mb-3 text-justify text-[11pt]">
-              <p>1. <strong>{pihakPertama?.nama}</strong>, NIP. {pihakPertama?.nip}, {pihakPertama?.jabatan}, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
+              <p>1. <strong>{pihakPertama?.nama}</strong>, {formatNipLabel(pihakPertama, true)} {pihakPertama?.nip}, {pihakPertama?.jabatan}, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
               <p>2. <strong>{pihakKedua?.nama}</strong>, {pihakKedua?.jabatan} {pihakKedua?.instansi || ""}, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
             </div>
             <p className="mb-2 font-medium">Telah melaksanakan/bersepakat mengenai:</p>
@@ -1676,7 +1677,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                     <p className="font-bold">{pihakKedua?.nama || penerimaKuasa?.nama || ".............................."}</p>
                     {(pihakKedua?.nip || penerimaKuasa?.nip) && (
                       <p className="text-[10pt]">
-                        {(pihakKedua?.idType === "NIK" || penerimaKuasa?.idType === "NIK" ? "NIK. " : "NIP. ") + (pihakKedua?.nip || penerimaKuasa?.nip)}
+                        {(pihakKedua?.idType === "NIK" || penerimaKuasa?.idType === "NIK" ? "NIK. " : `${formatNipLabel(pihakKedua || penerimaKuasa, true)} `) + (pihakKedua?.nip || penerimaKuasa?.nip)}
                       </p>
                     )}
                   </div>
@@ -1688,7 +1689,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                       {"${ttd_pengirim}"}
                     </div>
                     <p className="font-bold">{pihakPertama?.nama || pemberiKuasa?.nama || namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                    <p className="text-[10pt]">NIP. {pihakPertama?.nip || pemberiKuasa?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                    <p className="text-[10pt]">{formatNipLabel(pihakPertama || pemberiKuasa || nipPenandatangan, true)} {pihakPertama?.nip || pemberiKuasa?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
                   </div>
                 </div>
 
@@ -1700,7 +1701,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                       {"${ttd_pengirim}"}
                     </div>
                     <p className="font-bold">{pihakKetiga?.nama || namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                    <p className="text-[10pt]">NIP. {pihakKetiga?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                    <p className="text-[10pt]">{formatNipLabel(pihakKetiga || nipPenandatangan, true)} {pihakKetiga?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
                   </div>
                 )}
               </div>
@@ -1734,7 +1735,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {"${ttd_pengirim}"}
                 </div>
                 <p className="pkpknl-ttd-name pkpknl-edit font-bold">{namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                <p className="pkpknl-edit">NIP. {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                <p className="pkpknl-edit">{formatNipLabel(nipPenandatangan, true)} {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
               </div>
             )}
 

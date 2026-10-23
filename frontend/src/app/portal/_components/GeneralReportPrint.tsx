@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatNipLabel } from "@/lib/letter-utils";
 
 export interface GeneralReportData {
   id?: string;
@@ -304,7 +305,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                           </tr>
                           <tr className="bg-slate-100 print:bg-white text-center font-normal content-table-row">
                             <th className="border border-black px-3 py-1.5 w-12 font-normal">No.</th>
-                            <th className="border border-black px-3 py-1.5 font-normal">Nama / NIP</th>
+                            <th className="border border-black px-3 py-1.5 font-normal">Nama / NIP / NIPPPK</th>
                             <th className="border border-black px-3 py-1.5 font-normal">Jabatan</th>
                           </tr>
                         </thead>
@@ -315,7 +316,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                               <td className="border border-black px-3 py-2 text-center">{idx + 1}.</td>
                               <td className="border border-black px-3 py-2">
                                 <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
-                                <p className="text-[12pt] text-black font-normal">NIP. {p.nip || "-"}</p>
+                                <p className="text-[12pt] text-black font-normal">{p.nip ? `${formatNipLabel(p, true)} ${p.nip}` : "NIP. -"}</p>
                               </td>
                               <td className="border border-black px-3 py-2">{p.jabatan || "-"}</td>
                             </tr>
@@ -375,7 +376,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                                 data.pelaksana.map((p, idx) => (
                                   <div key={idx} className="pt-24 space-y-0.5">
                                     <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
-                                    <p className="text-[12pt] font-normal">NIP. {p.nip || "-"}</p>
+                                    <p className="text-[12pt] font-normal">{p.nip ? `${formatNipLabel(p, true)} ${p.nip}` : "NIP. -"}</p>
                                   </div>
                                 ))
                               ) : (

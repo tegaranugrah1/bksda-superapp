@@ -44,7 +44,7 @@ interface FormulirCutiPrintProps {
   data: LeaveRequestPrintData;
 }
 
-import { formatDateIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
 import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
 
 export { calculateMasaKerja };
@@ -146,7 +146,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           <tr className="border-b border-black">
             <td className="w-24 px-2.5 py-0.5 font-semibold border-r border-black">Nama</td>
             <td className="w-[42%] px-2.5 py-0.5 uppercase border-r border-black">{emp.nama_lengkap}</td>
-            <td className="w-20 px-2.5 py-0.5 font-semibold border-r border-black">NIP</td>
+            <td className="w-20 px-2.5 py-0.5 font-semibold border-r border-black">{formatNipLabel(emp)}</td>
             <td className="px-2.5 py-0.5">{emp.nip}</td>
           </tr>
           <tr className="border-b border-black">
@@ -329,7 +329,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                 <div className="h-6" />
                 <div>
                   <p className="font-bold uppercase text-[9.5px]">{emp.nama_lengkap}</p>
-                  <p className="text-[9px]">NIP. {emp.nip}</p>
+                  <p className="text-[9px]">{formatNipLabel(emp, true)} {emp.nip}</p>
                 </div>
               </div>
             </td>
@@ -371,7 +371,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                   <div className="h-6" />
                   <div>
                     <p className="font-bold uppercase text-[9.5px]">{finalAtasanNama}</p>
-                    <p className="text-[9px]">NIP. {finalAtasanNip}</p>
+                    <p className="text-[9px]">{formatNipLabel(finalAtasanNip, true)} {finalAtasanNip}</p>
                   </div>
                 </div>
               </div>
@@ -409,7 +409,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                   <div className="h-6" />
                   <div>
                     <p className="font-bold uppercase text-[9.5px]">{data.kepala_balai_nama || "M. ARI WIBOWANTO, S.Hut.,M.Sc."}</p>
-                    <p className="text-[9px]">NIP. {data.kepala_balai_nip || "19740514 199903 1 001"}</p>
+                    <p className="text-[9px]">{formatNipLabel(data.kepala_balai_nip, true)} {data.kepala_balai_nip || "19740514 199903 1 001"}</p>
                   </div>
                 </div>
               </div>

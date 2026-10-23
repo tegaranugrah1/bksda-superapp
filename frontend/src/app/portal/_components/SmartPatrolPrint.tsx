@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatNipLabel } from "@/lib/letter-utils";
 
 export interface TemuanSatwaLiarItem {
   id: string;
@@ -129,7 +130,7 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
   const defaultDisusun = data.disusunOleh
     ? data.disusunOleh
     : data.pelaksanaEmployees && data.pelaksanaEmployees.length > 0
-    ? `${data.pelaksanaEmployees[0].nama_lengkap}\nNIP. ${data.pelaksanaEmployees[0].nip || "-"}`
+    ? `${data.pelaksanaEmployees[0].nama_lengkap}\n${formatNipLabel(data.pelaksanaEmployees[0], true)} ${data.pelaksanaEmployees[0].nip || "-"}`
     : "( .................................................... )\nNIP. -";
 
   const renderTocRow = (title: string, page: string = "", isBold: boolean = false, isIndent: boolean = false) => (
@@ -644,7 +645,7 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
                                 <tr className="bg-black text-white text-center">
                                   <th className="border border-black p-1.5 w-12 font-bold">No</th>
                                   <th className="border border-black p-1.5 font-bold">Nama</th>
-                                  <th className="border border-black p-1.5 font-bold">NIP</th>
+                                  <th className="border border-black p-1.5 font-bold">NIP / NIPPPK</th>
                                   <th className="border border-black p-1.5 font-bold">Jabatan</th>
                                 </tr>
                               </thead>

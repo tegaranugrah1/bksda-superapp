@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
 import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { formatNipLabel } from "@/lib/letter-utils";
 import api from "@/lib/api";
 
 export type JenisTugasType =
@@ -464,7 +465,7 @@ export function SuratTugasDetailStep({
                                   {idx + 1}. {emp.name}
                                 </p>
                                 <p className="text-[10px] text-slate-400 truncate">
-                                  {emp.nip ? `NIP. ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
+                                  {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
                                 </p>
                               </div>
                               <div className="grid grid-cols-2 gap-2 w-full md:w-auto shrink-0">

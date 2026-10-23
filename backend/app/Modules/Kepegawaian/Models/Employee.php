@@ -72,6 +72,7 @@ class Employee extends Model
         'is_seksi',
         'seksi_wilayah',
         'is_pppk',
+        'nip_label',
         'is_cpns2025',
     ];
 
@@ -94,6 +95,15 @@ class Employee extends Model
         $jab = strtolower($this->jabatan ?? '');
         return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k');
     }
+
+    /**
+     * Accessor: Label NIP ("NIPPPK" jika PPPK, "NIP" jika PNS/lainnya)
+     */
+    public function getNipLabelAttribute(): string
+    {
+        return $this->is_pppk ? 'NIPPPK' : 'NIP';
+    }
+
 
     /**
      * Accessor: Cek apakah pegawai merupakan CPNS pengangkatan 2025 (NIP mengandung 202506)

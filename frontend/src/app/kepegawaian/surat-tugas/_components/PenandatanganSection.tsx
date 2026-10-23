@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { formatNIP } from "@/lib/letter-utils";
+import { formatNIP, formatNipLabel } from "@/lib/letter-utils";
 import { FormSection } from "./FormSection";
 import type { Employee, KepalaBalaiInfo } from "../_lib/types";
 
@@ -87,7 +87,7 @@ export function PenandatanganSection({
                       {emp.nama_lengkap || emp.name}
                     </div>
                     <div className="text-[10px] text-slate-500 dark:text-zinc-400">
-                      NIP. {formatNIP(emp.nip)}
+                      {formatNipLabel(emp, true)} {formatNIP(emp.nip)}
                       {emp.jabatan || emp.position
                         ? ` - ${emp.jabatan || emp.position}`
                         : ""}

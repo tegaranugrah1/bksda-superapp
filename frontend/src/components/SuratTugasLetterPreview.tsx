@@ -5,6 +5,7 @@ import { Printer, X } from "lucide-react";
 import {
   formatDateIndonesian,
   formatNIP,
+  formatNipLabel,
   indexToLetter,
   daysBetween,
   numberToWords,
@@ -17,6 +18,9 @@ interface Employee {
   name?: string;
   nip: string;
   jabatan?: string;
+  is_pppk?: boolean;
+  nip_label?: string;
+  pangkat_golongan?: string;
   pivot?: { peran?: string };
 }
 
@@ -343,7 +347,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                                       <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                     </tr>
                                     <tr>
-                                      <td style={{ width: "70px", padding: "1px 0" }}>NIP</td>
+                                      <td style={{ width: "70px", padding: "1px 0" }}>{formatNipLabel(emp)}</td>
                                       <td style={{ width: "20px", padding: "1px 0" }}>:</td>
                                       <td style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</td>
                                     </tr>
@@ -482,7 +486,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                     {data.nama_plh || (data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}
                   </p>
                   <p style={{ margin: 0, fontSize: "10pt" }}>
-                    NIP. {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
+                    {formatNipLabel(data.approver, true)} {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
                   </p>
                 </div>
 
@@ -544,7 +548,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                       {data.nama_plh || (data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}
                     </p>
                     <p style={{ margin: 0, fontSize: "10pt" }}>
-                      NIP. {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
+                      {formatNipLabel(data.approver, true)} {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
                     </p>
                   </div>
                 </div>

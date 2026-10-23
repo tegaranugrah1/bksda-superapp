@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   formatDateIndonesian,
   formatNIP,
+  formatNipLabel,
   indexToLetter,
 } from "@/lib/letter-utils";
 import { resolveKopImageUrl } from "../_lib";
@@ -372,7 +373,7 @@ export default function STBuilderPreview({
                                           <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                         </tr>
                                         <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>NIP</td>
+                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
                                           <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
                                           <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
                                         </tr>
@@ -476,7 +477,7 @@ export default function STBuilderPreview({
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                      <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                      <p style={{ margin: 0 }}>{formatNipLabel(kepalaBalai, true)} {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
                     {/* === Tembusan Bawah (di bawah NIP, full width) === */}
@@ -532,7 +533,7 @@ export default function STBuilderPreview({
                         ${"{ttd_pengirim}"}
                       </p>
                       <p style={{ margin: 0, fontWeight: "bold" }}>{kepalaBalai.name}</p>
-                      <p style={{ margin: 0 }}>NIP. {formatNIP(kepalaBalai.nip)}</p>
+                      <p style={{ margin: 0 }}>{formatNipLabel(kepalaBalai, true)} {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
                     {/* === Tembusan Samping (kiri sejajar NIP) === */}

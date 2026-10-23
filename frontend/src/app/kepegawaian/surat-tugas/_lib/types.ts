@@ -12,6 +12,8 @@ export interface Employee {
   position?: string;
   satuan_kerja?: string;
   unit_kerja?: string;
+  is_pppk?: boolean;
+  nip_label?: string;
 }
 
 export interface DasarItem {

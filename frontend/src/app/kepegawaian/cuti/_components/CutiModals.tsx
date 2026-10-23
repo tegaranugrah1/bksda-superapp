@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { FormulirCutiPrint } from "@/app/portal/_components/FormulirCutiPrint";
-import { formatDateIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatNipLabel, isPppk } from "@/lib/letter-utils";
 
 export { ScanViewerModal } from "./ScanViewerModal";
 export { CatatSuratIzinModal } from "./CatatSuratIzinModal";
@@ -611,11 +611,13 @@ export function ApproveLeaveModal({
 
           <div className="grid grid-cols-2 gap-2 pt-1 border-t border-emerald-200/40 dark:border-emerald-800/40 text-[11px]">
             <div>
-              <span className="text-slate-400 block text-[10px]">PNS Pemohon</span>
+              <span className="text-slate-400 block text-[10px]">
+                {isPppk(item.employee) ? "PPPK Pemohon" : "PNS Pemohon"}
+              </span>
               <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
                 {item.employee?.nama_lengkap}
               </span>
-              <span className="text-[10px] font-mono text-slate-500">NIP. {item.employee?.nip}</span>
+              <span className="text-[10px] font-mono text-slate-500">{formatNipLabel(item.employee, true)} {item.employee?.nip}</span>
             </div>
             <div>
               <span className="text-slate-400 block text-[10px]">Durasi & Pelaksanaan</span>
