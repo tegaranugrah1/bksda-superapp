@@ -17,11 +17,7 @@ import {
 } from "./_components/SuratTugasDetailStep";
 import { SuratTugasSuccessStep } from "./_components/SuratTugasSuccessStep";
 
-import {
-  getEmployeeCity,
-  formatKotaAsal,
-  detectDefaultKotaAsal,
-} from "@/app/kepegawaian/surat-tugas/_lib";
+import { detectDefaultKotaAsal } from "@/app/kepegawaian/surat-tugas/_lib";
 
 export default function SuratTugasForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -86,31 +82,8 @@ export default function SuratTugasForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBedaHari, setIsBedaHari] = useState(false);
   const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
-  const [employeeDepartures, setEmployeeDepartures] = useState<Record<string, string>>({});
-  const [showDepartureColumn, setShowDepartureColumn] = useState(false);
   const [hasBuruh, setHasBuruh] = useState(false);
   const [jumlahBuruh, setJumlahBuruh] = useState(1);
-
-  // Sync employee departures whenever employees or buruh change
-  useEffect(() => {
-    setEmployeeDepartures((prev) => {
-      const next = { ...prev };
-      selectedEmployees.forEach((emp) => {
-        if (!next[emp.id]) {
-          next[emp.id] = getEmployeeCity(emp);
-        }
-      });
-      if (hasBuruh) {
-        for (let i = 1; i <= jumlahBuruh; i++) {
-          const pmKey = `pm-${i}`;
-          if (!next[pmKey]) {
-            next[pmKey] = kotaAsal || "Samarinda";
-          }
-        }
-      }
-      return next;
-    });
-  }, [selectedEmployees, hasBuruh, jumlahBuruh, kotaAsal]);
 
   useEffect(() => {
     if (selectedEmployees.length > 0) {
@@ -266,14 +239,7 @@ export default function SuratTugasForm() {
       }
 
       if (isBedaHari) {
-        submitData.append("template_snapshot[configuration][show_departure_column]", showDepartureColumn ? "1" : "0");
-        if (showDepartureColumn) {
-          Object.entries(employeeDepartures).forEach(([key, val]) => {
-            if (val) {
-              submitData.append(`template_snapshot[configuration][employee_departures][${key}]`, val);
-            }
-          });
-        }
+        submitData.append("template_snapshot[configuration][show_departure_column]", "0");
       }
       
       let finalKeterangan = formData.keterangan?.trim() || "";
@@ -406,10 +372,6 @@ export default function SuratTugasForm() {
             setIsBedaHari={setIsBedaHari}
             employeeDates={employeeDates}
             setEmployeeDates={setEmployeeDates}
-            employeeDepartures={employeeDepartures}
-            setEmployeeDepartures={setEmployeeDepartures}
-            showDepartureColumn={showDepartureColumn}
-            setShowDepartureColumn={setShowDepartureColumn}
             hasBuruh={hasBuruh}
             setHasBuruh={setHasBuruh}
             jumlahBuruh={jumlahBuruh}

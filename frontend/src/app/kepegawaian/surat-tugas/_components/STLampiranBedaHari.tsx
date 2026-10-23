@@ -40,6 +40,8 @@ interface STLampiranBedaHariProps {
   defaultKotaAsal?: string;
   kepalaBalai: { name: string; nip: string };
   judulLampiran?: string;
+  nomorNumberingType?: "st_pattern" | "naskah_auto";
+  customNomorNaskah?: string;
 }
 
 /**
@@ -148,8 +150,13 @@ export default function STLampiranBedaHari({
   defaultKotaAsal = "Samarinda",
   kepalaBalai,
   judulLampiran = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
+  nomorNumberingType = "st_pattern",
+  customNomorNaskah,
 }: STLampiranBedaHariProps) {
-  const fullNomor = `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`;
+  const fullNomor =
+    nomorNumberingType === "naskah_auto"
+      ? (customNomorNaskah || "${nomor_naskah}")
+      : `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`;
   const tanggalText = tanggalSurat ? formatDateIndonesian(tanggalSurat) : "...";
 
   return (

@@ -143,6 +143,8 @@ interface PreviewProps {
   defaultTanggalSelesai?: string;
   judulLampiranBedaHari?: string;
   kopImageUrl?: string | null;
+  nomorNumberingType?: "st_pattern" | "naskah_auto";
+  customNomorNaskah?: string;
 }
 
 export default function STBuilderPreview({
@@ -177,6 +179,8 @@ export default function STBuilderPreview({
   defaultTanggalSelesai,
   judulLampiranBedaHari = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
   kopImageUrl = null,
+  nomorNumberingType = "st_pattern",
+  customNomorNaskah = "",
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
   const activeDateFormat = dateFormatStyle || (isFolu ? "tabular" : "inline");
@@ -289,7 +293,9 @@ export default function STBuilderPreview({
                 SURAT TUGAS
               </p>
               <p style={{ textAlign: "center", fontSize: "11pt", margin: "0 0 16px" }}>
-                Nomor : ST.{stNumber || "..."}/{stCode || "..."}/{currentMonth}/{currentYear}
+                Nomor : {nomorNumberingType === "naskah_auto"
+                  ? (customNomorNaskah || "${nomor_naskah}")
+                  : `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`}
               </p>
 
               {/* === KEPALA BALAI / HEADER MODULAR === */}
@@ -607,6 +613,8 @@ export default function STBuilderPreview({
             defaultKotaAsal={kotaSurat}
             kepalaBalai={kepalaBalai}
             judulLampiran={judulLampiranBedaHari}
+            nomorNumberingType={nomorNumberingType}
+            customNomorNaskah={customNomorNaskah}
           />
         </div>
       )}

@@ -52,6 +52,7 @@ export interface StTemplateConfiguration {
   sumber_dana?: string;
   biaya_text?: string | null;
   nomor_surat_format?: string;
+  nomor_numbering_type?: "st_pattern" | "naskah_auto";
   untuk?: DasarItem[];
   [key: string]: unknown;
 }

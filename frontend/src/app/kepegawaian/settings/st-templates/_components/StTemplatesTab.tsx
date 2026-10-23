@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   Check,
+  CheckCircle,
   Copy,
   Loader2,
   Pencil,
@@ -76,6 +77,7 @@ export function StTemplatesTab() {
   const [templateBiayaText, setTemplateBiayaText] = useState("");
   const [nomorSuratFormat, setNomorSuratFormat] = useState(DEFAULT_NOMOR_SURAT_FORMAT);
   const [nomorFormatMode, setNomorFormatMode] = useState<"default" | "manual">("default");
+  const [nomorNumberingType, setNomorNumberingType] = useState<"st_pattern" | "naskah_auto">("st_pattern");
   const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>(
     "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
   );
@@ -292,6 +294,7 @@ export function StTemplatesTab() {
     setTemplateBiayaText("");
     setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
     setNomorFormatMode("default");
+    setNomorNumberingType("st_pattern");
     setDefaultJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
     setDefaultModeKegiatan("structured");
     setDefaultKegiatan("");
@@ -336,6 +339,9 @@ export function StTemplatesTab() {
         : DEFAULT_NOMOR_SURAT_FORMAT;
     setNomorSuratFormat(existingNomorFormat);
     setNomorFormatMode(existingNomorFormat === DEFAULT_NOMOR_SURAT_FORMAT ? "default" : "manual");
+    const existingNumberingType =
+      config.nomor_numbering_type === "naskah_auto" ? "naskah_auto" : "st_pattern";
+    setNomorNumberingType(existingNumberingType);
 
     const existingJenisTugas =
       typeof config.default_jenis_tugas === "string"
@@ -460,6 +466,7 @@ export function StTemplatesTab() {
           nomorFormatMode === "manual" && nomorSuratFormat.trim()
             ? nomorSuratFormat.trim()
             : DEFAULT_NOMOR_SURAT_FORMAT,
+        nomor_numbering_type: nomorNumberingType,
       },
     };
 
@@ -838,85 +845,148 @@ export function StTemplatesTab() {
               <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900 space-y-3">
                 <div>
                   <h4 className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
-                    Format Nomor Surat
+                    Format &amp; Tipe Nomor Surat
                   </h4>
                   <p className="text-xs font-normal text-slate-400">
-                    Pola penomoran naskah setelah kode ST.001/. Mendukung placeholder {"{klasifikasi}"},{" "}
-                    {"{bulan}"}, {"{tahun}"}.
+                    Pilih skema penomoran default untuk naskah surat tugas dari template ini.
                   </p>
                 </div>
-                <div className="grid gap-2 md:grid-cols-2">
+
+                {/* Switcher Tipe Penomoran: Pola ST vs Nomor Naskah Otomatis */}
+                <div className="grid gap-2 sm:grid-cols-2">
                   <label
-                    className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
-                      nomorFormatMode === "default"
-                        ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                        : "border-slate-200 dark:border-zinc-700"
+                    className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-sm transition-all ${
+                      nomorNumberingType === "st_pattern"
+                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                     }`}
                   >
                     <input
                       type="radio"
-                      name="settings-nomor-format-mode"
-                      checked={nomorFormatMode === "default"}
-                      onChange={() => {
-                        setNomorFormatMode("default");
-                        setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
-                      }}
+                      name="settings-nomor-numbering-type"
+                      checked={nomorNumberingType === "st_pattern"}
+                      onChange={() => setNomorNumberingType("st_pattern")}
+                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
                     />
-                    <span>
-                      <strong>Format Default BKSDA</strong>
-                      <br />
-                      <span className="text-xs font-normal font-mono">
-                        /K.18/TU/{"{klasifikasi}"}/B/{"{bulan}"}/{"{tahun}"}
+                    <div>
+                      <strong className="block text-xs font-bold text-slate-800 dark:text-zinc-200">
+                        Pola Standar ST (ST.01/...)
+                      </strong>
+                      <span className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                        Pola berawalan ST. dengan nomor urut, kode balai, dan klasifikasi.
                       </span>
-                    </span>
+                    </div>
                   </label>
+
                   <label
-                    className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
-                      nomorFormatMode === "manual"
-                        ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                        : "border-slate-200 dark:border-zinc-700"
+                    className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-sm transition-all ${
+                      nomorNumberingType === "naskah_auto"
+                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                     }`}
                   >
                     <input
                       type="radio"
-                      name="settings-nomor-format-mode"
-                      checked={nomorFormatMode === "manual"}
-                      onChange={() => setNomorFormatMode("manual")}
+                      name="settings-nomor-numbering-type"
+                      checked={nomorNumberingType === "naskah_auto"}
+                      onChange={() => setNomorNumberingType("naskah_auto")}
+                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
                     />
-                    <span>
-                      <strong>Tulis Format Kustom</strong>
-                      <br />
-                      <span className="text-xs font-normal">Masukkan pola penomoran khusus</span>
-                    </span>
+                    <div>
+                      <strong className="block text-xs font-bold text-slate-800 dark:text-zinc-200">
+                        Nomor Naskah Otomatis (${"{nomor_naskah}"})
+                      </strong>
+                      <span className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                        Format: Nomor : ${"{nomor_naskah}"} dari sistem eksternal (Srikandi / TTE / dsb).
+                      </span>
+                    </div>
                   </label>
                 </div>
-                {nomorFormatMode === "manual" && (
-                  <div className="space-y-2">
-                    <input
-                      value={nomorSuratFormat}
-                      onChange={(event) => setNomorSuratFormat(event.target.value)}
-                      placeholder="/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none font-mono text-xs focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-                    />
-                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-                      <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
-                      {[
-                        { tag: "{klasifikasi}", desc: "Kode Klasifikasi" },
-                        { tag: "{bulan}", desc: "Bulan Romawi / Angka" },
-                        { tag: "{tahun}", desc: "Tahun Surat" },
-                      ].map((chip) => (
-                        <button
-                          key={chip.tag}
-                          type="button"
-                          onClick={() =>
-                            setNomorSuratFormat((prev) => (prev ? `${prev}/${chip.tag}` : chip.tag))
-                          }
-                          className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
-                          title={`Klik untuk menambahkan ${chip.tag} (${chip.desc})`}
-                        >
-                          + {chip.tag}
-                        </button>
-                      ))}
+
+                {nomorNumberingType === "st_pattern" ? (
+                  <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-zinc-800">
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
+                          nomorFormatMode === "default"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-nomor-format-mode"
+                          checked={nomorFormatMode === "default"}
+                          onChange={() => {
+                            setNomorFormatMode("default");
+                            setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
+                          }}
+                        />
+                        <span>
+                          <strong>Format Default BKSDA</strong>
+                          <br />
+                          <span className="text-xs font-normal font-mono">
+                            /K.18/TU/{"{klasifikasi}"}/B/{"{bulan}"}/{"{tahun}"}
+                          </span>
+                        </span>
+                      </label>
+                      <label
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
+                          nomorFormatMode === "manual"
+                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                            : "border-slate-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="settings-nomor-format-mode"
+                          checked={nomorFormatMode === "manual"}
+                          onChange={() => setNomorFormatMode("manual")}
+                        />
+                        <span>
+                          <strong>Tulis Format Kustom</strong>
+                          <br />
+                          <span className="text-xs font-normal">Masukkan pola penomoran khusus</span>
+                        </span>
+                      </label>
+                    </div>
+                    {nomorFormatMode === "manual" && (
+                      <div className="space-y-2">
+                        <input
+                          value={nomorSuratFormat}
+                          onChange={(event) => setNomorSuratFormat(event.target.value)}
+                          placeholder="/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none font-mono text-xs focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                        />
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+                          <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
+                          {[
+                            { tag: "{klasifikasi}", desc: "Kode Klasifikasi" },
+                            { tag: "{bulan}", desc: "Bulan Romawi / Angka" },
+                            { tag: "{tahun}", desc: "Tahun Surat" },
+                          ].map((chip) => (
+                            <button
+                              key={chip.tag}
+                              type="button"
+                              onClick={() =>
+                                setNomorSuratFormat((prev) => (prev ? `${prev}/${chip.tag}` : chip.tag))
+                              }
+                              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                              title={`Klik untuk menambahkan ${chip.tag} (${chip.desc})`}
+                            >
+                              + {chip.tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                    <div className="leading-relaxed">
+                      Format penomoran naskah &amp; lampiran akan menjadi <strong>Nomor : ${"{nomor_naskah}"}</strong>. 
+                      Di Builder ST, admin cukup menginput nomor utuh dari sistem luar tanpa perlu menyusun prefix/klasifikasi manual.
                     </div>
                   </div>
                 )}
@@ -1710,6 +1780,8 @@ export function StTemplatesTab() {
                         tembusanItems={tembusanItems.filter(Boolean)}
                         sumberDana={defaultSumberDana || "dipa"}
                         kopImageUrl={kopImageUrl}
+                        nomorNumberingType={nomorNumberingType}
+                        customNomorNaskah="${nomor_naskah}"
                       />
                     </div>
                   </div>

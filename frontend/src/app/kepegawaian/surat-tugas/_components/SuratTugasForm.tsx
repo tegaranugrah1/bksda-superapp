@@ -98,6 +98,8 @@ export function SuratTugasForm({
   const [klasifikasi, setKlasifikasi] = useState(
     mode === "create" && initialTemplate === "plh" ? "PEG.09.01" : "KSA.0X.0X"
   );
+  const [nomorNumberingType, setNomorNumberingType] = useState<"st_pattern" | "naskah_auto">("st_pattern");
+  const [customNomorNaskah, setCustomNomorNaskah] = useState("");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const currentYear = new Date().getFullYear().toString();
 
@@ -374,6 +376,11 @@ export function SuratTugasForm({
           setTemplateType(`db_${defaultTemplate.id}`);
           setMenimbangItems(formatYearInItems(defaultTemplate.menimbang || []));
           setDasarItems(formatYearInItems(defaultTemplate.dasar || []));
+          if (defaultTemplate.configuration?.nomor_numbering_type === "naskah_auto") {
+            setNomorNumberingType("naskah_auto");
+          } else if (defaultTemplate.configuration?.nomor_numbering_type === "st_pattern") {
+            setNomorNumberingType("st_pattern");
+          }
           if (defaultTemplate.default_signer_name && defaultTemplate.default_signer_nip) {
             setKepalaBalai({
               employeeId: defaultTemplate.default_signer_employee_id || undefined,
@@ -446,11 +453,18 @@ export function SuratTugasForm({
 
         setSuratStatus(data.status || "");
         if (data.nomor_surat) {
-          const matchNum = data.nomor_surat.match(/ST\.([^\/]+)/);
-          if (matchNum) setStNumber(matchNum[1]);
+          const isStPattern = data.nomor_surat.startsWith("ST.");
+          if (isStPattern) {
+            setNomorNumberingType("st_pattern");
+            const matchNum = data.nomor_surat.match(/ST\.([^\/]+)/);
+            if (matchNum) setStNumber(matchNum[1]);
 
-          const matchKlas = data.nomor_surat.match(/\/TU\/([^\/]+)\/B/);
-          if (matchKlas) setKlasifikasi(matchKlas[1]);
+            const matchKlas = data.nomor_surat.match(/\/TU\/([^\/]+)\/B/);
+            if (matchKlas) setKlasifikasi(matchKlas[1]);
+          } else {
+            setNomorNumberingType("naskah_auto");
+            setCustomNomorNaskah(data.nomor_surat);
+          }
         }
 
         const loadedTanggalMulai = data.tanggal_mulai ? data.tanggal_mulai.substring(0, 10) : "";
@@ -596,6 +610,14 @@ export function SuratTugasForm({
           typeof snapshotConfig.show_departure_column === "string"
         ) {
           setShowDepartureColumn(Boolean(Number(snapshotConfig.show_departure_column)));
+        }
+        if (snapshotConfig.nomor_numbering_type === "naskah_auto") {
+          setNomorNumberingType("naskah_auto");
+        } else if (snapshotConfig.nomor_numbering_type === "st_pattern") {
+          setNomorNumberingType("st_pattern");
+        }
+        if (typeof snapshotConfig.custom_nomor_naskah === "string" && snapshotConfig.custom_nomor_naskah) {
+          setCustomNomorNaskah(snapshotConfig.custom_nomor_naskah);
         }
         if (typeof snapshotConfig.header_title === "string") {
           setHeaderTitle(snapshotConfig.header_title);
@@ -1021,6 +1043,11 @@ export function SuratTugasForm({
         }
         if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
         if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
+        if (configuration.nomor_numbering_type === "naskah_auto") {
+          setNomorNumberingType("naskah_auto");
+        } else if (configuration.nomor_numbering_type === "st_pattern") {
+          setNomorNumberingType("st_pattern");
+        }
         if (typeof configuration.header_title === "string") {
           setHeaderTitle(configuration.header_title);
         } else {
@@ -1377,24 +1404,34 @@ export function SuratTugasForm({
         : effectiveSelesai,
     }));
 
-    const templateSnapshotPayload = isBedaHariTemplate
-      ? {
-          configuration: {
-            judul_lampiran_beda_hari: judulLampiranBedaHari,
-            employee_dates: employeeDates,
-            employee_departures: showDepartureColumn ? employeeDepartures : {},
-            show_departure_column: showDepartureColumn,
-          },
-        }
-      : undefined;
+    const templateSnapshotPayload = {
+      configuration: {
+        ...(isBedaHariTemplate
+          ? {
+              judul_lampiran_beda_hari: judulLampiranBedaHari,
+              employee_dates: employeeDates,
+              employee_departures: showDepartureColumn ? employeeDepartures : {},
+              show_departure_column: showDepartureColumn,
+            }
+          : {}),
+        nomor_numbering_type: nomorNumberingType,
+        custom_nomor_naskah: customNomorNaskah,
+      },
+    };
 
-    const fullNomorSurat = stNumber.trim() && klasifikasi.trim()
-      ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
-      : null;
+    const fullNomorSurat =
+      nomorNumberingType === "naskah_auto"
+        ? (customNomorNaskah.trim() || "${nomor_naskah}")
+        : (stNumber.trim() && klasifikasi.trim()
+            ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
+            : null);
 
     return {
       nomor_surat: fullNomorSurat,
-      kode_surat: klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null,
+      kode_surat:
+        nomorNumberingType === "naskah_auto"
+          ? null
+          : (klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null),
       tanggal_surat: tanggalSurat || null,
       maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
       tanggal_mulai: effectiveMulai,
@@ -1506,7 +1543,9 @@ export function SuratTugasForm({
 
   const handleSubmitForApproval = async () => {
     if (!letterId) return;
-    if (!stNumber) return toast.error("Nomor surat harus diisi.");
+    if (nomorNumberingType === "st_pattern" && !stNumber) {
+      return toast.error("Nomor surat harus diisi.");
+    }
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
@@ -1529,11 +1568,16 @@ export function SuratTugasForm({
 
   const handleUpdateNomorSurat = async () => {
     if (!letterId) return;
-    if (!stNumber) return toast.error("Nomor surat harus diisi.");
-    if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
+    if (nomorNumberingType === "st_pattern") {
+      if (!stNumber) return toast.error("Nomor surat harus diisi.");
+      if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
+    }
 
     try {
-      const fullNomorSurat = buildNomorSurat(stNumber, klasifikasi);
+      const fullNomorSurat =
+        nomorNumberingType === "naskah_auto"
+          ? (customNomorNaskah.trim() || "${nomor_naskah}")
+          : buildNomorSurat(stNumber, klasifikasi);
       await api.put(`/surat-tugas/${letterId}/nomor`, { nomor_surat: fullNomorSurat });
       toast.success("Nomor surat berhasil diperbarui!");
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-detail", letterId] });
@@ -1548,7 +1592,8 @@ export function SuratTugasForm({
   };
 
   const handlePrint = () => {
-    printSuratTugas(stNumber, namaKegiatan);
+    const docNumber = nomorNumberingType === "naskah_auto" ? customNomorNaskah : stNumber;
+    printSuratTugas(docNumber, namaKegiatan);
   };
 
   const displayedNomorFormat = getTemplateNomorFormat()
@@ -1649,26 +1694,74 @@ export function SuratTugasForm({
           {/* Card Nomor Surat */}
           <FormSection title="Nomor Surat">
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-mono bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-200 dark:border-zinc-700">
-                <span className="text-slate-400 font-bold">ST.</span>
-                <input
-                  type="text"
-                  placeholder="01"
-                  value={stNumber}
-                  disabled={isPublished}
-                  onChange={(e) => setStNumber(e.target.value)}
-                  className="w-16 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
-                />
-                <span className="text-slate-400 text-xs truncate">{nomorFormatPrefix}</span>
-                <input
-                  type="text"
-                  value={klasifikasi}
-                  disabled={isPublished}
-                  onChange={(e) => setKlasifikasi(e.target.value)}
-                  className="w-24 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
-                />
-                <span className="text-slate-400 text-xs truncate">{nomorFormatSuffix}</span>
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setNomorNumberingType("st_pattern")}
+                  className={cn(
+                    "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
+                    nomorNumberingType === "st_pattern"
+                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
+                      : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                  )}
+                >
+                  Pola ST (ST.01/...)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNomorNumberingType("naskah_auto")}
+                  className={cn(
+                    "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
+                    nomorNumberingType === "naskah_auto"
+                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
+                      : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                  )}
+                >
+                  Nomor Naskah (${"{nomor_naskah}"})
+                </button>
               </div>
+
+              {nomorNumberingType === "st_pattern" ? (
+                <div className="flex items-center gap-2 text-sm font-mono bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-200 dark:border-zinc-700">
+                  <span className="text-slate-400 font-bold">ST.</span>
+                  <input
+                    type="text"
+                    placeholder="01"
+                    value={stNumber}
+                    disabled={isPublished}
+                    onChange={(e) => setStNumber(e.target.value)}
+                    className="w-16 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                  />
+                  <span className="text-slate-400 text-xs truncate">{nomorFormatPrefix}</span>
+                  <input
+                    type="text"
+                    value={klasifikasi}
+                    disabled={isPublished}
+                    onChange={(e) => setKlasifikasi(e.target.value)}
+                    className="w-24 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                  />
+                  <span className="text-slate-400 text-xs truncate">{nomorFormatSuffix}</span>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-200 dark:border-zinc-700">
+                    <span className="text-slate-500 dark:text-zinc-400 font-semibold text-xs shrink-0">
+                      Nomor :
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="${nomor_naskah}"
+                      value={customNomorNaskah}
+                      disabled={isPublished}
+                      onChange={(e) => setCustomNomorNaskah(e.target.value)}
+                      className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Masukkan nomor naskah otomatis dari sistem lain. Format pada naskah: <i>Nomor : {customNomorNaskah || "${nomor_naskah}"}</i>
+                  </p>
+                </div>
+              )}
             </div>
           </FormSection>
 
@@ -2291,6 +2384,8 @@ export function SuratTugasForm({
               defaultTanggalSelesai={tanggalSelesai}
               judulLampiranBedaHari={judulLampiranBedaHari}
               sumberDana={sumberDana}
+              nomorNumberingType={nomorNumberingType}
+              customNomorNaskah={customNomorNaskah}
             />
           </div>
         </div>
