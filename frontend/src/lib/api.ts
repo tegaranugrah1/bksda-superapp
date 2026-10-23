@@ -2,14 +2,26 @@ import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { authStore } from "@/lib/auth-store";
 
 function getBaseApiUrl(): string {
-  if (typeof window === "undefined") {
-    return process.env.NEXT_PUBLIC_API_URL?.startsWith("http")
-      ? process.env.NEXT_PUBLIC_API_URL
-      : "http://127.0.0.1:8000/api";
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && envUrl.startsWith("http")) {
+    if (typeof window !== "undefined") {
+      try {
+        const urlObj = new URL(envUrl);
+        if (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1") {
+          urlObj.hostname = window.location.hostname;
+          return urlObj.toString().replace(/\/$/, "");
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return envUrl.replace(/\/$/, "");
   }
 
-  // Browser selalu memakai proxy same-origin Next.js. Laravel/RustFS tidak
-  // pernah diakses langsung dari browser, jadi token dan binary tidak mentok CORS.
+  if (typeof window === "undefined") {
+    return "http://127.0.0.1:8000/api";
+  }
+
   return "/api";
 }
 

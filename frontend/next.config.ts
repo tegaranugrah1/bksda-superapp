@@ -58,8 +58,10 @@ const nextConfig: NextConfig = {
     },
 
     async rewrites() {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (process.env.NODE_ENV === "development" ? "http://localhost:8000" : null);
-        if (!backendUrl) return [];
+        const backendUrl =
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "") : null) ||
+            (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "https://api.bksdakaltim.net");
 
         return [
             {
