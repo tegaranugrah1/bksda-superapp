@@ -1555,9 +1555,9 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1786319840.5885856,
-    "ast_hash": "d3eceb44135f27ec18146d5d51ebb851",
-    "semantic_hash": "d3eceb44135f27ec18146d5d51ebb851"
+    "mtime": 1792743611.9330902,
+    "ast_hash": "daafaf46e2ae4134a57b3dd0197b81e8",
+    "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
     "mtime": 1778141729.779083,
