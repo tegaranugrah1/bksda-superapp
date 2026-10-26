@@ -1,3 +1,40 @@
+# Progress - Phase 223: Perbaikan Form Prefill Dokumen Laporan BMN & Sinkronisasi Storage/Database Live ke VM 100
+
+> Document updated: 2026-10-27
+> Branch: `development`
+> Status: SELESAI (Perbaikan prefill data dokumen laporan BMN pada aksi edit dan duplikasi, clean lifecycle remount via dynamic tab key, fallback hydrasi useQuery, sinkronisasi 17 tabel data BMN dan 54MB media foto dari Live EC2 ke VM 100 Proxmox, serta resolusi selisih hitungan pegawai 149 vs 151).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Prefill Dokumen Laporan BMN)**: Pada halaman `/bmn/reports`, saat pengguna memilih aksi *Edit* atau *Duplikasi* dari riwayat dokumen (contoh Berita Acara Serah Terima, Perjanjian Pinjam Pakai, Surat Kuasa, Surat Pengantar), form input tidak terisi dan daftar aset kosong meskipun banner mode edit telah aktif.
+- **Kebutuhan 2 (Sinkronisasi Data Aset & Foto BMN ke VM 100)**: Pengguna melakukan perubahan kondisi aset menjadi 'Rusak Berat' dan mengunggah foto-foto baru di sistem produksi (`bksdakaltim.net`), dan membutuhkan seluruh data serta berkas foto tersebut disinkronkan ke server staging VM 100 (`192.168.100.151:8080`).
+- **Kebutuhan 3 (Investigasi Selisih Jumlah Pegawai)**: Terjadi pertanyaan mengenai selisih jumlah total pegawai yang tampil di localhost (149 pegawai) dibandingkan di live dan VM 100 (151 pegawai).
+
+## 2. Perubahan yang Dilakukan
+- **`frontend/src/app/bmn/reports/page.tsx`**:
+  - Menambahkan *dynamic key* pada perenderan komponen tab laporan:
+    `key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}`
+    Ini menjamin React meremount komponen tab secara bersih saat pengguna memilih dokumen baru atau membatalkan edit.
+- **`frontend/src/app/bmn/reports/_tabs/`**:
+  - Di `HandoverAgreementTab.tsx`, `UsageAgreementTab.tsx`, `PowerOfAttorneyTab.tsx`, dan `CoveringLetterTab.tsx`:
+    1. Mengubah inisialisasi `useState` form agar membaca langsung dari prop `editingDocument.item` secara sinkron pada frame pertama render.
+    2. Menambahkan `applyDataToForm()` helper untuk mempopulasikan nilai nomor, tanggal, pihak pertama, pihak kedua, dan item aset.
+    3. Mengintegrasikan fallback `useQuery` (`@tanstack/react-query`) untuk mengambil detail dokumen dari API backend (`/api/bmn/.../${editingDocument.id}`) jika data riwayat belum menyertakan snapshot relasi lengkap.
+- **Sinkronisasi Live EC2 ➔ VM 100 Proxmox (`192.168.100.151`)**:
+  - Melakukan data dump 17 tabel BMN dengan `session_replication_role = 'replica'` dari PostgreSQL container AWS EC2 dan merestore ke VM 100 dengan `CASCADE`.
+  - Mentransfer volume storage RustFS foto BMN (`/data/bksda/bmn` dan `/data/bksda/bmn-photos`, ~54 MB, 68 foto) ke VM 100 dan memperbaiki izin berkas dengan `chown -R rustfs:rustfs /data/bksda` sehingga upload dan view foto di VM 100 berfungsi normal (HTTP 200).
+- **Investigasi Selisih Pegawai**:
+  - Mengonfirmasi bahwa tabel `kpg_employees` di Live dan VM 100 memiliki 152 baris, di mana model Eloquent `Employee.php` memiliki Global Scope `excludeAdminPusat` (NIP 198001012005011001 / Administrator Pusat BKSDA) sehingga menghasilkan 151 pegawai.
+  - Mengonfirmasi database lokal memiliki 149 pegawai karena 3 orang (*Dwi Suriyanto*, *Didimus*, *Khairul Falah*) belum tersinkron ke lokal dan ada 1 data pengujian lokal (*Muhammad Riezqy Senopati* / MMP-034).
+
+## 3. Validasi & Pengujian
+- **Frontend Typecheck**: `npx tsc --noEmit` lolos 100% (0 error).
+- **Git Commit**: Commit `c44c38ac` pada branch `development`.
+- **Verifikasi HTTP**: Pengujian akses foto BMN di VM 100 mengembalikan HTTP 200 OK.
+
+---
+
 # Progress - Phase 222: Granular RBAC Modul BMN (Admin Unit Kerja Restriksi, Super Admin Force Delete, User Biasa Read-Only)
 
 > Document updated: 2026-09-30

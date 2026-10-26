@@ -1,5 +1,43 @@
 # Progress Development - BKSDA SuperApp
 
+## Status Update: 27 Oktober 2026
+
+### 1. Modul BMN: Perbaikan Prefill Form & State Reset Laporan (Edit & Duplikasi Dokumen)
+- **Masalah**: Pada halaman `/bmn/reports`, saat mengklik tombol "Edit" atau "Duplikasi" dari Riwayat Dokumen (misalnya Berita Acara `BA.408/K.18/TU/KAP.03.02/B/10/2026`), banner mode edit aktif tetapi isian formulir (nomor dokumen, pihak kedua, dan daftar aset/barang) tidak terbawa atau tetap kosong.
+- **Penyebab**: Komponen tab laporan sebelumnya menginisialisasi state dengan string kosong dan mengandalkan `useEffect` asynchronous yang rentan terlewati atau mengalami *race condition* jika referensi `hasLoadedEditRef` bentrok antar-render tanpa pelepasan instance komponen.
+- **Solusi & Implementasi**:
+  - Menambahkan *dynamic key* pada wrapper tab di `frontend/src/app/bmn/reports/page.tsx`:
+    `key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}`
+    sehingga setiap perpindahan dokumen atau pembatalan edit meremount komponen tab secara bersih (*clean state lifecycle*).
+  - Mengubah inisialisasi form di seluruh 4 tab laporan agar membaca `editingDocument.item` secara sinkron langsung pada initial render `useState`:
+    - `HandoverAgreementTab.tsx` (Berita Acara Serah Terima)
+    - `UsageAgreementTab.tsx` (Perjanjian Pinjam Pakai)
+    - `PowerOfAttorneyTab.tsx` (Surat Kuasa)
+    - `CoveringLetterTab.tsx` (Surat Pengantar)
+  - Menambahkan fallback hook `@tanstack/react-query` (`useQuery`) untuk mengambil relasi item dokumen lengkap dari API backend (`/api/bmn/.../${id}`) jika payload dari ringkasan riwayat tidak lengkap.
+- **Validasi**: Typecheck TypeScript `npx tsc --noEmit` lolos 100% tanpa error. Commit: `c44c38ac`.
+
+---
+
+### 2. Sinkronisasi Data Aset & Media Storage BMN (Live EC2 ➔ VM 100 Proxmox)
+- **Sinkronisasi Database**:
+  - Melakukan dump 17 tabel BMN (`bmn_assets`, `bmn_asset_updates`, `bmn_tags`, `bmn_asset_tag`, `bmn_usage_agreements`, dll.) dari AWS EC2 Produksi (`bksdakaltim.net`) dengan mode `session_replication_role = 'replica'`.
+  - Melakukan restore bersih dengan `CASCADE` ke PostgreSQL container `bksda-db` di VM 100 (`192.168.100.151`).
+  - Total aset BMN kondisi *Rusak Berat* di VM 100 tersinkronisasi presisi sebanyak **37 aset**.
+- **Sinkronisasi File Media & Izin Berkas**:
+  - Mengompres dan mentransfer volume RustFS foto BMN (`/data/bksda/bmn` dan `/data/bksda/bmn-photos`, ~54 MB, 68 foto).
+  - Mengekstrak ke storage VM 100 dan memperbaiki izin berkas dengan `chown -R rustfs:rustfs /data/bksda`.
+  - Memastikan foto aset dapat diakses dan diunggah secara normal via HTTP 200 di `192.168.100.151:8080`.
+
+---
+
+### 3. Analisis & Penjelasan Selisih Jumlah Pegawai (149 vs 151)
+- **Hasil Investigasi**:
+  - **Live & VM 100 (151 Pegawai)**: Tabel database `kpg_employees` memiliki 152 record, namun model Eloquent `Employee.php` memiliki Global Scope `excludeAdminPusat` yang otomatis mengecualikan akun Administrator Pusat (NIP `198001012005011001`), menghasilkan tepat 151 pegawai di UI.
+  - **Localhost (149 Pegawai)**: Database lokal memiliki 148 pegawai riil (selisih 3 orang: Dwi Suriyanto, Didimus, Khairul Falah yang belum tersinkron ke lokal) ditambah 1 data pengujian lokal (MMP-034: Muhammad Riezqy Senopati), sehingga totalnya 149 pegawai.
+
+---
+
 ## Status Update: 30 September 2026
 
 ### 1. Modul BMN: RBAC Granular & Proteksi Unit Kerja / Aset
