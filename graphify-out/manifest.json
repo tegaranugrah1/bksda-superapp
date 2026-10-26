@@ -1550,7 +1550,7 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1792761635.6934044,
+    "mtime": 1792761790.0885675,
     "ast_hash": "44825195af975a1a3fbc73ac37ee2873",
     "semantic_hash": ""
   },
@@ -2110,8 +2110,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/page.tsx": {
-    "mtime": 1791807652.9619055,
-    "ast_hash": "def46ce407a843fbedf03e4f36cbc8db",
+    "mtime": 1793004280.843878,
+    "ast_hash": "5d069129382bfe9eb74c962171920227",
     "semantic_hash": ""
   },
   "frontend/src/app/cms/_components/CrudFormDrawer.tsx": {
@@ -2750,7 +2750,7 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1792761625.1520333,
+    "mtime": 1792761790.0897422,
     "ast_hash": "994c7da11c0ea138b5ffd88392ef4788",
     "semantic_hash": ""
   },
@@ -6440,13 +6440,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/types.ts": {
-    "mtime": 1791171599.9131117,
-    "ast_hash": "03c2da22f5655274d6812185b6f6228d",
+    "mtime": 1792997493.2931254,
+    "ast_hash": "210ce5eb34c867a36157d032d1cc2429",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/CoveringLetterTab.tsx": {
-    "mtime": 1791807652.9479055,
-    "ast_hash": "667d0a2414b4a72113b77078e6ab78d6",
+    "mtime": 1793004437.359106,
+    "ast_hash": "c1e3871ab4e0977a55936c12405eb08e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/DocumentHistoryTab.tsx": {
@@ -6460,18 +6460,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/HandoverAgreementTab.tsx": {
-    "mtime": 1791807652.9499052,
-    "ast_hash": "e34a76fbeb545d4b031fceb62669ad39",
+    "mtime": 1793004260.1063573,
+    "ast_hash": "821dd3ae5a336aae86d1ab1b3bced6da",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/PowerOfAttorneyTab.tsx": {
-    "mtime": 1791807652.9509037,
-    "ast_hash": "7c95f2dcbce03a987f4c0f21ba3e82db",
+    "mtime": 1793004567.1747985,
+    "ast_hash": "8591ce1fc63ab6d08b24e5397cd741b2",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/UsageAgreementTab.tsx": {
-    "mtime": 1791807652.9609108,
-    "ast_hash": "ea953ff4a2298dfbf6ec2bb0e2c25be8",
+    "mtime": 1793004582.6077023,
+    "ast_hash": "de767db28b73a4ffb4a56d7416e7b9e9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_components/TablePaginationFooter.tsx": {

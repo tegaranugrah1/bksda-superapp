@@ -78,6 +78,8 @@ export default function BmnReportsPage() {
       type: docType,
       titleOrNumber: isDraftNumber(item.number) ? "Dokumen (Draf)" : item.number,
       status: item.status || (isDraftNumber(item.number) ? "draft" : "published"),
+      item,
+      isDuplicate: false,
     });
   };
 
@@ -94,7 +96,13 @@ export default function BmnReportsPage() {
       docType = "handover";
     }
     setActiveDocumentType(docType);
-    setEditingDocument(null);
+    setEditingDocument({
+      type: docType,
+      titleOrNumber: isDraftNumber(item.number) ? "Dokumen (Draf)" : item.number,
+      status: "draft",
+      item,
+      isDuplicate: true,
+    });
   };
 
   const cancelEditMode = () => {
@@ -214,7 +222,9 @@ export default function BmnReportsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-                        Mode Edit Aktif: {editingDocument.titleOrNumber}
+                        {editingDocument.isDuplicate
+                          ? `Duplikasi dari: ${editingDocument.titleOrNumber}`
+                          : `Mode Edit Aktif: ${editingDocument.titleOrNumber}`}
                       </span>
                       <span
                         className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
@@ -223,12 +233,15 @@ export default function BmnReportsPage() {
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
                         }`}
                       >
-                        Status: {editingDocument.status === "draft" ? "Draf" : "Terbit"}
+                        {editingDocument.isDuplicate
+                          ? "Dokumen Baru"
+                          : `Status: ${editingDocument.status === "draft" ? "Draf" : "Terbit"}`}
                       </span>
                     </div>
                     <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
-                      Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan
-                      sebagai Draf.
+                      {editingDocument.isDuplicate
+                        ? "Data telah disalin ke formulir. Silakan sesuaikan dan simpan sebagai dokumen baru."
+                        : "Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf."}
                     </p>
                   </div>
                 </div>
@@ -239,18 +252,20 @@ export default function BmnReportsPage() {
                   className="rounded-xl border-amber-300 bg-white text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-600 dark:bg-zinc-800 dark:text-amber-200"
                   onClick={cancelEditMode}
                 >
-                  Batal Edit
+                  {editingDocument.isDuplicate ? "Batal Duplikasi" : "Batal Edit"}
                 </Button>
               </div>
             )}
 
             {activeDocumentType === "usage" && (
               <UsageAgreementTab
+                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                 employees={employees}
                 loadingEmployees={loadingEmployees}
                 canGenerate={canGenerate}
                 canWrite={canWrite}
                 editingDocument={editingDocument}
+                onSetEditingDocument={setEditingDocument}
                 onClearEditing={() => setEditingDocument(null)}
                 onViewHistory={() => setActiveTab("history")}
                 onRefetchHistory={handleRefetchHistory}
@@ -259,6 +274,7 @@ export default function BmnReportsPage() {
 
             {activeDocumentType === "handover" && (
               <HandoverAgreementTab
+                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                 employees={employees}
                 loadingEmployees={loadingEmployees}
                 canGenerate={canGenerate}
@@ -270,12 +286,14 @@ export default function BmnReportsPage() {
 
             {activeDocumentType === "power_of_attorney" && (
               <PowerOfAttorneyTab
+                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                 employees={employees}
                 vehicleAssetOptions={vehicleAssetOptions}
                 loadingEmployees={loadingEmployees}
                 canGenerate={canGenerate}
                 canWrite={canWrite}
                 editingDocument={editingDocument}
+                onSetEditingDocument={setEditingDocument}
                 onClearEditing={() => setEditingDocument(null)}
                 onViewHistory={() => setActiveTab("history")}
                 onRefetchHistory={handleRefetchHistory}
@@ -284,6 +302,7 @@ export default function BmnReportsPage() {
 
             {activeDocumentType === "covering_letter" && (
               <CoveringLetterTab
+                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                 employees={employees}
                 loadingEmployees={loadingEmployees}
                 canGenerate={canGenerate}

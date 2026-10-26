@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export interface UsageAgreementTabProps {
   canGenerate?: boolean;
   canWrite?: boolean;
   editingDocument?: EditingDocumentState | null;
+  onSetEditingDocument?: (doc: EditingDocumentState) => void;
   onClearEditing?: () => void;
   onViewHistory?: (item: UsageAgreementHistory) => void;
   onRefetchHistory?: () => Promise<void> | void;
@@ -47,25 +49,46 @@ export function UsageAgreementTab({
   canGenerate = true,
   canWrite = false,
   editingDocument,
+  onSetEditingDocument,
   onClearEditing,
   onViewHistory,
   onRefetchHistory,
 }: UsageAgreementTabProps) {
   const confirm = useConfirm();
 
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [assets, setAssets] = useState<UsageAgreementAsset[]>([]);
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const initialItem =
+    editingDocument && editingDocument.type === "usage"
+      ? (editingDocument.item as UsageAgreementHistory | undefined)
+      : undefined;
+
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(
+    initialItem?.employee?.id ? String(initialItem.employee.id) : (initialItem?.second_party_snapshot?.id ? String(initialItem.second_party_snapshot.id) : "")
+  );
+  const [assets, setAssets] = useState<UsageAgreementAsset[]>(
+    initialItem?.assets_snapshot || []
+  );
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
+    initialItem?.asset_ids || initialItem?.assets_snapshot?.map((a) => a.id) || []
+  );
   const [history, setHistory] = useState<UsageAgreementHistory[]>([]);
   const [loadingUsageData, setLoadingUsageData] = useState(false);
   const [savingUsageAgreement, setSavingUsageAgreement] = useState(false);
-  const [baSequence, setBaSequence] = useState("");
-  const [kap, setKap] = useState("KAP.03.02");
-  const [documentDate, setDocumentDate] = useState(todayInputValue());
+  const [baSequence, setBaSequence] = useState(
+    editingDocument?.isDuplicate ? "" : (initialItem?.number ? extractDocumentSequence(initialItem.number) : "")
+  );
+  const [kap, setKap] = useState(
+    (initialItem?.number ? extractDocumentKap(initialItem.number) : null) || (initialItem as any)?.kap || "KAP.03.02"
+  );
+  const [documentDate, setDocumentDate] = useState(
+    initialItem?.document_date ? initialItem.document_date.split("T")[0] : todayInputValue()
+  );
   const [firstPartyEmployeeId, setFirstPartyEmployeeId] = useState("");
-  const [firstParty, setFirstParty] = useState<UsageAgreementParty>(DEFAULT_FIRST_PARTY);
+  const [firstParty, setFirstParty] = useState<UsageAgreementParty>(
+    initialItem?.first_party_snapshot || DEFAULT_FIRST_PARTY
+  );
   const [notes, setNotes] = useState(
-    "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
+    initialItem?.notes ||
+      "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
   );
 
   const selectedEmployee = useMemo(
@@ -126,9 +149,78 @@ export function UsageAgreementTab({
     await loadUsageData(employeeId);
   };
 
+  const applyDataToForm = (item: UsageAgreementHistory, isDuplicate = false) => {
+    const empId = item.employee?.id || item.second_party_snapshot?.id;
+    if (empId) {
+      setSelectedEmployeeId(String(empId));
+      loadUsageData(String(empId));
+    }
+
+    setBaSequence(isDuplicate ? "" : extractDocumentSequence(item.number));
+    const kapVal = extractDocumentKap(item.number) || (item as any).kap;
+    if (kapVal) setKap(kapVal);
+    if (item.document_date) {
+      setDocumentDate(item.document_date.split("T")[0]);
+    }
+    setFirstPartyEmployeeId("");
+    setFirstParty(item.first_party_snapshot || DEFAULT_FIRST_PARTY);
+    if (item.assets_snapshot && item.assets_snapshot.length > 0) {
+      setAssets((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const toAdd = item.assets_snapshot!.filter((a) => !existingIds.has(a.id));
+        return [...prev, ...toAdd];
+      });
+    }
+    setSelectedAssetIds(item.asset_ids || item.assets_snapshot?.map((a) => a.id) || []);
+    setNotes(
+      item.notes ||
+        "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
+    );
+  };
+
+  const resetForm = () => {
+    setSelectedEmployeeId("");
+    setAssets([]);
+    setSelectedAssetIds([]);
+    setHistory([]);
+    setBaSequence("");
+    setKap("KAP.03.02");
+    setDocumentDate(todayInputValue());
+    setFirstPartyEmployeeId("");
+    setFirstParty(DEFAULT_FIRST_PARTY);
+    setNotes(
+      "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
+    );
+  };
+
+  useQuery({
+    queryKey: ["bmn-usage-agreement-detail", editingDocument?.id],
+    queryFn: async () => {
+      if (!editingDocument?.id || editingDocument.type !== "usage") return null;
+      try {
+        const response = await api.get(`/bmn/usage-agreements/${editingDocument.id}`);
+        const data = response.data?.data;
+        if (data) {
+          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
+        }
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(editingDocument?.id && editingDocument.type === "usage"),
+  });
+
+  useEffect(() => {
+    if (editingDocument && editingDocument.type === "usage" && editingDocument.item) {
+      applyDataToForm(editingDocument.item as UsageAgreementHistory, Boolean(editingDocument.isDuplicate));
+    } else if (!editingDocument) {
+      resetForm();
+    }
+  }, [editingDocument, loadUsageData]);
+
   useEffect(() => {
     if (!firstPartyEmployeeId) {
-      setFirstParty(DEFAULT_FIRST_PARTY);
       return;
     }
 
@@ -152,6 +244,17 @@ export function UsageAgreementTab({
   };
 
   const duplicateHistoryAgreement = (agreement: UsageAgreementHistory) => {
+    if (onSetEditingDocument) {
+      onSetEditingDocument({
+        type: "usage",
+        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+        status: "draft",
+        item: { ...agreement, document_type: "usage_agreement" },
+        isDuplicate: true,
+      });
+      return;
+    }
+
     setBaSequence("");
     const kapVal = extractDocumentKap(agreement.number);
     if (kapVal) setKap(kapVal);
@@ -174,6 +277,18 @@ export function UsageAgreementTab({
   };
 
   const editUsageAgreement = async (agreement: UsageAgreementHistory) => {
+    if (onSetEditingDocument) {
+      onSetEditingDocument({
+        id: agreement.id,
+        type: "usage",
+        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+        status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+        item: { ...agreement, document_type: "usage_agreement" },
+        isDuplicate: false,
+      });
+      return;
+    }
+
     const employeeId = agreement.employee?.id || agreement.second_party_snapshot?.id;
     if (employeeId) {
       setSelectedEmployeeId(String(employeeId));
@@ -257,13 +372,14 @@ export function UsageAgreementTab({
         notes: notes.trim() || null,
       };
 
-      if (editingDocument && editingDocument.type === "usage") {
+      if (editingDocument && editingDocument.type === "usage" && editingDocument.id && !editingDocument.isDuplicate) {
         await api.put(`/bmn/usage-agreements/${editingDocument.id}`, payload);
         toast.success(isDraft ? "Draf BA Pemakaian berhasil diperbarui." : "Perubahan BA Pemakaian berhasil disimpan.");
         if (onClearEditing) onClearEditing();
       } else {
         await api.post("/bmn/usage-agreements", payload);
         toast.success(isDraft ? "Draf BA Pemakaian berhasil disimpan." : "Riwayat BA Pemakaian berhasil disimpan.");
+        if (onClearEditing) onClearEditing();
       }
 
       await loadUsageData(String(selectedEmployee.id));
@@ -294,7 +410,7 @@ export function UsageAgreementTab({
             disabled={savingUsageAgreement || !selectedEmployee || !canGenerate}
           >
             {savingUsageAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {editingDocument?.type === "usage"
+            {editingDocument?.type === "usage" && !editingDocument.isDuplicate
               ? baSequence.trim()
                 ? "Simpan Perubahan"
                 : "Simpan Perubahan (Draf)"

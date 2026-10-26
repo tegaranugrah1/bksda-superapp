@@ -108,10 +108,12 @@ export type DocumentHistoryItem =
   | CoveringLetterHistory;
 
 export interface EditingDocumentState {
-  id: string;
+  id?: string;
   type: "usage" | "handover" | "power_of_attorney" | "covering_letter";
   titleOrNumber: string;
   status: "draft" | "published" | string;
+  item?: DocumentHistoryItem;
+  isDuplicate?: boolean;
 }
 
 export interface PaginatedDocumentHistory {

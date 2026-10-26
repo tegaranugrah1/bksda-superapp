@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import { api } from "@/lib/api";
@@ -53,40 +53,204 @@ export function HandoverAgreementTab({
   onClearEditing,
   onRefetchHistory,
 }: HandoverAgreementTabProps) {
-  const [handoverVariant, setHandoverVariant] = useState<HandoverVariant>("general_goods");
-  const [handoverTitle, setHandoverTitle] = useState("Berita Acara Serah Terima Barang");
-  const [handoverSequence, setHandoverSequence] = useState("");
-  const [handoverKap, setHandoverKap] = useState("KAP.03.02");
-  const [handoverDate, setHandoverDate] = useState(todayInputValue());
-  const [handoverFirstEmployeeId, setHandoverFirstEmployeeId] = useState("");
-  const [handoverSecondEmployeeId, setHandoverSecondEmployeeId] = useState("");
-  const [handoverFirstPartyType, setHandoverFirstPartyType] = useState<"internal" | "external">("internal");
-  const [handoverSecondPartyType, setHandoverSecondPartyType] = useState<"internal" | "external">("internal");
-  const [handoverFirstParty, setHandoverFirstParty] = useState<HandoverParty>({
-    ...DEFAULT_HANDOVER_FIRST_PARTY,
-    idType: "NIP",
-  });
-  const [handoverSecondParty, setHandoverSecondParty] = useState<HandoverParty>({
-    name: "",
-    nip: "",
-    rank: "",
-    position: "",
-    address: "Jl. Teuku Umar Samarinda.",
-    idType: "NIP",
-  });
-  const [handoverReceiptClause, setHandoverReceiptClause] = useState(DEFAULT_HANDOVER_RECEIPT_CLAUSE);
-  const [handoverSignerCount, setHandoverSignerCount] = useState<2 | 3>(2);
-  const [handoverWitnessEmployeeId, setHandoverWitnessEmployeeId] = useState("");
-  const [handoverWitness, setHandoverWitness] = useState<HandoverWitness>(DEFAULT_HANDOVER_WITNESS);
-  const [handoverItems, setHandoverItems] = useState<HandoverItem[]>([emptyGeneralItem()]);
-  const [selectedVehicleAssetIds, setSelectedVehicleAssetIds] = useState<string[]>([]);
-  const [handoverGeneralDescription, setHandoverGeneralDescription] = useState("");
-  const [handoverVehicleDescription, setHandoverVehicleDescription] = useState("kendaraan");
+  const initialItem =
+    editingDocument && editingDocument.type === "handover"
+      ? (editingDocument.item as HandoverAgreementHistory | undefined)
+      : undefined;
+
+  const [handoverVariant, setHandoverVariant] = useState<HandoverVariant>(
+    initialItem?.variant || "general_goods"
+  );
+  const [handoverTitle, setHandoverTitle] = useState(
+    initialItem?.title ||
+      (initialItem?.variant === "vehicle"
+        ? "Berita Acara Serah Terima Kendaraan"
+        : "Berita Acara Serah Terima Barang")
+  );
+  const [handoverSequence, setHandoverSequence] = useState(
+    editingDocument?.isDuplicate ? "" : (initialItem?.number ? extractDocumentSequence(initialItem.number) : "")
+  );
+  const [handoverKap, setHandoverKap] = useState(
+    (initialItem?.number ? extractDocumentKap(initialItem.number) : null) || (initialItem as any)?.kap || "KAP.03.02"
+  );
+  const [handoverDate, setHandoverDate] = useState(
+    initialItem?.document_date ? initialItem.document_date.split("T")[0] : todayInputValue()
+  );
+  const [handoverFirstEmployeeId, setHandoverFirstEmployeeId] = useState(
+    initialItem?.first_party_employee_id ? String(initialItem.first_party_employee_id) : ""
+  );
+  const [handoverSecondEmployeeId, setHandoverSecondEmployeeId] = useState(
+    initialItem?.second_party_employee_id ? String(initialItem.second_party_employee_id) : ""
+  );
+  const [handoverFirstPartyType, setHandoverFirstPartyType] = useState<"internal" | "external">(
+    initialItem?.first_party_employee_id ? "internal" : (initialItem?.first_party_snapshot?.idType === "NIK" ? "external" : "internal")
+  );
+  const [handoverSecondPartyType, setHandoverSecondPartyType] = useState<"internal" | "external">(
+    initialItem?.second_party_employee_id ? "internal" : (initialItem?.second_party_snapshot?.idType === "NIK" ? "external" : "internal")
+  );
+  const [handoverFirstParty, setHandoverFirstParty] = useState<HandoverParty>(
+    initialItem?.first_party_snapshot
+      ? { ...DEFAULT_HANDOVER_FIRST_PARTY, ...initialItem.first_party_snapshot, idType: initialItem.first_party_snapshot.idType || "NIP" }
+      : { ...DEFAULT_HANDOVER_FIRST_PARTY, idType: "NIP" }
+  );
+  const [handoverSecondParty, setHandoverSecondParty] = useState<HandoverParty>(
+    initialItem?.second_party_snapshot
+      ? { address: "Jl. Teuku Umar Samarinda.", idType: "NIP", ...initialItem.second_party_snapshot }
+      : {
+          name: "",
+          nip: "",
+          rank: "",
+          position: "",
+          address: "Jl. Teuku Umar Samarinda.",
+          idType: "NIP",
+        }
+  );
+  const [handoverReceiptClause, setHandoverReceiptClause] = useState(
+    initialItem?.metadata?.receipt_clause || DEFAULT_HANDOVER_RECEIPT_CLAUSE
+  );
+  const [handoverSignerCount, setHandoverSignerCount] = useState<2 | 3>(
+    initialItem?.metadata?.signer_count || (initialItem?.witness_snapshot?.name ? 3 : 2)
+  );
+  const [handoverWitnessEmployeeId, setHandoverWitnessEmployeeId] = useState(
+    (initialItem?.metadata as any)?.witness_employee_id ? String((initialItem?.metadata as any).witness_employee_id) : ""
+  );
+  const [handoverWitness, setHandoverWitness] = useState<HandoverWitness>(
+    initialItem?.witness_snapshot
+      ? { ...DEFAULT_HANDOVER_WITNESS, ...initialItem.witness_snapshot }
+      : DEFAULT_HANDOVER_WITNESS
+  );
+  const [handoverItems, setHandoverItems] = useState<HandoverItem[]>(
+    Array.isArray(initialItem?.items_snapshot) && initialItem!.items_snapshot.length > 0
+      ? initialItem!.items_snapshot
+      : [emptyGeneralItem()]
+  );
+  const [selectedVehicleAssetIds, setSelectedVehicleAssetIds] = useState<string[]>(
+    Array.isArray(initialItem?.asset_ids) ? initialItem!.asset_ids : []
+  );
+  const [handoverGeneralDescription, setHandoverGeneralDescription] = useState(
+    initialItem?.metadata?.description || ""
+  );
+  const [handoverVehicleDescription, setHandoverVehicleDescription] = useState(
+    initialItem?.variant === "vehicle" && initialItem?.metadata?.description ? initialItem.metadata.description : "kendaraan"
+  );
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [openGeneralAssetPicker, setOpenGeneralAssetPicker] = useState(false);
   const [generalAssetSearch, setGeneralAssetSearch] = useState("");
   const [debouncedGeneralAssetSearch] = useDebounce(generalAssetSearch, 300);
   const [savingHandoverAgreement, setSavingHandoverAgreement] = useState(false);
+
+  const applyDataToForm = (item: HandoverAgreementHistory, isDuplicate = false) => {
+    setHandoverVariant(item.variant || "general_goods");
+    setHandoverTitle(
+      item.title ||
+        (item.variant === "vehicle"
+          ? "Berita Acara Serah Terima Kendaraan"
+          : "Berita Acara Serah Terima Barang")
+    );
+    setHandoverSequence(isDuplicate ? "" : extractDocumentSequence(item.number));
+    setHandoverKap(extractDocumentKap(item.number) || (item as any).kap || "KAP.03.02");
+    if (item.document_date) {
+      setHandoverDate(item.document_date.split("T")[0]);
+    }
+    setHandoverFirstEmployeeId(item.first_party_employee_id ? String(item.first_party_employee_id) : "");
+    setHandoverSecondEmployeeId(item.second_party_employee_id ? String(item.second_party_employee_id) : "");
+    setHandoverFirstPartyType(item.first_party_employee_id ? "internal" : "external");
+    setHandoverSecondPartyType(item.second_party_employee_id ? "internal" : "external");
+
+    if (item.first_party_snapshot) {
+      setHandoverFirstParty({
+        ...DEFAULT_HANDOVER_FIRST_PARTY,
+        ...item.first_party_snapshot,
+        idType: item.first_party_snapshot.idType || "NIP",
+      });
+    }
+    if (item.second_party_snapshot) {
+      setHandoverSecondParty({
+        address: "Jl. Teuku Umar Samarinda.",
+        idType: "NIP",
+        ...item.second_party_snapshot,
+      });
+    }
+    setHandoverReceiptClause(item.metadata?.receipt_clause || DEFAULT_HANDOVER_RECEIPT_CLAUSE);
+    const signerCount = item.metadata?.signer_count || (item.witness_snapshot?.name ? 3 : 2);
+    setHandoverSignerCount(signerCount);
+    if (item.witness_snapshot) {
+      setHandoverWitness({
+        ...DEFAULT_HANDOVER_WITNESS,
+        ...item.witness_snapshot,
+      });
+    }
+    if ((item.metadata as any)?.witness_employee_id) {
+      setHandoverWitnessEmployeeId(String((item.metadata as any).witness_employee_id));
+    }
+    if (item.variant === "vehicle") {
+      setSelectedVehicleAssetIds(Array.isArray(item.asset_ids) ? item.asset_ids : []);
+      setHandoverVehicleDescription(item.metadata?.description || "kendaraan");
+    } else {
+      setHandoverItems(
+        Array.isArray(item.items_snapshot) && item.items_snapshot.length > 0
+          ? item.items_snapshot
+          : [emptyGeneralItem()]
+      );
+      setHandoverGeneralDescription(item.metadata?.description || "");
+    }
+  };
+
+  const resetForm = () => {
+    setHandoverVariant("general_goods");
+    setHandoverTitle("Berita Acara Serah Terima Barang");
+    setHandoverSequence("");
+    setHandoverKap("KAP.03.02");
+    setHandoverDate(todayInputValue());
+    setHandoverFirstEmployeeId("");
+    setHandoverSecondEmployeeId("");
+    setHandoverFirstPartyType("internal");
+    setHandoverSecondPartyType("internal");
+    setHandoverFirstParty({ ...DEFAULT_HANDOVER_FIRST_PARTY, idType: "NIP" });
+    setHandoverSecondParty({
+      name: "",
+      nip: "",
+      rank: "",
+      position: "",
+      address: "Jl. Teuku Umar Samarinda.",
+      idType: "NIP",
+    });
+    setHandoverReceiptClause(DEFAULT_HANDOVER_RECEIPT_CLAUSE);
+    setHandoverSignerCount(2);
+    setHandoverWitnessEmployeeId("");
+    setHandoverWitness(DEFAULT_HANDOVER_WITNESS);
+    setHandoverItems([emptyGeneralItem()]);
+    setSelectedVehicleAssetIds([]);
+    setHandoverGeneralDescription("");
+    setHandoverVehicleDescription("kendaraan");
+  };
+
+  // Fetch detail from backend if editing existing document
+  useQuery({
+    queryKey: ["bmn-handover-agreement-detail", editingDocument?.id],
+    queryFn: async () => {
+      if (!editingDocument?.id || editingDocument.type !== "handover") return null;
+      try {
+        const response = await api.get(`/bmn/handover-agreements/${editingDocument.id}`);
+        const data = response.data?.data;
+        if (data) {
+          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
+        }
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(editingDocument?.id && editingDocument.type === "handover"),
+  });
+
+  useEffect(() => {
+    if (editingDocument && editingDocument.type === "handover" && editingDocument.item) {
+      applyDataToForm(editingDocument.item as HandoverAgreementHistory, Boolean(editingDocument.isDuplicate));
+    } else if (!editingDocument) {
+      resetForm();
+    }
+  }, [editingDocument]);
 
   const { data: vehicleAssets = [], isLoading: loadingVehicleAssets } = useQuery<BmnAssetOption[]>({
     queryKey: ["bmn-report-vehicle-assets"],
@@ -331,7 +495,7 @@ export function HandoverAgreementTab({
         },
       };
 
-      if (editingDocument && editingDocument.type === "handover") {
+      if (editingDocument && editingDocument.type === "handover" && editingDocument.id && !editingDocument.isDuplicate) {
         await api.put(`/bmn/handover-agreements/${editingDocument.id}`, payload);
         toast.success(
           isDraft ? "Draf BA Serah Terima berhasil diperbarui." : "Perubahan BA Serah Terima berhasil disimpan."
@@ -342,6 +506,7 @@ export function HandoverAgreementTab({
         toast.success(
           isDraft ? "Draf BA Serah Terima berhasil disimpan." : "Riwayat BA Serah Terima berhasil disimpan."
         );
+        if (onClearEditing) onClearEditing();
       }
       if (onRefetchHistory) {
         await onRefetchHistory();
@@ -368,7 +533,7 @@ export function HandoverAgreementTab({
             disabled={savingHandoverAgreement || !canGenerate}
           >
             {savingHandoverAgreement ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {editingDocument?.type === "handover"
+            {editingDocument?.type === "handover" && !editingDocument.isDuplicate
               ? handoverSequence.trim()
                 ? "Simpan Perubahan"
                 : "Simpan Perubahan (Draf)"

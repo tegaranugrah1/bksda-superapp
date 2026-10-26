@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export interface PowerOfAttorneyTabProps {
   canGenerate?: boolean;
   canWrite?: boolean;
   editingDocument?: EditingDocumentState | null;
+  onSetEditingDocument?: (doc: EditingDocumentState) => void;
   onClearEditing?: () => void;
   onViewHistory?: (item: PowerOfAttorneyHistory) => void;
   onRefetchHistory?: () => Promise<void> | void;
@@ -49,34 +51,54 @@ export function PowerOfAttorneyTab({
   canGenerate = true,
   canWrite = false,
   editingDocument,
+  onSetEditingDocument,
   onClearEditing,
   onViewHistory,
   onRefetchHistory,
 }: PowerOfAttorneyTabProps) {
   const confirm = useConfirm();
 
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [poaSequence, setPoaSequence] = useState("");
-  const [poaKap, setPoaKap] = useState("KAP.03.02");
-  const [poaDate, setPoaDate] = useState(todayInputValue());
+  const initialItem =
+    editingDocument && editingDocument.type === "power_of_attorney"
+      ? (editingDocument.item as PowerOfAttorneyHistory | undefined)
+      : undefined;
+
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(
+    initialItem?.employee?.id ? String(initialItem.employee.id) : (initialItem?.second_party_snapshot?.id ? String(initialItem.second_party_snapshot.id) : "")
+  );
+  const [poaSequence, setPoaSequence] = useState(
+    editingDocument?.isDuplicate ? "" : (initialItem?.number ? extractDocumentSequence(initialItem.number) : "")
+  );
+  const [poaKap, setPoaKap] = useState(
+    (initialItem?.number ? extractDocumentKap(initialItem.number) : null) || (initialItem as any)?.kap || "KAP.03.02"
+  );
+  const [poaDate, setPoaDate] = useState(
+    initialItem?.document_date ? initialItem.document_date.split("T")[0] : todayInputValue()
+  );
   const [poaFirstEmployeeId, setPoaFirstEmployeeId] = useState("");
-  const [poaFirstParty, setPoaFirstParty] = useState<PowerOfAttorneyParty>(DEFAULT_POA_FIRST_PARTY);
-  const [poaSecondParty, setPoaSecondParty] = useState<PowerOfAttorneyParty>({
-    name: "",
-    nip: "",
-    position: "",
-    address: "Jln. Teuku Umar Samarinda",
-  });
-  const [poaSelectedAssetIds, setPoaSelectedAssetIds] = useState<string[]>([]);
+  const [poaFirstParty, setPoaFirstParty] = useState<PowerOfAttorneyParty>(
+    initialItem?.first_party_snapshot || DEFAULT_POA_FIRST_PARTY
+  );
+  const [poaSecondParty, setPoaSecondParty] = useState<PowerOfAttorneyParty>(
+    initialItem?.second_party_snapshot || {
+      name: "",
+      nip: "",
+      position: "",
+      address: "Jln. Teuku Umar Samarinda",
+    }
+  );
+  const [poaSelectedAssetIds, setPoaSelectedAssetIds] = useState<string[]>(
+    initialItem?.asset_ids || initialItem?.assets_snapshot?.map((a) => a.id) || []
+  );
   const [poaNotes, setPoaNotes] = useState(
-    "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:"
+    initialItem?.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:"
   );
   const [savingPowerOfAttorney, setSavingPowerOfAttorney] = useState(false);
   const [poaHistory, setPoaHistory] = useState<PowerOfAttorneyHistory[]>([]);
   const [loadingPoaData, setLoadingPoaData] = useState(false);
   const [poaKtpFile, setPoaKtpFile] = useState<File | null>(null);
-  const [poaKtpPreviewUrl, setPoaKtpPreviewUrl] = useState<string | null>(null);
-  const [poaKtpPath, setPoaKtpPath] = useState<string | null>(null);
+  const [poaKtpPreviewUrl, setPoaKtpPreviewUrl] = useState<string | null>(initialItem?.ktp_url || null);
+  const [poaKtpPath, setPoaKtpPath] = useState<string | null>(initialItem?.ktp_path || null);
   const [vehicleSearch, setVehicleSearch] = useState("");
 
   const selectedEmployee = useMemo(
@@ -150,9 +172,75 @@ export function PowerOfAttorneyTab({
     }
   };
 
+  const applyDataToForm = (item: PowerOfAttorneyHistory, isDuplicate = false) => {
+    const empId = item.employee?.id || item.second_party_snapshot?.id;
+    if (empId) {
+      setSelectedEmployeeId(String(empId));
+      loadPoaData(String(empId));
+    }
+
+    setPoaSequence(isDuplicate ? "" : extractDocumentSequence(item.number));
+    const kapVal = extractDocumentKap(item.number) || (item as any).kap;
+    if (kapVal) setPoaKap(kapVal);
+    if (item.document_date) {
+      setPoaDate(item.document_date.split("T")[0]);
+    }
+    setPoaFirstEmployeeId("");
+    setPoaFirstParty(item.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
+    setPoaSecondParty(
+      item.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" }
+    );
+    setPoaSelectedAssetIds(item.asset_ids || item.assets_snapshot?.map((a) => a.id) || []);
+    setPoaNotes(item.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
+    setPoaKtpPreviewUrl(item.ktp_url || null);
+    setPoaKtpPath(item.ktp_path || null);
+    setPoaKtpFile(null);
+  };
+
+  const resetForm = () => {
+    setSelectedEmployeeId("");
+    setPoaSequence("");
+    setPoaKap("KAP.03.02");
+    setPoaDate(todayInputValue());
+    setPoaFirstEmployeeId("");
+    setPoaFirstParty(DEFAULT_POA_FIRST_PARTY);
+    setPoaSecondParty({ name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
+    setPoaSelectedAssetIds([]);
+    setPoaNotes("Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
+    setPoaKtpFile(null);
+    setPoaKtpPreviewUrl(null);
+    setPoaKtpPath(null);
+    setPoaHistory([]);
+  };
+
+  useQuery({
+    queryKey: ["bmn-power-of-attorney-detail", editingDocument?.id],
+    queryFn: async () => {
+      if (!editingDocument?.id || editingDocument.type !== "power_of_attorney") return null;
+      try {
+        const response = await api.get(`/bmn/power-of-attorneys/${editingDocument.id}`);
+        const data = response.data?.data;
+        if (data) {
+          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
+        }
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(editingDocument?.id && editingDocument.type === "power_of_attorney"),
+  });
+
+  useEffect(() => {
+    if (editingDocument && editingDocument.type === "power_of_attorney" && editingDocument.item) {
+      applyDataToForm(editingDocument.item as PowerOfAttorneyHistory, Boolean(editingDocument.isDuplicate));
+    } else if (!editingDocument) {
+      resetForm();
+    }
+  }, [editingDocument, loadPoaData]);
+
   useEffect(() => {
     if (!poaFirstEmployeeId) {
-      setPoaFirstParty(DEFAULT_POA_FIRST_PARTY);
       return;
     }
 
@@ -196,6 +284,17 @@ export function PowerOfAttorneyTab({
   };
 
   const duplicatePowerOfAttorney = (agreement: PowerOfAttorneyHistory) => {
+    if (onSetEditingDocument) {
+      onSetEditingDocument({
+        type: "power_of_attorney",
+        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+        status: "draft",
+        item: { ...agreement, document_type: "power_of_attorney" },
+        isDuplicate: true,
+      });
+      return;
+    }
+
     setPoaSequence("");
     const kapVal = extractDocumentKap(agreement.number);
     if (kapVal) setPoaKap(kapVal);
@@ -212,6 +311,18 @@ export function PowerOfAttorneyTab({
   };
 
   const editPowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {
+    if (onSetEditingDocument) {
+      onSetEditingDocument({
+        id: agreement.id,
+        type: "power_of_attorney",
+        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+        status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+        item: { ...agreement, document_type: "power_of_attorney" },
+        isDuplicate: false,
+      });
+      return;
+    }
+
     const employeeId = agreement.second_party_snapshot?.id;
     if (employeeId) {
       setSelectedEmployeeId(String(employeeId));
@@ -311,7 +422,7 @@ export function PowerOfAttorneyTab({
         formData.append("existing_ktp_path", poaKtpPath);
       }
 
-      if (editingDocument && editingDocument.type === "power_of_attorney") {
+      if (editingDocument && editingDocument.type === "power_of_attorney" && editingDocument.id && !editingDocument.isDuplicate) {
         formData.append("_method", "PUT");
         await api.post(`/bmn/power-of-attorneys/${editingDocument.id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -323,6 +434,7 @@ export function PowerOfAttorneyTab({
           headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success(isDraft ? "Draf Surat Kuasa berhasil disimpan." : "Riwayat Surat Kuasa berhasil disimpan.");
+        if (onClearEditing) onClearEditing();
       }
 
       setPoaKtpFile(null);
@@ -357,7 +469,7 @@ export function PowerOfAttorneyTab({
             disabled={savingPowerOfAttorney || !selectedEmployee || !canGenerate}
           >
             {savingPowerOfAttorney ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {editingDocument?.type === "power_of_attorney"
+            {editingDocument?.type === "power_of_attorney" && !editingDocument.isDuplicate
               ? poaSequence.trim()
                 ? "Simpan Perubahan"
                 : "Simpan Perubahan (Draf)"

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,9 @@ import {
   todayInputValue,
   buildCoveringNumber,
   formatNip,
+  isDraftNumber,
+  extractDocumentSequence,
+  extractDocumentKap,
   type EmployeeOption,
 } from "../_lib/report-utils";
 import {
@@ -42,32 +46,153 @@ export function CoveringLetterTab({
   onClearEditing,
   onRefetchHistory,
 }: CoveringLetterTabProps) {
-  const [coveringSequence, setCoveringSequence] = useState("");
-  const [coveringKap, setCoveringKap] = useState("KAP.06.01");
-  const [coveringDate, setCoveringDate] = useState(todayInputValue());
+  const initialItem =
+    editingDocument && editingDocument.type === "covering_letter"
+      ? (editingDocument.item as CoveringLetterHistory | undefined)
+      : undefined;
+
+  const [coveringSequence, setCoveringSequence] = useState(
+    editingDocument?.isDuplicate ? "" : (initialItem?.number ? extractDocumentSequence(initialItem.number) : "")
+  );
+  const [coveringKap, setCoveringKap] = useState(
+    (initialItem?.number ? extractDocumentKap(initialItem.number) : null) || (initialItem as any)?.kap || "KAP.06.01"
+  );
+  const [coveringDate, setCoveringDate] = useState(
+    initialItem?.document_date ? initialItem.document_date.split("T")[0] : todayInputValue()
+  );
   const [coveringRegarding, setCoveringRegarding] = useState(
-    "Penyampaian Permohonan Jadwal Lelang Non Eksekusi Wajib Barang Milik Negara (BMN) Berupa Kendaraan Bermotor Operasional / Dinas Pada Balai Konservasi Sumber Daya Alam Kalimantan Timur"
+    initialItem?.regarding ||
+      "Penyampaian Permohonan Jadwal Lelang Non Eksekusi Wajib Barang Milik Negara (BMN) Berupa Kendaraan Bermotor Operasional / Dinas Pada Balai Konservasi Sumber Daya Alam Kalimantan Timur"
   );
   const [coveringRecipientTitle, setCoveringRecipientTitle] = useState(
-    "Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"
+    initialItem?.recipient_title || "Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"
   );
-  const [coveringRecipientLocation, setCoveringRecipientLocation] = useState("Samarinda");
-  const [coveringItems, setCoveringItems] = useState<CoveringLetterItem[]>(DEFAULT_COVERING_ITEMS);
+  const [coveringRecipientLocation, setCoveringRecipientLocation] = useState(
+    initialItem?.recipient_location || "Samarinda"
+  );
+  const [coveringItems, setCoveringItems] = useState<CoveringLetterItem[]>(
+    Array.isArray(initialItem?.items_snapshot) && initialItem!.items_snapshot.length > 0
+      ? initialItem!.items_snapshot
+      : DEFAULT_COVERING_ITEMS
+  );
   const [coveringClosingPhrase, setCoveringClosingPhrase] = useState(
-    "Demikian kami sampaikan, atas kerja samanya diucapkan terima kasih."
+    initialItem?.closing_phrase || "Demikian kami sampaikan, atas kerja samanya diucapkan terima kasih."
   );
-  const [coveringReceivedDate, setCoveringReceivedDate] = useState("");
-  const [coveringShowSignatures, setCoveringShowSignatures] = useState(true);
-  const [coveringShowReceiver, setCoveringShowReceiver] = useState(true);
-  const [coveringReceiverIsBlank, setCoveringReceiverIsBlank] = useState(false);
-  const [coveringReceiverIncludePhone, setCoveringReceiverIncludePhone] = useState(false);
-  const [coveringReceiverPhone, setCoveringReceiverPhone] = useState("");
-  const [coveringSenderEmployeeId, setCoveringSenderEmployeeId] = useState("");
-  const [coveringReceiverEmployeeId, setCoveringReceiverEmployeeId] = useState("");
-  const [coveringSender, setCoveringSender] = useState<CoveringLetterParty>(DEFAULT_COVERING_SENDER);
-  const [coveringReceiver, setCoveringReceiver] = useState<CoveringLetterParty>(DEFAULT_COVERING_RECEIVER);
-  const [coveringHeaderMode, setCoveringHeaderMode] = useState<"with-number" | "dash" | "none">("with-number");
+  const [coveringReceivedDate, setCoveringReceivedDate] = useState(
+    initialItem?.received_date ? initialItem.received_date.split("T")[0] : ""
+  );
+  const [coveringShowSignatures, setCoveringShowSignatures] = useState(
+    initialItem?.show_signatures ?? true
+  );
+  const [coveringShowReceiver, setCoveringShowReceiver] = useState(
+    initialItem?.metadata?.show_receiver ?? true
+  );
+  const [coveringReceiverIsBlank, setCoveringReceiverIsBlank] = useState(
+    initialItem?.metadata?.receiver_is_blank ?? false
+  );
+  const [coveringReceiverIncludePhone, setCoveringReceiverIncludePhone] = useState(
+    initialItem?.metadata?.receiver_include_phone ?? false
+  );
+  const [coveringReceiverPhone, setCoveringReceiverPhone] = useState(
+    initialItem?.metadata?.receiver_phone || ""
+  );
+  const [coveringSenderEmployeeId, setCoveringSenderEmployeeId] = useState(
+    initialItem?.sender_employee_id ? String(initialItem.sender_employee_id) : ""
+  );
+  const [coveringReceiverEmployeeId, setCoveringReceiverEmployeeId] = useState(
+    (initialItem?.metadata as any)?.receiver_employee_id ? String((initialItem?.metadata as any).receiver_employee_id) : ""
+  );
+  const [coveringSender, setCoveringSender] = useState<CoveringLetterParty>(
+    initialItem?.sender_snapshot || DEFAULT_COVERING_SENDER
+  );
+  const [coveringReceiver, setCoveringReceiver] = useState<CoveringLetterParty>(
+    initialItem?.receiver_snapshot || DEFAULT_COVERING_RECEIVER
+  );
+  const [coveringHeaderMode, setCoveringHeaderMode] = useState<"with-number" | "dash" | "none">(
+    initialItem?.metadata?.header_mode ||
+      (initialItem && isDraftNumber(initialItem.number) && !extractDocumentSequence(initialItem.number) ? "dash" : "with-number")
+  );
   const [savingCoveringLetter, setSavingCoveringLetter] = useState(false);
+
+  const applyDataToForm = (item: CoveringLetterHistory, isDuplicate = false) => {
+    setCoveringSequence(isDuplicate ? "" : extractDocumentSequence(item.number));
+    const kapVal = extractDocumentKap(item.number) || (item as any).kap;
+    if (kapVal) setCoveringKap(kapVal);
+    if (item.document_date) {
+      setCoveringDate(item.document_date.split("T")[0]);
+    }
+    setCoveringRegarding(item.regarding || "");
+    setCoveringRecipientTitle(item.recipient_title || "");
+    setCoveringRecipientLocation(item.recipient_location || "");
+    if (Array.isArray(item.items_snapshot) && item.items_snapshot.length > 0) {
+      setCoveringItems(item.items_snapshot);
+    }
+    setCoveringClosingPhrase(item.closing_phrase || "Demikian kami sampaikan, atas kerja samanya diucapkan terima kasih.");
+    setCoveringReceivedDate(item.received_date ? item.received_date.split("T")[0] : "");
+    setCoveringShowSignatures(item.show_signatures ?? true);
+    setCoveringShowReceiver(item.metadata?.show_receiver ?? (item.receiver_snapshot?.name ? true : true));
+    setCoveringReceiverIsBlank(item.metadata?.receiver_is_blank ?? false);
+    setCoveringReceiverIncludePhone(item.metadata?.receiver_include_phone ?? false);
+    setCoveringReceiverPhone(item.metadata?.receiver_phone || "");
+    setCoveringSenderEmployeeId(item.sender_employee_id ? String(item.sender_employee_id) : "");
+    setCoveringReceiverEmployeeId((item.metadata as any)?.receiver_employee_id ? String((item.metadata as any).receiver_employee_id) : "");
+    setCoveringSender(item.sender_snapshot || DEFAULT_COVERING_SENDER);
+    setCoveringReceiver(item.receiver_snapshot || DEFAULT_COVERING_RECEIVER);
+    setCoveringHeaderMode(
+      item.metadata?.header_mode ||
+        (isDraftNumber(item.number) && !extractDocumentSequence(item.number) ? "dash" : "with-number")
+    );
+  };
+
+  const resetForm = () => {
+    setCoveringSequence("");
+    setCoveringKap("KAP.06.01");
+    setCoveringDate(todayInputValue());
+    setCoveringRegarding(
+      "Penyampaian Permohonan Jadwal Lelang Non Eksekusi Wajib Barang Milik Negara (BMN) Berupa Kendaraan Bermotor Operasional / Dinas Pada Balai Konservasi Sumber Daya Alam Kalimantan Timur"
+    );
+    setCoveringRecipientTitle("Kepala Kantor Pelayanan Kekayaan Negara dan Lelang");
+    setCoveringRecipientLocation("Samarinda");
+    setCoveringItems(DEFAULT_COVERING_ITEMS);
+    setCoveringClosingPhrase("Demikian kami sampaikan, atas kerja samanya diucapkan terima kasih.");
+    setCoveringReceivedDate("");
+    setCoveringShowSignatures(true);
+    setCoveringShowReceiver(true);
+    setCoveringReceiverIsBlank(false);
+    setCoveringReceiverIncludePhone(false);
+    setCoveringReceiverPhone("");
+    setCoveringSenderEmployeeId("");
+    setCoveringReceiverEmployeeId("");
+    setCoveringSender(DEFAULT_COVERING_SENDER);
+    setCoveringReceiver(DEFAULT_COVERING_RECEIVER);
+    setCoveringHeaderMode("with-number");
+  };
+
+  useQuery({
+    queryKey: ["bmn-covering-letter-detail", editingDocument?.id],
+    queryFn: async () => {
+      if (!editingDocument?.id || editingDocument.type !== "covering_letter") return null;
+      try {
+        const response = await api.get(`/bmn/covering-letters/${editingDocument.id}`);
+        const data = response.data?.data;
+        if (data) {
+          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
+        }
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(editingDocument?.id && editingDocument.type === "covering_letter"),
+  });
+
+  useEffect(() => {
+    if (editingDocument && editingDocument.type === "covering_letter" && editingDocument.item) {
+      applyDataToForm(editingDocument.item as CoveringLetterHistory, Boolean(editingDocument.isDuplicate));
+    } else if (!editingDocument) {
+      resetForm();
+    }
+  }, [editingDocument]);
 
   const fullCoveringNumber = useMemo(
     () => buildCoveringNumber(coveringSequence, coveringKap, coveringDate),
@@ -78,7 +203,6 @@ export function CoveringLetterTab({
 
   useEffect(() => {
     if (!coveringSenderEmployeeId) {
-      setCoveringSender(DEFAULT_COVERING_SENDER);
       return;
     }
     const emp = employees.find((e) => String(e.id) === coveringSenderEmployeeId);
@@ -189,7 +313,7 @@ export function CoveringLetterTab({
         },
       };
 
-      if (editingDocument && editingDocument.type === "covering_letter") {
+      if (editingDocument && editingDocument.type === "covering_letter" && editingDocument.id && !editingDocument.isDuplicate) {
         await api.put(`/bmn/covering-letters/${editingDocument.id}`, payload);
         toast.success(
           docStatus === "draft"
@@ -204,6 +328,7 @@ export function CoveringLetterTab({
             ? "Draf Surat Pengantar berhasil disimpan."
             : "Riwayat Surat Pengantar berhasil disimpan."
         );
+        if (onClearEditing) onClearEditing();
       }
       if (onRefetchHistory) {
         await onRefetchHistory();
@@ -232,7 +357,7 @@ export function CoveringLetterTab({
             disabled={savingCoveringLetter || !canGenerate}
           >
             {savingCoveringLetter ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {editingDocument?.type === "covering_letter"
+            {editingDocument?.type === "covering_letter" && !editingDocument.isDuplicate
               ? coveringSequence.trim() || coveringHeaderMode !== "with-number"
                 ? "Simpan Perubahan"
                 : "Simpan Perubahan (Draf)"
