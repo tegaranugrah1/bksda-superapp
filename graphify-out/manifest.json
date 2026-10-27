@@ -65,8 +65,8 @@
     "semantic_hash": "9166e18dafbd085a52008a051d530059"
   },
   "backend/app/Models/User.php": {
-    "mtime": 1791971808.2275505,
-    "ast_hash": "3b607dde5af4e17bf3267c53f749f079",
+    "mtime": 1793073185.8471558,
+    "ast_hash": "60f568b680a11d75c8d40bd00006585d",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/BmnServiceProvider.php": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1792746997.3968737,
-    "ast_hash": "f721770beeb24070ca8a42fbc665dbcf",
+    "mtime": 1793074202.930757,
+    "ast_hash": "3a76c36bd52240a8350e87116749a1b1",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
-    "mtime": 1792746997.4038742,
-    "ast_hash": "274d641dbe6fc6553447b4a769233452",
+    "mtime": 1793073209.3799367,
+    "ast_hash": "35253a1126dc5bbe09ac2fd83b9e16c0",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php": {
@@ -1045,9 +1045,9 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php": {
-    "mtime": 1781744706.977113,
-    "ast_hash": "5bd4c2137164ae6a608e632a9b5d01be",
-    "semantic_hash": "5bd4c2137164ae6a608e632a9b5d01be"
+    "mtime": 1793072496.056849,
+    "ast_hash": "d7b76cd7fb2e059fa3b59e3c91fcfa66",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
     "mtime": 1792746997.4128776,
@@ -1550,8 +1550,8 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1792761790.0885675,
-    "ast_hash": "44825195af975a1a3fbc73ac37ee2873",
+    "mtime": 1793067499.5909324,
+    "ast_hash": "9066c3bdb12077ee7ae56776e74db8e4",
     "semantic_hash": ""
   },
   "frontend/package.json": {
@@ -2340,13 +2340,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1792746997.5338054,
-    "ast_hash": "88da0d2e9e1bcd1e0e722c950b677bd6",
+    "mtime": 1793074224.4982064,
+    "ast_hash": "f7b9083dc1baf94f1b6973a78a28a0cf",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
-    "mtime": 1791374757.2521663,
-    "ast_hash": "2e3cb70aa5b721aaae03a155e2d09432",
+    "mtime": 1793074212.7488403,
+    "ast_hash": "2662459d5ff7b944f79e578246cc4366",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
@@ -3675,8 +3675,8 @@
     "semantic_hash": ""
   },
   "docker-compose.dokploy.yml": {
-    "mtime": 1785131863.565996,
-    "ast_hash": "a57ba137956c279a6fa6fb01115d1961",
+    "mtime": 1793068069.6174233,
+    "ast_hash": "59cb8e2d81dc2d2460b39476f11ed359",
     "semantic_hash": ""
   },
   "docker-compose.prod.yml": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793060829.3242414,
-    "ast_hash": "f5b653d56528a1eadb1e6b38af33f5e7",
+    "mtime": 1793071929.7803762,
+    "ast_hash": "e2fb4016d2bb2e3ddbc696b8a99114d9",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5430,8 +5430,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1792746997.5366127,
-    "ast_hash": "1392958ecd1af3b220f4a1eb70026040",
+    "mtime": 1793074785.74394,
+    "ast_hash": "1a9b1071d643f8ccceee02764ab820e0",
     "semantic_hash": ""
   },
   ".agents/AGENTS.md": {
@@ -6520,8 +6520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-constants.ts": {
-    "mtime": 1791371211.381724,
-    "ast_hash": "8d55e801d1fc250e4df879059cec8640",
+    "mtime": 1793072534.6355474,
+    "ast_hash": "fdfa15fde359bc86c16cf58ac1e60e08",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/STBuilderPreview.tsx": {
@@ -6540,8 +6540,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-helpers.ts": {
-    "mtime": 1791372198.320611,
-    "ast_hash": "380dff3f49d2d586236b245682ec00ae",
+    "mtime": 1793072558.7135873,
+    "ast_hash": "043aeb9d1a155893eda4a7d6e3d72c67",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/settings/st-templates/_components/ExpenseTemplatesTab.tsx": {
@@ -6560,8 +6560,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-types.ts": {
-    "mtime": 1791374121.7938557,
-    "ast_hash": "f4f1788610eb35ee5d7d93a6b5442714",
+    "mtime": 1793072543.6060183,
+    "ast_hash": "6f9f6b0a3cf966405756ce615c82a73d",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/index.ts": {
@@ -6942,6 +6942,16 @@
   "backend/database/migrations/2026_10_27_083000_archive_inactive_employees_to_match_actual_roster.php": {
     "mtime": 1793060734.551884,
     "ast_hash": "f42105fdb8aa08be01b1c1c8042de1be",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_27_111500_add_muhammad_riezqy_senopati_to_kpg_employees.php": {
+    "mtime": 1793070773.0644395,
+    "ast_hash": "dd3b8c8a0b4560376f4a6c5fe0793ccf",
+    "semantic_hash": ""
+  },
+  "docs/rencana-migrasi.md": {
+    "mtime": 1793061909.6909776,
+    "ast_hash": "776e97e1f553b00fa7fc805b19436a9a",
     "semantic_hash": ""
   }
 }

@@ -8638,3 +8638,28 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
 - [x] `https://storage.bksdakaltim.web.id/bksda/` melayani unduhan aset gambar dan PDF dengan header MIME yang valid (HTTP/2 200 OK).
 - [x] Query database memvalidasi tepat 1.633 aset BMN dan 147 pegawai aktif riil.
 - [x] Webhook GitHub App terhubung langsung ke Dokploy via domain publik untuk auto-deploy.
+
+
+## [2026-10-27] Phase 225 – Kategori Pegawai (PNS / PPPK / MMP), Auto-Deteksi NIP/NIPPPK, Upload Foto RustFS & Modal Hapus Pegawai
+
+### Problem Description
+1. Form tambah/edit pegawai di `/kepegawaian/employees/create` dan `/kepegawaian/employees/[id]` membutuhkan pemilih kategori kepegawaian (**PNS**, **PPPK / P3K**, dan **MMP**) yang menyesuaikan label input (`NIP` vs `NIPPPK` vs tanpa NIP untuk MMP), memfilter opsi Pangkat/Golongan, melakukan auto-deteksi saat NIP 18 digit diketik, dan mengisi otomatis jabatan default untuk MMP sesuai Resor penempatan.
+2. Saat membuat pegawai baru, terjadi `SQLSTATE[23502]: Not null violation` pada kolom `users.email` serta foto profil perlu disimpan langsung ke S3/RustFS dalam 1 langkah atomik (`DB::transaction`).
+3. Pegawai baru yang belum memilih `satuan_kerja` (`NULL`) tidak terhitung di daftar dan statistik karena filter `WHERE satuan_kerja NOT LIKE '%pusat%'` di PostgreSQL mengeksklusi baris `NULL`.
+4. Tombol hapus pegawai di `/kepegawaian/employees` belum terhubung ke aksi hapus dan membutuhkan modal konfirmasi tengah layar bergaya identik dengan modal hapus di `/kepegawaian/cuti` (`DeleteLeaveModal`) beserta notifikasi toast.
+
+### Completed (Selesai)
+- [x] **Pemilih Kategori Pegawai (PNS / PPPK / MMP) & Auto-Deteksi NIP**:
+  - Menambahkan konstanta `JENIS_PEGAWAI_OPTIONS`, `PANGKAT_PNS_OPTIONS`, dan `PANGKAT_PPPK_OPTIONS` di `frontend/src/app/kepegawaian/_lib/employee-constants.ts` serta helper deteksi `detectEmployeeType`, `detectJenisFromNipInput`, dan `buildMmpDefaultJabatan` di `employee-helpers.ts`.
+  - Di `frontend/src/app/kepegawaian/employees/create/page.tsx` dan `employees/[id]/page.tsx`:
+    - **PNS**: Menampilkan input `NIP` (wajib) dan opsi Pangkat/Golongan PNS (`I/a`–`IV/e`).
+    - **PPPK (P3K)**: Menampilkan input `NIPPPK` (wajib) dan opsi Golongan PPPK (`Golongan I`–`XVII`).
+    - **MMP**: Menyembunyikan input NIP dan Pangkat/Golongan (backend otomatis men-generate kode internal berurutan `MMP-xxx` yang tampil sebagai `-` di UI/Surat Tugas) serta mengisi otomatis Jabatan default (`MMP Resor KSDA Wilayah ...` atau `Masyarakat Mitra Polhut (MMP)`).
+    - **Auto-Deteksi**: Mengetik 18 digit dengan digit ke-13..14 = `21` otomatis berpindah ke mode `PPPK (P3K)`, dan `01`..`12` ke mode `PNS`.
+- [x] **Perbaikan Backend Pembuatan Pegawai, User Email Guard & Upload Foto RustFS**:
+  - Menambahkan model hook `static::creating` pada `backend/app/Models/User.php` untuk mengisi default `email` (`<username>@bksda.local`) bila kosong, mencegah error `SQLSTATE[23502]` di seluruh pemanggilan `User::create()`.
+  - Memperbarui `EmployeeRequest.php` (`prepareForValidation()` untuk auto-generate `MMP-xxx` via `Employee::generateNextMmpCode()` dan validasi anti-kolisi `users.username`) serta membungkus `Employee::create` + `User::create` dalam `DB::transaction()` di `EmployeeController::store()`.
+  - Menyimpan foto profil langsung dalam 1 langkah (`storeAs`) ke disk default `s3` (RustFS) dengan atribut `foto_url` otomatis di model `Employee`.
+- [x] **Perbaikan Filter SQL `NULL` pada `satuan_kerja` & Modal Hapus Pegawai**:
+  - Memperbaiki query di `EmployeeController::index()` dan `dashboardStats()` menjadi `whereNull('satuan_kerja')->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%')` agar pegawai baru tanpa Satker tetap terhitung.
+  - Mengimplementasikan modal konfirmasi hapus pegawai (`Konfirmasi Hapus Data Pegawai`) di `frontend/src/app/kepegawaian/employees/page.tsx` yang selaras dengan modal hapus di `/kepegawaian/cuti` lengkap dengan notifikasi Sonner `toast.success`.

@@ -3,20 +3,48 @@
 import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, User, FileText, Shield, Briefcase, Building2, BadgeCheck, Hash, ChevronDown, Pencil, Save, X, KeyRound, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  FileText,
+  Shield,
+  Briefcase,
+  Building2,
+  BadgeCheck,
+  Hash,
+  ChevronDown,
+  Pencil,
+  Save,
+  X,
+  KeyRound,
+  Calendar,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { AssignmentLetterHistory } from "../_components/AssignmentLetterHistory";
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
-import { calculateMasaKerja } from "../../_lib/employee-helpers";
+import {
+  calculateMasaKerja,
+  isMmpEmployee,
+  detectEmployeeType,
+  detectJenisFromNipInput,
+  buildMmpDefaultJabatan,
+  isAutoMmpJabatan,
+} from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { PANGKAT_OPTIONS, SATUAN_KERJA_OPTIONS as UNIT_KERJA_OPTIONS } from "../../_lib/employee-constants";
+import {
+  PANGKAT_PNS_OPTIONS,
+  PANGKAT_PPPK_OPTIONS,
+  JENIS_PEGAWAI_OPTIONS,
+  SATUAN_KERJA_OPTIONS as UNIT_KERJA_OPTIONS,
+  type JenisPegawai,
+} from "../../_lib/employee-constants";
 import type { Employee } from "../../_lib";
 
 export default function EmployeeDetailPage() {
@@ -29,6 +57,7 @@ export default function EmployeeDetailPage() {
 
   // Biodata edit state
   const [isEditing, setIsEditing] = useState(false);
+  const [editJenis, setEditJenis] = useState<JenisPegawai>("PNS");
   const [editForm, setEditForm] = useState({
     nip: "",
     nama_lengkap: "",
@@ -61,7 +90,7 @@ export default function EmployeeDetailPage() {
           `/kepegawaian/employees/${id}/leaves?year=${currentYear}`
         );
         return data.data;
-      } catch (e) {
+      } catch {
         return null;
       }
     },
@@ -70,11 +99,13 @@ export default function EmployeeDetailPage() {
 
   const startEditing = () => {
     if (!employee) return;
+    const detected = detectEmployeeType(employee);
+    setEditJenis(detected);
     setEditForm({
-      nip: employee.nip || "",
+      nip: detected === "MMP" ? "" : employee.nip || "",
       nama_lengkap: employee.nama_lengkap || "",
       jabatan: employee.jabatan || "",
-      pangkat_golongan: employee.pangkat_golongan || "",
+      pangkat_golongan: detected === "MMP" ? "" : employee.pangkat_golongan || "",
       satuan_kerja: employee.satuan_kerja || "",
       is_active: employee.is_active,
     });
@@ -85,26 +116,94 @@ export default function EmployeeDetailPage() {
     setIsEditing(false);
   };
 
+  const handleEditJenisChange = (nextJenis: JenisPegawai) => {
+    setEditJenis(nextJenis);
+    setEditForm((prev) => {
+      if (nextJenis === "MMP") {
+        return {
+          ...prev,
+          nip: "",
+          pangkat_golongan: "",
+          jabatan: isAutoMmpJabatan(prev.jabatan)
+            ? buildMmpDefaultJabatan(prev.satuan_kerja)
+            : prev.jabatan,
+        };
+      }
+      const validPangkat =
+        nextJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
+      return {
+        ...prev,
+        pangkat_golongan: validPangkat.includes(prev.pangkat_golongan)
+          ? prev.pangkat_golongan
+          : "",
+        jabatan: isAutoMmpJabatan(prev.jabatan) ? "" : prev.jabatan,
+      };
+    });
+  };
+
+  const handleEditNipChange = (val: string) => {
+    const detected = detectJenisFromNipInput(val);
+    if (detected === "MMP") {
+      handleEditJenisChange("MMP");
+      return;
+    }
+    if (detected && detected !== editJenis) {
+      setEditJenis(detected);
+      const validPangkat =
+        detected === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
+      setEditForm((prev) => ({
+        ...prev,
+        nip: val,
+        pangkat_golongan: validPangkat.includes(prev.pangkat_golongan)
+          ? prev.pangkat_golongan
+          : "",
+      }));
+      return;
+    }
+    setEditForm((prev) => ({ ...prev, nip: val }));
+  };
+
+  const handleEditSatkerChange = (val: string) => {
+    setEditForm((prev) => ({
+      ...prev,
+      satuan_kerja: val,
+      jabatan:
+        editJenis === "MMP" && isAutoMmpJabatan(prev.jabatan)
+          ? buildMmpDefaultJabatan(val)
+          : prev.jabatan,
+    }));
+  };
+
   const handleSave = async () => {
-    if (!editForm.nip || !editForm.nama_lengkap) {
-      toast.error("NIP dan Nama Lengkap wajib diisi.");
+    if (!editForm.nama_lengkap.trim()) {
+      toast.error("Nama Lengkap wajib diisi.");
+      return;
+    }
+    if (editJenis !== "MMP" && !editForm.nip.trim()) {
+      toast.error(`${editJenis === "PPPK" ? "NIPPPK" : "NIP"} wajib diisi.`);
       return;
     }
     setSaving(true);
     try {
       await api.put(`/kepegawaian/employees/${id}`, {
-        nip: editForm.nip,
+        jenis_pegawai: editJenis,
+        nip: editJenis === "MMP" ? (isMmpEmployee(employee) ? employee?.nip : "") : editForm.nip,
         nama_lengkap: editForm.nama_lengkap,
         jabatan: editForm.jabatan || null,
-        pangkat_golongan: editForm.pangkat_golongan || null,
+        pangkat_golongan: editJenis === "MMP" ? null : editForm.pangkat_golongan || null,
         satuan_kerja: editForm.satuan_kerja || null,
         is_active: editForm.is_active,
       });
       toast.success("Biodata berhasil diperbarui.");
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["employee", id] });
-    } catch {
-      toast.error("Gagal menyimpan perubahan.");
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Gagal menyimpan perubahan.";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -142,309 +241,501 @@ export default function EmployeeDetailPage() {
       <div className="p-6 md:p-10 py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
         <User className="w-12 h-12 mx-auto mb-3 text-slate-300" />
         <h2 className="text-lg font-bold text-slate-700">Pegawai tidak ditemukan</h2>
-        <Button variant="link" onClick={() => router.push("/kepegawaian")}>Kembali ke daftar</Button>
+        <Button variant="link" onClick={() => router.push("/kepegawaian")}>
+          Kembali ke daftar
+        </Button>
       </div>
     );
   }
 
+  const empCategory = detectEmployeeType(employee);
+  const editPangkatOptions =
+    editJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
+
   return (
     <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="max-w-6xl mx-auto space-y-6">
-      {/* Back + Actions */}
-      <div className="flex items-center justify-between">
-        <Link href="/kepegawaian" className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          Kembali
-        </Link>
-        <div className="flex items-center gap-2">
-          {canWrite && (
-            <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => setResetDialogOpen(true)}>
-              <KeyRound className="w-4 h-4 text-amber-500" />
-              Reset Password
-            </Button>
-          )}
-          {canManageAccess && (
-            <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => setAccessSheetOpen(true)}>
-              <Shield className="w-4 h-4 text-blue-500" />
-              Kelola Akses
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Reset Password Dialog */}
-      {resetDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Reset Password</h3>
-            <p className="text-sm text-slate-600">
-              Masukkan password baru untuk <span className="font-semibold">{employee.nama_lengkap}</span>.
-            </p>
-            <input
-              type="password"
-              value={resetPassword}
-              onChange={(event) => setResetPassword(event.target.value)}
-              placeholder="Minimal 8 karakter"
-              minLength={8}
-              autoComplete="new-password"
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
-            />
-            <div className="flex items-center gap-2 justify-end">
-              <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setResetDialogOpen(false)} disabled={resetting}>
-                Batal
+        {/* Back + Actions */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/kepegawaian/employees"
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali
+          </Link>
+          <div className="flex items-center gap-2">
+            {canWrite && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl gap-2"
+                onClick={() => setResetDialogOpen(true)}
+              >
+                <KeyRound className="w-4 h-4 text-amber-500" />
+                Reset Password
               </Button>
-              <Button size="sm" className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white" onClick={handleResetPassword} disabled={resetting}>
-                {resetting ? "Mereset..." : "Ya, Reset"}
+            )}
+            {canManageAccess && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl gap-2"
+                onClick={() => setAccessSheetOpen(true)}
+              >
+                <Shield className="w-4 h-4 text-blue-500" />
+                Kelola Akses
               </Button>
-            </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Profile Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div className="px-6 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center relative group">
-              {employee.foto_url ? (
-                <Image src={employee.foto_url} alt={employee.nama_lengkap} width={64} height={64} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-2xl font-bold text-slate-400">{employee.nama_lengkap.charAt(0)}</span>
-              )}
-              {canManageAccess && (
-                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
-                  <User className="w-5 h-5 text-white" />
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 10 * 1024 * 1024) {
-                        toast.error("Ukuran foto maksimal 10MB");
-                        return;
-                      }
-                      const fd = new FormData();
-                      fd.append("foto", file);
-                      try {
-                        await api.post(`/kepegawaian/employees/${id}/photo`, fd, {
-                          headers: { "Content-Type": "multipart/form-data" },
-                        });
-                        toast.success("Foto profil berhasil diperbarui!");
-                        queryClient.invalidateQueries({ queryKey: ["employee", id] });
-                      } catch {
-                        toast.error("Gagal mengupload foto.");
-                      }
-                    }}
-                  />
-                </label>
-              )}
-            </div>
-            {/* Name + Status */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold text-slate-900 truncate">{employee.nama_lengkap}</h1>
-                <span className={cn(
-                  "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
-                  employee.is_active ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-600"
-                )}>
-                  <BadgeCheck className="w-3 h-3" />
-                  {employee.is_active ? "Aktif" : "Non-Aktif"}
-                </span>
+        {/* Reset Password Dialog */}
+        {resetDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
+              <h3 className="text-base font-bold text-slate-900">Reset Password</h3>
+              <p className="text-sm text-slate-600">
+                Masukkan password baru untuk{" "}
+                <span className="font-semibold">{employee.nama_lengkap}</span>.
+              </p>
+              <input
+                type="password"
+                value={resetPassword}
+                onChange={(event) => setResetPassword(event.target.value)}
+                placeholder="Minimal 8 karakter"
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
+              />
+              <div className="flex items-center gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setResetDialogOpen(false)}
+                  disabled={resetting}
+                >
+                  Batal
+                </Button>
+                <Button
+                  size="sm"
+                  className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white"
+                  onClick={handleResetPassword}
+                  disabled={resetting}
+                >
+                  {resetting ? "Mereset..." : "Ya, Reset"}
+                </Button>
               </div>
-              <p className="text-sm text-slate-500 font-mono mt-0.5">{formatNipLabel(employee, true)} {employee.nip}</p>
             </div>
           </div>
+        )}
 
-          {/* Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-            <InfoCard icon={<Briefcase className="w-4 h-4 text-blue-500" />} label="Jabatan" value={employee.jabatan || "-"} />
-            <InfoCard icon={<Building2 className="w-4 h-4 text-violet-500" />} label="Unit Kerja" value={employee.satuan_kerja || "-"} />
-            <InfoCard icon={<Hash className="w-4 h-4 text-amber-500" />} label="Pangkat/Gol" value={employee.pangkat_golongan || "-"} />
-            <InfoCard
-              icon={<Calendar className="w-4 h-4 text-emerald-500" />}
-              label={`Sisa Cuti (${currentYear})`}
-              value={leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja"}
-            />
+        {/* Profile Card */}
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-6 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {/* Avatar */}
+              <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center relative group">
+                {employee.foto_url ? (
+                  <Image
+                    src={employee.foto_url}
+                    alt={employee.nama_lengkap}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-slate-400">
+                    {employee.nama_lengkap.charAt(0)}
+                  </span>
+                )}
+                {canManageAccess && (
+                  <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
+                    <User className="w-5 h-5 text-white" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error("Ukuran foto maksimal 10MB");
+                          return;
+                        }
+                        const fd = new FormData();
+                        fd.append("foto", file);
+                        try {
+                          await api.post(`/kepegawaian/employees/${id}/photo`, fd);
+                          toast.success("Foto profil berhasil diperbarui!");
+                          queryClient.invalidateQueries({ queryKey: ["employee", id] });
+                        } catch {
+                          toast.error("Gagal mengupload foto.");
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+              {/* Name + Status */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl font-bold text-slate-900 truncate">
+                    {employee.nama_lengkap}
+                  </h1>
+                  <span
+                    className={cn(
+                      "inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full",
+                      empCategory === "MMP"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : empCategory === "PPPK"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-100 text-blue-800"
+                    )}
+                  >
+                    {empCategory === "PPPK" ? "PPPK (P3K)" : empCategory}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
+                      employee.is_active ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-600"
+                    )}
+                  >
+                    <BadgeCheck className="w-3 h-3" />
+                    {employee.is_active ? "Aktif" : "Non-Aktif"}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 font-mono mt-0.5">
+                  {empCategory === "MMP"
+                    ? "Masyarakat Mitra Polhut • Tanpa NIP (-)"
+                    : `${formatNipLabel(employee, true)} ${employee.nip}`}
+                </p>
+              </div>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
+              <InfoCard
+                icon={<Briefcase className="w-4 h-4 text-blue-500" />}
+                label="Jabatan"
+                value={employee.jabatan || "-"}
+              />
+              <InfoCard
+                icon={<Building2 className="w-4 h-4 text-violet-500" />}
+                label="Unit Kerja"
+                value={employee.satuan_kerja || "-"}
+              />
+              <InfoCard
+                icon={<Hash className="w-4 h-4 text-amber-500" />}
+                label="Pangkat/Gol"
+                value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
+              />
+              <InfoCard
+                icon={<Calendar className="w-4 h-4 text-emerald-500" />}
+                label={`Sisa Cuti (${currentYear})`}
+                value={
+                  leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja"
+                }
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div>
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-4">
-          <button
-            onClick={() => setActiveTab("history")}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-              activeTab === "history" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-            )}
-          >
-            <FileText className="w-4 h-4" /> Riwayat Penugasan
-          </button>
-          <button
-            onClick={() => setActiveTab("biodata")}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-              activeTab === "biodata" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-            )}
-          >
-            <User className="w-4 h-4" /> Biodata
-          </button>
-          <button
-            onClick={() => setActiveTab("leave")}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-              activeTab === "leave" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-            )}
-          >
-            <Calendar className="w-4 h-4" /> Cuti Pegawai (PNS)
-            <span
+        {/* Tabs */}
+        <div>
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-4">
+            <button
+              onClick={() => setActiveTab("history")}
               className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-bold ml-1 transition-colors",
-                activeTab === "leave" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                activeTab === "history" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
               )}
             >
-              {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
-            </span>
-          </button>
-        </div>
-
-        {activeTab === "history" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6">
-            <AssignmentLetterHistory employeeId={employee.id} />
-          </div>
-        )}
-
-        {activeTab === "leave" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6">
-            <EmployeeLeaveTab employeeId={employee.id} />
-          </div>
-        )}
-
-        {activeTab === "biodata" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900">Identitas Kepegawaian</h3>
-              {canWrite && !isEditing && (
-                <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={startEditing}>
-                  <Pencil className="w-3.5 h-3.5" />
-                  Edit
-                </Button>
+              <FileText className="w-4 h-4" /> Riwayat Penugasan
+            </button>
+            <button
+              onClick={() => setActiveTab("biodata")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                activeTab === "biodata" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
               )}
-              {isEditing && (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={cancelEditing} disabled={saving}>
-                    <X className="w-3.5 h-3.5" />
-                    Batal
+            >
+              <User className="w-4 h-4" /> Biodata
+            </button>
+            <button
+              onClick={() => setActiveTab("leave")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
+                activeTab === "leave" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
+              )}
+            >
+              <Calendar className="w-4 h-4" /> Cuti Pegawai (PNS)
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold ml-1 transition-colors",
+                  activeTab === "leave" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
+                )}
+              >
+                {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
+              </span>
+            </button>
+          </div>
+
+          {activeTab === "history" && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <AssignmentLetterHistory employeeId={employee.id} />
+            </div>
+          )}
+
+          {activeTab === "leave" && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <EmployeeLeaveTab employeeId={employee.id} />
+            </div>
+          )}
+
+          {activeTab === "biodata" && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-900">Identitas Kepegawaian</h3>
+                {canWrite && !isEditing && (
+                  <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={startEditing}>
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
                   </Button>
-                  <Button size="sm" className="rounded-xl gap-2 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave} disabled={saving}>
-                    <Save className="w-3.5 h-3.5" />
-                    {saving ? "Menyimpan..." : "Simpan"}
-                  </Button>
+                )}
+                {isEditing && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl gap-2"
+                      onClick={cancelEditing}
+                      disabled={saving}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Batal
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="rounded-xl gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      {saving ? "Menyimpan..." : "Simpan"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {!isEditing ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <BioItem
+                    label="Kategori Pegawai"
+                    value={
+                      empCategory === "MMP"
+                        ? "MMP (Masyarakat Mitra Polhut)"
+                        : empCategory === "PPPK"
+                        ? "PPPK (P3K)"
+                        : "PNS"
+                    }
+                  />
+                  <BioItem
+                    label={empCategory === "PPPK" ? "NIPPPK" : "NIP"}
+                    value={empCategory === "MMP" ? "- (Tanpa NIP)" : employee.nip}
+                  />
+                  <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
+                  <BioItem label="Jabatan" value={employee.jabatan || "-"} />
+                  <BioItem
+                    label="Pangkat / Golongan"
+                    value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
+                  />
+                  <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
+                  <BioItem
+                    label="Masa Kerja"
+                    value={
+                      empCategory === "MMP"
+                        ? "-"
+                        : calculateMasaKerja(employee.nip, employee.nama_lengkap)
+                    }
+                  />
+                  <BioItem
+                    label="Status"
+                    value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <BioField label="Kategori / Jenis Pegawai">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {JENIS_PEGAWAI_OPTIONS.map((opt) => {
+                        const isSelected = editJenis === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => handleEditJenisChange(opt.value)}
+                            className={cn(
+                              "flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer",
+                              isSelected
+                                ? "bg-blue-50 border-blue-600 ring-2 ring-blue-500/20"
+                                : "bg-slate-50 border-slate-200 hover:border-slate-300"
+                            )}
+                          >
+                            <div className="flex items-center justify-between w-full mb-0.5">
+                              <span
+                                className={cn(
+                                  "text-xs font-bold",
+                                  isSelected ? "text-blue-700" : "text-slate-900"
+                                )}
+                              >
+                                {opt.label}
+                              </span>
+                              <span
+                                className={cn(
+                                  "w-2 h-2 rounded-full",
+                                  isSelected ? "bg-blue-600" : "bg-slate-300"
+                                )}
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-500">{opt.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </BioField>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {editJenis !== "MMP" && (
+                      <BioField label={editJenis === "PPPK" ? "NIPPPK" : "NIP"}>
+                        <input
+                          type="text"
+                          value={editForm.nip}
+                          onChange={(e) => handleEditNipChange(e.target.value)}
+                          placeholder={
+                            editJenis === "PPPK"
+                              ? "19930425 202421 2 053..."
+                              : "19800101 200501 1 001..."
+                          }
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                        />
+                      </BioField>
+                    )}
+
+                    <div className={editJenis === "MMP" ? "sm:col-span-2" : ""}>
+                      <BioField label="Nama Lengkap">
+                        <input
+                          type="text"
+                          value={editForm.nama_lengkap}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, nama_lengkap: e.target.value })
+                          }
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                        />
+                      </BioField>
+                    </div>
+
+                    <div className={editJenis === "MMP" ? "sm:col-span-2" : ""}>
+                      <BioField label="Jabatan">
+                        <input
+                          type="text"
+                          value={editForm.jabatan}
+                          onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                        />
+                      </BioField>
+                    </div>
+
+                    {editJenis !== "MMP" && (
+                      <BioField
+                        label={
+                          editJenis === "PPPK" ? "Golongan PPPK" : "Pangkat / Golongan PNS"
+                        }
+                      >
+                        <div className="relative">
+                          <select
+                            value={editForm.pangkat_golongan}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, pangkat_golongan: e.target.value })
+                            }
+                            className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                          >
+                            <option value="">
+                              {editJenis === "PPPK"
+                                ? "Pilih Golongan PPPK"
+                                : "Pilih Pangkat/Golongan PNS"}
+                            </option>
+                            {editPangkatOptions.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+                      </BioField>
+                    )}
+
+                    <BioField label="Unit Kerja">
+                      <div className="relative">
+                        <select
+                          value={editForm.satuan_kerja}
+                          onChange={(e) => handleEditSatkerChange(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                        >
+                          <option value="">Pilih Unit Kerja</option>
+                          {UNIT_KERJA_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </BioField>
+
+                    {editJenis !== "MMP" && (
+                      <BioField label="Masa Kerja">
+                        <input
+                          type="text"
+                          readOnly
+                          disabled
+                          value={calculateMasaKerja(editForm.nip, editForm.nama_lengkap)}
+                          className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-semibold cursor-not-allowed"
+                        />
+                      </BioField>
+                    )}
+
+                    <BioField label="Status">
+                      <div className="relative">
+                        <select
+                          value={editForm.is_active ? "active" : "inactive"}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, is_active: e.target.value === "active" })
+                          }
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                        >
+                          <option value="active">Aktif Bertugas</option>
+                          <option value="inactive">Non-Aktif</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </BioField>
+                  </div>
                 </div>
               )}
             </div>
+          )}
+        </div>
 
-            {!isEditing ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <BioItem label={formatNipLabel(employee)} value={employee.nip} />
-                <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
-                <BioItem label="Jabatan" value={employee.jabatan || "-"} />
-                <BioItem label="Pangkat / Golongan" value={employee.pangkat_golongan || "-"} />
-                <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
-                <BioItem label="Masa Kerja" value={calculateMasaKerja(employee.nip, employee.nama_lengkap)} />
-                <BioItem label="Status" value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <BioField label={formatNipLabel(employee)}>
-                  <input
-                    type="text"
-                    value={editForm.nip}
-                    onChange={(e) => setEditForm({ ...editForm, nip: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
-                  />
-                </BioField>
-                <BioField label="Nama Lengkap">
-                  <input
-                    type="text"
-                    value={editForm.nama_lengkap}
-                    onChange={(e) => setEditForm({ ...editForm, nama_lengkap: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
-                  />
-                </BioField>
-                <BioField label="Jabatan">
-                  <input
-                    type="text"
-                    value={editForm.jabatan}
-                    onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
-                  />
-                </BioField>
-                <BioField label="Pangkat / Golongan">
-                  <div className="relative">
-                    <select
-                      value={editForm.pangkat_golongan}
-                      onChange={(e) => setEditForm({ ...editForm, pangkat_golongan: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
-                    >
-                      <option value="">Pilih Pangkat/Golongan</option>
-                      {PANGKAT_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </BioField>
-                <BioField label="Unit Kerja">
-                  <div className="relative">
-                    <select
-                      value={editForm.satuan_kerja}
-                      onChange={(e) => setEditForm({ ...editForm, satuan_kerja: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
-                    >
-                      <option value="">Pilih Unit Kerja</option>
-                      {UNIT_KERJA_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </BioField>
-                <BioField label="Masa Kerja">
-                  <input
-                    type="text"
-                    readOnly
-                    disabled
-                    value={calculateMasaKerja(editForm.nip, editForm.nama_lengkap)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-semibold cursor-not-allowed"
-                  />
-                </BioField>
-                <BioField label="Status">
-                  <div className="relative">
-                    <select
-                      value={editForm.is_active ? "active" : "inactive"}
-                      onChange={(e) => setEditForm({ ...editForm, is_active: e.target.value === "active" })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
-                    >
-                      <option value="active">Aktif Bertugas</option>
-                      <option value="inactive">Non-Aktif</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </BioField>
-              </div>
-            )}
-          </div>
+        {canManageAccess && (
+          <EmployeeAccessSheet
+            employee={employee}
+            open={accessSheetOpen}
+            onOpenChange={setAccessSheetOpen}
+          />
         )}
-      </div>
-
-      {canManageAccess && (
-        <EmployeeAccessSheet employee={employee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
-      )}
       </div>
     </div>
   );

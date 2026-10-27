@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, UserCog, Trash2, Users, Inbox } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Search, Plus, UserCog, Trash2, Users, Inbox, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
 import { isPppk } from "@/lib/letter-utils";
-import type { Employee } from "../_lib";
+import { isMmpEmployee, type Employee } from "../_lib";
 
 interface ApiResponse {
   data: Employee[];
@@ -21,11 +23,33 @@ interface ApiResponse {
 
 export default function EmployeeListPage() {
   const { canWrite, canManageAccess } = useRole();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; nip: string; nama_lengkap: string } | null>(null);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<Employee | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const executeDelete = async () => {
+    if (!deleteItem) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/kepegawaian/employees/${deleteItem.id}`);
+      toast.success(`Pegawai "${deleteItem.nama_lengkap}" berhasil dihapus!`);
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+      setDeleteItem(null);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Gagal menghapus data pegawai.";
+      toast.error(msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,10 +60,10 @@ export default function EmployeeListPage() {
   }, [searchInput]);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['employees', page, debouncedSearch],
+    queryKey: ["employees", page, debouncedSearch],
     queryFn: async () => {
       const { data } = await api.get<ApiResponse>(`/kepegawaian/employees`, {
-        params: { page, search: debouncedSearch }
+        params: { page, search: debouncedSearch },
       });
       return data;
     },
@@ -52,12 +76,18 @@ export default function EmployeeListPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-                <Users className="w-5 h-5" />
+              <Users className="w-5 h-5" />
             </div>
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Kepegawaian & SDM</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+              Kepegawaian & SDM
+            </h2>
           </div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">Daftar Pegawai</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">Kelola informasi personil dan hak akses sistem.</p>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+            Daftar Pegawai
+          </h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">
+            Kelola informasi personil dan hak akses sistem.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -94,7 +124,7 @@ export default function EmployeeListPage() {
             <thead className="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-4">Profil Pegawai</th>
-                <th className="px-6 py-4">NIP / NIPPPK</th>
+                <th className="px-6 py-4">NIP / NIPPPK / Status</th>
                 <th className="px-6 py-4">Jabatan</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -103,49 +133,106 @@ export default function EmployeeListPage() {
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse"><td colSpan={5} className="px-6 py-4"><div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" /></td></tr>
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={5} className="px-6 py-4">
+                      <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl" />
+                    </td>
+                  </tr>
                 ))
               ) : isError ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-red-500">Gagal memuat data pegawai.</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-red-500">
+                    Gagal memuat data pegawai.
+                  </td>
+                </tr>
               ) : data?.data.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-zinc-500">Tidak ada pegawai ditemukan.</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                    Tidak ada pegawai ditemukan.
+                  </td>
+                </tr>
               ) : (
                 data?.data.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group">
+                  <tr
+                    key={emp.id}
+                    className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group"
+                  >
                     <td className="px-6 py-4">
                       <Link href={`/kepegawaian/employees/${emp.id}`}>
-                        <p className="font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">{emp.nama_lengkap}</p>
+                        <p className="font-bold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors cursor-pointer">
+                          {emp.nama_lengkap}
+                        </p>
                       </Link>
-                      <p className="text-[11px] text-zinc-500">{emp.satuan_kerja || "Satuan Kerja Belum Diatur"}</p>
+                      <p className="text-[11px] text-zinc-500">
+                        {emp.satuan_kerja || "Satuan Kerja Belum Diatur"}
+                      </p>
                     </td>
                     <td className="px-6 py-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">
-                      {emp.nip?.startsWith("MMP-") ? (
-                        "-"
+                      {isMmpEmployee(emp) ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
+                            MMP
+                          </span>
+                          <span className="text-zinc-400">-</span>
+                        </span>
                       ) : isPppk(emp) ? (
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">NIPPPK</span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                            NIPPPK
+                          </span>
                           {emp.nip}
                         </span>
                       ) : (
-                        emp.nip
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+                            NIP
+                          </span>
+                          {emp.nip}
+                        </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{emp.jabatan || "-"}</td>
+                    <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
+                      {emp.jabatan || "-"}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        emp.is_active ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                      }`}>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          emp.is_active
+                            ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
+                            : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                        }`}
+                      >
                         {emp.is_active ? "Aktif" : "Non-Aktif"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/kepegawaian/employees/${emp.id}`} className="p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl text-blue-600"><Search className="w-4 h-4" /></Link>
+                        <Link
+                          href={`/kepegawaian/employees/${emp.id}`}
+                          className="p-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl text-blue-600"
+                        >
+                          <Search className="w-4 h-4" />
+                        </Link>
                         {canManageAccess && (
-                          <button onClick={() => { setSelectedEmployee(emp); setAccessSheetOpen(true); }} className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"><UserCog className="w-4 h-4" /></button>
+                          <button
+                            onClick={() => {
+                              setSelectedEmployee(emp);
+                              setAccessSheetOpen(true);
+                            }}
+                            className="p-2 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl text-amber-600"
+                          >
+                            <UserCog className="w-4 h-4" />
+                          </button>
                         )}
                         {canWrite && (
-                          <button className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-600"><Trash2 className="w-4 h-4" /></button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteItem(emp)}
+                            title="Hapus Pegawai"
+                            className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-600 cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </td>
@@ -158,17 +245,70 @@ export default function EmployeeListPage() {
 
         {data && (
           <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/20">
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Halaman {page} dari {data.meta.last_page}</p>
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+              Halaman {page} dari {data.meta.last_page}
+            </p>
             <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm">Sebelumnya</button>
-              <button onClick={() => setPage(p => Math.min(data.meta.last_page, p + 1))} disabled={page === data.meta.last_page} className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm">Berikutnya</button>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm"
+              >
+                Sebelumnya
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(data.meta.last_page, p + 1))}
+                disabled={page === data.meta.last_page}
+                className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-zinc-50 transition-colors shadow-sm"
+              >
+                Berikutnya
+              </button>
             </div>
           </div>
         )}
       </div>
 
+      {deleteItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                Konfirmasi Hapus Data Pegawai
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Apakah Anda yakin ingin menghapus data pegawai{" "}
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  {deleteItem.nama_lengkap}
+                </span>
+                ? Akun akses sistem pegawai ini juga akan otomatis dinonaktifkan.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button variant="outline" onClick={() => setDeleteItem(null)} disabled={isDeleting}>
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={isDeleting}
+                onClick={executeDelete}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Pegawai"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {canManageAccess && (
-        <EmployeeAccessSheet employee={selectedEmployee} open={accessSheetOpen} onOpenChange={setAccessSheetOpen} />
+        <EmployeeAccessSheet
+          employee={selectedEmployee}
+          open={accessSheetOpen}
+          onOpenChange={setAccessSheetOpen}
+        />
       )}
     </div>
   );

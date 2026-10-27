@@ -27,7 +27,10 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
-            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
+            ->where(function ($q) {
+                $q->whereNull('satuan_kerja')
+                    ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
+            });
 
         // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
         $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
@@ -66,52 +69,45 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Rule 1.4 & 4.4: Sanitasi dan Upload File ke Private Storage
+     * Rule 1.4 & 4.4: Sanitasi dan Upload File ke RustFS Object Storage
      */
     public function store(EmployeeRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        // Jika user melampirkan file foto
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');
-
-            $path = $file->store('employees/foto');
-            $validated['foto_profil'] = $path;
-        }
-
-        $employee = Employee::create($validated);
-
-        // Auto-create inactive user account with random secure password if it doesn't exist yet
-        $nip = trim((string) $employee->nip);
-        if ($nip !== '' && ! User::where('username', $nip)->exists()) {
-            User::create([
-                'name' => $employee->nama_lengkap,
-                'username' => $nip,
-                'password' => Str::random(64),
-                'role' => 'user',
-                'is_active' => false,
-            ]);
-        }
-
-        // Re-store photo with proper folder structure after employee is created
-        if (isset($validated['foto_profil'])) {
-            $oldPath = $validated['foto_profil'];
-            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
-            $ext = pathinfo($oldPath, PATHINFO_EXTENSION);
-            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
-            $newPath = $folder . '/' . $filename;
-
-            // Move file to proper folder
-            if (Storage::exists($oldPath)) {
-                Storage::move($oldPath, $newPath);
-                $employee->update(['foto_profil' => $newPath]);
+            $slug = Str::slug($validated['nama_lengkap']) ?: 'emp-' . Str::lower(Str::random(6));
+            $folder = 'employees/' . $slug . '/foto-profil';
+            $filename = $slug . '_profil.' . ($file->extension() ?: 'jpg');
+            $path = $file->storeAs($folder, $filename);
+            if ($path) {
+                $validated['foto_profil'] = $path;
             }
         }
 
+        $employee = DB::transaction(function () use ($validated) {
+            $employee = Employee::create($validated);
+
+            // Auto-create inactive user account with random secure password if it doesn't exist yet
+            $nip = trim((string) $employee->nip);
+            if ($nip !== '' && ! User::withTrashed()->where('username', $nip)->exists()) {
+                User::create([
+                    'name' => $employee->nama_lengkap,
+                    'username' => $nip,
+                    'email' => strtolower(preg_replace('/[^a-zA-Z0-9._-]/', '', $nip)) . '@bksda.local',
+                    'password' => Str::random(64),
+                    'role' => 'user',
+                    'is_active' => false,
+                ]);
+            }
+
+            return $employee;
+        });
+
         return response()->json([
             'message' => 'Data pegawai berhasil ditambahkan.',
-            'data' => $employee,
+            'data' => $employee->fresh(),
         ], 201);
     }
 
@@ -382,7 +378,10 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
-            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
+            ->where(function ($q) {
+                $q->whereNull('satuan_kerja')
+                    ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
+            });
 
         // 1. Total & Active Employees
         $totalEmployees = (clone $baseQuery)->count();

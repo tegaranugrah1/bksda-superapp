@@ -8,11 +8,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->email)) {
+                $base = strtolower(preg_replace('/[^a-zA-Z0-9._-]/', '', (string) $user->username));
+                $user->email = ($base !== '' ? $base : Str::uuid()->toString()) . '@bksda.local';
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

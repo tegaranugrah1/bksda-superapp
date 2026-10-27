@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -72,9 +73,61 @@ class Employee extends Model
         'is_seksi',
         'seksi_wilayah',
         'is_pppk',
+        'is_mmp',
+        'jenis_pegawai',
         'nip_label',
         'is_cpns2025',
+        'foto_url',
     ];
+
+    public function getFotoUrlAttribute(): ?string
+    {
+        return $this->foto_profil ? Storage::url($this->foto_profil) : null;
+    }
+
+    /**
+     * Accessor: Cek apakah personil merupakan Masyarakat Mitra Polhut (MMP)
+     */
+    public function getIsMmpAttribute(): bool
+    {
+        $nip = strtoupper(trim((string) $this->nip));
+        return str_starts_with($nip, 'MMP-');
+    }
+
+    /**
+     * Accessor: Kategori jenis pegawai ('PNS', 'PPPK', atau 'MMP')
+     */
+    public function getJenisPegawaiAttribute(): string
+    {
+        if ($this->is_mmp) {
+            return 'MMP';
+        }
+
+        return $this->is_pppk ? 'PPPK' : 'PNS';
+    }
+
+    /**
+     * Generate kode unik MMP-xxx berikutnya secara sekuensial
+     */
+    public static function generateNextMmpCode(): string
+    {
+        $existingCodes = static::withTrashed()
+            ->withoutGlobalScopes()
+            ->where('nip', 'LIKE', 'MMP-%')
+            ->pluck('nip');
+
+        $maxNumber = 0;
+        foreach ($existingCodes as $code) {
+            if (preg_match('/^MMP-(\d+)$/i', trim((string) $code), $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        return sprintf('MMP-%03d', $maxNumber + 1);
+    }
 
     /**
      * Accessor: Cek apakah pegawai berstatus PPPK (P3K)
@@ -82,7 +135,7 @@ class Employee extends Model
      */
     public function getIsPppkAttribute(): bool
     {
-        if (empty($this->nip)) {
+        if (empty($this->nip) || $this->is_mmp) {
             return false;
         }
 

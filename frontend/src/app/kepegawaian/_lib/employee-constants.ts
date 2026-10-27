@@ -27,31 +27,35 @@ export const SATUAN_KERJA_OPTIONS = [
   "Seksi KSDA Wil III - Resor 14. Ibu Kota Nusantara",
 ];
 
-export const PANGKAT_OPTIONS = [
-  // Tidak ada pangkat
-  "- (Tidak ada pangkat)",
-  // PNS - Golongan I
+export type JenisPegawai = "PNS" | "PPPK" | "MMP";
+
+export const JENIS_PEGAWAI_OPTIONS: { value: JenisPegawai; label: string; desc: string }[] = [
+  { value: "PNS", label: "PNS", desc: "Pegawai Negeri Sipil (NIP)" },
+  { value: "PPPK", label: "PPPK (P3K)", desc: "Pegawai Pemerintah dgn Perjanjian Kerja (NIPPPK)" },
+  { value: "MMP", label: "MMP", desc: "Masyarakat Mitra Polhut (Tanpa NIP)" },
+];
+
+export const PANGKAT_PNS_OPTIONS = [
   "Juru Muda (I/a)",
   "Juru Muda Tingkat I (I/b)",
   "Juru (I/c)",
   "Juru Tingkat I (I/d)",
-  // PNS - Golongan II
   "Pengatur Muda (II/a)",
   "Pengatur Muda Tingkat I (II/b)",
   "Pengatur (II/c)",
   "Pengatur Tingkat I (II/d)",
-  // PNS - Golongan III
   "Penata Muda (III/a)",
   "Penata Muda Tingkat I (III/b)",
   "Penata (III/c)",
   "Penata Tingkat I (III/d)",
-  // PNS - Golongan IV
   "Pembina (IV/a)",
   "Pembina Tingkat I (IV/b)",
   "Pembina Utama Muda (IV/c)",
   "Pembina Utama Madya (IV/d)",
   "Pembina Utama (IV/e)",
-  // PPPK (Pegawai Pemerintah dengan Perjanjian Kerja)
+];
+
+export const PANGKAT_PPPK_OPTIONS = [
   "PPPK Golongan I",
   "PPPK Golongan II",
   "PPPK Golongan III",
@@ -69,4 +73,10 @@ export const PANGKAT_OPTIONS = [
   "PPPK Golongan XV",
   "PPPK Golongan XVI",
   "PPPK Golongan XVII",
+];
+
+export const PANGKAT_OPTIONS = [
+  "- (Tidak ada pangkat)",
+  ...PANGKAT_PNS_OPTIONS,
+  ...PANGKAT_PPPK_OPTIONS,
 ];

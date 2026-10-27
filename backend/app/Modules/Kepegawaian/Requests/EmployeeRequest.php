@@ -2,49 +2,80 @@
 
 namespace App\Modules\Kepegawaian\Requests;
 
+use App\Models\User;
+use App\Modules\Kepegawaian\Models\Employee;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EmployeeRequest extends FormRequest
 {
-    /**
-     * Tentukan siapa yang boleh melakukan request ini.
-     * Secara bawaan izinkan saja, karena Auth diurus oleh Middleware (Issue 12/13).
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Rule 1.4, 4.1, & 4.2: Validasi ketat untuk teks dan ukuran file (Max 10 MB)
-     */
+    protected function prepareForValidation(): void
+    {
+        $jenis = strtoupper(trim((string) $this->input('jenis_pegawai', '')));
+        $nipInput = trim((string) $this->input('nip', ''));
+
+        if ($jenis === 'MMP') {
+            $employeeId = $this->route('employee');
+            $finalNip = $nipInput;
+
+            if ($finalNip === '' || ! str_starts_with(strtoupper($finalNip), 'MMP-')) {
+                $existing = $employeeId ? Employee::find($employeeId) : null;
+                $finalNip = ($existing && str_starts_with(strtoupper((string) $existing->nip), 'MMP-'))
+                    ? $existing->nip
+                    : Employee::generateNextMmpCode();
+            }
+
+            $this->merge([
+                'nip' => $finalNip,
+                'pangkat_golongan' => null,
+            ]);
+        } elseif ($nipInput !== '') {
+            $this->merge(['nip' => $nipInput]);
+        }
+    }
+
     public function rules(): array
     {
-        // Deteksi apakah ini operasi Update (PUT/PATCH) atau Create (POST)
-        $employeeId = $this->route('employee') ?? 'NULL';
+        $employeeId = $this->route('employee');
+        $existingEmployee = $employeeId ? Employee::withTrashed()->find($employeeId) : null;
+        $oldNip = $existingEmployee ? trim((string) $existingEmployee->nip) : null;
 
         return [
-            // NIP harus unique. Jika sedang Update, abaikan NIP miliknya sendiri
-            'nip' => 'required|string|max:50|unique:kpg_employees,nip,' . $employeeId,
-            'nama_lengkap' => 'required|string|max:255',
-            'jabatan' => 'nullable|string|max:255',
-            'pangkat_golongan' => 'nullable|string|max:255',
-            'satuan_kerja' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-
-            // Aturan File (MIME + ekstensi strict) - Hanya gambar
+            'jenis_pegawai' => ['nullable', 'string', Rule::in(['PNS', 'PPPK', 'MMP'])],
+            'nip' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('kpg_employees', 'nip')->ignore($employeeId),
+                function (string $attribute, mixed $value, \Closure $fail) use ($oldNip) {
+                    $clean = trim((string) $value);
+                    if ($clean === '' || $clean === $oldNip) {
+                        return;
+                    }
+                    if (User::where('username', $clean)->exists()) {
+                        $fail('NIP / kode tersebut sudah digunakan oleh akun pengguna lain di sistem.');
+                    }
+                },
+            ],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'jabatan' => ['nullable', 'string', 'max:255'],
+            'pangkat_golongan' => ['nullable', 'string', 'max:255'],
+            'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['boolean'],
             'foto' => UploadValidationRules::image(required: false, maxKilobytes: 10240),
         ];
     }
 
-    /**
-     * Kustomisasi pesan error ke Bahasa Indonesia agar Frontend mudah menampilkannya.
-     */
     public function messages(): array
     {
         return [
-            'nip.unique' => 'NIP tersebut sudah terdaftar di sistem.',
+            'nip.unique' => 'NIP / NIPPPK tersebut sudah terdaftar di sistem.',
             'foto.mimes' => 'Format foto harus berupa JPG, PNG, atau WEBP.',
             'foto.max' => 'Ukuran foto tidak boleh lebih dari 10 MB.',
         ];
