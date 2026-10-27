@@ -32,16 +32,18 @@ class EmployeeController extends Controller
                     ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
 
+        $canViewTrashed = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+
         $counts = [
             'total' => (clone $baseQuery)->count(),
             'pns' => (clone $baseQuery)->ofJenis('PNS')->count(),
             'pppk' => (clone $baseQuery)->ofJenis('PPPK')->count(),
             'mmp' => (clone $baseQuery)->ofJenis('MMP')->count(),
-            'trashed' => (clone $baseQuery)->onlyTrashed()->count(),
+            'trashed' => $canViewTrashed ? (clone $baseQuery)->onlyTrashed()->count() : 0,
         ];
 
         $statusFilter = strtolower(trim((string) $request->input('status', '')));
-        $isTrashedView = $statusFilter === 'trashed' || $request->boolean('trashed');
+        $isTrashedView = $canViewTrashed && ($statusFilter === 'trashed' || $request->boolean('trashed'));
 
         $query = clone $baseQuery;
         if ($isTrashedView) {
