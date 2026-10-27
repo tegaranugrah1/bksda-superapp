@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1790729346.89205,
-    "ast_hash": "0eebb24bf3e5070f727b8830f23713bf",
+    "mtime": 1793060829.3242414,
+    "ast_hash": "f5b653d56528a1eadb1e6b38af33f5e7",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -6150,8 +6150,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1790729347.0431762,
-    "ast_hash": "0676e3faf940161a78eeb4ff9c6c8f50",
+    "mtime": 1793060809.0117764,
+    "ast_hash": "5cd71e6a44eca2935a1b4e09d1638861",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6937,6 +6937,11 @@
   "frontend/src/app/kepegawaian/surat-tugas/_lib/departure-helpers.ts": {
     "mtime": 1792746997.5609534,
     "ast_hash": "6a53de7c0e5b9ab051ec4ecd04f71548",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_27_083000_archive_inactive_employees_to_match_actual_roster.php": {
+    "mtime": 1793060734.551884,
+    "ast_hash": "f42105fdb8aa08be01b1c1c8042de1be",
     "semantic_hash": ""
   }
 }
