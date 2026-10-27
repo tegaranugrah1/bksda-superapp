@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
-  Inbox, Search, Eye, Edit2, Trash2, Printer, Calendar, User, FileText, Check, AlertCircle, X, FileUp, FileCheck,
-  ChevronDown, MoreHorizontal, CheckCircle2, Clock, Plus, RefreshCw, FileBadge, Sparkles
+  Inbox, Search, Eye, Edit2, Trash2, FileText, FileUp, FileCheck,
+  ChevronDown, MoreHorizontal, CheckCircle2, Clock, Plus, RefreshCw, FileBadge, XCircle, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/useRole";
 import { calculateMasaKerja } from "../_lib/employee-helpers";
 import {
   LeaveRequestItem,
@@ -32,8 +33,19 @@ import {
   DigitalSuratIzinModal,
 } from "./_components/CutiModals";
 
+function notifyLeaveSync(status?: string, id?: number) {
+  try {
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("bksda_leave_sync");
+      channel.postMessage({ type: "LEAVE_STATUS_CHANGED", id, status });
+      channel.close();
+    }
+  } catch {}
+}
+
 export default function InboxSuratCutiPage() {
   const queryClient = useQueryClient();
+  const { canWrite } = useRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -96,8 +108,14 @@ export default function InboxSuratCutiPage() {
   const lastPage: number = responseData?.last_page ?? 1;
   const fromRecord: number = responseData?.from ?? (list.length > 0 ? (page - 1) * perPage + 1 : 0);
   const toRecord: number = responseData?.to ?? (fromRecord + list.length - (list.length > 0 ? 1 : 0));
+  const summaryCounts = responseData?.summary_counts || {
+    all: totalRecords,
+    DISETUJUI: list.filter((x) => (x.status || "").toUpperCase() === "DISETUJUI").length,
+    PENGAJUAN: list.filter((x) => !x.status || (x.status || "").toUpperCase() === "PENGAJUAN").length,
+    DITOLAK: list.filter((x) => (x.status || "").toUpperCase() === "DITOLAK").length,
+  };
 
-  // Toggle Status (PENGAJUAN -> DISETUJUI)
+  // Toggle Status (PENGAJUAN <-> DISETUJUI / DITOLAK)
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, newStatus }: { id: number; newStatus: string }) => {
       await api.put(`/kepegawaian/leave-requests/${id}/status`, { status: newStatus });
@@ -105,19 +123,13 @@ export default function InboxSuratCutiPage() {
     onSuccess: (_, variables) => {
       if (variables.newStatus === "DISETUJUI") {
         toast.success("Pengajuan Cuti berhasil DISETUJUI! Kuota cuti otomatis terpotong.");
+      } else if (variables.newStatus === "DITOLAK") {
+        toast.info("Status pengajuan cuti diubah menjadi DITOLAK.");
       } else {
         toast.info("Status pengajuan cuti dikembalikan ke PENGAJUAN.");
       }
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
-
-      // Broadcast instant sync ke tab lain (Portal Pegawai)
-      try {
-        if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
-          const channel = new BroadcastChannel("bksda_leave_sync");
-          channel.postMessage({ type: "LEAVE_STATUS_CHANGED", id: variables.id, status: variables.newStatus });
-          channel.close();
-        }
-      } catch {}
+      notifyLeaveSync(variables.newStatus, variables.id);
     },
     onError: () => {
       toast.error("Gagal mengubah status pengajuan.");
@@ -141,14 +153,12 @@ export default function InboxSuratCutiPage() {
       catatan: string;
       tanggalSurat?: string;
     }) => {
-      // 1. Generate / Regenerate Surat Izin Cuti Resmi (SuratKeluar)
       await api.post(`/kepegawaian/leave-requests/${id}/generate-surat-izin`, {
         nomor_surat: nomorSurat,
         catatan_atasan: catatan,
         tanggal_surat: tanggalSurat,
       });
 
-      // 2. Jika ada berkas scan fisik yang dilampirkan, simpan via upload-scan
       if (fileFormulir || fileSuratIzin) {
         const formData = new FormData();
         if (fileFormulir) {
@@ -166,15 +176,7 @@ export default function InboxSuratCutiPage() {
       toast.success("Surat Izin Cuti Resmi berhasil diterbitkan & disetujui! Kuota cuti terpotong.");
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setApproveItem(null);
-
-      // Broadcast instant sync ke tab lain (Portal Pegawai)
-      try {
-        if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
-          const channel = new BroadcastChannel("bksda_leave_sync");
-          channel.postMessage({ type: "LEAVE_STATUS_CHANGED", status: "DISETUJUI" });
-          channel.close();
-        }
-      } catch {}
+      notifyLeaveSync("DISETUJUI");
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses permohonan cuti.";
@@ -208,6 +210,7 @@ export default function InboxSuratCutiPage() {
       toast.success("Berkas cuti resmi berhasil disimpan!");
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setUploadScanItem(null);
+      notifyLeaveSync();
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal mengunggah berkas scan.";
@@ -225,6 +228,7 @@ export default function InboxSuratCutiPage() {
       toast.success("Pengajuan Cuti berhasil diperbarui!");
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setEditItem(null);
+      notifyLeaveSync();
     },
     onError: () => {
       toast.error("Gagal memperbarui pengajuan cuti.");
@@ -241,6 +245,7 @@ export default function InboxSuratCutiPage() {
       toast.success("Pengajuan Cuti berhasil dihapus!");
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       setDeleteItem(null);
+      notifyLeaveSync();
     },
     onError: () => {
       toast.error("Gagal menghapus pengajuan cuti.");
@@ -264,21 +269,101 @@ export default function InboxSuratCutiPage() {
 
   return (
     <div className="p-5 md:p-7 space-y-5">
-      {/* Header */}
+      {/* Header Bar - Clean Enterprise Pro Max */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <Inbox className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              Inbox & Riwayat Surat Cuti Pegawai
-            </h1>
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+            <Inbox className="w-5 h-5" />
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Seluruh riwayat surat penetapan cuti resmi dan pengajuan mandiri dari pegawai BKSDA Kalimantan Timur.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
+                SDM &amp; Kepegawaian
+              </span>
+            </div>
+            <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-0.5">
+              Inbox &amp; Riwayat Surat Cuti Pegawai
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Kelola pengajuan cuti mandiri, penerbitan Surat Izin (SI) resmi, dan arsip berkas scan pegawai.
+            </p>
+          </div>
         </div>
+
+        {canWrite && (
+          <Button
+            type="button"
+            onClick={() => setIsCatatModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-1.5 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Catat Surat Izin
+          </Button>
+        )}
+      </div>
+
+      {/* Quick Filter Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          {
+            key: "all",
+            label: "Total Data Cuti",
+            count: summaryCounts.all,
+            icon: Inbox,
+            activeClass: "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-blue-500/20",
+            iconClass: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+          },
+          {
+            key: "PENGAJUAN",
+            label: "Menunggu Persetujuan",
+            count: summaryCounts.PENGAJUAN,
+            icon: Clock,
+            activeClass: "border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-1 ring-amber-500/20",
+            iconClass: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400",
+          },
+          {
+            key: "DISETUJUI",
+            label: "Disetujui (Resmi)",
+            count: summaryCounts.DISETUJUI,
+            icon: CheckCircle2,
+            activeClass: "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-1 ring-emerald-500/20",
+            iconClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
+          },
+          {
+            key: "DITOLAK",
+            label: "Ditolak / Batal",
+            count: summaryCounts.DITOLAK,
+            icon: XCircle,
+            activeClass: "border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 ring-1 ring-rose-500/20",
+            iconClass: "bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400",
+          },
+        ].map((card) => {
+          const Icon = card.icon;
+          const isActive = selectedStatus === card.key;
+          return (
+            <button
+              key={card.key}
+              type="button"
+              onClick={() => setSelectedStatus(card.key)}
+              className={cn(
+                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer",
+                isActive
+                  ? card.activeClass
+                  : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+              )}
+            >
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{card.label}</p>
+                <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
+                  {card.count}
+                </p>
+              </div>
+              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", card.iconClass)}>
+                <Icon className="w-4 h-4" />
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter Toolbar */}
@@ -334,20 +419,10 @@ export default function InboxSuratCutiPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end px-1">
           <span className="text-xs font-semibold text-slate-500 shrink-0">
-            Total <span className="font-bold text-slate-900 dark:text-slate-100">{totalRecords}</span> Data Cuti
+            Menampilkan <span className="font-bold text-slate-900 dark:text-slate-100">{totalRecords}</span> Data Cuti
           </span>
-
-          <Button
-            type="button"
-            onClick={() => setIsCatatModalOpen(true)}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-1.5 h-9 px-3.5 shadow-xs shrink-0 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Catat Surat Izin
-          </Button>
         </div>
       </div>
 
@@ -448,38 +523,71 @@ export default function InboxSuratCutiPage() {
                       </span>
                     </td>
 
-                    {/* Status Toggle Button */}
+                    {/* Status Badge */}
                     <td className="p-3.5 align-middle text-center">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.status === 'DISETUJUI') {
-                            toggleStatusMutation.mutate({ id: item.id, newStatus: 'PENGAJUAN' });
-                          } else {
-                            setApproveMode("approve");
-                            setApproveItem(item);
-                          }
-                        }}
-                        disabled={toggleStatusMutation.isPending || approveMutation.isPending}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-2xs cursor-pointer hover:scale-105 active:scale-95 border",
-                          item.status === 'DISETUJUI'
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
-                            : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
-                        )}
-                        title={item.status === 'DISETUJUI' ? "Klik untuk mengembalikan ke status Pengajuan" : "Klik untuk menyetujui pengajuan cuti (opsional berkas scan)"}
-                      >
-                        <span className={cn(
-                          "w-1.5 h-1.5 rounded-full shrink-0",
-                          item.status === 'DISETUJUI' ? "bg-emerald-600 animate-pulse" : "bg-amber-500"
-                        )} />
-                        {item.status === 'DISETUJUI' ? 'Disetujui' : 'Pengajuan'}
-                      </button>
+                      {(() => {
+                        const st = (item.status || "PENGAJUAN").toUpperCase();
+                        const isApproved = st === "DISETUJUI" || st === "APPROVED";
+                        const isRejected = st === "DITOLAK" || st === "REJECTED";
+                        const hasDigitalSurat = !!(item.surat_keluar_id || item.surat_keluar);
+
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!canWrite) return;
+                              if (isApproved) {
+                                if (hasDigitalSurat) {
+                                  setDigitalSuratItem(item);
+                                } else {
+                                  setApproveMode("regenerate");
+                                  setApproveItem(item);
+                                }
+                              } else {
+                                setApproveMode("approve");
+                                setApproveItem(item);
+                              }
+                            }}
+                            disabled={!canWrite || toggleStatusMutation.isPending || approveMutation.isPending}
+                            className={cn(
+                              "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-2xs border",
+                              canWrite && "cursor-pointer hover:scale-105 active:scale-95",
+                              isApproved
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                                : isRejected
+                                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800"
+                                : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+                            )}
+                            title={
+                              isApproved
+                                ? "Disetujui resmi — klik untuk melihat Surat Izin Cuti"
+                                : isRejected
+                                ? "Ditolak — klik untuk memproses ulang persetujuan"
+                                : "Menunggu persetujuan — klik untuk menyetujui & terbitkan Surat Izin"
+                            }
+                          >
+                            <span
+                              className={cn(
+                                "w-1.5 h-1.5 rounded-full shrink-0",
+                                isApproved
+                                  ? "bg-emerald-600 animate-pulse"
+                                  : isRejected
+                                  ? "bg-rose-500"
+                                  : "bg-amber-500"
+                              )}
+                            />
+                            {isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Pengajuan"}
+                          </button>
+                        );
+                      })()}
                     </td>
 
                     {/* Aksi & Verifikasi */}
                     <td className="p-3.5 text-right whitespace-nowrap align-middle">
                       {(() => {
+                        const st = (item.status || "PENGAJUAN").toUpperCase();
+                        const isApproved = st === "DISETUJUI" || st === "APPROVED";
+                        const isRejected = st === "DITOLAK" || st === "REJECTED";
                         const hasDigitalSurat = !!(item.surat_keluar_id || item.surat_keluar);
                         const hasSuratIzin = !!(item.scan_surat_izin_path || item.scan_surat_path);
                         const hasFormulir = !!item.scan_formulir_path;
@@ -517,15 +625,16 @@ export default function InboxSuratCutiPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 py-1.5">
-                                  Naskah & Berkas Cuti
+                                  Naskah &amp; Berkas Cuti
                                 </DropdownMenuLabel>
 
                                 {/* Digital Surat Izin Cuti */}
                                 <DropdownMenuItem
+                                  disabled={!hasDigitalSurat && !canWrite}
                                   onClick={() => {
                                     if (hasDigitalSurat) {
                                       setDigitalSuratItem(item);
-                                    } else {
+                                    } else if (canWrite) {
                                       setApproveMode("approve");
                                       setApproveItem(item);
                                     }
@@ -548,16 +657,18 @@ export default function InboxSuratCutiPage() {
                                 </DropdownMenuItem>
 
                                 {/* Tombol Generate Ulang Surat Izin */}
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setApproveMode("regenerate");
-                                    setApproveItem(item);
-                                  }}
-                                  className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
-                                >
-                                  <RefreshCw className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                  <span>Generate Ulang Surat Izin</span>
-                                </DropdownMenuItem>
+                                {canWrite && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setApproveMode("regenerate");
+                                      setApproveItem(item);
+                                    }}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
+                                  >
+                                    <RefreshCw className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                    <span>Generate Ulang Surat Izin</span>
+                                  </DropdownMenuItem>
+                                )}
 
                                 <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
 
@@ -609,15 +720,18 @@ export default function InboxSuratCutiPage() {
                                   )}
                                 </DropdownMenuItem>
 
-                                <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
-
-                                <DropdownMenuItem
-                                  onClick={() => setUploadScanItem(item)}
-                                  className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 cursor-pointer font-semibold"
-                                >
-                                  <FileUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                  <span>Unggah / Kelola Berkas Fisik</span>
-                                </DropdownMenuItem>
+                                {canWrite && (
+                                  <>
+                                    <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                    <DropdownMenuItem
+                                      onClick={() => setUploadScanItem(item)}
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 cursor-pointer font-semibold"
+                                    >
+                                      <FileUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                      <span>Unggah / Kelola Berkas Fisik</span>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
 
@@ -635,47 +749,78 @@ export default function InboxSuratCutiPage() {
                             </Button>
 
                             {/* 3. More Actions Dropdown Menu (...) */}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
-                                  title="Aksi Lainnya"
-                                >
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 p-1 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setApproveMode("regenerate");
-                                    setApproveItem(item);
-                                  }}
-                                  className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
-                                >
-                                  <RefreshCw className="w-3.5 h-3.5" />
-                                  <span>Generate Ulang Surat</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
-                                <DropdownMenuItem
-                                  onClick={() => openEditModal(item)}
-                                  className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-medium"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                  <span>Edit Pengajuan</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteItem(item)}
-                                  className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  <span>Hapus Pengajuan</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {canWrite && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                    title="Aksi Lainnya"
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-52 p-1 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setApproveMode(isApproved ? "regenerate" : "approve");
+                                      setApproveItem(item);
+                                    }}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    <span>{isApproved ? "Generate Ulang Surat" : "Setujui & Terbitkan Surat"}</span>
+                                  </DropdownMenuItem>
+
+                                  {isApproved && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        if (window.confirm(`Kembalikan status cuti ${item.employee?.nama_lengkap} ke PENGAJUAN? Kuota cuti tahunan yang terpotong akan dikembalikan.`)) {
+                                          toggleStatusMutation.mutate({ id: item.id, newStatus: "PENGAJUAN" });
+                                        }
+                                      }}
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
+                                    >
+                                      <RotateCcw className="w-3.5 h-3.5" />
+                                      <span>Kembalikan ke Pengajuan</span>
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  {!isRejected && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        if (window.confirm(`Tolak pengajuan cuti milik ${item.employee?.nama_lengkap}?`)) {
+                                          toggleStatusMutation.mutate({ id: item.id, newStatus: "DITOLAK" });
+                                        }
+                                      }}
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
+                                    >
+                                      <XCircle className="w-3.5 h-3.5" />
+                                      <span>Tolak Pengajuan</span>
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                  <DropdownMenuItem
+                                    onClick={() => openEditModal(item)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-medium"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    <span>Edit Pengajuan</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteItem(item)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Hapus Pengajuan</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
                         );
                       })()}
@@ -688,7 +833,7 @@ export default function InboxSuratCutiPage() {
             {/* Pagination Footer */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-xs">
               <span className="text-slate-500 text-[11px]">
-                Menampilkan <span className="font-bold text-slate-800 dark:text-slate-200">{fromRecord}</span> - <span className="font-bold text-slate-800 dark:text-slate-200">{toRecord}</span> dari <span className="font-bold text-slate-800 dark:text-slate-200">{totalRecords}</span> riwayat & surat cuti
+                Menampilkan <span className="font-bold text-slate-800 dark:text-slate-200">{fromRecord}</span> - <span className="font-bold text-slate-800 dark:text-slate-200">{toRecord}</span> dari <span className="font-bold text-slate-800 dark:text-slate-200">{totalRecords}</span> riwayat &amp; surat cuti
               </span>
 
               <div className="flex items-center gap-2">
@@ -768,10 +913,14 @@ export default function InboxSuratCutiPage() {
         isOpen={!!digitalSuratItem}
         item={digitalSuratItem}
         onClose={() => setDigitalSuratItem(null)}
-        onRegenerate={(it) => {
-          setApproveMode("regenerate");
-          setApproveItem(it);
-        }}
+        onRegenerate={
+          canWrite
+            ? (it) => {
+                setApproveMode("regenerate");
+                setApproveItem(it);
+              }
+            : undefined
+        }
       />
 
       {/* Upload / Ganti Berkas Scan Cuti Modal */}
@@ -805,6 +954,7 @@ export default function InboxSuratCutiPage() {
         onClose={() => setIsCatatModalOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+          notifyLeaveSync("DISETUJUI");
         }}
       />
     </div>

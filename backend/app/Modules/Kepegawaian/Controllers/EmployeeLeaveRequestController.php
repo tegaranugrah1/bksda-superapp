@@ -333,9 +333,27 @@ class EmployeeLeaveRequestController extends Controller
 
         $requestedPerPage = max(1, (int) $request->input('per_page', 20));
         $perPage = min($requestedPerPage, 100);
-        $requests = $query->paginate($perPage);
+        $paginated = $query->paginate($perPage)->toArray();
 
-        return response()->json($requests);
+        $baseCountQuery = EmployeeLeaveRequest::query();
+        if ($year = (int) $request->input('year')) {
+            if ($year >= 2000 && $year <= 2100) {
+                $baseCountQuery->whereYear('tanggal_mulai', $year);
+            }
+        }
+        $rawCounts = $baseCountQuery
+            ->selectRaw("UPPER(COALESCE(status, 'PENGAJUAN')) as status_key, COUNT(*) as total")
+            ->groupByRaw("UPPER(COALESCE(status, 'PENGAJUAN'))")
+            ->pluck('total', 'status_key');
+
+        $paginated['summary_counts'] = [
+            'all' => (int) $rawCounts->sum(),
+            'PENGAJUAN' => (int) (($rawCounts['PENGAJUAN'] ?? 0) + ($rawCounts['PENDING'] ?? 0)),
+            'DISETUJUI' => (int) (($rawCounts['DISETUJUI'] ?? 0) + ($rawCounts['APPROVED'] ?? 0)),
+            'DITOLAK' => (int) (($rawCounts['DITOLAK'] ?? 0) + ($rawCounts['REJECTED'] ?? 0)),
+        ];
+
+        return response()->json($paginated);
     }
 
     /**
@@ -356,7 +374,7 @@ class EmployeeLeaveRequestController extends Controller
 
         $validated = $request->validate([
             'status' => 'required|string|in:PENGAJUAN,DISETUJUI,DITOLAK,pengajuan,disetujui,ditolak,Pengajuan,Disetujui,Ditolak',
-            'catatan_atasan' => 'nullable|string',
+            'catatan_atasan' => 'nullable|string|max:1000',
         ]);
 
         $statusMap = [
@@ -407,7 +425,9 @@ class EmployeeLeaveRequestController extends Controller
                 }
             }
 
-            $catatanUpdate = $validated['catatan_atasan'] ?? $leaveReq->catatan_atasan;
+            $catatanUpdate = array_key_exists('catatan_atasan', $validated) && $validated['catatan_atasan'] !== null
+                ? strip_tags(trim($validated['catatan_atasan']))
+                : $leaveReq->catatan_atasan;
             if ($isNewApproved && empty($catatanUpdate)) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
                 $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)
@@ -780,18 +800,42 @@ class EmployeeLeaveRequestController extends Controller
 
         $validated = $request->validate([
             'nomor_pengajuan' => 'nullable|string|max:255',
-            'jenis_cuti' => 'required|string',
-            'alasan_cuti' => 'required|string',
+            'jenis_cuti' => 'required|string|max:150',
+            'alasan_cuti' => 'required|string|max:1000',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'alamat_menjalankan_cuti' => 'required|string',
-            'telepon' => 'nullable|string',
-            'masa_kerja' => 'nullable|string',
+            'alamat_menjalankan_cuti' => 'required|string|max:500',
+            'telepon' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
+            'masa_kerja' => 'nullable|string|max:100',
         ]);
 
-        $start = Carbon::parse($validated['tanggal_mulai']);
-        $end = Carbon::parse($validated['tanggal_selesai']);
-        $newJumlahHari = $start->diffInDays($end) + 1;
+        $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+        $leaveType = \App\Modules\Kepegawaian\Models\LeaveType::where('is_active', true)
+            ->where(function ($q) use ($validated) {
+                $q->where('nama', $validated['jenis_cuti'])
+                  ->orWhere('kode', $validated['jenis_cuti']);
+            })
+            ->first();
+
+        $isHariKerja = $leaveType
+            ? ($leaveType->hitung_hari === 'hari_kerja')
+            : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
+
+        if ($isHariKerja) {
+            $newJumlahHari = 0;
+            $curr = $start->copy();
+            while ($curr->lte($end)) {
+                if (! $curr->isWeekend()) {
+                    $newJumlahHari++;
+                }
+                $curr->addDay();
+            }
+            $newJumlahHari = max(1, $newJumlahHari);
+        } else {
+            $newJumlahHari = $start->diffInDays($end) + 1;
+        }
 
         if ($start->year !== $end->year) {
             return response()->json([
@@ -822,14 +866,14 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             $updateFields = [
-                'jenis_cuti' => $validated['jenis_cuti'],
-                'alasan_cuti' => $validated['alasan_cuti'],
+                'jenis_cuti' => strip_tags(trim($validated['jenis_cuti'])),
+                'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'])),
                 'jumlah_hari' => $newJumlahHari,
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'alamat_menjalankan_cuti' => $validated['alamat_menjalankan_cuti'],
-                'telepon' => $validated['telepon'],
-                'masa_kerja' => $validated['masa_kerja'] ?? $leaveReq->masa_kerja,
+                'alamat_menjalankan_cuti' => strip_tags(trim($validated['alamat_menjalankan_cuti'])),
+                'telepon' => isset($validated['telepon']) ? strip_tags(trim($validated['telepon'])) : null,
+                'masa_kerja' => isset($validated['masa_kerja']) ? strip_tags(trim($validated['masa_kerja'])) : $leaveReq->masa_kerja,
             ];
             if (array_key_exists('nomor_pengajuan', $validated)) {
                 $updateFields['nomor_pengajuan'] = !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null;

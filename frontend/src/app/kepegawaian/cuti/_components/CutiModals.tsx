@@ -8,10 +8,8 @@ import {
   FileText,
   FileUp,
   Printer,
-  UploadCloud,
   X,
   RotateCcw,
-  Sparkles,
   RefreshCw,
   FileBadge,
   ChevronDown,
@@ -581,7 +579,7 @@ export function ApproveLeaveModal({
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              {isRegenerate ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+              {isRegenerate ? <RefreshCw className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
@@ -852,7 +850,7 @@ export function ApproveLeaveModal({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Terbitkan Surat Izin & Setujui</span>
                 </>
               )}
