@@ -139,7 +139,7 @@ export default function KepegawaianDashboardPage() {
                   <span>Tambah Pegawai</span>
                 </button>
               </Link>
-              <Link href="/kepegawaian/surat-tugas/create">
+              <Link href="/surat-tugas">
                 <button
                   type="button"
                   className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-600/20 cursor-pointer"

@@ -12,7 +12,7 @@ const menuItems = [
   { name: "Daftar Pegawai", href: "/kepegawaian", icon: Users },
   { name: "Tambah Pegawai", href: "/kepegawaian/employees/create", icon: Plus, indent: true },
   { name: "Inbox Surat Tugas", href: "/kepegawaian/surat-tugas/inbox", icon: Inbox },
-  { name: "Buat Surat Tugas", href: "/kepegawaian/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Buat Surat Tugas", href: "/surat-tugas", icon: FileText, indent: true },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 

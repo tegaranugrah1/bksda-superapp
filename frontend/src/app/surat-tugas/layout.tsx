@@ -1,24 +1,62 @@
-import Image from 'next/image';
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, Inbox } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 
 export default function SuratTugasLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { isAuthenticated } = useAuth();
+  const { canWrite } = useRole();
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-500/30">
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1">
-              <Image src="/logo_bksda.png" alt="Logo" width={40} height={40} className="w-full h-full object-contain" />
+              <Image
+                src="/logo_bksda.png"
+                alt="Logo"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <h1 className="font-bold text-slate-900 leading-tight">Pengajuan Surat Tugas</h1>
-              <p className="text-[10px] font-black tracking-widest text-emerald-600 uppercase">BKSDA KALTIM</p>
+              <h1 className="font-bold text-slate-900 leading-tight">
+                Pengajuan Surat Tugas
+              </h1>
+              <p className="text-[10px] font-black tracking-widest text-emerald-600 uppercase">
+                BKSDA KALTIM
+              </p>
             </div>
           </div>
+
+          {isAuthenticated && (
+            <Link
+              href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/"}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+            >
+              {canWrite ? (
+                <>
+                  <Inbox className="w-4 h-4 text-blue-600" />
+                  <span>Kembali ke Inbox ST</span>
+                </>
+              ) : (
+                <>
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Kembali ke Portal</span>
+                </>
+              )}
+            </Link>
+          )}
         </div>
       </header>
 

@@ -16,8 +16,10 @@ import {
   GripVertical,
   Calendar,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -246,6 +248,16 @@ export function SuratTugasForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
   // Status & Edit Builder Specific States
   const [isInitializing, setIsInitializing] = useState(mode === "edit");
@@ -1499,7 +1511,7 @@ export function SuratTugasForm({
   };
 
   const handleApprove = async () => {
-    if (!stNumber) return toast.error("Nomor surat harus diisi.");
+    if (nomorNumberingType === "st_pattern" && !stNumber) return toast.error("Nomor surat harus diisi.");
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!getTempatTujuanForPayload()) {
@@ -1569,7 +1581,7 @@ export function SuratTugasForm({
   const handleUpdateNomorSurat = async () => {
     if (!letterId) return;
     if (nomorNumberingType === "st_pattern") {
-      if (!stNumber) return toast.error("Nomor surat harus diisi.");
+      if (nomorNumberingType === "st_pattern" && !stNumber) return toast.error("Nomor surat harus diisi.");
       if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
     }
 
@@ -1613,9 +1625,18 @@ export function SuratTugasForm({
   }
 
   return (
-    <div className="h-screen flex bg-slate-50 dark:bg-zinc-950 overflow-hidden">
+    <div className="h-[calc(100vh-3.5rem)] flex bg-slate-50 dark:bg-zinc-950 overflow-hidden">
       <aside className="w-105 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
-        <header className="p-6 border-b border-slate-100 dark:border-zinc-800">
+        <header className="p-5 border-b border-slate-100 dark:border-zinc-800">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <Link
+              href="/kepegawaian/surat-tugas/inbox"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Kembali ke Inbox</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-blue-600 rounded-xl">
               <FileText className="w-5 h-5 text-white" />

@@ -86,6 +86,14 @@ export default function SuratTugasForm() {
   const [jumlahBuruh, setJumlahBuruh] = useState(1);
 
   useEffect(() => {
+    if (typeof window === "undefined" || selectedEmployees.length > 0 || allEmployees.length === 0) return;
+    const empId = new URLSearchParams(window.location.search).get("employee_id");
+    if (!empId) return;
+    const found = allEmployees.find((e: Employee) => String(e.id) === empId);
+    if (found) setSelectedEmployees([found]);
+  }, [allEmployees, selectedEmployees.length]);
+
+  useEffect(() => {
     if (selectedEmployees.length > 0) {
       setKotaAsal(detectDefaultKotaAsal(selectedEmployees));
     } else {

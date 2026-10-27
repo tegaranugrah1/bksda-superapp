@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Inbox } from "lucide-react";
@@ -553,7 +554,7 @@ export default function SuratTugasInbox() {
 
         {/* Compose Button ala Gmail "Tulis" */}
         <button
-          onClick={() => router.push("/kepegawaian/surat-tugas/create")}
+          onClick={() => router.push("/surat-tugas")}
           className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all shrink-0"
         >
           <Plus className="w-4 h-4" />

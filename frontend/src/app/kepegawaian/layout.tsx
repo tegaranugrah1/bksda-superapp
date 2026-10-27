@@ -7,7 +7,6 @@ import {
   Users,
   UserPlus,
   Inbox,
-  FileText,
   Menu,
   Calendar,
   LayoutDashboard,
@@ -37,7 +36,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { href: "/kepegawaian/employees", label: "Daftar Pegawai", icon: Users, minRole: "user", group: "Manajemen SDM" },
   { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus, minRole: "admin", group: "Manajemen SDM" },
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin", group: "Layanan & Persuratan" },
-  { href: "/kepegawaian/surat-tugas/create", label: "Buat Surat Tugas", icon: FileText, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "user", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/settings", label: "Setting", icon: Settings, minRole: "super_admin", group: "Konfigurasi" },
@@ -70,8 +68,9 @@ export default function KepegawaianLayout({
 
   const isItemActive = (href: string) => {
     if (href === "/kepegawaian") return pathname === "/kepegawaian";
-    if (href === "/kepegawaian/surat-tugas/create") {
+    if (href === "/kepegawaian/surat-tugas/inbox") {
       return (
+        pathname === "/kepegawaian/surat-tugas/inbox" ||
         pathname === "/kepegawaian/surat-tugas/create" ||
         pathname.startsWith("/kepegawaian/surat-tugas/builder")
       );
