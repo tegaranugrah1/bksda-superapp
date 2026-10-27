@@ -1,3 +1,59 @@
+# Progress - Phase 224: Master Klasifikasi Jenis Tugas ST, Dukungan Perjalanan Dinas Dalam Kawasan / Wilayah, Redesign Form Publik ST & Urutan Baku Diktum Untuk
+
+> Document updated: 2026-10-27
+> Branch: `production-server`
+> Status: SELESAI (Pemisahan klasifikasi Jenis Tugas ST menjadi master tab mandiri di Settings Kepegawaian, penambahan tipe penugasan Dalam Kawasan/Wilayah tanpa rute dari-ke, redesign form publik pegawai di `/surat-tugas` dengan tema Blue-Indigo, pembersihan pratinjau diktum dan pencabutan checkbox laporan di form publik, serta penegakan urutan baku butir 'Untuk' di ST Builder dengan klausa laporan tertulis wajib di baris paling akhir).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Klasifikasi Master Jenis Tugas ST)**: Jenis tugas surat tugas sebelumnya tercampur di dalam master template dan hardcoded. Dibutuhkan klasifikasi master tersendiri pada halaman Settings Kepegawaian (`/kepegawaian/settings`) agar admin dapat menambah/mengedit klasifikasi tugas secara fleksibel ke depannya.
+- **Kebutuhan 2 (Perjalanan Dinas Dalam Kawasan / Wilayah)**: Adanya varian surat tugas baru untuk penugasan di dalam kawasan kerja sendiri (contoh: Patroli Pencegahan/Pengendalian Karhutla di Cagar Alam Teluk Adang, Kabupaten Paser) tanpa membutuhkan rute asal-tujuan ("Dari - Ke"). Format resmi Tata Naskah Dinas KSDAE: *"Melaksanakan perjalanan dinas di [Kabupaten/Kota] dalam rangka kegiatan [Nama Kegiatan] di [Kawasan/Resor], selama ...*".
+- **Kebutuhan 3 (Redesign Form Publik `/surat-tugas`)**: Halaman publik pengajuan ST oleh pegawai memiliki aksen warna hijau emerald/neon AI yang tidak konsisten dengan modul internal. Pratinjau Diktum "Untuk" menampilkan poin nomor 2 ("Membuat laporan tertulis...") dan checkbox "Sertakan Kewajiban Membuat Laporan Tertulis" yang membingungkan pegawai, padahal kewajiban laporan merupakan wewenang admin di ST Builder.
+- **Kebutuhan 4 (Urutan Baku Diktum 'Untuk' & Laporan Tertulis di ST Builder)**: Pada dokumen cetak dan builder, klausul "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut" harus dapat diaktifkan/dinonaktifkan oleh Admin, dan jika aktif WAJIB diletakkan di baris paling akhir pada bagian "Untuk" (setelah Diktum Tugas, Pembebanan Biaya, dan Poin Tambahan Khusus).
+
+## 2. Perubahan yang Dilakukan
+- **Backend Database & API**:
+  - Migrasi `2026_10_27_171000_create_st_task_types_table.php`:
+    - Membuat tabel `st_task_types` dengan kolom `nama`, `kode`, `mode_lokasi`, `aturan_durasi`, `default_sertakan_laporan`, `contoh_format`, `keterangan`, `urutan`, `is_active`, dan timestamp/soft delete.
+    - Menambahkan `task_type_id` (foreign key) dan `sertakan_laporan` (boolean, default true) ke tabel `st_assignment_letters`.
+    - Seeding 4 jenis tugas baku: *Perjalanan Dinas Luar Wilayah*, *Perjalanan Dinas Dalam Kawasan / Wilayah*, *Melaksanakan Kegiatan (1 Hari)*, dan *Menugaskan Staf*.
+  - Controller `StTaskTypeController.php` & Model `StTaskType.php`:
+    - Endpoint `GET /api/kepegawaian/st-task-types/public` dengan rate-limiting 120/menit untuk form publik dan ST builder.
+    - Endpoint CRUD admin `GET/POST/PUT/DELETE /api/kepegawaian/st-task-types` dengan validasi peran `role:super_admin,admin` dan wildcard search escaping `addcslashes($search, '%_')`.
+  - Integrasi `AssignmentLetterRequest.php` & `AssignmentLetterController.php`:
+    - Menerima dan memvalidasi `task_type_id` dan `sertakan_laporan` pada `store`, `update`, dan relasi `taskType` pada `show`.
+- **Shared Helpers (`frontend/src/app/kepegawaian/surat-tugas/_lib/`)**:
+  - `activity-helpers.ts`:
+    - Menambahkan `isDalamKawasanTask(jenisOrCode)` untuk mendeteksi penugasan dalam kawasan.
+    - Memperbarui `cleanMelaksanakanKegiatanPrefix` agar rekursif memangkas prefix lama `"Melaksanakan perjalanan dinas di ... dalam rangka "`.
+    - Mengekspor `buildKegiatanDiktumText(...)` sebagai single source of truth format kalimat penugasan di form publik maupun builder.
+  - `untuk-helpers.ts`:
+    - Membuat `buildOrderedAdditionalUntukItems(...)` yang menjamin urutan baku:
+      `[1. Kegiatan Tugas] -> [2. Pembebanan Biaya] -> [3. Poin Tambahan Template] -> [Poin Terakhir: Laporan Tertulis]`.
+- **Halaman Settings Kepegawaian (`/kepegawaian/settings`)**:
+  - Menambahkan Tab ke-4 "Jenis Tugas ST" (`TaskTypesTab.tsx`) dengan tema enterprise Blue-Indigo, filter segmented `Semua | Aktif | Nonaktif`, pencarian dinamis, badge toggle interaktif aktif/nonaktif, modal tambah/edit lengkap dengan contoh format kalimat tugas, serta custom dialog soft delete yang dilindungi hak akses `canWrite`.
+  - Mengupdate `StTemplatesTab.tsx` agar dropdown jenis tugas terisi dinamis dari master `st_task_types`.
+- **Form Publik Surat Tugas (`/surat-tugas`)**:
+  - `layout.tsx`: Mengubah header & aksen latar belakang dari nuansa emerald hijau ke Blue-Indigo enterprise.
+  - `page.tsx`: Menambahkan stepper navigasi 3 tahap visual (`1. Personel -> 2. Detail & Waktu -> 3. Selesai`), memuat master jenis tugas secara dinamis, mengaitkan `task_type_id`, dan validasi batas input tanggal/teks.
+  - `EmployeeSelectionStep.tsx`: Mengubah focus ring dan checkmark dari hijau ke biru enterprise.
+  - `SuratTugasDetailStep.tsx`:
+    - Menghilangkan checkbox "Sertakan Kewajiban Membuat Laporan Tertulis" (karena keputusan wewenang admin di builder).
+    - Mengganti kotak pratinjau gelap neon AI menjadi kartu light enterprise berlatar soft blue (`bg-blue-50/70 text-slate-800`), hanya menampilkan kalimat tugas resmi dan catatan anggaran tanpa butir laporan nomor 2 yang membingungkan pegawai.
+    - Menyesuaikan input dinamis berdasarkan `mode_lokasi` (menampilkan "Kota / Wilayah Penugasan" dan "Nama Kawasan / Tempat Spesifik" untuk jenis Dalam Kawasan).
+- **ST Builder (`/kepegawaian/surat-tugas/builder/[id]`)**:
+  - `SuratTugasForm.tsx`: Menambahkan dropdown Jenis Tugas ST dan toggle switch `sertakanLaporan` ("Kewajiban Membuat Laporan") di sidebar.
+  - Sinkronisasi payload penyimpanan `maksud_tujuan` menggunakan `buildOrderedAdditionalUntukItems` sehingga urutan cetak dokumen PDF/kertas konsisten dengan pratinjau live.
+  - `STBuilderPreview.tsx`: Menggunakan `buildOrderedAdditionalUntukItems` sehingga butir laporan selalu berada di nomor urut paling akhir (atau dihilangkan total jika toggle nonaktif).
+
+## 3. Validasi & Pengujian
+- **Frontend Typecheck**: `npx tsc --noEmit` lolos 100% tanpa error.
+- **Backend Security Invariants**: `php backend/tests/portal_security_check.php` lolos 100% (PASS).
+- **Database Migrasi**: Migrasi `2026_10_27_171000_create_st_task_types_table` terapkan dan 4 record default terverifikasi di PostgreSQL.
+
+---
+
 # Progress - Phase 223: Perbaikan Form Prefill Dokumen Laporan BMN & Sinkronisasi Storage/Database Live ke VM 100
 
 > Document updated: 2026-10-27

@@ -21,6 +21,8 @@ class AssignmentLetter extends Model
         'kode_surat',
         'template_type',
         'template_id',
+        'task_type_id',
+        'sertakan_laporan',
         'template_version',
         'template_snapshot',
         'dasar_hukum',
@@ -57,7 +59,13 @@ class AssignmentLetter extends Model
         'template_snapshot' => 'array',
         'has_seksi_employee' => 'boolean',
         'jumlah_buruh' => 'integer',
+        'sertakan_laporan' => 'boolean',
     ];
+
+    public function taskType(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Kepegawaian\Models\StTaskType::class, 'task_type_id');
+    }
 
     public function creator(): BelongsTo
     {

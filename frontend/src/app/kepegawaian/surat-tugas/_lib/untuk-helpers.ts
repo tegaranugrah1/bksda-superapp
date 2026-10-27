@@ -1,45 +1,96 @@
 /**
  * Helpers untuk item "Untuk" di Surat Tugas.
- * Item Untuk default berbeda per template (PLH vs BMN vs default).
+ * Sesuai Tata Naskah Dinas:
+ * - Poin 1: Penugasan Kegiatan Utama
+ * - Poin 2: Pembebanan Biaya / Anggaran
+ * - Poin 3: Poin Tambahan Khusus
+ * - Poin Terakhir: Kewajiban Membuat Laporan Tertulis
  */
 import type { DasarItem } from "./types";
 
+export const DEFAULT_LAPORAN_TEXT =
+  "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
+export const DEFAULT_LAPORAN_BMN_TEXT =
+  "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.";
+export const DEFAULT_PLH_PRINSIP_TEXT =
+  "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
+
 /**
- * Default item terakhir Untuk (laporan/dikonsultasikan) berdasarkan template.
+ * Default item penutup Untuk (laporan/dikonsultasikan) berdasarkan template.
  */
 export function getDefaultUntukItem(templateType?: string | null) {
   if (templateType === "plh") {
-    return "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
+    return DEFAULT_PLH_PRINSIP_TEXT;
   }
   if (templateType === "bmn-pemeriksaan") {
-    return "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut.";
+    return DEFAULT_LAPORAN_BMN_TEXT;
   }
-  return "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
+  return DEFAULT_LAPORAN_TEXT;
 }
 
 /**
- * Set default Untuk items: item template/default + 1 item biaya (kalau ada).
+ * Susun urutan item Untuk sesuai Tata Naskah Dinas KSDAE:
+ * [Poin 2: Pembebanan Biaya] -> [Poin 3: Poin Tambahan] -> [Poin Terakhir: Laporan/Prinsip]
+ */
+export function buildOrderedAdditionalUntukItems({
+  templateType,
+  biayaText = "",
+  customTemplateItems = [],
+  sertakanLaporan = true,
+}: {
+  templateType?: string | null;
+  biayaText?: string;
+  customTemplateItems?: DasarItem[] | null;
+  sertakanLaporan?: boolean;
+}): DasarItem[] {
+  const items: DasarItem[] = [];
+
+  // Poin 2: Biaya (jika ada dan bukan PLH)
+  if (biayaText && biayaText.trim()) {
+    items.push({ id: "untuk-biaya", text: biayaText.trim() });
+  }
+
+  // Poin 3: Custom item dari template (selain biaya atau laporan default)
+  if (customTemplateItems && customTemplateItems.length > 0) {
+    customTemplateItems.forEach((c, idx) => {
+      const text = c.text?.trim() || "";
+      if (!text) return;
+      if (isGeneratedBiayaItem(text)) return;
+      if (text.toLowerCase().includes("membuat laporan tertulis")) return;
+      if (text.toLowerCase().includes("hal-hal yang bersifat prinsip")) return;
+      items.push({ id: c.id || `custom-u-${idx}`, text });
+    });
+  }
+
+  // Poin Terakhir: Laporan atau Penutup PLH
+  if (templateType === "plh") {
+    items.push({ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT });
+  } else if (sertakanLaporan) {
+    const laporanText =
+      templateType === "bmn-pemeriksaan"
+        ? DEFAULT_LAPORAN_BMN_TEXT
+        : DEFAULT_LAPORAN_TEXT;
+    items.push({ id: "untuk-laporan", text: laporanText });
+  }
+
+  return items;
+}
+
+/**
+ * Legacy compatible wrapper for getDefaultUntukItems.
  */
 export function getDefaultUntukItems(
   templateType?: string | null,
   biayaText = "",
   templateUntukItems?: DasarItem[] | null,
+  sertakanLaporan = true,
 ): DasarItem[] {
-  let items: DasarItem[] = [];
-  if (templateUntukItems && templateUntukItems.length > 0) {
-    items = templateUntukItems.map((item, idx) => ({
-      id: item.id || `untuk-${idx}`,
-      text: item.text,
-    }));
-  } else {
-    items = [
-      { id: "untuk-default", text: getDefaultUntukItem(templateType) },
-    ];
-  }
-  if (biayaText.trim()) {
-    items.push({ id: "untuk-biaya", text: biayaText });
-  }
-  return items;
+  return buildOrderedAdditionalUntukItems({
+    templateType,
+    biayaText,
+    customTemplateItems: templateUntukItems,
+    sertakanLaporan,
+  });
 }
 
 /**

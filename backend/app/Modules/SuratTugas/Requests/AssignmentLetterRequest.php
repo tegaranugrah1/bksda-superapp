@@ -32,6 +32,8 @@ class AssignmentLetterRequest extends FormRequest
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
             'template_id' => 'nullable|integer|exists:st_templates,id',
+            'task_type_id' => 'nullable|integer|exists:st_task_types,id',
+            'sertakan_laporan' => 'nullable|boolean',
             'menimbang' => 'nullable|array|max:50',
             'menimbang.*.id' => 'required_with:menimbang|string|max:100',
             'menimbang.*.text' => 'required_with:menimbang|string|max:5000',

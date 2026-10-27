@@ -23,7 +23,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useRole } from "@/hooks/useRole";
 import STBuilderPreview from "./STBuilderPreview";
-import { cleanMelaksanakanKegiatanPrefix, cleanRepeatingLocations } from "../_lib/activity-helpers";
+import {
+  cleanMelaksanakanKegiatanPrefix,
+  cleanRepeatingLocations,
+  buildKegiatanDiktumText,
+  isDalamKawasanTask,
+} from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
   formatDateRangeIndonesian,
@@ -44,6 +49,7 @@ import {
   extractPlhWilayahFromPosition,
   formatPlhKegiatanForTemplate,
   replacePlhAllPlaceholders,
+  buildOrderedAdditionalUntukItems,
   getDefaultUntukItems,
   isGeneratedBiayaItem,
   isSingleDayActivityPrefix,
@@ -156,6 +162,7 @@ export function SuratTugasForm({
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   const [hasBuruh, setHasBuruh] = useState(false);
   const [jumlahBuruh, setJumlahBuruh] = useState(0);
+  const [sertakanLaporan, setSertakanLaporan] = useState(true);
 
   const handleToggleBuruh = (nextVal: boolean) => {
     setHasBuruh(nextVal);
@@ -677,6 +684,8 @@ export function SuratTugasForm({
 
         const regex =
           /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        const kawasanRegex =
+          /^(?:Melaksanakan\s+)?perjalanan\s+dinas\s+di\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const singleDayActivity = cleanedActivity;
         const isParsedSingleDayActivity = /^Melaksanakan\s+Kegiatan/i.test(singleDayActivity);
         const isOneDayFromSubmittedForm =
@@ -686,8 +695,9 @@ export function SuratTugasForm({
           !["bmn-pemeriksaan", "beda-hari", "plh"].includes(data.template_type || "");
 
         const match = cleanedActivity.match(regex);
+        const kawasanMatch = cleanedActivity.match(kawasanRegex);
 
-        if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match)) {
+        if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match && !kawasanMatch)) {
           setInputModeKegiatan("structured");
           setActivityPrefix("Melaksanakan Kegiatan ( 1 Hari )");
           setKotaAsal("");
@@ -727,6 +737,20 @@ export function SuratTugasForm({
           } else {
             setNamaKegiatan(rest.replace(/[;,.]$/, "").trim());
           }
+        } else if (kawasanMatch) {
+          setInputModeKegiatan("structured");
+          setActivityPrefix("Perjalanan Dinas Dalam Kawasan / Wilayah");
+          setKotaAsal("");
+          setKotaTujuan(kawasanMatch[1].trim());
+          const rest = kawasanMatch[2].trim();
+          const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
+          const diMatch = rest.match(diRegex);
+          if (diMatch) {
+            setNamaKegiatan(diMatch[1].trim());
+            setTempatKegiatan(diMatch[2].trim());
+          } else {
+            setNamaKegiatan(rest.replace(/[;,.]$/, "").trim());
+          }
         } else {
           const isInternalTask =
             data.template_type === "plh" ||
@@ -737,6 +761,10 @@ export function SuratTugasForm({
           setKotaTujuan("");
           setNamaKegiatan(cleanedActivity);
           setInputModeKegiatan("manual");
+        }
+
+        if (typeof data.sertakan_laporan === "boolean") {
+          setSertakanLaporan(data.sertakan_laporan);
         }
 
         if (!data.dasar || !Array.isArray(data.dasar) || data.dasar.length === 0) {
@@ -1189,10 +1217,13 @@ export function SuratTugasForm({
     if (isPlhTemplate) {
       return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
     }
+    if (isDalamKawasanTask(activityPrefix)) {
+      return tempatKegiatan.trim() || kotaTujuan.trim() || "Kalimantan Timur";
+    }
     if (inputModeKegiatan === "manual") {
       return kotaTujuan.trim() || tempatKegiatan.trim() || "Kalimantan Timur";
     }
-    return kotaTujuan.trim();
+    return kotaTujuan.trim() || tempatKegiatan.trim();
   };
 
   const buildUntukText = (): string => {
@@ -1240,33 +1271,18 @@ export function SuratTugasForm({
       return text;
     }
 
-    let text = "";
-    if (activityPrefix.includes("Perjalanan Dinas")) {
-      text = `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}`;
-      if (namaKegiatan) {
-        text += ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatan)}`;
-      }
-      if (tempatKegiatan) {
-        text += ` di ${tempatKegiatan}`;
-      }
-    } else if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-      const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatan);
-      text = `Melaksanakan Kegiatan ${cleanNama || "..."}`;
-      if (tempatKegiatan) {
-        text += ` pada ${tempatKegiatan}`;
-      }
-      if (kotaTujuan) {
-        text += ` di ${kotaTujuan}`;
-      }
-    } else {
-      text = `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatan) || "..."}`;
-      if (tempatKegiatan) {
-        text += ` pada ${tempatKegiatan}`;
-      }
-      if (kotaTujuan) {
-        text += ` di ${kotaTujuan}`;
-      }
-    }
+    let text = buildKegiatanDiktumText({
+      modeLokasi: isDalamKawasanTask(activityPrefix)
+        ? "dalam_kawasan"
+        : activityPrefix.includes("Perjalanan Dinas")
+        ? "luar_wilayah"
+        : "tempat_saja",
+      jenisTugas: activityPrefix,
+      kotaAsal,
+      kotaTujuan,
+      tempatSpesifik: tempatKegiatan,
+      namaKegiatanText: namaKegiatan,
+    });
     if (days === 1 || tanggalMulai === tanggalSelesai) {
       text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
     } else if (days > 1) {
@@ -1441,7 +1457,17 @@ export function SuratTugasForm({
           ? null
           : (klasifikasi.trim() ? `K.18/TU/${klasifikasi.trim()}/B` : null),
       tanggal_surat: tanggalSurat || null,
-      maksud_tujuan: [buildUntukText(), buildBiayaText()].filter(Boolean).join("\n"),
+      maksud_tujuan: [
+        buildUntukText(),
+        ...buildOrderedAdditionalUntukItems({
+          templateType,
+          biayaText: buildBiayaText(),
+          customTemplateItems: untukItems,
+          sertakanLaporan,
+        }).map((item) => item.text),
+      ]
+        .filter(Boolean)
+        .join("\n"),
       tanggal_mulai: effectiveMulai,
       tanggal_selesai: effectiveSelesai,
       tempat_tujuan: getTempatTujuanForPayload() || null,
@@ -1449,6 +1475,7 @@ export function SuratTugasForm({
       sumber_dana_other: sumberDanaOther,
       template_type: templateType,
       template_id: selectedTemplateId,
+      sertakan_laporan: sertakanLaporan,
       menimbang: getPreviewMenimbangItems(),
       dasar: getPreviewDasarItems(),
       tembusan: tembusanItems.length > 0 ? tembusanItems : null,
@@ -2139,6 +2166,35 @@ export function SuratTugasForm({
             <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  Jenis Tugas
+                </label>
+                <select
+                  value={activityPrefix}
+                  disabled={isPublished}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setActivityPrefix(val);
+                    if (val.includes("Melaksanakan Kegiatan") && tanggalMulai) {
+                      setTanggalSelesai(tanggalMulai);
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
+                >
+                  <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
+                    Perjalanan Dinas Luar Wilayah (Dari - Ke)
+                  </option>
+                  <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                    Perjalanan Dinas Dalam Kawasan / Wilayah
+                  </option>
+                  <option value="Melaksanakan Kegiatan ( 1 Hari )">
+                    Melaksanakan Kegiatan ( 1 Hari )
+                  </option>
+                  <option value="Menugaskan Staf">Menugaskan Staf</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">
                   Maksud / Tugas
                 </label>
                 <textarea
@@ -2160,7 +2216,12 @@ export function SuratTugasForm({
                     type="date"
                     value={tanggalMulai}
                     disabled={isPublished}
-                    onChange={(e) => setTanggalMulai(e.target.value)}
+                    onChange={(e) => {
+                      setTanggalMulai(e.target.value);
+                      if (activityPrefix.includes("Melaksanakan Kegiatan")) {
+                        setTanggalSelesai(e.target.value);
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                   />
                 </div>
@@ -2171,7 +2232,7 @@ export function SuratTugasForm({
                   <input
                     type="date"
                     value={tanggalSelesai}
-                    disabled={isPublished}
+                    disabled={isPublished || activityPrefix.includes("Melaksanakan Kegiatan")}
                     onChange={(e) => setTanggalSelesai(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                   />
@@ -2184,44 +2245,99 @@ export function SuratTugasForm({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase">Kota Asal</label>
-                  <input
-                    type="text"
-                    value={kotaAsal}
-                    disabled={isPublished}
-                    onChange={(e) => setKotaAsal(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                  />
+              {isDalamKawasanTask(activityPrefix) ? (
+                <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Di ( Kota / Kabupaten Wilayah Penugasan )
+                    </label>
+                    <input
+                      type="text"
+                      value={kotaTujuan}
+                      disabled={isPublished}
+                      onChange={(e) => setKotaTujuan(e.target.value)}
+                      placeholder="Contoh: Kabupaten Paser"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Di ( Kawasan / Lokasi Spesifik )
+                    </label>
+                    <input
+                      type="text"
+                      value={tempatKegiatan}
+                      disabled={isPublished}
+                      onChange={(e) => setTempatKegiatan(e.target.value)}
+                      placeholder="Contoh: Cagar Alam Teluk Adang"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase">
-                    Kota Tujuan
-                  </label>
-                  <input
-                    type="text"
-                    value={kotaTujuan}
-                    disabled={isPublished}
-                    onChange={(e) => setKotaTujuan(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Kota Asal</label>
+                      <input
+                        type="text"
+                        value={kotaAsal}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaAsal(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Kota Tujuan
+                      </label>
+                      <input
+                        type="text"
+                        value={kotaTujuan}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaTujuan(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-400 uppercase">
-                  Tempat / Lokasi Spesifik
-                </label>
-                <input
-                  type="text"
-                  value={tempatKegiatan}
-                  disabled={isPublished}
-                  onChange={(e) => setTempatKegiatan(e.target.value)}
-                  placeholder="Contoh: Kantor Seksi Wilayah I"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Tempat / Lokasi Spesifik
+                    </label>
+                    <input
+                      type="text"
+                      value={tempatKegiatan}
+                      disabled={isPublished}
+                      onChange={(e) => setTempatKegiatan(e.target.value)}
+                      placeholder="Contoh: Kantor Seksi Wilayah I"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Toggle Kewajiban Membuat Laporan Tertulis */}
+              {!isPlhTemplate && (
+                <div className="p-3 bg-slate-100/70 dark:bg-zinc-800/60 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
+                  <div>
+                    <label htmlFor="builder_chk_laporan" className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer">
+                      Kewajiban Membuat Laporan
+                    </label>
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                      Ditempatkan di baris paling akhir pada bagian Untuk.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="builder_chk_laporan"
+                    disabled={isPublished}
+                    checked={sertakanLaporan}
+                    onChange={(e) => setSertakanLaporan(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                </div>
+              )}
 
               {/* Pembiayaan */}
               <div className="space-y-1 pt-2">
@@ -2453,6 +2569,7 @@ export function SuratTugasForm({
               sumberDana={sumberDana}
               nomorNumberingType={nomorNumberingType}
               customNomorNaskah={customNomorNaskah}
+              sertakanLaporan={sertakanLaporan}
             />
           </div>
         </div>

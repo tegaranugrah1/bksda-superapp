@@ -8,6 +8,7 @@ import {
   indexToLetter,
 } from "@/lib/letter-utils";
 import { resolveKopImageUrl } from "../_lib";
+import { buildOrderedAdditionalUntukItems } from "../_lib/untuk-helpers";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
 
 function HalamanDivider({ 
@@ -145,6 +146,7 @@ interface PreviewProps {
   kopImageUrl?: string | null;
   nomorNumberingType?: "st_pattern" | "naskah_auto";
   customNomorNaskah?: string;
+  sertakanLaporan?: boolean;
 }
 
 export default function STBuilderPreview({
@@ -181,6 +183,7 @@ export default function STBuilderPreview({
   kopImageUrl = null,
   nomorNumberingType = "st_pattern",
   customNomorNaskah = "",
+  sertakanLaporan = true,
 }: PreviewProps) {
   const isFolu = sumberDana === "folu";
   const activeDateFormat = dateFormatStyle || (isFolu ? "tabular" : "inline");
@@ -210,17 +213,14 @@ export default function STBuilderPreview({
     color: "#94a3b8",
     fontSize: "9pt",
   };
-  const fallbackUntukItems = [
-    isPlhTemplate
-      ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
-      : isBmnTemplate
-      ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
-      : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
-    buildBiayaText?.() || "",
-  ];
-  const additionalUntukItems = untukItems
-    ? untukItems.map((item) => item.text)
-    : fallbackUntukItems;
+  const additionalUntukItems = React.useMemo(() => {
+    return buildOrderedAdditionalUntukItems({
+      templateType,
+      biayaText: buildBiayaText?.() || "",
+      customTemplateItems: untukItems,
+      sertakanLaporan,
+    }).map((item) => item.text);
+  }, [templateType, buildBiayaText, untukItems, sertakanLaporan]);
 
   const { isMultiPage, page1SpacerMm } = React.useMemo(() => {
     // Estimasi tinggi isi surat (dalam mm)

@@ -13,6 +13,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('throttle:120,1');
     Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
         ->middleware('throttle:120,1');
+    Route::get('/st-task-types/public', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'publicList'])
+        ->middleware('throttle:120,1');
     Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index'])
         ->middleware('throttle:240,1,leave_types');
     Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show'])
@@ -73,6 +75,14 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::put('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'update']);
         Route::patch('/leave-types/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'toggleActive']);
         Route::delete('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'destroy']);
+    });
+
+    // --- MASTER JENIS TUGAS ST (SETTINGS & ADMIN MUTATIONS) ---
+    Route::get('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'index']);
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'store']);
+        Route::put('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'update']);
+        Route::delete('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'destroy']);
     });
 
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---

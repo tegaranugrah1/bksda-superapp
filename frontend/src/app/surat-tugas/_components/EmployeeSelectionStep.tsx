@@ -43,22 +43,22 @@ export function EmployeeSelectionStep({
   dropdownRef,
 }: EmployeeSelectionStepProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-white/90 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/60 ring-1 ring-slate-100/60 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center mb-10">
-        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-blue-100/50">
+        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-blue-100/60">
           <Users className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-          Pilih Pegawai
+          Pilih Personel Tugas
         </h2>
         <p className="text-slate-500 text-sm mt-2 font-medium">
-          Cari dan tambahkan pegawai yang akan melaksanakan tugas.
+          Cari dan pilih pegawai BKSDA Kalimantan Timur yang ditugaskan.
         </p>
       </div>
 
       <div className="mb-8">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 block">
-          Daftar Pegawai yang Ditugaskan
+          Daftar Personel Terpilih ({selectedEmployees.length})
         </label>
         {selectedEmployees.length === 0 ? (
           <div className="p-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center flex flex-col items-center justify-center">
@@ -85,7 +85,7 @@ export function EmployeeSelectionStep({
                 <button
                   type="button"
                   onClick={() => removeEmployee(emp.id)}
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-blue-400 hover:bg-white hover:text-red-500 transition-colors"
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-blue-400 hover:bg-white hover:text-red-500 transition-colors cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -102,7 +102,7 @@ export function EmployeeSelectionStep({
           </div>
           <input
             type="text"
-            className="block w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-700 shadow-sm"
+            className="block w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700 shadow-sm"
             placeholder="Ketik nama atau NIP pegawai (min. 2 karakter)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,7 +112,7 @@ export function EmployeeSelectionStep({
           />
           {isSearching && (
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-              <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
           )}
         </div>
@@ -129,7 +129,7 @@ export function EmployeeSelectionStep({
                     <button
                       type="button"
                       className={cn(
-                        "w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors",
+                        "w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors cursor-pointer",
                         isSelected && "bg-slate-50/80"
                       )}
                       onClick={() => toggleEmployee(emp)}
@@ -153,7 +153,7 @@ export function EmployeeSelectionStep({
                         className={cn(
                           "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-3 transition-colors",
                           isSelected
-                            ? "bg-emerald-500 border-emerald-500 text-white"
+                            ? "bg-blue-600 border-blue-600 text-white"
                             : "border-slate-300"
                         )}
                       >
@@ -172,9 +172,9 @@ export function EmployeeSelectionStep({
         <Button
           onClick={handleNextStep}
           disabled={selectedEmployees.length === 0}
-          className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide disabled:opacity-50 transition-all gap-2"
+          className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide disabled:opacity-50 transition-all gap-2 cursor-pointer"
         >
-          Lanjutkan <ChevronRight className="w-4 h-4" />
+          Lanjutkan ke Detail Tugas <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
     </div>

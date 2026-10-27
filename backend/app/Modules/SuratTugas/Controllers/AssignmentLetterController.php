@@ -423,6 +423,8 @@ class AssignmentLetterController extends Controller
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
                 'template_type' => $validated['template_type'] ?? null,
                 'template_id' => $template?->id,
+                'task_type_id' => $validated['task_type_id'] ?? null,
+                'sertakan_laporan' => $request->has('sertakan_laporan') ? (bool) $request->input('sertakan_laporan') : true,
                 'template_version' => $template?->version,
                 'template_snapshot' => (function () use ($template, $validated, $request) {
                     $baseSnapshot = $this->templateService->snapshot(
@@ -535,7 +537,7 @@ class AssignmentLetterController extends Controller
         if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
-        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
+        $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'taskType', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])->findOrFail($cleanId);
 
         if (! $this->authorizeAccess($surat, $request)) {
             return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk melihat Surat Tugas ini.'], 403);
@@ -618,6 +620,12 @@ class AssignmentLetterController extends Controller
             }
             if ($request->has('kode_surat')) {
                 $updateData['kode_surat'] = $request->input('kode_surat');
+            }
+            if ($request->has('task_type_id')) {
+                $updateData['task_type_id'] = $request->input('task_type_id');
+            }
+            if ($request->has('sertakan_laporan')) {
+                $updateData['sertakan_laporan'] = (bool) $request->input('sertakan_laporan');
             }
             if ($request->has('status')) {
                 $targetStatus = strtolower((string) $request->input('status'));
@@ -836,7 +844,8 @@ class AssignmentLetterController extends Controller
         if (! is_array($rawIds)) {
             return [];
         }
-        $clean = array_map(fn ($id) => preg_replace('/^st-/', '', trim((string) $id)), array_slice($rawIds, 0, 100));
+        $rawIds = array_slice($rawIds, 0, 100);
+        $clean = array_map(fn($id) => preg_replace('/^st-/', '', trim((string) $id)), $rawIds);
         return array_values(array_filter($clean, fn ($id) => Str::isUuid($id) || ctype_digit($id)));
     }
 
@@ -851,8 +860,8 @@ class AssignmentLetterController extends Controller
         if (! empty($cleanIds)) {
             $query = AssignmentLetter::whereIn('id', $cleanIds);
             if (! $isAdmin) {
-                $query->where('created_by', $user->id)
-                      ->whereIn('status', ['draft', 'pending', 'rejected', 'DRAFT', 'PENDING', 'REJECTED']);
+                $query->where('created_by', $user->id);
+                $query->whereIn('status', ['draft', 'pending', 'rejected', 'DRAFT', 'PENDING', 'REJECTED']);
             }
             $count = $query->delete();
             return response()->json(['message' => $count . ' dokumen dipindahkan ke Arsip Sampah.']);

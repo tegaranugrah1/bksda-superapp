@@ -1,5 +1,5 @@
 /**
- * Helpers untuk activity prefix dan single-day activity detection.
+ * Helpers untuk activity prefix, location mode, dan single-day activity detection.
  */
 import { SUMBER_DANA_OPTIONS } from "./constants";
 import type { StExpenseTemplate } from "./types";
@@ -9,7 +9,13 @@ import type { StExpenseTemplate } from "./types";
  * (mis. "Melaksanakan Kegiatan" di lokasi tertentu, bukan perjalanan dinas).
  */
 export function isSingleDayActivityPrefix(prefix: string) {
-  return prefix.includes("Melaksanakan Kegiatan");
+  return prefix.includes("Melaksanakan Kegiatan") || prefix.includes("kegiatan_1_hari");
+}
+
+export function isDalamKawasanTask(jenisOrCode: string) {
+  if (!jenisOrCode) return false;
+  const s = jenisOrCode.toLowerCase();
+  return s === "dalam_kawasan" || s.includes("dalam kawasan");
 }
 
 export function cleanMelaksanakanKegiatanPrefix(text: string): string {
@@ -20,6 +26,12 @@ export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   const pdPattern = /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+.*?\s+ke\s+.*?\s+dalam\s+rangka\s+/i;
   while (pdPattern.test(trimmed)) {
     trimmed = trimmed.replace(pdPattern, "").trim();
+  }
+
+  // Recursively remove nested "Melaksanakan perjalanan dinas di ... dalam rangka "
+  const pdKawasanPattern = /^Melaksanakan\s+perjalanan\s+dinas\s+di\s+.*?\s+dalam\s+rangka\s+/i;
+  while (pdKawasanPattern.test(trimmed)) {
+    trimmed = trimmed.replace(pdKawasanPattern, "").trim();
   }
 
   // Recursively remove nested "Melaksanakan Kegiatan ... [pada/di] ..."
@@ -45,6 +57,59 @@ export function cleanRepeatingLocations(text: string): string {
   return text.replace(/(\s+(?:di|pada)\s+[^,;]+?)(?:\1)+/gi, "$1");
 }
 
+export interface BuildKegiatanDiktumParams {
+  modeLokasi?: "luar_wilayah" | "dalam_kawasan" | "tempat_saja" | string;
+  jenisTugas?: string;
+  kotaAsal?: string;
+  kotaTujuan?: string;
+  tempatSpesifik?: string;
+  namaKegiatanText?: string;
+}
+
+/**
+ * Single source of truth untuk membangun kalimat penugasan diktum utama ("Untuk" Poin 1).
+ */
+export function buildKegiatanDiktumText({
+  modeLokasi,
+  jenisTugas = "",
+  kotaAsal = "",
+  kotaTujuan = "",
+  tempatSpesifik = "",
+  namaKegiatanText = "",
+}: BuildKegiatanDiktumParams): string {
+  const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
+  const isDalamKawasan = modeLokasi === "dalam_kawasan" || isDalamKawasanTask(jenisTugas);
+  const isLuarWilayah = modeLokasi === "luar_wilayah" || (!isDalamKawasan && (jenisTugas.toLowerCase().includes("perjalanan dinas") || jenisTugas.toLowerCase().includes("luar wilayah")));
+  const isMelaksanakanKegiatan = modeLokasi === "tempat_saja" && (jenisTugas.toLowerCase().includes("melaksanakan kegiatan") || jenisTugas.toLowerCase().includes("kegiatan_1_hari"));
+
+  if (isDalamKawasan) {
+    // Formula: Melaksanakan perjalanan dinas di {kota/kabupaten} dalam rangka {kegiatan} di {kawasan/tempat spesifik}
+    const kota = (kotaTujuan || kotaAsal || "").trim() || "...";
+    const kegiatan = cleanNama || "...";
+    const kawasan = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    return `Melaksanakan perjalanan dinas di ${kota} dalam rangka ${kegiatan}${kawasan}`;
+  }
+
+  if (isLuarWilayah) {
+    // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} dalam rangka {kegiatan} di {tempat}
+    const asal = kotaAsal.trim() || "...";
+    const tujuan = kotaTujuan.trim() || "...";
+    const rangka = cleanNama ? ` dalam rangka ${cleanNama}` : "";
+    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan}${rangka}${spesifik}`;
+  }
+
+  if (isMelaksanakanKegiatan) {
+    const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
+    const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
+    return `Melaksanakan Kegiatan ${cleanNama || "..."}${tempat}${kota}`;
+  }
+
+  // Default / Menugaskan Staf
+  const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
+  const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
+  return `Menugaskan Staf untuk ${cleanNama || "..."}${tempat}${kota}`;
+}
 
 /**
  * Tentukan apakah ST harus dirender sebagai kegiatan single-day:

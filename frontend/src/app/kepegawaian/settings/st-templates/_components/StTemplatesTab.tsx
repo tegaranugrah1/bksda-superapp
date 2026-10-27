@@ -79,6 +79,17 @@ export function StTemplatesTab() {
   const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>(
     "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
   );
+  const [availableTaskTypes, setAvailableTaskTypes] = useState<Array<{ id: number; nama: string; kode: string }>>([]);
+
+  useEffect(() => {
+    api.get("/kepegawaian/st-task-types/public")
+      .then((res) => {
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          setAvailableTaskTypes(res.data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
   const [defaultModeKegiatan, setDefaultModeKegiatan] = useState<"structured" | "manual">("structured");
   const [defaultKegiatan, setDefaultKegiatan] = useState<string>("");
   const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
@@ -1229,13 +1240,30 @@ export function StTemplatesTab() {
                     onChange={(event) => setDefaultJenisTugas(event.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
                   >
-                    <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
-                      Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
-                    </option>
-                    <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                      Melaksanakan Kegiatan ( 1 Hari )
-                    </option>
-                    <option value="Menugaskan Staf">Menugaskan Staf</option>
+                    {availableTaskTypes.length > 0 ? (
+                      availableTaskTypes.map((tt) => (
+                        <option key={tt.id} value={tt.nama}>
+                          {tt.nama}
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
+                          Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
+                        </option>
+                        <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                          Perjalanan Dinas Dalam Kawasan / Wilayah
+                        </option>
+                        <option value="Melaksanakan Kegiatan ( 1 Hari )">
+                          Melaksanakan Kegiatan ( 1 Hari )
+                        </option>
+                        <option value="Menugaskan Staf">Menugaskan Staf</option>
+                      </>
+                    )}
+                    {availableTaskTypes.length > 0 &&
+                      !availableTaskTypes.some((tt) => tt.nama === defaultJenisTugas) && (
+                        <option value={defaultJenisTugas}>{defaultJenisTugas}</option>
+                      )}
                   </select>
                 </label>
                 <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
