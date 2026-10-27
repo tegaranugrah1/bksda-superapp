@@ -12,13 +12,20 @@ class EmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
     }
 
     protected function prepareForValidation(): void
     {
         $jenis = strtoupper(trim((string) $this->input('jenis_pegawai', '')));
         $nipInput = trim((string) $this->input('nip', ''));
+
+        if ($this->has('nama_lengkap')) {
+            $this->merge(['nama_lengkap' => trim((string) $this->input('nama_lengkap'))]);
+        }
+        if ($this->has('jabatan')) {
+            $this->merge(['jabatan' => trim((string) $this->input('jabatan')) ?: null]);
+        }
 
         if ($jenis === 'MMP') {
             $employeeId = $this->route('employee');
