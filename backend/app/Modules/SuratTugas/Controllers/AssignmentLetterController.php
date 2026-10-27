@@ -826,6 +826,15 @@ class AssignmentLetterController extends Controller
         ]);
     }
 
+    private function sanitizeBulkIds(mixed $rawIds): array
+    {
+        if (! is_array($rawIds)) {
+            return [];
+        }
+        $clean = array_map(fn ($id) => preg_replace('/^st-/', '', trim((string) $id)), array_slice($rawIds, 0, 100));
+        return array_values(array_filter($clean, fn ($id) => Str::isUuid($id) || ctype_digit($id)));
+    }
+
     public function bulkTrash(Request $request)
     {
         $user = $request->user();
@@ -833,10 +842,8 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
         $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
-        $rawIds = is_array($request->input('ids')) ? $request->input('ids') : [];
-        $ids = array_slice($rawIds, 0, 100);
-        if (!empty($ids)) {
-            $cleanIds = array_map(fn($id) => preg_replace('/^st-/', '', (string) $id), $ids);
+        $cleanIds = $this->sanitizeBulkIds($request->input('ids'));
+        if (! empty($cleanIds)) {
             $query = AssignmentLetter::whereIn('id', $cleanIds);
             if (! $isAdmin) {
                 $query->where('created_by', $user->id)
@@ -856,10 +863,8 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
         $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
-        $rawIds = is_array($request->input('ids')) ? $request->input('ids') : [];
-        $ids = array_slice($rawIds, 0, 100);
-        if (!empty($ids)) {
-            $cleanIds = array_map(fn($id) => preg_replace('/^st-/', '', (string) $id), $ids);
+        $cleanIds = $this->sanitizeBulkIds($request->input('ids'));
+        if (! empty($cleanIds)) {
             $query = AssignmentLetter::onlyTrashed()->whereIn('id', $cleanIds);
             if (! $isAdmin) {
                 $query->where('created_by', $user->id);
@@ -869,6 +874,42 @@ class AssignmentLetterController extends Controller
         }
 
         return response()->json(['message' => '0 dokumen berhasil dipulihkan.']);
+    }
+
+    public function bulkForceDestroy(Request $request)
+    {
+        $user = $request->user();
+        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas.'], 403);
+        }
+
+        $cleanIds = $this->sanitizeBulkIds($request->input('ids'));
+        if (empty($cleanIds)) {
+            return response()->json(['message' => '0 dokumen dihapus permanen.']);
+        }
+
+        $letters = AssignmentLetter::onlyTrashed()->whereIn('id', $cleanIds)->get();
+        $filesToDelete = [];
+        foreach ($letters as $surat) {
+            if (! empty($surat->file_surat_path)) {
+                $filesToDelete[] = $surat->file_surat_path;
+            }
+        }
+
+        $count = $letters->count();
+        DB::transaction(function () use ($letters) {
+            foreach ($letters as $surat) {
+                $surat->forceDelete();
+            }
+        });
+
+        foreach (array_unique($filesToDelete) as $path) {
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
+        }
+
+        return response()->json(['message' => $count . ' dokumen berhasil dihapus permanen dari arsip.']);
     }
 
     private function authorizeAccess(AssignmentLetter $surat, Request $request): bool

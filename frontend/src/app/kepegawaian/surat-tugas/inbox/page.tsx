@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Inbox } from "lucide-react";
 import api from "@/lib/api";
+import { useRole } from "@/hooks/useRole";
 
 import type {
   AssignmentLetter,
@@ -23,6 +24,7 @@ import { GmailReaderView } from "./_components/GmailReaderView";
 
 export default function SuratTugasInbox() {
   const router = useRouter();
+  const { canWrite } = useRole();
   const queryClient = useQueryClient();
 
   // Navigation & View States
@@ -339,6 +341,58 @@ export default function SuratTugasInbox() {
     });
   };
 
+  const handleForceDelete = (id: string) => {
+    setConfirmModal({
+      open: true,
+      title: "Hapus Permanen Surat Tugas?",
+      message: "Tindakan ini tidak dapat dibatalkan. Dokumen surat tugas beserta file arsipnya akan dihapus secara permanen.",
+      variant: "danger",
+      action: async () => {
+        try {
+          await api.delete(`/surat-tugas/${id}/force`);
+          toast.success("Surat tugas berhasil dihapus permanen.");
+          if (selectedLetter?.id === id) {
+            setSelectedLetter(null);
+          }
+          fetchLetters();
+          fetchCounts();
+          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+          queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+        } catch (error) {
+          console.error("Force delete failed", error);
+          toast.error("Gagal menghapus permanen surat tugas.");
+        }
+      },
+    });
+  };
+
+  const handleBulkForceDelete = () => {
+    if (selectedIds.length === 0) return;
+    setConfirmModal({
+      open: true,
+      title: `Hapus Permanen ${selectedIds.length} Dokumen?`,
+      message: `Tindakan ini tidak dapat dibatalkan. ${selectedIds.length} dokumen terpilih beserta file arsipnya akan dihapus secara permanen.`,
+      variant: "danger",
+      action: async () => {
+        try {
+          await api.post("/surat-tugas/bulk-force-delete", { ids: selectedIds });
+          toast.success(`${selectedIds.length} dokumen berhasil dihapus permanen.`);
+          setSelectedIds([]);
+          if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
+            setSelectedLetter(null);
+          }
+          fetchLetters();
+          fetchCounts();
+          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+          queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+        } catch (error) {
+          console.error("Bulk force delete failed", error);
+          toast.error("Gagal menghapus permanen dokumen terpilih.");
+        }
+      },
+    });
+  };
+
   const handleDownload = async (letter: AssignmentLetter) => {
     try {
       const resp = await api.get(`/surat-tugas/${letter.id}/download`, {
@@ -457,6 +511,7 @@ export default function SuratTugasInbox() {
             onDownload={handleDownload}
             onDelete={handleDelete}
             onRestore={handleRestore}
+            onForceDelete={canWrite ? handleForceDelete : undefined}
             onCreatePlh={openPlhBuilder}
             existingPlh={findExistingPlhDraft(selectedLetter)}
             onOpenExistingPlh={(plh) => router.push(`/kepegawaian/surat-tugas/builder/${plh.id}`)}
@@ -547,6 +602,7 @@ export default function SuratTugasInbox() {
           onDeselectAll={handleDeselectAll}
           onBulkTrash={handleBulkTrash}
           onBulkRestore={handleBulkRestore}
+          onBulkForceDelete={canWrite ? handleBulkForceDelete : undefined}
           isTrashView={isTrashView}
           splitView={splitView}
           onToggleSplitView={() => {
@@ -604,6 +660,7 @@ export default function SuratTugasInbox() {
                     onQuickEdit={handleEdit}
                     onQuickDelete={handleDelete}
                     onQuickRestore={handleRestore}
+                    onQuickForceDelete={canWrite ? handleForceDelete : undefined}
                     isTrashView={isTrashView}
                     isActive={splitView && selectedLetter?.id === letter.id}
                   />
@@ -628,6 +685,7 @@ export default function SuratTugasInbox() {
                   onDownload={handleDownload}
                   onDelete={handleDelete}
                   onRestore={handleRestore}
+                  onForceDelete={canWrite ? handleForceDelete : undefined}
                   onCreatePlh={openPlhBuilder}
                   existingPlh={findExistingPlhDraft(selectedLetter)}
                   onOpenExistingPlh={(plh) => router.push(`/kepegawaian/surat-tugas/builder/${plh.id}`)}

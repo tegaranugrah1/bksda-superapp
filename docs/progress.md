@@ -8668,3 +8668,6 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
   - Menambahkan 5 kartu ringkasan klik-cepat (Total Pegawai, PNS, PPPK, MMP, Data Terhapus) dan bar filter lengkap (Pencarian Nama/NIP/Jabatan/Satker, Filter Kategori, Filter Wilayah Utama & Spesifik Resor, serta Filter Status).
   - Menambahkan pemilih jumlah baris per halaman (`10`, `20`, `50`, `Semua`).
   - Menambahkan endpoint `POST /api/kepegawaian/employees/{id}/restore` (Pulihkan pegawai terhapus menjadi aktif) dan `DELETE /api/kepegawaian/employees/{id}/force` (Hapus permanen pegawai beserta akun `users`, foto profil, dan file scan surat cuti di RustFS).
+- [x] **Fitur Hapus Permanen (Single & Bulk) pada Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)**:
+  - Menambahkan endpoint `POST /api/surat-tugas/bulk-force-delete` (`AssignmentLetterController::bulkForceDestroy`) dengan proteksi `role:super_admin,admin`, validasi UUID/ID (`sanitizeBulkIds`), transaksi database, dan penghapusan file di RustFS.
+  - Menampilkan tombol **Hapus Permanen** pada tab **Sampah** di `GmailRowItem.tsx` (hover baris), `GmailReaderView.tsx` (tampilan baca surat), dan `GmailToolbar.tsx` (aksi massal saat checkbox dicentang).

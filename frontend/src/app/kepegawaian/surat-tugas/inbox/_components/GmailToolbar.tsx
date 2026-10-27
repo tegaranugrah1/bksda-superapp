@@ -29,6 +29,7 @@ interface GmailToolbarProps {
   onDeselectAll: () => void;
   onBulkTrash: () => void;
   onBulkRestore: () => void;
+  onBulkForceDelete?: () => void;
   isTrashView: boolean;
   splitView: boolean;
   onToggleSplitView: () => void;
@@ -48,6 +49,7 @@ export function GmailToolbar({
   onDeselectAll,
   onBulkTrash,
   onBulkRestore,
+  onBulkForceDelete,
   isTrashView,
   splitView,
   onToggleSplitView,
@@ -152,18 +154,30 @@ export function GmailToolbar({
             </span>
 
             {isTrashView ? (
-              <button
-                onClick={onBulkRestore}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 font-bold text-[11px] transition-colors"
-                title="Pulihkan dokumen terpilih"
-              >
-                <Undo2 className="w-3.5 h-3.5" />
-                <span>Pulihkan</span>
-              </button>
+              <>
+                <button
+                  onClick={onBulkRestore}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 font-bold text-[11px] transition-colors cursor-pointer"
+                  title="Pulihkan dokumen terpilih"
+                >
+                  <Undo2 className="w-3.5 h-3.5" />
+                  <span>Pulihkan</span>
+                </button>
+                {onBulkForceDelete && (
+                  <button
+                    onClick={onBulkForceDelete}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-300 font-bold text-[11px] transition-colors cursor-pointer"
+                    title="Hapus permanen dokumen terpilih"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Permanen</span>
+                  </button>
+                )}
+              </>
             ) : (
               <button
                 onClick={onBulkTrash}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-300 font-bold text-[11px] transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-300 font-bold text-[11px] transition-colors cursor-pointer"
                 title="Pindahkan ke sampah"
               >
                 <Trash2 className="w-3.5 h-3.5" />

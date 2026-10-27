@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->gr
     Route::get('/status-counts', [AssignmentLetterController::class, 'statusCounts']);
     Route::post('/bulk-trash', [AssignmentLetterController::class, 'bulkTrash']);
     Route::post('/bulk-restore', [AssignmentLetterController::class, 'bulkRestore']);
+    Route::post('/bulk-force-delete', [AssignmentLetterController::class, 'bulkForceDestroy'])->middleware('role:super_admin,admin');
     Route::get('/utils/next-number', [AssignmentLetterController::class, 'getNextNumber']);
     Route::get('/{id}', [AssignmentLetterController::class, 'show']);
     Route::put('/{id}', [AssignmentLetterController::class, 'update']);

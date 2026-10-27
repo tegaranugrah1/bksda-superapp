@@ -47,6 +47,7 @@ interface GmailReaderViewProps {
   onDownload?: (letter: AssignmentLetter) => void;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onForceDelete?: (id: string) => void;
   onCreatePlh?: (letter: AssignmentLetter) => void;
   existingPlh?: AssignmentLetter | null;
   onOpenExistingPlh?: (letter: AssignmentLetter) => void;
@@ -68,6 +69,7 @@ export function GmailReaderView({
   onDownload,
   onDelete,
   onRestore,
+  onForceDelete,
   onCreatePlh,
   existingPlh,
   onOpenExistingPlh,
@@ -218,7 +220,28 @@ export function GmailReaderView({
           ) : (
             onDelete && (
               <button
-                onClick={() => onDelete(letter.id)}
+                onClick={() => onDelete?.(letter.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
+                title="Pindahkan ke sampah"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Pindahkan ke Sampah</span>
+              </button>
+            )
+          )}
+          {isTrashView && onForceDelete && (
+            <button
+              onClick={() => onForceDelete(letter.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              title="Hapus permanen dari arsip"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Hapus Permanen</span>
+            </button>
+          )}
+          {false && onDelete && ((
+              <button
+                onClick={() => onDelete?.(letter.id)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
                 title="Pindahkan ke sampah"
               >
@@ -560,7 +583,7 @@ export function GmailReaderView({
                   )}
                   {onDelete && (
                     <button
-                      onClick={() => onDelete(letter.id)}
+                      onClick={() => onDelete?.(letter.id)}
                       className="h-10 w-full rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-black text-[10px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
