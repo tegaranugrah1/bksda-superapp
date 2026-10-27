@@ -141,11 +141,17 @@ export default function EmployeeIncomingLettersPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Pagination
+  // Pagination & Summary
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [summaryCounts, setSummaryCounts] = useState({
+    all: 0,
+    pending: 0,
+    replied: 0,
+    this_month: 0,
+  });
 
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<IncomingLetter | null>(null);
@@ -193,6 +199,9 @@ export default function EmployeeIncomingLettersPage() {
       setItems(Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []);
       setLastPage(response.data?.meta?.last_page || 1);
       setTotal(response.data?.meta?.total || 0);
+      if (response.data?.meta?.summary_counts) {
+        setSummaryCounts(response.data.meta.summary_counts);
+      }
     } catch {
       toast.error("Gagal memuat arsip surat.");
     } finally {
@@ -243,10 +252,18 @@ export default function EmployeeIncomingLettersPage() {
 
   const handleFiles = (type: AttachmentType, list: FileList | null) => {
     if (!list) return;
-    const newFiles = Array.from(list);
+    const validFiles: File[] = [];
+    for (const file of Array.from(list)) {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`Berkas "${file.name}" melebihi batas maksimal 20 MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    if (validFiles.length === 0) return;
     setFiles((current) => ({
       ...current,
-      [type]: [...current[type], ...newFiles],
+      [type]: [...current[type], ...validFiles],
     }));
   };
 
@@ -266,7 +283,7 @@ export default function EmployeeIncomingLettersPage() {
 
     const payload = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (value) payload.append(key, value);
+      payload.append(key, value ?? "");
     });
 
     files.incoming.forEach((file) => {
@@ -435,51 +452,163 @@ export default function EmployeeIncomingLettersPage() {
     }
   };
 
+  const now = new Date();
+  const thisMonthFirst = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const thisMonthLast = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+  const isThisMonthFilter = startDate === thisMonthFirst && endDate === thisMonthLast;
+
   return (
     <div className="p-5 md:p-7 space-y-5">
-      {/* Header Halaman */}
+      {/* Header Halaman - Clean Enterprise Pro Max */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium">
-            <Inbox className="h-4 w-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Kepegawaian</span>
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+            <Inbox className="w-5 h-5" />
           </div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Arsip Surat Masuk</h1>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-500">
-            Pencatatan agenda surat masuk, pengelolaan berkas lampiran, dan penelusuran status balasan balai.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
+                SDM &amp; Kepegawaian
+              </span>
+            </div>
+            <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-0.5">
+              Arsip Surat Masuk
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Pencatatan agenda surat masuk, pengelolaan berkas lampiran, dan penelusuran status balasan balai.
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setExportOpen(true)}
+            className="h-9 px-3.5 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            <span>Export Excel</span>
+          </Button>
           {canWrite && (
-            <Button onClick={openCreate} className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20">
+            <Button
+              size="sm"
+              onClick={openCreate}
+              className="h-9 px-4 rounded-xl gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
+            >
               <Plus className="h-4 w-4" />
               <span>Tambah Arsip</span>
             </Button>
           )}
-          <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-2">
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-            <span>Export Excel</span>
-          </Button>
         </div>
       </div>
 
+      {/* Quick Filter Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          {
+            key: "all",
+            label: "Total Arsip Surat",
+            count: summaryCounts.all || total,
+            icon: Inbox,
+            isActive: !statusBalasan && !isThisMonthFilter,
+            onClick: () => {
+              setStatusBalasan("");
+              setStartDate("");
+              setEndDate("");
+              setPage(1);
+            },
+            activeClass: "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-blue-500/20",
+            iconClass: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+          },
+          {
+            key: "pending",
+            label: "Menunggu Balasan",
+            count: summaryCounts.pending,
+            icon: Clock,
+            isActive: statusBalasan === "pending",
+            onClick: () => {
+              setStatusBalasan(statusBalasan === "pending" ? "" : "pending");
+              setPage(1);
+            },
+            activeClass: "border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-1 ring-amber-500/20",
+            iconClass: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400",
+          },
+          {
+            key: "replied",
+            label: "Sudah Dibalas",
+            count: summaryCounts.replied,
+            icon: CheckCircle2,
+            isActive: statusBalasan === "replied",
+            onClick: () => {
+              setStatusBalasan(statusBalasan === "replied" ? "" : "replied");
+              setPage(1);
+            },
+            activeClass: "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-1 ring-emerald-500/20",
+            iconClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
+          },
+          {
+            key: "this_month",
+            label: "Arsip Bulan Ini",
+            count: summaryCounts.this_month,
+            icon: Calendar,
+            isActive: isThisMonthFilter,
+            onClick: () => {
+              if (isThisMonthFilter) {
+                setStartDate("");
+                setEndDate("");
+              } else {
+                setStartDate(thisMonthFirst);
+                setEndDate(thisMonthLast);
+              }
+              setPage(1);
+            },
+            activeClass: "border-purple-500 bg-purple-50/40 dark:bg-purple-950/20 ring-1 ring-purple-500/20",
+            iconClass: "bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400",
+          },
+        ].map((card) => {
+          const Icon = card.icon;
+          return (
+            <button
+              key={card.key}
+              type="button"
+              onClick={card.onClick}
+              className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                card.isActive
+                  ? card.activeClass
+                  : "bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
+              }`}
+            >
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{card.label}</p>
+                <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
+                  {card.count}
+                </p>
+              </div>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.iconClass}`}>
+                <Icon className="w-4 h-4" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Filter Bar */}
-      <div className="rounded-2xl border border-zinc-200/90 bg-white p-3.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 space-y-3">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-12 items-center">
           {/* Search Input */}
-          <div className="relative sm:col-span-2 lg:col-span-4">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400" />
+          <div className="relative sm:col-span-2 lg:col-span-3">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari agenda, nomor, pengirim, perihal..."
-              className="pl-9.5 pr-8 h-10 bg-zinc-50/50 border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800"
+              className="pl-9 pr-8 h-9 text-xs border-slate-200 dark:border-zinc-800"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-2.5 rounded-full p-1 text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                className="absolute right-2.5 top-2 rounded-full p-1 text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -494,7 +623,7 @@ export default function EmployeeIncomingLettersPage() {
                 setKategori(event.target.value);
                 setPage(1);
               }}
-              className="h-10 w-full rounded-md border border-zinc-200 bg-zinc-50/50 px-3 text-xs sm:text-sm font-medium text-zinc-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300"
+              className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
             >
               <option value="">Semua Kategori</option>
               {CATEGORIES.map((value) => (
@@ -510,10 +639,10 @@ export default function EmployeeIncomingLettersPage() {
             <select
               value={statusBalasan}
               onChange={(event) => {
-                setStatusBalasan(event.target.value as any);
+                setStatusBalasan(event.target.value as "" | "pending" | "replied");
                 setPage(1);
               }}
-              className="h-10 w-full rounded-md border border-zinc-200 bg-zinc-50/50 px-3 text-xs sm:text-sm font-medium text-zinc-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300"
+              className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
             >
               <option value="">Semua Status Balasan</option>
               <option value="pending">Menunggu Balasan</option>
@@ -531,7 +660,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Dari Tanggal Diterima"
-              className="h-10 text-xs bg-zinc-50/50 dark:bg-zinc-900/50"
+              className="h-9 text-xs border-slate-200 dark:border-zinc-800"
             />
             <Input
               type="date"
@@ -541,18 +670,32 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Sampai Tanggal Diterima"
-              className="h-10 text-xs bg-zinc-50/50 dark:bg-zinc-900/50"
+              className="h-9 text-xs border-slate-200 dark:border-zinc-800"
             />
           </div>
 
-          {/* Reset Filter Button */}
-          <div className="lg:col-span-1 flex justify-end">
+          {/* Per Page & Reset */}
+          <div className="lg:col-span-2 flex items-center justify-end gap-2">
+            <select
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
+              }}
+              title="Jumlah baris per halaman"
+              className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
+            >
+              <option value="10">10 / hal</option>
+              <option value="20">20 / hal</option>
+              <option value="50">50 / hal</option>
+              <option value="100">100 / hal</option>
+            </select>
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleResetFilters}
-                className="h-10 px-2.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                className="h-9 px-2.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-xl"
                 title="Reset Semua Filter"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
@@ -563,48 +706,11 @@ export default function EmployeeIncomingLettersPage() {
         </div>
       </div>
 
-      {/* Meta Bar & Pagination Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-500">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-            {total > 0
-              ? `Menampilkan ${(page - 1) * perPage + 1} - ${Math.min(page * perPage, total)} dari ${total} arsip surat`
-              : "0 arsip surat"}
-          </span>
-          {hasActiveFilters && (
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-              Terfilter
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span>Baris per halaman:</span>
-            <select
-              value={perPage}
-              onChange={(e) => {
-                setPerPage(Number(e.target.value));
-                setPage(1);
-              }}
-              className="h-7 rounded border border-zinc-200 bg-transparent px-1.5 text-xs dark:border-zinc-800"
-            >
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <span>
-            Halaman <b>{page}</b> dari <b>{lastPage}</b>
-          </span>
-        </div>
-      </div>
-
       {/* Tabel Arsip Surat */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="p-16 text-center text-sm text-zinc-500 space-y-2">
+            <div className="p-16 text-center text-xs text-zinc-500 space-y-2">
               <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
               <p>Memuat arsip surat masuk...</p>
             </div>
@@ -618,203 +724,227 @@ export default function EmployeeIncomingLettersPage() {
                   : "Mulai pencatatan dengan menekan tombol Tambah Arsip di atas."}
               </p>
               {hasActiveFilters && (
-                <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-2 text-xs">
+                <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-2 text-xs rounded-xl">
                   Reset Filter
                 </Button>
               )}
             </div>
           ) : (
-            <table className="w-full min-w-[1050px] text-left text-sm">
-              <thead className="border-b border-zinc-200/90 bg-zinc-50/80 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <tr>
-                  <th className="py-3.5 px-4 w-32"># Agenda</th>
-                  <th className="py-3.5 px-3 w-32">Kategori</th>
-                  <th className="py-3.5 px-4 min-w-48">Nomor &amp; Tgl Surat</th>
-                  <th className="py-3.5 px-4 min-w-56">Asal Surat / Pengirim</th>
-                  <th className="py-3.5 px-4 min-w-64">Perihal</th>
-                  <th className="py-3.5 px-4 min-w-44">Status Balasan</th>
-                  <th className="py-3.5 px-3 min-w-28 text-center">Lampiran</th>
-                  <th className="py-3.5 px-4 w-28 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-                {items.map((item) => {
-                  const isReplied = Boolean(item.no_surat_balasan && item.no_surat_balasan.trim());
-                  const catStyle = CATEGORY_STYLES[item.kategori] || CATEGORY_STYLES.Lainnya;
+            <div>
+              <table className="w-full min-w-[1050px] text-left text-sm">
+                <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/50">
+                  <tr>
+                    <th className="py-3.5 px-4 w-32"># Agenda</th>
+                    <th className="py-3.5 px-3 w-32">Kategori</th>
+                    <th className="py-3.5 px-4 min-w-48">Nomor &amp; Tgl Surat</th>
+                    <th className="py-3.5 px-4 min-w-56">Asal Surat / Pengirim</th>
+                    <th className="py-3.5 px-4 min-w-64">Perihal</th>
+                    <th className="py-3.5 px-4 min-w-44">Status Balasan</th>
+                    <th className="py-3.5 px-3 min-w-28 text-center">Lampiran</th>
+                    <th className="py-3.5 px-4 w-28 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+                  {items.map((item) => {
+                    const isReplied = Boolean(item.has_reply || (item.no_surat_balasan && item.no_surat_balasan.trim()));
+                    const catStyle = CATEGORY_STYLES[item.kategori] || CATEGORY_STYLES.Lainnya;
 
-                  return (
-                    <tr
-                      key={item.id}
-                      onClick={() => setDetailItem(item)}
-                      className="group cursor-pointer transition-colors hover:bg-blue-50/40 dark:hover:bg-zinc-900/50"
-                    >
-                      {/* Kolom Agenda */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="inline-block rounded-md border border-blue-200 bg-blue-50/80 px-2 py-0.5 font-mono text-xs font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
-                          #{item.no_agenda || "-"}
-                        </span>
-                        <div className="mt-1 text-[11px] text-zinc-400 font-medium">
-                          Diterima: {item.tanggal_diterima || "-"}
-                        </div>
-                      </td>
-
-                      {/* Kolom Kategori */}
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${catStyle.badge}`}
-                        >
-                          {item.kategori}
-                        </span>
-                      </td>
-
-                      {/* Kolom Nomor & Tanggal Surat */}
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">
-                          {item.no_surat_masuk ? (
-                            item.no_surat_masuk
-                          ) : (
-                            <span className="text-zinc-400 italic">Tanpa nomor surat</span>
-                          )}
-                        </div>
-                        <div className="mt-0.5 text-xs text-zinc-500">
-                          Tgl Surat: {item.tanggal_surat || <span className="text-zinc-400">-</span>}
-                        </div>
-                      </td>
-
-                      {/* Kolom Pengirim */}
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-2">
-                          {item.asal_surat}
-                        </div>
-                        {item.catatan ? (
-                          <div className="mt-0.5 text-[11px] text-zinc-400 line-clamp-1 italic">
-                            Catatan: {item.catatan}
+                    return (
+                      <tr
+                        key={item.id}
+                        onClick={() => setDetailItem(item)}
+                        className="group cursor-pointer transition-colors hover:bg-blue-50/40 dark:hover:bg-zinc-800/50"
+                      >
+                        {/* Kolom Agenda */}
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <span className="inline-block rounded-md border border-blue-200 bg-blue-50/80 px-2 py-0.5 font-mono text-xs font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+                            #{item.no_agenda || "-"}
+                          </span>
+                          <div className="mt-1 text-[11px] text-zinc-400 font-medium">
+                            Diterima: {item.tanggal_diterima || "-"}
                           </div>
-                        ) : null}
-                      </td>
+                        </td>
 
-                      {/* Kolom Perihal */}
-                      <td className="py-3 px-4">
-                        <p className="line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                          {item.perihal || <span className="text-zinc-400">-</span>}
-                        </p>
-                      </td>
+                        {/* Kolom Kategori */}
+                        <td className="py-3 px-3">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${catStyle.badge}`}
+                          >
+                            {item.kategori}
+                          </span>
+                        </td>
 
-                      {/* Kolom Status Balasan */}
-                      <td className="py-3 px-4">
-                        {isReplied ? (
-                          <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                              Sudah Dibalas
-                            </span>
-                            <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-44">
-                              {item.no_surat_balasan}
-                            </div>
-                            {item.tanggal_surat_balasan && (
-                              <div className="text-[11px] text-zinc-400">Tgl: {item.tanggal_surat_balasan}</div>
+                        {/* Kolom Nomor & Tanggal Surat */}
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2 text-xs">
+                            {item.no_surat_masuk ? (
+                              item.no_surat_masuk
+                            ) : (
+                              <span className="text-zinc-400 italic">Tanpa nomor surat</span>
                             )}
                           </div>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
-                            <Clock className="h-3 w-3 text-zinc-400" />
-                            Belum Dibalas
-                          </span>
-                        )}
-                      </td>
+                          <div className="mt-0.5 text-[11px] text-zinc-500">
+                            Tgl Surat: {item.tanggal_surat || <span className="text-zinc-400">-</span>}
+                          </div>
+                        </td>
 
-                      {/* Kolom Lampiran (Badge Kapsul Cerdas) */}
-                      <td className="py-3 px-3 text-center">
-                        {item.attachments && item.attachments.length > 0 ? (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDetailItem(item);
-                            }}
-                            title="Klik untuk melihat berkas lampiran"
-                            className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-700 dark:hover:bg-blue-950/40"
-                          >
-                            <Paperclip className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                            <span>{item.attachments.length} Berkas</span>
-                          </button>
-                        ) : (
-                          <span className="text-xs text-zinc-400">-</span>
-                        )}
-                      </td>
+                        {/* Kolom Pengirim */}
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-2 text-xs">
+                            {item.asal_surat}
+                          </div>
+                          {item.catatan ? (
+                            <div className="mt-0.5 text-[11px] text-zinc-400 line-clamp-1 italic">
+                              Catatan: {item.catatan}
+                            </div>
+                          ) : null}
+                        </td>
 
-                      {/* Kolom Aksi */}
-                      <td className="py-3 px-4 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDetailItem(item)}
-                            title="Lihat Detail Lengkap"
-                            className="h-8 w-8 p-0 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {canWrite && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEdit(item)}
-                                title="Edit Arsip"
-                                className="h-8 w-8 p-0 text-zinc-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDelete(item)}
-                                title="Hapus Arsip"
-                                className="h-8 w-8 p-0 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
-                              >
-                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                              </Button>
-                            </>
+                        {/* Kolom Perihal */}
+                        <td className="py-3 px-4">
+                          <p className="line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
+                            {item.perihal || <span className="text-zinc-400">-</span>}
+                          </p>
+                        </td>
+
+                        {/* Kolom Status Balasan */}
+                        <td className="py-3 px-4">
+                          {isReplied ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                Sudah Dibalas
+                              </span>
+                              {item.no_surat_balasan && (
+                                <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-44">
+                                  {item.no_surat_balasan}
+                                </div>
+                              )}
+                              {item.tanggal_surat_balasan && (
+                                <div className="text-[11px] text-zinc-400">Tgl: {item.tanggal_surat_balasan}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
+                              <Clock className="h-3 w-3 text-zinc-400" />
+                              Belum Dibalas
+                            </span>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+                        </td>
 
-      {/* Pagination Footer */}
-      <div className="flex items-center justify-between gap-2 pt-2">
-        <span className="text-xs text-zinc-400">
-          Halaman <b>{page}</b> dari <b>{lastPage}</b>
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((value) => value - 1)}
-            className="text-xs"
-          >
-            Sebelumnya
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= lastPage}
-            onClick={() => setPage((value) => value + 1)}
-            className="text-xs"
-          >
-            Berikutnya
-          </Button>
+                        {/* Kolom Lampiran (Badge Kapsul Cerdas) */}
+                        <td className="py-3 px-3 text-center">
+                          {item.attachments && item.attachments.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDetailItem(item);
+                              }}
+                              title="Klik untuk melihat berkas lampiran"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-700 dark:hover:bg-blue-950/40"
+                            >
+                              <Paperclip className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                              <span>{item.attachments.length} Berkas</span>
+                            </button>
+                          ) : (
+                            <span className="text-xs text-zinc-400">-</span>
+                          )}
+                        </td>
+
+                        {/* Kolom Aksi */}
+                        <td className="py-3 px-4 text-right">
+                          <div
+                            className="flex items-center justify-end gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDetailItem(item)}
+                              title="Lihat Detail Lengkap"
+                              className="h-8 w-8 p-0 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {canWrite && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEdit(item)}
+                                  title="Edit Arsip"
+                                  className="h-8 w-8 p-0 text-zinc-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(item)}
+                                  title="Hapus Arsip"
+                                  className="h-8 w-8 p-0 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Pagination Footer */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-slate-200/80 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30 text-xs">
+                <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                  <span>
+                    Menampilkan{" "}
+                    <b className="text-slate-800 dark:text-slate-200">
+                      {total > 0 ? (page - 1) * perPage + 1 : 0}
+                    </b>{" "}
+                    -{" "}
+                    <b className="text-slate-800 dark:text-slate-200">
+                      {Math.min(page * perPage, total)}
+                    </b>{" "}
+                    dari <b className="text-slate-800 dark:text-slate-200">{total}</b> arsip surat
+                  </span>
+                  {hasActiveFilters && (
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                      Terfilter
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage((value) => value - 1)}
+                    className="h-8 px-3 text-xs font-semibold rounded-xl"
+                  >
+                    Sebelumnya
+                  </Button>
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 px-2">
+                    Halaman <b className="text-slate-900 dark:text-slate-100">{page}</b> dari{" "}
+                    <b className="text-slate-900 dark:text-slate-100">{lastPage}</b>
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= lastPage}
+                    onClick={() => setPage((value) => value + 1)}
+                    className="h-8 px-3 text-xs font-semibold rounded-xl"
+                  >
+                    Selanjutnya
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -840,7 +970,7 @@ export default function EmployeeIncomingLettersPage() {
                 >
                   {detailItem.kategori}
                 </span>
-                {detailItem.no_surat_balasan ? (
+                {detailItem.has_reply || detailItem.no_surat_balasan ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
                     <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                     Sudah Dibalas
