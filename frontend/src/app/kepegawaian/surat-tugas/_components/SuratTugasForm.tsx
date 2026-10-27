@@ -4,18 +4,12 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import {
   FileText,
   Printer,
-  Search,
   Loader2,
   CheckCircle,
-  X,
-  Plus,
   Trash2,
   Send,
   Shield,
-  Eye,
-  GripVertical,
   Calendar,
-  Sparkles,
   ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -26,8 +20,8 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
 import { isAxiosError } from "axios";
+import { useRole } from "@/hooks/useRole";
 import STBuilderPreview from "./STBuilderPreview";
 import { cleanMelaksanakanKegiatanPrefix, cleanRepeatingLocations } from "../_lib/activity-helpers";
 import {
@@ -260,13 +254,15 @@ export function SuratTugasForm({
   }, []);
 
   // Status & Edit Builder Specific States
+  const { canWrite } = useRole();
   const [isInitializing, setIsInitializing] = useState(mode === "edit");
   const [suratStatus, setSuratStatus] = useState<string>("");
 
-  const isSingleDayActivity = isSingleDayActivityPrefix(activityPrefix);
-  const isPublished = ["diterbitkan", "approved", "completed", "published"].includes(
-    (suratStatus || "").toLowerCase()
-  );
+  const isPublished =
+    !canWrite ||
+    ["diterbitkan", "approved", "completed", "published"].includes(
+      (suratStatus || "").toLowerCase()
+    );
 
   // Queries
   const { data: expenseTemplates = [] } = useQuery<StExpenseTemplate[]>({
@@ -1625,10 +1621,10 @@ export function SuratTugasForm({
   }
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] flex bg-slate-50 dark:bg-zinc-950 overflow-hidden">
-      <aside className="w-105 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col shadow-2xl z-10">
-        <header className="p-5 border-b border-slate-100 dark:border-zinc-800">
-          <div className="flex items-center justify-between gap-2 mb-3">
+    <div className="h-[calc(100vh-3.5rem)] flex bg-slate-100/80 dark:bg-zinc-950 overflow-hidden">
+      <aside className="w-120 xl:w-130 shrink-0 bg-slate-50/80 dark:bg-zinc-950/80 border-r border-slate-200/80 dark:border-zinc-800/80 flex flex-col z-10">
+        <header className="px-5 py-4 bg-white dark:bg-zinc-900 border-b border-slate-200/80 dark:border-zinc-800/80 space-y-3">
+          <div className="flex items-center justify-between gap-2">
             <Link
               href="/kepegawaian/surat-tugas/inbox"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold transition-colors cursor-pointer"
@@ -1636,43 +1632,59 @@ export function SuratTugasForm({
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Inbox</span>
             </Link>
+            <span
+              className={cn(
+                "text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border",
+                isPublished
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800/60"
+                  : suratStatus === "pending"
+                  ? "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800/60"
+                  : "bg-blue-50 text-blue-700 border-blue-200/70 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800/60"
+              )}
+            >
+              {mode === "create"
+                ? "ST PLH"
+                : isPublished
+                ? "Diterbitkan"
+                : suratStatus === "pending"
+                ? "Menunggu Persetujuan"
+                : "Draft"}
+            </span>
           </div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-blue-600 rounded-xl">
-              <FileText className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 rounded-xl flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-black text-slate-800 dark:text-white">
-              ST Builder <span className="text-blue-600 dark:text-blue-400">Premium</span>
-            </h1>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                ST Builder <span className="text-blue-600 dark:text-blue-400">Premium</span>
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                {isPublished
+                  ? "Mode Pratinjau (Read Only)"
+                  : "Penyusunan Naskah & Pengajuan Persetujuan"}
+              </p>
+            </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-[0.2em] mt-1">
-            {mode === "create"
-              ? "Direct Issuance Mode"
-              : isPublished
-              ? "MODE PRATINJAU (SUDAH DITERBITKAN)"
-              : "APPROVAL MODE"}
-          </p>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-hide">
           {isPublished && (
-            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-2">
+            <div className="p-3 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-800/80 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-2">
               <Shield className="w-4 h-4 text-blue-600 shrink-0" />
               <span>Surat Tugas ini sudah diterbitkan dan bersifat Read Only.</span>
             </div>
           )}
 
           {/* === Template Card === */}
-          <div className="rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-500/30 dark:bg-orange-500/10">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 items-center rounded-full bg-orange-600 px-2 text-[9px] font-bold uppercase tracking-wider text-white">
-                  Template
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-                  Pilih Template ST
-                </span>
-              </div>
+          <div className="rounded-2xl border border-blue-200/80 bg-white p-4 shadow-2xs dark:border-blue-800/50 dark:bg-zinc-900 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300">
+                Template Surat Tugas
+              </span>
+              <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                Format Naskah
+              </span>
             </div>
             <select
               value={
@@ -1686,7 +1698,7 @@ export function SuratTugasForm({
               }
               disabled={isPublished}
               onChange={(e) => handleTemplateChange(e.target.value)}
-              className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-orange-700 outline-none transition focus:ring-2 focus:ring-orange-500/20 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300 disabled:opacity-60"
+              className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-100 disabled:opacity-60 cursor-pointer"
             >
               <option value="">Default (Manual)</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
@@ -1804,8 +1816,7 @@ export function SuratTugasForm({
                 getItemBadge={(item) => {
                   if (item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)) {
                     return (
-                      <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
-                        <Sparkles className="w-3 h-3 text-amber-500" />
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
                         <span>Dasar Anggaran (Selalu di Akhir)</span>
                       </div>
                     );
@@ -2284,85 +2295,120 @@ export function SuratTugasForm({
         </div>
 
         {/* Footer Actions */}
-        <footer className="p-6 border-t border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2">
+        <footer className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
           {mode === "create" ? (
             <>
-              <Button
-                onClick={handleSaveDraft}
-                variant="outline"
-                className="w-full h-10 rounded-xl font-bold text-slate-600 dark:text-zinc-300 border-slate-200 dark:border-zinc-700"
-              >
-                <FileText className="w-4 h-4 mr-2" /> Simpan Draft
-              </Button>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Button
+                  onClick={handleSaveDraft}
+                  variant="outline"
+                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handlePrint}
+                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4 mr-1.5" /> Preview Cetak
+                </Button>
+              </div>
               <Button
                 onClick={handleApprove}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
+                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-sm shadow-blue-600/20 cursor-pointer"
               >
-                <CheckCircle className="w-5 h-5 mr-2" /> Terbitkan & Cetak
+                <CheckCircle className="w-4 h-4 mr-2" /> Terbitkan &amp; Cetak
               </Button>
             </>
           ) : (
             <>
-              {!isPublished ? (
+              <div className="grid grid-cols-2 gap-2.5">
+                {!isPublished ? (
+                  <Button
+                    onClick={handleSaveDraft}
+                    variant="outline"
+                    className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleUpdateNomorSurat}
+                    variant="outline"
+                    disabled={!canWrite}
+                    className="w-full h-10 rounded-xl font-bold text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 mr-1.5" /> Simpan Nomor
+                  </Button>
+                )}
+
                 <Button
-                  onClick={handleSaveDraft}
                   variant="outline"
-                  className="w-full h-10 rounded-xl font-bold text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
+                  onClick={handlePrint}
+                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
                 >
-                  <FileText className="w-4 h-4 mr-2" /> Simpan Draft
+                  <Printer className="w-4 h-4 mr-1.5" /> Preview Cetak
                 </Button>
-              ) : (
-                <Button
-                  onClick={handleUpdateNomorSurat}
-                  variant="outline"
-                  className="w-full h-10 rounded-xl font-bold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                >
-                  <FileText className="w-4 h-4 mr-2" /> Simpan Nomor Surat
-                </Button>
-              )}
+              </div>
 
               {isPublished ? (
                 <Button
                   disabled
-                  className="w-full h-12 bg-emerald-600 text-white rounded-xl font-bold opacity-90 cursor-not-allowed flex items-center justify-center"
+                  className="w-full h-11 bg-emerald-600 text-white rounded-xl font-bold text-xs opacity-90 cursor-not-allowed flex items-center justify-center"
                 >
-                  <CheckCircle className="w-5 h-5 mr-2" /> Sudah Diterbitkan
+                  <CheckCircle className="w-4 h-4 mr-2" /> Sudah Diterbitkan
                 </Button>
               ) : suratStatus === "approved" || suratStatus === "completed" ? (
                 <Button
                   disabled
-                  className="w-full h-12 bg-emerald-500 text-white rounded-xl font-bold opacity-80 cursor-not-allowed"
+                  className="w-full h-11 bg-emerald-500 text-white rounded-xl font-bold text-xs opacity-80 cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5 mr-2" /> Sudah Disetujui
+                  <Send className="w-4 h-4 mr-2" /> Sudah Disetujui
                 </Button>
               ) : (
                 <Button
                   onClick={handleSubmitForApproval}
-                  className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold"
+                  className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs shadow-sm shadow-amber-500/20 cursor-pointer"
                 >
-                  <Send className="w-5 h-5 mr-2" />{" "}
+                  <Send className="w-4 h-4 mr-2" />{" "}
                   {suratStatus === "pending" ? "Perbarui & Ajukan" : "Ajukan Persetujuan"}
                 </Button>
               )}
             </>
           )}
-
-          <Button
-            variant="outline"
-            onClick={handlePrint}
-            className="w-full h-10 rounded-xl font-bold text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700"
-          >
-            <Printer className="w-5 h-5 mr-2" /> Preview Cetak
-          </Button>
         </footer>
       </aside>
 
       {/* Main Preview Panel */}
-      <main className="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-slate-200/50 dark:bg-zinc-950">
-        <div className="relative">
+      <main className="flex-1 overflow-y-auto flex flex-col items-center bg-slate-200/60 dark:bg-zinc-950">
+        {/* Sticky Top Preview Toolbar */}
+        <div className="sticky top-0 z-10 w-full bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-zinc-800/80 px-6 py-2.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 text-xs">
+            <span className="font-bold text-slate-700 dark:text-zinc-200">
+              Pratinjau Dokumen A4
+            </span>
+            <span className="text-slate-300 dark:text-zinc-700">•</span>
+            <span className="font-mono text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800/50">
+              {nomorNumberingType === "naskah_auto"
+                ? customNomorNaskah || "${nomor_naskah}"
+                : `ST.${stNumber || "..."} / K.18/TU/${klasifikasi || "..."}/B`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-bold transition-colors cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Cetak / PDF</span>
+          </button>
+        </div>
+
+        <div className="py-8 px-6">
           <div
             id="surat-preview-doc"
-            className="w-[210mm] bg-white shadow-2xl selection:bg-blue-100"
+            className="w-[210mm] bg-white shadow-xl rounded-xs selection:bg-blue-100"
             style={{
               padding: "0.4cm 0 1.5cm 0",
               fontFamily: "'Bookman Old Style', 'Georgia', serif",
