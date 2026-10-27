@@ -41,7 +41,7 @@ export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   }
 
   // Recursively remove nested "Menugaskan Staf untuk "
-  const msPattern = /^Menugaskan\s+Staf\s+untuk\s+/i;
+  const msPattern = /^Menugaskan\s+Staf\s*(?:untuk\s+)?/i;
   while (msPattern.test(trimmed)) {
     trimmed = trimmed.replace(msPattern, "").trim();
   }
@@ -77,10 +77,31 @@ export function buildKegiatanDiktumText({
   tempatSpesifik = "",
   namaKegiatanText = "",
 }: BuildKegiatanDiktumParams): string {
-  const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
+  let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
+
+  // Strip trailing kotaTujuan or tempatSpesifik if already appended to cleanNama to prevent duplication
+  for (let i = 0; i < 2; i++) {
+    if (kotaTujuan && kotaTujuan.trim()) {
+      const escapedK = kotaTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      cleanNama = cleanNama.replace(new RegExp(`\\s+di\\s+${escapedK}$`, "i"), "").trim();
+    }
+    if (tempatSpesifik && tempatSpesifik.trim()) {
+      const escapedT = tempatSpesifik.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      cleanNama = cleanNama.replace(new RegExp(`\\s+(?:pada|di)\\s+${escapedT}$`, "i"), "").trim();
+    }
+  }
+
   const isDalamKawasan = modeLokasi === "dalam_kawasan" || isDalamKawasanTask(jenisTugas);
-  const isLuarWilayah = modeLokasi === "luar_wilayah" || (!isDalamKawasan && (jenisTugas.toLowerCase().includes("perjalanan dinas") || jenisTugas.toLowerCase().includes("luar wilayah")));
-  const isMelaksanakanKegiatan = modeLokasi === "tempat_saja" && (jenisTugas.toLowerCase().includes("melaksanakan kegiatan") || jenisTugas.toLowerCase().includes("kegiatan_1_hari"));
+  const isLuarWilayah =
+    modeLokasi === "luar_wilayah" ||
+    (!isDalamKawasan &&
+      (jenisTugas.toLowerCase().includes("perjalanan dinas") ||
+        jenisTugas.toLowerCase().includes("luar wilayah")));
+  const isMelaksanakanKegiatan =
+    !isDalamKawasan &&
+    !isLuarWilayah &&
+    (jenisTugas.toLowerCase().includes("melaksanakan kegiatan") ||
+      jenisTugas.toLowerCase().includes("kegiatan_1_hari"));
 
   if (isDalamKawasan) {
     // Formula: Melaksanakan perjalanan dinas di {kota/kabupaten} dalam rangka {kegiatan} di {kawasan/tempat spesifik}

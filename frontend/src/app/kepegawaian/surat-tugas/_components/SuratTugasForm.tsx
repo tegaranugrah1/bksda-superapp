@@ -163,6 +163,7 @@ export function SuratTugasForm({
   const [hasBuruh, setHasBuruh] = useState(false);
   const [jumlahBuruh, setJumlahBuruh] = useState(0);
   const [sertakanLaporan, setSertakanLaporan] = useState(true);
+  const [taskTypeId, setTaskTypeId] = useState<number | null>(null);
 
   const handleToggleBuruh = (nextVal: boolean) => {
     setHasBuruh(nextVal);
@@ -682,12 +683,22 @@ export function SuratTugasForm({
           .replace(/[;,.]$/, "")
           .trim();
 
+        if (typeof data.task_type_id === "number") {
+          setTaskTypeId(data.task_type_id);
+        }
+
         const regex =
           /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const kawasanRegex =
           /^(?:Melaksanakan\s+)?perjalanan\s+dinas\s+di\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        const stafRegex = /^Menugaskan\s+Staf\s*(?:untuk\s+)?(.*)/i;
         const singleDayActivity = cleanedActivity;
         const isParsedSingleDayActivity = /^Melaksanakan\s+Kegiatan/i.test(singleDayActivity);
+        const isMenugaskanStaf =
+          stafRegex.test(singleDayActivity) ||
+          data.task_type_id === 4 ||
+          data.task_type?.kode === "menugaskan_staf" ||
+          (Boolean(data.task_type?.nama) && data.task_type.nama.toLowerCase().includes("menugaskan staf"));
         const isOneDayFromSubmittedForm =
           loadedTanggalMulai &&
           loadedTanggalSelesai &&
@@ -696,8 +707,35 @@ export function SuratTugasForm({
 
         const match = cleanedActivity.match(regex);
         const kawasanMatch = cleanedActivity.match(kawasanRegex);
+        const stafMatch = singleDayActivity.match(stafRegex);
 
-        if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match && !kawasanMatch)) {
+        if (isMenugaskanStaf) {
+          setInputModeKegiatan("structured");
+          setActivityPrefix("Menugaskan Staf");
+          setKotaAsal("");
+
+          let rest = (stafMatch ? stafMatch[1] : singleDayActivity).trim();
+          let parsedKota = "";
+          let parsedTempat = "";
+          let parsedNama = rest;
+
+          const diMatch = rest.match(/(.*?)\s+di\s+([^,;]+)$/i);
+          if (diMatch) {
+            parsedKota = diMatch[2].trim();
+            rest = diMatch[1].trim();
+          }
+          const padaMatch = rest.match(/(.*?)\s+pada\s+(.+)$/i);
+          if (padaMatch) {
+            parsedNama = padaMatch[1].trim();
+            parsedTempat = padaMatch[2].trim();
+          } else {
+            parsedNama = rest.trim();
+          }
+
+          setKotaTujuan(parsedKota || data.tempat_tujuan || "");
+          setTempatKegiatan(parsedTempat);
+          setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
+        } else if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match && !kawasanMatch)) {
           setInputModeKegiatan("structured");
           setActivityPrefix("Melaksanakan Kegiatan ( 1 Hari )");
           setKotaAsal("");
@@ -720,7 +758,7 @@ export function SuratTugasForm({
             parsedNama = rest.trim();
           }
 
-          setKotaTujuan(parsedKota);
+          setKotaTujuan(parsedKota || data.tempat_tujuan || "");
           setTempatKegiatan(parsedTempat);
           setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
         } else if (match) {
@@ -756,11 +794,15 @@ export function SuratTugasForm({
             data.template_type === "plh" ||
             data.template_type === "bmn-pemeriksaan" ||
             !singleDayActivity.toLowerCase().includes("perjalanan dinas");
-          setActivityPrefix(isInternalTask ? "Menugaskan Staf" : "");
+          setActivityPrefix(isInternalTask ? "Menugaskan Staf" : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
           setKotaAsal("");
-          setKotaTujuan("");
-          setNamaKegiatan(cleanedActivity);
-          setInputModeKegiatan("manual");
+          setKotaTujuan(data.tempat_tujuan || "");
+          setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(cleanedActivity));
+          if (data.template_type === "plh" || data.template_type === "bmn-pemeriksaan") {
+            setInputModeKegiatan("manual");
+          } else {
+            setInputModeKegiatan("structured");
+          }
         }
 
         if (typeof data.sertakan_laporan === "boolean") {
@@ -1220,6 +1262,9 @@ export function SuratTugasForm({
     if (isDalamKawasanTask(activityPrefix)) {
       return tempatKegiatan.trim() || kotaTujuan.trim() || "Kalimantan Timur";
     }
+    if (activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")) {
+      return tempatKegiatan.trim() || kotaTujuan.trim() || "Kalimantan Timur";
+    }
     if (inputModeKegiatan === "manual") {
       return kotaTujuan.trim() || tempatKegiatan.trim() || "Kalimantan Timur";
     }
@@ -1258,7 +1303,7 @@ export function SuratTugasForm({
       return text;
     }
 
-    if (isPlhTemplate || inputModeKegiatan === "manual") {
+    if (isPlhTemplate) {
       let text = replacePlhPlaceholders(namaKegiatan || "...");
       const prefixSep = text.trim().endsWith(",") ? " " : ", ";
       if (days === 1 || tanggalMulai === tanggalSelesai) {
@@ -1450,6 +1495,15 @@ export function SuratTugasForm({
             ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
             : null);
 
+    const calculatedTaskTypeId =
+      activityPrefix.includes("Menugaskan Staf")
+        ? 4
+        : activityPrefix.includes("Melaksanakan Kegiatan")
+        ? 3
+        : isDalamKawasanTask(activityPrefix)
+        ? 2
+        : 1;
+
     return {
       nomor_surat: fullNomorSurat,
       kode_surat:
@@ -1471,6 +1525,7 @@ export function SuratTugasForm({
       tanggal_mulai: effectiveMulai,
       tanggal_selesai: effectiveSelesai,
       tempat_tujuan: getTempatTujuanForPayload() || null,
+      task_type_id: taskTypeId || calculatedTaskTypeId,
       sumber_dana: sumberDana,
       sumber_dana_other: sumberDanaOther,
       template_type: templateType,
@@ -2174,8 +2229,20 @@ export function SuratTugasForm({
                   onChange={(e) => {
                     const val = e.target.value;
                     setActivityPrefix(val);
-                    if (val.includes("Melaksanakan Kegiatan") && tanggalMulai) {
-                      setTanggalSelesai(tanggalMulai);
+                    setInputModeKegiatan("structured");
+                    if (val.includes("Melaksanakan Kegiatan")) {
+                      if (tanggalMulai) setTanggalSelesai(tanggalMulai);
+                      setKotaAsal("");
+                      setTaskTypeId(3);
+                    } else if (val.includes("Menugaskan Staf")) {
+                      setKotaAsal("");
+                      setTaskTypeId(4);
+                    } else if (isDalamKawasanTask(val)) {
+                      setKotaAsal("");
+                      setTaskTypeId(2);
+                    } else {
+                      if (!kotaAsal) setKotaAsal("Samarinda");
+                      setTaskTypeId(1);
                     }
                   }}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
@@ -2195,7 +2262,9 @@ export function SuratTugasForm({
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">
-                  Maksud / Tugas
+                  {activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
+                    ? "Nama Kegiatan / Tugas"
+                    : "Maksud / Tugas"}
                 </label>
                 <textarea
                   rows={3}
@@ -2270,6 +2339,35 @@ export function SuratTugasForm({
                       disabled={isPublished}
                       onChange={(e) => setTempatKegiatan(e.target.value)}
                       placeholder="Contoh: Cagar Alam Teluk Adang"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                </div>
+              ) : (activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")) ? (
+                <div className="grid grid-cols-2 gap-2 pt-1 animate-in fade-in duration-200">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Pada ( Tempat / Unit Lokasi )
+                    </label>
+                    <input
+                      type="text"
+                      value={tempatKegiatan}
+                      disabled={isPublished}
+                      onChange={(e) => setTempatKegiatan(e.target.value)}
+                      placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Di ( Kota / Kabupaten )
+                    </label>
+                    <input
+                      type="text"
+                      value={kotaTujuan}
+                      disabled={isPublished}
+                      onChange={(e) => setKotaTujuan(e.target.value)}
+                      placeholder="Contoh: Samarinda"
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                     />
                   </div>
