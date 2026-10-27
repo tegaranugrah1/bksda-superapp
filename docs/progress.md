@@ -24,9 +24,14 @@
 - **Sinkronisasi Live EC2 ➔ VM 100 Proxmox (`192.168.100.151`)**:
   - Melakukan data dump 17 tabel BMN dengan `session_replication_role = 'replica'` dari PostgreSQL container AWS EC2 dan merestore ke VM 100 dengan `CASCADE`.
   - Mentransfer volume storage RustFS foto BMN (`/data/bksda/bmn` dan `/data/bksda/bmn-photos`, ~54 MB, 68 foto) ke VM 100 dan memperbaiki izin berkas dengan `chown -R rustfs:rustfs /data/bksda` sehingga upload dan view foto di VM 100 berfungsi normal (HTTP 200).
-- **Investigasi Selisih Pegawai**:
-  - Mengonfirmasi bahwa tabel `kpg_employees` di Live dan VM 100 memiliki 152 baris, di mana model Eloquent `Employee.php` memiliki Global Scope `excludeAdminPusat` (NIP 198001012005011001 / Administrator Pusat BKSDA) sehingga menghasilkan 151 pegawai.
-  - Mengonfirmasi database lokal memiliki 149 pegawai karena 3 orang (*Dwi Suriyanto*, *Didimus*, *Khairul Falah*) belum tersinkron ke lokal dan ada 1 data pengujian lokal (*Muhammad Riezqy Senopati* / MMP-034).
+- **Penyesuaian & Standardisasi Roster Pegawai Aktual (147 Pegawai)**:
+  - Berdasarkan daftar aktual definitif pegawai BKSDA Kalimantan Timur per 27 Oktober 2026, total pegawai aktif resmi adalah **147 orang** (terdiri atas **114 ASN PNS/PPPK** dan **33 Tenaga Lapangan/MMP**).
+  - Seluruh 147 pegawai terverifikasi 100% cocok dan telah tersimpan di database.
+  - Dibuat migrasi database `2026_10_27_083000_archive_inactive_employees_to_match_actual_roster.php` yang melakukan soft-delete (`deleted_at = now()`) serta menonaktifkan (`is_active = false`) data pegawai di luar daftar aktual:
+    - `Djunaib Ahmad` (NIP: 198007132000031002) - data pegawai lama dengan riwayat cuti historis tetap terjaga.
+    - `Muhamad Rafli Reskiadi` (MMP-032) - MMP lama di Resor IKN.
+    - Serta proteksi untuk data pegawai lama di server live/staging (`Didimus`, `Dwi Suriyanto`, `Khairul Falah`).
+  - Total pegawai aktif di localhost kini resmi menjadi **147 pegawai** (baik pada query Eloquent `Employee::count()` maupun endpoint API `/api/kepegawaian/employees`).
 
 ## 3. Validasi & Pengujian
 - **Frontend Typecheck**: `npx tsc --noEmit` lolos 100% (0 error).

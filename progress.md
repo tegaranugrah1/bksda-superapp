@@ -31,10 +31,16 @@
 
 ---
 
-### 3. Analisis & Penjelasan Selisih Jumlah Pegawai (149 vs 151)
-- **Hasil Investigasi**:
-  - **Live & VM 100 (151 Pegawai)**: Tabel database `kpg_employees` memiliki 152 record, namun model Eloquent `Employee.php` memiliki Global Scope `excludeAdminPusat` yang otomatis mengecualikan akun Administrator Pusat (NIP `198001012005011001`), menghasilkan tepat 151 pegawai di UI.
-  - **Localhost (149 Pegawai)**: Database lokal memiliki 148 pegawai riil (selisih 3 orang: Dwi Suriyanto, Didimus, Khairul Falah yang belum tersinkron ke lokal) ditambah 1 data pengujian lokal (MMP-034: Muhammad Riezqy Senopati), sehingga totalnya 149 pegawai.
+### 3. Penyesuaian & Standardisasi Roster Pegawai Aktual (147 Pegawai)
+- **Verifikasi Roster Aktual Definitif**:
+  - Berdasarkan daftar aktual pegawai BKSDA Kalimantan Timur per 27 Oktober 2026, total pegawai resmi berjumlah **147 orang** (terdiri atas **114 ASN PNS/PPPK** dan **33 Tenaga Lapangan/MMP**).
+  - Seluruh 147 pegawai terverifikasi 100% cocok dan telah tersimpan di database.
+- **Resolusi Selisih & Migrasi Database**:
+  - Dibuat migrasi database `2026_10_27_083000_archive_inactive_employees_to_match_actual_roster.php` yang melakukan soft-delete (`deleted_at = now()`) serta menonaktifkan (`is_active = false`) data pegawai di luar daftar aktual:
+    - `Djunaib Ahmad` (NIP: 198007132000031002) - data pegawai lama dengan riwayat cuti historis tetap terjaga.
+    - `Muhamad Rafli Reskiadi` (MMP-032) - MMP lama di Resor IKN.
+    - Serta proteksi untuk data pegawai lama di server live/staging (`Didimus`, `Dwi Suriyanto`, `Khairul Falah`).
+  - Total pegawai aktif di localhost kini resmi menjadi **147 pegawai** (baik pada query Eloquent `Employee::count()` maupun endpoint API `/api/kepegawaian/employees`).
 
 ---
 
