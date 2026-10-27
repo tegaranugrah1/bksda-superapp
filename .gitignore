@@ -28,6 +28,8 @@ node_modules/
 *.xls
 *.csv
 *.sql
+*.dump
+*.tar.gz
 *.zip
 *_dump.json
 *_dump.zip
@@ -46,6 +48,7 @@ test*.php
 import_*.php
 seed_*.php
 deploy/test-*.sh
+/*.py
 
 # ========================
 # Images & Documents at Root (tidak perlu di repo)
