@@ -8671,3 +8671,54 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
 - [x] **Fitur Hapus Permanen (Single & Bulk) pada Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)**:
   - Menambahkan endpoint `POST /api/surat-tugas/bulk-force-delete` (`AssignmentLetterController::bulkForceDestroy`) dengan proteksi `role:super_admin,admin`, validasi UUID/ID (`sanitizeBulkIds`), transaksi database, dan penghapusan file di RustFS.
   - Menampilkan tombol **Hapus Permanen** pada tab **Sampah** di `GmailRowItem.tsx` (hover baris), `GmailReaderView.tsx` (tampilan baca surat), dan `GmailToolbar.tsx` (aksi massal saat checkbox dicentang).
+
+---
+
+## 2026-10-27 — Phase 224: Audit Menyeluruh & Redesign Modul Kepegawaian (`ui-ux-pro-max`, `/ponytail`, & `/security-audit`)
+
+> Document updated: 2026-10-27
+> Branch: `production-server`
+> Status: SELESAI (Redesign Dashboard & Sidebar Kepegawaian, Penyelarasan Daftar & Form Tambah Pegawai, Penyatuan Alur Pengajuan ST & ST Builder Premium, Penyelarasan Inbox Cuti & Arsip Surat Masuk, serta Penyeragaman 1 Tema pada 3 Tab Setting Kepegawaian).
+
+### Ringkasan Pekerjaan & Capaian
+
+1. **Dashboard Kepegawaian (`/kepegawaian`) & Sidebar Navigasi (`layout.tsx`) — Commit `cfaf9a11`**:
+   - Merombak sidebar Kepegawaian menjadi grup navigasi yang dapat dilipat (*collapsible*) dengan indikator rute aktif yang presisi (`/kepegawaian/employees` vs `/kepegawaian/employees/create`).
+   - Mendesain ulang Dashboard Kepegawaian dengan *Bento Grid*, kartu metrik utama (Total Pegawai, PNS, PPPK, MMP, Surat Tugas, Pengajuan Cuti), grafik distribusi, dan *Unified Enterprise Header Bar*.
+
+2. **Daftar Pegawai (`/kepegawaian/employees`) & Tambah Pegawai (`/kepegawaian/employees/create`) — Commit `89ccae71` & `5f209e9b`**:
+   - **UI/UX (`ui-ux-pro-max`)**: Menyeragamkan header halaman, mengganti pemilih kategori pegawai menjadi *segmented card selector* interaktif (**PNS**, **PPPK / P3K**, **MMP**), merapikan *sticky action footer*, dan menghapus seluruh ikon AI (`Sparkles`).
+   - **Security (`/security-audit`)**:
+     - Memisahkan *trust boundary* pencarian publik (`EmployeeController::publicSearch`) agar hanya mengembalikan kolom non-sensitif (`id, nip, nama_lengkap, pangkat_golongan, jabatan, satuan_kerja, seksi_wilayah, resor`) tanpa mengekspos PII (`no_hp`, `email`, `status_perkawinan`) dan menambahkan `throttle:60,1`.
+     - Menambahkan validasi ketat pada `EmployeeRequest.php` (`jenis_pegawai`, `status_aktif`, regex `no_hp`, batas `jumlah_tanggungan`, dan validasi enum pangkat/golongan).
+     - Membatasi tombol mutasi (Tambah, Edit, Hapus, Pulihkan, Hapus Permanen) di frontend menggunakan `useRole().canWrite` / `isSuperAdmin`.
+   - **Ponytail (`/ponytail`)**: Mengonsolidasikan 11 state form ke satu objek `form`, mengekstrak `useDebouncedValue`, dan mengganti `<img>` mentah dengan `<EmployeeAvatar />`.
+
+3. **Penyatuan Alur Buat Surat Tugas (`/surat-tugas`) & Redesign ST Builder Premium (`/kepegawaian/surat-tugas/builder/[id]`) — Commit `d386dbff` & `ad5a09f6`**:
+   - Mengarahkan `/kepegawaian/surat-tugas/create` langsung ke `/surat-tugas` sehingga seluruh pengajuan ST pegawai maupun admin melewati satu pintu terpadu menuju **Inbox Surat Tugas**.
+   - Menambahkan tombol kembali kontekstual di `/surat-tugas` serta tombol **"Kembali ke Inbox"** di dalam ST Builder.
+   - Melebarkan panel kiri **ST Builder Premium** (`SuratTugasForm.tsx`) menjadi `45%` (`xl:grid-cols-[45fr_55fr]`), mengelompokkan kontrol ke dalam kartu bernomor yang rapi, menambahkan *sticky preview toolbar* (Zoom + Cetak + Unduh PDF), dan menghapus seluruh ikon `Sparkles`.
+
+4. **Inbox Surat Cuti (`/kepegawaian/cuti`) — Commit `2d8b1197`**:
+   - **UI/UX (`ui-ux-pro-max`)**: Mengganti header halaman dengan *Unified Clean Enterprise Header Bar*, meningkatkan kontras kartu statistik status cuti, dan menambahkan *segmented toggle* filter status.
+   - **Security (`/security-audit`)**: Menambahkan sanitasi *SQL wildcard* (`addcslashes(..., '%_\\')`) pada pencarian `EmployeeLeaveRequestController::adminIndex()`, membatasi `per_page` (`1..100`), memvalidasi filter `status` & `tahun`, serta memproteksi aksi tulis/hapus di tabel dan `CutiModals.tsx` dengan `canWrite`.
+   - **Ponytail (`/ponytail`)**: Menghapus `console.error` di produksi dan menyederhanakan pembuatan URL blob preview lampiran.
+
+5. **Arsip Surat Masuk (`/kepegawaian/surat-masuk`) — Commit `c9c768de`**:
+   - **UI/UX (`ui-ux-pro-max`)**: Menyeragamkan header halaman, menambahkan *segmented filter pills* untuk **Klasifikasi** (`Semua`, `Umum`, `Undangan`, `Perjalanan Dinas`) dan **Sifat Surat** (`Biasa`, `Penting`, `Segera`, `Rahasia`) beserta tombol Reset Filter, serta mengganti `window.confirm` hapus lampiran dengan *inline confirmation* (`Ya, Hapus | Batal`).
+   - **Security (`/security-audit`)**:
+     - Memperbaiki *CSV/Spreadsheet Formula Injection* pada `EmployeeIncomingLettersExport.php` menggunakan `CsvFormulaGuard::sanitizeRow()`.
+     - Menambahkan sanitasi *SQL wildcard* (`addcslashes(..., '%_\\')`) pada `EmployeeIncomingLetter::scopeFilter()` dan membatasi ukuran daftar ID pada `exportSelected` (`max:500`).
+     - Memproteksi seluruh tombol mutasi (Catat Surat Masuk, Edit, Hapus Surat, Hapus Lampiran) di frontend dengan `useRole().canWrite`.
+
+6. **Setting Kepegawaian (`/kepegawaian/settings`) — Penyeragaman 1 Tema Antar 3 Tab**:
+   - **UI/UX (`ui-ux-pro-max`)**:
+     - Menjadikan desain **Tab Jenis Surat Cuti (`LeaveTypesTab.tsx`)** sebagai referensi utama sehingga **Tab Template Surat Tugas (`StTemplatesTab.tsx`)** dan **Tab Template Biaya & Sumber Dana (`ExpenseTemplatesTab.tsx`)** memiliki 1 tema visual yang seragam saat berpindah tab (Banner gradien biru-indigo di atas, bar pencarian + filter status `Semua | Aktif | Nonaktif`, tabel `text-xs` dengan kolom `No`, badge kode, *status pill* interaktif `Aktif / Nonaktif`, dan modal konfirmasi hapus).
+     - Menghapus seluruh ikon elemen AI (`Sparkles`) yang tersisa di `StTemplatesTab.tsx` dan `ExpenseTemplatesTab.tsx`, digantikan dengan `FileText` dan `Banknote`.
+   - **Security (`/security-audit`)**:
+     - Menyelaraskan otorisasi backend `st-templates` di `Routes/api.php`, `StTemplateController.php`, `StoreStTemplateRequest.php`, dan `UpdateStTemplateRequest.php` agar mengizinkan `role:super_admin,admin` (konsisten dengan `st-expense-templates` dan `leave-types`).
+     - Menambahkan aturan validasi batas panjang string pada sub-field `configuration.*` di `StoreStTemplateRequest.php` dan `UpdateStTemplateRequest.php`.
+     - Menambahkan guard `useRole().canWrite` di ketiga tab setting.
+   - **Ponytail (`/ponytail`)**:
+     - Memperbaiki pemanggilan endpoint `/api/kepegawaian/leave-types` (prefix `/api` ganda) menjadi `/kepegawaian/leave-types` di `LeaveTypesTab.tsx`.
+     - Mengekstrak fungsi duplikat `templateCodeFromName` dan `errorMessage` ke `st-templates/_components/utils.ts`.

@@ -45,7 +45,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     // --- TEMPLATE SURAT TUGAS ---
     Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
     Route::get('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'show']);
-    Route::middleware('role:super_admin')->group(function () {
+    Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
         Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
         Route::post('/st-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'setDefault']);
