@@ -8585,3 +8585,56 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
 
 
 
+
+
+---
+
+## [2026-10-27] Phase 224 – Production Server Migration to Proxmox VM 106, Dokploy CI/CD, Cloudflare Tunnel & Active Personnel Alignment (147 Roster)
+
+### Problem Description
+1. Server lama BKSDA SuperApp (mini-server lokal `192.168.100.151` / `141` dan AWS EC2 `bksdakaltim.net`) mengalami beban tinggi dan memerlukan migrasi menyeluruh ke mesin virtual mandiri berspesifikasi tinggi pada Proxmox utama (`192.168.100.11:8006`).
+2. Proses deployment membutuhkan platform CI/CD modern (Dokploy) dengan manajemen compose terisolasi di branch khusus `production-server`.
+3. Database PostgreSQL live (1.633 aset BMN) dan object storage RustFS S3 (foto BMN, scan STNK/BPKB, dokumen kepegawaian) pada server produksi AWS EC2 (`15.134.31.68`) harus dipindahkan secara utuh tanpa kehilangan data.
+4. Diperlukan domain staging uji coba `bksdakaltim.web.id` yang dihubungkan melalui Cloudflare Tunnel (`cloudflared`) dengan SSL HTTPS otomatis sebelum proses cutover domain utama `bksdakaltim.net`.
+5. Data riil personil BKSDA Kaltim harus tepat berjumlah 147 orang aktif (verifikasi daftar nama resmi Balai, Seksi Wilayah I Berau, Seksi Wilayah II Tenggarong, dan Seksi Wilayah III Balikpapan).
+
+### Completed (Selesai)
+- [x] **Infrastruktur Target VM 106 Proxmox (`192.168.100.203`)**:
+  - Dibuat VMID 106 (`bksda-superapp-dokploy`, Ubuntu 24.04.3 LTS, user `bksda`) dengan logical volume root diperbesar menjadi 490 GB (463 GB free).
+  - Menginstal Docker CE v28.5.0, Docker Swarm, Dokploy v0.30.10, dan Traefik v3.6.25.
+  - Mengonfigurasi akun administrator Dokploy (`tegaranugrah1@gmail.com`) dan project Dokploy `bksda-superapp`.
+- [x] **Branch Khusus `production-server` & Konfigurasi Compose**:
+  - Dibuat dan dipush branch `production-server` pada repositori GitHub `tegaranugrah1/bksda-superapp`.
+  - Mengonfigurasi `docker-compose.dokploy.yml` dengan safe fallback default (`${VAR:-default}`) untuk seluruh environment kritis (`APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD`, `APP_URL`, `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS`, `CORS_ALLOWED_ORIGINS`, `AWS_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_STORAGE_URL`).
+  - Memperbarui `frontend/next.config.ts` Content-Security-Policy `connect-src` dan `images.remotePatterns` untuk mengizinkan `*.bksdakaltim.web.id` di samping `*.bksdakaltim.net`.
+  - Berhasil men-deploy compose project Dokploy (`bksdasuperapp-bksdasuperapp-einhoc`) dengan 5 kontainer aktif dan sehat: `frontend`, `backend`, `nginx-backend`, `db` (PostgreSQL 16), dan `rustfs`.
+- [x] **Migrasi Data Live EC2 ke VM 106 (Database & Storage)**:
+  - Melakukan dump database PostgreSQL dari kontainer live EC2 (`bksda_live.dump`) dan arsip volume storage RustFS (`bksda_rustfs.tar.gz`).
+  - Mentransfer data secara aman ke VM 106 via SSH/SCP dan membersihkan file sementara di EC2.
+  - Merestorasi database secara bersih (`pg_restore --clean --if-exists`) ke PostgreSQL 16: **1.633 aset BMN** berhasil dipulihkan lengkap dengan histori dan relasinya.
+  - Mengekstrak file RustFS S3 ke volume Docker dengan kepemilikan `10001:10001` serta menyinkronkan metadata policy bucket `.rustfs.sys/buckets/bksda/.metadata.bin` sehingga foto profil, foto fisik BMN, dan dokumen lampiran dapat diakses publik (`HTTP 200 OK`).
+- [x] **Penyelarasan Riil Roster Kepegawaian (147 Personil)**:
+  - Mengaudit daftar riil 147 personil kepegawaian BKSDA Kalimantan Timur.
+  - Mengidentifikasi kekurangan 1 personil baru: **Muhammad Riezqy Senopati** (`MMP-034`, MMP Resor KSDA Wilayah 14 Ibu Kota Nusantara - IKN).
+  - Membuat migrasi Laravel idempotent `backend/database/migrations/2026_10_27_111500_add_muhammad_riezqy_senopati_to_kpg_employees.php` dan mencatatnya ke database.
+  - Jumlah personil aktif kini tepat **147 orang**:
+    - Balai Samarinda: 34 orang
+    - Seksi KSDA Wilayah I Berau: 29 orang
+    - Seksi KSDA Wilayah II Tenggarong: 44 orang
+    - Seksi KSDA Wilayah III Balikpapan: 40 orang
+- [x] **Cloudflare Tunnel (`cloudflared`) & Public Domain Dokploy**:
+  - Menginstal service `cloudflared` pada VM 106 yang terhubung ke Cloudflare Zero Trust Tunnel `bksda-superapp` (`bd85ce5c-1cc5-406e-8100-36a6470cd51a`).
+  - Mendaftarkan rute domain staging:
+    - `https://bksdakaltim.web.id` -> Frontend Next.js (port 80)
+    - `https://api.bksdakaltim.web.id` -> Backend Laravel Nginx (port 80)
+    - `https://storage.bksdakaltim.web.id/bksda/` -> RustFS S3 Object Storage (port 80)
+    - `https://dokploy.bksdakaltim.web.id` -> Dokploy Web Management Panel (port 3000)
+  - Mengonfigurasi GitHub App Webhook ke `https://dokploy.bksdakaltim.web.id/api/github/webhook` sehingga setiap push ke branch `production-server` otomatis memicu deploy CI/CD tanpa perlu membuka dashboard.
+
+### Validation
+- [x] `https://dokploy.bksdakaltim.web.id` aktif melayani dashboard Dokploy via HTTPS Cloudflare (HTTP/2 200 OK).
+- [x] `https://bksdakaltim.web.id/login` aktif melayani halaman login SuperApp via HTTPS Cloudflare (HTTP/2 200 OK).
+- [x] `https://api.bksdakaltim.web.id/api/health` merespons status backend sehat (HTTP/2 200 OK).
+- [x] `https://storage.bksdakaltim.web.id/bksda/` melayani unduhan aset gambar dan PDF dengan header MIME yang valid (HTTP/2 200 OK).
+- [x] Query database memvalidasi tepat 1.633 aset BMN dan 147 pegawai aktif riil.
+- [x] Webhook GitHub App terhubung langsung ke Dokploy via domain publik untuk auto-deploy.
