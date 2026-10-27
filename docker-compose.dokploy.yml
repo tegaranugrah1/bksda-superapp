@@ -28,9 +28,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8000:80"
-      - "9000:9000"
     command: >
       sh -c "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & nginx -g 'daemon off;'"
     depends_on:
@@ -42,12 +39,12 @@ services:
       APP_NAME: "BKSDA SuperApp"
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: https://api.bksdakaltim.net
-      FRONTEND_URL: https://bksdakaltim.net
-      SANCTUM_STATEFUL_DOMAINS: bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net,localhost,localhost:3000
-      CORS_ALLOWED_ORIGINS: https://bksdakaltim.net,https://www.bksdakaltim.net,http://localhost:3000
-      SESSION_SECURE_COOKIE: "true"
-      SESSION_DOMAIN: .bksdakaltim.net
+      APP_URL: ${APP_URL:-https://api.bksdakaltim.web.id}
+      FRONTEND_URL: ${FRONTEND_URL:-https://bksdakaltim.web.id}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-bksdakaltim.web.id,www.bksdakaltim.web.id,api.bksdakaltim.web.id,bksdakaltim.net,api.bksdakaltim.net,192.168.100.203,localhost,localhost:3000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://bksdakaltim.web.id,https://www.bksdakaltim.web.id,http://bksdakaltim.web.id,https://bksdakaltim.net,http://192.168.100.203,http://localhost:3000}
+      SESSION_SECURE_COOKIE: "false"
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-}
       APP_KEY: ${APP_KEY:?APP_KEY is required}
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -62,7 +59,7 @@ services:
       AWS_BUCKET: bksda
       AWS_ENDPOINT: http://rustfs:9000
       AWS_USE_PATH_STYLE_ENDPOINT: "true"
-      AWS_URL: https://storage.bksdakaltim.net/bksda
+      AWS_URL: ${AWS_URL:-https://storage.bksdakaltim.web.id/bksda}
       SESSION_DRIVER: file
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
@@ -75,8 +72,6 @@ services:
   nginx-backend:
     image: nginx:alpine
     restart: always
-    ports:
-      - "8080:80"
     depends_on:
       - backend
     volumes:
@@ -88,8 +83,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.bksdakaltim.net/api
-        NEXT_PUBLIC_STORAGE_URL: https://storage.bksdakaltim.net/bksda
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.bksdakaltim.web.id/api}
+        NEXT_PUBLIC_STORAGE_URL: ${NEXT_PUBLIC_STORAGE_URL:-https://storage.bksdakaltim.web.id/bksda}
     restart: always
 
 volumes:
