@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1793074202.930757,
-    "ast_hash": "3a76c36bd52240a8350e87116749a1b1",
+    "mtime": 1793076078.6291423,
+    "ast_hash": "00af29060f53b99e07423d1a336f4c96",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
-    "mtime": 1793073209.3799367,
-    "ast_hash": "35253a1126dc5bbe09ac2fd83b9e16c0",
+    "mtime": 1793075846.8380084,
+    "ast_hash": "345835996be534abfeb38f08ef23de20",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1792746997.4128776,
-    "ast_hash": "37f8590188ff6535a89c5ec78d1f30bf",
+    "mtime": 1793075753.2409909,
+    "ast_hash": "32f12c4ac5c611a058315568958ecfc5",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793071929.7803762,
-    "ast_hash": "e2fb4016d2bb2e3ddbc696b8a99114d9",
+    "mtime": 1793075030.386113,
+    "ast_hash": "76e250cd72ca2a51373c71cf5930f130",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5430,8 +5430,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1793074785.74394,
-    "ast_hash": "1a9b1071d643f8ccceee02764ab820e0",
+    "mtime": 1793076068.5998917,
+    "ast_hash": "374c595200b1afcca60f5ea1b317d852",
     "semantic_hash": ""
   },
   ".agents/AGENTS.md": {
@@ -6560,8 +6560,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-types.ts": {
-    "mtime": 1793072543.6060183,
-    "ast_hash": "6f9f6b0a3cf966405756ce615c82a73d",
+    "mtime": 1793075942.3611407,
+    "ast_hash": "8748a3890ba6c443d1b113fd186c317d",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/index.ts": {

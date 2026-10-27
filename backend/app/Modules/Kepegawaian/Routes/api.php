@@ -84,6 +84,8 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
         Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
+        Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore']);
+        Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDestroy']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
 
         // --- MANAJEMEN CUTI PEGAWAI WRITE (PERBKN 24/2017 & 7/2021) ---

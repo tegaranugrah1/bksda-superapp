@@ -146,7 +146,29 @@ class Employee extends Model
 
         $gol = strtolower($this->pangkat_golongan ?? '');
         $jab = strtolower($this->jabatan ?? '');
-        return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k');
+        return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k') || str_starts_with($gol, 'golongan ');
+    }
+
+    /**
+     * Scope filter berdasarkan kategori jenis pegawai (PNS, PPPK, MMP)
+     */
+    public function scopeOfJenis($query, string $jenis)
+    {
+        $jenis = strtoupper(trim($jenis));
+        $mmpSql = "UPPER(TRIM(COALESCE(nip, ''))) LIKE 'MMP-%'";
+        $pppkSql = "(NOT ({$mmpSql}) AND (SUBSTR(REPLACE(COALESCE(nip, ''), ' ', ''), 13, 2) = '21' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE '%pppk%' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE '%p3k%' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE 'golongan %' OR LOWER(COALESCE(jabatan, '')) LIKE '%pppk%'))";
+
+        if ($jenis === 'MMP') {
+            return $query->whereRaw($mmpSql);
+        }
+        if ($jenis === 'PPPK' || $jenis === 'P3K') {
+            return $query->whereRaw($pppkSql);
+        }
+        if ($jenis === 'PNS') {
+            return $query->whereRaw("NOT ({$mmpSql}) AND NOT {$pppkSql}");
+        }
+
+        return $query;
     }
 
     /**

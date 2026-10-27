@@ -8663,3 +8663,8 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
 - [x] **Perbaikan Filter SQL `NULL` pada `satuan_kerja` & Modal Hapus Pegawai**:
   - Memperbaiki query di `EmployeeController::index()` dan `dashboardStats()` menjadi `whereNull('satuan_kerja')->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%')` agar pegawai baru tanpa Satker tetap terhitung.
   - Mengimplementasikan modal konfirmasi hapus pegawai (`Konfirmasi Hapus Data Pegawai`) di `frontend/src/app/kepegawaian/employees/page.tsx` yang selaras dengan modal hapus di `/kepegawaian/cuti` lengkap dengan notifikasi Sonner `toast.success`.
+- [x] **Redesign Halaman Daftar Pegawai (`/kepegawaian/employees`), Filter Lengkap, Pagination & Tab Data Terhapus**:
+  - Menambahkan `scopeOfJenis` pada `Employee.php` serta `meta.counts` (`total`, `pns`, `pppk`, `mmp`, `trashed`) pada `EmployeeController::index()`.
+  - Menambahkan 5 kartu ringkasan klik-cepat (Total Pegawai, PNS, PPPK, MMP, Data Terhapus) dan bar filter lengkap (Pencarian Nama/NIP/Jabatan/Satker, Filter Kategori, Filter Wilayah Utama & Spesifik Resor, serta Filter Status).
+  - Menambahkan pemilih jumlah baris per halaman (`10`, `20`, `50`, `Semua`).
+  - Menambahkan endpoint `POST /api/kepegawaian/employees/{id}/restore` (Pulihkan pegawai terhapus menjadi aktif) dan `DELETE /api/kepegawaian/employees/{id}/force` (Hapus permanen pegawai beserta akun `users`, foto profil, dan file scan surat cuti di RustFS).

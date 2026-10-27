@@ -22,7 +22,7 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Employee::query()
+        $baseQuery = Employee::query()
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
@@ -32,25 +32,109 @@ class EmployeeController extends Controller
                     ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
 
+        $counts = [
+            'total' => (clone $baseQuery)->count(),
+            'pns' => (clone $baseQuery)->ofJenis('PNS')->count(),
+            'pppk' => (clone $baseQuery)->ofJenis('PPPK')->count(),
+            'mmp' => (clone $baseQuery)->ofJenis('MMP')->count(),
+            'trashed' => (clone $baseQuery)->onlyTrashed()->count(),
+        ];
+
+        $statusFilter = strtolower(trim((string) $request->input('status', '')));
+        $isTrashedView = $statusFilter === 'trashed' || $request->boolean('trashed');
+
+        $query = clone $baseQuery;
+        if ($isTrashedView) {
+            $query->onlyTrashed();
+        } elseif ($statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        } elseif ($request->has('is_active')) {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));
+        if (in_array($jenisPegawai, ['PNS', 'PPPK', 'P3K', 'MMP'], true)) {
+            $query->ofJenis($jenisPegawai);
+        }
+
+        $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+        $wilayah = trim((string) $request->input('wilayah', ''));
+        if ($wilayah !== '') {
+            if ($wilayah === 'BALAI') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%balai%')
+                        ->orWhere('satuan_kerja', $likeOp, '%samarinda%')
+                        ->orWhere('satuan_kerja', $likeOp, '%tata usaha%');
+                });
+            } elseif ($wilayah === 'SKW_1') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah i %')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
+                        ->orWhere('satuan_kerja', $likeOp, '%berau%')
+                        ->orWhere('satuan_kerja', $likeOp, '%derawan%')
+                        ->orWhere('satuan_kerja', $likeOp, '%kelay%')
+                        ->orWhere('satuan_kerja', $likeOp, '%segah%')
+                        ->orWhere('satuan_kerja', $likeOp, '%talisayan%');
+                });
+            } elseif ($wilayah === 'SKW_2') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah ii %')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
+                        ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
+                        ->orWhere('satuan_kerja', $likeOp, '%paser%')
+                        ->orWhere('satuan_kerja', $likeOp, '%sangatta%')
+                        ->orWhere('satuan_kerja', $likeOp, '%bengalon%')
+                        ->orWhere('satuan_kerja', $likeOp, '%sangkulirang%')
+                        ->orWhere('satuan_kerja', $likeOp, '%muara kama%')
+                        ->orWhere('satuan_kerja', $likeOp, '%kembang janggut%')
+                        ->orWhere('satuan_kerja', $likeOp, '%dondang%');
+                });
+            } elseif ($wilayah === 'SKW_3') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah iii%')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
+                        ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
+                        ->orWhere('satuan_kerja', $likeOp, '%bangkirai%')
+                        ->orWhere('satuan_kerja', $likeOp, '%penajam%')
+                        ->orWhere('satuan_kerja', $likeOp, '%nusantara%');
+                });
+            } else {
+                $escapedWilayah = addcslashes($wilayah, '%_');
+                $resorMatch = null;
+                if (preg_match('/Resor\s+0*(\d+)\.\s*(.+)$/i', $wilayah, $m)) {
+                    $resorNum = $m[1];
+                    $resorName = addcslashes(trim($m[2]), '%_');
+                    $resorMatch = ["Resor KSDA Wilayah {$resorNum}", $resorName];
+                }
+                $query->where(function ($q) use ($escapedWilayah, $resorMatch, $likeOp) {
+                    $q->where('satuan_kerja', $likeOp, "%{$escapedWilayah}%")
+                        ->orWhere('jabatan', $likeOp, "%{$escapedWilayah}%");
+                    if ($resorMatch) {
+                        $q->orWhere('jabatan', $likeOp, "%{$resorMatch[0]}%")
+                            ->orWhere('jabatan', $likeOp, "%{$resorMatch[1]}%");
+                    }
+                });
+            }
+        }
+
         // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
         $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
 
         if ($searchTerm !== '') {
             $escapedTerm = addcslashes($searchTerm, '%_');
-            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
             $query->where(function ($q) use ($escapedTerm, $likeOp) {
                 $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
+                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('jabatan', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('satuan_kerja', $likeOp, "%{$escapedTerm}%");
             });
         }
 
-        // Status filter opsional
-        if ($request->has('is_active')) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
-
-        // Ambil data dengan Pagination (default 10 baris per halaman)
-        $requestedPerPage = max(1, (int) $request->input('per_page', 10));
+        // Ambil data dengan Pagination (default 10 baris per halaman, 'all' = 500)
+        $rawPerPage = strtolower(trim((string) $request->input('per_page', '10')));
+        $requestedPerPage = $rawPerPage === 'all' ? 500 : max(1, (int) $rawPerPage);
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
@@ -64,6 +148,7 @@ class EmployeeController extends Controller
                 'last_page' => $employees->lastPage(),
                 'per_page' => $employees->perPage(),
                 'total' => $employees->total(),
+                'counts' => $counts,
             ],
         ]);
     }
@@ -250,6 +335,76 @@ class EmployeeController extends Controller
 
         return response()->json([
             'message' => 'Data pegawai berhasil dihapus (soft delete).',
+        ]);
+    }
+
+    /**
+     * POST /api/kepegawaian/employees/{id}/restore
+     * Pulihkan data pegawai yang telah di-soft-delete menjadi aktif kembali.
+     */
+    public function restore($id): JsonResponse
+    {
+        $employee = Employee::onlyTrashed()->findOrFail($id);
+        $employee->restore();
+        $employee->update(['is_active' => true]);
+
+        return response()->json([
+            'message' => 'Data pegawai berhasil dipulihkan.',
+            'data' => $employee->fresh(),
+        ]);
+    }
+
+    /**
+     * DELETE /api/kepegawaian/employees/{id}/force
+     * Hapus permanen data pegawai, foto di RustFS, serta akun user terkait.
+     */
+    public function forceDestroy(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::withTrashed()->findOrFail($id);
+
+        $currentUser = $request->user();
+        if ($currentUser && ($currentUser->username === $employee->nip || (int) $currentUser->employee_id === (int) $employee->id)) {
+            return response()->json([
+                'message' => 'Anda tidak dapat menghapus permanen data pegawai akun Anda sendiri.',
+            ], 403);
+        }
+
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::withTrashed()->where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat menghapus permanen akun Super Admin.',
+            ], 403);
+        }
+
+        $filesToDelete = array_filter([$employee->foto_profil]);
+        $leaveRequests = EmployeeLeaveRequest::withTrashed()
+            ->where('employee_id', $employee->id)
+            ->get(['scan_surat_path', 'scan_formulir_path', 'scan_surat_izin_path']);
+        foreach ($leaveRequests as $lr) {
+            foreach (['scan_surat_path', 'scan_formulir_path', 'scan_surat_izin_path'] as $col) {
+                if (! empty($lr->{$col})) {
+                    $filesToDelete[] = $lr->{$col};
+                }
+            }
+        }
+
+        DB::transaction(function () use ($employee, $targetUser) {
+            if ($targetUser && $targetUser->role !== 'super_admin') {
+                $targetUser->tokens()->delete();
+                $targetUser->forceDelete();
+            }
+            $employee->forceDelete();
+        });
+
+        foreach (array_unique($filesToDelete) as $path) {
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Data pegawai, akun akses, dan foto profil berhasil dihapus permanen.',
         ]);
     }
 
