@@ -538,18 +538,27 @@ class EmployeeController extends Controller
                     ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
 
-        // 1. Total & Active Employees
+        // 1. Total & Active Employees + Kategori Breakdown
         $totalEmployees = (clone $baseQuery)->count();
         $activeEmployees = (clone $baseQuery)->where('is_active', true)->count();
+        $pnsCount = (clone $baseQuery)->ofJenis('PNS')->count();
+        $pppkCount = (clone $baseQuery)->ofJenis('PPPK')->count();
+        $mmpCount = (clone $baseQuery)->ofJenis('MMP')->count();
         $activeRate = $totalEmployees > 0 
             ? number_format(($activeEmployees / $totalEmployees) * 100, 1) . '%' 
             : '100%';
 
-        // 2. Surat Tugas Aktif
+        // 2. Surat Tugas Aktif & Pending
         $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
+        $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
 
-        // 3. Pending Leave Requests
+        // 3. Leave Requests & Surat Masuk
         $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
+        $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
+        $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
+        $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
+            $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+        })->count();
 
         // 4. Sebaran Satuan Kerja
         $satkerRaw = (clone $baseQuery)
@@ -580,6 +589,7 @@ class EmployeeController extends Controller
         $denom = max(1, $totalEmployees);
         $satkerBreakdown = [
             [
+                'code' => 'BALAI',
                 'name' => 'Kantor Balai (Samarinda)',
                 'count' => $samarindaCount,
                 'percentage' => (int) round(($samarindaCount / $denom) * 100),
@@ -587,6 +597,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-blue-500',
             ],
             [
+                'code' => 'SKW_1',
                 'name' => 'Seksi KSDA Wilayah I Berau',
                 'count' => $berauCount,
                 'percentage' => (int) round(($berauCount / $denom) * 100),
@@ -594,6 +605,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-sky-400',
             ],
             [
+                'code' => 'SKW_2',
                 'name' => 'Seksi KSDA Wilayah II Tenggarong',
                 'count' => $tenggarongCount,
                 'percentage' => (int) round(($tenggarongCount / $denom) * 100),
@@ -601,6 +613,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-emerald-400',
             ],
             [
+                'code' => 'SKW_3',
                 'name' => 'Seksi KSDA Wilayah III Balikpapan',
                 'count' => $balikpapanCount,
                 'percentage' => (int) round(($balikpapanCount / $denom) * 100),
@@ -610,7 +623,7 @@ class EmployeeController extends Controller
         ];
 
         // 5. Recent Surat Tugas
-        $recentSt = AssignmentLetter::latest()->take(5)->get()->map(function ($st) {
+        $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
             return [
                 'id' => 'st-' . $st->id,
                 'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
@@ -625,9 +638,16 @@ class EmployeeController extends Controller
             'data' => [
                 'total_employees' => $totalEmployees,
                 'active_employees' => $activeEmployees,
+                'pns_count' => $pnsCount,
+                'pppk_count' => $pppkCount,
+                'mmp_count' => $mmpCount,
                 'active_rate' => $activeRate,
                 'active_surat_tugas' => $activeStCount,
+                'pending_surat_tugas' => $pendingStCount,
                 'pending_cuti' => $pendingCutiCount,
+                'approved_cuti' => $approvedCutiCount,
+                'total_surat_masuk' => $totalSuratMasuk,
+                'unreplied_surat_masuk' => $unrepliedSuratMasuk,
                 'satker_breakdown' => $satkerBreakdown,
                 'recent_activities' => $recentSt,
             ],

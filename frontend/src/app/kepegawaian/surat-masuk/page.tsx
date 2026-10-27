@@ -436,15 +436,15 @@ export default function EmployeeIncomingLettersPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-5 md:p-7 space-y-5">
       {/* Header Halaman */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium">
             <Inbox className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Kepegawaian</span>
           </div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Arsip Surat Masuk</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Arsip Surat Masuk</h1>
           <p className="mt-1 text-xs sm:text-sm text-zinc-500">
             Pencatatan agenda surat masuk, pengelolaan berkas lampiran, dan penelusuran status balasan balai.
           </p>
