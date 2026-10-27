@@ -89,7 +89,7 @@ export default function KepegawaianLayout({
                 ? pathname === "/kepegawaian"
                 : item.href === "/kepegawaian/surat-tugas/create"
                 ? pathname === "/kepegawaian/surat-tugas/create" || pathname.startsWith("/kepegawaian/surat-tugas/builder")
-                : pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + "/"));
+                : pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + "/") && !(item.href === "/kepegawaian/employees" && pathname.startsWith("/kepegawaian/employees/create")));
               return (
                 <Link
                   key={item.href}

@@ -58,7 +58,7 @@ export function Sidebar() {
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
               // Cek apakah url saat ini sedang membuka menu tersebut
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + '/'));
               const Icon = item.icon;
 
               return (
