@@ -22,6 +22,8 @@ import {
 } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import { formatNipLabel, formatDateIndonesian, daysBetween } from "@/lib/letter-utils";
 import api from "@/lib/api";
+import { ScheduleConflictBanner } from "@/app/kepegawaian/surat-tugas/_components/ScheduleConflictBanner";
+import { useScheduleConflicts } from "@/app/kepegawaian/surat-tugas/_lib/useScheduleConflicts";
 
 export type JenisTugasType =
   | "Perjalanan Dinas ( Lebih dari 1 Hari )"
@@ -95,11 +97,13 @@ interface SuratTugasDetailStepProps {
   setJumlahBuruh: React.Dispatch<React.SetStateAction<number>>;
   untukKegiatanText?: string;
   setUntukKegiatanText?: (val: string) => void;
+  removeEmployee?: (id: string) => void;
 }
 
 export function SuratTugasDetailStep({
   setStep,
   selectedEmployees,
+  removeEmployee,
   handleSubmit,
   jenisTugas,
   setJenisTugas,
@@ -171,6 +175,26 @@ export function SuratTugasDetailStep({
       })
       .catch(() => {});
   }, []);
+
+  const { data: conflictData, isLoading: isCheckingConflicts } = useScheduleConflicts({
+    employees: selectedEmployees,
+    tanggalMulai: formData.tanggal_mulai,
+    tanggalSelesai: formData.tanggal_selesai,
+    isBedaHari,
+    employeeDates,
+  });
+
+  const conflicts = conflictData?.conflicts || [];
+  const hasConflict = (conflictData?.has_conflict && conflicts.length > 0) ?? false;
+
+  const handleRemoveEmployee = React.useCallback(
+    (empId: number) => {
+      if (removeEmployee) {
+        removeEmployee(String(empId));
+      }
+    },
+    [removeEmployee]
+  );
 
   const activeTaskType = React.useMemo(() => {
     if (selectedTaskTypeId) {
@@ -763,6 +787,16 @@ export function SuratTugasDetailStep({
                 </div>
               )}
 
+              {/* Alert Real-time Bentrok Jadwal Penugasan / Cuti */}
+              {conflicts.length > 0 && (
+                <div className="pt-2">
+                  <ScheduleConflictBanner
+                    conflicts={conflicts}
+                    onRemoveEmployee={removeEmployee ? handleRemoveEmployee : undefined}
+                  />
+                </div>
+              )}
+
               {/* Toggle Buruh / Tenaga Lapangan (PM) */}
               <div className="p-4 bg-blue-50/50 border border-blue-200/60 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between gap-4">
@@ -1121,6 +1155,16 @@ export function SuratTugasDetailStep({
           </div>
         </div>
 
+        {/* Alert Bentrok Jadwal di Dekat Tombol Submit */}
+        {conflicts.length > 0 && (
+          <div className="pt-2">
+            <ScheduleConflictBanner
+              conflicts={conflicts}
+              onRemoveEmployee={removeEmployee ? handleRemoveEmployee : undefined}
+            />
+          </div>
+        )}
+
         {/* Action Button */}
         <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
           <Button
@@ -1134,10 +1178,19 @@ export function SuratTugasDetailStep({
 
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide shadow-md shadow-blue-500/10 transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            disabled={isSubmitting || hasConflict}
+            className={cn(
+              "h-12 px-8 rounded-xl font-bold tracking-wide shadow-md transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer",
+              hasConflict
+                ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/10"
+                : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10"
+            )}
           >
-            {isSubmitting ? "Mengirim Data..." : "Submit Pengajuan Surat Tugas"}
+            {isSubmitting
+              ? "Mengirim Data..."
+              : hasConflict
+              ? "Jadwal Bentrok — Harap Perbaiki"
+              : "Submit Pengajuan Surat Tugas"}
           </Button>
         </div>
       </form>

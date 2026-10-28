@@ -7,6 +7,10 @@ Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
     ->middleware('throttle:60,1')
     ->name('surat-tugas.verify');
 
+Route::post('/check-conflicts', [AssignmentLetterController::class, 'checkConflicts'])
+    ->middleware('throttle:60,1')
+    ->name('surat-tugas.check-conflicts');
+
 // Portal & Mobile: pegawai bisa membuat surat tugas dan melihat surat tugas milik sendiri
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/submit', [AssignmentLetterController::class, 'store'])

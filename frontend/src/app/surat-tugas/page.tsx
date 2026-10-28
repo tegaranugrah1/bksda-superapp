@@ -355,10 +355,20 @@ export default function SuratTugasForm() {
       console.error("Submit failed:", error);
       const axiosErr = error as {
         response?: {
-          data?: { message?: string; errors?: Record<string, string[]> };
+          data?: {
+            message?: string;
+            errors?: Record<string, string[]>;
+            conflicts?: Array<{ message?: string }>;
+          };
         };
       };
-      if (axiosErr?.response?.data?.errors) {
+      if (axiosErr?.response?.data?.conflicts && axiosErr.response.data.conflicts.length > 0) {
+        const conflictMsgs = axiosErr.response.data.conflicts
+          .map((c) => c.message)
+          .filter(Boolean)
+          .join("\n");
+        toast.error(`Bentrok Jadwal:\n${conflictMsgs}`);
+      } else if (axiosErr?.response?.data?.errors) {
         const firstError = Object.values(axiosErr.response.data.errors)[0]?.[0];
         toast.error(firstError || "Validasi gagal.");
       } else {
@@ -477,6 +487,7 @@ export default function SuratTugasForm() {
           <SuratTugasDetailStep
             setStep={setStep}
             selectedEmployees={selectedEmployees}
+            removeEmployee={removeEmployee}
             handleSubmit={handleSubmit}
             jenisTugas={jenisTugas}
             setJenisTugas={setJenisTugas}

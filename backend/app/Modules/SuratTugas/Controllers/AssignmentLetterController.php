@@ -12,13 +12,17 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\SuratTugas\Services\AssignmentLetterConflictService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class AssignmentLetterController extends Controller
 {
-    public function __construct(private readonly StTemplateService $templateService) {}
+    public function __construct(
+        private readonly StTemplateService $templateService,
+        private readonly AssignmentLetterConflictService $conflictService
+    ) {}
 
     /**
      * GET /api/surat-tugas/my
@@ -414,6 +418,21 @@ class AssignmentLetterController extends Controller
     {
         $validated = $request->validated();
 
+        $employees = $validated['employees'] ?? [];
+        $conflictCheck = $this->conflictService->checkConflicts(
+            $employees,
+            $validated['tanggal_mulai'] ?? null,
+            $validated['tanggal_selesai'] ?? null,
+            null
+        );
+
+        if ($conflictCheck['has_conflict']) {
+            return response()->json([
+                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                'conflicts' => $conflictCheck['conflicts'],
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             $authUser = auth('sanctum')->user() ?: $request->user();
@@ -577,6 +596,32 @@ class AssignmentLetterController extends Controller
 
         if (! $isAdmin && in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
             return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.'], 403);
+        }
+
+        $employees = $validated['employees'] ?? [];
+        if (empty($employees)) {
+            $employees = $surat->employees()->get()->map(fn ($e) => [
+                'id' => $e->id,
+                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->format('Y-m-d')) : null,
+                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->format('Y-m-d')) : null,
+            ])->toArray();
+        }
+
+        $targetTanggalMulai = $validated['tanggal_mulai'] ?? ($surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
+        $targetTanggalSelesai = $validated['tanggal_selesai'] ?? ($surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
+
+        $conflictCheck = $this->conflictService->checkConflicts(
+            $employees,
+            $targetTanggalMulai,
+            $targetTanggalSelesai,
+            $cleanId
+        );
+
+        if ($conflictCheck['has_conflict']) {
+            return response()->json([
+                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                'conflicts' => $conflictCheck['conflicts'],
+            ], 422);
         }
 
         DB::beginTransaction();
@@ -1086,6 +1131,35 @@ class AssignmentLetterController extends Controller
 
         $targetStatus = $request->input('status'); // null if not provided
 
+        $employees = $request->input('employees', []);
+        if (empty($employees) && $request->has('employee_ids')) {
+            $employees = $request->input('employee_ids', []);
+        }
+        if (empty($employees)) {
+            $employees = $surat->employees()->get()->map(fn ($e) => [
+                'id' => $e->id,
+                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->format('Y-m-d')) : null,
+                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->format('Y-m-d')) : null,
+            ])->toArray();
+        }
+
+        $targetTanggalMulai = $request->input('tanggal_mulai', $surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
+        $targetTanggalSelesai = $request->input('tanggal_selesai', $surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
+
+        $conflictCheck = $this->conflictService->checkConflicts(
+            $employees,
+            $targetTanggalMulai,
+            $targetTanggalSelesai,
+            $cleanId
+        );
+
+        if ($conflictCheck['has_conflict']) {
+            return response()->json([
+                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                'conflicts' => $conflictCheck['conflicts'],
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             $updateData = array_filter([
@@ -1205,6 +1279,31 @@ class AssignmentLetterController extends Controller
             'next_number' => str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT),
             'current_year' => $year,
         ]);
+    }
+
+    public function checkConflicts(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
+            'employees' => 'nullable|array',
+            'employee_ids' => 'nullable|array',
+            'exclude_id' => 'nullable|string',
+        ]);
+
+        $employees = $request->input('employees', []);
+        if (empty($employees) && $request->has('employee_ids')) {
+            $employees = $request->input('employee_ids', []);
+        }
+
+        $result = $this->conflictService->checkConflicts(
+            $employees,
+            $request->input('tanggal_mulai'),
+            $request->input('tanggal_selesai'),
+            $request->input('exclude_id')
+        );
+
+        return response()->json($result);
     }
 
     private function templateIdFromType(?string $templateType): ?int

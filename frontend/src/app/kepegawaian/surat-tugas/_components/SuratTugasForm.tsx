@@ -81,6 +81,8 @@ import { FormSection } from "./FormSection";
 import { EditableItemListSection } from "./EditableItemListSection";
 import { TembusanSection } from "./TembusanSection";
 import { PenandatanganSection } from "./PenandatanganSection";
+import { ScheduleConflictBanner } from "./ScheduleConflictBanner";
+import { useScheduleConflicts } from "../_lib/useScheduleConflicts";
 
 export interface SuratTugasFormProps {
   mode: "create" | "edit";
@@ -264,6 +266,58 @@ export function SuratTugasForm({
   const [tembusanPosition, setTembusanPosition] = useState<"beside" | "bottom">("beside");
   const [tembusanLabel, setTembusanLabel] = useState("Tembusan:");
   const [kopImageUrl, setKopImageUrl] = useState<string | null>(null);
+
+  const effectiveMulai = useMemo(() => {
+    if (isBedaHariTemplate) {
+      const allMulai = selectedEmployees
+        .map((emp) => employeeDates[String(emp.id)]?.mulai || employeeDates[emp.id]?.mulai)
+        .filter((d): d is string => Boolean(d));
+      if (allMulai.length > 0) {
+        return allMulai.reduce((min, d) => (d < min ? d : min), allMulai[0]);
+      }
+    }
+    return tanggalMulai;
+  }, [isBedaHariTemplate, selectedEmployees, employeeDates, tanggalMulai]);
+
+  const effectiveSelesai = useMemo(() => {
+    if (isBedaHariTemplate) {
+      const allSelesai = selectedEmployees
+        .map((emp) => employeeDates[String(emp.id)]?.selesai || employeeDates[emp.id]?.selesai)
+        .filter((d): d is string => Boolean(d));
+      if (allSelesai.length > 0) {
+        return allSelesai.reduce((max, d) => (d > max ? d : max), allSelesai[0]);
+      }
+    }
+    return tanggalSelesai || tanggalMulai;
+  }, [isBedaHariTemplate, selectedEmployees, employeeDates, tanggalSelesai, tanggalMulai]);
+
+  const { data: conflictData } = useScheduleConflicts({
+    employees: selectedEmployees,
+    tanggalMulai: effectiveMulai,
+    tanggalSelesai: effectiveSelesai,
+    isBedaHari: isBedaHariTemplate,
+    employeeDates,
+    excludeId: letterId ? String(letterId) : undefined,
+  });
+
+  const conflicts = conflictData?.conflicts || [];
+  const hasConflict = (conflictData?.has_conflict && conflicts.length > 0) ?? false;
+
+  const handleRemoveConflictEmployee = useCallback((empId: number) => {
+    const empIdStr = String(empId);
+    setSelectedEmployees((prev) => {
+      const next = prev.filter((e) => String(e.id) !== empIdStr);
+      const remainingBuruh = extractBuruhCount(next);
+      setJumlahBuruh(remainingBuruh);
+      setHasBuruh(remainingBuruh > 0);
+      return next;
+    });
+    setEmployeeDates((prev) => {
+      const next = { ...prev };
+      delete next[empIdStr];
+      return next;
+    });
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -1783,6 +1837,9 @@ export function SuratTugasForm({
 
   // Actions
   const handleSaveDraft = async () => {
+    if (hasConflict) {
+      return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
+    }
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!getTempatTujuanForPayload()) {
@@ -1817,14 +1874,22 @@ export function SuratTugasForm({
     } catch (err: unknown) {
       console.error(err);
       let errorMessage = "Gagal menyimpan draft.";
-      if (isAxiosError<{ message?: string }>(err)) {
-        errorMessage = err.response?.data?.message || errorMessage;
+      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
+        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
+          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
+          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
+        } else {
+          errorMessage = err.response?.data?.message || errorMessage;
+        }
       }
       toast.error(errorMessage);
     }
   };
 
   const handleApprove = async () => {
+    if (hasConflict) {
+      return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
+    }
     if (nomorNumberingType === "st_pattern" && !stNumber) return toast.error("Nomor surat harus diisi.");
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
@@ -1860,14 +1925,22 @@ export function SuratTugasForm({
     } catch (err: unknown) {
       console.error(err);
       let errorMessage = "Gagal menerbitkan Surat Tugas.";
-      if (isAxiosError<{ message?: string }>(err)) {
-        errorMessage = err.response?.data?.message || errorMessage;
+      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
+        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
+          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
+          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
+        } else {
+          errorMessage = err.response?.data?.message || errorMessage;
+        }
       }
       toast.error(errorMessage);
     }
   };
 
   const handleSubmitForApproval = async () => {
+    if (hasConflict) {
+      return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
+    }
     if (!letterId) return;
     if (nomorNumberingType === "st_pattern" && !stNumber) {
       return toast.error("Nomor surat harus diisi.");
@@ -1884,9 +1957,15 @@ export function SuratTugasForm({
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/inbox");
     } catch (err: unknown) {
+      console.error(err);
       let errorMessage = "Gagal mengajukan ST.";
-      if (isAxiosError<{ message?: string }>(err)) {
-        errorMessage = err.response?.data?.message || errorMessage;
+      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
+        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
+          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
+          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
+        } else {
+          errorMessage = err.response?.data?.message || errorMessage;
+        }
       }
       toast.error(errorMessage);
     }
@@ -2449,6 +2528,16 @@ export function SuratTugasForm({
                   );
                 })}
               </div>
+
+              {/* Alert Real-time Bentrok Jadwal Penugasan / Cuti */}
+              {conflicts.length > 0 && (
+                <div className="pt-2">
+                  <ScheduleConflictBanner
+                    conflicts={conflicts}
+                    onRemoveEmployee={!isPublished ? handleRemoveConflictEmployee : undefined}
+                  />
+                </div>
+              )}
             </div>
           </FormSection>
 
@@ -2910,13 +2999,22 @@ export function SuratTugasForm({
 
         {/* Footer Actions */}
         <footer className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
+          {conflicts.length > 0 && (
+            <div className="pb-1">
+              <ScheduleConflictBanner
+                conflicts={conflicts}
+                onRemoveEmployee={!isPublished ? handleRemoveConflictEmployee : undefined}
+              />
+            </div>
+          )}
           {mode === "create" ? (
             <>
               <div className="grid grid-cols-2 gap-2.5">
                 <Button
                   onClick={handleSaveDraft}
                   variant="outline"
-                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
+                  disabled={hasConflict}
+                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
                 </Button>
@@ -2930,9 +3028,16 @@ export function SuratTugasForm({
               </div>
               <Button
                 onClick={handleApprove}
-                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-sm shadow-blue-600/20 cursor-pointer"
+                disabled={hasConflict}
+                className={cn(
+                  "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                  hasConflict
+                    ? "bg-red-600 hover:bg-red-700 shadow-red-600/20"
+                    : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20"
+                )}
               >
-                <CheckCircle className="w-4 h-4 mr-2" /> Terbitkan &amp; Cetak
+                <CheckCircle className="w-4 h-4 mr-2" />{" "}
+                {hasConflict ? "Jadwal Bentrok — Perbaiki Tanggal / Personel" : "Terbitkan & Cetak"}
               </Button>
             </>
           ) : (
@@ -2942,7 +3047,8 @@ export function SuratTugasForm({
                   <Button
                     onClick={handleSaveDraft}
                     variant="outline"
-                    className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer"
+                    disabled={hasConflict}
+                    className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
                   </Button>
@@ -2983,10 +3089,20 @@ export function SuratTugasForm({
               ) : (
                 <Button
                   onClick={handleSubmitForApproval}
-                  className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs shadow-sm shadow-amber-500/20 cursor-pointer"
+                  disabled={hasConflict}
+                  className={cn(
+                    "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                    hasConflict
+                      ? "bg-red-600 hover:bg-red-700 shadow-red-500/20"
+                      : "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
+                  )}
                 >
                   <Send className="w-4 h-4 mr-2" />{" "}
-                  {suratStatus === "pending" ? "Perbarui & Ajukan" : "Ajukan Persetujuan"}
+                  {hasConflict
+                    ? "Jadwal Bentrok — Perbaiki Tanggal / Personel"
+                    : suratStatus === "pending"
+                    ? "Perbarui & Ajukan"
+                    : "Ajukan Persetujuan"}
                 </Button>
               )}
             </>
