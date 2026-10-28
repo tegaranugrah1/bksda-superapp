@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, FileText, Calendar, MapPin, Users, Printer, Downloa
 import { RouteGuard } from "@/components/RouteGuard";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { formatNIP } from "@/lib/letter-utils";
 
 interface Employee {
   id: number;
@@ -315,7 +316,7 @@ export default function SuratTugasPreviewPage() {
                         <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                           <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{idx + 1}</td>
                           <td className="px-4 py-2 font-medium text-slate-700 dark:text-slate-300">{emp.nama_lengkap}</td>
-                          <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{emp.nip}</td>
+                          <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{formatNIP(emp.nip)}</td>
                           <td className="px-4 py-2 text-slate-600 dark:text-slate-400">{emp.jabatan || "-"}</td>
                         </tr>
                       ))}

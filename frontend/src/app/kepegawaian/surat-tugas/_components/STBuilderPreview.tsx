@@ -391,7 +391,7 @@ export default function STBuilderPreview({
                                           <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
                                           <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                         </tr>
-                                        {Boolean(emp.nip && emp.nip.trim() && emp.nip !== "-" && !emp.nip.startsWith("MMP-") && !emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
+                                        {Boolean(!emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
                                           <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                                             <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
                                             <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>

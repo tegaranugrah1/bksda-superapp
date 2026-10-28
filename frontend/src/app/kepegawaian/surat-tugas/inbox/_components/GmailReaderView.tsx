@@ -32,7 +32,7 @@ import {
   cleanMaksudTujuan,
   formatFormalSumberDana,
 } from "../_lib/status-helpers";
-import { formatDateIndonesian, formatDateRangeIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatDateRangeIndonesian, formatNIP } from "@/lib/letter-utils";
 
 interface GmailReaderViewProps {
   letter: AssignmentLetter;
@@ -377,7 +377,7 @@ export function GmailReaderView({
                     <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-zinc-100">
                       {emp.nama_lengkap}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{emp.nip}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{formatNIP(emp.nip)}</td>
                     <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">
                       {emp.jabatan || "-"} {emp.satuan_kerja ? `(${emp.satuan_kerja})` : ""}
                     </td>
