@@ -110,7 +110,7 @@ class AssignmentLetterConflictService
                     'tanggal_mulai' => $existingMulai,
                     'tanggal_selesai' => $existingSelesai,
                     'range_formatted' => $rangeFormatted,
-                    'message' => "{$empName} sudah memiliki Surat Tugas ({$statusUpper}) pada {$rangeFormatted} (No: {$noSurat}).",
+                    'message' => "{$empName}: Ada Surat Tugas aktif pada {$rangeFormatted}.",
                 ];
             }
 
@@ -151,7 +151,7 @@ class AssignmentLetterConflictService
                     'tanggal_mulai' => $leaveMulai,
                     'tanggal_selesai' => $leaveSelesai,
                     'range_formatted' => $rangeFormatted,
-                    'message' => "{$empName} sedang dalam masa Cuti Aktif ({$jenisCuti}) pada {$rangeFormatted}.",
+                    'message' => "{$empName}: Sedang Cuti Aktif pada {$rangeFormatted}.",
                 ];
             }
         }

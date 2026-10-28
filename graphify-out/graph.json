@@ -1462,8 +1462,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_mobiledashboardcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "mobiledashboardcontroller.php"
     },
     {
@@ -1473,8 +1473,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_mobiledashboardcontroller_mobiledashboardcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "mobiledashboardcontroller"
     },
     {
@@ -1484,8 +1484,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_mobiledashboardcontroller_mobiledashboardcontroller_index",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -2067,8 +2067,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "assetcontroller.php"
     },
     {
@@ -2232,8 +2232,8 @@
       "source_location": "L276",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_import",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".import()"
     },
     {
@@ -2243,8 +2243,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetdocumentcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "assetdocumentcontroller.php"
     },
     {
@@ -2375,8 +2375,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetphotocontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "assetphotocontroller.php"
     },
     {
@@ -2485,8 +2485,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "assettypecontroller.php"
     },
     {
@@ -2496,8 +2496,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller_assettypecontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "assettypecontroller"
     },
     {
@@ -2507,8 +2507,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller_assettypecontroller_index",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".index()"
     },
     {
@@ -2518,8 +2518,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller_assettypecontroller_store",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".store()"
     },
     {
@@ -2529,8 +2529,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller_assettypecontroller_update",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".update()"
     },
     {
@@ -2540,8 +2540,8 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assettypecontroller_assettypecontroller_destroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".destroy()"
     },
     {
@@ -2815,8 +2815,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 560,
+      "community_name": "CoveringLetter",
       "norm_label": "coveringlettercontroller.php"
     },
     {
@@ -2903,8 +2903,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_dashboardcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "bmn/controllers/dashboardcontroller.php"
     },
     {
@@ -2914,8 +2914,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_dashboardcontroller_dashboardcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "dashboardcontroller"
     },
     {
@@ -2925,8 +2925,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_dashboardcontroller_dashboardcontroller_stats",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".stats()"
     },
     {
@@ -2936,8 +2936,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "documenthistorycontroller.php"
     },
     {
@@ -3068,8 +3068,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "handoveragreementcontroller.php"
     },
     {
@@ -3090,8 +3090,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_index",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -3200,8 +3200,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": "importreviewcontroller.php"
     },
     {
@@ -3211,8 +3211,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": "importreviewcontroller"
     },
     {
@@ -3222,8 +3222,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_upload",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".upload()"
     },
     {
@@ -3233,8 +3233,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_show",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".show()"
     },
     {
@@ -3244,8 +3244,8 @@
       "source_location": "L140",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_toggleselection",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".toggleselection()"
     },
     {
@@ -3255,8 +3255,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_togglefieldselection",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".togglefieldselection()"
     },
     {
@@ -3266,8 +3266,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_bulkselection",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".bulkselection()"
     },
     {
@@ -3277,8 +3277,8 @@
       "source_location": "L280",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_approve",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".approve()"
     },
     {
@@ -3288,8 +3288,8 @@
       "source_location": "L384",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_reject",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".reject()"
     },
     {
@@ -3299,8 +3299,8 @@
       "source_location": "L399",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_index",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".index()"
     },
     {
@@ -3310,8 +3310,8 @@
       "source_location": "L408",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_setallfieldselection",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".setallfieldselection()"
     },
     {
@@ -3321,8 +3321,8 @@
       "source_location": "L417",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_hasselectedchangedfield",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".hasselectedchangedfield()"
     },
     {
@@ -3332,8 +3332,8 @@
       "source_location": "L428",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_historyvalue",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".historyvalue()"
     },
     {
@@ -3343,8 +3343,8 @@
       "source_location": "L441",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_buildfilteredrowsquery",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".buildfilteredrowsquery()"
     },
     {
@@ -3354,8 +3354,8 @@
       "source_location": "L452",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_applyidentityfilters",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".applyidentityfilters()"
     },
     {
@@ -3365,8 +3365,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "loancontroller.php"
     },
     {
@@ -3376,8 +3376,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "loancontroller"
     },
     {
@@ -3387,8 +3387,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_construct",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".__construct()"
     },
     {
@@ -3420,8 +3420,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_borrow",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".borrow()"
     },
     {
@@ -3431,8 +3431,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_update",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".update()"
     },
     {
@@ -3442,8 +3442,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_return",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".return()"
     },
     {
@@ -3453,8 +3453,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_destroy",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".destroy()"
     },
     {
@@ -3464,8 +3464,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "locationcontroller.php"
     },
     {
@@ -3475,8 +3475,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "locationcontroller"
     },
     {
@@ -3486,8 +3486,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller_index",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".index()"
     },
     {
@@ -3497,8 +3497,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller_store",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".store()"
     },
     {
@@ -3508,8 +3508,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller_update",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".update()"
     },
     {
@@ -3519,8 +3519,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller_destroy",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".destroy()"
     },
     {
@@ -3530,8 +3530,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_locationcontroller_locationcontroller_ensureunitkerjaallowed",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".ensureunitkerjaallowed()"
     },
     {
@@ -3541,8 +3541,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "maintenancecontroller.php"
     },
     {
@@ -3552,8 +3552,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "maintenancecontroller"
     },
     {
@@ -3563,8 +3563,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_construct",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".__construct()"
     },
     {
@@ -3574,8 +3574,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_index",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -3585,8 +3585,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_record",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".record()"
     },
     {
@@ -3596,8 +3596,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "powerofattorneycontroller.php"
     },
     {
@@ -3684,8 +3684,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_tagcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "tagcontroller.php"
     },
     {
@@ -3706,8 +3706,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_tagcontroller_tagcontroller_index",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -3772,8 +3772,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "usageagreementcontroller.php"
     },
     {
@@ -3794,8 +3794,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_index",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -4278,8 +4278,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_exports_maintenanceexport_maintenanceexport_collection",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".collection()"
     },
     {
@@ -5521,8 +5521,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_asset",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "asset.php"
     },
     {
@@ -5675,8 +5675,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "assetloan"
     },
     {
@@ -5686,8 +5686,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_asset",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".asset()"
     },
     {
@@ -5697,8 +5697,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_borrower",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".borrower()"
     },
     {
@@ -5708,8 +5708,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_scopeactive",
-      "community": 489,
-      "community_name": "EmployeeIncomingLetter",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".scopeactive()"
     },
     {
@@ -5719,8 +5719,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "assetmaintenance.php"
     },
     {
@@ -5730,8 +5730,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "assetmaintenance"
     },
     {
@@ -5741,8 +5741,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance_asset",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".asset()"
     },
     {
@@ -5752,8 +5752,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assettype",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "assettype.php"
     },
     {
@@ -5763,8 +5763,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assettype_assettype",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "assettype"
     },
     {
@@ -5774,8 +5774,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assettype_assettype_assets",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".assets()"
     },
     {
@@ -5785,8 +5785,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetupdate",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "assetupdate.php"
     },
     {
@@ -5851,8 +5851,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_auctionbatch_auctionbatch_assets",
-      "community": 524,
-      "community_name": "AssignmentLetter",
+      "community": 477,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": ".assets()"
     },
     {
@@ -5862,8 +5862,8 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_auctionbatch_auctionbatch_assetrows",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".assetrows()"
     },
     {
@@ -5873,8 +5873,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_auctionbatch_auctionbatch_events",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".events()"
     },
     {
@@ -6082,8 +6082,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": "importbatch"
     },
     {
@@ -6093,8 +6093,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_uploader",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".uploader()"
     },
     {
@@ -6104,8 +6104,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_approver",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".approver()"
     },
     {
@@ -6115,8 +6115,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_stagingrows",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".stagingrows()"
     },
     {
@@ -6126,8 +6126,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": "importstaging.php"
     },
     {
@@ -6137,8 +6137,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": "importstaging"
     },
     {
@@ -6148,8 +6148,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging_batch",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".batch()"
     },
     {
@@ -6159,8 +6159,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging_existingasset",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 537,
+      "community_name": "ImportBatch",
       "norm_label": ".existingasset()"
     },
     {
@@ -6170,8 +6170,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_location",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "location.php"
     },
     {
@@ -6181,8 +6181,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_location_location",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "location"
     },
     {
@@ -6192,8 +6192,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_location_location_assets",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".assets()"
     },
     {
@@ -6247,8 +6247,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_tag",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 477,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "tag.php"
     },
     {
@@ -6280,8 +6280,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_tag_tag_subtags",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".subtags()"
     },
     {
@@ -6291,8 +6291,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_tag_tag_assets",
-      "community": 524,
-      "community_name": "AssignmentLetter",
+      "community": 477,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": ".assets()"
     },
     {
@@ -7094,8 +7094,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "assetmaintenanceresource.php"
     },
     {
@@ -7105,8 +7105,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "assetmaintenanceresource"
     },
     {
@@ -7116,8 +7116,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource_toarray",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -7127,8 +7127,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "assetresource.php"
     },
     {
@@ -7336,8 +7336,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "coveringletterresource.php"
     },
     {
@@ -7347,8 +7347,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource_coveringletterresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "coveringletterresource"
     },
     {
@@ -7358,8 +7358,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource_coveringletterresource_toarray",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -7369,8 +7369,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "handoveragreementresource.php"
     },
     {
@@ -7380,8 +7380,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "handoveragreementresource"
     },
     {
@@ -7391,8 +7391,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource_toarray",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -7402,8 +7402,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_powerofattorneyresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": "powerofattorneyresource.php"
     },
     {
@@ -7446,8 +7446,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_tagresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "tagresource.php"
     },
     {
@@ -7457,8 +7457,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_tagresource_tagresource",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "tagresource"
     },
     {
@@ -7468,8 +7468,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_tagresource_tagresource_toarray",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -7479,8 +7479,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "usageagreementresource.php"
     },
     {
@@ -7490,8 +7490,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "usageagreementresource"
     },
     {
@@ -7501,8 +7501,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource_toarray",
-      "community": 560,
-      "community_name": "CoveringLetter",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toarray()"
     },
     {
@@ -7512,8 +7512,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_routes_api",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "bmn/routes/api.php"
     },
     {
@@ -7523,8 +7523,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_assetservice",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "assetservice.php"
     },
     {
@@ -8370,8 +8370,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "loanservice.php"
     },
     {
@@ -8381,8 +8381,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "loanservice"
     },
     {
@@ -8392,8 +8392,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_listloans",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".listloans()"
     },
     {
@@ -8403,8 +8403,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_createloan",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".createloan()"
     },
     {
@@ -8414,8 +8414,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_borrowasset",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".borrowasset()"
     },
     {
@@ -8425,8 +8425,8 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_updateloan",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".updateloan()"
     },
     {
@@ -8436,8 +8436,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_returnasset",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".returnasset()"
     },
     {
@@ -8447,8 +8447,8 @@
       "source_location": "L206",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_loanservice_loanservice_deleteloan",
-      "community": 534,
-      "community_name": "Asset",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".deleteloan()"
     },
     {
@@ -8458,8 +8458,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "maintenanceservice.php"
     },
     {
@@ -8469,8 +8469,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice_maintenanceservice",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "maintenanceservice"
     },
     {
@@ -8480,8 +8480,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice_maintenanceservice_recordmaintenance",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".recordmaintenance()"
     },
     {
@@ -8920,8 +8920,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_pesancontroller_pesancontroller",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "pesancontroller"
     },
     {
@@ -8931,8 +8931,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_pesancontroller_pesancontroller_index",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -8942,8 +8942,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_pesancontroller_pesancontroller_markasread",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".markasread()"
     },
     {
@@ -8953,8 +8953,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "backend_app_modules_cms_controllers_admin_pesancontroller_pesancontroller_destroy",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".destroy()"
     },
     {
@@ -9899,8 +9899,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_pesan_pesan",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "pesan"
     },
     {
@@ -9910,8 +9910,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_cms_models_pesan_pesan_scopeunread",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".scopeunread()"
     },
     {
@@ -10295,8 +10295,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "eksternalcontroller.php"
     },
     {
@@ -10306,8 +10306,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "eksternalcontroller"
     },
     {
@@ -10317,8 +10317,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_index",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -10328,8 +10328,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_show",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".show()"
     },
     {
@@ -10339,8 +10339,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_storepublic",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".storepublic()"
     },
     {
@@ -10350,8 +10350,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_updatestatus",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".updatestatus()"
     },
     {
@@ -10361,8 +10361,8 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_downloadfile",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".downloadfile()"
     },
     {
@@ -10372,8 +10372,8 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_destroy",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".destroy()"
     },
     {
@@ -10526,8 +10526,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_internalcontroller",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "internalcontroller.php"
     },
     {
@@ -10537,8 +10537,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_internalcontroller_internalcontroller",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "internalcontroller"
     },
     {
@@ -10548,8 +10548,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_internalcontroller_internalcontroller_index",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -10570,8 +10570,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_internalcontroller_internalcontroller_downloadfile",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".downloadfile()"
     },
     {
@@ -10581,8 +10581,8 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_internalcontroller_internalcontroller_destroy",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".destroy()"
     },
     {
@@ -10669,8 +10669,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_operatorcontroller",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "operatorcontroller.php"
     },
     {
@@ -11109,8 +11109,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_dynamicform_dynamicform_responses",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".responses()"
     },
     {
@@ -11164,8 +11164,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_ekternal_ekternal",
-      "community": 537,
-      "community_name": "Ekternal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "ekternal"
     },
     {
@@ -11186,8 +11186,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "internal"
     },
     {
@@ -11197,8 +11197,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_uploader",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".uploader()"
     },
     {
@@ -11208,8 +11208,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_tahun",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".tahun()"
     },
     {
@@ -11219,8 +11219,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_bidang",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".bidang()"
     },
     {
@@ -11230,8 +11230,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_jenis",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".jenis()"
     },
     {
@@ -11241,8 +11241,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_kategori",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".kategori()"
     },
     {
@@ -11252,8 +11252,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_jenisdata",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".jenisdata()"
     },
     {
@@ -11263,8 +11263,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_koordinator",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".koordinator()"
     },
     {
@@ -11274,8 +11274,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_internal_internal_anggaran",
-      "community": 365,
-      "community_name": "Internal",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".anggaran()"
     },
     {
@@ -11725,8 +11725,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_routes_api",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "dereporting/routes/api.php"
     },
     {
@@ -11736,8 +11736,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_categorycontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "controllers/categorycontroller.php"
     },
     {
@@ -11747,8 +11747,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_categorycontroller_categorycontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": "categorycontroller"
     },
     {
@@ -11758,8 +11758,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_categorycontroller_categorycontroller_index",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 3,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -11846,8 +11846,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_controllers_itemcontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "itemcontroller.php"
     },
     {
@@ -12473,8 +12473,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_category_category_items",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".items()"
     },
     {
@@ -12528,8 +12528,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_item",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": "item.php"
     },
     {
@@ -12561,8 +12561,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_item_item_stocks",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".stocks()"
     },
     {
@@ -12605,8 +12605,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_inventory_models_office_office_stocks",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".stocks()"
     },
     {
@@ -13771,8 +13771,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_stexpensetemplatecontroller_stexpensetemplatecontroller_index",
-      "community": 43,
-      "community_name": "StExpenseTemplate",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".index()"
     },
     {
@@ -13936,8 +13936,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_sttemplatecontroller",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplatecontroller.php"
     },
     {
@@ -13969,8 +13969,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_sttemplatecontroller_sttemplatecontroller_index",
-      "community": 43,
-      "community_name": "StExpenseTemplate",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".index()"
     },
     {
@@ -14057,8 +14057,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_sttemplatecontroller_sttemplatecontroller_uploadkop",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".uploadkop()"
     },
     {
@@ -14310,8 +14310,8 @@
       "source_location": "L270",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_user",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".user()"
     },
     {
@@ -14398,8 +14398,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeincomingletter_employeeincomingletter_scopefilter",
-      "community": 489,
-      "community_name": "EmployeeIncomingLetter",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": ".scopefilter()"
     },
     {
@@ -14409,8 +14409,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeincomingletter_employeeincomingletter_attachments",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".attachments()"
     },
     {
@@ -14420,8 +14420,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeincomingletter_employeeincomingletter_creator",
-      "community": 489,
-      "community_name": "EmployeeIncomingLetter",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".creator()"
     },
     {
@@ -14453,8 +14453,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeincomingletterattachment_employeeincomingletterattachment_incomingletter",
-      "community": 489,
-      "community_name": "EmployeeIncomingLetter",
+      "community": 35,
+      "community_name": "Illuminate\\Database\\Eloquent\\Relations\\BelongsTo",
       "norm_label": ".incomingletter()"
     },
     {
@@ -14750,8 +14750,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_sttemplate",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplate.php"
     },
     {
@@ -14783,8 +14783,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_sttemplate_sttemplate_versions",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".versions()"
     },
     {
@@ -15608,8 +15608,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": "spjcontroller"
     },
     {
@@ -15619,8 +15619,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_index",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".index()"
     },
     {
@@ -15630,8 +15630,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_store",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".store()"
     },
     {
@@ -15641,8 +15641,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_show",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".show()"
     },
     {
@@ -15652,8 +15652,8 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_update",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".update()"
     },
     {
@@ -15663,8 +15663,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_destroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".destroy()"
     },
     {
@@ -15674,8 +15674,8 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_updatestatus",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".updatestatus()"
     },
     {
@@ -15685,8 +15685,8 @@
       "source_location": "L228",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_exportexcel",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".exportexcel()"
     },
     {
@@ -15696,8 +15696,8 @@
       "source_location": "L262",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_exportexcelbyid",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".exportexcelbyid()"
     },
     {
@@ -15872,8 +15872,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_models_spj_spj",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": "spj"
     },
     {
@@ -15883,8 +15883,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_models_spj_spj_creator",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": ".creator()"
     },
     {
@@ -16400,8 +16400,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_controllers_assignmentlettercontroller_assignmentlettercontroller_construct",
-      "community": 27,
-      "community_name": "StTemplate",
+      "community": 524,
+      "community_name": "AssignmentLetter",
       "norm_label": ".__construct()"
     },
     {
@@ -17181,8 +17181,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_models_assignmentletter_assignmentletter_employees",
-      "community": 524,
-      "community_name": "AssignmentLetter",
+      "community": 477,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": ".employees()"
     },
     {
@@ -17346,8 +17346,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_services_assignmentletterconflictservice",
-      "community": 27,
-      "community_name": "StTemplate",
+      "community": 524,
+      "community_name": "AssignmentLetter",
       "norm_label": "assignmentletterconflictservice.php"
     },
     {
@@ -17357,8 +17357,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_services_assignmentletterconflictservice_assignmentletterconflictservice",
-      "community": 27,
-      "community_name": "StTemplate",
+      "community": 524,
+      "community_name": "AssignmentLetter",
       "norm_label": "assignmentletterconflictservice"
     },
     {
@@ -17368,8 +17368,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_services_assignmentletterconflictservice_assignmentletterconflictservice_checkconflicts",
-      "community": 27,
-      "community_name": "StTemplate",
+      "community": 524,
+      "community_name": "AssignmentLetter",
       "norm_label": ".checkconflicts()"
     },
     {
@@ -17379,8 +17379,8 @@
       "source_location": "L165",
       "_origin": "ast",
       "id": "backend_app_modules_surattugas_services_assignmentletterconflictservice_assignmentletterconflictservice_formatdatehuman",
-      "community": 27,
-      "community_name": "StTemplate",
+      "community": 524,
+      "community_name": "AssignmentLetter",
       "norm_label": ".formatdatehuman()"
     },
     {
@@ -17511,8 +17511,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukcontroller.php"
     },
     {
@@ -17522,8 +17522,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukcontroller"
     },
     {
@@ -17533,8 +17533,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_exportexcel",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".exportexcel()"
     },
     {
@@ -17544,8 +17544,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_index",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -17555,8 +17555,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_store",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -17566,8 +17566,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_show",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -17577,8 +17577,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_update",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -17588,8 +17588,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_destroy",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -17874,8 +17874,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasuk"
     },
     {
@@ -17885,8 +17885,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_disposisi",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".disposisi()"
     },
     {
@@ -17896,8 +17896,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_creator",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".creator()"
     },
     {
@@ -17973,8 +17973,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukrequest.php"
     },
     {
@@ -17984,8 +17984,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukrequest"
     },
     {
@@ -17995,8 +17995,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_authorize",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".authorize()"
     },
     {
@@ -18006,8 +18006,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_prepareforvalidation",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".prepareforvalidation()"
     },
     {
@@ -18017,8 +18017,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_rules",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".rules()"
     },
     {
@@ -18215,8 +18215,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "supabasestorageservice.php"
     },
     {
@@ -18226,8 +18226,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "supabasestorageservice"
     },
     {
@@ -18237,8 +18237,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_construct",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".__construct()"
     },
     {
@@ -18248,8 +18248,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_upload",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".upload()"
     },
     {
@@ -18259,8 +18259,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_delete",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".delete()"
     },
     {
@@ -18270,8 +18270,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_services_supabasestorageservice_supabasestorageservice_publicurl",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".publicurl()"
     },
     {
@@ -18281,8 +18281,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "uploadvalidationrules.php"
     },
     {
@@ -18292,8 +18292,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "uploadvalidationrules"
     },
     {
@@ -18303,8 +18303,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules_spreadsheet",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".spreadsheet()"
     },
     {
@@ -18314,8 +18314,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_support_security_uploadvalidationrules_uploadvalidationrules_image",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".image()"
     },
     {
@@ -21174,8 +21174,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_database_seeders_bmnmasterdataseeder",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "bmnmasterdataseeder.php"
     },
     {
@@ -21185,8 +21185,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_database_seeders_bmnmasterdataseeder_bmnmasterdataseeder",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "bmnmasterdataseeder"
     },
     {
@@ -21196,8 +21196,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_database_seeders_bmnmasterdataseeder_bmnmasterdataseeder_run",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".run()"
     },
     {
@@ -21405,8 +21405,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_database_seeders_officiallocationseeder",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 48,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "officiallocationseeder.php"
     },
     {
@@ -21504,8 +21504,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_database_seeders_sttemplateseeder",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplateseeder.php"
     },
     {
@@ -21515,8 +21515,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_database_seeders_sttemplateseeder_sttemplateseeder",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplateseeder"
     },
     {
@@ -21526,8 +21526,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_database_seeders_sttemplateseeder_sttemplateseeder_run",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".run()"
     },
     {
@@ -21735,8 +21735,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_feature_bmnmasterdatatest",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": "bmnmasterdatatest.php"
     },
     {
@@ -21845,8 +21845,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_feature_bmntagtest",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 120,
+      "community_name": "Employee",
       "norm_label": "bmntagtest.php"
     },
     {
@@ -22967,8 +22967,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplatetest.php"
     },
     {
@@ -22978,8 +22978,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "sttemplatetest"
     },
     {
@@ -22989,8 +22989,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_setup",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".setup()"
     },
     {
@@ -23000,8 +23000,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_test_only_superadmin_can_create_template",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".test_only_superadmin_can_create_template()"
     },
     {
@@ -23011,8 +23011,8 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_test_superadmin_can_update_default_and_duplicate_template",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".test_superadmin_can_update_default_and_duplicate_template()"
     },
     {
@@ -23022,8 +23022,8 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_test_inactive_templates_are_hidden_from_regular_users",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".test_inactive_templates_are_hidden_from_regular_users()"
     },
     {
@@ -23033,8 +23033,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_test_system_template_cannot_be_deleted",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".test_system_template_cannot_be_deleted()"
     },
     {
@@ -23044,8 +23044,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_test_superadmin_can_upload_kop_image",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".test_superadmin_can_upload_kop_image()"
     },
     {
@@ -23055,8 +23055,8 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "backend_tests_feature_sttemplatetest_sttemplatetest_payload",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": ".payload()"
     },
     {
@@ -23099,8 +23099,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_can_list_surat_masuk",
-      "community": 120,
-      "community_name": "Employee",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_can_list_surat_masuk()"
     },
     {
@@ -37470,7 +37470,7 @@
       "label": "ScheduleConflictBanner()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/surat-tugas/_components/ScheduleConflictBanner.tsx",
-      "source_location": "L25",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_scheduleconflictbanner_scheduleconflictbanner",
       "community": 479,
@@ -47791,8 +47791,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 688,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -47802,8 +47802,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 688,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -47879,8 +47879,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_font",
-      "community": 760,
-      "community_name": "expo-font",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-font"
     },
     {
@@ -47890,8 +47890,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "expo_font",
-      "community": 760,
-      "community_name": "expo-font",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-font"
     },
     {
@@ -93100,8 +93100,8 @@
       "source_location": "L857",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_176_sinkronisasi_form_detail_kegiatan_st_builder_premium",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 628,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "progress - phase 176: sinkronisasi form detail kegiatan st builder premium"
     },
     {
@@ -93111,8 +93111,8 @@
       "source_location": "L864",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_form_detail_kegiatan_st_builder_premium_create_builder_id_dengan_surat_tugas",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 628,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "sinkronisasi form detail kegiatan st builder premium (`create` & `builder/[id]`) dengan `/surat-tugas`"
     },
     {
@@ -93122,8 +93122,8 @@
       "source_location": "L866",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_866",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 628,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "status: selesai"
     },
     {
@@ -93133,8 +93133,8 @@
       "source_location": "L880",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_880",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 628,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93276,8 +93276,8 @@
       "source_location": "L975",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_172_perbaikan_tampilan_lokasi_di_inbox_surat_tugas",
-      "community": 628,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 172: perbaikan tampilan lokasi di inbox surat tugas"
     },
     {
@@ -93287,8 +93287,8 @@
       "source_location": "L982",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_lokasi_tempat_tujuan_di_inbox_surat_tugas_kepegawaian_surat_tugas_inbox",
-      "community": 628,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "perbaikan tampilan lokasi tempat tujuan di inbox surat tugas (`/kepegawaian/surat-tugas/inbox`)"
     },
     {
@@ -93298,8 +93298,8 @@
       "source_location": "L984",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_984",
-      "community": 628,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -93309,8 +93309,8 @@
       "source_location": "L994",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_994",
-      "community": 628,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93672,8 +93672,8 @@
       "source_location": "L1226",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_163_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 567,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 163: inbox surat tugas alur master-detail mobile"
     },
     {
@@ -93683,8 +93683,8 @@
       "source_location": "L1233",
       "_origin": "ast",
       "id": "docs_progress_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 567,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "inbox surat tugas alur master-detail mobile"
     },
     {
@@ -93694,8 +93694,8 @@
       "source_location": "L1235",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1235",
-      "community": 567,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -93705,8 +93705,8 @@
       "source_location": "L1244",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1244",
-      "community": 567,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94112,8 +94112,8 @@
       "source_location": "L1521",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_153_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 688,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 153: mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -94123,8 +94123,8 @@
       "source_location": "L1528",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_detail_screen_superadmin_iam_access_management_modal",
-      "community": 688,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile employee detail screen & superadmin iam access management modal"
     },
     {
@@ -94134,8 +94134,8 @@
       "source_location": "L1530",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1530",
-      "community": 688,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -94145,8 +94145,8 @@
       "source_location": "L1546",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1546",
-      "community": 688,
-      "community_name": "Mobile Employee Detail Screen & SuperAdmin IAM Access Management Modal",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94332,8 +94332,8 @@
       "source_location": "L1667",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_148_mobile_login_screen_branding_clean_up",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "progress - phase 148: mobile login screen branding & clean up"
     },
     {
@@ -94343,8 +94343,8 @@
       "source_location": "L1674",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_screen_branding_clean_up",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "mobile login screen branding & clean up"
     },
     {
@@ -94354,8 +94354,8 @@
       "source_location": "L1676",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1676",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "status: selesai"
     },
     {
@@ -94365,8 +94365,8 @@
       "source_location": "L1689",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1689",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94563,8 +94563,8 @@
       "source_location": "L1817",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_143_mobile_application_ui_ux_polishing_single_navigation_fix",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
       "norm_label": "progress - phase 143: mobile application ui/ux polishing & single navigation fix"
     },
     {
@@ -94574,8 +94574,8 @@
       "source_location": "L1824",
       "_origin": "ast",
       "id": "docs_progress_mobile_application_ui_ux_polishing_single_navigation_fix",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
       "norm_label": "mobile application ui/ux polishing & single navigation fix"
     },
     {
@@ -94585,8 +94585,8 @@
       "source_location": "L1826",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1826",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
       "norm_label": "status: selesai"
     },
     {
@@ -94596,8 +94596,8 @@
       "source_location": "L1830",
       "_origin": "ast",
       "id": "docs_progress_implementasi",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
       "norm_label": "implementasi"
     },
     {
@@ -94607,8 +94607,8 @@
       "source_location": "L1845",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1845",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -109677,8 +109677,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_uploadedfile",
-      "community": 577,
-      "community_name": "SupabaseStorageService",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "illuminate\\http\\uploadedfile"
     },
     {
@@ -109710,8 +109710,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_resources_json_jsonresource",
-      "community": 3,
-      "community_name": "Controller",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "illuminate\\http\\resources\\json\\jsonresource"
     },
     {
@@ -109919,8 +109919,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_builder",
-      "community": 489,
-      "community_name": "EmployeeIncomingLetter",
+      "community": 365,
+      "community_name": "AssetLoan",
       "norm_label": "illuminate\\database\\eloquent\\builder"
     },
     {
@@ -109930,8 +109930,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_relations_belongstomany",
-      "community": 524,
-      "community_name": "AssignmentLetter",
+      "community": 477,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "illuminate\\database\\eloquent\\relations\\belongstomany"
     },
     {
@@ -109941,8 +109941,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_relations_hasmany",
-      "community": 48,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "illuminate\\database\\eloquent\\relations\\hasmany"
     },
     {
@@ -110007,8 +110007,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_resources_json_anonymousresourcecollection",
-      "community": 43,
-      "community_name": "StExpenseTemplate",
+      "community": 27,
+      "community_name": "StTemplate",
       "norm_label": "illuminate\\http\\resources\\json\\anonymousresourcecollection"
     },
     {
@@ -110051,8 +110051,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_relations_hasone",
-      "community": 498,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "illuminate\\database\\eloquent\\relations\\hasone"
     },
     {
@@ -211871,7 +211871,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/surat-tugas/_components/ScheduleConflictBanner.tsx",
-      "source_location": "L25",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_surat_tugas_components_scheduleconflictbanner",
@@ -314480,5 +314480,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9e27b00a16495ec5b825efe8b61288054f2f58c9"
+  "built_at_commit": "3cedad42a009ad16843dea039b7e224fa39c9000"
 }

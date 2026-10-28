@@ -2532,10 +2532,7 @@ export function SuratTugasForm({
               {/* Alert Real-time Bentrok Jadwal Penugasan / Cuti */}
               {conflicts.length > 0 && (
                 <div className="pt-2">
-                  <ScheduleConflictBanner
-                    conflicts={conflicts}
-                    onRemoveEmployee={!isPublished ? handleRemoveConflictEmployee : undefined}
-                  />
+                  <ScheduleConflictBanner conflicts={conflicts} />
                 </div>
               )}
             </div>
@@ -3001,10 +2998,7 @@ export function SuratTugasForm({
         <footer className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
           {conflicts.length > 0 && (
             <div className="pb-1">
-              <ScheduleConflictBanner
-                conflicts={conflicts}
-                onRemoveEmployee={!isPublished ? handleRemoveConflictEmployee : undefined}
-              />
+              <ScheduleConflictBanner conflicts={conflicts} />
             </div>
           )}
           {mode === "create" ? (

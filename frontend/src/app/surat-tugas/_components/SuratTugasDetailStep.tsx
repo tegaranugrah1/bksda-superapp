@@ -790,10 +790,7 @@ export function SuratTugasDetailStep({
               {/* Alert Real-time Bentrok Jadwal Penugasan / Cuti */}
               {conflicts.length > 0 && (
                 <div className="pt-2">
-                  <ScheduleConflictBanner
-                    conflicts={conflicts}
-                    onRemoveEmployee={removeEmployee ? handleRemoveEmployee : undefined}
-                  />
+                  <ScheduleConflictBanner conflicts={conflicts} />
                 </div>
               )}
 
@@ -1154,16 +1151,6 @@ export function SuratTugasDetailStep({
             />
           </div>
         </div>
-
-        {/* Alert Bentrok Jadwal di Dekat Tombol Submit */}
-        {conflicts.length > 0 && (
-          <div className="pt-2">
-            <ScheduleConflictBanner
-              conflicts={conflicts}
-              onRemoveEmployee={removeEmployee ? handleRemoveEmployee : undefined}
-            />
-          </div>
-        )}
 
         {/* Action Button */}
         <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
