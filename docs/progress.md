@@ -1,3 +1,82 @@
+# Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: SELESAI (Implementasi notifikasi in-app terpusat di portal untuk Surat Tugas, Cuti Pegawai & Peminjaman BMN dengan auto-open scan Surat Izin TTE, pembukaan akses publik form /surat-tugas tanpa login beserta proteksi rate limiting & isolasi status guest, pemformatan huruf miring *kata* di Builder/Settings/Pratinjau/Cetak A4, dan hardening keamanan di trust boundary).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Sistem Notifikasi In-App Portal & Riwayat Notifikasi)**: Pegawai membutuhkan satu tempat terpusat di portal (`/portal`) untuk memantau status persetujuan surat tugas, status pengajuan cuti, dan peminjaman BMN tanpa harus mengandalkan toast mengambang yang cepat hilang. Riwayat notifikasi harus dapat dibaca ulang, difilter (Semua / Belum Dibaca), dan ditandai telah dibaca (*Mark as Read*). Khusus notifikasi cuti yang telah disetujui, saat diklik wajib langsung membuka modal pratinjau scan Surat Izin Cuti resmi bertanda tangan elektronik (TTE).
+- **Kebutuhan 2 (Akses Publik Form Surat Tugas `/surat-tugas`)**: Halaman pengajuan surat tugas sebelumnya mewajibkan login `auth:sanctum`, padahal form ini ditujukan bagi seluruh pegawai maupun perwakilan lapangan untuk mengajukan usulan tugas secara langsung. Selain itu, tombol "Kembali ke Portal" bagi pengguna biasa sebelumnya salah mengarah ke root `"/"` yang menyebabkan galeri foto 404 (`5.JPG`) dan mixed content Google Maps.
+- **Kebutuhan 3 (Pemformatan Huruf Miring / Italic Naskah Dinas)**: Penulisan istilah asing atau nama Latin (seperti *Annual Work Plan*, *FOLU Net Sink 2030*, nama spesies satwa/tumbuhan) pada dokumen resmi tata naskah dinas wajib dicetak miring (*italic*). Fitur ini harus tersedia secara konsisten di Surat Tugas Builder (`/kepegawaian/surat-tugas/builder/[id]`), Pengaturan Template Surat Tugas (`/kepegawaian/settings/st-templates`), Pengaturan Template Biaya, Form Publik (`/surat-tugas`), hingga pratinjau dan cetak naskah A4 (`SuratTugasLetterPreview.tsx`).
+- **Kebutuhan 4 (Security Audit & Refactoring Ponytail)**:
+  - Input teks array (`menimbang`, `dasar`, `tembusan`) harus disanitasi di trust boundary server dengan `strip_tags()` untuk mencegah XSS tanpa merusak format bintang markdown `*kata miring*`.
+  - Pengajuan publik tanpa login harus diisolasi agar tidak dapat menyimpan `status: "draft"` atau `"approved"` yang menjadi *orphaned record*.
+  - Parameter nomor surat di popup cetak dokumen harus disanitasi dari injeksi HTML/script.
+  - Menghapus duplikasi kode pembungkus teks miring (33 baris) di `StTemplatesTab.tsx` dan menyederhanakan parser header surat.
+
+---
+
+## 2. Perubahan yang Dilakukan
+- **Backend Database & API Notifikasi Portal**:
+  - Migrasi `2026_10_28_140000_create_portal_notifications_table.php`:
+    - Membuat tabel `portal_notifications` dengan kolom `id`, `user_id` (FK), `employee_id` (FK nullable), `title`, `message`, `type` (`surat_tugas`, `cuti`, `bmn`, `system`), `action_tab`, `reference_id`, `data` (json), `read_at`, dan timestamp.
+    - Menambahkan indeks performa gabungan pada `[user_id, read_at]` dan `[user_id, created_at]`.
+  - Model `PortalNotification.php`: Casting `data` ke array, relasi ke `User` dan `Employee`.
+  - Service `PortalNotificationService.php`:
+    - `sendToUser(...)` dan `sendToEmployee(...)`: Menyimpan notifikasi terisolasi per user.
+    - Helper spesifik: `notifyAssignmentLetterStatus(...)`, `notifyLeaveApproval(...)`, dan `notifyLoanStatus(...)`.
+  - Controller `PortalNotificationController.php` & Routing `/api/portal/notifications`:
+    - Endpoint `GET /api/portal/notifications`: Paginated list dengan filter `unread_only` dan `type`, strictly scoped ke `user_id` aktif untuk mencegah kerentanan IDOR.
+    - Endpoint `POST /api/portal/notifications/{id}/read`: Menandai satu notifikasi telah dibaca.
+    - Endpoint `POST /api/portal/notifications/mark-all-read`: Menandai seluruh notifikasi user aktif telah dibaca.
+  - Integrasi Trigger Notifikasi Otomatis:
+    - `AssignmentLetterController.php`: Trigger notifikasi saat admin menyetujui, menolak, atau merevisi status surat tugas ke seluruh pegawai pelaksana penugasan.
+    - `EmployeeLeaveRequestController.php`: Trigger notifikasi saat admin mengubah status permohonan cuti (`adminUpdateStatus`), menyetujui (`adminApprove`), dan mengunggah/mengenerate Surat Izin Cuti resmi (`generateSuratIzin`).
+    - `LoanService.php`: Trigger notifikasi saat peminjaman BMN disetujui, ditolak, atau barang telah dikembalikan.
+
+- **Akses Publik Form Surat Tugas & Perbaikan Navigasi**:
+  - `backend/app/Modules/SuratTugas/Routes/api.php`:
+    - Route `POST /api/surat-tugas/submit` dibuka untuk publik tanpa login dengan rate limiting ketat (`throttle:15,1`).
+  - `backend/app/Modules/Kepegawaian/Routes/api.php`:
+    - Route `GET /api/kepegawaian/employees/select` dibuka untuk publik dengan `throttle:120,1` (hanya mengekspos nama, NIP, pangkat, jabatan; tanpa kontak pribadi atau password).
+    - Route `GET /api/kepegawaian/st-task-types/public` dan `GET /api/kepegawaian/st-expense-templates/public` dibuka publik (`throttle:120,1`, auto-filter `active_only`).
+  - `frontend/src/app/surat-tugas/layout.tsx`:
+    - Memperbaiki tautan "Kembali ke Portal" dari `"/"` menjadi `"/portal"`.
+    - Menyediakan tombol kontekstual "Beranda" (`/`) dan "Login Pegawai" (`/login`) ketika pengguna belum terotentikasi.
+
+- **Dukungan Format Huruf Miring (Markdown Italic `*kata*`) Naskah Dinas**:
+  - Utilitas Bersama [`frontend/src/lib/letter-utils.ts`](file:///E:/bksda-superapp/frontend/src/lib/letter-utils.ts):
+    - `renderFormattedItalic(text)`: Menggunakan regex boundary markdown `(\*(?!\s)[^*\r\n]+?(?<!\s)\*)` untuk memecah teks menjadi text node React dan elemen `React.createElement("em", ...)` dengan styling `font-style: italic`. 100% aman dari XSS karena teks murni di-render sebagai children text node standar React.
+    - `toggleItalicInTextarea(textarea, value, onUpdate)`: Logika seleksi cerdas cursor: jika teks diblok, membungkus atau melepas bungkus `*kata*` tanpa menghilangkan fokus; jika tidak ada teks yang diblok, menyisipkan placeholder `*teks miring*`.
+  - Integrasi UI Mouse & Shortcut Keyboard (`Ctrl + I`):
+    - [`EditableItemListSection.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx): Tombol *I* dan `Ctrl+I` pada setiap baris butir Menimbang, Dasar, dan Untuk.
+    - [`SuratTugasForm.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx): Tombol *I* dan `Ctrl+I` pada textarea Maksud/Tugas (`namaKegiatan`).
+    - [`ExpenseTemplatesTab.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/ExpenseTemplatesTab.tsx): Tombol *I* dan `Ctrl+I` pada textarea Dasar Hukum (Poin 2) dan Klausul Pembebanan Biaya, lengkap dengan realtime live preview.
+    - [`SuratTugasDetailStep.tsx`](file:///E:/bksda-superapp/frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx): Tombol *I* dan `Ctrl+I` pada seluruh varian mode input nama/maksud kegiatan form publik.
+  - Rendering Dokumen & Pratinjau Cetak A4:
+    - [`STBuilderPreview.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/STBuilderPreview.tsx): Merender teks miring realtime pada Menimbang, Dasar, Untuk, dan Penutup.
+    - [`SuratTugasLetterPreview.tsx`](file:///E:/bksda-superapp/frontend/src/components/SuratTugasLetterPreview.tsx): Merender format miring pada Header Surat, Menimbang, Dasar, Untuk (kegiatan, rute, durasi, pembebanan anggaran), dan Penutup, serta dipastikan tercetak rapi pada mode cetak A4.
+
+- **Security Audit & Ponytail Refactoring**:
+  - [`AssignmentLetterRequest.php`](file:///E:/bksda-superapp/backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php): Sanitasi rekursif `strip_tags()` pada `prepareForValidation` untuk seluruh item array `menimbang`, `dasar`, dan `tembusan`.
+  - [`AssignmentLetterController.php`](file:///E:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php): Memaksa nilai status pengajuan publik tanpa login selalu `'pending'`, mencegah unauthenticated client membuat status `'draft'` yang tidak bertuan.
+  - [`SuratTugasLetterPreview.tsx`](file:///E:/bksda-superapp/frontend/src/components/SuratTugasLetterPreview.tsx): Sanitasi `${cleanDocTitle}` pada tag `<title>` popup window cetak untuk mencegah HTML breakout.
+  - [`StTemplatesTab.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx): Menghapus 33 baris fungsi duplikat `applyItalicToHeader` dan mereuse `toggleItalicInTextarea` dari `letter-utils`.
+
+---
+
+## 3. Validasi & Pengujian
+- [x] **Backend Self-Check Notifikasi Portal**: `php backend/tests/self_check_notifications.php` (Lulus: validasi pembuatan record notifikasi, unread count, filter per user, dan mark-as-read).
+- [x] **Backend Self-Check Akses Publik Surat Tugas**: `php backend/tests/self_check_public_surat_tugas.php` (Lulus: 5/5 endpoint publik berfungsi dengan kode HTTP 200/201 dan status pending terisolasi).
+- [x] **Unit Self-Check Italic Parser**: `node scratch/test_italic_parser.mjs` (Lulus: regex boundary markdown, unwrap/wrap toggle seleksi cursor, dan handling teks campur).
+- [x] **Next.js Production Build**: `npm --prefix frontend run build` (Lulus: `Compiled successfully in 10.3s`, TypeScript checking 0 error, 83/83 static/dynamic routes terkompilasi).
+- [x] **Knowledge Graph AST Update**: `graphify update .` (Rebuilt: 10040 nodes, 17895 edges, 757 communities).
+- [x] **Git Version Control**: Berhasil di-commit dan di-push ke remote `origin/production-server` (`ea133bb1`).
+
+---
+
 # Progress - Phase 224: Master Klasifikasi Jenis Tugas ST, Dukungan Perjalanan Dinas Dalam Kawasan / Wilayah, Redesign Form Publik ST & Urutan Baku Diktum Untuk
 
 > Document updated: 2026-10-27
@@ -8561,15 +8640,15 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 
 
 
--   [ x ]   * * P r i n t   L a y o u t   &   P a g i n a t i o n   F i x e s   ( P o r t a l   &   K e p e g a w a i a n ) * * : 
-     -   R e s o l v e d   C h r o m e ' s   p r i n t   e n g i n e   p a g i n a t i o n   b u g s   i n   \ G e n e r a l R e p o r t P r i n t . t s x \   a n d   \ S T B u i l d e r P r e v i e w . t s x \ . 
-     -   R e p l a c e d   \ d i s p l a y :   g r i d \   l a y o u t s   i n   \ K e p a d a \   a n d   \ U n t u k \   s e c t i o n s   w i t h   H T M L   t a b l e s   t o   p r e v e n t   t e x t   o v e r f l o w   o n t o   t h e   g r a y   b a c k g r o u n d   d u r i n g   p r i n t i n g . 
-     -   A d d e d   r e p e a t i n g   \ 	 h e a d \   a n d   \ 	 f o o t \   s p a c e r s   t o   e n f o r c e   1 5 m m   t o p   a n d   b o t t o m   m a r g i n s   o n   e v e r y   p r i n t e d   p a g e . 
-     -   A p p l i e d   \ p a g e B r e a k A f t e r :   a v o i d \   t o   t h e   \ M E M B E R I   T U G A S , \   t i t l e   t o   p r e v e n t   o r p h a n e d   h e a d e r s   s e p a r a t i n g   f r o m   t h e   \ K e p a d a \   b l o c k . 
-     -   R e m o v e d   s t r i c t   \  v o i d - b r e a k \   f r o m   L a p o r a n   P o r t a l ' s   s i g n a t u r e   b l o c k   t o   a l l o w   n a t u r a l   p a g e   b r e a k s   f o r   l o n g   p a r t i c i p a n t   l i s t s . 
- 
- 
- 
+- [x] **Print Layout & Pagination Fixes (Portal & Kepegawaian)**:
+  - Resolved Chrome's print engine pagination bugs in \GeneralReportPrint.tsx\ and \STBuilderPreview.tsx\.
+  - Replaced \display: grid\ layouts in \Kepada\ and \Untuk\ sections with HTML tables to prevent text overflow onto the gray background during printing.
+  - Added repeating \	head\ and \	foot\ spacers to enforce 15mm top and bottom margins on every printed page.
+  - Applied \pageBreakAfter: avoid\ to the \MEMBERI TUGAS,\ title to prevent orphaned headers separating from the \Kepada\ block.
+  - Removed strict \void-break\ from Laporan Portal's signature block to allow natural page breaks for long participant lists.
+
+
+
 ---
 
 ## [2026-08-10] Dynamic ST Templates Management for Superadmin
