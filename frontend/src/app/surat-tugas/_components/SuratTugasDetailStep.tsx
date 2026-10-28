@@ -17,6 +17,7 @@ import { Employee } from "./EmployeeSelectionStep";
 import {
   buildKegiatanDiktumText,
   cleanMelaksanakanKegiatanPrefix,
+  normalizeTaskTypeName,
 } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import { formatNipLabel, formatDateIndonesian, daysBetween } from "@/lib/letter-utils";
 import api from "@/lib/api";
@@ -265,7 +266,7 @@ export function SuratTugasDetailStep({
               </label>
 
               <select
-                value={jenisTugas}
+                value={normalizeTaskTypeName(jenisTugas)}
                 onChange={(e) => handleTaskTypeChange(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
               >
@@ -283,8 +284,8 @@ export function SuratTugasDetailStep({
                     <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
                       Perjalanan Dinas Dalam Kawasan / Wilayah
                     </option>
-                    <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                      Melaksanakan Kegiatan ( 1 Hari )
+                    <option value="Melaksanakan Kegiatan (1 Hari)">
+                      Melaksanakan Kegiatan (1 Hari)
                     </option>
                     <option value="Menugaskan Staf">Menugaskan Staf</option>
                   </>

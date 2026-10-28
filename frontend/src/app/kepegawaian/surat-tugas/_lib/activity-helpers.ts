@@ -18,6 +18,28 @@ export function isDalamKawasanTask(jenisOrCode: string) {
   return s === "dalam_kawasan" || s.includes("dalam kawasan");
 }
 
+/**
+ * Normalisasi nama jenis tugas agar seragam antara master setting, template, dan builder.
+ */
+export function normalizeTaskTypeName(name?: string | null): string {
+  if (!name) return "Perjalanan Dinas Luar Wilayah";
+  const trimmed = name.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.includes("luar wilayah") || lower.includes("lebih dari 1 hari")) {
+    return "Perjalanan Dinas Luar Wilayah";
+  }
+  if (lower.includes("dalam kawasan")) {
+    return "Perjalanan Dinas Dalam Kawasan / Wilayah";
+  }
+  if (lower.includes("melaksanakan kegiatan") || lower.includes("kegiatan_1_hari")) {
+    return "Melaksanakan Kegiatan (1 Hari)";
+  }
+  if (lower.includes("menugaskan staf")) {
+    return "Menugaskan Staf";
+  }
+  return trimmed;
+}
+
 export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   if (!text) return "";
   let trimmed = text.trim();

@@ -31,6 +31,9 @@ import STBuilderPreview from "../../../surat-tugas/_components/STBuilderPreview"
 import {
   resolveKopImageUrl,
   isFundingDasarText,
+  buildKegiatanDiktumText,
+  buildBiayaTextFor,
+  normalizeTaskTypeName,
   type DasarItem,
   type Employee,
   type StTemplate,
@@ -76,10 +79,20 @@ export function StTemplatesTab() {
   const [nomorSuratFormat, setNomorSuratFormat] = useState(DEFAULT_NOMOR_SURAT_FORMAT);
   const [nomorFormatMode, setNomorFormatMode] = useState<"default" | "manual">("default");
   const [nomorNumberingType, setNomorNumberingType] = useState<"st_pattern" | "naskah_auto">("st_pattern");
-  const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>(
-    "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
-  );
-  const [availableTaskTypes, setAvailableTaskTypes] = useState<Array<{ id: number; nama: string; kode: string }>>([]);
+  const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>("Perjalanan Dinas Luar Wilayah");
+  const [defaultSertakanLaporan, setDefaultSertakanLaporan] = useState<boolean>(true);
+  const [availableTaskTypes, setAvailableTaskTypes] = useState<
+    Array<{
+      id: number;
+      nama: string;
+      kode: string;
+      mode_lokasi: string;
+      aturan_durasi: string;
+      default_sertakan_laporan: boolean;
+      contoh_format?: string | null;
+      keterangan?: string | null;
+    }>
+  >([]);
 
   useEffect(() => {
     api.get("/kepegawaian/st-task-types/public")
@@ -90,6 +103,19 @@ export function StTemplatesTab() {
       })
       .catch(() => {});
   }, []);
+
+  const activeTaskType = useMemo(() => {
+    return availableTaskTypes.find((t) => t.nama === defaultJenisTugas) || null;
+  }, [availableTaskTypes, defaultJenisTugas]);
+
+  const handleDefaultJenisTugasChange = (val: string) => {
+    const normalized = normalizeTaskTypeName(val);
+    setDefaultJenisTugas(normalized);
+    const matched = availableTaskTypes.find((t) => t.nama === normalized);
+    if (matched && typeof matched.default_sertakan_laporan === "boolean") {
+      setDefaultSertakanLaporan(matched.default_sertakan_laporan);
+    }
+  };
   const [defaultModeKegiatan, setDefaultModeKegiatan] = useState<"structured" | "manual">("structured");
   const [defaultKegiatan, setDefaultKegiatan] = useState<string>("");
   const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
@@ -304,7 +330,8 @@ export function StTemplatesTab() {
     setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
     setNomorFormatMode("default");
     setNomorNumberingType("st_pattern");
-    setDefaultJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+    setDefaultJenisTugas("Perjalanan Dinas Luar Wilayah");
+    setDefaultSertakanLaporan(true);
     setDefaultModeKegiatan("structured");
     setDefaultKegiatan("");
     setUntukItems([]);
@@ -354,9 +381,15 @@ export function StTemplatesTab() {
 
     const existingJenisTugas =
       typeof config.default_jenis_tugas === "string"
-        ? config.default_jenis_tugas
-        : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )";
+        ? normalizeTaskTypeName(config.default_jenis_tugas)
+        : "Perjalanan Dinas Luar Wilayah";
     setDefaultJenisTugas(existingJenisTugas);
+
+    const existingSertakanLaporan =
+      typeof config.default_sertakan_laporan === "boolean"
+        ? config.default_sertakan_laporan
+        : true;
+    setDefaultSertakanLaporan(existingSertakanLaporan);
 
     const existingMode = config.default_mode_kegiatan === "manual" ? "manual" : "structured";
     setDefaultModeKegiatan(existingMode);
@@ -467,6 +500,8 @@ export function StTemplatesTab() {
         tembusan_items: tembusanItems.filter((t) => t.trim()),
         sumber_dana: defaultSumberDana.trim() || null,
         default_jenis_tugas: defaultJenisTugas,
+        default_task_type_id: activeTaskType?.id || null,
+        default_sertakan_laporan: defaultSertakanLaporan,
         default_mode_kegiatan: defaultModeKegiatan,
         default_kegiatan: defaultKegiatan.trim() || null,
         untuk: untukItems.filter((i) => i.text.trim()),
@@ -1237,8 +1272,8 @@ export function StTemplatesTab() {
                   Default Jenis Tugas
                   <select
                     value={defaultJenisTugas}
-                    onChange={(event) => setDefaultJenisTugas(event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
+                    onChange={(event) => handleDefaultJenisTugasChange(event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
                   >
                     {availableTaskTypes.length > 0 ? (
                       availableTaskTypes.map((tt) => (
@@ -1248,14 +1283,14 @@ export function StTemplatesTab() {
                       ))
                     ) : (
                       <>
-                        <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
-                          Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
+                        <option value="Perjalanan Dinas Luar Wilayah">
+                          Perjalanan Dinas Luar Wilayah
                         </option>
                         <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
                           Perjalanan Dinas Dalam Kawasan / Wilayah
                         </option>
-                        <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                          Melaksanakan Kegiatan ( 1 Hari )
+                        <option value="Melaksanakan Kegiatan (1 Hari)">
+                          Melaksanakan Kegiatan (1 Hari)
                         </option>
                         <option value="Menugaskan Staf">Menugaskan Staf</option>
                       </>
@@ -1273,13 +1308,38 @@ export function StTemplatesTab() {
                     onChange={(event) =>
                       setDefaultModeKegiatan(event.target.value as "structured" | "manual")
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
                   >
-                    <option value="structured">Detail Terstruktur (Dari, Ke, Dalam Rangka)</option>
-                    <option value="manual">Tulis Manual (Uraian Tugas Bebas)</option>
+                    <option value="structured">Detail Terstruktur (Otomatis Sesuai Pola Lokasi)</option>
+                    <option value="manual">Tulis Manual (Uraian Bebas Khusus PLH/BMN)</option>
                   </select>
                 </label>
               </div>
+
+              {/* Info Ringkas Jenis Tugas Terpilih */}
+              {activeTaskType && (
+                <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 rounded-xl border border-blue-200/60 dark:border-blue-900/40 text-xs space-y-1.5 animate-in fade-in duration-200">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-blue-950 dark:text-blue-100">{activeTaskType.nama}</span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 uppercase tracking-wider">
+                      {activeTaskType.mode_lokasi === "dalam_kawasan"
+                        ? "Dalam Kawasan"
+                        : activeTaskType.mode_lokasi === "tempat_saja"
+                        ? "Tempat Saja (Pada / Di)"
+                        : "Luar Wilayah (Dari / Ke)"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-200/70 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+                      {activeTaskType.aturan_durasi === "wajib_1_hari" ? "Wajib 1 Hari" : "Durasi Fleksibel"}
+                    </span>
+                  </div>
+                  {activeTaskType.contoh_format && (
+                    <div className="text-[11px] text-blue-800/80 dark:text-blue-300/80 font-mono bg-white/70 dark:bg-zinc-900/50 p-2 rounded-lg border border-blue-100 dark:border-zinc-800">
+                      <span className="font-sans font-bold text-slate-500 dark:text-zinc-400 mr-1">Pola Diktum:</span>
+                      {activeTaskType.contoh_format}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1333,6 +1393,25 @@ export function StTemplatesTab() {
                       </p>
                     </div>
                   }
+                />
+              </div>
+
+              {/* Toggle Kewajiban Membuat Laporan Tertulis Bawaan */}
+              <div className="p-3 bg-slate-100/70 dark:bg-zinc-800/60 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
+                <div>
+                  <label htmlFor="chk_template_laporan" className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer">
+                    Kewajiban Membuat Laporan Tertulis Bawaan
+                  </label>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Menyertakan klausul laporan (paling lambat 7 hari kerja) otomatis di baris paling akhir pada bagian Untuk.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="chk_template_laporan"
+                  checked={defaultSertakanLaporan}
+                  onChange={(e) => setDefaultSertakanLaporan(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -1872,13 +1951,46 @@ export function StTemplatesTab() {
                           "emp-sample-1": "Samarinda",
                           "emp-sample-2": "Balikpapan",
                         }}
-                        buildUntukText={() =>
-                          defaultKegiatan.trim() ||
-                          "Melaksanakan koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi."
-                        }
-                        buildBiayaText={() =>
-                          templateBiayaText ? templateBiayaText.replace(/{tahun}/g, currentYear) : ""
-                        }
+                        sertakanLaporan={defaultSertakanLaporan}
+                        buildUntukText={() => {
+                          const currentModeLokasi = activeTaskType?.mode_lokasi || (
+                            defaultJenisTugas.toLowerCase().includes("dalam kawasan") ? "dalam_kawasan" :
+                            defaultJenisTugas.toLowerCase().includes("perjalanan dinas") || defaultJenisTugas.toLowerCase().includes("luar wilayah") ? "luar_wilayah" :
+                            "tempat_saja"
+                          );
+                          const sampleKegiatan = defaultKegiatan.trim() || "koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi";
+
+                          if (templateType === "plh") {
+                            return sampleKegiatan.replace(/{wilayah}/g, "Wilayah I Berau") + `, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
+                          }
+
+                          const diktum = buildKegiatanDiktumText({
+                            modeLokasi: currentModeLokasi,
+                            jenisTugas: defaultJenisTugas,
+                            kotaAsal: "Samarinda",
+                            kotaTujuan: currentModeLokasi === "dalam_kawasan" ? "Kabupaten Paser" : "Balikpapan",
+                            tempatSpesifik: currentModeLokasi === "dalam_kawasan" ? "Cagar Alam Teluk Adang" : "Kantor Balai",
+                            namaKegiatanText: sampleKegiatan,
+                          });
+
+                          if (activeTaskType?.aturan_durasi === "wajib_1_hari" || defaultJenisTugas.includes("1 Hari")) {
+                            return `${diktum}, selama 1 (satu) hari pada tanggal 15 September ${currentYear};`;
+                          }
+
+                          return `${diktum}, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
+                        }}
+                        buildBiayaText={() => {
+                          if (templateBiayaText && templateBiayaText.trim()) {
+                            return templateBiayaText.replace(/{tahun}/g, currentYear);
+                          }
+                          return buildBiayaTextFor(
+                            defaultSumberDana || "dipa",
+                            "",
+                            currentYear,
+                            templateType,
+                            expenseTemplates
+                          );
+                        }}
                         kotaSurat="Samarinda"
                         tanggalSurat={`28 September ${currentYear}`}
                         kepalaBalai={{

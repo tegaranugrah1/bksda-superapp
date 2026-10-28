@@ -28,6 +28,7 @@ import {
   cleanRepeatingLocations,
   buildKegiatanDiktumText,
   isDalamKawasanTask,
+  normalizeTaskTypeName,
 } from "../_lib/activity-helpers";
 import {
   formatDateIndonesian,
@@ -164,6 +165,25 @@ export function SuratTugasForm({
   const [jumlahBuruh, setJumlahBuruh] = useState(0);
   const [sertakanLaporan, setSertakanLaporan] = useState(true);
   const [taskTypeId, setTaskTypeId] = useState<number | null>(null);
+
+  const { data: taskTypes = [] } = useQuery<
+    Array<{
+      id: number;
+      nama: string;
+      kode: string;
+      mode_lokasi: string;
+      aturan_durasi: string;
+      default_sertakan_laporan?: boolean;
+      contoh_format?: string;
+    }>
+  >({
+    queryKey: ["st-task-types-public"],
+    queryFn: async () => {
+      const res = await api.get("/kepegawaian/st-task-types/public");
+      return res.data?.data || res.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleToggleBuruh = (nextVal: boolean) => {
     setHasBuruh(nextVal);
@@ -1048,7 +1068,13 @@ export function SuratTugasForm({
         (t) => t.code === "bmn-penghapusan" || t.type === "bmn"
       );
       if (bmnTemplate?.configuration?.default_jenis_tugas) {
-        setActivityPrefix(bmnTemplate.configuration.default_jenis_tugas);
+        const norm = normalizeTaskTypeName(bmnTemplate.configuration.default_jenis_tugas);
+        setActivityPrefix(norm);
+        const match = taskTypes.find((t) => t.nama === norm);
+        if (match) setTaskTypeId(match.id);
+      }
+      if (typeof bmnTemplate?.configuration?.default_sertakan_laporan === "boolean") {
+        setSertakanLaporan(bmnTemplate.configuration.default_sertakan_laporan);
       }
       if (bmnTemplate?.configuration?.default_mode_kegiatan) {
         setInputModeKegiatan(bmnTemplate.configuration.default_mode_kegiatan);
@@ -1060,7 +1086,13 @@ export function SuratTugasForm({
         (t) => t.code === "beda-hari" || t.type === "beda_hari"
       );
       if (bedaHariTemplate?.configuration?.default_jenis_tugas) {
-        setActivityPrefix(bedaHariTemplate.configuration.default_jenis_tugas);
+        const norm = normalizeTaskTypeName(bedaHariTemplate.configuration.default_jenis_tugas);
+        setActivityPrefix(norm);
+        const match = taskTypes.find((t) => t.nama === norm);
+        if (match) setTaskTypeId(match.id);
+      }
+      if (typeof bedaHariTemplate?.configuration?.default_sertakan_laporan === "boolean") {
+        setSertakanLaporan(bedaHariTemplate.configuration.default_sertakan_laporan);
       }
       if (bedaHariTemplate?.configuration?.default_mode_kegiatan) {
         setInputModeKegiatan(bedaHariTemplate.configuration.default_mode_kegiatan);
@@ -1106,7 +1138,17 @@ export function SuratTugasForm({
 
         const configuration = template.configuration || {};
         if (typeof configuration.default_jenis_tugas === "string") {
-          setActivityPrefix(configuration.default_jenis_tugas);
+          const norm = normalizeTaskTypeName(configuration.default_jenis_tugas);
+          setActivityPrefix(norm);
+          if (typeof configuration.default_task_type_id === "number") {
+            setTaskTypeId(configuration.default_task_type_id);
+          } else {
+            const match = taskTypes.find((t) => t.nama === norm);
+            if (match) setTaskTypeId(match.id);
+          }
+        }
+        if (typeof configuration.default_sertakan_laporan === "boolean") {
+          setSertakanLaporan(configuration.default_sertakan_laporan);
         }
         if (
           typeof configuration.default_kegiatan === "string" &&
@@ -2224,39 +2266,58 @@ export function SuratTugasForm({
                   Jenis Tugas
                 </label>
                 <select
-                  value={activityPrefix}
+                  value={normalizeTaskTypeName(activityPrefix)}
                   disabled={isPublished}
                   onChange={(e) => {
                     const val = e.target.value;
-                    setActivityPrefix(val);
+                    const normalized = normalizeTaskTypeName(val);
+                    setActivityPrefix(normalized);
                     setInputModeKegiatan("structured");
-                    if (val.includes("Melaksanakan Kegiatan")) {
-                      if (tanggalMulai) setTanggalSelesai(tanggalMulai);
-                      setKotaAsal("");
-                      setTaskTypeId(3);
-                    } else if (val.includes("Menugaskan Staf")) {
-                      setKotaAsal("");
-                      setTaskTypeId(4);
-                    } else if (isDalamKawasanTask(val)) {
-                      setKotaAsal("");
-                      setTaskTypeId(2);
+                    const matched = taskTypes.find((t) => t.nama === normalized);
+                    if (matched) {
+                      setTaskTypeId(matched.id);
+                      if (matched.mode_lokasi === "tempat_saja" || matched.mode_lokasi === "dalam_kawasan") {
+                        setKotaAsal("");
+                      } else if (!kotaAsal) {
+                        setKotaAsal("Samarinda");
+                      }
+                      if (matched.aturan_durasi === "wajib_1_hari" && tanggalMulai) {
+                        setTanggalSelesai(tanggalMulai);
+                      }
                     } else {
-                      if (!kotaAsal) setKotaAsal("Samarinda");
-                      setTaskTypeId(1);
+                      if (normalized.includes("1 Hari") || normalized.includes("Menugaskan Staf") || isDalamKawasanTask(normalized)) {
+                        setKotaAsal("");
+                      } else if (!kotaAsal) {
+                        setKotaAsal("Samarinda");
+                      }
                     }
                   }}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
                 >
-                  <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
-                    Perjalanan Dinas Luar Wilayah (Dari - Ke)
-                  </option>
-                  <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
-                    Perjalanan Dinas Dalam Kawasan / Wilayah
-                  </option>
-                  <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                    Melaksanakan Kegiatan ( 1 Hari )
-                  </option>
-                  <option value="Menugaskan Staf">Menugaskan Staf</option>
+                  {taskTypes.length > 0 ? (
+                    taskTypes.map((tt) => (
+                      <option key={tt.id} value={tt.nama}>
+                        {tt.nama}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Perjalanan Dinas Luar Wilayah">
+                        Perjalanan Dinas Luar Wilayah (Dari - Ke)
+                      </option>
+                      <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                        Perjalanan Dinas Dalam Kawasan / Wilayah
+                      </option>
+                      <option value="Melaksanakan Kegiatan (1 Hari)">
+                        Melaksanakan Kegiatan (1 Hari)
+                      </option>
+                      <option value="Menugaskan Staf">Menugaskan Staf</option>
+                    </>
+                  )}
+                  {taskTypes.length > 0 &&
+                    !taskTypes.some((tt) => tt.nama === normalizeTaskTypeName(activityPrefix)) && (
+                      <option value={activityPrefix}>{activityPrefix}</option>
+                    )}
                 </select>
               </div>
 
