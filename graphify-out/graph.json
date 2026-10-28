@@ -3486,8 +3486,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "loancontroller"
     },
     {
@@ -3497,8 +3497,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_construct",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".__construct()"
     },
     {
@@ -3508,8 +3508,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_index",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -3519,8 +3519,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_store",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -3530,8 +3530,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_borrow",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".borrow()"
     },
     {
@@ -3541,8 +3541,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_update",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -3552,8 +3552,8 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_return",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".return()"
     },
     {
@@ -3563,8 +3563,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_loancontroller_loancontroller_destroy",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -3893,8 +3893,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "usageagreementcontroller"
     },
     {
@@ -3915,8 +3915,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_show",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".show()"
     },
     {
@@ -3926,8 +3926,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_destroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".destroy()"
     },
     {
@@ -3937,8 +3937,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_determinestatus",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".determinestatus()"
     },
     {
@@ -3948,8 +3948,8 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_store",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".store()"
     },
     {
@@ -3959,8 +3959,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_update",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".update()"
     },
     {
@@ -3970,8 +3970,8 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_resolveemployeeassets",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".resolveemployeeassets()"
     },
     {
@@ -3981,8 +3981,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_applyemployeeassetfilter",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".applyemployeeassetfilter()"
     },
     {
@@ -3992,8 +3992,8 @@
       "source_location": "L214",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_employeesnapshot",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".employeesnapshot()"
     },
     {
@@ -4003,8 +4003,8 @@
       "source_location": "L226",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_assetsnapshot",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".assetsnapshot()"
     },
     {
@@ -6456,8 +6456,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "usageagreement"
     },
     {
@@ -6467,8 +6467,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_employee",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".employee()"
     },
     {
@@ -6478,8 +6478,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_generator",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".generator()"
     },
     {
@@ -7182,8 +7182,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetloanresource_assetloanresource",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "assetloanresource"
     },
     {
@@ -7193,8 +7193,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetloanresource_assetloanresource_toarray",
-      "community": 28,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".toarray()"
     },
     {
@@ -13045,8 +13045,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller_employeeaccesscontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeeaccesscontroller"
     },
     {
@@ -13056,8 +13056,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller_employeeaccesscontroller_show",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".show()"
     },
     {
@@ -13067,8 +13067,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeaccesscontroller_employeeaccesscontroller_update",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".update()"
     },
     {
@@ -13397,8 +13397,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeeleavecontroller"
     },
     {
@@ -13408,8 +13408,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller_show",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".show()"
     },
     {
@@ -13419,8 +13419,8 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller_store",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".store()"
     },
     {
@@ -13430,8 +13430,8 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller_storerecord",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".storerecord()"
     },
     {
@@ -13441,8 +13441,8 @@
       "source_location": "L260",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller_updaterecord",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".updaterecord()"
     },
     {
@@ -13452,8 +13452,8 @@
       "source_location": "L371",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleavecontroller_employeeleavecontroller_destroyrecord",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".destroyrecord()"
     },
     {
@@ -13474,8 +13474,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeeleaverequestcontroller"
     },
     {
@@ -13485,8 +13485,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myindex",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".myindex()"
     },
     {
@@ -13496,8 +13496,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myshow",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".myshow()"
     },
     {
@@ -13507,8 +13507,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_mybalance",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".mybalance()"
     },
     {
@@ -13518,8 +13518,8 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_mydestroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".mydestroy()"
     },
     {
@@ -13529,8 +13529,8 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_mystore",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".mystore()"
     },
     {
@@ -13540,8 +13540,8 @@
       "source_location": "L295",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminindex",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminindex()"
     },
     {
@@ -13551,8 +13551,8 @@
       "source_location": "L362",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminshow",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminshow()"
     },
     {
@@ -13562,184 +13562,184 @@
       "source_location": "L371",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdatestatus",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminupdatestatus()"
     },
     {
       "label": ".adminApprove()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L483",
+      "source_location": "L486",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminapprove",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminapprove()"
     },
     {
       "label": ".adminUploadScan()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L609",
+      "source_location": "L612",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminuploadscan",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminuploadscan()"
     },
     {
       "label": ".respondScanFile()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L669",
+      "source_location": "L672",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_respondscanfile",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".respondscanfile()"
     },
     {
       "label": ".adminViewScanFormulir()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L702",
+      "source_location": "L705",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscanformulir",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminviewscanformulir()"
     },
     {
       "label": ".adminViewScanSuratIzin()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L720",
+      "source_location": "L723",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscansuratizin",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminviewscansuratizin()"
     },
     {
       "label": ".adminViewScan()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L739",
+      "source_location": "L742",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscan",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminviewscan()"
     },
     {
       "label": ".myViewScanFormulir()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L757",
+      "source_location": "L760",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscanformulir",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".myviewscanformulir()"
     },
     {
       "label": ".myViewScanSuratIzin()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L781",
+      "source_location": "L784",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscansuratizin",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".myviewscansuratizin()"
     },
     {
       "label": ".myViewScan()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L807",
+      "source_location": "L810",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".myviewscan()"
     },
     {
       "label": ".adminUpdate()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L832",
+      "source_location": "L835",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdate",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".adminupdate()"
     },
     {
       "label": ".adminDestroy()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L960",
+      "source_location": "L963",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_admindestroy",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".admindestroy()"
     },
     {
       "label": ".getAtasanLangsung()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L991",
+      "source_location": "L994",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_getatasanlangsung",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getatasanlangsung()"
     },
     {
       "label": ".getKepalaBalai()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1017",
+      "source_location": "L1020",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_getkepalabalai",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getkepalabalai()"
     },
     {
       "label": ".previewSuratIzin()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1043",
+      "source_location": "L1046",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".previewsuratizin()"
     },
     {
       "label": ".generateSuratIzin()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1147",
+      "source_location": "L1150",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".generatesuratizin()"
     },
     {
       "label": ".terbilang()",
       "file_type": "code",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1300",
+      "source_location": "L1320",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_terbilang",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".terbilang()"
     },
     {
@@ -14288,8 +14288,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employee"
     },
     {
@@ -14299,8 +14299,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getfotourlattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getfotourlattribute()"
     },
     {
@@ -14310,8 +14310,8 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getismmpattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getismmpattribute()"
     },
     {
@@ -14321,8 +14321,8 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getjenispegawaiattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getjenispegawaiattribute()"
     },
     {
@@ -14343,8 +14343,8 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getispppkattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getispppkattribute()"
     },
     {
@@ -14354,8 +14354,8 @@
       "source_location": "L155",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_scopeofjenis",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".scopeofjenis()"
     },
     {
@@ -14365,8 +14365,8 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getniplabelattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getniplabelattribute()"
     },
     {
@@ -14376,8 +14376,8 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getiscpns2025attribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getiscpns2025attribute()"
     },
     {
@@ -14387,8 +14387,8 @@
       "source_location": "L198",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getisseksiattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getisseksiattribute()"
     },
     {
@@ -14398,8 +14398,8 @@
       "source_location": "L223",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_getseksiwilayahattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getseksiwilayahattribute()"
     },
     {
@@ -14421,7 +14421,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_user",
       "community": 480,
-      "community_name": "SuratMasuk",
+      "community_name": "Employee",
       "norm_label": ".user()"
     },
     {
@@ -14431,8 +14431,8 @@
       "source_location": "L280",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_scopeactive",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".scopeactive()"
     },
     {
@@ -14442,8 +14442,8 @@
       "source_location": "L289",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_assignmentletters",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".assignmentletters()"
     },
     {
@@ -14453,8 +14453,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_php_belongstomany",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "belongstomany"
     },
     {
@@ -14464,8 +14464,8 @@
       "source_location": "L302",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_employee_leaves",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".leaves()"
     },
     {
@@ -14475,8 +14475,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employee_php_hasmany",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "hasmany"
     },
     {
@@ -14585,8 +14585,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeeleave"
     },
     {
@@ -14596,8 +14596,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gethakn1diakuiattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".gethakn1diakuiattribute()"
     },
     {
@@ -14607,8 +14607,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getiseligible24daysattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getiseligible24daysattribute()"
     },
     {
@@ -14618,8 +14618,8 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gethakn2diakuiattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".gethakn2diakuiattribute()"
     },
     {
@@ -14629,8 +14629,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_gettotalhakcutiattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".gettotalhakcutiattribute()"
     },
     {
@@ -14640,8 +14640,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getsisacutitersediaattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getsisacutitersediaattribute()"
     },
     {
@@ -14651,8 +14651,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getpendingcutitahunanattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getpendingcutitahunanattribute()"
     },
     {
@@ -14662,8 +14662,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_getsisacutidapatdiajukanattribute",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".getsisacutidapatdiajukanattribute()"
     },
     {
@@ -14673,8 +14673,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_employee",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".employee()"
     },
     {
@@ -14684,8 +14684,8 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_creator",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".creator()"
     },
     {
@@ -14695,8 +14695,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleave_employeeleave_updater",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".updater()"
     },
     {
@@ -14717,8 +14717,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeeleaverequest"
     },
     {
@@ -14728,8 +14728,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest_employee",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".employee()"
     },
     {
@@ -14739,8 +14739,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest_suratkeluar",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".suratkeluar()"
     },
     {
@@ -15135,8 +15135,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": "employeerequest"
     },
     {
@@ -15146,8 +15146,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_authorize",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".authorize()"
     },
     {
@@ -15157,8 +15157,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_prepareforvalidation",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".prepareforvalidation()"
     },
     {
@@ -15168,8 +15168,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_rules",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".rules()"
     },
     {
@@ -15179,8 +15179,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_requests_employeerequest_employeerequest_messages",
-      "community": 77,
-      "community_name": "Illuminate\\Http\\JsonResponse",
+      "community": 480,
+      "community_name": "Employee",
       "norm_label": ".messages()"
     },
     {
@@ -15707,8 +15707,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "spjcontroller.php"
     },
     {
@@ -15718,8 +15718,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "spjcontroller"
     },
     {
@@ -15729,8 +15729,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_index",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -15740,8 +15740,8 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_store",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -15751,8 +15751,8 @@
       "source_location": "L135",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_show",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -15762,8 +15762,8 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_update",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -15773,8 +15773,8 @@
       "source_location": "L194",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_destroy",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -15784,8 +15784,8 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_updatestatus",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".updatestatus()"
     },
     {
@@ -15795,8 +15795,8 @@
       "source_location": "L228",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_exportexcel",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".exportexcel()"
     },
     {
@@ -15806,8 +15806,8 @@
       "source_location": "L262",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_spjcontroller_spjcontroller_exportexcelbyid",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".exportexcelbyid()"
     },
     {
@@ -15817,8 +15817,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_controllers_visumspdcontroller",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "visumspdcontroller.php"
     },
     {
@@ -15982,8 +15982,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_models_spj_spj",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "spj"
     },
     {
@@ -15993,8 +15993,8 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_models_spj_spj_creator",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".creator()"
     },
     {
@@ -16048,8 +16048,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_routes_api",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 28,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "keuangan/routes/api.php"
     },
     {
@@ -16059,8 +16059,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_keuangan_services_spjdipaexcelservice",
-      "community": 220,
-      "community_name": "Spj",
+      "community": 120,
+      "community_name": "User",
       "norm_label": "spjdipaexcelservice.php"
     },
     {
@@ -17632,8 +17632,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukcontroller"
     },
     {
@@ -17643,8 +17643,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_exportexcel",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".exportexcel()"
     },
     {
@@ -17654,8 +17654,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_index",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -17665,8 +17665,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_store",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -17676,8 +17676,8 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_show",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -17687,8 +17687,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_update",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -17698,8 +17698,8 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_destroy",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -17720,8 +17720,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "surattemplatecontroller"
     },
     {
@@ -17731,8 +17731,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_index",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -17742,8 +17742,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_show",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -17753,8 +17753,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_store",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -17764,8 +17764,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_update",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -17775,8 +17775,8 @@
       "source_location": "L141",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_destroy",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -17786,8 +17786,8 @@
       "source_location": "L163",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_surattemplatecontroller_surattemplatecontroller_resetdefaults",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".resetdefaults()"
     },
     {
@@ -17984,8 +17984,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasuk"
     },
     {
@@ -17996,7 +17996,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_disposisi",
       "community": 480,
-      "community_name": "SuratMasuk",
+      "community_name": "Employee",
       "norm_label": ".disposisi()"
     },
     {
@@ -18006,8 +18006,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_creator",
-      "community": 480,
-      "community_name": "SuratMasuk",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".creator()"
     },
     {
@@ -18028,8 +18028,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_surattemplate_surattemplate",
-      "community": 477,
-      "community_name": "Illuminate\\Database\\Seeder",
+      "community": 77,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "surattemplate"
     },
     {
@@ -18930,8 +18930,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "backend_composer_autoload_dev",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 607,
+      "community_name": "autoload-dev",
       "norm_label": "autoload-dev"
     },
     {
@@ -18941,8 +18941,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "backend_composer_autoload_dev_psr_4",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 607,
+      "community_name": "autoload-dev",
       "norm_label": "psr-4"
     },
     {
@@ -18952,8 +18952,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_composer_psr_4_tests",
-      "community": 71,
-      "community_name": "composer.json",
+      "community": 607,
+      "community_name": "autoload-dev",
       "norm_label": "tests\\\\"
     },
     {
@@ -18963,7 +18963,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "backend_composer_scripts",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "scripts"
     },
@@ -18975,7 +18975,7 @@
       "_origin": "ast",
       "id": "backend_composer_scripts_setup",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "setup"
     },
     {
@@ -18986,7 +18986,7 @@
       "_origin": "ast",
       "id": "ref_composer_install",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "composer install"
     },
     {
@@ -18997,7 +18997,7 @@
       "_origin": "ast",
       "id": "ref_php_r_file_exists_env_copy_env_example_env",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php -r \\\"file_exists('.env') || copy('.env.example', '.env');\\"
     },
     {
@@ -19008,7 +19008,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_key_generate",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php artisan key:generate"
     },
     {
@@ -19019,7 +19019,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_migrate_force",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "@php artisan migrate --force"
     },
     {
@@ -19030,7 +19030,7 @@
       "_origin": "ast",
       "id": "ref_npm_install_ignore_scripts",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "npm install --ignore-scripts"
     },
     {
@@ -19041,7 +19041,7 @@
       "_origin": "ast",
       "id": "ref_npm_run_build",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "npm run build"
     },
     {
@@ -19051,8 +19051,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "backend_composer_scripts_dev",
-      "community": 628,
-      "community_name": "dev",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "dev"
     },
     {
@@ -19062,8 +19062,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "ref_composer_config_disableprocesstimeout",
-      "community": 628,
-      "community_name": "dev",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "composer\\\\config::disableprocesstimeout"
     },
     {
@@ -19073,8 +19073,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "ref_npx_concurrently_c_93c5fd_c4b5fd_fb7185_fdba74_php_artisan_serve_php_artisan_queue_listen_tries_1_timeout_0_php_artisan_pail_timeout_0_npm_run_dev_names_server_queue_logs_vite_kill_others",
-      "community": 628,
-      "community_name": "dev",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "npx concurrently -c \\\"#93c5fd,#c4b5fd,#fb7185,#fdba74\\\" \\\"php artisan serve\\\" \\\"php artisan queue:listen --tries=1 --timeout=0\\\" \\\"php artisan pail --timeout=0\\\" \\\"npm run dev\\\" --names=server,queue,logs,vite --kill-others"
     },
     {
@@ -19084,8 +19084,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "backend_composer_scripts_test",
-      "community": 775,
-      "community_name": "test",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "test"
     },
     {
@@ -19095,8 +19095,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "ref_php_artisan_config_clear_ansi_no_additional_args",
-      "community": 775,
-      "community_name": "test",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "@php artisan config:clear --ansi @no_additional_args"
     },
     {
@@ -19106,8 +19106,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "ref_php_artisan_test",
-      "community": 775,
-      "community_name": "test",
+      "community": 527,
+      "community_name": "scripts",
       "norm_label": "@php artisan test"
     },
     {
@@ -19117,7 +19117,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "backend_composer_scripts_post_autoload_dump",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "post-autoload-dump"
     },
@@ -19128,7 +19128,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "ref_illuminate_foundation_composerscripts_postautoloaddump",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "illuminate\\\\foundation\\\\composerscripts::postautoloaddump"
     },
@@ -19139,7 +19139,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "ref_php_artisan_package_discover_ansi",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "@php artisan package:discover --ansi"
     },
@@ -19151,7 +19151,7 @@
       "_origin": "ast",
       "id": "backend_composer_scripts_post_update_cmd",
       "community": 527,
-      "community_name": "post-update-cmd",
+      "community_name": "scripts",
       "norm_label": "post-update-cmd"
     },
     {
@@ -19162,7 +19162,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_vendor_publish_tag_laravel_assets_ansi_force",
       "community": 527,
-      "community_name": "post-update-cmd",
+      "community_name": "scripts",
       "norm_label": "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
     },
     {
@@ -19173,7 +19173,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_generate",
       "community": 527,
-      "community_name": "post-update-cmd",
+      "community_name": "scripts",
       "norm_label": "@php artisan ide-helper:generate"
     },
     {
@@ -19184,7 +19184,7 @@
       "_origin": "ast",
       "id": "ref_php_artisan_ide_helper_meta",
       "community": 527,
-      "community_name": "post-update-cmd",
+      "community_name": "scripts",
       "norm_label": "@php artisan ide-helper:meta"
     },
     {
@@ -19195,7 +19195,7 @@
       "_origin": "ast",
       "id": "backend_composer_scripts_post_root_package_install",
       "community": 92,
-      "community_name": "scripts",
+      "community_name": "setup",
       "norm_label": "post-root-package-install"
     },
     {
@@ -19249,7 +19249,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "backend_composer_scripts_pre_package_uninstall",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "pre-package-uninstall"
     },
@@ -19260,7 +19260,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "ref_illuminate_foundation_composerscripts_prepackageuninstall",
-      "community": 92,
+      "community": 527,
       "community_name": "scripts",
       "norm_label": "illuminate\\\\foundation\\\\composerscripts::prepackageuninstall"
     },
@@ -19271,8 +19271,8 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "backend_composer_extra",
-      "community": 615,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "extra"
     },
     {
@@ -19282,8 +19282,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_composer_extra_laravel",
-      "community": 615,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "laravel"
     },
     {
@@ -19293,8 +19293,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_composer_laravel_dont_discover",
-      "community": 615,
-      "community_name": "extra",
+      "community": 71,
+      "community_name": "composer.json",
       "norm_label": "dont-discover"
     },
     {
@@ -21977,8 +21977,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "backend_tests_feature_bmnmasterdatatest_bmnmasterdatatest_test_cannot_delete_location_in_use",
-      "community": 120,
-      "community_name": "User",
+      "community": 498,
+      "community_name": "Location",
       "norm_label": ".test_cannot_delete_location_in_use()"
     },
     {
@@ -42112,7 +42112,7 @@
       "label": "getLeaveStatusBadge()",
       "file_type": "code",
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myleavetab_getleavestatusbadge",
       "community": 4,
@@ -42123,7 +42123,7 @@
       "label": "MyLeaveTab()",
       "file_type": "code",
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L45",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_myleavetab_myleavetab",
       "community": 4,
@@ -42673,7 +42673,7 @@
       "label": "PersonalDashboard()",
       "file_type": "code",
       "source_file": "frontend/src/app/portal/page.tsx",
-      "source_location": "L835",
+      "source_location": "L803",
       "_origin": "ast",
       "id": "frontend_src_app_portal_page_personaldashboard",
       "community": 4,
@@ -93287,8 +93287,8 @@
       "source_location": "L795",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_178_dropdown_select_modal_custom_notification_validasi_ketat_st_mobile",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 519,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "progress - phase 178: dropdown select modal, custom notification & validasi ketat st mobile"
     },
     {
@@ -93298,8 +93298,8 @@
       "source_location": "L802",
       "_origin": "ast",
       "id": "docs_progress_dropdown_select_modal_custom_notification_validasi_ketat_form_mobile_buatsurattugasscreen_tsx",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 519,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "dropdown select modal, custom notification & validasi ketat form mobile (`buatsurattugasscreen.tsx`)"
     },
     {
@@ -93309,8 +93309,8 @@
       "source_location": "L804",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_804",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 519,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "status: selesai"
     },
     {
@@ -93320,8 +93320,8 @@
       "source_location": "L818",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_818",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 519,
+      "community_name": "Dropdown Select Modal, Custom Notification & Validasi Ketat Form Mobile (`BuatSuratTugasScreen.tsx`)",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93375,8 +93375,8 @@
       "source_location": "L857",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_176_sinkronisasi_form_detail_kegiatan_st_builder_premium",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "progress - phase 176: sinkronisasi form detail kegiatan st builder premium"
     },
     {
@@ -93386,8 +93386,8 @@
       "source_location": "L864",
       "_origin": "ast",
       "id": "docs_progress_sinkronisasi_form_detail_kegiatan_st_builder_premium_create_builder_id_dengan_surat_tugas",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "sinkronisasi form detail kegiatan st builder premium (`create` & `builder/[id]`) dengan `/surat-tugas`"
     },
     {
@@ -93397,8 +93397,8 @@
       "source_location": "L866",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_866",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "status: selesai"
     },
     {
@@ -93408,8 +93408,8 @@
       "source_location": "L880",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_880",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 577,
+      "community_name": "Sinkronisasi Form Detail Kegiatan ST Builder Premium (`create` & `builder/[id]`) dengan `/surat-tugas`",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93551,8 +93551,8 @@
       "source_location": "L975",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_172_perbaikan_tampilan_lokasi_di_inbox_surat_tugas",
-      "community": 607,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 172: perbaikan tampilan lokasi di inbox surat tugas"
     },
     {
@@ -93562,8 +93562,8 @@
       "source_location": "L982",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_tampilan_lokasi_tempat_tujuan_di_inbox_surat_tugas_kepegawaian_surat_tugas_inbox",
-      "community": 607,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "perbaikan tampilan lokasi tempat tujuan di inbox surat tugas (`/kepegawaian/surat-tugas/inbox`)"
     },
     {
@@ -93573,8 +93573,8 @@
       "source_location": "L984",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_984",
-      "community": 607,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -93584,8 +93584,8 @@
       "source_location": "L994",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_994",
-      "community": 607,
-      "community_name": "Perbaikan Tampilan Lokasi Tempat Tujuan di Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93595,8 +93595,8 @@
       "source_location": "L1000",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_171_deteksi_otomatis_kota_asal_berdasarkan_satker_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 220,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "progress - phase 171: deteksi otomatis kota asal berdasarkan satker pegawai"
     },
     {
@@ -93606,8 +93606,8 @@
       "source_location": "L1007",
       "_origin": "ast",
       "id": "docs_progress_deteksi_otomatis_kota_asal_default_berdasarkan_penempatan_satker_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 220,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "deteksi otomatis kota asal default berdasarkan penempatan satker pegawai"
     },
     {
@@ -93617,8 +93617,8 @@
       "source_location": "L1009",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1009",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 220,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "status: selesai"
     },
     {
@@ -93628,8 +93628,8 @@
       "source_location": "L1021",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1021",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 220,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93683,8 +93683,8 @@
       "source_location": "L1061",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_169_pemisahan_rute_perjalanan_dari_ke_kolom_pada_kegiatan",
-      "community": 540,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 169: pemisahan rute perjalanan (dari/ke) & kolom pada kegiatan"
     },
     {
@@ -93694,8 +93694,8 @@
       "source_location": "L1068",
       "_origin": "ast",
       "id": "docs_progress_pemisahan_rute_perjalanan_2_kolom_dari_ke_kolom_pada_clean_state_default",
-      "community": 540,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "pemisahan rute perjalanan 2 kolom (dari & ke) + kolom 'pada' + clean state default"
     },
     {
@@ -93705,8 +93705,8 @@
       "source_location": "L1070",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1070",
-      "community": 540,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -93716,8 +93716,8 @@
       "source_location": "L1086",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1086",
-      "community": 540,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -93771,8 +93771,8 @@
       "source_location": "L1127",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_167_fix_pencarian_pegawai_opsi_tambah_manual_buat_st",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 540,
+      "community_name": "Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST",
       "norm_label": "progress - phase 167: fix pencarian pegawai & opsi tambah manual buat st"
     },
     {
@@ -93782,8 +93782,8 @@
       "source_location": "L1134",
       "_origin": "ast",
       "id": "docs_progress_fix_pencarian_pegawai_opsi_tambah_manual_buat_st",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 540,
+      "community_name": "Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST",
       "norm_label": "fix pencarian pegawai & opsi tambah manual buat st"
     },
     {
@@ -93793,8 +93793,8 @@
       "source_location": "L1136",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1136",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 540,
+      "community_name": "Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST",
       "norm_label": "status: selesai"
     },
     {
@@ -93804,8 +93804,8 @@
       "source_location": "L1145",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1145",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 540,
+      "community_name": "Fix Pencarian Pegawai & Opsi Tambah Manual Buat ST",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94299,8 +94299,8 @@
       "source_location": "L1465",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -94310,8 +94310,8 @@
       "source_location": "L1472",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -94321,8 +94321,8 @@
       "source_location": "L1474",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1474",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "status: selesai"
     },
     {
@@ -94332,8 +94332,8 @@
       "source_location": "L1489",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1489",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 567,
+      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94343,8 +94343,8 @@
       "source_location": "L1495",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_154_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 519,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 154: mobile employee full search sync & single-line nip layout"
     },
     {
@@ -94354,8 +94354,8 @@
       "source_location": "L1502",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 519,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile employee full search sync & single-line nip layout"
     },
     {
@@ -94365,8 +94365,8 @@
       "source_location": "L1504",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1504",
-      "community": 519,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -94376,8 +94376,8 @@
       "source_location": "L1515",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1515",
-      "community": 519,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94607,8 +94607,8 @@
       "source_location": "L1667",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_148_mobile_login_screen_branding_clean_up",
-      "community": 577,
-      "community_name": "Mobile Login Screen Branding & Clean Up",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 148: mobile login screen branding & clean up"
     },
     {
@@ -94618,8 +94618,8 @@
       "source_location": "L1674",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_screen_branding_clean_up",
-      "community": 577,
-      "community_name": "Mobile Login Screen Branding & Clean Up",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile login screen branding & clean up"
     },
     {
@@ -94629,8 +94629,8 @@
       "source_location": "L1676",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1676",
-      "community": 577,
-      "community_name": "Mobile Login Screen Branding & Clean Up",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -94640,8 +94640,8 @@
       "source_location": "L1689",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1689",
-      "community": 577,
-      "community_name": "Mobile Login Screen Branding & Clean Up",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -94838,8 +94838,8 @@
       "source_location": "L1817",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_143_mobile_application_ui_ux_polishing_single_navigation_fix",
-      "community": 567,
-      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 143: mobile application ui/ux polishing & single navigation fix"
     },
     {
@@ -94849,8 +94849,8 @@
       "source_location": "L1824",
       "_origin": "ast",
       "id": "docs_progress_mobile_application_ui_ux_polishing_single_navigation_fix",
-      "community": 567,
-      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile application ui/ux polishing & single navigation fix"
     },
     {
@@ -94860,8 +94860,8 @@
       "source_location": "L1826",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1826",
-      "community": 567,
-      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -94871,8 +94871,8 @@
       "source_location": "L1830",
       "_origin": "ast",
       "id": "docs_progress_implementasi",
-      "community": 567,
-      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "implementasi"
     },
     {
@@ -94882,8 +94882,8 @@
       "source_location": "L1845",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1845",
-      "community": 567,
-      "community_name": "Mobile Application UI/UX Polishing & Single Navigation Fix",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -105013,8 +105013,8 @@
       "source_location": "L8117",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_24_milestone_1",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 615,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "[2026-06-19] mobile app implementation - task 24 (milestone 1)"
     },
     {
@@ -105024,8 +105024,8 @@
       "source_location": "L8119",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8119",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 615,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "completed (selesai)"
     },
     {
@@ -105035,8 +105035,8 @@
       "source_location": "L8127",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8127",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 615,
+      "community_name": "[2026-06-19] Mobile App Implementation - Task 24 (Milestone 1)",
       "norm_label": "next steps"
     },
     {
@@ -105046,8 +105046,8 @@
       "source_location": "L8130",
       "_origin": "ast",
       "id": "docs_progress_2026_06_19_mobile_app_implementation_task_25_milestone_1",
-      "community": 647,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-06-19] mobile app implementation - task 25 (milestone 1)"
     },
     {
@@ -105057,8 +105057,8 @@
       "source_location": "L8132",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8132",
-      "community": 647,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -105068,8 +105068,8 @@
       "source_location": "L8141",
       "_origin": "ast",
       "id": "docs_progress_next_steps_8141",
-      "community": 647,
-      "community_name": "[2026-06-19] Mobile App Implementation - Task 25 (Milestone 1)",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "next steps"
     },
     {
@@ -105904,8 +105904,8 @@
       "source_location": "L8575",
       "_origin": "ast",
       "id": "docs_progress_2026_08_10_dynamic_st_templates_management_for_superadmin",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 628,
+      "community_name": "[2026-08-10] Dynamic ST Templates Management for Superadmin",
       "norm_label": "[2026-08-10] dynamic st templates management for superadmin"
     },
     {
@@ -105915,8 +105915,8 @@
       "source_location": "L8577",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8577",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 628,
+      "community_name": "[2026-08-10] Dynamic ST Templates Management for Superadmin",
       "norm_label": "completed (selesai)"
     },
     {
@@ -105926,8 +105926,8 @@
       "source_location": "L8592",
       "_origin": "ast",
       "id": "docs_progress_validation_8592",
-      "community": 103,
-      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
+      "community": 628,
+      "community_name": "[2026-08-10] Dynamic ST Templates Management for Superadmin",
       "norm_label": "validation"
     },
     {
@@ -106069,8 +106069,8 @@
       "source_location": "L8699",
       "_origin": "ast",
       "id": "docs_progress_2026_10_27_phase_225_kategori_pegawai_pns_pppk_mmp_auto_deteksi_nip_nipppk_upload_foto_rustfs_modal_hapus_pegawai",
-      "community": 695,
-      "community_name": "[2026-10-27] Phase 225 \u2013 Kategori Pegawai (PNS / PPPK / MMP), Auto-Deteksi NIP/NIPPPK, Upload Foto RustFS & Modal Hapus Pegawai",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "[2026-10-27] phase 225 \u2013 kategori pegawai (pns / pppk / mmp), auto-deteksi nip/nipppk, upload foto rustfs & modal hapus pegawai"
     },
     {
@@ -106080,8 +106080,8 @@
       "source_location": "L8701",
       "_origin": "ast",
       "id": "docs_progress_problem_description_8701",
-      "community": 695,
-      "community_name": "[2026-10-27] Phase 225 \u2013 Kategori Pegawai (PNS / PPPK / MMP), Auto-Deteksi NIP/NIPPPK, Upload Foto RustFS & Modal Hapus Pegawai",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "problem description"
     },
     {
@@ -106091,8 +106091,8 @@
       "source_location": "L8707",
       "_origin": "ast",
       "id": "docs_progress_completed_selesai_8707",
-      "community": 695,
-      "community_name": "[2026-10-27] Phase 225 \u2013 Kategori Pegawai (PNS / PPPK / MMP), Auto-Deteksi NIP/NIPPPK, Upload Foto RustFS & Modal Hapus Pegawai",
+      "community": 103,
+      "community_name": "Progress Log: Modul Kepegawaian & Surat Tugas",
       "norm_label": "completed (selesai)"
     },
     {
@@ -110327,7 +110327,7 @@
       "_origin": "ast",
       "id": "illuminate_database_eloquent_relations_hasone",
       "community": 480,
-      "community_name": "SuratMasuk",
+      "community_name": "Employee",
       "norm_label": "illuminate\\database\\eloquent\\relations\\hasone"
     },
     {
@@ -149166,7 +149166,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L483",
+      "source_location": "L486",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149177,7 +149177,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L960",
+      "source_location": "L963",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149210,7 +149210,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L832",
+      "source_location": "L835",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149232,7 +149232,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L609",
+      "source_location": "L612",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149243,7 +149243,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L739",
+      "source_location": "L742",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149254,7 +149254,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L702",
+      "source_location": "L705",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149265,7 +149265,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L720",
+      "source_location": "L723",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149276,7 +149276,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1147",
+      "source_location": "L1150",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149287,7 +149287,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L991",
+      "source_location": "L994",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149298,7 +149298,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1017",
+      "source_location": "L1020",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149364,7 +149364,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L807",
+      "source_location": "L810",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149375,7 +149375,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L757",
+      "source_location": "L760",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149386,7 +149386,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L781",
+      "source_location": "L784",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149397,7 +149397,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1043",
+      "source_location": "L1046",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149408,7 +149408,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L669",
+      "source_location": "L672",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149419,7 +149419,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1300",
+      "source_location": "L1320",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller",
@@ -149804,7 +149804,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L504",
+      "source_location": "L507",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminapprove",
@@ -149816,7 +149816,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L485",
+      "source_location": "L488",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminapprove",
@@ -149826,7 +149826,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L483",
+      "source_location": "L486",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -149838,7 +149838,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L483",
+      "source_location": "L486",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -149852,7 +149852,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L611",
+      "source_location": "L614",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminuploadscan",
@@ -149862,7 +149862,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L609",
+      "source_location": "L612",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -149874,7 +149874,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L609",
+      "source_location": "L612",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -149887,7 +149887,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L714",
+      "source_location": "L717",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscanformulir",
@@ -149899,7 +149899,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L733",
+      "source_location": "L736",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscansuratizin",
@@ -149911,7 +149911,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L775",
+      "source_location": "L778",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscanformulir",
@@ -149923,7 +149923,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L801",
+      "source_location": "L804",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscansuratizin",
@@ -149934,7 +149934,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L669",
+      "source_location": "L672",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -149947,7 +149947,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L749",
+      "source_location": "L752",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscan",
@@ -149960,7 +149960,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L707",
+      "source_location": "L710",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscanformulir",
@@ -149971,7 +149971,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L746",
+      "source_location": "L749",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscan",
@@ -149984,7 +149984,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L725",
+      "source_location": "L728",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscansuratizin",
@@ -149996,7 +149996,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L744",
+      "source_location": "L747",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminviewscan",
@@ -150007,7 +150007,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L824",
+      "source_location": "L827",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
@@ -150020,7 +150020,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L760",
+      "source_location": "L763",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscanformulir",
@@ -150032,7 +150032,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L766",
+      "source_location": "L769",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscanformulir",
@@ -150042,7 +150042,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L757",
+      "source_location": "L760",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -150055,7 +150055,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L821",
+      "source_location": "L824",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
@@ -150068,7 +150068,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L784",
+      "source_location": "L787",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscansuratizin",
@@ -150080,7 +150080,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L790",
+      "source_location": "L793",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscansuratizin",
@@ -150090,7 +150090,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L781",
+      "source_location": "L784",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -150103,31 +150103,31 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
+      "source_location": "L813",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
+      "target": "backend_app_modules_kepegawaian_models_employee_employee"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
+      "source_location": "L819",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
+      "target": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
       "source_location": "L810",
       "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
-      "target": "backend_app_modules_kepegawaian_models_employee_employee"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L816",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
-      "target": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L807",
-      "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_myviewscan",
@@ -150140,7 +150140,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L895",
+      "source_location": "L898",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdate",
@@ -150152,7 +150152,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L834",
+      "source_location": "L837",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_adminupdate",
@@ -150162,7 +150162,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L832",
+      "source_location": "L835",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -150174,7 +150174,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L832",
+      "source_location": "L835",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -150188,7 +150188,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L970",
+      "source_location": "L973",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_admindestroy",
@@ -150200,7 +150200,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L962",
+      "source_location": "L965",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_admindestroy",
@@ -150210,7 +150210,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L960",
+      "source_location": "L963",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -150223,7 +150223,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1201",
+      "source_location": "L1204",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150236,7 +150236,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1021",
+      "source_location": "L1024",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_getkepalabalai",
@@ -150247,7 +150247,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1109",
+      "source_location": "L1112",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
@@ -150259,7 +150259,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1110",
+      "source_location": "L1113",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
@@ -150272,7 +150272,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1113",
+      "source_location": "L1116",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
@@ -150284,7 +150284,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1045",
+      "source_location": "L1048",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
@@ -150296,7 +150296,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1052",
+      "source_location": "L1055",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_previewsuratizin",
@@ -150306,7 +150306,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1043",
+      "source_location": "L1046",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -150319,7 +150319,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1202",
+      "source_location": "L1205",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150332,7 +150332,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1214",
+      "source_location": "L1217",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150344,7 +150344,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1169",
+      "source_location": "L1172",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150356,7 +150356,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1149",
+      "source_location": "L1152",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150368,7 +150368,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1243",
+      "source_location": "L1246",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_modules_kepegawaian_controllers_employeeleaverequestcontroller_employeeleaverequestcontroller_generatesuratizin",
@@ -150378,7 +150378,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1147",
+      "source_location": "L1150",
       "weight": 1.0,
       "context": "return_type",
       "_origin": "ast",
@@ -150390,7 +150390,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
-      "source_location": "L1147",
+      "source_location": "L1150",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -229387,7 +229387,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_components_myleavetab",
@@ -229398,7 +229398,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L45",
+      "source_location": "L46",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_components_myleavetab",
@@ -229481,7 +229481,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L137",
+      "source_location": "L155",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_components_myleavetab_myleavetab",
@@ -229494,7 +229494,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
-      "source_location": "L140",
+      "source_location": "L158",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_components_myleavetab_myleavetab",
@@ -231055,7 +231055,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/portal/page.tsx",
-      "source_location": "L835",
+      "source_location": "L803",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_page",
@@ -231289,7 +231289,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/portal/page.tsx",
-      "source_location": "L612",
+      "source_location": "L579",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_portal_page_portalcontent",
@@ -315777,5 +315777,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "40ab62146fc86ba1494c6389d85d50afeff13f51"
+  "built_at_commit": "5294ea0b3961ea0d1a113caa6a1193bf110947cb"
 }

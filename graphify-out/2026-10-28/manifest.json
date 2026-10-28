@@ -520,8 +520,8 @@
     "semantic_hash": "52dc5bc14b13edd9e90f5d19ac2f229e"
   },
   "backend/app/Modules/Bmn/Services/LoanService.php": {
-    "mtime": 1792746997.3658755,
-    "ast_hash": "02679b66cd34cdbe955cbc5fd1664fa5",
+    "mtime": 1793165411.225716,
+    "ast_hash": "c692927c1318c71b135eb940a6208448",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/MaintenanceService.php": {
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1793086951.3572507,
-    "ast_hash": "aedd3ffd5cf22734ac54ba3daa2da1c2",
+    "mtime": 1793165373.417508,
+    "ast_hash": "49cf840f8540fff465527df37a7fe9f1",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1793162518.2265246,
-    "ast_hash": "64d98db4a7880d0d9fc7df1415dbd17f",
+    "mtime": 1793165341.6237566,
+    "ast_hash": "9b623ecbeb75a6a9bcd384da91e060f7",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -1470,8 +1470,8 @@
     "semantic_hash": "b519d08ef66fd54910edbedba6181ec2"
   },
   "backend/routes/api.php": {
-    "mtime": 1792746997.4568734,
-    "ast_hash": "79dddff35d79bdc72940b11de8392f23",
+    "mtime": 1793165160.0357761,
+    "ast_hash": "4fd01f6dee3dc21f5999d8d710621994",
     "semantic_hash": ""
   },
   "backend/routes/console.php": {
@@ -2485,8 +2485,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1792746997.6411068,
-    "ast_hash": "5a75acfc72482d8b018c2b1b2493c1b6",
+    "mtime": 1793165720.2841992,
+    "ast_hash": "3d373f3a657f99aabdfbd2dab75e78d7",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -7007,6 +7007,36 @@
   "frontend/src/app/kepegawaian/surat-tugas/_lib/useScheduleConflicts.ts": {
     "mtime": 1793162608.8310564,
     "ast_hash": "9f8d81bcfc7d56dba279efc8b7f0fec1",
+    "semantic_hash": ""
+  },
+  "backend/app/Http/Controllers/Api/PortalNotificationController.php": {
+    "mtime": 1793165143.5600932,
+    "ast_hash": "f1eb19dceab878126397d06c2991ad01",
+    "semantic_hash": ""
+  },
+  "backend/app/Models/PortalNotification.php": {
+    "mtime": 1793165104.9657881,
+    "ast_hash": "cd41458881333e17bd2272198398b1ba",
+    "semantic_hash": ""
+  },
+  "backend/app/Services/PortalNotificationService.php": {
+    "mtime": 1793165132.8199804,
+    "ast_hash": "5eeb97657a0abb427cfbaa656f907d17",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_28_140000_create_portal_notifications_table.php": {
+    "mtime": 1793165092.0714836,
+    "ast_hash": "a943bb315cf951f23b1b2303e9c0fd27",
+    "semantic_hash": ""
+  },
+  "backend/tests/self_check_notifications.php": {
+    "mtime": 1793165492.3141108,
+    "ast_hash": "d863b4583ee594cccc113d4c7db65d76",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/portal/_components/NotificationBell.tsx": {
+    "mtime": 1793165587.150411,
+    "ast_hash": "59f2005380c92db69a90f10c0037847c",
     "semantic_hash": ""
   }
 }

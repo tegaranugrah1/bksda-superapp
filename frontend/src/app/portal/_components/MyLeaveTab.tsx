@@ -12,6 +12,7 @@ interface MyLeaveTabProps {
   onOpenLeaveDialog: () => void;
   onPrintLeave: (item: LeaveRequestPrintData) => void;
   onCancelLeave?: (id: number) => void;
+  activeLeaveId?: number | string | null;
 }
 
 function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; className: string } {
@@ -47,9 +48,26 @@ export function MyLeaveTab({
   onOpenLeaveDialog,
   onPrintLeave,
   onCancelLeave,
+  activeLeaveId,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
   const [viewerModal, setViewerModal] = React.useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
+
+  React.useEffect(() => {
+    if (!activeLeaveId || !myLeaveRequests.length) return;
+    const target = myLeaveRequests.find((r) => String(r.id) === String(activeLeaveId));
+    if (target) {
+      if (target.scan_surat_izin_path || target.scan_surat_path) {
+        setViewerModal({
+          url: `/me/leave-requests/${target.id}/scan-surat-izin`,
+          fileName: target.scan_surat_izin_nama || target.scan_surat_nama,
+          title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
+        });
+      } else {
+        onPrintLeave(target);
+      }
+    }
+  }, [activeLeaveId, myLeaveRequests, onPrintLeave]);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {

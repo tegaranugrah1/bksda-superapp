@@ -320,6 +320,8 @@ function PortalContent() {
     }
   }, []);
 
+  const [activeLeaveId, setActiveLeaveId] = useState<string | number | null>(null);
+
   const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
     const validTabs = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
     const targetTab = validTabs.includes(tabKey) ? tabKey : "dashboard";
@@ -327,6 +329,8 @@ function PortalContent() {
 
     if (targetTab === "surat_tugas" && referenceId) {
       fetchSTDetail(referenceId);
+    } else if (targetTab === "cuti" && referenceId) {
+      setActiveLeaveId(referenceId);
     }
   }, [fetchSTDetail]);
 
@@ -349,48 +353,11 @@ function PortalContent() {
     };
   }, [printLeaveData]);
 
-  // Status change tracker & toast notification for leave requests
-  const prevLeaveStatusesRef = useRef<Map<number, string>>(new Map());
-  const isFirstLeaveLoadRef = useRef(true);
-
   const fetchMyLeaveRequests = useCallback(async () => {
     try {
       const res = await api.get("/me/leave-requests");
       const list: LeaveRequestPrintData[] = res.data.data || [];
       setMyLeaveRequests(list);
-
-      // Deteksi perubahan status cuti & tampilkan notifikasi toast otomatis
-      if (!isFirstLeaveLoadRef.current) {
-        list.forEach((item) => {
-          if (!item.id) return;
-          const prevStatus = prevLeaveStatusesRef.current.get(item.id);
-          const currentStatus = (item.status || "").toUpperCase();
-
-          if (prevStatus && prevStatus !== currentStatus) {
-            if (currentStatus === "DISETUJUI") {
-              toast.success("Permohonan Cuti Disetujui! 🎉", {
-                description: `Pengajuan ${item.jenis_cuti || "Cuti"} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.`,
-                duration: 7000,
-              });
-            } else if (currentStatus === "PENGAJUAN") {
-              toast.info("Status Permohonan Cuti", {
-                description: `Pengajuan ${item.jenis_cuti || "Cuti"} Anda dikembalikan ke status Pengajuan.`,
-                duration: 5000,
-              });
-            }
-          }
-        });
-      }
-
-      // Perbarui map snapshot status
-      const newMap = new Map<number, string>();
-      list.forEach((item) => {
-        if (item.id) {
-          newMap.set(item.id, (item.status || "").toUpperCase());
-        }
-      });
-      prevLeaveStatusesRef.current = newMap;
-      isFirstLeaveLoadRef.current = false;
 
       // Update saldo cuti
       const balRes = await api.get(`/me/leave-balance?year=${currentYear}`);
@@ -741,6 +708,7 @@ function PortalContent() {
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
                 <MyLeaveTab
                   myLeaveRequests={myLeaveRequests}
+                  activeLeaveId={activeLeaveId}
                   onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
                   onCancelLeave={async (id) => {
                     if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
