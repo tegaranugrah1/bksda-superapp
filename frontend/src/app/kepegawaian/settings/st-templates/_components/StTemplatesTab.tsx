@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
+import { toggleItalicInTextarea } from "@/lib/letter-utils";
 import { EditableItemListSection } from "../../../surat-tugas/_components/EditableItemListSection";
 import STBuilderPreview from "../../../surat-tugas/_components/STBuilderPreview";
 import {
@@ -142,39 +143,8 @@ export function StTemplatesTab() {
   const currentYear = new Date().getFullYear().toString();
 
   const applyItalicToHeader = () => {
-    const textarea = headerTextareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = headerTitle;
-
-    if (start !== end) {
-      const selected = text.slice(start, end);
-      if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
-        const unwrapped = selected.slice(1, -1);
-        const nextText = text.slice(0, start) + unwrapped + text.slice(end);
-        setHeaderTitle(nextText);
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start, start + unwrapped.length);
-        }, 0);
-      } else {
-        const wrapped = `*${selected}*`;
-        const nextText = text.slice(0, start) + wrapped + text.slice(end);
-        setHeaderTitle(nextText);
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start, start + wrapped.length);
-        }, 0);
-      }
-    } else {
-      const placeholder = "*teks miring*";
-      const nextText = text.slice(0, start) + placeholder + text.slice(end);
-      setHeaderTitle(nextText);
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
-      }, 0);
+    if (headerTextareaRef.current) {
+      toggleItalicInTextarea(headerTextareaRef.current, headerTitle, setHeaderTitle);
     }
   };
 

@@ -106,34 +106,14 @@ function parseItems(value: DasarItem[] | string | null | undefined): DasarItem[]
 
 function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
   const lines = (title || "KEPALA BALAI,").split("\n");
-  const regex = /(\*[^*]+\*|IMPLEMENTING PARTNER|Implementing Partner)/g;
 
   return (
     <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px", fontSize: "11pt", lineHeight: "1.35" }}>
-      {lines.map((line, i) => {
-        const parts = line.split(regex);
-        return (
-          <p key={i} style={{ margin: 0 }}>
-            {parts.map((part, j) => {
-              if (part.startsWith("*") && part.endsWith("*") && part.length > 1) {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part.slice(1, -1)}
-                  </span>
-                );
-              }
-              if (part.toUpperCase() === "IMPLEMENTING PARTNER") {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part}
-                  </span>
-                );
-              }
-              return <React.Fragment key={j}>{part}</React.Fragment>;
-            })}
-          </p>
-        );
-      })}
+      {lines.map((line, i) => (
+        <p key={i} style={{ margin: 0 }}>
+          {renderFormattedItalic(line)}
+        </p>
+      ))}
     </div>
   );
 }
@@ -167,11 +147,13 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       kopEl.style.marginRight = '0';
     }
     
+    const cleanDocTitle = (data.nomor_surat || 'Draft').replace(/[<>&"']/g, '');
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
+        <title>Surat Tugas - ${cleanDocTitle}</title>
         <style>
           @page { size: A4 portrait; margin: 0; }
           html, body { margin: 0; padding: 0; background: #ffffff; }

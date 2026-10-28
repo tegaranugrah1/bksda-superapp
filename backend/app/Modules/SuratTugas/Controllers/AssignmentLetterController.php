@@ -492,7 +492,7 @@ class AssignmentLetterController extends Controller
                 'keterangan' => $request->input('keterangan'),
                 'status' => (in_array($authUser?->role, ['super_admin', 'admin'], true) && strtolower((string) $request->input('status')) === 'approved')
                     ? 'approved'
-                    : (strtolower((string) $request->input('status')) === 'draft' ? 'draft' : 'pending'),
+                    : ($authUser && strtolower((string) $request->input('status')) === 'draft' ? 'draft' : 'pending'),
                 'approved_by' => (in_array($authUser?->role, ['super_admin', 'admin'], true) && strtolower((string) $request->input('status')) === 'approved')
                     ? (int) $authUser->id
                     : null,

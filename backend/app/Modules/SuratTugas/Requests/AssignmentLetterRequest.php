@@ -21,6 +21,35 @@ class AssignmentLetterRequest extends FormRequest
                 $clean[$field] = $val !== '' ? strip_tags($val) : null;
             }
         }
+
+        foreach (['menimbang', 'dasar'] as $listField) {
+            if ($this->has($listField) && is_array($this->input($listField))) {
+                $clean[$listField] = array_map(function ($item) {
+                    if (is_array($item)) {
+                        if (isset($item['text'])) {
+                            $item['text'] = strip_tags(trim((string) $item['text']));
+                        }
+                        if (isset($item['id'])) {
+                            $item['id'] = strip_tags(trim((string) $item['id']));
+                        }
+                    }
+                    return $item;
+                }, $this->input($listField));
+            }
+        }
+
+        if ($this->has('tembusan') && is_array($this->input('tembusan'))) {
+            $clean['tembusan'] = array_map(function ($item) {
+                if (is_array($item)) {
+                    if (isset($item['text'])) {
+                        $item['text'] = strip_tags(trim((string) $item['text']));
+                    }
+                    return $item;
+                }
+                return is_string($item) ? strip_tags(trim($item)) : $item;
+            }, $this->input('tembusan'));
+        }
+
         if (!empty($clean)) {
             $this->merge($clean);
         }

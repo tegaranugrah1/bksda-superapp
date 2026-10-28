@@ -2360,8 +2360,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx": {
-    "mtime": 1793081874.776503,
-    "ast_hash": "51d5dc803254bcb4387ea54f1bad3f3b",
+    "mtime": 1793176043.252897,
+    "ast_hash": "9f37dc8b4d3b142a779bf60ce11628b4",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/FormSection.tsx": {
@@ -2570,8 +2570,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/SuratTugasLetterPreview.tsx": {
-    "mtime": 1792746997.6615362,
-    "ast_hash": "6f24087ee8c171ef94082e4b491fcc2c",
+    "mtime": 1793176274.82279,
+    "ast_hash": "edffcf5719b6a9a65e35c03ed3a08073",
     "semantic_hash": ""
   },
   "frontend/src/components/custom/EmployeePicker.tsx": {
@@ -2770,8 +2770,8 @@
     "semantic_hash": "2e57578c5277fa2195628a110576f9de"
   },
   "frontend/src/lib/letter-utils.ts": {
-    "mtime": 1793157273.746403,
-    "ast_hash": "0eb26077e4cf583a7cdb1da93d4c5920",
+    "mtime": 1793176482.2015033,
+    "ast_hash": "ea69ddf98afda0ac7b7fec009b0f59a0",
     "semantic_hash": ""
   },
   "frontend/src/lib/utils.ts": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx": {
-    "mtime": 1793164410.086958,
-    "ast_hash": "d0f026e4f7f5acb3b4750c437e060d84",
+    "mtime": 1793176380.3744822,
+    "ast_hash": "202045dd7e32611f4cc8e94476861da2",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasSuccessStep.tsx": {
@@ -6520,8 +6520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/STBuilderPreview.tsx": {
-    "mtime": 1793157285.1455202,
-    "ast_hash": "8507c44c016b02b96e6c57b9cb7c35f2",
+    "mtime": 1793176216.2095833,
+    "ast_hash": "713856faf8312d929137df20261f37a2",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/STLampiranBedaHari.tsx": {
@@ -6530,8 +6530,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx": {
-    "mtime": 1793164439.328695,
-    "ast_hash": "348b5ab5dec2fb1cf040e39216c65038",
+    "mtime": 1793176106.6938612,
+    "ast_hash": "c236b860c785bfa26f1e1530593335f8",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-helpers.ts": {
@@ -6540,8 +6540,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/settings/st-templates/_components/ExpenseTemplatesTab.tsx": {
-    "mtime": 1793088815.9950209,
-    "ast_hash": "ff9f8381b7624bd5b253ac3d16ad8458",
+    "mtime": 1793176175.4644082,
+    "ast_hash": "eb374e7751ed7c3819dfc6260d76cf5b",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx": {
