@@ -20,11 +20,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { calculateMasaKerja } from "../_lib/employee-helpers";
 import {
   LeaveRequestItem,
   EditLeaveModal,
-  DeleteLeaveModal,
   PrintLeaveModal,
   ApproveLeaveModal,
   UploadScanModal,
@@ -64,10 +64,11 @@ export default function InboxSuratCutiPage() {
     setPage(1);
   }, [debouncedSearch, selectedYear, selectedStatus, perPage]);
 
+  const confirm = useConfirm();
+
   // Modals state
   const [printItem, setPrintItem] = useState<LeaveRequestItem | null>(null);
   const [editItem, setEditItem] = useState<LeaveRequestItem | null>(null);
-  const [deleteItem, setDeleteItem] = useState<LeaveRequestItem | null>(null);
   const [approveItem, setApproveItem] = useState<LeaveRequestItem | null>(null);
   const [approveMode, setApproveMode] = useState<"approve" | "regenerate">("approve");
   const [digitalSuratItem, setDigitalSuratItem] = useState<LeaveRequestItem | null>(null);
@@ -122,11 +123,11 @@ export default function InboxSuratCutiPage() {
     },
     onSuccess: (_, variables) => {
       if (variables.newStatus === "DISETUJUI") {
-        toast.success("Pengajuan Cuti berhasil DISETUJUI! Kuota cuti otomatis terpotong.");
+        toast.success("Pengajuan cuti berhasil disetujui. Kuota otomatis terpotong.");
       } else if (variables.newStatus === "DITOLAK") {
-        toast.info("Status pengajuan cuti diubah menjadi DITOLAK.");
+        toast.info("Status pengajuan cuti diubah menjadi Ditolak.");
       } else {
-        toast.info("Status pengajuan cuti dikembalikan ke PENGAJUAN.");
+        toast.info("Status pengajuan cuti dikembalikan ke Pengajuan.");
       }
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
       notifyLeaveSync(variables.newStatus, variables.id);
@@ -235,22 +236,46 @@ export default function InboxSuratCutiPage() {
     },
   });
 
-  // Delete Mutation
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!deleteItem) return;
-      await api.delete(`/kepegawaian/leave-requests/${deleteItem.id}`);
-    },
-    onSuccess: () => {
-      toast.success("Pengajuan Cuti berhasil dihapus!");
+  const handleDeleteLeave = async (item: LeaveRequestItem) => {
+    const ok = await confirm({
+      title: "Hapus Pengajuan Cuti?",
+      description: `Hapus pengajuan cuti milik "${item.employee?.nama_lengkap}"? Pengajuan pada portal pegawai juga akan dihapus.`,
+      confirmText: "Hapus Pengajuan",
+      variant: "danger",
+    });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/kepegawaian/leave-requests/${item.id}`);
+      toast.success("Pengajuan cuti berhasil dihapus.");
       queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
-      setDeleteItem(null);
       notifyLeaveSync();
-    },
-    onError: () => {
+    } catch {
       toast.error("Gagal menghapus pengajuan cuti.");
-    },
-  });
+    }
+  };
+
+  const handleRevertStatus = async (item: LeaveRequestItem) => {
+    const ok = await confirm({
+      title: "Kembalikan Status Pengajuan?",
+      description: `Kembalikan pengajuan cuti milik "${item.employee?.nama_lengkap}" ke status PENGAJUAN? Kuota cuti tahunan yang terpotong akan dikembalikan ke saldo pegawai.`,
+      confirmText: "Kembalikan Status",
+      variant: "warning",
+    });
+    if (!ok) return;
+    toggleStatusMutation.mutate({ id: item.id, newStatus: "PENGAJUAN" });
+  };
+
+  const handleRejectLeave = async (item: LeaveRequestItem) => {
+    const ok = await confirm({
+      title: "Tolak Pengajuan Cuti?",
+      description: `Tolak pengajuan cuti milik "${item.employee?.nama_lengkap}"?`,
+      confirmText: "Tolak Pengajuan",
+      variant: "warning",
+    });
+    if (!ok) return;
+    toggleStatusMutation.mutate({ id: item.id, newStatus: "DITOLAK" });
+  };
 
   const openEditModal = (item: LeaveRequestItem) => {
     setEditItem(item);
@@ -776,11 +801,7 @@ export default function InboxSuratCutiPage() {
 
                                   {isApproved && (
                                     <DropdownMenuItem
-                                      onClick={() => {
-                                        if (window.confirm(`Kembalikan status cuti ${item.employee?.nama_lengkap} ke PENGAJUAN? Kuota cuti tahunan yang terpotong akan dikembalikan.`)) {
-                                          toggleStatusMutation.mutate({ id: item.id, newStatus: "PENGAJUAN" });
-                                        }
-                                      }}
+                                      onClick={() => handleRevertStatus(item)}
                                       className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
                                     >
                                       <RotateCcw className="w-3.5 h-3.5" />
@@ -790,11 +811,7 @@ export default function InboxSuratCutiPage() {
 
                                   {!isRejected && (
                                     <DropdownMenuItem
-                                      onClick={() => {
-                                        if (window.confirm(`Tolak pengajuan cuti milik ${item.employee?.nama_lengkap}?`)) {
-                                          toggleStatusMutation.mutate({ id: item.id, newStatus: "DITOLAK" });
-                                        }
-                                      }}
+                                      onClick={() => handleRejectLeave(item)}
                                       className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
                                     >
                                       <XCircle className="w-3.5 h-3.5" />
@@ -812,7 +829,7 @@ export default function InboxSuratCutiPage() {
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
                                   <DropdownMenuItem
-                                    onClick={() => setDeleteItem(item)}
+                                    onClick={() => handleDeleteLeave(item)}
                                     className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -874,13 +891,6 @@ export default function InboxSuratCutiPage() {
         isPending={updateMutation.isPending}
         onClose={() => setEditItem(null)}
         onSubmit={() => updateMutation.mutate()}
-      />
-
-      <DeleteLeaveModal
-        item={deleteItem}
-        isPending={deleteMutation.isPending}
-        onClose={() => setDeleteItem(null)}
-        onConfirm={() => deleteMutation.mutate()}
       />
 
       <PrintLeaveModal

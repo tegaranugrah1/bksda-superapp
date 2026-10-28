@@ -21,6 +21,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
 import { isPppk } from "@/lib/letter-utils";
@@ -93,9 +94,7 @@ export default function EmployeeListPage() {
   } | null>(null);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
 
-  const [deleteItem, setDeleteItem] = useState<Employee | null>(null);
-  const [forceDeleteItem, setForceDeleteItem] = useState<Employee | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const confirm = useConfirm();
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
   const invalidateAll = () => {
@@ -103,29 +102,40 @@ export default function EmployeeListPage() {
     queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
   };
 
-  const executeDelete = async () => {
-    if (!deleteItem) return;
-    setIsDeleting(true);
+  const handleSoftDelete = async (emp: Employee) => {
+    const ok = await confirm({
+      title: "Hapus Data Pegawai?",
+      description: `Pindahkan data pegawai "${emp.nama_lengkap}" ke Data Terhapus? Akun akses sistemnya akan dinonaktifkan.`,
+      confirmText: "Hapus Pegawai",
+      variant: "danger",
+    });
+    if (!ok) return;
+
     try {
-      await api.delete(`/kepegawaian/employees/${deleteItem.id}`);
-      toast.success(`Pegawai "${deleteItem.nama_lengkap}" dipindahkan ke Data Terhapus.`);
+      await api.delete(`/kepegawaian/employees/${emp.id}`);
+      toast.success(`Data pegawai "${emp.nama_lengkap}" berhasil dipindahkan ke Data Terhapus.`);
       invalidateAll();
-      setDeleteItem(null);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         "Gagal menghapus data pegawai.";
       toast.error(msg);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
-  const executeRestore = async (emp: Employee) => {
+  const handleRestore = async (emp: Employee) => {
+    const ok = await confirm({
+      title: "Pulihkan Data Pegawai?",
+      description: `Pulihkan data pegawai "${emp.nama_lengkap}" dan aktifkan kembali akun aksesnya?`,
+      confirmText: "Pulihkan Pegawai",
+      variant: "info",
+    });
+    if (!ok) return;
+
     setRestoringId(emp.id);
     try {
       await api.post(`/kepegawaian/employees/${emp.id}/restore`);
-      toast.success(`Data pegawai "${emp.nama_lengkap}" berhasil dipulihkan!`);
+      toast.success(`Data pegawai "${emp.nama_lengkap}" berhasil dipulihkan.`);
       invalidateAll();
     } catch (err: unknown) {
       const msg =
@@ -137,21 +147,24 @@ export default function EmployeeListPage() {
     }
   };
 
-  const executeForceDelete = async () => {
-    if (!forceDeleteItem) return;
-    setIsDeleting(true);
+  const handleForceDelete = async (emp: Employee) => {
+    const ok = await confirm({
+      title: "Hapus Permanen Data Pegawai?",
+      description: `Tindakan ini tidak dapat dibatalkan. Data pegawai "${emp.nama_lengkap}", akun login, dan berkas terkait akan dihapus secara permanen.`,
+      confirmText: "Hapus Permanen",
+      variant: "danger",
+    });
+    if (!ok) return;
+
     try {
-      await api.delete(`/kepegawaian/employees/${forceDeleteItem.id}/force`);
-      toast.success(`Data pegawai "${forceDeleteItem.nama_lengkap}" dihapus permanen!`);
+      await api.delete(`/kepegawaian/employees/${emp.id}/force`);
+      toast.success(`Data pegawai "${emp.nama_lengkap}" berhasil dihapus permanen.`);
       invalidateAll();
-      setForceDeleteItem(null);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         "Gagal menghapus permanen data pegawai.";
       toast.error(msg);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -634,7 +647,7 @@ export default function EmployeeListPage() {
                                 <button
                                   type="button"
                                   disabled={restoringId === emp.id}
-                                  onClick={() => executeRestore(emp)}
+                                  onClick={() => handleRestore(emp)}
                                   title="Pulihkan Pegawai"
                                   className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-emerald-200/60 dark:border-emerald-800/50 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-colors cursor-pointer"
                                 >
@@ -643,7 +656,7 @@ export default function EmployeeListPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setForceDeleteItem(emp)}
+                                  onClick={() => handleForceDelete(emp)}
                                   title="Hapus Permanen"
                                   className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200/60 dark:border-rose-800/50 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer"
                                 >
@@ -677,7 +690,7 @@ export default function EmployeeListPage() {
                               {canWrite && (
                                 <button
                                   type="button"
-                                  onClick={() => setDeleteItem(emp)}
+                                  onClick={() => handleSoftDelete(emp)}
                                   title="Hapus Pegawai"
                                   className="p-2 bg-slate-50 hover:bg-rose-50 dark:bg-zinc-800/70 dark:hover:bg-rose-500/15 border border-slate-200/70 dark:border-zinc-700/70 rounded-xl text-slate-600 hover:text-rose-600 dark:text-zinc-300 dark:hover:text-rose-400 transition-colors cursor-pointer"
                                 >
@@ -743,78 +756,6 @@ export default function EmployeeListPage() {
           </div>
         )}
       </div>
-
-      {/* Modal Soft Delete */}
-      {deleteItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                Konfirmasi Hapus Data Pegawai
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Apakah Anda yakin ingin menghapus data pegawai{" "}
-                <span className="font-bold text-slate-900 dark:text-slate-100">
-                  {deleteItem.nama_lengkap}
-                </span>
-                ? Data akan dipindahkan ke tab <strong>Data Terhapus</strong> dan akun akses sistemnya dinonaktifkan.
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <Button variant="outline" onClick={() => setDeleteItem(null)} disabled={isDeleting}>
-                Batal
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={isDeleting}
-                onClick={executeDelete}
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
-              >
-                {isDeleting ? "Menghapus..." : "Ya, Hapus Pegawai"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Force Delete (Hapus Permanen) */}
-      {forceDeleteItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                Hapus Permanen Data Pegawai
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Tindakan ini <strong>tidak dapat dibatalkan</strong>. Data pegawai{" "}
-                <span className="font-bold text-slate-900 dark:text-slate-100">
-                  {forceDeleteItem.nama_lengkap}
-                </span>
-                , akun login terkait, serta foto profil di RustFS akan dihapus secara permanen.
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <Button variant="outline" onClick={() => setForceDeleteItem(null)} disabled={isDeleting}>
-                Batal
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={isDeleting}
-                onClick={executeForceDelete}
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
-              >
-                {isDeleting ? "Menghapus..." : "Ya, Hapus Permanen"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {canManageAccess && (
         <EmployeeAccessSheet
