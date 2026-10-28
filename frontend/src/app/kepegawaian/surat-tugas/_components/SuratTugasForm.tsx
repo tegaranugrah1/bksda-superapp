@@ -44,6 +44,11 @@ import {
   DEFAULT_KEPALA_BALAI,
   PLH_WILAYAH_PLACEHOLDER,
   PLH_KEGIATAN_KASI_PLACEHOLDER,
+  PLH_KASUBBAG_TU_TITLE,
+  PLH_TARGET_OPTIONS,
+  detectPlhTargetRole,
+  getPlhTargetOption,
+  type PlhTargetRole,
   SUMBER_DANA_OPTIONS,
   buildBiayaTextFor,
   cleanPlhKegiatanKasi,
@@ -154,6 +159,7 @@ export function SuratTugasForm({
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [tempatKegiatan, setTempatKegiatan] = useState("");
   const [plhWilayah, setPlhWilayah] = useState("");
+  const [plhTargetRole, setPlhTargetRole] = useState<PlhTargetRole>("seksi_1");
   const [plhKegiatanKasi, setPlhKegiatanKasi] = useState("");
   const [parentStInfo, setParentStInfo] = useState<{
     nomorInduk?: string | null;
@@ -229,18 +235,8 @@ export function SuratTugasForm({
     }
   };
 
-  // Template PLH hanya boleh dipilih jika pegawai yang ditugaskan mencakup Kasubbag TU atau Kepala Seksi (atau surat ini sudah berjenis PLH)
-  const canSelectPlh = useMemo(() => {
-    if (isPlhTemplate) return true;
-    return selectedEmployees.some((emp) => {
-      const pos = (emp.jabatan || emp.position || "").toLowerCase();
-      return (
-        pos.includes("kepala seksi") ||
-        pos.includes("kepala subbagian") ||
-        pos.includes("kasubag")
-      );
-    });
-  }, [selectedEmployees, isPlhTemplate]);
+  // Template PLH dapat dipilih kapan saja (pejabat yang digantikan diatur secara fleksibel di form)
+  const canSelectPlh = true;
 
   // Beda Hari template: tanggal per pegawai
   const [employeeDates, setEmployeeDates] = useState<
@@ -336,6 +332,21 @@ export function SuratTugasForm({
         ) || (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
     .slice(0, 50);
+
+  // Auto-select pegawai PLH jika dibuat langsung dari ST Induk (nama_plh)
+  useEffect(() => {
+    if (!pendingPlhEmployeeName || allEmployees.length === 0 || selectedEmployees.length > 0) return;
+    const targetName = pendingPlhEmployeeName.toLowerCase().trim();
+    const found = allEmployees.find(
+      (emp: Employee) =>
+        (emp.nama_lengkap || emp.name || "").toLowerCase().trim() === targetName ||
+        (emp.nama_lengkap || emp.name || "").toLowerCase().includes(targetName)
+    );
+    if (found) {
+      setSelectedEmployees([normalizeEmployeeForSelection(found)]);
+      setPendingPlhEmployeeName("");
+    }
+  }, [pendingPlhEmployeeName, allEmployees, selectedEmployees.length]);
 
   // Helper formatting items
   const formatYearInItems = (items: DasarItem[]) =>
@@ -823,6 +834,34 @@ export function SuratTugasForm({
           } else {
             setInputModeKegiatan("structured");
           }
+
+          if (data.template_type === "plh") {
+            const sampleText = [
+              cleanedActivity,
+              data.tempat_tujuan,
+              data.menimbang?.[0]?.text,
+              data.maksud_tujuan,
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const detectedRole = detectPlhTargetRole(sampleText);
+            setPlhTargetRole(detectedRole);
+            const opt = getPlhTargetOption(detectedRole);
+            setPlhWilayah(opt.wilayah);
+            const mKegiatan = (data.menimbang?.[0]?.text || "").match(/akan\s+(.*?)(?:;|\.|$)/i);
+            if (mKegiatan?.[1]) {
+              setPlhKegiatanKasi(mKegiatan[1].trim());
+            }
+            const mNomor = (data.dasar?.[0]?.text || "").match(
+              /Nomor\s*:\s*([^ ]+)\s+tanggal\s+([^.]+)/i
+            );
+            if (mNomor) {
+              setParentStInfo({
+                nomorInduk: mNomor[1]?.trim(),
+                tanggalInduk: mNomor[2]?.trim(),
+              });
+            }
+          }
         }
 
         if (typeof data.sertakan_laporan === "boolean") {
@@ -968,13 +1007,41 @@ export function SuratTugasForm({
       const tanggalInduk = parentSt?.tanggal_surat
         ? formatDateIndonesian(parentSt.tanggal_surat.split("T")[0])
         : "...";
-      const parentLeadEmployee = parentSt?.employees?.[0];
-      const wilayah = extractPlhWilayahFromPosition(
-        parentLeadEmployee?.satuan_kerja ||
-          parentLeadEmployee?.jabatan ||
-          parentLeadEmployee?.position ||
-          ""
-      );
+      const targetOfficial =
+        parentSt?.employees?.find((emp) => {
+          const pos = (emp.jabatan || emp.position || emp.satuan_kerja || "").toLowerCase();
+          return (
+            pos.includes("kepala subbagian") ||
+            pos.includes("kasubag") ||
+            pos.includes("kasubbag") ||
+            pos.includes("kepala seksi")
+          );
+        }) || parentSt?.employees?.[0];
+
+      const candidateText = [
+        targetOfficial?.satuan_kerja,
+        targetOfficial?.jabatan,
+        targetOfficial?.position,
+        parentSt?.maksud_tujuan,
+        parentSt?.tempat_tujuan,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      const detectedRole = detectPlhTargetRole(candidateText);
+      const targetOpt = getPlhTargetOption(detectedRole);
+      setPlhTargetRole(detectedRole);
+
+      const wilayah =
+        detectedRole === "kasubbag_tu"
+          ? targetOpt.wilayah
+          : extractPlhWilayahFromPosition(
+              targetOfficial?.satuan_kerja ||
+                targetOfficial?.jabatan ||
+                targetOfficial?.position ||
+                ""
+            ) || targetOpt.wilayah;
+
       const kegiatanKasi = cleanPlhKegiatanKasi(parentSt?.maksud_tujuan);
 
       setPlhWilayah(wilayah);
@@ -985,20 +1052,35 @@ export function SuratTugasForm({
         tanggalInduk: parentSt?.tanggal_surat ? parentSt.tanggal_surat.split("T")[0] : undefined,
       });
 
+      const plhContext = {
+        targetRole: detectedRole,
+        pejabatTitle: targetOpt.pejabatTitle,
+        wilayah,
+        kegiatanKasi,
+        nomorInduk,
+        tanggalInduk,
+      };
+
       if (plhTemplate?.menimbang && plhTemplate.menimbang.length > 0) {
         const formattedMenimbang = plhTemplate.menimbang.map((item) => {
           const text = (item.text || "").replace(/{tahun}/g, currentYear);
           return {
             ...item,
-            text: replacePlhAllPlaceholders(text, {
-              wilayah,
-              kegiatanKasi,
-              nomorInduk,
-              tanggalInduk,
-            }),
+            text: replacePlhAllPlaceholders(text, plhContext),
           };
         });
         setMenimbangItems(formattedMenimbang);
+      } else {
+        setMenimbangItems([
+          {
+            id: "plh-m1",
+            text: `bahwa ${targetOpt.pejabatTitle} akan ${kegiatanKasi || "..."};`,
+          },
+          {
+            id: "plh-m2",
+            text: `bahwa sehubungan dengan hal tersebut di atas untuk kelancaran pelaksanaan tugas sehari-hari maka perlu ada pejabat sementara yang menggantikan tugas ${targetOpt.pejabatTitle}.`,
+          },
+        ]);
       }
 
       if (plhTemplate?.dasar && plhTemplate.dasar.length > 0) {
@@ -1006,12 +1088,7 @@ export function SuratTugasForm({
           const text = (item.text || "").replace(/{tahun}/g, currentYear);
           return {
             ...item,
-            text: replacePlhAllPlaceholders(text, {
-              wilayah,
-              kegiatanKasi,
-              nomorInduk,
-              tanggalInduk,
-            }),
+            text: replacePlhAllPlaceholders(text, plhContext),
           };
         });
         setDasarItems(formattedDasar);
@@ -1030,21 +1107,24 @@ export function SuratTugasForm({
           : "Menugaskan Staf";
       setActivityPrefix(defaultJenis);
       setKotaAsal("");
-      setKotaTujuan("");
-      setTempatKegiatan("");
+
+      if (detectedRole === "kasubbag_tu") {
+        setKotaTujuan("Samarinda");
+        setTempatKegiatan("Kantor Balai KSDA Kalimantan Timur");
+      } else {
+        setKotaTujuan(targetOpt.defaultLocation);
+        setTempatKegiatan(`Kantor Seksi KSDA ${targetOpt.defaultLocation}`);
+      }
 
       const polaKegiatan =
         typeof config.default_kegiatan === "string" && config.default_kegiatan.trim()
           ? config.default_kegiatan
+          : detectedRole === "kasubbag_tu"
+          ? `Melaksanakan tugas sehari-hari sebagai pelaksana harian ${PLH_KASUBBAG_TU_TITLE}`
           : `Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${PLH_WILAYAH_PLACEHOLDER}`;
 
       setNamaKegiatan(
-        replacePlhAllPlaceholders(polaKegiatan, {
-          wilayah,
-          kegiatanKasi,
-          nomorInduk,
-          tanggalInduk,
-        })
+        replacePlhAllPlaceholders(polaKegiatan, plhContext)
       );
 
       setInputModeKegiatan("manual");
@@ -1058,6 +1138,82 @@ export function SuratTugasForm({
         setPendingPlhEmployeeName(plhName.trim());
       }
     };
+
+  const handlePlhTargetRoleChange = (newRole: PlhTargetRole) => {
+    setPlhTargetRole(newRole);
+    const opt = getPlhTargetOption(newRole);
+    setPlhWilayah(opt.wilayah);
+
+    if (newRole === "kasubbag_tu") {
+      setKotaTujuan("Samarinda");
+      setTempatKegiatan("Kantor Balai KSDA Kalimantan Timur");
+    } else {
+      setKotaTujuan(opt.defaultLocation);
+      setTempatKegiatan(`Kantor Seksi KSDA ${opt.defaultLocation}`);
+    }
+
+    const newPejabatTitle = opt.pejabatTitle;
+    const newKegiatan = `Melaksanakan tugas sehari-hari sebagai pelaksana harian ${newPejabatTitle}`;
+    setNamaKegiatan(newKegiatan);
+
+    const updateContext = {
+      targetRole: newRole,
+      pejabatTitle: newPejabatTitle,
+      wilayah: opt.wilayah,
+      kegiatanKasi: plhKegiatanKasi,
+      nomorInduk: parentStInfo.nomorInduk,
+      tanggalInduk: parentStInfo.tanggalInduk,
+    };
+
+    setMenimbangItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        text: replacePlhAllPlaceholders(item.text, updateContext),
+      }))
+    );
+  };
+
+  const handlePlhKegiatanChange = (kegiatan: string) => {
+    setPlhKegiatanKasi(kegiatan);
+    const targetOpt = getPlhTargetOption(plhTargetRole);
+    const updateContext = {
+      targetRole: plhTargetRole,
+      pejabatTitle: targetOpt.pejabatTitle,
+      wilayah: plhWilayah || targetOpt.wilayah,
+      kegiatanKasi: kegiatan,
+      nomorInduk: parentStInfo.nomorInduk,
+      tanggalInduk: parentStInfo.tanggalInduk,
+    };
+    setMenimbangItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        text: replacePlhAllPlaceholders(item.text, updateContext),
+      }))
+    );
+  };
+
+  const handleParentStInfoChange = (field: "nomor" | "tanggal", value: string) => {
+    const nextInfo = {
+      ...parentStInfo,
+      ...(field === "nomor" ? { nomorInduk: value } : { tanggalInduk: value }),
+    };
+    setParentStInfo(nextInfo);
+    const targetOpt = getPlhTargetOption(plhTargetRole);
+    const updateContext = {
+      targetRole: plhTargetRole,
+      pejabatTitle: targetOpt.pejabatTitle,
+      wilayah: plhWilayah || targetOpt.wilayah,
+      kegiatanKasi: plhKegiatanKasi,
+      nomorInduk: nextInfo.nomorInduk,
+      tanggalInduk: nextInfo.tanggalInduk,
+    };
+    setDasarItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        text: replacePlhAllPlaceholders(item.text, updateContext),
+      }))
+    );
+  };
 
   // Template switch handler
   const handleTemplateChange = (value: string) => {
@@ -1277,14 +1433,17 @@ export function SuratTugasForm({
   const replacePlhPlaceholders = useCallback(
     (value: string) => {
       if (!isPlhTemplate) return value;
+      const targetOpt = getPlhTargetOption(plhTargetRole);
       return replacePlhAllPlaceholders(value, {
-        wilayah: plhWilayah,
+        targetRole: plhTargetRole,
+        pejabatTitle: targetOpt.pejabatTitle,
+        wilayah: plhWilayah || targetOpt.wilayah,
         kegiatanKasi: plhKegiatanKasi,
         nomorInduk: parentStInfo.nomorInduk,
         tanggalInduk: parentStInfo.tanggalInduk,
       });
     },
-    [isPlhTemplate, plhKegiatanKasi, plhWilayah, parentStInfo.nomorInduk, parentStInfo.tanggalInduk]
+    [isPlhTemplate, plhTargetRole, plhKegiatanKasi, plhWilayah, parentStInfo.nomorInduk, parentStInfo.tanggalInduk]
   );
 
   const getPreviewMenimbangItems = () =>
@@ -1299,7 +1458,10 @@ export function SuratTugasForm({
 
   const getTempatTujuanForPayload = () => {
     if (isPlhTemplate) {
-      return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim();
+      if (plhTargetRole === "kasubbag_tu") {
+        return kotaTujuan.trim() || tempatKegiatan.trim() || "Samarinda";
+      }
+      return plhWilayah.trim() || kotaTujuan.trim() || tempatKegiatan.trim() || "Wilayah Penugasan";
     }
     if (isDalamKawasanTask(activityPrefix)) {
       return tempatKegiatan.trim() || kotaTujuan.trim() || "Kalimantan Timur";
@@ -2375,7 +2537,127 @@ export function SuratTugasForm({
                 </div>
               )}
 
-              {isDalamKawasanTask(activityPrefix) ? (
+              {isPlhTemplate ? (
+                <div className="space-y-3 p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-200/60 dark:border-amber-900/30">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                        Konfigurasi Pelaksana Harian (PLH)
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                      Pejabat Struktural
+                    </span>
+                  </div>
+
+                  {/* Selector Pejabat Struktural yang Digantikan */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                      Pejabat Struktural yang Digantikan *
+                    </label>
+                    <select
+                      value={plhTargetRole}
+                      disabled={isPublished}
+                      onChange={(e) => handlePlhTargetRoleChange(e.target.value as PlhTargetRole)}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs font-medium outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60 cursor-pointer"
+                    >
+                      {PLH_TARGET_OPTIONS.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                      {plhTargetRole === "kasubbag_tu"
+                        ? "Diktum menimbang & untuk disesuaikan otomatis untuk Kepala Subbagian Tata Usaha (Samarinda)."
+                        : `Diktum menimbang & untuk disesuaikan otomatis untuk ${getPlhTargetOption(plhTargetRole).shortLabel}.`}
+                    </p>
+                  </div>
+
+                  {/* Input Kegiatan Pejabat yang Digantikan */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                      Kegiatan Pejabat yang Digantikan (Menimbang a) *
+                    </label>
+                    <input
+                      type="text"
+                      value={plhKegiatanKasi}
+                      disabled={isPublished}
+                      onChange={(e) => handlePlhKegiatanChange(e.target.value)}
+                      placeholder={
+                        plhTargetRole === "kasubbag_tu"
+                          ? "Contoh: Melaksanakan rapat koordinasi kepegawaian di Jakarta"
+                          : "Contoh: Melaksanakan patroli pengamanan kawasan hutan"
+                      }
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60"
+                    />
+                    <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                      Otomatis mengisi butir Menimbang: &quot;bahwa {getPlhTargetOption(plhTargetRole).label} akan [kegiatan]...&quot;
+                    </p>
+                  </div>
+
+                  {/* Referensi Surat Tugas Induk */}
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/50 dark:border-amber-900/30">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        Nomor ST Induk (Dasar 1)
+                      </label>
+                      <input
+                        type="text"
+                        value={parentStInfo.nomorInduk || ""}
+                        disabled={isPublished}
+                        onChange={(e) => handleParentStInfoChange("nomor", e.target.value)}
+                        placeholder="Contoh: ST.01/K.18/TU/..."
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        Tanggal ST Induk (Dasar 1)
+                      </label>
+                      <input
+                        type="text"
+                        value={parentStInfo.tanggalInduk || ""}
+                        disabled={isPublished}
+                        onChange={(e) => handleParentStInfoChange("tanggal", e.target.value)}
+                        placeholder="Contoh: 28 Oktober 2026"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Lokasi Penugasan PLH */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        Pada ( Tempat / Unit Lokasi )
+                      </label>
+                      <input
+                        type="text"
+                        value={tempatKegiatan}
+                        disabled={isPublished}
+                        onChange={(e) => setTempatKegiatan(e.target.value)}
+                        placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        Di ( Kota / Wilayah )
+                      </label>
+                      <input
+                        type="text"
+                        value={kotaTujuan}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaTujuan(e.target.value)}
+                        placeholder="Contoh: Samarinda"
+                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : isDalamKawasanTask(activityPrefix) ? (
                 <div className="space-y-2 pt-1 animate-in fade-in duration-200">
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-400 uppercase">

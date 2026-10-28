@@ -13,6 +13,22 @@ export const PLH_WILAYAH_PLACEHOLDER = "{wilayah}";
 export const PLH_KEGIATAN_KASI_PLACEHOLDER = "{kegiatan Kepala Seksi}";
 export const PLH_NOMOR_INDUK_PLACEHOLDERS = ["{nomor surat induk}", "{nomor_st_induk}", "{nomor_surat_induk}"];
 export const PLH_TANGGAL_INDUK_PLACEHOLDERS = ["{tanggal surat induk}", "{tanggal_st_induk}", "{tanggal_surat_induk}"];
+export const PLH_PEJABAT_PLACEHOLDERS = [
+  "{pejabat_struktural}",
+  "{pejabat struktural}",
+  "{jabatan_pejabat}",
+  "{jabatan pejabat}",
+];
+export const PLH_KEGIATAN_PEJABAT_PLACEHOLDERS = [
+  "{kegiatan_pejabat}",
+  "{kegiatan pejabat}",
+  "{kegiatan Kepala Seksi}",
+  "{kegiatan_kasi}",
+  "{kegiatan kasubbag}",
+  "{kegiatan_kasubbag}",
+];
+export const PLH_KASUBBAG_TU_TITLE =
+  "Kepala Subbagian Tata Usaha Balai Konservasi Sumber Daya Alam Kalimantan Timur";
 
 export const SUMBER_DANA_OPTIONS: SumberDanaOption[] = [
   {
