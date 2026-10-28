@@ -141,6 +141,15 @@ class AssignmentLetterController extends Controller
             $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
             $filename = preg_replace('/[\r\n\/\\\\:*?"<>|]/', '_', $filename);
 
+            if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
+                $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
+                return response()->json([
+                    'mime_type' => $mime,
+                    'file_name' => $filename,
+                    'data_url' => "data:{$mime};base64," . base64_encode(Storage::get($surat->file_surat_path)),
+                ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
+            }
+
             return Storage::download($surat->file_surat_path, $filename, [
                 'X-Content-Type-Options' => 'nosniff',
             ]);
@@ -954,7 +963,7 @@ class AssignmentLetterController extends Controller
 
         if (! $this->authorizeAccess($surat, $request)) {
             return response()->json([
-                'message' => 'Anda tidak memiliki otorisasi untuk mengunduh Surat Tugas ini.',
+                'message' => 'Anda tidak memiliki otorisasi untuk mengunduh dokumen ini.',
             ], 403);
         }
 
@@ -968,7 +977,7 @@ class AssignmentLetterController extends Controller
         }
 
         if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
-            return response()->json(['message' => 'Berkas tidak ditemukan di server.'], 404);
+            return response()->json(['message' => 'Berkas dokumen dasar tidak ditemukan di server.'], 404);
         }
 
         $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
@@ -980,6 +989,25 @@ class AssignmentLetterController extends Controller
         $filename = trim("{$dasarSurat}-{$namaPersonel}-{$tanggalUpload}").'.'.$ext;
         // Sanitize filename
         $filename = preg_replace('/[\r\n"\/\\\\:*?<>|]/', '_', $filename);
+
+        // Mode pratinjau JSON base64 data_url (mencegah IDM hook & error CORS XHR)
+        if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
+            $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
+            return response()->json([
+                'mime_type' => $mime,
+                'file_name' => $filename,
+                'data_url' => "data:{$mime};base64," . base64_encode(Storage::get($surat->file_surat_path)),
+            ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
+        }
+
+        if ($request->query('stream') || $request->query('inline')) {
+            $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
+            return response(Storage::get($surat->file_surat_path), 200, [
+                'Content-Type' => $mime,
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
 
         return Storage::download($surat->file_surat_path, $filename, [
             'X-Content-Type-Options' => 'nosniff',

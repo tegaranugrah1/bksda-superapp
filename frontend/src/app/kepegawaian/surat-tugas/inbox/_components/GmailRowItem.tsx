@@ -224,14 +224,14 @@ export function GmailRowItem({
             </button>
           )}
 
-          {onQuickDownload && (
+          {onQuickDownload && Boolean(letter.file_surat_path) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onQuickDownload(letter);
               }}
               className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 transition-colors"
-              title="Unduh PDF"
+              title="Unduh Dokumen Dasar"
             >
               <Download className="w-3.5 h-3.5" />
             </button>

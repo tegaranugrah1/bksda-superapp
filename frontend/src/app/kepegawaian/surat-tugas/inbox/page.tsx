@@ -22,6 +22,7 @@ import { GmailStatusTabs } from "./_components/GmailStatusTabs";
 import { GmailToolbar } from "./_components/GmailToolbar";
 import { GmailRowItem } from "./_components/GmailRowItem";
 import { GmailReaderView } from "./_components/GmailReaderView";
+import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 
 export default function SuratTugasInbox() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function SuratTugasInbox() {
   const [activeTab, setActiveTab] = useState<string>("all"); // 'all' | 'pending' | 'approved' | 'draft' | 'rejected' | 'trashed'
   const [splitView, setSplitView] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
+  const [previewModalLetter, setPreviewModalLetter] = useState<AssignmentLetter | null>(null);
 
   // Pagination & Search States
   const [page, setPage] = useState(1);
@@ -450,21 +452,51 @@ export default function SuratTugasInbox() {
     }
   };
 
+  const handleViewDoc = (letter: AssignmentLetter) => {
+    if (!letter.file_surat_path) {
+      toast.error("Surat tugas ini tidak memiliki lampiran dokumen dasar.");
+      return;
+    }
+    setPreviewModalLetter(letter);
+  };
+
   const handleDownload = async (letter: AssignmentLetter) => {
+    if (!letter.file_surat_path) {
+      toast.error("Surat tugas ini tidak memiliki lampiran dokumen dasar.");
+      return;
+    }
+    const toastId = toast.loading("Mengunduh dokumen dasar...");
     try {
       const resp = await api.get(`/surat-tugas/${letter.id}/download`, {
+        params: { preview: 1 },
+      });
+      if (resp.data?.data_url) {
+        const link = document.createElement("a");
+        link.href = resp.data.data_url;
+        link.download =
+          resp.data.file_name ||
+          `Dokumen_Dasar_${letter.nomor_surat ? letter.nomor_surat.replace(/[^a-zA-Z0-9]/g, "_") : letter.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Dokumen dasar berhasil diunduh.", { id: toastId });
+        return;
+      }
+
+      const blobResp = await api.get(`/surat-tugas/${letter.id}/download`, {
+        params: { download: 1 },
         responseType: "blob",
         timeout: 30000,
       });
-      const contentDisposition = resp.headers["content-disposition"];
-      const blob = new Blob([resp.data]);
-      const blobType = resp.data?.type || resp.headers["content-type"] || "";
+      const contentDisposition = blobResp.headers["content-disposition"];
+      const blob = new Blob([blobResp.data]);
+      const blobType = blobResp.data?.type || blobResp.headers["content-type"] || "";
       const ext = blobType.includes("png")
         ? "png"
         : blobType.includes("jpeg") || blobType.includes("jpg")
         ? "jpg"
         : "pdf";
-      let filename = `SuratTugas_${letter.nomor_surat ? letter.nomor_surat.replace(/\//g, "_") : letter.id}.${ext}`;
+      let filename = `Dokumen_Dasar_${letter.nomor_surat ? letter.nomor_surat.replace(/\//g, "_") : letter.id}.${ext}`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
         if (match && match[1]) {
@@ -479,8 +511,9 @@ export default function SuratTugasInbox() {
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
+      toast.success("Dokumen dasar berhasil diunduh.", { id: toastId });
     } catch {
-      toast.error("Gagal mengunduh dokumen surat tugas.");
+      toast.error("Gagal mengunduh dokumen dasar surat tugas.", { id: toastId });
     }
   };
 
@@ -550,6 +583,20 @@ export default function SuratTugasInbox() {
 
   const hasActiveFilters = Object.values(filters).some((v) => Boolean(v));
 
+  const previewModalElement = (
+    <ScanViewerModal
+      isOpen={Boolean(previewModalLetter)}
+      title="Pratinjau Dokumen Dasar Surat Tugas"
+      scanUrl={previewModalLetter ? `/surat-tugas/${previewModalLetter.id}/download` : null}
+      fileName={
+        previewModalLetter
+          ? `Dokumen_Dasar_${previewModalLetter.nomor_surat ? previewModalLetter.nomor_surat.replace(/\//g, "_") : previewModalLetter.id}.pdf`
+          : null
+      }
+      onClose={() => setPreviewModalLetter(null)}
+    />
+  );
+
   // Render Full Reader View (when in full view mode & a letter is selected)
   if (!splitView && selectedLetter) {
     return (
@@ -566,6 +613,7 @@ export default function SuratTugasInbox() {
             onReject={handleReject}
             onEdit={handleEdit}
             onDownload={handleDownload}
+            onViewDoc={handleViewDoc}
             onDelete={handleDelete}
             onRestore={handleRestore}
             onForceDelete={canWrite ? handleForceDelete : undefined}
@@ -577,6 +625,7 @@ export default function SuratTugasInbox() {
             isSplitView={false}
           />
         </div>
+        {previewModalElement}
       </div>
     );
   }
@@ -731,6 +780,7 @@ export default function SuratTugasInbox() {
                   onReject={handleReject}
                   onEdit={handleEdit}
                   onDownload={handleDownload}
+                  onViewDoc={handleViewDoc}
                   onDelete={handleDelete}
                   onRestore={handleRestore}
                   onForceDelete={canWrite ? handleForceDelete : undefined}
@@ -756,6 +806,8 @@ export default function SuratTugasInbox() {
           )}
         </div>
       </div>
+      {/* Modal Pratinjau Dokumen Dasar */}
+      {previewModalElement}
     </div>
   );
 }
