@@ -7,14 +7,16 @@ use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
 
-// Protected routes for internal employee selection, templates, & master cuti (requires login)
+// Public routes for Surat Tugas form (personnel select, templates, task types)
+Route::get('/employees/select', [EmployeeController::class, 'select'])
+    ->middleware('throttle:120,1');
+Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
+    ->middleware('throttle:120,1');
+Route::get('/st-task-types/public', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'publicList'])
+    ->middleware('throttle:120,1');
+
+// Protected routes for master cuti (requires login)
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/employees/select', [EmployeeController::class, 'select'])
-        ->middleware('throttle:120,1');
-    Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
-        ->middleware('throttle:120,1');
-    Route::get('/st-task-types/public', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'publicList'])
-        ->middleware('throttle:120,1');
     Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index'])
         ->middleware('throttle:240,1,leave_types');
     Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show'])

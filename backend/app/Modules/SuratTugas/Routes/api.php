@@ -11,10 +11,12 @@ Route::post('/check-conflicts', [AssignmentLetterController::class, 'checkConfli
     ->middleware('throttle:60,1')
     ->name('surat-tugas.check-conflicts');
 
-// Portal & Mobile: pegawai bisa membuat surat tugas dan melihat surat tugas milik sendiri
+// Public & Portal submission: pengajuan surat tugas dapat dibuat tanpa login (status forced pending)
+Route::post('/submit', [AssignmentLetterController::class, 'store'])
+    ->middleware('throttle:15,1');
+
+// Portal & Mobile (requires login)
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/submit', [AssignmentLetterController::class, 'store'])
-        ->middleware('throttle:15,1');
     Route::get('/my', [AssignmentLetterController::class, 'myLetters'])
         ->middleware('throttle:120,1');
     Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow'])

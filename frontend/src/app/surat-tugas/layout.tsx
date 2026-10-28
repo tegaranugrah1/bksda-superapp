@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Inbox } from "lucide-react";
+import { ArrowLeft, Inbox, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 
@@ -39,9 +39,9 @@ export default function SuratTugasLayout({
             </div>
           </div>
 
-          {isAuthenticated && (
+          {isAuthenticated ? (
             <Link
-              href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/"}
+              href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/portal"}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
             >
               {canWrite ? (
@@ -56,6 +56,23 @@ export default function SuratTugasLayout({
                 </>
               )}
             </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Beranda</span>
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Login Pegawai</span>
+              </Link>
+            </div>
           )}
         </div>
       </header>
