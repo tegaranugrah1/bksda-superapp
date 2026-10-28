@@ -16,7 +16,7 @@ import type {
   AdvancedFilters,
 } from "./_lib/types";
 
-import { ConfirmActionModal } from "./_components/ConfirmActionModal";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { GmailInboxHeader } from "./_components/GmailInboxHeader";
 import { GmailStatusTabs } from "./_components/GmailStatusTabs";
 import { GmailToolbar } from "./_components/GmailToolbar";
@@ -27,6 +27,7 @@ export default function SuratTugasInbox() {
   const router = useRouter();
   const { canWrite } = useRole();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   // Navigation & View States
   const [activeTab, setActiveTab] = useState<string>("all"); // 'all' | 'pending' | 'approved' | 'draft' | 'rejected' | 'trashed'
@@ -42,20 +43,6 @@ export default function SuratTugasInbox() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  // Confirmation Modal
-  const [confirmModal, setConfirmModal] = useState<{
-    open: boolean;
-    title: string;
-    message: string;
-    action: () => Promise<void>;
-    variant: "danger" | "warning" | "success";
-  }>({
-    open: false,
-    title: "",
-    message: "",
-    action: async () => {},
-    variant: "warning",
-  });
 
   // Debounce search
   useEffect(() => {
@@ -189,7 +176,17 @@ export default function SuratTugasInbox() {
     setUpdatingStatus(true);
     try {
       await api.put(`/surat-tugas/${id}/status`, { status: newStatus });
-      toast.success(`Berhasil mengubah status menjadi ${newStatus}`);
+      const statusLabel =
+        newStatus === "approved"
+          ? "Disetujui"
+          : newStatus === "rejected"
+          ? "Ditolak"
+          : newStatus === "draft"
+          ? "Draft"
+          : newStatus;
+      toast.success("Status surat tugas diperbarui", {
+        description: `Status telah diubah menjadi ${statusLabel}.`,
+      });
       fetchLetters();
       fetchCounts();
       queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
@@ -198,200 +195,259 @@ export default function SuratTugasInbox() {
       }
     } catch (error) {
       console.error("Status update failed", error);
-      toast.error("Gagal memperbarui status");
+      toast.error("Gagal memperbarui status", {
+        description: "Terjadi kesalahan saat memproses perubahan status.",
+      });
     } finally {
       setUpdatingStatus(false);
     }
   };
 
-  const handleApprove = (letter: AssignmentLetter) => {
-    setConfirmModal({
-      open: true,
+  const handleApprove = async (letter: AssignmentLetter) => {
+    const ident = letter.nomor_surat
+      ? `Nomor ${letter.nomor_surat}`
+      : (letter.maksud_tujuan || "dokumen ini");
+    const ok = await confirm({
       title: "Terbitkan Surat Tugas?",
-      message: `Surat tugas "${letter.nomor_surat || letter.maksud_tujuan}" akan diterbitkan dan disetujui secara resmi.`,
-      variant: "success",
-      action: async () => {
-        try {
-          await api.put(`/surat-tugas/${letter.id}/approve`, { status: "approved" });
-          toast.success("Surat tugas berhasil diterbitkan.");
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-          if (selectedLetter?.id === letter.id) {
-            setSelectedLetter({ ...letter, status: "approved" });
-          }
-        } catch (error) {
-          console.error("Approval failed", error);
-          toast.error("Gagal menerbitkan surat tugas");
-        }
-      },
+      description: `Surat tugas (${ident}) akan diterbitkan dan disetujui secara resmi. Nomor surat dan stempel digital akan dikunci.`,
+      confirmText: "Terbitkan Sekarang",
+      cancelText: "Batal",
+      variant: "info",
     });
+    if (!ok) return;
+
+    try {
+      await api.put(`/surat-tugas/${letter.id}/approve`, { status: "approved" });
+      toast.success("Surat tugas berhasil diterbitkan", {
+        description: `${letter.nomor_surat || "Dokumen"} telah resmi disetujui.`,
+      });
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      if (selectedLetter?.id === letter.id) {
+        setSelectedLetter({ ...letter, status: "approved" });
+      }
+    } catch (error) {
+      console.error("Approval failed", error);
+      toast.error("Gagal menerbitkan surat tugas", {
+        description: "Periksa kelengkapan data atau koneksi Anda.",
+      });
+    }
   };
 
-  const handleReject = (letter: AssignmentLetter) => {
-    setConfirmModal({
-      open: true,
-      title: "Tolak Pengajuan?",
-      message: "Surat tugas ini akan ditolak statusnya.",
+  const handleReject = async (letter: AssignmentLetter) => {
+    const ident = letter.nomor_surat
+      ? `Nomor ${letter.nomor_surat}`
+      : (letter.maksud_tujuan || "dokumen ini");
+    const ok = await confirm({
+      title: "Tolak Pengajuan Surat Tugas?",
+      description: `Pengajuan surat tugas (${ident}) akan ditolak dan dikembalikan untuk diperbaiki oleh pembuat surat.`,
+      confirmText: "Tolak Pengajuan",
+      cancelText: "Batal",
       variant: "warning",
-      action: async () => {
-        handleUpdateStatus(letter.id, "rejected");
-      },
     });
+    if (!ok) return;
+
+    await handleUpdateStatus(letter.id, "rejected");
   };
 
   // Action: Single Delete / Restore
-  const handleDelete = (id: string) => {
-    setConfirmModal({
-      open: true,
+  const handleDelete = async (id: string) => {
+    const target = letters.find((l) => l.id === id) || (selectedLetter?.id === id ? selectedLetter : null);
+    const ident = target?.nomor_surat
+      ? `Nomor ${target.nomor_surat}`
+      : (target?.maksud_tujuan || "Surat tugas ini");
+    const ok = await confirm({
       title: "Pindahkan ke Sampah?",
-      message: "Dokumen ini akan dipindahkan ke arsip sampah. Anda masih dapat memulihkannya nanti.",
+      description: `${ident} akan dipindahkan ke folder sampah. Anda masih dapat memulihkannya kapan saja dari tab Sampah.`,
+      confirmText: "Pindahkan ke Sampah",
+      cancelText: "Batal",
       variant: "warning",
-      action: async () => {
-        try {
-          await api.delete(`/surat-tugas/${id}`);
-          toast.success("Berhasil memindahkan ke sampah");
-          if (selectedLetter?.id === id) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-        } catch (error) {
-          console.error("Delete failed", error);
-          toast.error("Gagal menghapus surat tugas");
-        }
-      },
     });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/surat-tugas/${id}`);
+      toast.success("Surat tugas dipindahkan ke sampah", {
+        description: `${ident} berhasil dipindahkan ke folder sampah.`,
+      });
+      if (selectedLetter?.id === id) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+    } catch (error) {
+      console.error("Delete failed", error);
+      toast.error("Gagal menghapus surat tugas", {
+        description: "Terjadi kesalahan saat memindahkan surat ke sampah.",
+      });
+    }
   };
 
-  const handleRestore = (id: string) => {
-    setConfirmModal({
-      open: true,
+  const handleRestore = async (id: string) => {
+    const target = letters.find((l) => l.id === id) || (selectedLetter?.id === id ? selectedLetter : null);
+    const ident = target?.nomor_surat
+      ? `Nomor ${target.nomor_surat}`
+      : (target?.maksud_tujuan || "Surat tugas ini");
+    const ok = await confirm({
       title: "Pulihkan Surat Tugas?",
-      message: "Dokumen ini akan dikembalikan ke daftar aktif.",
-      variant: "success",
-      action: async () => {
-        try {
-          await api.post(`/surat-tugas/${id}/restore`);
-          toast.success("Berhasil memulihkan surat tugas");
-          if (selectedLetter?.id === id) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-        } catch (error) {
-          console.error("Restore failed", error);
-          toast.error("Gagal memulihkan surat tugas");
-        }
-      },
+      description: `${ident} akan dipulihkan dan dikembalikan ke daftar surat tugas aktif.`,
+      confirmText: "Pulihkan Dokumen",
+      cancelText: "Batal",
+      variant: "info",
     });
+    if (!ok) return;
+
+    try {
+      await api.post(`/surat-tugas/${id}/restore`);
+      toast.success("Surat tugas berhasil dipulihkan", {
+        description: `${ident} telah kembali ke daftar aktif.`,
+      });
+      if (selectedLetter?.id === id) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+    } catch (error) {
+      console.error("Restore failed", error);
+      toast.error("Gagal memulihkan surat tugas", {
+        description: "Terjadi kesalahan saat memulihkan dokumen.",
+      });
+    }
   };
 
   // Bulk Actions
-  const handleBulkTrash = () => {
+  const handleBulkTrash = async () => {
     if (selectedIds.length === 0) return;
-    setConfirmModal({
-      open: true,
-      title: `Pindahkan ${selectedIds.length} Dokumen ke Sampah?`,
-      message: `${selectedIds.length} dokumen terpilih akan dipindahkan ke arsip sampah.`,
+    const count = selectedIds.length;
+    const ok = await confirm({
+      title: `Pindahkan ${count} Dokumen ke Sampah?`,
+      description: `${count} surat tugas terpilih akan dipindahkan ke folder sampah. Dokumen masih dapat dipulihkan sewaktu-waktu.`,
+      confirmText: `Pindahkan ${count} Dokumen`,
+      cancelText: "Batal",
       variant: "warning",
-      action: async () => {
-        try {
-          await api.post("/surat-tugas/bulk-trash", { ids: selectedIds });
-          toast.success(`${selectedIds.length} dokumen dipindahkan ke sampah.`);
-          setSelectedIds([]);
-          if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-        } catch (error) {
-          console.error("Bulk trash failed", error);
-          toast.error("Gagal memproses penghapusan massal.");
-        }
-      },
     });
+    if (!ok) return;
+
+    try {
+      await api.post("/surat-tugas/bulk-trash", { ids: selectedIds });
+      toast.success(`${count} dokumen dipindahkan ke sampah`, {
+        description: "Surat tugas terpilih telah dipindahkan ke folder sampah.",
+      });
+      setSelectedIds([]);
+      if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+    } catch (error) {
+      console.error("Bulk trash failed", error);
+      toast.error("Gagal memproses penghapusan massal", {
+        description: "Terjadi gangguan saat memindahkan dokumen ke sampah.",
+      });
+    }
   };
 
-  const handleBulkRestore = () => {
+  const handleBulkRestore = async () => {
     if (selectedIds.length === 0) return;
-    setConfirmModal({
-      open: true,
-      title: `Pulihkan ${selectedIds.length} Dokumen?`,
-      message: `${selectedIds.length} dokumen terpilih akan dikembalikan ke daftar aktif.`,
-      variant: "success",
-      action: async () => {
-        try {
-          await api.post("/surat-tugas/bulk-restore", { ids: selectedIds });
-          toast.success(`${selectedIds.length} dokumen berhasil dipulihkan.`);
-          setSelectedIds([]);
-          if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-        } catch (error) {
-          console.error("Bulk restore failed", error);
-          toast.error("Gagal memulihkan dokumen terpilih.");
-        }
-      },
+    const count = selectedIds.length;
+    const ok = await confirm({
+      title: `Pulihkan ${count} Dokumen?`,
+      description: `${count} surat tugas terpilih akan dipulihkan dan dikembalikan ke daftar surat aktif.`,
+      confirmText: `Pulihkan ${count} Dokumen`,
+      cancelText: "Batal",
+      variant: "info",
     });
+    if (!ok) return;
+
+    try {
+      await api.post("/surat-tugas/bulk-restore", { ids: selectedIds });
+      toast.success(`${count} dokumen berhasil dipulihkan`, {
+        description: "Dokumen terpilih telah dikembalikan ke daftar aktif.",
+      });
+      setSelectedIds([]);
+      if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+    } catch (error) {
+      console.error("Bulk restore failed", error);
+      toast.error("Gagal memulihkan dokumen terpilih", {
+        description: "Terjadi kesalahan saat memulihkan dokumen massal.",
+      });
+    }
   };
 
-  const handleForceDelete = (id: string) => {
-    setConfirmModal({
-      open: true,
+  const handleForceDelete = async (id: string) => {
+    const target = letters.find((l) => l.id === id) || (selectedLetter?.id === id ? selectedLetter : null);
+    const ident = target?.nomor_surat
+      ? `Nomor ${target.nomor_surat}`
+      : (target?.maksud_tujuan || "Surat tugas ini");
+    const ok = await confirm({
       title: "Hapus Permanen Surat Tugas?",
-      message: "Tindakan ini tidak dapat dibatalkan. Dokumen surat tugas beserta file arsipnya akan dihapus secara permanen.",
+      description: `Tindakan ini tidak dapat dibatalkan. Berkas arsip dan data ${ident} akan dimusnahkan secara permanen dari server database.`,
+      confirmText: "Hapus Permanen",
+      cancelText: "Batal",
       variant: "danger",
-      action: async () => {
-        try {
-          await api.delete(`/surat-tugas/${id}/force`);
-          toast.success("Surat tugas berhasil dihapus permanen.");
-          if (selectedLetter?.id === id) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-          queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
-        } catch (error) {
-          console.error("Force delete failed", error);
-          toast.error("Gagal menghapus permanen surat tugas.");
-        }
-      },
     });
+    if (!ok) return;
+
+    try {
+      await api.delete(`/surat-tugas/${id}/force`);
+      toast.success("Surat tugas berhasil dihapus permanen", {
+        description: `${ident} telah dimusnahkan secara permanen.`,
+      });
+      if (selectedLetter?.id === id) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+    } catch (error) {
+      console.error("Force delete failed", error);
+      toast.error("Gagal menghapus permanen surat tugas", {
+        description: "Terjadi kesalahan saat memusnahkan dokumen.",
+      });
+    }
   };
 
-  const handleBulkForceDelete = () => {
+  const handleBulkForceDelete = async () => {
     if (selectedIds.length === 0) return;
-    setConfirmModal({
-      open: true,
-      title: `Hapus Permanen ${selectedIds.length} Dokumen?`,
-      message: `Tindakan ini tidak dapat dibatalkan. ${selectedIds.length} dokumen terpilih beserta file arsipnya akan dihapus secara permanen.`,
+    const count = selectedIds.length;
+    const ok = await confirm({
+      title: `Hapus Permanen ${count} Dokumen?`,
+      description: `Tindakan ini permanen dan tidak dapat dibatalkan. Seluruh berkas arsip dan data ${count} dokumen terpilih akan dimusnahkan dari database.`,
+      confirmText: `Hapus Permanen ${count} Dokumen`,
+      cancelText: "Batal",
       variant: "danger",
-      action: async () => {
-        try {
-          await api.post("/surat-tugas/bulk-force-delete", { ids: selectedIds });
-          toast.success(`${selectedIds.length} dokumen berhasil dihapus permanen.`);
-          setSelectedIds([]);
-          if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
-            setSelectedLetter(null);
-          }
-          fetchLetters();
-          fetchCounts();
-          queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
-          queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
-        } catch (error) {
-          console.error("Bulk force delete failed", error);
-          toast.error("Gagal menghapus permanen dokumen terpilih.");
-        }
-      },
     });
+    if (!ok) return;
+
+    try {
+      await api.post("/surat-tugas/bulk-force-delete", { ids: selectedIds });
+      toast.success(`${count} dokumen berhasil dihapus permanen`, {
+        description: "Seluruh data terpilih telah dimusnahkan secara permanen.",
+      });
+      setSelectedIds([]);
+      if (selectedLetter && selectedIds.includes(selectedLetter.id)) {
+        setSelectedLetter(null);
+      }
+      fetchLetters();
+      fetchCounts();
+      queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
+      queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
+    } catch (error) {
+      console.error("Bulk force delete failed", error);
+      toast.error("Gagal menghapus permanen dokumen terpilih", {
+        description: "Terjadi kesalahan saat memusnahkan dokumen massal.",
+      });
+    }
   };
 
   const handleDownload = async (letter: AssignmentLetter) => {
@@ -521,15 +577,6 @@ export default function SuratTugasInbox() {
             isSplitView={false}
           />
         </div>
-
-        <ConfirmActionModal
-          open={confirmModal.open}
-          onClose={() => setConfirmModal((prev) => ({ ...prev, open: false }))}
-          title={confirmModal.title}
-          message={confirmModal.message}
-          action={confirmModal.action}
-          variant={confirmModal.variant}
-        />
       </div>
     );
   }
@@ -709,16 +756,6 @@ export default function SuratTugasInbox() {
           )}
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      <ConfirmActionModal
-        open={confirmModal.open}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, open: false }))}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        action={confirmModal.action}
-        variant={confirmModal.variant}
-      />
     </div>
   );
 }
