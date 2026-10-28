@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Modules\SuratTugas\Services\AssignmentLetterConflictService;
+use App\Services\PortalNotificationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -21,7 +22,8 @@ class AssignmentLetterController extends Controller
 {
     public function __construct(
         private readonly StTemplateService $templateService,
-        private readonly AssignmentLetterConflictService $conflictService
+        private readonly AssignmentLetterConflictService $conflictService,
+        private readonly PortalNotificationService $notificationService
     ) {}
 
     /**
@@ -525,6 +527,29 @@ class AssignmentLetterController extends Controller
             DB::commit();
             $surat->load('employees');
 
+            try {
+                $cleanStatus = strtolower($surat->status ?? 'pending');
+                $isApproved = in_array($cleanStatus, ['approved', 'completed', 'published', 'diterbitkan'], true);
+                $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Penugasan Baru Diajukan';
+                $notifMsg = $isApproved
+                    ? "Surat tugas resmi diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                    : "Anda didaftarkan dalam pengajuan Surat Tugas: '{$surat->maksud_tujuan}'";
+
+                foreach ($surat->employees as $emp) {
+                    $this->notificationService->notifyEmployee(
+                        $emp,
+                        $notifTitle,
+                        $notifMsg,
+                        'surat_tugas',
+                        'surat_tugas',
+                        (string) $surat->id,
+                        ['status' => $cleanStatus, 'nomor_surat' => $surat->nomor_surat]
+                    );
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengirim portal notification pada store SuratTugas: '.$e->getMessage());
+            }
+
             // [DISABLED] Google Sheets sync — dimatikan sementara (lihat HANDOFF.md)
             // try {
             //     $sheetsService = new \App\Services\GoogleSheetsService();
@@ -785,6 +810,27 @@ class AssignmentLetterController extends Controller
         }
 
         $surat->save();
+
+        try {
+            $surat->load('employees');
+            $isApproved = in_array($cleanStatus, ['approved', 'completed'], true);
+            $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Status Surat Tugas: '.strtoupper($cleanStatus);
+            $notifMsg = "Status Surat Tugas '{$surat->maksud_tujuan}' kini: ".strtoupper($cleanStatus).($surat->nomor_surat ? " ({$surat->nomor_surat})" : '');
+
+            foreach ($surat->employees as $emp) {
+                $this->notificationService->notifyEmployee(
+                    $emp,
+                    $notifTitle,
+                    $notifMsg,
+                    'surat_tugas',
+                    'surat_tugas',
+                    (string) $surat->id,
+                    ['status' => $cleanStatus, 'nomor_surat' => $surat->nomor_surat]
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Gagal mengirim portal notification pada updateStatus SuratTugas: '.$e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Status Surat Tugas telah diperbarui menjadi '.strtoupper($cleanStatus),
@@ -1215,6 +1261,29 @@ class AssignmentLetterController extends Controller
             }
 
             DB::commit();
+
+            try {
+                $surat->load('employees');
+                $isApproved = in_array(strtolower($surat->status ?? ''), ['approved', 'completed', 'published', 'diterbitkan'], true);
+                $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Pembaruan Surat Tugas';
+                $notifMsg = $isApproved
+                    ? "Surat tugas resmi telah diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                    : "Pembaruan data pada Surat Tugas: '{$surat->maksud_tujuan}'";
+
+                foreach ($surat->employees as $emp) {
+                    $this->notificationService->notifyEmployee(
+                        $emp,
+                        $notifTitle,
+                        $notifMsg,
+                        'surat_tugas',
+                        'surat_tugas',
+                        (string) $surat->id,
+                        ['status' => $surat->status, 'nomor_surat' => $surat->nomor_surat]
+                    );
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengirim portal notification pada approve SuratTugas: '.$e->getMessage());
+            }
 
             // [DISABLED] Google Sheets update sync — dimatikan sementara (lihat HANDOFF.md)
             // dispatch(function () use ($surat) {

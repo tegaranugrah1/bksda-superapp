@@ -25,6 +25,7 @@ import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
+import { NotificationBell } from "./_components/NotificationBell";
 
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
@@ -319,6 +320,16 @@ function PortalContent() {
     }
   }, []);
 
+  const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
+    const validTabs = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
+    const targetTab = validTabs.includes(tabKey) ? tabKey : "dashboard";
+    setActiveNavTab(targetTab);
+
+    if (targetTab === "surat_tugas" && referenceId) {
+      fetchSTDetail(referenceId);
+    }
+  }, [fetchSTDetail]);
+
   // Fetch leave balance for logged-in employee
   const currentYear = new Date().getFullYear();
   const [myLeaveBalance, setMyLeaveBalance] = useState<{ sisa_cuti_tersedia: number; total_hak_cuti: number } | null>(null);
@@ -569,11 +580,7 @@ function PortalContent() {
 
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full"></span>
-              </button>
+              <NotificationBell onSelectTab={handleNotificationNavigate} />
 
               <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
                 <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">

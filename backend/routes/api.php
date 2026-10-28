@@ -27,6 +27,7 @@ Route::get('/health', function () {
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MobileDashboardController;
+use App\Http\Controllers\Api\PortalNotificationController;
 
 // Public Auth Route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -53,4 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/me/leave-requests/{id}', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myDestroy'])->whereNumber('id')->middleware('throttle:60,1,me_leaves_delete');
     Route::get('/me/leave-balance', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'myBalance'])->middleware('throttle:240,1,me_leaves_bal');
     Route::get('/me/assets', [AuthController::class, 'myAssets'])->middleware('throttle:120,1');
+
+    // Portal Notifications
+    Route::get('/portal/notifications', [PortalNotificationController::class, 'index'])->middleware('throttle:120,1');
+    Route::post('/portal/notifications/{id}/read', [PortalNotificationController::class, 'markAsRead'])->whereNumber('id')->middleware('throttle:120,1');
+    Route::post('/portal/notifications/mark-all-read', [PortalNotificationController::class, 'markAllAsRead'])->middleware('throttle:60,1');
 });

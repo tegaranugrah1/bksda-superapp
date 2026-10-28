@@ -446,6 +446,24 @@ class EmployeeLeaveRequestController extends Controller
 
             DB::commit();
 
+            try {
+                $statusText = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true) ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
+                $notifTitle = "Permohonan Cuti {$statusText}";
+                $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah {$statusText}.".(!empty($catatanUpdate) ? " Catatan: {$catatanUpdate}" : '');
+
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $leaveReq->employee_id,
+                    $notifTitle,
+                    $notifMsg,
+                    'cuti',
+                    'cuti',
+                    (string) $leaveReq->id,
+                    ['status' => $newStatus, 'leave_id' => $leaveReq->id]
+                );
+            } catch (\Throwable $e) {
+                // Log and continue gracefully
+            }
+
             return response()->json([
                 'message' => 'Status pengajuan cuti berhasil diperbarui',
                 'data' => $leaveReq->fresh('employee'),
@@ -554,6 +572,23 @@ class EmployeeLeaveRequestController extends Controller
             $leaveReq->update($updateData);
 
             DB::commit();
+
+            try {
+                $notifTitle = 'Permohonan Cuti Disetujui';
+                $notifMsg = "Permohonan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah disetujui resmi oleh pimpinan.";
+
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $leaveReq->employee_id,
+                    $notifTitle,
+                    $notifMsg,
+                    'cuti',
+                    'cuti',
+                    (string) $leaveReq->id,
+                    ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
+                );
+            } catch (\Throwable $e) {
+                // Log and continue gracefully
+            }
 
             return response()->json([
                 'message' => 'Permohonan cuti berhasil disetujui.',
