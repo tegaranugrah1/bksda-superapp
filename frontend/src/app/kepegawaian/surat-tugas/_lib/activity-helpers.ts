@@ -18,6 +18,17 @@ export function isDalamKawasanTask(jenisOrCode: string) {
   return s === "dalam_kawasan" || s.includes("dalam kawasan");
 }
 
+export function isJenisKegiatanTask(jenisOrCode?: string | null): boolean {
+  if (!jenisOrCode) return false;
+  const s = jenisOrCode.toLowerCase();
+  return (
+    s === "jenis_kegiatan" ||
+    s.includes("pengawasan / pemeriksaan") ||
+    s.includes("pengawasan pekerjaan") ||
+    s.includes("pemeriksaan pekerjaan")
+  );
+}
+
 /**
  * Normalisasi nama jenis tugas agar seragam antara master setting, template, dan builder.
  */
@@ -25,6 +36,13 @@ export function normalizeTaskTypeName(name?: string | null): string {
   if (!name) return "Perjalanan Dinas Luar Wilayah";
   const trimmed = name.trim();
   const lower = trimmed.toLowerCase();
+  if (
+    lower.includes("pengawasan") ||
+    lower.includes("pemeriksaan pekerjaan") ||
+    lower === "jenis_kegiatan"
+  ) {
+    return "Pengawasan / Pemeriksaan Pekerjaan";
+  }
   if (lower.includes("luar wilayah") || lower.includes("lebih dari 1 hari")) {
     return "Perjalanan Dinas Luar Wilayah";
   }
@@ -48,6 +66,12 @@ export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   const pdPattern = /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+.*?\s+ke\s+.*?\s+dalam\s+rangka\s+/i;
   while (pdPattern.test(trimmed)) {
     trimmed = trimmed.replace(pdPattern, "").trim();
+  }
+
+  // Recursively remove nested "Melaksanakan Perjalanan Dinas dari ... ke ... untuk "
+  const pdUntukPattern = /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+.*?\s+ke\s+.*?\s+untuk\s+/i;
+  while (pdUntukPattern.test(trimmed)) {
+    trimmed = trimmed.replace(pdUntukPattern, "").trim();
   }
 
   // Recursively remove nested "Melaksanakan perjalanan dinas di ... dalam rangka "
@@ -86,6 +110,7 @@ export interface BuildKegiatanDiktumParams {
   kotaTujuan?: string;
   tempatSpesifik?: string;
   namaKegiatanText?: string;
+  untukKegiatanText?: string;
 }
 
 /**
@@ -98,6 +123,7 @@ export function buildKegiatanDiktumText({
   kotaTujuan = "",
   tempatSpesifik = "",
   namaKegiatanText = "",
+  untukKegiatanText = "",
 }: BuildKegiatanDiktumParams): string {
   let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
 
@@ -113,17 +139,42 @@ export function buildKegiatanDiktumText({
     }
   }
 
-  const isDalamKawasan = modeLokasi === "dalam_kawasan" || isDalamKawasanTask(jenisTugas);
+  const isJenisKegiatan = isJenisKegiatanTask(jenisTugas);
+  const isDalamKawasan = !isJenisKegiatan && (modeLokasi === "dalam_kawasan" || isDalamKawasanTask(jenisTugas));
   const isLuarWilayah =
-    modeLokasi === "luar_wilayah" ||
-    (!isDalamKawasan &&
-      (jenisTugas.toLowerCase().includes("perjalanan dinas") ||
-        jenisTugas.toLowerCase().includes("luar wilayah")));
+    !isJenisKegiatan &&
+    (modeLokasi === "luar_wilayah" ||
+      (!isDalamKawasan &&
+        (jenisTugas.toLowerCase().includes("perjalanan dinas") ||
+          jenisTugas.toLowerCase().includes("luar wilayah"))));
   const isMelaksanakanKegiatan =
+    !isJenisKegiatan &&
     !isDalamKawasan &&
     !isLuarWilayah &&
     (jenisTugas.toLowerCase().includes("melaksanakan kegiatan") ||
       jenisTugas.toLowerCase().includes("kegiatan_1_hari"));
+
+  if (isJenisKegiatan) {
+    // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {kegiatan} dalam rangka {paket} di {tempat}
+    const asal = kotaAsal.trim() || "...";
+    const tujuan = kotaTujuan.trim() || "...";
+    let kegiatan = (untukKegiatanText || "").trim();
+    let paket = cleanNama;
+
+    if (!kegiatan) {
+      const match = cleanNama.match(/^(?:untuk\s+)?(.*?)\s+dalam\s+rangka\s+(.*)$/i);
+      if (match) {
+        kegiatan = match[1].trim();
+        paket = match[2].trim();
+      } else {
+        kegiatan = "Pengawasan Pekerjaan Konstruksi";
+      }
+    }
+
+    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    const paketStr = paket ? ` dalam rangka ${paket}` : "";
+    return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan} untuk ${kegiatan}${paketStr}${spesifik}`;
+  }
 
   if (isDalamKawasan) {
     // Formula: Melaksanakan perjalanan dinas di {kota/kabupaten} dalam rangka {kegiatan} di {kawasan/tempat spesifik}

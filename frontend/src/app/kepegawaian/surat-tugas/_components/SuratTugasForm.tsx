@@ -28,6 +28,7 @@ import {
   cleanRepeatingLocations,
   buildKegiatanDiktumText,
   isDalamKawasanTask,
+  isJenisKegiatanTask,
   normalizeTaskTypeName,
 } from "../_lib/activity-helpers";
 import {
@@ -149,6 +150,7 @@ export function SuratTugasForm({
     templateType === "plh" || selectedDynamicTemplate?.type === "plh";
 
   const [namaKegiatan, setNamaKegiatan] = useState("");
+  const [untukKegiatanText, setUntukKegiatanText] = useState("Pengawasan Pekerjaan Konstruksi");
   const [activityPrefix, setActivityPrefix] = useState(
     "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
   );
@@ -720,11 +722,18 @@ export function SuratTugasForm({
 
         const regex =
           /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+        const jenisKegiatanRegex =
+          /^(?:Melaksanakan[.\s]+)?(?:Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+untuk\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const kawasanRegex =
           /^(?:Melaksanakan\s+)?perjalanan\s+dinas\s+di\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const stafRegex = /^Menugaskan\s+Staf\s*(?:untuk\s+)?(.*)/i;
         const singleDayActivity = cleanedActivity;
         const isParsedSingleDayActivity = /^Melaksanakan\s+Kegiatan/i.test(singleDayActivity);
+        const isJenisKegiatanData =
+          data.task_type_id === 5 ||
+          data.task_type?.kode === "jenis_kegiatan" ||
+          (Boolean(data.task_type?.nama) && isJenisKegiatanTask(data.task_type.nama)) ||
+          jenisKegiatanRegex.test(cleanedActivity);
         const isMenugaskanStaf =
           stafRegex.test(singleDayActivity) ||
           data.task_type_id === 4 ||
@@ -736,11 +745,27 @@ export function SuratTugasForm({
           loadedTanggalMulai === loadedTanggalSelesai &&
           !["bmn-pemeriksaan", "beda-hari", "plh"].includes(data.template_type || "");
 
+        const jkMatch = cleanedActivity.match(jenisKegiatanRegex);
         const match = cleanedActivity.match(regex);
         const kawasanMatch = cleanedActivity.match(kawasanRegex);
         const stafMatch = singleDayActivity.match(stafRegex);
 
-        if (isMenugaskanStaf) {
+        if (isJenisKegiatanData && jkMatch) {
+          setInputModeKegiatan("structured");
+          setActivityPrefix("Pengawasan / Pemeriksaan Pekerjaan");
+          setKotaAsal(jkMatch[1].trim());
+          setKotaTujuan(jkMatch[2].trim());
+          setUntukKegiatanText(jkMatch[3].trim());
+          const rest = jkMatch[4].trim();
+          const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
+          const diMatch = rest.match(diRegex);
+          if (diMatch) {
+            setNamaKegiatan(diMatch[1].trim());
+            setTempatKegiatan(diMatch[2].trim());
+          } else {
+            setNamaKegiatan(rest.replace(/[;,.]$/, "").trim());
+          }
+        } else if (isMenugaskanStaf) {
           setInputModeKegiatan("structured");
           setActivityPrefix("Menugaskan Staf");
           setKotaAsal("");
@@ -1523,7 +1548,7 @@ export function SuratTugasForm({
     let text = buildKegiatanDiktumText({
       modeLokasi: isDalamKawasanTask(activityPrefix)
         ? "dalam_kawasan"
-        : activityPrefix.includes("Perjalanan Dinas")
+        : activityPrefix.includes("Perjalanan Dinas") || isJenisKegiatanTask(activityPrefix)
         ? "luar_wilayah"
         : "tempat_saja",
       jenisTugas: activityPrefix,
@@ -1531,6 +1556,7 @@ export function SuratTugasForm({
       kotaTujuan,
       tempatSpesifik: tempatKegiatan,
       namaKegiatanText: namaKegiatan,
+      untukKegiatanText,
     });
     if (days === 1 || tanggalMulai === tanggalSelesai) {
       text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
@@ -1699,14 +1725,20 @@ export function SuratTugasForm({
             ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
             : null);
 
+    const matchedTaskType = taskTypes.find(
+      (t) => t.nama === normalizeTaskTypeName(activityPrefix) || t.kode === "jenis_kegiatan"
+    );
     const calculatedTaskTypeId =
-      activityPrefix.includes("Menugaskan Staf")
+      matchedTaskType?.id ||
+      (isJenisKegiatanTask(activityPrefix)
+        ? 5
+        : activityPrefix.includes("Menugaskan Staf")
         ? 4
         : activityPrefix.includes("Melaksanakan Kegiatan")
         ? 3
         : isDalamKawasanTask(activityPrefix)
         ? 2
-        : 1;
+        : 1);
 
     return {
       nomor_surat: fullNomorSurat,
@@ -2483,9 +2515,30 @@ export function SuratTugasForm({
                 </select>
               </div>
 
+              {isJenisKegiatanTask(activityPrefix) && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    Untuk ( Jenis Kegiatan / Tugas ) *
+                  </label>
+                  <input
+                    type="text"
+                    value={untukKegiatanText}
+                    disabled={isPublished}
+                    onChange={(e) => setUntukKegiatanText(e.target.value)}
+                    placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Bisa disesuaikan jika jenis pekerjaan lain (misal: Pengawasan Pekerjaan Konstruksi, Pemeriksaan Fisik BMN, dll.)
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">
-                  {activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
+                  {isJenisKegiatanTask(activityPrefix)
+                    ? "Dalam Rangka ( Paket Kontrak / Pekerjaan ) *"
+                    : activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
                     ? "Nama Kegiatan / Tugas"
                     : "Maksud / Tugas"}
                 </label>
@@ -2494,7 +2547,11 @@ export function SuratTugasForm({
                   value={namaKegiatan}
                   disabled={isPublished}
                   onChange={(e) => handleNamaKegiatanChange(e.target.value)}
-                  placeholder="Contoh: Melakukan koordinasi teknis..."
+                  placeholder={
+                    isJenisKegiatanTask(activityPrefix)
+                      ? "Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"
+                      : "Contoh: Melakukan koordinasi teknis..."
+                  }
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                 />
               </div>

@@ -75,6 +75,7 @@ export default function SuratTugasForm() {
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [namaKegiatanText, setNamaKegiatanText] = useState("");
+  const [untukKegiatanText, setUntukKegiatanText] = useState("Pengawasan Pekerjaan Konstruksi");
   const [tempatSpesifik, setTempatSpesifik] = useState("");
   const [namaPlh, setNamaPlh] = useState("");
   const [plhSearchQuery, setPlhSearchQuery] = useState("");
@@ -270,6 +271,7 @@ export default function SuratTugasForm() {
         kotaTujuan,
         tempatSpesifik,
         namaKegiatanText,
+        untukKegiatanText,
       });
 
       const calculatedTempatTujuan =
@@ -487,6 +489,8 @@ export default function SuratTugasForm() {
             setKotaTujuan={setKotaTujuan}
             namaKegiatanText={namaKegiatanText}
             setNamaKegiatanText={setNamaKegiatanText}
+            untukKegiatanText={untukKegiatanText}
+            setUntukKegiatanText={setUntukKegiatanText}
             tempatSpesifik={tempatSpesifik}
             setTempatSpesifik={setTempatSpesifik}
             formData={formData}

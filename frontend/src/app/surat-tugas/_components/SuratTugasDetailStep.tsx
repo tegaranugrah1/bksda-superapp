@@ -18,6 +18,7 @@ import {
   buildKegiatanDiktumText,
   cleanMelaksanakanKegiatanPrefix,
   normalizeTaskTypeName,
+  isJenisKegiatanTask,
 } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import { formatNipLabel, formatDateIndonesian, daysBetween } from "@/lib/letter-utils";
 import api from "@/lib/api";
@@ -28,6 +29,7 @@ export type JenisTugasType =
   | "Perjalanan Dinas Dalam Kawasan / Wilayah"
   | "Melaksanakan Kegiatan ( 1 Hari )"
   | "Menugaskan Staf"
+  | "Pengawasan / Pemeriksaan Pekerjaan"
   | string;
 
 export interface StTaskTypeOption {
@@ -91,6 +93,8 @@ interface SuratTugasDetailStepProps {
   setHasBuruh: (val: boolean) => void;
   jumlahBuruh: number;
   setJumlahBuruh: React.Dispatch<React.SetStateAction<number>>;
+  untukKegiatanText?: string;
+  setUntukKegiatanText?: (val: string) => void;
 }
 
 export function SuratTugasDetailStep({
@@ -108,6 +112,8 @@ export function SuratTugasDetailStep({
   setKotaTujuan,
   namaKegiatanText,
   setNamaKegiatanText,
+  untukKegiatanText = "Pengawasan Pekerjaan Konstruksi",
+  setUntukKegiatanText,
   tempatSpesifik,
   setTempatSpesifik,
   formData,
@@ -177,12 +183,17 @@ export function SuratTugasDetailStep({
     );
   }, [selectedTaskTypeId, taskTypes, jenisTugas]);
 
+  const isJenisKegiatan = React.useMemo(() => {
+    return isJenisKegiatanTask(jenisTugas) || activeTaskType?.kode === "jenis_kegiatan";
+  }, [jenisTugas, activeTaskType]);
+
   const modeLokasi = React.useMemo(() => {
     if (activeTaskType?.mode_lokasi) return activeTaskType.mode_lokasi;
+    if (isJenisKegiatan) return "luar_wilayah";
     if (jenisTugas.toLowerCase().includes("dalam kawasan")) return "dalam_kawasan";
     if (jenisTugas.toLowerCase().includes("perjalanan dinas")) return "luar_wilayah";
     return "tempat_saja";
-  }, [activeTaskType, jenisTugas]);
+  }, [activeTaskType, jenisTugas, isJenisKegiatan]);
 
   const isWajibSatuHari = React.useMemo(() => {
     if (activeTaskType?.aturan_durasi === "wajib_1_hari") return true;
@@ -197,6 +208,11 @@ export function SuratTugasDetailStep({
       if (matched.aturan_durasi === "wajib_1_hari") {
         setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
       }
+      if (matched.kode === "jenis_kegiatan" || isJenisKegiatanTask(matched.nama)) {
+        if (!untukKegiatanText) {
+          setUntukKegiatanText?.("Pengawasan Pekerjaan Konstruksi");
+        }
+      }
     }
   };
 
@@ -208,8 +224,9 @@ export function SuratTugasDetailStep({
       kotaTujuan,
       tempatSpesifik,
       namaKegiatanText,
+      untukKegiatanText,
     });
-  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText]);
+  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText]);
 
   const previewBiayaText = React.useMemo(() => {
     if (!formData.sumber_dana || formData.sumber_dana === "dl1" || formData.sumber_dana.toLowerCase().includes("tidak ada biaya")) {
@@ -335,6 +352,82 @@ export function SuratTugasDetailStep({
                     onChange={(e) => setTempatSpesifik(e.target.value)}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Cagar Alam Teluk Adang"
+                  />
+                </div>
+              </div>
+            ) : isJenisKegiatan ? (
+              <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={kotaAsal}
+                      onChange={(e) => setKotaAsal(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                      placeholder="Contoh: Samarinda"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={kotaTujuan}
+                      onChange={(e) => setKotaTujuan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                      placeholder="Contoh: Kabupaten Kutai Barat"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Untuk ( Jenis Kegiatan / Tugas ) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={untukKegiatanText}
+                    onChange={(e) => setUntukKegiatanText?.(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Bisa disesuaikan jika jenis pekerjaan lain (misal: Pengawasan Pekerjaan Konstruksi, Pemeriksaan Fisik BMN, dll.)
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={2}
+                    value={namaKegiatanText}
+                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                    placeholder="Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Di ( Tempat Spesifik / Lokasi Proyek )
+                  </label>
+                  <input
+                    type="text"
+                    value={tempatSpesifik}
+                    onChange={(e) => setTempatSpesifik(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Suaka Badak Kelian"
                   />
                 </div>
               </div>

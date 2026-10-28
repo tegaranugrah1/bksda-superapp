@@ -1045,8 +1045,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php": {
-    "mtime": 1793079952.6453922,
-    "ast_hash": "e0ce82c85d9b43bc21a2c0fd0787870a",
+    "mtime": 1793161382.430371,
+    "ast_hash": "195e14e2ea2b1499f175c20aae5dbb2c",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
@@ -2380,8 +2380,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts": {
-    "mtime": 1793149006.556043,
-    "ast_hash": "d63cbda188423051ac84de94e1433480",
+    "mtime": 1793160435.7589974,
+    "ast_hash": "f9579d1a287cc1400fad8d004f392265",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/constants.ts": {
@@ -2500,8 +2500,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/page.tsx": {
-    "mtime": 1793093143.608087,
-    "ast_hash": "7808dd1b815541a12e041794fc392cf8",
+    "mtime": 1793160569.4005744,
+    "ast_hash": "871e8cc71adffe1e253bfc20b7ed510c",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx": {
-    "mtime": 1793149319.8591745,
-    "ast_hash": "4bc859e88a01ad76fa0d7bae3b519905",
+    "mtime": 1793160669.5352721,
+    "ast_hash": "325a95348d64587f2ac4860c75b6e504",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasSuccessStep.tsx": {
@@ -5850,13 +5850,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/StoreStExpenseTemplateRequest.php": {
-    "mtime": 1792746997.409878,
-    "ast_hash": "b54f814deebd1477831c96193b42b475",
+    "mtime": 1793161369.0003977,
+    "ast_hash": "f66433981491fd407dec944426efa172",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/UpdateStExpenseTemplateRequest.php": {
-    "mtime": 1792746997.410887,
-    "ast_hash": "53f241182cf98220ea330b948ac96559",
+    "mtime": 1793161372.3833754,
+    "ast_hash": "0513d76870ff667d2d406d2a81e44ae2",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Resources/StExpenseTemplateResource.php": {
@@ -5865,8 +5865,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/StExpenseTemplateService.php": {
-    "mtime": 1792746997.4138758,
-    "ast_hash": "58b8148bbf082c9723f9ed01712130aa",
+    "mtime": 1793161431.962993,
+    "ast_hash": "4dffc23c32faf9ae212a8d16135183ac",
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Controllers/SpjController.php": {
@@ -6530,8 +6530,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx": {
-    "mtime": 1793152911.890403,
-    "ast_hash": "59de7de95d0fd451c1fa10bf5268ec11",
+    "mtime": 1793161022.123886,
+    "ast_hash": "b9b6122cc93371ece6bd160999f56cd4",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/employee-helpers.ts": {
@@ -6955,8 +6955,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/StTaskTypeController.php": {
-    "mtime": 1793093445.9712036,
-    "ast_hash": "50f7aef6a740012805e511a8b9a604be",
+    "mtime": 1793161418.0875092,
+    "ast_hash": "007b92b48d920d63575d49319c825a77",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/StTaskType.php": {
@@ -6982,6 +6982,11 @@
   "backend/database/migrations/2026_10_28_100000_sync_official_118_employees_roster.php": {
     "mtime": 1793151466.566927,
     "ast_hash": "f9b8b4f341f721f81357d2b1b13091c1",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_28_121500_add_jenis_kegiatan_to_st_task_types_table.php": {
+    "mtime": 1793160393.861806,
+    "ast_hash": "eb7fd6b55059af7e93fc165f12d774b5",
     "semantic_hash": ""
   }
 }

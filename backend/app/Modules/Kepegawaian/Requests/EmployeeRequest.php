@@ -21,10 +21,16 @@ class EmployeeRequest extends FormRequest
         $nipInput = trim((string) $this->input('nip', ''));
 
         if ($this->has('nama_lengkap')) {
-            $this->merge(['nama_lengkap' => trim((string) $this->input('nama_lengkap'))]);
+            $this->merge(['nama_lengkap' => strip_tags(trim((string) $this->input('nama_lengkap')))]);
         }
         if ($this->has('jabatan')) {
-            $this->merge(['jabatan' => trim((string) $this->input('jabatan')) ?: null]);
+            $this->merge(['jabatan' => strip_tags(trim((string) $this->input('jabatan'))) ?: null]);
+        }
+        if ($this->has('satuan_kerja')) {
+            $this->merge(['satuan_kerja' => strip_tags(trim((string) $this->input('satuan_kerja'))) ?: null]);
+        }
+        if ($this->has('pangkat_golongan')) {
+            $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
         }
 
         if ($jenis === 'MMP') {

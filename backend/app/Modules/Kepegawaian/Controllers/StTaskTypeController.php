@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\StTaskType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -37,10 +38,11 @@ class StTaskTypeController extends Controller
 
         if ($search = trim((string) $request->input('search'))) {
             $escapedSearch = addcslashes($search, '%_');
-            $query->where(function ($q) use ($escapedSearch) {
-                $q->where('nama', 'like', "%{$escapedSearch}%")
-                  ->orWhere('kode', 'like', "%{$escapedSearch}%")
-                  ->orWhere('keterangan', 'like', "%{$escapedSearch}%");
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($escapedSearch, $likeOp) {
+                $q->where('nama', $likeOp, "%{$escapedSearch}%")
+                  ->orWhere('kode', $likeOp, "%{$escapedSearch}%")
+                  ->orWhere('keterangan', $likeOp, "%{$escapedSearch}%");
             });
         }
 
@@ -91,6 +93,9 @@ class StTaskTypeController extends Controller
         $validated['created_by'] = $request->user()?->id;
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['default_sertakan_laporan'] = $request->boolean('default_sertakan_laporan', true);
+        if (isset($validated['nama'])) $validated['nama'] = strip_tags(trim((string) $validated['nama']));
+        if (isset($validated['contoh_format'])) $validated['contoh_format'] = strip_tags(trim((string) $validated['contoh_format']));
+        if (isset($validated['keterangan'])) $validated['keterangan'] = strip_tags(trim((string) $validated['keterangan']));
 
         $type = StTaskType::create($validated);
 
@@ -121,6 +126,9 @@ class StTaskTypeController extends Controller
         ]);
 
         $validated['updated_by'] = $request->user()?->id;
+        if (isset($validated['nama'])) $validated['nama'] = strip_tags(trim((string) $validated['nama']));
+        if (isset($validated['contoh_format'])) $validated['contoh_format'] = strip_tags(trim((string) $validated['contoh_format']));
+        if (isset($validated['keterangan'])) $validated['keterangan'] = strip_tags(trim((string) $validated['keterangan']));
 
         $type->update($validated);
 
