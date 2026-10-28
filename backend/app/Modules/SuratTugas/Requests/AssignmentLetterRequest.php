@@ -11,6 +11,21 @@ class AssignmentLetterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $fields = ['maksud_tujuan', 'tempat_tujuan', 'keterangan', 'penandatangan_nama', 'penandatangan_nip', 'nama_plh'];
+        $clean = [];
+        foreach ($fields as $field) {
+            if ($this->has($field)) {
+                $val = trim((string) $this->input($field));
+                $clean[$field] = $val !== '' ? strip_tags($val) : null;
+            }
+        }
+        if (!empty($clean)) {
+            $this->merge($clean);
+        }
+    }
+
     public function rules(): array
     {
         $letterId = $this->route('id');

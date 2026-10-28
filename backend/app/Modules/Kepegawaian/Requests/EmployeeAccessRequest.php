@@ -8,7 +8,7 @@ class EmployeeAccessRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Otorisasi dikunci di level Middleware Route nantinya
+        return $this->user()?->role === 'super_admin';
     }
 
     public function rules(): array

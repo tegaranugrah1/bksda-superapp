@@ -168,9 +168,9 @@ class StTemplateService
     private function templateAttributes(array $data): array
     {
         return array_filter([
-            'name' => $data['name'] ?? null,
+            'name' => isset($data['name']) ? strip_tags(trim((string) $data['name'])) : null,
             'code' => $data['code'] ?? null,
-            'description' => $data['description'] ?? null,
+            'description' => isset($data['description']) ? strip_tags(trim((string) $data['description'])) : null,
             'type' => $data['type'] ?? null,
             'menimbang' => $data['menimbang'] ?? null,
             'dasar' => $data['dasar'] ?? null,
