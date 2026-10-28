@@ -1,7 +1,8 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
-import { indexToLetter } from "@/lib/letter-utils";
+import React, { useRef } from "react";
+import { Plus, Trash2, Italic } from "lucide-react";
+import { indexToLetter, toggleItalicInTextarea } from "@/lib/letter-utils";
 import { FormSection } from "./FormSection";
 import type { DasarItem } from "../_lib/types";
 
@@ -28,6 +29,8 @@ export function EditableItemListSection({
   getItemBadge,
   disabled = false,
 }: EditableItemListSectionProps) {
+  const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
   const addItem = () => {
     if (onAddItem) {
       onAddItem();
@@ -43,6 +46,12 @@ export function EditableItemListSection({
   };
 
   const removeItem = (id: string) => onChange(items.filter((i) => i.id !== id));
+
+  const handleItalic = (idx: number, itemId: string) => {
+    const el = textareaRefs.current[itemId];
+    if (!el) return;
+    toggleItalicInTextarea(el, items[idx]?.text ?? "", (val) => updateItem(idx, val));
+  };
 
   return (
     <FormSection
@@ -73,21 +82,42 @@ export function EditableItemListSection({
               <div className="flex-1 space-y-1">
                 {badge}
                 <textarea
+                  ref={(el) => {
+                    textareaRefs.current[item.id] = el;
+                  }}
                   value={item.text ?? ""}
                   disabled={disabled}
                   onChange={(e) => updateItem(idx, e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      handleItalic(idx, item.id);
+                    }
+                  }}
+                  placeholder="Ketik teks poin... (blok teks lalu tekan Ctrl+I untuk huruf miring)"
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800/70 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs focus:bg-white dark:focus:bg-zinc-800 focus:border-blue-500 outline-none min-h-[62px] text-slate-900 dark:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
               {!disabled && (
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.id)}
-                  title="Hapus poin"
-                  className="p-1.5 h-fit text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg mt-1.5 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex flex-col gap-1 mt-1">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleItalic(idx, item.id)}
+                    title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    className="p-1.5 h-fit text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Italic className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    title="Hapus poin"
+                    className="p-1.5 h-fit text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               )}
             </div>
           );

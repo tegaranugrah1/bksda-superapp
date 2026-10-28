@@ -11,6 +11,7 @@ import {
   Shield,
   Calendar,
   ArrowLeft,
+  Italic,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -40,6 +41,7 @@ import {
   numberToWords,
   buildFoluMenimbangText,
   isGeneratedFoluMenimbangText,
+  toggleItalicInTextarea,
 } from "@/lib/letter-utils";
 import {
   DEFAULT_KEPALA_BALAI,
@@ -152,6 +154,7 @@ export function SuratTugasForm({
     templateType === "plh" || selectedDynamicTemplate?.type === "plh";
 
   const [namaKegiatan, setNamaKegiatan] = useState("");
+  const namaKegiatanRef = useRef<HTMLTextAreaElement>(null);
   const [untukKegiatanText, setUntukKegiatanText] = useState("Pengawasan Pekerjaan Konstruksi");
   const [activityPrefix, setActivityPrefix] = useState(
     "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
@@ -2621,18 +2624,53 @@ export function SuratTugasForm({
               )}
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">
-                  {isJenisKegiatanTask(activityPrefix)
-                    ? "Dalam Rangka ( Paket Kontrak / Pekerjaan ) *"
-                    : activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
-                    ? "Nama Kegiatan / Tugas"
-                    : "Maksud / Tugas"}
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    {isJenisKegiatanTask(activityPrefix)
+                      ? "Dalam Rangka ( Paket Kontrak / Pekerjaan ) *"
+                      : activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
+                      ? "Nama Kegiatan / Tugas"
+                      : "Maksud / Tugas"}
+                  </label>
+                  {!isPublished && (
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        if (namaKegiatanRef.current) {
+                          toggleItalicInTextarea(
+                            namaKegiatanRef.current,
+                            namaKegiatan,
+                            handleNamaKegiatanChange
+                          );
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  )}
+                </div>
                 <textarea
+                  ref={namaKegiatanRef}
                   rows={3}
                   value={namaKegiatan}
                   disabled={isPublished}
                   onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      if (namaKegiatanRef.current) {
+                        toggleItalicInTextarea(
+                          namaKegiatanRef.current,
+                          namaKegiatan,
+                          handleNamaKegiatanChange
+                        );
+                      }
+                    }
+                  }}
                   placeholder={
                     isJenisKegiatanTask(activityPrefix)
                       ? "Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"

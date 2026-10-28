@@ -17,10 +17,12 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Italic,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
+import { renderFormattedItalic, toggleItalicInTextarea } from "@/lib/letter-utils";
 import type { StExpenseTemplate } from "../../../surat-tugas/_lib";
 import { templateCodeFromName, errorMessage } from "./utils";
 
@@ -53,6 +55,8 @@ export function ExpenseTemplatesTab() {
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState<string>("all");
   const [expenseStatusFilter, setExpenseStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [expandedExpenses, setExpandedExpenses] = useState<Record<number, boolean>>({});
+  const expenseBiayaRef = React.useRef<HTMLTextAreaElement>(null);
+  const expenseDasarRef = React.useRef<HTMLTextAreaElement>(null);
 
   const currentYear = new Date().getFullYear().toString();
 
@@ -364,8 +368,21 @@ export function ExpenseTemplatesTab() {
                 </span>
               </label>
               <textarea
+                ref={expenseBiayaRef}
                 value={expenseBiayaText}
                 onChange={(event) => setExpenseBiayaText(event.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                    e.preventDefault();
+                    if (expenseBiayaRef.current) {
+                      toggleItalicInTextarea(
+                        expenseBiayaRef.current,
+                        expenseBiayaText,
+                        setExpenseBiayaText
+                      );
+                    }
+                  }
+                }}
                 rows={4}
                 placeholder={
                   expenseCategory === "dl1"
@@ -375,7 +392,7 @@ export function ExpenseTemplatesTab() {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
               />
               <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
+                <span className="text-[11px] text-slate-400 font-medium">Sisipkan:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -387,6 +404,24 @@ export function ExpenseTemplatesTab() {
                   title="Klik untuk menyisipkan {tahun}"
                 >
                   + {"{tahun}"}
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (expenseBiayaRef.current) {
+                      toggleItalicInTextarea(
+                        expenseBiayaRef.current,
+                        expenseBiayaText,
+                        setExpenseBiayaText
+                      );
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                >
+                  <Italic className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  <span className="font-serif italic font-bold">Miringkan (*I*)</span>
                 </button>
               </div>
             </div>
@@ -400,14 +435,27 @@ export function ExpenseTemplatesTab() {
                 </span>
               </label>
               <textarea
+                ref={expenseDasarRef}
                 value={expenseDasarText}
                 onChange={(event) => setExpenseDasarText(event.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                    e.preventDefault();
+                    if (expenseDasarRef.current) {
+                      toggleItalicInTextarea(
+                        expenseDasarRef.current,
+                        expenseDasarText,
+                        setExpenseDasarText
+                      );
+                    }
+                  }
+                }}
                 rows={4}
                 placeholder="Contoh: Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan ... Nomor: ... tanggal ..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white text-xs font-mono leading-relaxed"
               />
               <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
+                <span className="text-[11px] text-slate-400 font-medium">Sisipkan:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -419,6 +467,24 @@ export function ExpenseTemplatesTab() {
                   title="Klik untuk menyisipkan {tahun}"
                 >
                   + {"{tahun}"}
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (expenseDasarRef.current) {
+                      toggleItalicInTextarea(
+                        expenseDasarRef.current,
+                        expenseDasarText,
+                        setExpenseDasarText
+                      );
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                >
+                  <Italic className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  <span className="font-serif italic font-bold">Miringkan (*I*)</span>
                 </button>
               </div>
             </div>
@@ -437,7 +503,7 @@ export function ExpenseTemplatesTab() {
                     Dasar (Poin 2):
                   </span>
                   <p className="text-xs text-slate-700 dark:text-zinc-200 leading-relaxed font-sans bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                    {(expenseDasarText || "").replace(/\{tahun\}/g, currentYear)}
+                    {renderFormattedItalic((expenseDasarText || "").replace(/\{tahun\}/g, currentYear))}
                   </p>
                 </div>
               )}
@@ -447,7 +513,7 @@ export function ExpenseTemplatesTab() {
                     Klausul Biaya (Bagian Untuk Poin 3):
                   </span>
                   <p className="text-xs text-slate-700 dark:text-zinc-200 leading-relaxed font-sans bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                    {(expenseBiayaText || "").replace(/\{tahun\}/g, currentYear)}
+                    {renderFormattedItalic((expenseBiayaText || "").replace(/\{tahun\}/g, currentYear))}
                   </p>
                 </div>
               )}

@@ -10,6 +10,7 @@ import {
   FileText,
   Upload,
   Users,
+  Italic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,13 @@ import {
   normalizeTaskTypeName,
   isJenisKegiatanTask,
 } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
-import { formatNipLabel, formatDateIndonesian, daysBetween } from "@/lib/letter-utils";
+import {
+  formatNipLabel,
+  formatDateIndonesian,
+  daysBetween,
+  renderFormattedItalic,
+  toggleItalicInTextarea,
+} from "@/lib/letter-utils";
 import api from "@/lib/api";
 import { ScheduleConflictBanner } from "@/app/kepegawaian/surat-tugas/_components/ScheduleConflictBanner";
 import { useScheduleConflicts } from "@/app/kepegawaian/surat-tugas/_lib/useScheduleConflicts";
@@ -429,14 +436,35 @@ export function SuratTugasDetailStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
                   <textarea
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
                     placeholder="Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"
                   />
@@ -488,14 +516,35 @@ export function SuratTugasDetailStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Dalam Rangka <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dalam Rangka <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
                   <textarea
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
                     placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
                   />
@@ -517,14 +566,35 @@ export function SuratTugasDetailStep({
             ) : (
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Nama Kegiatan / Tugas <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Nama Kegiatan / Tugas <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
                   <textarea
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
                     placeholder="Contoh: opname fisik (stok opname) barang persediaan..."
                   />
@@ -573,7 +643,7 @@ export function SuratTugasDetailStep({
                 </span>
               </div>
               <p className="text-xs font-semibold leading-relaxed text-slate-800">
-                {previewDiktumUtama}
+                {renderFormattedItalic(previewDiktumUtama)}
                 {formData.tanggal_mulai && formData.tanggal_selesai ? (
                   formData.tanggal_mulai === formData.tanggal_selesai ? (
                     <span className="text-slate-600 font-medium">
@@ -589,7 +659,7 @@ export function SuratTugasDetailStep({
               {previewBiayaText && (
                 <p className="text-[11px] text-slate-600 mt-2 pt-2 border-t border-blue-200/50 leading-relaxed">
                   <span className="font-semibold text-slate-700">Pembebanan Anggaran: </span>
-                  {previewBiayaText}
+                  {renderFormattedItalic(previewBiayaText)}
                 </p>
               )}
             </div>

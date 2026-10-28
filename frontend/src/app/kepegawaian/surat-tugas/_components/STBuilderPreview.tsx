@@ -6,6 +6,7 @@ import {
   formatNIP,
   formatNipLabel,
   indexToLetter,
+  renderFormattedItalic,
 } from "@/lib/letter-utils";
 import { resolveKopImageUrl } from "../_lib";
 import { buildOrderedAdditionalUntukItems } from "../_lib/untuk-helpers";
@@ -314,7 +315,7 @@ export default function STBuilderPreview({
                             <tr key={m.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
                               <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>
-                                {(m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                                {renderFormattedItalic((m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
                               </td>
                             </tr>
                           ))}
@@ -338,7 +339,7 @@ export default function STBuilderPreview({
                             <tr key={d.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
                               <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                                {(d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                                {renderFormattedItalic((d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
                               </td>
                             </tr>
                           ))}
@@ -434,7 +435,7 @@ export default function STBuilderPreview({
                             .map((item, idx) => (
                             <tr key={idx} className="untuk-entry" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{item}</td>
+                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{renderFormattedItalic(item)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -447,7 +448,7 @@ export default function STBuilderPreview({
               {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
               <div data-break-candidate="penutup-ttd" className="penutup-ttd-group print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: isFolu || activePenutup.length > 80 ? "justify" : "left" }}>
-                  {activePenutup}
+                  {renderFormattedItalic(activePenutup)}
                 </p>
 
                 {/* === TANDA TANGAN + TEMBUSAN === */}

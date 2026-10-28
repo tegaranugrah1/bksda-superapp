@@ -9,6 +9,7 @@ import {
   indexToLetter,
   daysBetween,
   numberToWords,
+  renderFormattedItalic,
 } from "@/lib/letter-utils";
 import { resolveKopImageUrl } from "@/app/kepegawaian/surat-tugas/_lib";
 
@@ -280,7 +281,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                         {menimbangItems.map((m, idx) => (
                           <tr key={m.id || idx}>
                             <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
-                            <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{m.text || "..."}</td>
+                            <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{renderFormattedItalic(m.text || "...")}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -304,7 +305,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                         {dasarItems.map((d, idx) => (
                           <tr key={d.id || idx}>
                             <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{d.text || "..."}</td>
+                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{renderFormattedItalic(d.text || "...")}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -388,13 +389,13 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                           {(() => {
                             const hasDuration = /selama\s+\d+|terhitung\s+mulai\s+tanggal|pada\s+tanggal/i.test(untukText);
                             if (hasDuration || untukText.endsWith(";")) {
-                              return untukText;
+                              return renderFormattedItalic(untukText);
                             }
                             const isSingleDay = data.tanggal_mulai && data.tanggal_selesai && data.tanggal_mulai === data.tanggal_selesai;
                             const days = daysBetween(data.tanggal_mulai, data.tanggal_selesai);
                             return (
                               <>
-                                {untukText}
+                                {renderFormattedItalic(untukText)}
                                 {data.tempat_tujuan && !untukText.includes(data.tempat_tujuan) && (
                                   <>, dari Samarinda ke {data.tempat_tujuan}</>
                                 )}
@@ -413,9 +414,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                       <tr>
                         <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>2.</td>
                         <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                          {data.sumber_dana
-                            ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${data.sumber_dana};`
-                            : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;"}
+                          {renderFormattedItalic(
+                            data.sumber_dana
+                              ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${data.sumber_dana};`
+                              : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;"
+                          )}
                         </td>
                       </tr>
                       <tr>
@@ -432,7 +435,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           </table>
 
           {/* PENUTUP */}
-          <p style={{ margin: "28px 0 0", textAlign: penutupText.length > 80 ? "justify" : "left" }}>{penutupText}</p>
+          <p style={{ margin: "28px 0 0", textAlign: penutupText.length > 80 ? "justify" : "left" }}>
+            {renderFormattedItalic(penutupText)}
+          </p>
 
           {/* TANDA TANGAN */}
           <div style={{ pageBreakInside: "avoid" }}>
