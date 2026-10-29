@@ -525,6 +525,16 @@ class AssignmentLetterController extends Controller
                 $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
+
+                \App\Jobs\ArchiveOfficialDocument::dispatch(
+                    'surat_tugas',
+                    $surat->id,
+                    'local',
+                    $path,
+                    $surat->nomor_surat ? "ST-{$surat->nomor_surat}.{$ext}" : $filename,
+                    null,
+                    $authUser ? (int) $authUser->id : null
+                );
             }
 
             DB::commit();
@@ -770,6 +780,16 @@ class AssignmentLetterController extends Controller
                 $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
                 $surat->update(['file_surat_path' => $path]);
+
+                \App\Jobs\ArchiveOfficialDocument::dispatch(
+                    'surat_tugas',
+                    $surat->id,
+                    'local',
+                    $path,
+                    $surat->nomor_surat ? "ST-{$surat->nomor_surat}.{$ext}" : $filename,
+                    null,
+                    $authUser ? (int) $authUser->id : null
+                );
             }
 
             DB::commit();

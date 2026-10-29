@@ -591,6 +591,18 @@ class EmployeeLeaveRequestController extends Controller
 
             DB::commit();
 
+            if (!empty($updateData['scan_surat_izin_path'])) {
+                \App\Jobs\ArchiveOfficialDocument::dispatch(
+                    'cuti',
+                    $leaveReq->id,
+                    'local',
+                    $updateData['scan_surat_izin_path'],
+                    $updateData['scan_surat_izin_nama'] ?? null,
+                    null,
+                    $leaveReq->user_id ?? Auth::id()
+                );
+            }
+
             try {
                 $notifTitle = 'Permohonan Cuti Disetujui';
                 $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.";
