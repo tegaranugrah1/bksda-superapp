@@ -215,7 +215,10 @@ export function SuratTugasDetailStep({
   }, [selectedTaskTypeId, taskTypes, jenisTugas]);
 
   const isJenisKegiatan = React.useMemo(() => {
-    return isJenisKegiatanTask(jenisTugas) || activeTaskType?.kode === "jenis_kegiatan";
+    return (
+      isJenisKegiatanTask(jenisTugas, activeTaskType?.contoh_format) ||
+      activeTaskType?.kode === "jenis_kegiatan"
+    );
   }, [jenisTugas, activeTaskType]);
 
   const modeLokasi = React.useMemo(() => {
@@ -239,7 +242,10 @@ export function SuratTugasDetailStep({
       if (matched.aturan_durasi === "wajib_1_hari") {
         setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
       }
-      if (matched.kode === "jenis_kegiatan" || isJenisKegiatanTask(matched.nama)) {
+      if (
+        matched.kode === "jenis_kegiatan" ||
+        isJenisKegiatanTask(matched.nama, matched.contoh_format)
+      ) {
         if (!untukKegiatanText) {
           setUntukKegiatanText?.("Pengawasan Pekerjaan Konstruksi");
         }
@@ -256,8 +262,9 @@ export function SuratTugasDetailStep({
       tempatSpesifik,
       namaKegiatanText,
       untukKegiatanText,
+      contohFormat: activeTaskType?.contoh_format,
     });
-  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText]);
+  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText, activeTaskType]);
 
   const previewBiayaText = React.useMemo(() => {
     if (!formData.sumber_dana || formData.sumber_dana === "dl1" || formData.sumber_dana.toLowerCase().includes("tidak ada biaya")) {

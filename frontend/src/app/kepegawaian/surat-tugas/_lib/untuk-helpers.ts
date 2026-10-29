@@ -1,12 +1,12 @@
 /**
  * Helpers untuk item "Untuk" di Surat Tugas.
- * Sesuai Tata Naskah Dinas:
- * - Poin 1: Penugasan Kegiatan Utama
- * - Poin 2: Pembebanan Biaya / Anggaran
- * - Poin 3: Poin Tambahan Khusus
- * - Poin Terakhir: Kewajiban Membuat Laporan Tertulis
+ * Sesuai aturan susunan Diktum "Untuk":
+ * - Poin 1: Penugasan Kegiatan Utama + Waktu Pelaksanaan
+ * - Poin 2..k: Butir Tambahan (dari Default Butir Tambahan Template ST atau ditambah manual di Builder)
+ * - Poin Berikutnya (turun di bawah Poin 1 / Poin Tambahan): Pembebanan Biaya / Sumber Dana
+ * - Poin Paling Terakhir: Kewajiban Membuat Laporan Tertulis (dikontrol toggle)
  */
-import type { DasarItem } from "./types";
+import type { DasarItem, StExpenseTemplate } from "./types";
 
 export const DEFAULT_LAPORAN_TEXT =
   "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
@@ -22,52 +22,104 @@ export function getDefaultUntukItem(templateType?: string | null) {
   if (templateType === "plh") {
     return DEFAULT_PLH_PRINSIP_TEXT;
   }
-  if (templateType === "bmn-pemeriksaan") {
+  if (templateType === "bmn-pemeriksaan" || templateType === "bmn") {
     return DEFAULT_LAPORAN_BMN_TEXT;
   }
   return DEFAULT_LAPORAN_TEXT;
 }
 
 /**
- * Susun urutan item Untuk sesuai Tata Naskah Dinas KSDAE:
- * [Poin 2: Pembebanan Biaya] -> [Poin 3: Poin Tambahan] -> [Poin Terakhir: Laporan/Prinsip]
+ * Cek apakah baris ini adalah baris laporan tertulis otomatis.
+ */
+export function isGeneratedLaporanItem(value: string) {
+  return /^Membuat laporan tertulis paling lambat/i.test(value.trim());
+}
+
+/**
+ * Cek apakah baris ini adalah baris biaya yang di-generate otomatis
+ * (untuk bisa di-skip atau diganti saat sumber dana berubah).
+ */
+export function isGeneratedBiayaItem(
+  value: string,
+  expenseTemplates?: StExpenseTemplate[]
+) {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (/^(Segala biaya yang timbul|Sumber dana dibebankan|Seluruh biaya|Biaya perjalanan)/i.test(trimmed)) {
+    return true;
+  }
+  if (expenseTemplates && expenseTemplates.length > 0) {
+    const lower = trimmed.toLowerCase();
+    return expenseTemplates.some((t) => {
+      if (!t.biaya_text) return false;
+      const sample = t.biaya_text.replace(/\{tahun\}/gi, "").trim().toLowerCase();
+      return sample.length > 15 && lower.includes(sample.substring(0, 25));
+    });
+  }
+  return false;
+}
+
+/**
+ * Ekstrak hanya butir tambahan manual/template dari baris-baris `maksud_tujuan` setelah Poin 1
+ * (memisahkan baris biaya otomatis dan baris laporan tertulis otomatis).
+ */
+export function extractCustomUntukItems(
+  additionalLines: string[],
+  expenseTemplates?: StExpenseTemplate[]
+): DasarItem[] {
+  const custom: DasarItem[] = [];
+  additionalLines.forEach((line, idx) => {
+    const text = line.trim();
+    if (!text) return;
+    if (isGeneratedBiayaItem(text, expenseTemplates)) return;
+    if (isGeneratedLaporanItem(text)) return;
+    custom.push({ id: `stored-untuk-${idx}-${Date.now()}`, text });
+  });
+  return custom;
+}
+
+/**
+ * Susun urutan item Untuk setelah Poin 1:
+ * [Poin 2..k: Poin Tambahan Template/Manual] -> [Biaya (turun di bawah tambahan)] -> [Poin Terakhir: Laporan]
  */
 export function buildOrderedAdditionalUntukItems({
   templateType,
   biayaText = "",
   customTemplateItems = [],
   sertakanLaporan = true,
+  expenseTemplates,
 }: {
   templateType?: string | null;
   biayaText?: string;
   customTemplateItems?: DasarItem[] | null;
   sertakanLaporan?: boolean;
+  expenseTemplates?: StExpenseTemplate[];
 }): DasarItem[] {
   const items: DasarItem[] = [];
 
-  // Poin 2: Biaya (jika ada dan bukan PLH)
-  if (biayaText && biayaText.trim()) {
-    items.push({ id: "untuk-biaya", text: biayaText.trim() });
-  }
-
-  // Poin 3: Custom item dari template (selain biaya atau laporan default)
+  // 1. Poin 2 dst.: Butir Tambahan dari Template ST atau ditambah manual di Builder
   if (customTemplateItems && customTemplateItems.length > 0) {
     customTemplateItems.forEach((c, idx) => {
       const text = c.text?.trim() || "";
       if (!text) return;
-      if (isGeneratedBiayaItem(text)) return;
-      if (text.toLowerCase().includes("membuat laporan tertulis")) return;
-      if (text.toLowerCase().includes("hal-hal yang bersifat prinsip")) return;
+      if (isGeneratedBiayaItem(text, expenseTemplates)) return;
+      if (isGeneratedLaporanItem(text)) return;
       items.push({ id: c.id || `custom-u-${idx}`, text });
     });
+  } else if (templateType === "plh") {
+    // Fallback default PLH jika belum ada customTemplateItems yang diset
+    items.push({ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT });
   }
 
-  // Poin Terakhir: Laporan atau Penutup PLH
-  if (templateType === "plh") {
-    items.push({ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT });
-  } else if (sertakanLaporan) {
+  // 2. Pembebanan Biaya: tepat di bawah Poin 1 jika tanpa tambahan, atau turun di bawah Poin Tambahan
+  if (biayaText && biayaText.trim()) {
+    items.push({ id: "untuk-biaya", text: biayaText.trim() });
+  }
+
+  // 3. Poin Paling Terakhir: Kewajiban Membuat Laporan Tertulis (dikontrol toggle sertakanLaporan)
+  if (sertakanLaporan) {
     const laporanText =
-      templateType === "bmn-pemeriksaan"
+      templateType === "bmn-pemeriksaan" || templateType === "bmn"
         ? DEFAULT_LAPORAN_BMN_TEXT
         : DEFAULT_LAPORAN_TEXT;
     items.push({ id: "untuk-laporan", text: laporanText });
@@ -101,14 +153,6 @@ export function splitStoredUntukItems(value?: string | null) {
     .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-/**
- * Cek apakah baris ini adalah baris biaya yang di-generate otomatis
- * (untuk bisa di-skip atau diganti saat sumber dana berubah).
- */
-export function isGeneratedBiayaItem(value: string) {
-  return /^(Segala biaya yang timbul|Sumber dana dibebankan)/i.test(value.trim());
 }
 
 /**

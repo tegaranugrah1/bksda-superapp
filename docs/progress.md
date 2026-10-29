@@ -1,3 +1,102 @@
+# Progress - Phase 227: Auto-Sinkronisasi Template ST dari Sumber Dana (FOLU Dinamis), Redesign Konsiderans 2 Card Mandiri, Perbaikan Placeholder `{paket}`, & Sanitasi Butir Tambahan Untuk
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: SELESAI (Implementasi pencocokan dinamis Sumber Dana ke Master Template ST termasuk FOLU Net Sink 2030, pemisahan Konsiderans menjadi 2 card penuh untuk Menimbang & Dasar Hukum di Settings & Builder dengan auto-resize textarea + chip placeholder, perbaikan placeholder `{paket}` dan parser Jenis Tugas ST lama, serta penyaringan otomatis kalimat Laporan/Biaya dari Butir Tambahan Untuk).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Auto-Select Template ST dari Sumber Dana Secara Dinamis)**:
+  - Saat pegawai atau admin memilih Sumber Dana **FOLU (`folu_nc23` / `folu`)** atau Sumber Dana baru di masa depan, sistem harus otomatis memilih **Template ST** pasangannya (contoh: **Template FOLU Net Sink 2030**) tanpa hardcode statis, melainkan membaca relasi `configuration.sumber_dana` pada Master Template ST.
+- **Kebutuhan 2 (Redesign Konsiderans `Menimbang` & `Dasar Hukum` Lebih Lega)**:
+  - Di Pengaturan Template ST (`/kepegawaian/settings`) dan ST Builder (`/kepegawaian/surat-tugas/builder/[id]`), bagian **Menimbang** dan **Dasar Hukum** sebelumnya tergabung dalam 1 card sempit (2 kolom berdampingan di Settings), sehingga teks regulasi panjang sulit dibaca dan diedit.
+  - Perlu dipisah menjadi **2 Card Mandiri Lebar Penuh (1 Kolom Penuh)** lengkap dengan auto-resize `<textarea>` (3–8 baris), header bar per poin, dan tombol chip placeholder klik-langsung.
+- **Kebutuhan 3 (Perbaikan Bug Placeholder `{paket}`, Jenis Tugas `"Samarinda"`, & Duplikasi Laporan di Butir 2)**:
+  - Skema pola di database untuk *Pengawasan / Pemeriksaan Pekerjaan* menggunakan `untuk {kegiatan} dalam rangka {paket}`, sehingga `{paket}` sebelumnya belum tergantikan pada `buildKegiatanDiktumText`.
+  - Pada surat lama (`task_type_id: null`), grup regex `match[1]` (Kota Asal, mis. `"Samarinda"`) tidak sengaja dipakai sebagai nama Jenis Tugas sehingga merusak kalimat Butir 1 menjadi `Menugaskan Staf...`.
+  - Pada surat lama dengan `template_snapshot.configuration.untuk` yang masih menyimpan kalimat `"Membuat laporan tertulis..."`, kalimat tersebut muncul ganda di **Butir Tambahan Untuk (Butir 2)** dan di **Butir Terakhir (Laporan)**.
+  - Pada Master Template **FOLU Net Sink 2030**, 4 poin Dasar regulasi FOLU sebelumnya salah terdeteksi sebagai *"Otomatis Sinkron Sumber Dana (Paling Bawah)"* karena pencocokan kata kunci `folu`.
+
+---
+
+## 2. Perubahan yang Dilakukan
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts):
+  - Menambahkan `isFoluSumberDana` dan `findMatchingTemplateForSumberDana` (pencocokan dinamis 3 lapis: `configuration.sumber_dana` $\rightarrow$ kecocokan `code`/`name` template $\rightarrow$ fallback FOLU/Default).
+  - Memperbaiki `isFundingDasarText` agar hanya mencocokkan `dasar_text` dari Template Biaya yang benar-benar terisi (tidak menandai 4 poin Dasar regulasi Master Template FOLU sebagai dasar biaya).
+- [`backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) & [`backend/database/seeders/StTemplateSeeder.php`](file:///e:/bksda-superapp/backend/database/seeders/StTemplateSeeder.php):
+  - Memperbarui `resolveTemplate` di backend agar saat surat diajukan dari `/surat-tugas` dengan Sumber Dana tertentu (`folu_nc23` dsb.), backend otomatis menautkan `template_id`, `menimbang`, `dasar`, `tembusan`, dan `template_snapshot` dari Master Template ST pasangannya.
+  - Memperbarui `StTemplateSeeder.php` dengan format cetak miring (`*...*`) pada istilah asing di Template FOLU dan membersihkan duplikasi kalimat laporan dari `configuration.untuk`.
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts) & [`TaskTypesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/TaskTypesTab.tsx):
+  - Mendukung skema `{kegiatan}` + `{paket}` maupun `{untuk}` + `{kegiatan}` di `buildKegiatanDiktumText`, membersihkan sisa token mentah `{paket}`, dan menambahkan chip `+ {paket}` di Pengaturan Jenis Tugas.
+  - Memperkuat deteksi `isLuarWilayah` dan `normalizeTaskTypeName` untuk surat tugas lama.
+- [`frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx):
+  - Merombak tampilan tiap butir menjadi kartu lebar penuh dengan header bar (`Poin a` / `Poin 1` + badge lapis urutan + tombol **Miringkan** + tombol **Hapus**), `<textarea>` auto-resize (3–8 baris), serta dukungan `placeholderChips` yang menyisipkan variabel langsung ke posisi kursor.
+- [`frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx) & [`SuratTugasForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx):
+  - Memisahkan Konsiderans menjadi 2 card mandiri lebar penuh (**Menimbang** dan **Dasar Hukum**) baik di Pengaturan Template ST (7 pil navigasi cepat) maupun di ST Builder.
+  - Memperbaiki parser `else if (match)` di `SuratTugasForm.tsx` agar menetapkan `Perjalanan Dinas Luar Wilayah` (bukan `match[1]` Kota Asal).
+  - Menyaring `snapshotConfig.untuk` dan `config.untuk` melalui `extractTemplateUntukItems` / `isGeneratedLaporanItem` agar kalimat laporan tertulis murni dikendalikan oleh toggle **Kewajiban Membuat Laporan Tertulis (Butir Terakhir)**.
+
+---
+
+## 3. Validasi & Pengujian
+- [x] **Ponytail Runnable Self-Check**: `npx --prefix frontend tsx` (`ALL ASSERTIONS PASSED` untuk `buildKegiatanDiktumText`, `normalizeTaskTypeName`, `isFundingDasarText`, dan `buildOrderedAdditionalUntukItems`).
+- [x] **PHP Syntax Check**: `php -l` pada `AssignmentLetterController.php` dan `StTemplateSeeder.php` (`No syntax errors detected`).
+- [x] **Next.js Production Build**: `npm --prefix frontend run build` (`Compiled successfully`, TypeScript 0 error, 83/83 halaman terkompilasi).
+- [x] **Knowledge Graph AST Update**: `graphify update .` selesai diperbarui.
+
+---
+
+# Progress - Phase 226: Penyatuan Alur & Urutan Otomatis Menimbang, Dasar & Untuk di Builder, Form Publik & Pengaturan Template ST
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: SELESAI (Implementasi urutan 3 lapis bagian Dasar, penyatuan kartu bagian Untuk di Builder dengan dukungan Butir 1 Terstruktur & Tulis Manual + waktu otomatis, penurunan otomatis posisi Biaya di bawah Butir Tambahan Untuk, toggle Laporan di urutan paling akhir, serta panduan placeholder & preset cepat di seluruh tab Pengaturan).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Urutan 3 Lapis Bagian `Dasar`)**:
+  - Butir **Template ST** harus selalu berada di paling atas (`1..k`).
+  - Jika Admin menambahkan butir `Dasar` secara manual di **Builder**, butir tersebut wajib selalu berada **di bawah Template ST dan di atas Template Biaya** (`manual-dasar-*`).
+  - Butir `Dasar` dari **Template Biaya & Sumber Dana** wajib selalu berada di **paling bawah / terakhir** (`funding-dasar`).
+- **Kebutuhan 2 (Struktur Bagian `Untuk` & Mode Tulis Manual)**:
+  - **Butir 1 (Selalu Nomor 1)**:
+    - *Mode Terstruktur*: Menggabungkan pola **Jenis Tugas** (`contoh_format` termasuk placeholder `{untuk}` sebelum `dalam rangka`) + lokasi + nama kegiatan + durasi waktu, serta terkoneksi otomatis dari `/kepegawaian/settings` ke `/surat-tugas` dan Builder.
+    - *Mode Tulis Manual*: Jika dipilih `Mode Input Butir 1 Bawaan = Tulis Manual` pada Template ST (seperti PLH atau template baru), maka **Default Uraian Tugas** langsung menjadi kalimat utama Butir 1 dan **tetap ditambahkan rentang waktu otomatis** di ujung kalimat (`, selama X (...) hari terhitung mulai tanggal ... sampai dengan ...;`).
+  - **Butir 2 dst. (Butir Tambahan Untuk)**:
+    - `Default Butir Tambahan (Untuk)` pada Template ST menimpa seluruh butir tambahan sebelumnya ketika template dipilih.
+    - Jika tidak ada butir tambahan, **Biaya** berada tepat di bawah Butir 1 (**Butir 2**).
+    - Jika ada butir tambahan (dari Template ST atau ditambah manual di Builder), butir tambahan tersebut menjadi **Nomor 2, 3, dst.** dan **Biaya otomatis turun ke bawahnya**.
+  - **Butir Terakhir (Kewajiban Laporan)**:
+    - Klausul membuat laporan tertulis selalu berada di urutan **paling terakhir** dan memiliki toggle di Pengaturan maupun di Builder.
+- **Kebutuhan 3 (Kemudahan Pembuatan Template & Panduan Placeholder)**:
+  - Menyediakan fitur salin cepat dari template yang sudah ada, preset kalimat cepat, tombol sisipkan placeholder (`{tahun}`, `{wilayah}`, `{pejabat}`, `{asal}`, `{tujuan}`, `{untuk}`, `{kegiatan}`, `{tempat}`, `{kota}`), dan panduan posisi otomatis di ketiga tab `/kepegawaian/settings`.
+
+---
+
+## 2. Perubahan yang Dilakukan
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/untuk-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/untuk-helpers.ts):
+  - Memperbarui `buildOrderedAdditionalUntukItems` agar urutan setelah Butir 1 selalu: `[1. Butir Tambahan Untuk (2..k)] -> [2. Biaya (turun ke bawah tambahan)] -> [3. Laporan Tertulis (selalu terakhir)]`.
+  - Menambahkan `extractCustomUntukItems` dan `isGeneratedLaporanItem` agar saat surat disimpan dan dibuka kembali di Builder, butir tambahan manual tidak tercampur dengan kalimat Biaya atau Laporan otomatis.
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts), [`frontend/src/app/surat-tugas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/page.tsx), & [`frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx):
+  - Mendukung pola dinamis `contoh_format` dari Master Jenis Tugas (`{asal}`, `{tujuan}`, `{untuk}`, `{kegiatan}`, `{tempat}`, `{kota}`) sehingga Jenis Tugas baru di `/kepegawaian/settings` langsung memunculkan field yang sesuai di `/surat-tugas` dan Builder.
+- [`frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx):
+  - Menambahkan helper `orderDasarLayers` untuk menjaga urutan 3 lapis `Dasar` (`Template ST` $\rightarrow$ `Manual Builder` $\rightarrow$ `Template Biaya`) beserta badge warna per lapis.
+  - Menyusun kartu terpadu **"Untuk (Diktum Penugasan, Biaya & Laporan)"** di Builder yang menampilkan:
+    1. **Blok 1 — Butir 1 (Selalu Nomor 1)**: Switcher *Terstruktur* vs *Tulis Manual*, input dinamis, tombol `*Miringkan (*I*)`, chip placeholder (`{wilayah}`, `{pejabat}`, `{tahun}`), dan kotak Pratinjau Kalimat Butir 1.
+    2. **Blok 2 — Butir Tambahan Untuk (Nomor 2 dst.)**: Editor daftar butir tambahan yang otomatis menggeser Biaya ke bawahnya.
+    3. **Blok 3 — Pembebanan Biaya & Sumber Dana**: Menampilkan nomor urut dinamis (`Otomatis Butir N`) dan pratinjau kalimat biaya.
+    4. **Blok 4 — Kewajiban Membuat Laporan Tertulis**: Toggle laporan yang selalu menempati butir paling akhir.
+- [`frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx), [`TaskTypesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/TaskTypesTab.tsx), & [`ExpenseTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/ExpenseTemplatesTab.tsx):
+  - Menambahkan fitur **"Salin Isian Awal dari Template yang Sudah Ada"** saat membuat Template ST baru.
+  - Memperbaiki live preview `STBuilderPreview` di Pengaturan agar `Mode Input Butir 1 = Tulis Manual` langsung menggunakan `Default Uraian Tugas` + durasi waktu otomatis.
+  - Menambahkan preset cepat, tombol chip placeholder klik-langsung, dan kotak panduan penggunaan di ketiga tab pengaturan.
+- [`backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php):
+  - Menambahkan sanitasi `strip_tags()` pada `template_snapshot.configuration.untuk` dan `custom_nomor_naskah` di trust boundary.
+
+---
+
 # Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan
 
 > Document updated: 2026-10-29

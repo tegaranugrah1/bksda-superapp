@@ -12,6 +12,7 @@ import {
   Calendar,
   ArrowLeft,
   Italic,
+  Banknote,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -41,10 +42,13 @@ import {
   numberToWords,
   buildFoluMenimbangText,
   isGeneratedFoluMenimbangText,
+  renderFormattedItalic,
   toggleItalicInTextarea,
 } from "@/lib/letter-utils";
 import {
   DEFAULT_KEPALA_BALAI,
+  DEFAULT_LAPORAN_TEXT,
+  DEFAULT_PLH_PRINSIP_TEXT,
   PLH_WILAYAH_PLACEHOLDER,
   PLH_KEGIATAN_KASI_PLACEHOLDER,
   PLH_KASUBBAG_TU_TITLE,
@@ -59,11 +63,15 @@ import {
   formatPlhKegiatanForTemplate,
   replacePlhAllPlaceholders,
   buildOrderedAdditionalUntukItems,
+  extractCustomUntukItems,
   getDefaultUntukItems,
   isGeneratedBiayaItem,
+  isGeneratedLaporanItem,
   isSingleDayActivityPrefix,
   isFundingDasarText,
   normalizeSumberDana,
+  isFoluSumberDana,
+  findMatchingTemplateForSumberDana,
   shouldRenderAsSingleDayActivity,
   splitStoredUntukItems,
   toDasarItems,
@@ -129,11 +137,11 @@ export function SuratTugasForm({
       text: "Peraturan Menteri Kehutanan Nomor 4 Tahun 2025 tentang Organisasi dan Tata Kerja Unit Pelaksana Teknis Direktorat Jenderal Konservasi Sumber Daya Alam dan Ekosistem;",
     },
     {
-      id: "2",
+      id: "funding-dasar",
       text: `Surat Pengesahan DIPA Tahun Anggaran ${currentYear} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA143.04.2.693614/${currentYear} tanggal 24 April 2026.`,
     },
   ]);
-  const [untukItems, setUntukItems] = useState<DasarItem[]>(getDefaultUntukItems(null));
+  const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
 
   const [sumberDana, setSumberDana] = useState(
     mode === "create" && initialTemplate === "plh" ? "dl1" : "dipa"
@@ -157,7 +165,7 @@ export function SuratTugasForm({
   const namaKegiatanRef = useRef<HTMLTextAreaElement>(null);
   const [untukKegiatanText, setUntukKegiatanText] = useState("Pengawasan Pekerjaan Konstruksi");
   const [activityPrefix, setActivityPrefix] = useState(
-    "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
+    "Perjalanan Dinas Luar Wilayah"
   );
   const [inputModeKegiatan, setInputModeKegiatan] = useState<"structured" | "manual">("structured");
   const [tanggalMulai, setTanggalMulai] = useState("");
@@ -408,11 +416,77 @@ export function SuratTugasForm({
   }, [pendingPlhEmployeeName, allEmployees, selectedEmployees.length]);
 
   // Helper formatting items
-  const formatYearInItems = (items: DasarItem[]) =>
-    (items || []).map((item) => ({
-      ...item,
-      text: (item.text || "").replace(/{tahun}/g, currentYear),
-    }));
+  const formatYearInItems = useCallback(
+    (items: DasarItem[]) =>
+      (items || []).map((item) => ({
+        ...item,
+        text: (item.text || "").replace(/{tahun}/gi, currentYear),
+      })),
+    [currentYear]
+  );
+
+  const formatTemplateMenimbang = useCallback(
+    (items: DasarItem[], activityText = "", placeText = "") => {
+      const actTrim = activityText.trim().replace(/[;,.]$/, "");
+      const placeTrim = placeText.trim().replace(/[;,.]$/, "");
+      const fullActivity =
+        actTrim && placeTrim && !actTrim.toLowerCase().includes(placeTrim.toLowerCase())
+          ? `${actTrim} di ${placeTrim}`
+          : actTrim;
+
+      return (items || []).map((item) => {
+        let text = (item.text || "").replace(/{tahun}/gi, currentYear);
+        if (fullActivity && /\{(nama\s*kegiatan|kegiatan)\}/i.test(text)) {
+          text = text.replace(/\{(nama\s*kegiatan|kegiatan)\}/gi, fullActivity);
+        }
+        return { ...item, text };
+      });
+    },
+    [currentYear]
+  );
+
+  const extractTemplateUntukItems = useCallback(
+    (rawUntuk?: DasarItem[] | null): DasarItem[] => {
+      if (!Array.isArray(rawUntuk)) return [];
+      return formatYearInItems(rawUntuk).filter((item) => {
+        const text = (item.text || "").trim();
+        if (!text) return false;
+        if (isGeneratedLaporanItem(text)) return false;
+        if (isGeneratedBiayaItem(text, expenseTemplates)) return false;
+        return true;
+      });
+    },
+    [formatYearInItems, expenseTemplates]
+  );
+
+  // Susun urutan baku Dasar: [1. Template ST (Atas)] -> [2. Tambahan Manual Builder (Tengah)] -> [3. Sumber Dana / Biaya (Bawah)]
+  const orderDasarLayers = useCallback(
+    (items: DasarItem[], fundingOverride?: DasarItem | null): DasarItem[] => {
+      const templateLayer: DasarItem[] = [];
+      const manualLayer: DasarItem[] = [];
+      let fundingItem: DasarItem | null = null;
+
+      items.forEach((item) => {
+        const isFunding =
+          item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates);
+        if (isFunding) {
+          fundingItem = { ...item, id: "funding-dasar" };
+        } else if (String(item.id).startsWith("manual-dasar-")) {
+          manualLayer.push(item);
+        } else {
+          templateLayer.push(item);
+        }
+      });
+
+      const finalFunding = fundingOverride !== undefined ? fundingOverride : fundingItem;
+      return [
+        ...templateLayer,
+        ...manualLayer,
+        ...(finalFunding && finalFunding.text.trim() ? [finalFunding] : []),
+      ];
+    },
+    [expenseTemplates]
+  );
 
   const updateDasarFromFunding = (fundingId: string, date: string) => {
     const tahun = date
@@ -430,45 +504,187 @@ export function SuratTugasForm({
     const rawDasar = dynExpense?.dasar_text ?? opt?.dasarText ?? "";
     const fundingText = rawDasar ? rawDasar.replace(/{tahun}/g, tahun).trim() : "";
 
-    setDasarItems((prev) => {
-      const newItems = [...prev];
-      const existingIdx = newItems.findIndex(
-        (item) => item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)
-      );
-      if (fundingText) {
-        if (existingIdx !== -1) {
-          const existingId = newItems[existingIdx].id || "funding-dasar";
-          newItems.splice(existingIdx, 1);
-          newItems.push({
-            id: existingId,
-            text: fundingText,
-          });
-        } else {
-          newItems.push({ id: "funding-dasar", text: fundingText });
-        }
-      } else if (existingIdx !== -1) {
-        newItems.splice(existingIdx, 1);
-      }
-      return newItems;
-    });
+    setDasarItems((prev) =>
+      orderDasarLayers(
+        prev,
+        fundingText ? { id: "funding-dasar", text: fundingText } : null
+      )
+    );
   };
 
   const handleAddDasarItem = () => {
     setDasarItems((prev) => {
-      const fundingIdx = prev.findIndex(
-        (item) => item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)
-      );
-      const newItem: DasarItem = { id: Math.random().toString(), text: "" };
-      if (fundingIdx !== -1) {
-        const next = [...prev];
-        const [fundingItem] = next.splice(fundingIdx, 1);
-        next.push(newItem);
-        next.push(fundingItem);
-        return next;
-      }
-      return [...prev, newItem];
+      const newItem: DasarItem = {
+        id: `manual-dasar-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        text: "",
+      };
+      return orderDasarLayers([...prev, newItem]);
     });
   };
+
+  const applyDynamicTemplateToForm = useCallback(
+    (
+      template: StTemplate,
+      options?: {
+        preserveSumberDana?: boolean;
+        preserveActivity?: boolean;
+        preserveStoredMenimbang?: boolean;
+        preserveStoredDasar?: boolean;
+        preserveStoredTembusan?: boolean;
+        preserveStoredUntuk?: boolean;
+        activityOverride?: string;
+        placeOverride?: string;
+      }
+    ) => {
+      setSelectedTemplateId(template.id);
+      setTemplateType(`db_${template.id}`);
+
+      const actText = options?.activityOverride ?? namaKegiatan;
+      const placeText = options?.placeOverride ?? (tempatKegiatan || kotaTujuan);
+
+      if (!options?.preserveStoredMenimbang) {
+        setMenimbangItems(formatTemplateMenimbang(template.menimbang || [], actText, placeText));
+      }
+
+      if (!options?.preserveStoredDasar) {
+        setDasarItems((prev) => {
+          const manualOnly = prev.filter(
+            (i) => String(i.id).startsWith("manual-dasar-") && i.text.trim()
+          );
+          const existingFunding = prev.find(
+            (i) => i.id === "funding-dasar" || isFundingDasarText(i.text, expenseTemplates)
+          );
+          const cleanTemplateDasar = formatYearInItems(template.dasar || []).filter(
+            (i) => !isFundingDasarText(i.text, expenseTemplates)
+          );
+          return orderDasarLayers([...cleanTemplateDasar, ...manualOnly], existingFunding);
+        });
+      }
+
+      const configuration = template.configuration || {};
+
+      if (!options?.preserveStoredUntuk) {
+        const templateUntuk = extractTemplateUntukItems(configuration.untuk);
+        if (templateUntuk.length > 0) {
+          setUntukItems(templateUntuk);
+        } else if (template.type === "plh") {
+          setUntukItems([{ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT }]);
+        } else {
+          setUntukItems([]);
+        }
+      }
+
+      if (!options?.preserveActivity) {
+        if (typeof configuration.default_jenis_tugas === "string") {
+          const norm = normalizeTaskTypeName(configuration.default_jenis_tugas);
+          setActivityPrefix(norm);
+          if (typeof configuration.default_task_type_id === "number") {
+            setTaskTypeId(configuration.default_task_type_id);
+          } else {
+            const match = taskTypes.find((t) => t.nama === norm);
+            if (match) setTaskTypeId(match.id);
+          }
+        }
+        if (typeof configuration.default_sertakan_laporan === "boolean") {
+          setSertakanLaporan(configuration.default_sertakan_laporan);
+        } else if (template.type === "plh") {
+          setSertakanLaporan(false);
+        }
+        if (configuration.default_mode_kegiatan === "manual" || template.type === "plh") {
+          setInputModeKegiatan("manual");
+          if (
+            typeof configuration.default_kegiatan === "string" &&
+            configuration.default_kegiatan.trim()
+          ) {
+            setNamaKegiatan(configuration.default_kegiatan);
+          }
+        } else {
+          setInputModeKegiatan("structured");
+          if (
+            !actText.trim() &&
+            typeof configuration.default_kegiatan === "string" &&
+            configuration.default_kegiatan.trim()
+          ) {
+            setNamaKegiatan(configuration.default_kegiatan);
+          }
+        }
+      }
+
+      if (typeof configuration.klasifikasi === "string" && !options?.preserveActivity) {
+        setKlasifikasi(configuration.klasifikasi);
+      }
+      if (!options?.preserveSumberDana && typeof configuration.sumber_dana === "string") {
+        setSumberDana(configuration.sumber_dana);
+      }
+      if (!options?.preserveActivity) {
+        if (configuration.nomor_numbering_type === "naskah_auto") {
+          setNomorNumberingType("naskah_auto");
+        } else if (configuration.nomor_numbering_type === "st_pattern") {
+          setNomorNumberingType("st_pattern");
+        }
+      }
+      setHeaderTitle(
+        typeof configuration.header_title === "string"
+          ? configuration.header_title
+          : "KEPALA BALAI,"
+      );
+      setPenutupText(
+        typeof configuration.penutup_text === "string"
+          ? configuration.penutup_text
+          : "Demikian untuk dilaksanakan dengan penuh tanggung jawab."
+      );
+      setDateFormatStyle(
+        configuration.date_format_style === "tabular" ||
+          configuration.date_format_style === "inline"
+          ? configuration.date_format_style
+          : "inline"
+      );
+      setSignerAuthorityMandate(
+        typeof configuration.signer_authority_mandate === "string"
+          ? configuration.signer_authority_mandate
+          : null
+      );
+      setSignerTitle(
+        typeof configuration.signer_title === "string"
+          ? configuration.signer_title
+          : "Kepala Balai,"
+      );
+      if (
+        !options?.preserveStoredTembusan &&
+        Array.isArray(configuration.tembusan_items) &&
+        configuration.tembusan_items.length > 0
+      ) {
+        setTembusanItems(configuration.tembusan_items);
+      }
+      setTembusanPosition(configuration.tembusan_position === "bottom" ? "bottom" : "beside");
+      setTembusanLabel(
+        typeof configuration.tembusan_label === "string"
+          ? configuration.tembusan_label
+          : "Tembusan:"
+      );
+      setKopImageUrl(
+        typeof configuration.kop_image_url === "string" ? configuration.kop_image_url : null
+      );
+      if (template.default_signer_name && template.default_signer_nip) {
+        setKepalaBalai({
+          employeeId: template.default_signer_employee_id || undefined,
+          name: template.default_signer_name,
+          nip: formatNIP(template.default_signer_nip),
+        });
+      }
+    },
+    [
+      expenseTemplates,
+      extractTemplateUntukItems,
+      formatTemplateMenimbang,
+      formatYearInItems,
+      kotaTujuan,
+      namaKegiatan,
+      orderDasarLayers,
+      taskTypes,
+      tempatKegiatan,
+    ]
+  );
 
   const fetchDynamicTemplates = async (selectDefault = false) => {
     try {
@@ -476,24 +692,13 @@ export function SuratTugasForm({
       const templates: StTemplate[] = res.data?.data || [];
       setDynamicTemplates(templates);
       if (selectDefault && mode === "create") {
-        const defaultTemplate = templates.find((template) => template.is_default);
-        if (!templateAppliedRef.current && !initialTemplate && defaultTemplate) {
-          setSelectedTemplateId(defaultTemplate.id);
-          setTemplateType(`db_${defaultTemplate.id}`);
-          setMenimbangItems(formatYearInItems(defaultTemplate.menimbang || []));
-          setDasarItems(formatYearInItems(defaultTemplate.dasar || []));
-          if (defaultTemplate.configuration?.nomor_numbering_type === "naskah_auto") {
-            setNomorNumberingType("naskah_auto");
-          } else if (defaultTemplate.configuration?.nomor_numbering_type === "st_pattern") {
-            setNomorNumberingType("st_pattern");
-          }
-          if (defaultTemplate.default_signer_name && defaultTemplate.default_signer_nip) {
-            setKepalaBalai({
-              employeeId: defaultTemplate.default_signer_employee_id || undefined,
-              name: defaultTemplate.default_signer_name,
-              nip: formatNIP(defaultTemplate.default_signer_nip),
-            });
-          }
+        const matchedTemplate = findMatchingTemplateForSumberDana(
+          sumberDana,
+          templates,
+          expenseTemplates
+        );
+        if (!templateAppliedRef.current && !initialTemplate && matchedTemplate) {
+          applyDynamicTemplateToForm(matchedTemplate);
         }
       }
     } catch (err) {
@@ -547,6 +752,26 @@ export function SuratTugasForm({
     });
   }, [selectedEmployees, kotaAsal]);
 
+  const editLetterHydrationRef = useRef<{
+    resolved: boolean;
+    rawTemplateId: number | null;
+    rawTemplateType: string | null;
+    hasStoredMenimbang: boolean;
+    hasStoredDasar: boolean;
+    hasStoredTembusan: boolean;
+    hasStoredUntuk: boolean;
+    hasSnapshotConfig: boolean;
+  }>({
+    resolved: false,
+    rawTemplateId: null,
+    rawTemplateType: null,
+    hasStoredMenimbang: false,
+    hasStoredDasar: false,
+    hasStoredTembusan: false,
+    hasStoredUntuk: false,
+    hasSnapshotConfig: false,
+  });
+
   // Edit Mode: Fetch and hydrate existing letter
   useEffect(() => {
     if (mode !== "edit" || !letterId) return;
@@ -565,7 +790,7 @@ export function SuratTugasForm({
             const matchNum = data.nomor_surat.match(/ST\.([^\/]+)/);
             if (matchNum) setStNumber(matchNum[1]);
 
-            const matchKlas = data.nomor_surat.match(/\/TU\/([^\/]+)\/B/);
+            const matchKlas = data.nomor_surat.match(/\/TU\/(?:FOLU\.NC-23\/)?([^\/]+)\/B/);
             if (matchKlas) setKlasifikasi(matchKlas[1]);
           } else {
             setNomorNumberingType("naskah_auto");
@@ -584,7 +809,12 @@ export function SuratTugasForm({
         const funding = normalizeSumberDana(data.sumber_dana, expenseTemplates);
         setSumberDana(funding);
         if (data.sumber_dana_other) setSumberDanaOther(data.sumber_dana_other);
-        if (data.template_type) setTemplateType(data.template_type);
+        if (data.template_id) setSelectedTemplateId(Number(data.template_id));
+        if (data.template_type && data.template_type !== "standard") {
+          setTemplateType(data.template_type);
+        } else if (data.template_id) {
+          setTemplateType(`db_${data.template_id}`);
+        }
 
         if (data.penandatangan_nama) {
           setKepalaBalai({
@@ -752,19 +982,18 @@ export function SuratTugasForm({
 
         const storedUntukLines = splitStoredUntukItems(data.maksud_tujuan);
         const storedAdditionalUntuk = storedUntukLines.slice(1);
+        const extractedCustomUntuk = extractCustomUntukItems(storedAdditionalUntuk, expenseTemplates);
+        const extractedSnapshotUntuk = Array.isArray(snapshotConfig.untuk)
+          ? extractTemplateUntukItems(snapshotConfig.untuk as DasarItem[])
+          : [];
         setUntukItems(
-          storedAdditionalUntuk.length > 0
-            ? toDasarItems(storedAdditionalUntuk, "stored-untuk")
-            : getDefaultUntukItems(
-                data.template_type,
-                buildBiayaTextFor(
-                  funding,
-                  data.sumber_dana_other || "",
-                  new Date().toISOString().substring(0, 10),
-                  data.template_type,
-                  expenseTemplates
-                )
-              )
+          extractedCustomUntuk.length > 0
+            ? extractedCustomUntuk
+            : extractedSnapshotUntuk.length > 0
+            ? extractedSnapshotUntuk
+            : data.template_type === "plh"
+            ? [{ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT }]
+            : []
         );
 
         const activityStr = storedUntukLines[0] || data.maksud_tujuan || "";
@@ -777,10 +1006,14 @@ export function SuratTugasForm({
           setTaskTypeId(data.task_type_id);
         }
 
+        const customTaskName = data.task_type?.nama ? normalizeTaskTypeName(data.task_type.nama) : null;
+        const customTaskFormat = data.task_type?.contoh_format || null;
+        const isManualSnapshot = snapshotConfig.input_mode_kegiatan === "manual";
+
         const regex =
-          /^(?:Melaksanakan[.\s]+)?(Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+          /^.*?\bdari\s+(.*?)\s+ke\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const jenisKegiatanRegex =
-          /^(?:Melaksanakan[.\s]+)?(?:Perjalanan\s+[Dd]inas)\s+dari\s+(.*?)\s+ke\s+(.*?)\s+untuk\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
+          /^.*?\bdari\s+(.*?)\s+ke\s+(.*?)\s+untuk\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const kawasanRegex =
           /^(?:Melaksanakan\s+)?perjalanan\s+dinas\s+di\s+(.*?)\s+dalam\s+rangka\s+(.*)/i;
         const stafRegex = /^Menugaskan\s+Staf\s*(?:untuk\s+)?(.*)/i;
@@ -789,7 +1022,7 @@ export function SuratTugasForm({
         const isJenisKegiatanData =
           data.task_type_id === 5 ||
           data.task_type?.kode === "jenis_kegiatan" ||
-          (Boolean(data.task_type?.nama) && isJenisKegiatanTask(data.task_type.nama)) ||
+          isJenisKegiatanTask(data.task_type?.nama, customTaskFormat) ||
           jenisKegiatanRegex.test(cleanedActivity);
         const isMenugaskanStaf =
           stafRegex.test(singleDayActivity) ||
@@ -807,24 +1040,38 @@ export function SuratTugasForm({
         const kawasanMatch = cleanedActivity.match(kawasanRegex);
         const stafMatch = singleDayActivity.match(stafRegex);
 
-        if (isJenisKegiatanData && jkMatch) {
+        if (isManualSnapshot || data.template_type === "plh" || data.template_type === "bmn-pemeriksaan") {
+          setInputModeKegiatan("manual");
+          setActivityPrefix(customTaskName || "Menugaskan Staf");
+          setKotaAsal("");
+          setKotaTujuan(data.tempat_tujuan || "");
+          setNamaKegiatan(cleanedActivity);
+        } else if (isJenisKegiatanData && jkMatch) {
           setInputModeKegiatan("structured");
-          setActivityPrefix("Pengawasan / Pemeriksaan Pekerjaan");
+          setActivityPrefix(customTaskName || "Pengawasan / Pemeriksaan Pekerjaan");
           setKotaAsal(jkMatch[1].trim());
           setKotaTujuan(jkMatch[2].trim());
-          setUntukKegiatanText(jkMatch[3].trim());
+          const rawUntuk = jkMatch[3].trim();
           const rest = jkMatch[4].trim();
           const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
           const diMatch = rest.match(diRegex);
-          if (diMatch) {
-            setNamaKegiatan(diMatch[1].trim());
-            setTempatKegiatan(diMatch[2].trim());
+          const rawPaket = diMatch ? diMatch[1].trim() : rest.replace(/[;,.]$/, "").trim();
+          const rawTempat = diMatch ? diMatch[2].trim() : "";
+          const placeholderRe = /^\{(paket|kegiatan|untuk|jenis_kegiatan)\}$/i;
+
+          if (placeholderRe.test(rawPaket) && !placeholderRe.test(rawUntuk)) {
+            setUntukKegiatanText("Pemeriksaan Pekerjaan");
+            setNamaKegiatan(rawUntuk);
           } else {
-            setNamaKegiatan(rest.replace(/[;,.]$/, "").trim());
+            setUntukKegiatanText(placeholderRe.test(rawUntuk) ? "Pemeriksaan Pekerjaan" : rawUntuk);
+            setNamaKegiatan(placeholderRe.test(rawPaket) ? "" : rawPaket);
+          }
+          if (rawTempat) {
+            setTempatKegiatan(rawTempat);
           }
         } else if (isMenugaskanStaf) {
           setInputModeKegiatan("structured");
-          setActivityPrefix("Menugaskan Staf");
+          setActivityPrefix(customTaskName || "Menugaskan Staf");
           setKotaAsal("");
 
           let rest = (stafMatch ? stafMatch[1] : singleDayActivity).trim();
@@ -848,12 +1095,22 @@ export function SuratTugasForm({
           setKotaTujuan(parsedKota || data.tempat_tujuan || "");
           setTempatKegiatan(parsedTempat);
           setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
-        } else if (isParsedSingleDayActivity || (isOneDayFromSubmittedForm && !match && !kawasanMatch)) {
+        } else if (
+          isParsedSingleDayActivity ||
+          data.task_type?.mode_lokasi === "tempat_saja" ||
+          (isOneDayFromSubmittedForm && !match && !kawasanMatch)
+        ) {
           setInputModeKegiatan("structured");
-          setActivityPrefix("Melaksanakan Kegiatan ( 1 Hari )");
+          setActivityPrefix(customTaskName || "Melaksanakan Kegiatan (1 Hari)");
           setKotaAsal("");
 
           let rest = singleDayActivity.replace(/^Melaksanakan\s+Kegiatan\s*/i, "").trim();
+          if (customTaskFormat && customTaskFormat.includes("{kegiatan}")) {
+            const customPrefix = customTaskFormat.split("{kegiatan}")[0]?.trim();
+            if (customPrefix && rest.toLowerCase().startsWith(customPrefix.toLowerCase())) {
+              rest = rest.slice(customPrefix.length).trim();
+            }
+          }
           let parsedKota = "";
           let parsedTempat = "";
           let parsedNama = rest;
@@ -876,10 +1133,10 @@ export function SuratTugasForm({
           setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(parsedNama));
         } else if (match) {
           setInputModeKegiatan("structured");
-          setActivityPrefix(match[1]);
-          setKotaAsal(match[2].trim());
-          setKotaTujuan(match[3].trim());
-          const rest = match[4].trim();
+          setActivityPrefix(customTaskName || "Perjalanan Dinas Luar Wilayah");
+          setKotaAsal(match[1].trim());
+          setKotaTujuan(match[2].trim());
+          const rest = match[3].trim();
           const diRegex = /(.*)\s+di\s+([^,;]+)$/i;
           const diMatch = rest.match(diRegex);
           if (diMatch) {
@@ -890,7 +1147,7 @@ export function SuratTugasForm({
           }
         } else if (kawasanMatch) {
           setInputModeKegiatan("structured");
-          setActivityPrefix("Perjalanan Dinas Dalam Kawasan / Wilayah");
+          setActivityPrefix(customTaskName || "Perjalanan Dinas Dalam Kawasan / Wilayah");
           setKotaAsal("");
           setKotaTujuan(kawasanMatch[1].trim());
           const rest = kawasanMatch[2].trim();
@@ -903,52 +1160,83 @@ export function SuratTugasForm({
             setNamaKegiatan(rest.replace(/[;,.]$/, "").trim());
           }
         } else {
-          const isInternalTask =
-            data.template_type === "plh" ||
-            data.template_type === "bmn-pemeriksaan" ||
-            !singleDayActivity.toLowerCase().includes("perjalanan dinas");
-          setActivityPrefix(isInternalTask ? "Menugaskan Staf" : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+          const isInternalTask = !singleDayActivity.toLowerCase().includes("perjalanan dinas");
+          setActivityPrefix(
+            customTaskName || (isInternalTask ? "Menugaskan Staf" : "Perjalanan Dinas Luar Wilayah")
+          );
           setKotaAsal("");
           setKotaTujuan(data.tempat_tujuan || "");
           setNamaKegiatan(cleanMelaksanakanKegiatanPrefix(cleanedActivity));
-          if (data.template_type === "plh" || data.template_type === "bmn-pemeriksaan") {
-            setInputModeKegiatan("manual");
-          } else {
-            setInputModeKegiatan("structured");
-          }
+          setInputModeKegiatan("structured");
+        }
 
-          if (data.template_type === "plh") {
-            const sampleText = [
-              cleanedActivity,
-              data.tempat_tujuan,
-              data.menimbang?.[0]?.text,
-              data.maksud_tujuan,
-            ]
-              .filter(Boolean)
-              .join(" ");
-            const detectedRole = detectPlhTargetRole(sampleText);
-            setPlhTargetRole(detectedRole);
-            const opt = getPlhTargetOption(detectedRole);
-            setPlhWilayah(opt.wilayah);
-            const mKegiatan = (data.menimbang?.[0]?.text || "").match(/akan\s+(.*?)(?:;|\.|$)/i);
-            if (mKegiatan?.[1]) {
-              setPlhKegiatanKasi(mKegiatan[1].trim());
-            }
-            const mNomor = (data.dasar?.[0]?.text || "").match(
-              /Nomor\s*:\s*([^ ]+)\s+tanggal\s+([^.]+)/i
-            );
-            if (mNomor) {
-              setParentStInfo({
-                nomorInduk: mNomor[1]?.trim(),
-                tanggalInduk: mNomor[2]?.trim(),
-              });
-            }
+        if (data.template_type === "plh") {
+          const sampleText = [
+            cleanedActivity,
+            data.tempat_tujuan,
+            data.menimbang?.[0]?.text,
+            data.maksud_tujuan,
+          ]
+            .filter(Boolean)
+            .join(" ");
+          const detectedRole = detectPlhTargetRole(sampleText);
+          setPlhTargetRole(detectedRole);
+          const opt = getPlhTargetOption(detectedRole);
+          setPlhWilayah(opt.wilayah);
+          const mKegiatan = (data.menimbang?.[0]?.text || "").match(/akan\s+(.*?)(?:;|\.|$)/i);
+          if (mKegiatan?.[1]) {
+            setPlhKegiatanKasi(mKegiatan[1].trim());
+          }
+          const mNomor = (data.dasar?.[0]?.text || "").match(
+            /Nomor\s*:\s*([^ ]+)\s+tanggal\s+([^.]+)/i
+          );
+          if (mNomor) {
+            setParentStInfo({
+              nomorInduk: mNomor[1]?.trim(),
+              tanggalInduk: mNomor[2]?.trim(),
+            });
           }
         }
 
         if (typeof data.sertakan_laporan === "boolean") {
           setSertakanLaporan(data.sertakan_laporan);
         }
+
+        const rawTemplateType: string | null = data.template_type || null;
+        const rawTemplateId: number | null = data.template_id
+          ? Number(data.template_id)
+          : rawTemplateType && rawTemplateType.startsWith("db_")
+          ? parseInt(rawTemplateType.replace("db_", ""), 10)
+          : null;
+        const isFoluFunding = isFoluSumberDana(funding, expenseTemplates);
+        const hasValidMenimbang =
+          Array.isArray(data.menimbang) &&
+          data.menimbang.length > 0 &&
+          !(data.menimbang[0]?.text === "bahwa dalam rangka , perlu ;" && !rawTemplateId);
+        const hasValidDasar =
+          Array.isArray(data.dasar) &&
+          data.dasar.length > 0 &&
+          !(
+            !rawTemplateId &&
+            isFoluFunding &&
+            !data.dasar.some((d: any) => /folu|rocan|awp|norwegia/i.test(d?.text || ""))
+          );
+
+        editLetterHydrationRef.current = {
+          resolved: false,
+          rawTemplateId,
+          rawTemplateType,
+          hasStoredMenimbang: hasValidMenimbang,
+          hasStoredDasar: hasValidDasar,
+          hasStoredTembusan: Boolean(Array.isArray(data.tembusan) && data.tembusan.length > 0),
+          hasStoredUntuk:
+            extractedCustomUntuk.length > 0 || extractedSnapshotUntuk.length > 0,
+          hasSnapshotConfig: Boolean(
+            snapshotConfig.header_title ||
+              snapshotConfig.penutup_text ||
+              snapshotConfig.signer_authority_mandate
+          ),
+        };
 
         if (!data.dasar || !Array.isArray(data.dasar) || data.dasar.length === 0) {
           updateDasarFromFunding(funding, new Date().toISOString().substring(0, 10));
@@ -968,6 +1256,61 @@ export function SuratTugasForm({
 
     fetchAndParse(letterId);
   }, [letterId, mode]);
+
+  // Edit Mode: Sinkronisasi otomatis Template ST berdasarkan Sumber Dana atau template_id surat
+  useEffect(() => {
+    if (
+      mode !== "edit" ||
+      isInitializing ||
+      dynamicTemplates.length === 0 ||
+      editLetterHydrationRef.current.resolved
+    ) {
+      return;
+    }
+
+    const hydration = editLetterHydrationRef.current;
+    hydration.resolved = true;
+
+    if (["bmn-pemeriksaan", "beda-hari", "plh"].includes(hydration.rawTemplateType || "")) {
+      return;
+    }
+
+    const normalizedFunding = normalizeSumberDana(sumberDana, expenseTemplates);
+    if (normalizedFunding !== sumberDana) {
+      setSumberDana(normalizedFunding);
+    }
+
+    const matchedById = hydration.rawTemplateId
+      ? dynamicTemplates.find((t) => t.id === hydration.rawTemplateId) || null
+      : null;
+    const matchedByFunding = findMatchingTemplateForSumberDana(
+      normalizedFunding,
+      dynamicTemplates,
+      expenseTemplates
+    );
+    const targetTemplate = matchedById || matchedByFunding;
+
+    if (!targetTemplate) return;
+
+    applyDynamicTemplateToForm(targetTemplate, {
+      preserveSumberDana: true,
+      preserveActivity: true,
+      preserveStoredMenimbang: hydration.hasStoredMenimbang,
+      preserveStoredDasar: hydration.hasStoredDasar,
+      preserveStoredTembusan: hydration.hasStoredTembusan,
+      preserveStoredUntuk: hydration.hasStoredUntuk,
+    });
+
+    updateDasarFromFunding(normalizedFunding, tanggalSurat);
+  }, [
+    mode,
+    isInitializing,
+    dynamicTemplates,
+    expenseTemplates,
+    sumberDana,
+    tanggalSurat,
+    applyDynamicTemplateToForm,
+  ]);
 
   // Apply BMN Penghapusan template
   const applyBmnTemplate = () => {
@@ -1210,6 +1553,14 @@ export function SuratTugasForm({
       );
 
       setInputModeKegiatan("manual");
+      if (Array.isArray(config.untuk) && config.untuk.length > 0) {
+        setUntukItems(formatYearInItems(config.untuk));
+      } else {
+        setUntukItems([{ id: "plh-prinsip", text: DEFAULT_PLH_PRINSIP_TEXT }]);
+      }
+      setSertakanLaporan(
+        typeof config.default_sertakan_laporan === "boolean" ? config.default_sertakan_laporan : false
+      );
 
       setTembusanItems([
         "Direktur Jenderal KSDAE;",
@@ -1297,6 +1648,15 @@ export function SuratTugasForm({
     );
   };
 
+  const activeBuilderTaskType = useMemo(() => {
+    const norm = normalizeTaskTypeName(activityPrefix);
+    return (
+      taskTypes.find((t) => t.id === taskTypeId) ||
+      taskTypes.find((t) => t.nama === norm || t.nama === activityPrefix) ||
+      null
+    );
+  }, [taskTypes, taskTypeId, activityPrefix]);
+
   // Template switch handler
   const handleTemplateChange = (value: string) => {
     if (value === "bmn-pemeriksaan") {
@@ -1310,6 +1670,11 @@ export function SuratTugasForm({
         setActivityPrefix(norm);
         const match = taskTypes.find((t) => t.nama === norm);
         if (match) setTaskTypeId(match.id);
+      }
+      if (Array.isArray(bmnTemplate?.configuration?.untuk)) {
+        setUntukItems(extractTemplateUntukItems(bmnTemplate.configuration.untuk));
+      } else {
+        setUntukItems([]);
       }
       if (typeof bmnTemplate?.configuration?.default_sertakan_laporan === "boolean") {
         setSertakanLaporan(bmnTemplate.configuration.default_sertakan_laporan);
@@ -1328,6 +1693,9 @@ export function SuratTugasForm({
         setActivityPrefix(norm);
         const match = taskTypes.find((t) => t.nama === norm);
         if (match) setTaskTypeId(match.id);
+      }
+      if (Array.isArray(bedaHariTemplate?.configuration?.untuk)) {
+        setUntukItems(extractTemplateUntukItems(bedaHariTemplate.configuration.untuk));
       }
       if (typeof bedaHariTemplate?.configuration?.default_sertakan_laporan === "boolean") {
         setSertakanLaporan(bedaHariTemplate.configuration.default_sertakan_laporan);
@@ -1348,21 +1716,10 @@ export function SuratTugasForm({
       const id = parseInt(value.replace("db_", ""), 10);
       const template = dynamicTemplates.find((t) => t.id === id);
       if (template) {
-        setSelectedTemplateId(template.id);
-        setTemplateType(value);
-        setMenimbangItems(formatYearInItems(template.menimbang || []));
-        setDasarItems(formatYearInItems(template.dasar || []));
-
         if (template.type === "bmn") {
           applyBmnTemplate();
-          setTemplateType(value);
-          setMenimbangItems(formatYearInItems(template.menimbang || []));
-          setDasarItems(formatYearInItems(template.dasar || []));
         } else if (template.type === "beda_hari") {
           applyBedaHariTemplate();
-          setTemplateType(value);
-          setMenimbangItems(formatYearInItems(template.menimbang || []));
-          setDasarItems(formatYearInItems(template.dasar || []));
         } else if (template.type === "plh") {
           if (!canSelectPlh) {
             toast.error(
@@ -1371,97 +1728,23 @@ export function SuratTugasForm({
             return;
           }
           applyPlhTemplate(undefined, undefined, template);
-          setTemplateType(value);
         }
-
-        const configuration = template.configuration || {};
-        if (typeof configuration.default_jenis_tugas === "string") {
-          const norm = normalizeTaskTypeName(configuration.default_jenis_tugas);
-          setActivityPrefix(norm);
-          if (typeof configuration.default_task_type_id === "number") {
-            setTaskTypeId(configuration.default_task_type_id);
-          } else {
-            const match = taskTypes.find((t) => t.nama === norm);
-            if (match) setTaskTypeId(match.id);
-          }
-        }
-        if (typeof configuration.default_sertakan_laporan === "boolean") {
-          setSertakanLaporan(configuration.default_sertakan_laporan);
-        }
-        if (
-          typeof configuration.default_kegiatan === "string" &&
-          configuration.default_kegiatan.trim()
-        ) {
-          setNamaKegiatan(configuration.default_kegiatan);
-        }
-        if (configuration.default_mode_kegiatan === "manual" || template.type === "plh") {
-          setInputModeKegiatan("manual");
-        } else if (configuration.default_mode_kegiatan === "structured") {
-          setInputModeKegiatan("structured");
-        }
-        if (typeof configuration.klasifikasi === "string") setKlasifikasi(configuration.klasifikasi);
-        if (typeof configuration.sumber_dana === "string") setSumberDana(configuration.sumber_dana);
-        if (configuration.nomor_numbering_type === "naskah_auto") {
-          setNomorNumberingType("naskah_auto");
-        } else if (configuration.nomor_numbering_type === "st_pattern") {
-          setNomorNumberingType("st_pattern");
-        }
-        if (typeof configuration.header_title === "string") {
-          setHeaderTitle(configuration.header_title);
-        } else {
-          setHeaderTitle("KEPALA BALAI,");
-        }
-        if (typeof configuration.penutup_text === "string") {
-          setPenutupText(configuration.penutup_text);
-        } else {
-          setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.");
-        }
-        if (
-          configuration.date_format_style === "tabular" ||
-          configuration.date_format_style === "inline"
-        ) {
-          setDateFormatStyle(configuration.date_format_style);
-        } else {
-          setDateFormatStyle("inline");
-        }
-        setSignerAuthorityMandate(
-          typeof configuration.signer_authority_mandate === "string"
-            ? configuration.signer_authority_mandate
-            : null
-        );
-        setSignerTitle(
-          typeof configuration.signer_title === "string"
-            ? configuration.signer_title
-            : "Kepala Balai,"
-        );
-        if (
-          Array.isArray(configuration.tembusan_items) &&
-          configuration.tembusan_items.length > 0
-        ) {
-          setTembusanItems(configuration.tembusan_items);
-        }
-        setTembusanPosition(configuration.tembusan_position === "bottom" ? "bottom" : "beside");
-        setTembusanLabel(
-          typeof configuration.tembusan_label === "string"
-            ? configuration.tembusan_label
-            : "Tembusan:"
-        );
-        setKopImageUrl(
-          typeof configuration.kop_image_url === "string" ? configuration.kop_image_url : null
-        );
-        if (template.default_signer_name && template.default_signer_nip) {
-          setKepalaBalai({
-            employeeId: template.default_signer_employee_id || undefined,
-            name: template.default_signer_name,
-            nip: formatNIP(template.default_signer_nip),
-          });
-        }
+        applyDynamicTemplateToForm(template, {
+          preserveActivity: mode === "edit" && Boolean(namaKegiatan.trim()),
+        });
       }
     } else {
       setSelectedTemplateId(null);
       setTemplateType(null);
       setMenimbangItems([]);
-      setDasarItems([]);
+      setDasarItems((prev) => {
+        const manualOnly = prev.filter((i) => String(i.id).startsWith("manual-dasar-"));
+        const existingFunding = prev.find(
+          (i) => i.id === "funding-dasar" || isFundingDasarText(i.text, expenseTemplates)
+        );
+        return orderDasarLayers(manualOnly, existingFunding);
+      });
+      setUntukItems([]);
     }
   };
 
@@ -1531,7 +1814,7 @@ export function SuratTugasForm({
   const getPreviewMenimbangItems = () =>
     isPlhTemplate
       ? menimbangItems.map((item) => ({ ...item, text: replacePlhPlaceholders(item.text) }))
-      : menimbangItems;
+      : formatTemplateMenimbang(menimbangItems, namaKegiatan, tempatKegiatan || kotaTujuan);
 
   const getPreviewDasarItems = () =>
     isPlhTemplate
@@ -1589,33 +1872,49 @@ export function SuratTugasForm({
       return text;
     }
 
-    if (isPlhTemplate) {
-      let text = replacePlhPlaceholders(namaKegiatan || "...");
-      const prefixSep = text.trim().endsWith(",") ? " " : ", ";
-      if (days === 1 || tanggalMulai === tanggalSelesai) {
-        text += `${prefixSep}selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
-      } else if (days > 1) {
-        text += `${prefixSep}selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
-      } else if (!text.trim().endsWith(";") && !text.trim().endsWith(".")) {
-        text += ".";
+    if (isPlhTemplate || inputModeKegiatan === "manual") {
+      const targetOpt = getPlhTargetOption(plhTargetRole);
+      let text = isPlhTemplate
+        ? replacePlhPlaceholders(namaKegiatan || "...")
+        : (namaKegiatan || "...")
+            .replace(/\{wilayah\}/gi, plhWilayah || targetOpt.wilayah || kotaTujuan || "Wilayah I Berau")
+            .replace(/\{pejabat\}/gi, targetOpt.pejabatTitle || "Kepala Seksi Konservasi Wilayah I")
+            .replace(/\{tahun\}/gi, currentYear);
+      text = text.trim().replace(/[;,.]+$/, "");
+      if (!/,\s*selama\s+\d+/i.test(text)) {
+        if (days === 1 || effectiveMulai === effectiveSelesai) {
+          text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
+        } else if (days > 1) {
+          text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
+        } else {
+          text += ";";
+        }
+      } else {
+        text += ";";
       }
       return text;
     }
 
-    let text = buildKegiatanDiktumText({
-      modeLokasi: isDalamKawasanTask(activityPrefix)
+    const currentModeLokasi =
+      activeBuilderTaskType?.mode_lokasi ||
+      (isDalamKawasanTask(activityPrefix)
         ? "dalam_kawasan"
-        : activityPrefix.includes("Perjalanan Dinas") || isJenisKegiatanTask(activityPrefix)
+        : activityPrefix.includes("Perjalanan Dinas") ||
+          isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format)
         ? "luar_wilayah"
-        : "tempat_saja",
+        : "tempat_saja");
+
+    let text = buildKegiatanDiktumText({
+      modeLokasi: currentModeLokasi,
       jenisTugas: activityPrefix,
       kotaAsal,
       kotaTujuan,
       tempatSpesifik: tempatKegiatan,
       namaKegiatanText: namaKegiatan,
       untukKegiatanText,
+      contohFormat: activeBuilderTaskType?.contoh_format,
     });
-    if (days === 1 || tanggalMulai === tanggalSelesai) {
+    if (days === 1 || effectiveMulai === effectiveSelesai) {
       text += `, selama 1 (satu) hari pada tanggal ${mulaiFormatted};`;
     } else if (days > 1) {
       text += `, selama ${days} (${daysWord}) hari terhitung mulai tanggal ${mulaiFormatted} sampai dengan ${selesaiFormatted};`;
@@ -1679,9 +1978,28 @@ export function SuratTugasForm({
     });
   };
 
+  const handleSumberDanaChange = (newFunding: string) => {
+    setSumberDana(newFunding);
+    updateDasarFromFunding(newFunding, tanggalSurat);
+
+    if (!isPlhTemplate && !isBmnTemplate && !isBedaHariTemplate && dynamicTemplates.length > 0) {
+      const matched = findMatchingTemplateForSumberDana(
+        newFunding,
+        dynamicTemplates,
+        expenseTemplates
+      );
+      if (matched && templateType !== `db_${matched.id}`) {
+        applyDynamicTemplateToForm(matched, {
+          preserveSumberDana: true,
+          preserveActivity: true,
+        });
+      }
+    }
+  };
+
   const handleNamaKegiatanChange = (value: string) => {
     setNamaKegiatan(value);
-    if (sumberDana === "folu") {
+    if (isFoluSumberDana(sumberDana, expenseTemplates)) {
       updateFoluMenimbang(value, tempatKegiatan);
     }
     const lower = value.toLowerCase();
@@ -1772,6 +2090,8 @@ export function SuratTugasForm({
           : {}),
         nomor_numbering_type: nomorNumberingType,
         custom_nomor_naskah: customNomorNaskah,
+        input_mode_kegiatan: inputModeKegiatan,
+        untuk: untukItems.filter((i) => i.text.trim()),
       },
     };
 
@@ -2100,7 +2420,7 @@ export function SuratTugasForm({
               onChange={(e) => handleTemplateChange(e.target.value)}
               className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-100 disabled:opacity-60 cursor-pointer"
             >
-              <option value="">Default (Manual)</option>
+              <option value="">Kosong / Manual</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
               <option value="beda-hari">Beda Hari (Daftar Lampiran)</option>
               <option
@@ -2113,12 +2433,12 @@ export function SuratTugasForm({
               {dynamicTemplates
                 .filter(
                   (t) =>
-                    !["bmn", "plh", "beda_hari", "standard"].includes(t.type) &&
-                    !["bmn-penghapusan", "beda-hari", "plh", "default"].includes(t.code || "")
+                    !["bmn", "plh", "beda_hari"].includes(t.type) &&
+                    !["bmn-penghapusan", "beda-hari", "plh"].includes(t.code || "")
                 )
                 .map((t) => (
                   <option key={t.id} value={`db_${t.id}`}>
-                    {t.name}
+                    {t.is_default ? `${t.name} (Default DIPA)` : t.name}
                   </option>
                 ))}
             </select>
@@ -2198,30 +2518,89 @@ export function SuratTugasForm({
             </div>
           </FormSection>
 
-          {/* Card Menimbang & Dasar */}
-          <FormSection title="Menimbang & Dasar Hukum">
+          {/* Card Menimbang */}
+          <FormSection title="Menimbang (Pertimbangan Penugasan)">
             <div className="space-y-4">
+              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 text-[10px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+                <p>
+                  <b className="text-blue-800 dark:text-blue-200">Konsiderans Menimbang (Huruf a, b, dst.):</b>{" "}
+                  Diambil dari <b>Template ST</b> yang dipilih. Klik chip placeholder untuk menyisipkan variabel ke poin yang sedang diedit, atau tekan{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800 font-mono">Ctrl+I</code>{" "}
+                  (atau tombol <b>Miringkan</b>) untuk cetak miring.
+                </p>
+              </div>
               <EditableItemListSection
-                title="Menimbang"
+                title="Daftar Poin Menimbang (Huruf a, b, dst.)"
                 items={menimbangItems}
                 onChange={setMenimbangItems}
                 marker="letter"
                 disabled={isPublished}
+                placeholderChips={[
+                  { token: "{nama kegiatan}", label: "Nama Kegiatan / Perihal" },
+                  { token: "{tahun}", label: "Tahun Anggaran" },
+                  ...(isPlhTemplate
+                    ? [
+                        { token: "{pejabat}", label: "Jabatan Pejabat Definitif (PLH)" },
+                        { token: "{wilayah}", label: "Wilayah Kerja (PLH)" },
+                        { token: "{kegiatan_kasi}", label: "Kegiatan Pejabat Definitif (PLH)" },
+                      ]
+                    : []),
+                ]}
               />
+            </div>
+          </FormSection>
+
+          {/* Card Dasar Hukum */}
+          <FormSection title="Dasar Hukum & Anggaran">
+            <div className="space-y-4">
+              <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-[10px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+                <p>
+                  <b className="text-amber-800 dark:text-amber-200">Urutan Otomatis 3 Lapis Dasar Hukum:</b>{" "}
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold">1. Template ST (Atas)</span> →{" "}
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2. Tambahan Manual Builder (Tengah)</span> →{" "}
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">3. Template Biaya (Bawah)</span>.
+                </p>
+                <p>
+                  <b className="text-amber-800 dark:text-amber-200">Tips Format:</b> Blok kata lalu tekan{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-800 font-mono">Ctrl+I</code>{" "}
+                  (atau tombol <b>Miringkan</b>) untuk cetak miring istilah asing (contoh: <i>*Result Based Contribution*</i>).
+                </p>
+              </div>
               <EditableItemListSection
-                title="Dasar"
+                title="Daftar Poin Dasar Hukum (Angka 1, 2, dst.)"
                 items={dasarItems}
-                onChange={setDasarItems}
+                onChange={(nextItems) => setDasarItems(orderDasarLayers(nextItems))}
                 onAddItem={handleAddDasarItem}
+                placeholderChips={[
+                  { token: "{tahun}", label: "Tahun Anggaran" },
+                  ...(isPlhTemplate
+                    ? [
+                        { token: "{nomor_st_induk}", label: "Nomor ST Induk (PLH)" },
+                        { token: "{tanggal_st_induk}", label: "Tanggal ST Induk (PLH)" },
+                        { token: "{perihal_st_induk}", label: "Perihal ST Induk (PLH)" },
+                      ]
+                    : []),
+                ]}
                 getItemBadge={(item) => {
                   if (item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)) {
                     return (
                       <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
-                        <span>Dasar Anggaran (Selalu di Akhir)</span>
+                        <span>3. Template Biaya & Sumber Dana (Selalu Paling Bawah)</span>
                       </div>
                     );
                   }
-                  return null;
+                  if (String(item.id).startsWith("manual-dasar-")) {
+                    return (
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md w-fit">
+                        <span>2. Tambahan Manual Builder (Di Bawah Template ST & Di Atas Biaya)</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md w-fit">
+                      <span>1. Bawaan Template ST (Paling Atas)</span>
+                    </div>
+                  );
                 }}
                 marker="number"
                 disabled={isPublished}
@@ -2541,102 +2920,203 @@ export function SuratTugasForm({
             </div>
           </FormSection>
 
-          {/* Rincian Kegiatan & Waktu */}
-          <FormSection title="Rincian Kegiatan & Waktu">
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">
-                  Jenis Tugas
-                </label>
-                <select
-                  value={normalizeTaskTypeName(activityPrefix)}
-                  disabled={isPublished}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const normalized = normalizeTaskTypeName(val);
-                    setActivityPrefix(normalized);
-                    setInputModeKegiatan("structured");
-                    const matched = taskTypes.find((t) => t.nama === normalized);
-                    if (matched) {
-                      setTaskTypeId(matched.id);
-                      if (matched.mode_lokasi === "tempat_saja" || matched.mode_lokasi === "dalam_kawasan") {
-                        setKotaAsal("");
-                      } else if (!kotaAsal) {
-                        setKotaAsal("Samarinda");
-                      }
-                      if (matched.aturan_durasi === "wajib_1_hari" && tanggalMulai) {
-                        setTanggalSelesai(tanggalMulai);
-                      }
-                    } else {
-                      if (normalized.includes("1 Hari") || normalized.includes("Menugaskan Staf") || isDalamKawasanTask(normalized)) {
-                        setKotaAsal("");
-                      } else if (!kotaAsal) {
-                        setKotaAsal("Samarinda");
-                      }
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
-                >
-                  {taskTypes.length > 0 ? (
-                    taskTypes.map((tt) => (
-                      <option key={tt.id} value={tt.nama}>
-                        {tt.nama}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Perjalanan Dinas Luar Wilayah">
-                        Perjalanan Dinas Luar Wilayah (Dari - Ke)
-                      </option>
-                      <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
-                        Perjalanan Dinas Dalam Kawasan / Wilayah
-                      </option>
-                      <option value="Melaksanakan Kegiatan (1 Hari)">
-                        Melaksanakan Kegiatan (1 Hari)
-                      </option>
-                      <option value="Menugaskan Staf">Menugaskan Staf</option>
-                    </>
-                  )}
-                  {taskTypes.length > 0 &&
-                    !taskTypes.some((tt) => tt.nama === normalizeTaskTypeName(activityPrefix)) && (
-                      <option value={activityPrefix}>{activityPrefix}</option>
-                    )}
-                </select>
+          {/* Untuk (Diktum Penugasan, Biaya & Laporan) */}
+          <FormSection title="Untuk (Diktum Penugasan, Biaya & Laporan)">
+            <div className="space-y-4">
+              {/* Info Alur Urutan Untuk */}
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700/80 text-[10px] text-slate-600 dark:text-zinc-400 space-y-1 leading-relaxed">
+                <p>
+                  <b className="text-slate-800 dark:text-zinc-200">Urutan Otomatis Bagian Untuk:</b>{" "}
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold">1. Tugas Utama & Waktu (Selalu #1)</span> →{" "}
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2..k. Butir Tambahan Untuk</span> →{" "}
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">Biaya (Turun di Bawah Tambahan)</span> →{" "}
+                  <span className="text-purple-600 dark:text-purple-400 font-semibold">Laporan (Selalu Terakhir)</span>.
+                </p>
               </div>
 
-              {isJenisKegiatanTask(activityPrefix) && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
-                    Untuk ( Jenis Kegiatan / Tugas ) *
-                  </label>
-                  <input
-                    type="text"
-                    value={untukKegiatanText}
-                    disabled={isPublished}
-                    onChange={(e) => setUntukKegiatanText(e.target.value)}
-                    placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                  />
-                  <p className="text-[10px] text-slate-400">
-                    Bisa disesuaikan jika jenis pekerjaan lain (misal: Pengawasan Pekerjaan Konstruksi, Pemeriksaan Fisik BMN, dll.)
-                  </p>
+              {/* BLOK 1: BUTIR 1 (TUGAS UTAMA & WAKTU) */}
+              <div className="p-3.5 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/15 space-y-3">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-blue-200/60 dark:border-blue-900/40">
+                  <div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200">
+                      Butir 1 (Selalu Nomor 1)
+                    </span>
+                    <p className="text-xs font-bold text-slate-800 dark:text-zinc-100 mt-1">
+                      Tugas Utama, Lokasi & Waktu Pelaksanaan
+                    </p>
+                  </div>
                 </div>
-              )}
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
-                    {isJenisKegiatanTask(activityPrefix)
-                      ? "Dalam Rangka ( Paket Kontrak / Pekerjaan ) *"
-                      : activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
-                      ? "Nama Kegiatan / Tugas"
-                      : "Maksud / Tugas"}
-                  </label>
-                  {!isPublished && (
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
+                {/* Mode Switcher: Terstruktur vs Tulis Manual */}
+                {!isPlhTemplate && !isBmnTemplate && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      Mode Input Butir 1
+                    </label>
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-[11px] font-medium">
+                      <button
+                        type="button"
+                        disabled={isPublished}
+                        onClick={() => setInputModeKegiatan("structured")}
+                        className={cn(
+                          "py-1.5 px-2 rounded-lg transition-all text-center cursor-pointer disabled:opacity-60",
+                          inputModeKegiatan === "structured"
+                            ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                            : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                        )}
+                      >
+                        Terstruktur (Jenis Tugas)
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPublished}
+                        onClick={() => {
+                          setInputModeKegiatan("manual");
+                          if (
+                            !namaKegiatan.trim() &&
+                            selectedDynamicTemplate?.configuration?.default_kegiatan
+                          ) {
+                            setNamaKegiatan(selectedDynamicTemplate.configuration.default_kegiatan);
+                          }
+                        }}
+                        className={cn(
+                          "py-1.5 px-2 rounded-lg transition-all text-center cursor-pointer disabled:opacity-60",
+                          inputModeKegiatan === "manual"
+                            ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs"
+                            : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                        )}
+                      >
+                        Tulis Manual (Uraian + Waktu)
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pilih Jenis Tugas hanya tampil jika mode = structured dan bukan PLH */}
+                {inputModeKegiatan === "structured" && !isPlhTemplate && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      Jenis Tugas (Terkoneksi dari Pengaturan)
+                    </label>
+                    <select
+                      value={normalizeTaskTypeName(activityPrefix)}
+                      disabled={isPublished}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const normalized = normalizeTaskTypeName(val);
+                        setActivityPrefix(normalized);
+                        setInputModeKegiatan("structured");
+                        const matched = taskTypes.find((t) => t.nama === normalized);
+                        if (matched) {
+                          setTaskTypeId(matched.id);
+                          if (matched.mode_lokasi === "tempat_saja" || matched.mode_lokasi === "dalam_kawasan") {
+                            setKotaAsal("");
+                          } else if (!kotaAsal) {
+                            setKotaAsal("Samarinda");
+                          }
+                          if (matched.aturan_durasi === "wajib_1_hari" && tanggalMulai) {
+                            setTanggalSelesai(tanggalMulai);
+                          }
+                        } else {
+                          if (normalized.includes("1 Hari") || normalized.includes("Menugaskan Staf") || isDalamKawasanTask(normalized)) {
+                            setKotaAsal("");
+                          } else if (!kotaAsal) {
+                            setKotaAsal("Samarinda");
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
+                    >
+                      {taskTypes.length > 0 ? (
+                        taskTypes.map((tt) => (
+                          <option key={tt.id} value={tt.nama}>
+                            {tt.nama}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="Perjalanan Dinas Luar Wilayah">
+                            Perjalanan Dinas Luar Wilayah (Dari - Ke)
+                          </option>
+                          <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                            Perjalanan Dinas Dalam Kawasan / Wilayah
+                          </option>
+                          <option value="Melaksanakan Kegiatan (1 Hari)">
+                            Melaksanakan Kegiatan (1 Hari)
+                          </option>
+                          <option value="Menugaskan Staf">Menugaskan Staf</option>
+                        </>
+                      )}
+                      {taskTypes.length > 0 &&
+                        !taskTypes.some((tt) => tt.nama === normalizeTaskTypeName(activityPrefix)) && (
+                          <option value={activityPrefix}>{activityPrefix}</option>
+                        )}
+                    </select>
+                  </div>
+                )}
+
+                {inputModeKegiatan === "structured" &&
+                  !isPlhTemplate &&
+                  isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format) && (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">
+                        Untuk ( Jenis Kegiatan / Tugas ) *
+                      </label>
+                      <input
+                        type="text"
+                        value={untukKegiatanText}
+                        disabled={isPublished}
+                        onChange={(e) => setUntukKegiatanText(e.target.value)}
+                        placeholder="Contoh: Pemeriksaan Pekerjaan / Pengawasan Pekerjaan Konstruksi"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                      <p className="text-[10px] text-slate-400">
+                        Mengisi bagian <code>{"untuk {untuk} dalam rangka {kegiatan}"}</code> pada kalimat Butir 1.
+                      </p>
+                    </div>
+                  )}
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-300 uppercase">
+                      {isPlhTemplate || inputModeKegiatan === "manual"
+                        ? "Uraian Tugas Utama (Butir 1) *"
+                        : isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format)
+                        ? "Dalam Rangka ( Paket Kontrak / Pekerjaan ) *"
+                        : activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")
+                        ? "Nama Kegiatan / Tugas *"
+                        : "Maksud / Dalam Rangka Kegiatan *"}
+                    </label>
+                    {!isPublished && (
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          if (namaKegiatanRef.current) {
+                            toggleItalicInTextarea(
+                              namaKegiatanRef.current,
+                              namaKegiatan,
+                              handleNamaKegiatanChange
+                            );
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                        title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                      >
+                        <Italic className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    ref={namaKegiatanRef}
+                    rows={3}
+                    value={namaKegiatan}
+                    disabled={isPublished}
+                    onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
                         if (namaKegiatanRef.current) {
                           toggleItalicInTextarea(
                             namaKegiatanRef.current,
@@ -2644,174 +3124,285 @@ export function SuratTugasForm({
                             handleNamaKegiatanChange
                           );
                         }
-                      }}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
-                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
-                    >
-                      <Italic className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  ref={namaKegiatanRef}
-                  rows={3}
-                  value={namaKegiatan}
-                  disabled={isPublished}
-                  onChange={(e) => handleNamaKegiatanChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
-                      e.preventDefault();
-                      if (namaKegiatanRef.current) {
-                        toggleItalicInTextarea(
-                          namaKegiatanRef.current,
-                          namaKegiatan,
-                          handleNamaKegiatanChange
-                        );
-                      }
-                    }
-                  }}
-                  placeholder={
-                    isJenisKegiatanTask(activityPrefix)
-                      ? "Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"
-                      : "Contoh: Melakukan koordinasi teknis..."
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase">
-                    Tanggal Mulai
-                  </label>
-                  <input
-                    type="date"
-                    value={tanggalMulai}
-                    disabled={isPublished}
-                    onChange={(e) => {
-                      setTanggalMulai(e.target.value);
-                      if (activityPrefix.includes("Melaksanakan Kegiatan")) {
-                        setTanggalSelesai(e.target.value);
                       }
                     }}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    placeholder={
+                      isPlhTemplate || inputModeKegiatan === "manual"
+                        ? "Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
+                        : isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format)
+                        ? "Contoh: Pengelolaan Kontrak Pekerjaan Konstruksi Pembangunan Sarana dan Prasarana di Suaka Badak Kelian"
+                        : "Contoh: Melakukan koordinasi teknis..."
+                    }
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                   />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase">
-                    Tanggal Selesai
-                  </label>
-                  <input
-                    type="date"
-                    value={tanggalSelesai}
-                    disabled={isPublished || activityPrefix.includes("Melaksanakan Kegiatan")}
-                    onChange={(e) => setTanggalSelesai(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                  />
-                </div>
-              </div>
 
-              {isBedaHariTemplate && (
-                <div className="p-2 bg-blue-50/60 dark:bg-blue-950/30 rounded-lg border border-blue-200/50 dark:border-blue-900/40 text-[10px] text-blue-700 dark:text-blue-300">
-                  <span className="font-semibold">Info:</span> Pada template Beda Hari, rentang tanggal utama surat tugas otomatis disesuaikan dengan rentang tanggal keseluruhan (paling awal s/d paling akhir) dari daftar pegawai saat disimpan.
-                </div>
-              )}
-
-              {isPlhTemplate ? (
-                <div className="space-y-3 p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between pb-2 border-b border-amber-200/60 dark:border-amber-900/30">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                      <span className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
-                        Konfigurasi Pelaksana Harian (PLH)
-                      </span>
+                  {(isPlhTemplate || inputModeKegiatan === "manual") && !isPublished && (
+                    <div className="space-y-1 pt-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">
+                          Sisipkan Placeholder:
+                        </span>
+                        {[
+                          { token: "{wilayah}", label: "+ {wilayah}" },
+                          { token: "{pejabat}", label: "+ {pejabat}" },
+                          { token: "{tahun}", label: "+ {tahun}" },
+                        ].map((chip) => (
+                          <button
+                            key={chip.token}
+                            type="button"
+                            onClick={() =>
+                              handleNamaKegiatanChange(
+                                `${namaKegiatan}${namaKegiatan && !namaKegiatan.endsWith(" ") ? " " : ""}${chip.token}`
+                              )
+                            }
+                            className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+                          >
+                            {chip.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-blue-700 dark:text-blue-300 leading-relaxed">
+                        <b>Mode Tulis Manual:</b> Uraian di atas langsung menjadi kalimat utama Butir 1, dan keterangan waktu{" "}
+                        <i>&quot;, selama X (...) hari terhitung mulai tanggal ... sampai dengan ...;&quot;</i> tetap ditambahkan otomatis di ujung kalimat.
+                      </p>
                     </div>
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
-                      Pejabat Struktural
-                    </span>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Selector Pejabat Struktural yang Digantikan */}
+                {/* Tanggal Mulai & Selesai */}
+                <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
-                      Pejabat Struktural yang Digantikan *
-                    </label>
-                    <select
-                      value={plhTargetRole}
-                      disabled={isPublished}
-                      onChange={(e) => handlePlhTargetRoleChange(e.target.value as PlhTargetRole)}
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs font-medium outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60 cursor-pointer"
-                    >
-                      {PLH_TARGET_OPTIONS.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
-                      {plhTargetRole === "kasubbag_tu"
-                        ? "Diktum menimbang & untuk disesuaikan otomatis untuk Kepala Subbagian Tata Usaha (Samarinda)."
-                        : `Diktum menimbang & untuk disesuaikan otomatis untuk ${getPlhTargetOption(plhTargetRole).shortLabel}.`}
-                    </p>
-                  </div>
-
-                  {/* Input Kegiatan Pejabat yang Digantikan */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
-                      Kegiatan Pejabat yang Digantikan (Menimbang a) *
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Tanggal Mulai
                     </label>
                     <input
-                      type="text"
-                      value={plhKegiatanKasi}
+                      type="date"
+                      value={tanggalMulai}
                       disabled={isPublished}
-                      onChange={(e) => handlePlhKegiatanChange(e.target.value)}
-                      placeholder={
-                        plhTargetRole === "kasubbag_tu"
-                          ? "Contoh: Melaksanakan rapat koordinasi kepegawaian di Jakarta"
-                          : "Contoh: Melaksanakan patroli pengamanan kawasan hutan"
-                      }
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60"
+                      onChange={(e) => {
+                        setTanggalMulai(e.target.value);
+                        if (
+                          inputModeKegiatan === "structured" &&
+                          (activeBuilderTaskType?.aturan_durasi === "wajib_1_hari" ||
+                            activityPrefix.includes("Melaksanakan Kegiatan"))
+                        ) {
+                          setTanggalSelesai(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                     />
-                    <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
-                      Otomatis mengisi butir Menimbang: &quot;bahwa {getPlhTargetOption(plhTargetRole).label} akan [kegiatan]...&quot;
-                    </p>
                   </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      Tanggal Selesai
+                    </label>
+                    <input
+                      type="date"
+                      value={tanggalSelesai}
+                      disabled={
+                        isPublished ||
+                        (inputModeKegiatan === "structured" &&
+                          (activeBuilderTaskType?.aturan_durasi === "wajib_1_hari" ||
+                            activityPrefix.includes("Melaksanakan Kegiatan")))
+                      }
+                      onChange={(e) => setTanggalSelesai(e.target.value)}
+                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    />
+                  </div>
+                </div>
 
-                  {/* Referensi Surat Tugas Induk */}
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/50 dark:border-amber-900/30">
+                {isBedaHariTemplate && (
+                  <div className="p-2 bg-blue-50/60 dark:bg-blue-950/30 rounded-lg border border-blue-200/50 dark:border-blue-900/40 text-[10px] text-blue-700 dark:text-blue-300">
+                    <span className="font-semibold">Info:</span> Pada template Beda Hari, rentang tanggal utama surat tugas otomatis disesuaikan dengan rentang tanggal keseluruhan (paling awal s/d paling akhir) dari daftar pegawai saat disimpan.
+                  </div>
+                )}
+
+                {/* Input Lokasi Berdasarkan Mode */}
+                {isPlhTemplate ? (
+                  <div className="space-y-3 p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between pb-2 border-b border-amber-200/60 dark:border-amber-900/30">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                          Konfigurasi Pelaksana Harian (PLH)
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                        Pejabat Struktural
+                      </span>
+                    </div>
+
+                    {/* Selector Pejabat Struktural yang Digantikan */}
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
-                        Nomor ST Induk (Dasar 1)
+                      <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                        Pejabat Struktural yang Digantikan *
+                      </label>
+                      <select
+                        value={plhTargetRole}
+                        disabled={isPublished}
+                        onChange={(e) => handlePlhTargetRoleChange(e.target.value as PlhTargetRole)}
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs font-medium outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60 cursor-pointer"
+                      >
+                        {PLH_TARGET_OPTIONS.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                        {plhTargetRole === "kasubbag_tu"
+                          ? "Diktum menimbang & untuk disesuaikan otomatis untuk Kepala Subbagian Tata Usaha (Samarinda)."
+                          : `Diktum menimbang & untuk disesuaikan otomatis untuk ${getPlhTargetOption(plhTargetRole).shortLabel}.`}
+                      </p>
+                    </div>
+
+                    {/* Input Kegiatan Pejabat yang Digantikan */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                        Kegiatan Pejabat yang Digantikan (Menimbang a) *
                       </label>
                       <input
                         type="text"
-                        value={parentStInfo.nomorInduk || ""}
+                        value={plhKegiatanKasi}
                         disabled={isPublished}
-                        onChange={(e) => handleParentStInfoChange("nomor", e.target.value)}
-                        placeholder="Contoh: ST.01/K.18/TU/..."
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        onChange={(e) => handlePlhKegiatanChange(e.target.value)}
+                        placeholder={
+                          plhTargetRole === "kasubbag_tu"
+                            ? "Contoh: Melaksanakan rapat koordinasi kepegawaian di Jakarta"
+                            : "Contoh: Melaksanakan patroli pengamanan kawasan hutan"
+                        }
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60"
                       />
+                      <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                        Otomatis mengisi butir Menimbang: &quot;bahwa {getPlhTargetOption(plhTargetRole).label} akan [kegiatan]...&quot;
+                      </p>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
-                        Tanggal ST Induk (Dasar 1)
-                      </label>
-                      <input
-                        type="text"
-                        value={parentStInfo.tanggalInduk || ""}
-                        disabled={isPublished}
-                        onChange={(e) => handleParentStInfoChange("tanggal", e.target.value)}
-                        placeholder="Contoh: 28 Oktober 2026"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                      />
+
+                    {/* Referensi Surat Tugas Induk */}
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/50 dark:border-amber-900/30">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                          Nomor ST Induk (Dasar 1)
+                        </label>
+                        <input
+                          type="text"
+                          value={parentStInfo.nomorInduk || ""}
+                          disabled={isPublished}
+                          onChange={(e) => handleParentStInfoChange("nomor", e.target.value)}
+                          placeholder="Contoh: ST.01/K.18/TU/..."
+                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                          Tanggal ST Induk (Dasar 1)
+                        </label>
+                        <input
+                          type="text"
+                          value={parentStInfo.tanggalInduk || ""}
+                          disabled={isPublished}
+                          onChange={(e) => handleParentStInfoChange("tanggal", e.target.value)}
+                          placeholder="Contoh: 28 Oktober 2026"
+                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Lokasi Penugasan PLH */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                          Pada ( Tempat / Unit Lokasi )
+                        </label>
+                        <input
+                          type="text"
+                          value={tempatKegiatan}
+                          disabled={isPublished}
+                          onChange={(e) => setTempatKegiatan(e.target.value)}
+                          placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur"
+                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                          Di ( Kota / Wilayah )
+                        </label>
+                        <input
+                          type="text"
+                          value={kotaTujuan}
+                          disabled={isPublished}
+                          onChange={(e) => setKotaTujuan(e.target.value)}
+                          placeholder="Contoh: Samarinda"
+                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
                     </div>
                   </div>
-
-                  {/* Lokasi Penugasan PLH */}
+                ) : inputModeKegiatan === "manual" ? (
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Wilayah / Kota Tujuan (Untuk Metadata & {"{wilayah}"})
+                      </label>
+                      <input
+                        type="text"
+                        value={kotaTujuan}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaTujuan(e.target.value)}
+                        placeholder="Contoh: Wilayah I Berau / Samarinda"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Tempat / Unit Lokasi (Opsional)
+                      </label>
+                      <input
+                        type="text"
+                        value={tempatKegiatan}
+                        disabled={isPublished}
+                        onChange={(e) => setTempatKegiatan(e.target.value)}
+                        placeholder="Contoh: Seksi Konservasi Wilayah I"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+                ) : (activeBuilderTaskType?.mode_lokasi === "dalam_kawasan" ||
+                    isDalamKawasanTask(activityPrefix)) ? (
+                  <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Di ( Kota / Kabupaten Wilayah Penugasan )
+                      </label>
+                      <input
+                        type="text"
+                        value={kotaTujuan}
+                        disabled={isPublished}
+                        onChange={(e) => setKotaTujuan(e.target.value)}
+                        placeholder="Contoh: Kabupaten Paser"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Di ( Kawasan / Lokasi Spesifik )
+                      </label>
+                      <input
+                        type="text"
+                        value={tempatKegiatan}
+                        disabled={isPublished}
+                        onChange={(e) => setTempatKegiatan(e.target.value)}
+                        placeholder="Contoh: Cagar Alam Teluk Adang"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+                ) : (activeBuilderTaskType?.mode_lokasi === "tempat_saja" ||
+                    activityPrefix.includes("Melaksanakan Kegiatan") ||
+                    activityPrefix.includes("Menugaskan Staf")) ? (
+                  <div className="grid grid-cols-2 gap-2 pt-1 animate-in fade-in duration-200">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
                         Pada ( Tempat / Unit Lokasi )
                       </label>
                       <input
@@ -2819,13 +3410,13 @@ export function SuratTugasForm({
                         value={tempatKegiatan}
                         disabled={isPublished}
                         onChange={(e) => setTempatKegiatan(e.target.value)}
-                        placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
-                        Di ( Kota / Wilayah )
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        Di ( Kota / Kabupaten )
                       </label>
                       <input
                         type="text"
@@ -2833,142 +3424,110 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setKotaTujuan(e.target.value)}
                         placeholder="Contoh: Samarinda"
-                        className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                       />
                     </div>
                   </div>
-                </div>
-              ) : isDalamKawasanTask(activityPrefix) ? (
-                <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
-                      Di ( Kota / Kabupaten Wilayah Penugasan )
-                    </label>
-                    <input
-                      type="text"
-                      value={kotaTujuan}
-                      disabled={isPublished}
-                      onChange={(e) => setKotaTujuan(e.target.value)}
-                      placeholder="Contoh: Kabupaten Paser"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
-                      Di ( Kawasan / Lokasi Spesifik )
-                    </label>
-                    <input
-                      type="text"
-                      value={tempatKegiatan}
-                      disabled={isPublished}
-                      onChange={(e) => setTempatKegiatan(e.target.value)}
-                      placeholder="Contoh: Cagar Alam Teluk Adang"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                    />
-                  </div>
-                </div>
-              ) : (activityPrefix.includes("Melaksanakan Kegiatan") || activityPrefix.includes("Menugaskan Staf")) ? (
-                <div className="grid grid-cols-2 gap-2 pt-1 animate-in fade-in duration-200">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
-                      Pada ( Tempat / Unit Lokasi )
-                    </label>
-                    <input
-                      type="text"
-                      value={tempatKegiatan}
-                      disabled={isPublished}
-                      onChange={(e) => setTempatKegiatan(e.target.value)}
-                      placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
-                      Di ( Kota / Kabupaten )
-                    </label>
-                    <input
-                      type="text"
-                      value={kotaTujuan}
-                      disabled={isPublished}
-                      onChange={(e) => setKotaTujuan(e.target.value)}
-                      placeholder="Contoh: Samarinda"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">Kota Asal</label>
-                      <input
-                        type="text"
-                        value={kotaAsal}
-                        disabled={isPublished}
-                        onChange={(e) => setKotaAsal(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                      />
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase">Kota Asal</label>
+                        <input
+                          type="text"
+                          value={kotaAsal}
+                          disabled={isPublished}
+                          onChange={(e) => setKotaAsal(e.target.value)}
+                          className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase">
+                          Kota Tujuan
+                        </label>
+                        <input
+                          type="text"
+                          value={kotaTujuan}
+                          disabled={isPublished}
+                          onChange={(e) => setKotaTujuan(e.target.value)}
+                          className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        />
+                      </div>
                     </div>
+
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-slate-400 uppercase">
-                        Kota Tujuan
+                        Tempat / Lokasi Spesifik
                       </label>
                       <input
                         type="text"
-                        value={kotaTujuan}
+                        value={tempatKegiatan}
                         disabled={isPublished}
-                        onChange={(e) => setKotaTujuan(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        onChange={(e) => setTempatKegiatan(e.target.value)}
+                        placeholder="Contoh: Suaka Badak Kelian Kabupaten Kutai Barat"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                       />
                     </div>
-                  </div>
+                  </>
+                )}
 
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
-                      Tempat / Lokasi Spesifik
-                    </label>
-                    <input
-                      type="text"
-                      value={tempatKegiatan}
-                      disabled={isPublished}
-                      onChange={(e) => setTempatKegiatan(e.target.value)}
-                      placeholder="Contoh: Kantor Seksi Wilayah I"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Toggle Kewajiban Membuat Laporan Tertulis */}
-              {!isPlhTemplate && (
-                <div className="p-3 bg-slate-100/70 dark:bg-zinc-800/60 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
-                  <div>
-                    <label htmlFor="builder_chk_laporan" className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer">
-                      Kewajiban Membuat Laporan
-                    </label>
-                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                      Ditempatkan di baris paling akhir pada bagian Untuk.
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    id="builder_chk_laporan"
-                    disabled={isPublished}
-                    checked={sertakanLaporan}
-                    onChange={(e) => setSertakanLaporan(e.target.checked)}
-                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
+                {/* Pratinjau Hasil Kalimat Butir 1 */}
+                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-blue-200/70 dark:border-blue-900/50 space-y-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                    Pratinjau Kalimat Untuk — Butir 1:
+                  </span>
+                  <p className="text-[11px] font-serif text-slate-800 dark:text-zinc-200 leading-relaxed">
+                    <b className="mr-1.5">1.</b>
+                    {renderFormattedItalic(buildUntukText())}
+                  </p>
                 </div>
-              )}
+              </div>
 
-              {/* Pembiayaan */}
-              <div className="space-y-1 pt-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Sumber Dana</label>
+              {/* BLOK 2: BUTIR TAMBAHAN UNTUK (2, 3, DST. — DI ATAS BIAYA) */}
+              <EditableItemListSection
+                title="Butir Tambahan Untuk (Butir 2 dst.)"
+                description={
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                    Butir bawaan dari Template ST atau yang Anda tambahkan manual di sini otomatis menempati{" "}
+                    <b className="text-slate-700 dark:text-zinc-200">Nomor 2, 3, dst.</b> dan menggeser posisi{" "}
+                    <b className="text-amber-700 dark:text-amber-300">Biaya</b> ke bawahnya.
+                  </p>
+                }
+                items={untukItems}
+                onChange={setUntukItems}
+                marker="number"
+                startIndex={1}
+                getItemBadge={(_item, idx) => (
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md w-fit">
+                    <span>Butir {idx + 2} (Di Bawah Butir 1 & Di Atas Biaya)</span>
+                  </div>
+                )}
+                disabled={isPublished}
+              />
+
+              {/* BLOK 3: PEMBEBANAN BIAYA & SUMBER DANA */}
+              <div className="p-3.5 rounded-xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/15 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Banknote className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <label className="text-xs font-bold text-slate-800 dark:text-zinc-100">
+                      Pembebanan Biaya & Sumber Dana
+                    </label>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
+                    {buildBiayaText()
+                      ? `Otomatis Butir ${2 + untukItems.filter((i) => i.text.trim()).length}`
+                      : "Tanpa Butir Biaya"}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                  Selalu berada di bawah Butir 1 (atau otomatis turun ke bawah Butir Tambahan Untuk jika ada), serta menyisipkan Dasar Anggaran di urutan paling bawah bagian <b>Dasar</b>.
+                </p>
                 <select
                   value={sumberDana}
                   disabled={isPublished}
-                  onChange={(e) => setSumberDana(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60 cursor-pointer"
+                  onChange={(e) => handleSumberDanaChange(e.target.value)}
+                  className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold outline-none text-zinc-900 dark:text-white disabled:opacity-60 cursor-pointer"
                 >
                   {availableSumberDanaOptions.map((opt) => (
                     <option key={opt.id} value={opt.id}>
@@ -2983,8 +3542,61 @@ export function SuratTugasForm({
                     disabled={isPublished}
                     onChange={(e) => setSumberDanaOther(e.target.value)}
                     placeholder="Sebutkan pembebanan anggaran..."
-                    className="w-full mt-2 px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
                   />
+                )}
+                {buildBiayaText() && (
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-amber-200/70 dark:border-amber-900/50 text-[11px] font-serif text-slate-700 dark:text-zinc-300 leading-relaxed">
+                    <b className="mr-1.5">{2 + untukItems.filter((i) => i.text.trim()).length}.</b>
+                    {renderFormattedItalic(buildBiayaText())}
+                  </div>
+                )}
+              </div>
+
+              {/* BLOK 4: KEWAJIBAN MEMBUAT LAPORAN TERTULIS (SELALU TERAKHIR) */}
+              <div className="p-3.5 bg-purple-50/35 dark:bg-purple-950/15 rounded-xl border border-purple-200/80 dark:border-purple-900/50 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="builder_chk_laporan"
+                        className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer"
+                      >
+                        Kewajiban Membuat Laporan Tertulis
+                      </label>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200">
+                        {sertakanLaporan
+                          ? `Butir Terakhir (#${
+                              2 +
+                              untukItems.filter((i) => i.text.trim()).length +
+                              (buildBiayaText() ? 1 : 0)
+                            })`
+                          : "Nonaktif"}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                      Selalu ditempatkan pada urutan paling terakhir di bagian Untuk.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    id="builder_chk_laporan"
+                    disabled={isPublished}
+                    checked={sertakanLaporan}
+                    onChange={(e) => setSertakanLaporan(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                </div>
+                {sertakanLaporan && (
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-purple-200/70 dark:border-purple-900/50 text-[11px] font-serif text-slate-700 dark:text-zinc-300 leading-relaxed">
+                    <b className="mr-1.5">
+                      {2 +
+                        untukItems.filter((i) => i.text.trim()).length +
+                        (buildBiayaText() ? 1 : 0)}
+                      .
+                    </b>
+                    {DEFAULT_LAPORAN_TEXT}
+                  </div>
                 )}
               </div>
             </div>

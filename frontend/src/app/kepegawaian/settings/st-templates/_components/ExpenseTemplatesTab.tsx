@@ -291,6 +291,90 @@ export function ExpenseTemplatesTab() {
             </div>
           </div>
 
+          {/* Panduan Posisi Otomatis & Preset Cepat */}
+          <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/50 space-y-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-blue-200/60 dark:border-blue-900/40">
+              <span className="font-bold text-blue-950 dark:text-blue-200">
+                Isi Cepat dari Contoh Standar:
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  {
+                    label: "+ Contoh DIPA",
+                    cat: "dipa" as const,
+                    biaya:
+                      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada DIPA Balai KSDA Kalimantan Timur Ditjen KSDAE (693614) Tahun Anggaran {tahun};",
+                    dasar:
+                      "Surat Pengesahan DIPA Tahun Anggaran {tahun} Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: SP DIPA-143.04.2.693614/{tahun} tanggal 24 April {tahun}.",
+                  },
+                  {
+                    label: "+ Contoh Hibah FOLU",
+                    cat: "hibah_folu" as const,
+                    biaya:
+                      "Segala biaya yang timbul akibat dikeluarkannya Surat Perintah Tugas ini dibebankan pada anggaran *Annual Work Plan* (AWP) Tahun {tahun} Implementasi FOLU *Net Sink* 2030 melalui Dukungan Sumber Dana Kerja Sama Indonesia-Norwegia Tahap Kedua dan Ketiga Ditjen KSDAE;",
+                    dasar:
+                      "*Annual Work Plan* (AWP) Tahun Anggaran {tahun} Implementasi FOLU *Net Sink* 2030 melalui Dukungan Sumber Dana Kerja Sama Indonesia-Norwegia Tahap Kedua dan Ketiga Ditjen KSDAE.",
+                  },
+                  {
+                    label: "+ Contoh Mitra PKS",
+                    cat: "kerjasama" as const,
+                    biaya:
+                      "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada Anggaran Rencana Kerja Tahunan (RKT) Tahun {tahun} Kerja Sama Balai KSDA Kalimantan Timur;",
+                    dasar:
+                      "Perjanjian Kerja Sama Antara Balai Konservasi Sumber Daya Alam Kalimantan Timur dan Mitra Nomor: ... tanggal ... tentang ...",
+                  },
+                  {
+                    label: "+ Contoh DL 1 (Tanpa Biaya)",
+                    cat: "dl1" as const,
+                    biaya: "",
+                    dasar: "",
+                  },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      setExpenseCategory(preset.cat);
+                      setExpenseBiayaText(preset.biaya);
+                      setExpenseDasarText(preset.dasar);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800 text-[11px] font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100/60 cursor-pointer transition-colors"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 text-[11px] text-slate-600 dark:text-zinc-300 leading-relaxed">
+              <div>
+                <p className="font-bold text-slate-800 dark:text-zinc-100">
+                  Aturan Posisi Otomatis di Surat Tugas &amp; Builder:
+                </p>
+                <ul className="mt-0.5 space-y-0.5">
+                  <li>
+                    • <b>Teks Dasar Hukum (DIPA/PKS/AWP):</b> Selalu ditempatkan pada <b>urutan paling bawah (terakhir)</b> di bagian <b>Dasar</b> (di bawah Dasar Template ST &amp; tambahan manual Builder).
+                  </li>
+                  <li>
+                    • <b>Teks Klausul Biaya:</b> Ditempatkan di bagian <b>Untuk</b> tepat di bawah Butir 1 (<b>Butir 2</b>), atau otomatis turun ke bawah jika ada Butir Tambahan Untuk.
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 dark:text-zinc-100">
+                  Panduan Placeholder &amp; Huruf Miring:
+                </p>
+                <ul className="mt-0.5 space-y-0.5">
+                  <li>
+                    • Gunakan <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">{"{tahun}"}</code> agar Tahun Anggaran otomatis mengikuti tahun tanggal surat.
+                  </li>
+                  <li>
+                    • Apit kata dengan <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">*bintang*</code> atau blok teks + tekan <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-[10px]">Ctrl+I</kbd> untuk cetak miring (contoh: <i>*Annual Work Plan*</i>).
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
               Nama Sumber Dana <span className="text-red-500">*</span>
@@ -428,10 +512,10 @@ export function ExpenseTemplatesTab() {
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300">
-                Teks Dasar Hukum / PKS / DIPA (Bagian &quot;Dasar&quot; Poin 2){" "}
+                Teks Dasar Hukum / PKS / DIPA (Bagian &quot;Dasar&quot; — Selalu Paling Bawah){" "}
                 <span className="text-xs text-slate-400 font-normal">(Opsional)</span>
                 <span className="block text-xs font-normal text-slate-400 mt-0.5">
-                  Teks ini akan otomatis mengisi atau menggantikan poin nomor 2 di bagian Dasar Surat Tugas.
+                  Teks ini selalu otomatis menempati urutan paling bawah (terakhir) di bagian Dasar Surat Tugas, di bawah Dasar dari Template ST maupun tambahan manual di Builder.
                 </span>
               </label>
               <textarea
@@ -500,7 +584,7 @@ export function ExpenseTemplatesTab() {
               {expenseDasarText?.trim() && (
                 <div>
                   <span className="text-[10px] font-bold uppercase text-blue-800 dark:text-blue-300 block mb-1">
-                    Dasar (Poin 2):
+                    Dasar (Selalu di Urutan Paling Bawah / Terakhir):
                   </span>
                   <p className="text-xs text-slate-700 dark:text-zinc-200 leading-relaxed font-sans bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
                     {renderFormattedItalic((expenseDasarText || "").replace(/\{tahun\}/g, currentYear))}
@@ -510,7 +594,7 @@ export function ExpenseTemplatesTab() {
               {expenseBiayaText?.trim() && (
                 <div>
                   <span className="text-[10px] font-bold uppercase text-blue-800 dark:text-blue-300 block mb-1">
-                    Klausul Biaya (Bagian Untuk Poin 3):
+                    Klausul Biaya (Bagian Untuk — Di Bawah Butir 1 / Butir Tambahan):
                   </span>
                   <p className="text-xs text-slate-700 dark:text-zinc-200 leading-relaxed font-sans bg-white dark:bg-zinc-900 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
                     {renderFormattedItalic((expenseBiayaText || "").replace(/\{tahun\}/g, currentYear))}

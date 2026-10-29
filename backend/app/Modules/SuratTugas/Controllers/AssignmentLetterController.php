@@ -4,6 +4,7 @@ namespace App\Modules\SuratTugas\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\StExpenseTemplate;
 use App\Modules\Kepegawaian\Models\StTemplate;
 use App\Modules\Kepegawaian\Services\StTemplateService;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
@@ -451,7 +452,9 @@ class AssignmentLetterController extends Controller
                 'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
                 'sumber_dana' => $validated['sumber_dana'] ?? 'dipa',
                 'sumber_dana_other' => $validated['sumber_dana_other'] ?? null,
-                'template_type' => $validated['template_type'] ?? null,
+                'template_type' => (! empty($validated['template_type']) && $validated['template_type'] !== 'standard')
+                    ? $validated['template_type']
+                    : ($template ? 'db_'.$template->id : ($validated['template_type'] ?? null)),
                 'template_id' => $template?->id,
                 'task_type_id' => $validated['task_type_id'] ?? null,
                 'sertakan_laporan' => $request->has('sertakan_laporan') ? (bool) $request->input('sertakan_laporan') : true,
@@ -460,10 +463,10 @@ class AssignmentLetterController extends Controller
                     $baseSnapshot = $this->templateService->snapshot(
                         $template,
                         [
-                            'menimbang' => $validated['menimbang'] ?? null,
-                            'dasar' => $validated['dasar'] ?? null,
-                            'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
-                            'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
+                            'menimbang' => $validated['menimbang'] ?? $template?->menimbang,
+                            'dasar' => $validated['dasar'] ?? $template?->dasar,
+                            'penandatangan_nama' => $validated['penandatangan_nama'] ?? $template?->default_signer_name,
+                            'penandatangan_nip' => $validated['penandatangan_nip'] ?? $template?->default_signer_nip,
                         ]
                     );
                     $reqSnapshot = $request->input('template_snapshot');
@@ -480,11 +483,11 @@ class AssignmentLetterController extends Controller
                     }
                     return $baseSnapshot;
                 })(),
-                'menimbang' => $validated['menimbang'] ?? null,
-                'dasar' => $validated['dasar'] ?? null,
-                'tembusan' => $validated['tembusan'] ?? null,
-                'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
-                'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
+                'menimbang' => $validated['menimbang'] ?? $template?->menimbang,
+                'dasar' => $validated['dasar'] ?? $template?->dasar,
+                'tembusan' => $validated['tembusan'] ?? ($template?->configuration['tembusan_items'] ?? null),
+                'penandatangan_nama' => $validated['penandatangan_nama'] ?? $template?->default_signer_name,
+                'penandatangan_nip' => $validated['penandatangan_nip'] ?? $template?->default_signer_nip,
                 'nama_plh' => $request->input('nama_plh'),
                 'has_seksi_employee' => (bool) $request->input('has_seksi_employee', false),
                 'jumlah_buruh' => (int) $request->input('jumlah_buruh', 0),
@@ -1402,6 +1405,52 @@ class AssignmentLetterController extends Controller
             default => null,
         };
 
-        return $templateCode ? $query->where('code', $templateCode)->first() : null;
+        if ($templateCode) {
+            return $query->where('code', $templateCode)->first();
+        }
+
+        $rawSumberDana = trim((string) ($payload['sumber_dana'] ?? ''));
+        $activeTemplates = $query->get();
+
+        if ($rawSumberDana !== '') {
+            $lowerSumber = strtolower($rawSumberDana);
+            $matchedExpense = StExpenseTemplate::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($lowerSumber) {
+                    $q->whereRaw('LOWER(code) = ?', [$lowerSumber])
+                        ->orWhereRaw('LOWER(name) = ?', [$lowerSumber]);
+                    if (str_contains($lowerSumber, 'folu')) {
+                        $q->orWhere('category', 'hibah_folu')
+                            ->orWhereRaw('LOWER(code) LIKE ?', ['%folu%']);
+                    }
+                })
+                ->first();
+
+            $targetCodes = array_values(array_unique(array_filter([
+                $lowerSumber,
+                $matchedExpense ? strtolower((string) $matchedExpense->code) : null,
+                str_contains($lowerSumber, 'folu') || ($matchedExpense && $matchedExpense->category === 'hibah_folu') ? 'folu' : null,
+            ])));
+
+            $matchedByFunding = $activeTemplates->first(function (StTemplate $tpl) use ($targetCodes) {
+                if (in_array($tpl->type, ['bmn', 'plh', 'beda_hari'], true)) {
+                    return false;
+                }
+                if (in_array((string) $tpl->code, ['bmn-penghapusan', 'beda-hari', 'plh'], true)) {
+                    return false;
+                }
+                $cfgSumber = strtolower(trim((string) ($tpl->configuration['sumber_dana'] ?? '')));
+                $tplCode = strtolower(trim((string) ($tpl->code ?? '')));
+
+                return ($cfgSumber !== '' && in_array($cfgSumber, $targetCodes, true))
+                    || ($tplCode !== '' && in_array($tplCode, $targetCodes, true));
+            });
+
+            if ($matchedByFunding) {
+                return $matchedByFunding;
+            }
+        }
+
+        return $activeTemplates->firstWhere('is_default', true);
     }
 }

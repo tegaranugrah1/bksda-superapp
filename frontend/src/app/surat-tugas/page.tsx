@@ -272,6 +272,7 @@ export default function SuratTugasForm() {
         tempatSpesifik,
         namaKegiatanText,
         untukKegiatanText,
+        contohFormat: activeTaskType?.contoh_format,
       });
 
       const calculatedTempatTujuan =

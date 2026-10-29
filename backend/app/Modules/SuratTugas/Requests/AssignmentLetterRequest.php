@@ -50,6 +50,31 @@ class AssignmentLetterRequest extends FormRequest
             }, $this->input('tembusan'));
         }
 
+        if ($this->has('template_snapshot') && is_array($this->input('template_snapshot'))) {
+            $snapshot = $this->input('template_snapshot');
+            if (isset($snapshot['configuration']) && is_array($snapshot['configuration'])) {
+                if (isset($snapshot['configuration']['untuk']) && is_array($snapshot['configuration']['untuk'])) {
+                    $snapshot['configuration']['untuk'] = array_map(function ($item) {
+                        if (is_array($item)) {
+                            if (isset($item['text'])) {
+                                $item['text'] = strip_tags(trim((string) $item['text']));
+                            }
+                            if (isset($item['id'])) {
+                                $item['id'] = strip_tags(trim((string) $item['id']));
+                            }
+                        }
+                        return $item;
+                    }, $snapshot['configuration']['untuk']);
+                }
+                if (isset($snapshot['configuration']['custom_nomor_naskah'])) {
+                    $snapshot['configuration']['custom_nomor_naskah'] = strip_tags(
+                        trim((string) $snapshot['configuration']['custom_nomor_naskah'])
+                    );
+                }
+            }
+            $clean['template_snapshot'] = $snapshot;
+        }
+
         if (!empty($clean)) {
             $this->merge($clean);
         }
