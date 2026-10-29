@@ -6,14 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
+use App\Models\EmailLog;
+use App\Models\NotificationSetting;
 use App\Models\User;
 use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -242,9 +248,6 @@ class AuthController extends Controller
 
         if ($request->has('email')) {
             $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
-            if ($employee) {
-                $employee->update(['email' => $cleanEmail]);
-            }
             if ($cleanEmail !== null) {
                 $user->update(['email' => $cleanEmail]);
             }
@@ -301,5 +304,302 @@ class AuthController extends Controller
         });
 
         return response()->json(['data' => $assets]);
+    }
+
+    /**
+     * Endpoint: PUT /api/me/email
+     * Mengubah alamat email akun (wajib validasi current_password dan bukan domain .local).
+     */
+    public function updateEmail(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+                function ($attribute, $value, $fail) {
+                    if (str_ends_with(strtolower((string) $value), '.local')) {
+                        $fail('Alamat email tidak boleh menggunakan domain .local.');
+                    }
+                },
+            ],
+        ]);
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Kata sandi saat ini tidak cocok.'],
+            ]);
+        }
+
+        $oldEmail = $user->email;
+        $wasDeliverable = $user->hasDeliverableEmail();
+
+        $newEmail = strtolower(trim((string) $request->email));
+        $user->email = $newEmail;
+        $user->email_verified_at = null;
+        $user->save();
+
+        // Beritahu email lama jika sebelumnya sudah terverifikasi
+        if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
+            try {
+                Mail::raw(
+                    "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$newEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
+                    function ($m) use ($oldEmail) {
+                        $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
+                    }
+                );
+            } catch (\Throwable $e) {
+                // Non-blocking
+            }
+        }
+
+        // Kirim link verifikasi ke email baru
+        if (NotificationSetting::emailEnabled('email_master_enabled')) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                // Non-blocking
+            }
+        }
+
+        return response()->json([
+            'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
+        ]);
+    }
+
+    /**
+     * Endpoint: GET /api/email/verify/{id}/{hash}
+     * Signed URL callback untuk verifikasi email (tanpa auth, 302 redirect ke frontend).
+     */
+    public function verifyEmail(Request $request, $id, $hash): RedirectResponse
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $hash, sha1((string) $user->getEmailForVerification()))) {
+            abort(403, 'Tautan verifikasi tidak sah atau telah kedaluwarsa.');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new \Illuminate\Auth\Events\Verified($user));
+        }
+
+        $frontendUrl = rtrim(config('app.frontend_url') ?: config('app.url', 'http://localhost:3000'), '/');
+        return redirect()->away("{$frontendUrl}/portal?email_verified=1");
+    }
+
+    /**
+     * Endpoint: POST /api/forgot-password
+     * Anti-enumeration: respons identik selalu dikembalikan terlepas email ada atau tidak.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::where('email', strtolower(trim((string) $request->email)))->first();
+
+        if ($user && $user->hasDeliverableEmail() && NotificationSetting::emailEnabled('email_master_enabled')) {
+            Password::sendResetLink(['email' => $user->email]);
+        }
+
+        return response()->json([
+            'message' => 'Jika email Anda terdaftar dan valid, tautan pengaturan ulang kata sandi telah dikirimkan ke kotak masuk Anda.',
+        ]);
+    }
+
+    /**
+     * Endpoint: POST /api/reset-password
+     * Reset password mandiri via token Laravel resmi.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->setRememberToken(Str::random(60));
+
+                if (isset($user->must_change_password)) {
+                    $user->must_change_password = false;
+                }
+
+                $user->save();
+
+                // Cabut semua token sesi aktif
+                $user->tokens()->delete();
+
+                // Security alert via email jika terverifikasi
+                if ($user->hasDeliverableEmail() && NotificationSetting::emailEnabled('mail.security_alert')) {
+                    try {
+                        Mail::raw(
+                            "Halo {$user->name},\n\nKata sandi akun Portal BKSDA Kaltim Anda baru saja berhasil diatur ulang (reset). Jika Anda tidak melakukan tindakan ini, segera hubungi admin SIM BKSDA.",
+                            function ($m) use ($user) {
+                                $m->to($user->email)->subject('[Keamanan Akun] Kata Sandi Akun BKSDA Anda Berhasil Direset');
+                            }
+                        );
+                    } catch (\Throwable $e) {
+                        // Non-blocking
+                    }
+                }
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'Kata sandi berhasil direset. Silakan login kembali dengan kata sandi baru Anda.',
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
+    }
+
+    /**
+     * Endpoint: POST /api/webhooks/resend
+     * Webhook Resend dengan verifikasi tanda tangan kriptografis Svix (HMAC-SHA256).
+     */
+    public function webhookResend(Request $request): JsonResponse
+    {
+        $svixId = $request->header('svix-id');
+        $svixTimestamp = $request->header('svix-timestamp');
+        $svixSignature = $request->header('svix-signature');
+        $rawBody = $request->getContent();
+
+        $secret = config('services.resend.webhook_secret', env('RESEND_WEBHOOK_SECRET'));
+        if (! $secret || ! $svixId || ! $svixTimestamp || ! $svixSignature) {
+            return response()->json(['error' => 'Header tanda tangan Svix tidak lengkap.'], 401);
+        }
+
+        // Toleransi waktu maksimal 5 menit untuk mencegah replay attack
+        if (abs(time() - (int) $svixTimestamp) > 300) {
+            return response()->json(['error' => 'Timestamp tanda tangan kedaluwarsa.'], 401);
+        }
+
+        $rawSecret = str_starts_with($secret, 'whsec_') ? substr($secret, 6) : $secret;
+        $key = base64_decode($rawSecret);
+        $toSign = "{$svixId}.{$svixTimestamp}.{$rawBody}";
+        $computedSignature = base64_encode(hash_hmac('sha256', $toSign, $key, true));
+
+        $signatures = explode(' ', $svixSignature);
+        $valid = false;
+        foreach ($signatures as $sig) {
+            $parts = explode(',', $sig, 2);
+            if (count($parts) === 2 && $parts[0] === 'v1') {
+                if (hash_equals($computedSignature, $parts[1])) {
+                    $valid = true;
+                    break;
+                }
+            }
+        }
+
+        if (! $valid) {
+            return response()->json(['error' => 'Tanda tangan webhook Svix tidak valid.'], 401);
+        }
+
+        $payload = $request->json()->all();
+        $type = $payload['type'] ?? '';
+        $data = $payload['data'] ?? [];
+        $emailTo = $data['to'][0] ?? null;
+        $emailId = $data['email_id'] ?? null;
+
+        if (in_array($type, ['email.bounced', 'email.complained'], true)) {
+            if ($emailTo) {
+                User::where('email', $emailTo)->update(['email_verified_at' => null]);
+            }
+            if ($emailId) {
+                EmailLog::where('message_id', $emailId)->update([
+                    'status' => 'bounced',
+                    'error_message' => $data['bounce']['message'] ?? $type,
+                ]);
+            }
+        } elseif ($type === 'email.delivered') {
+            if ($emailId) {
+                EmailLog::where('message_id', $emailId)->update(['status' => 'delivered']);
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Endpoint: GET /api/admin/email/settings
+     */
+    public function getEmailSettings(Request $request): JsonResponse
+    {
+        $settings = NotificationSetting::all();
+        $todayLogs = EmailLog::whereDate('created_at', today())->get();
+        $todayCounts = [
+            'total' => $todayLogs->count(),
+            'sent' => $todayLogs->where('status', 'sent')->count(),
+            'delivered' => $todayLogs->where('status', 'delivered')->count(),
+            'bounced' => $todayLogs->where('status', 'bounced')->count(),
+            'by_mailer' => $todayLogs->groupBy('mailer')->map->count(),
+        ];
+        $recentLogs = EmailLog::latest()->take(20)->get();
+
+        return response()->json([
+            'settings' => $settings,
+            'metrics' => $todayCounts,
+            'recent_logs' => $recentLogs,
+        ]);
+    }
+
+    /**
+     * Endpoint: PUT /api/admin/email/settings
+     */
+    public function updateEmailSettings(Request $request): JsonResponse
+    {
+        if ($request->user()->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya super admin yang berhak mengubah konfigurasi email.'], 403);
+        }
+
+        $validated = $request->validate([
+            'settings' => ['required', 'array'],
+            'settings.*.key' => ['required', 'string'],
+            'settings.*.enabled' => ['required', 'boolean'],
+        ]);
+
+        foreach ($validated['settings'] as $item) {
+            NotificationSetting::updateOrCreate(
+                ['key' => $item['key']],
+                ['enabled' => $item['enabled'], 'updated_at' => now()]
+            );
+            NotificationSetting::clearSettingCache($item['key']);
+        }
+        NotificationSetting::clearSettingCache();
+
+        return response()->json(['message' => 'Pengaturan email berhasil diperbarui.']);
+    }
+
+    /**
+     * Endpoint: POST /api/admin/email/test
+     */
+    public function sendTestEmail(Request $request): JsonResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        Mail::raw(
+            "Halo,\n\nIni adalah email uji coba dari sistem Portal BKSDA Kalimantan Timur pada ".now()->format('d M Y H:i:s')." WITA.\nKonfigurasi failover mailer bekerja dengan baik.",
+            function ($m) use ($request) {
+                $m->to($request->email)->subject('[Test Email] Konfigurasi Mailer Portal BKSDA Kaltim');
+            }
+        );
+
+        return response()->json(['message' => 'Email uji coba berhasil dikirim.']);
     }
 }

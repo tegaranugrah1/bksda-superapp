@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -180,6 +181,14 @@ export default function LoginPage() {
                           </button>
                         </div>
                       </FormControl>
+                      <div className="flex justify-end pt-1">
+                        <Link
+                          href="/forgot-password"
+                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition-colors"
+                        >
+                          Lupa kata sandi?
+                        </Link>
+                      </div>
                       <FormMessage className="text-xs text-red-500" />
                     </FormItem>
                   )}

@@ -35,6 +35,7 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'email_verified_at',
         'password',
         'role',
         'access_modules',
@@ -136,5 +137,16 @@ class User extends Authenticatable
 
         // 3. Cek apakah permission terdaftar di array permissions user
         return in_array($permission, $this->permissions);
+    }
+
+    /**
+     * Mengecek apakah user memiliki email asli yang sudah terverifikasi dan dapat dikirimi email.
+     * Mengikuti security trust boundary: domain internal (.local) atau belum diverifikasi tidak boleh dikirimi email publik.
+     */
+    public function hasDeliverableEmail(): bool
+    {
+        return $this->email_verified_at !== null
+            && ! empty($this->email)
+            && ! str_ends_with(strtolower((string) $this->email), '.local');
     }
 }

@@ -32,6 +32,14 @@ use App\Http\Controllers\Api\PortalNotificationController;
 // Public Auth Route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
+// Email & Password Security Public Routes
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->name('verification.verify')
+    ->middleware(['signed', 'throttle:10,1']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,15');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,15');
+Route::post('/webhooks/resend', [AuthController::class, 'webhookResend'])->middleware('throttle:60,1');
+
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me'])->middleware('throttle:120,1');
@@ -59,4 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/portal/notifications', [PortalNotificationController::class, 'index'])->middleware('throttle:120,1');
     Route::post('/portal/notifications/{id}/read', [PortalNotificationController::class, 'markAsRead'])->whereNumber('id')->middleware('throttle:120,1');
     Route::post('/portal/notifications/mark-all-read', [PortalNotificationController::class, 'markAllAsRead'])->middleware('throttle:60,1');
+
+    // Email Management & Settings
+    Route::put('/me/email', [AuthController::class, 'updateEmail'])->middleware('throttle:3,10,me_email');
+    Route::get('/admin/email/settings', [AuthController::class, 'getEmailSettings'])->middleware('throttle:60,1');
+    Route::put('/admin/email/settings', [AuthController::class, 'updateEmailSettings'])->middleware('throttle:30,1');
+    Route::post('/admin/email/test', [AuthController::class, 'sendTestEmail'])->middleware('throttle:5,1');
 });

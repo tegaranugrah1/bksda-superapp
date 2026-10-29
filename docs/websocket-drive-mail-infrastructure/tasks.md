@@ -65,19 +65,19 @@
 ---
 
 ## Fase 1B — Verifikasi Email, Lupa Password, Mailer
-- [ ] **1B.1** DNS `notif.<domain>`: Resend + Brevo (SPF, DKIM), DMARC `p=none`, Cloudflare Email Routing.
-- [ ] **1B.2** `config/mail.php` failover `resend_smtp → brevo_smtp → log` (design §6.1).
-- [ ] **1B.3** Migrasi `email_logs` + `notification_settings` (toggle per event + master switch). Listener `MessageSent`/`MessageFailed`.
-- [ ] **1B.4** `User::hasDeliverableEmail()`; `PUT /api/me/email` (wajib `current_password`, unik, pemberitahuan ke email lama); route `verification.verify` signed → redirect frontend.
-- [ ] **1B.5** Banner "Hubungkan Gmail" di Portal; admin bisa mengubah email pegawai.
-- [ ] **1B.6** `forgot-password` / `reset-password` + `ResetPassword::createUrlUsing` + halaman frontend `/forgot-password`, `/reset-password`.
-- [ ] **1B.7** Security alert saat ganti/reset password.
-- [ ] **1B.8** Notification mail untuk 3 kategori D4 (`via()` → `['mail']` atau `[]`).
-- [ ] **1B.9** Webhook Resend + verifikasi Svix.
-- [ ] **1B.10** Tab Pengaturan "Email": toggle, hitungan harian per mailer, log, tombol test.
+- [x] **1B.1** DNS `notif.<domain>`: Resend + Brevo (SPF, DKIM), DMARC `p=none`, Cloudflare Email Routing.
+- [x] **1B.2** `config/mail.php` failover `resend_smtp → brevo_smtp → log` (design §6.1).
+- [x] **1B.3** Migrasi `email_logs` + `notification_settings` (toggle per event + master switch). Listener `MessageSent`/`MessageFailed`.
+- [x] **1B.4** `User::hasDeliverableEmail()`; `PUT /api/me/email` (wajib `current_password`, unik, pemberitahuan ke email lama); route `verification.verify` signed → redirect frontend.
+- [x] **1B.5** Banner "Hubungkan Gmail" di Portal; admin bisa mengubah email pegawai.
+- [x] **1B.6** `forgot-password` / `reset-password` + `ResetPassword::createUrlUsing` + halaman frontend `/forgot-password`, `/reset-password`.
+- [x] **1B.7** Security alert saat ganti/reset password.
+- [x] **1B.8** Notification mail untuk 3 kategori D4 (`via()` → `['mail']` atau `[]`).
+- [x] **1B.9** Webhook Resend + verifikasi Svix.
+- [x] **1B.10** Tab Pengaturan "Email": toggle, hitungan harian per mailer, log, tombol test.
 
 **AC**: user `@bksda.local` atau belum terverifikasi → 0 email terkirim; Gmail terverifikasi menerima reset password dan link-nya membuka halaman frontend; mengganti `RESEND_API_KEY` dengan nilai salah → email tetap terkirim lewat Brevo dengan `From: noreply@notif.<domain>`; webhook dengan signature salah → 401; mail-tester.com skor ≥ 9/10.
-**Self-check**: `backend/tests/Feature/EmailSecurityTest.php` — `Notification::fake()`: guard `.local`/unverified, anti-enumeration (respons identik), ganti email tanpa password ditolak, signature webhook valid/invalid.
+**Self-check**: `backend/tests/Feature/EmailSecurityTest.php` — `Notification::fake()`: guard `.local`/unverified, anti-enumeration (respons identik), ganti email tanpa password ditolak, signature webhook valid/invalid (TERVERIFIKASI LULUS).
 **Rollback**: master switch `email_enabled = false` (satu klik). Fitur akun tetap jalan lewat reset oleh admin.
 
 ---

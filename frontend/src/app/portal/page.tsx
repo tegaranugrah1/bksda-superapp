@@ -26,6 +26,7 @@ import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
 import { NotificationBell } from "./_components/NotificationBell";
+import { EmailConnectDialog } from "./_components/EmailConnectDialog";
 
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
@@ -367,6 +368,14 @@ function PortalContent() {
 
   // Initial dashboard load with fast cache populate (strictly validated to active user session)
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("email_verified") === "1") {
+        toast.success("Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif.");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     try {
       const cachedStr = localStorage.getItem("bksda_portal_dashboard_cache");
       const currentStoredUser = localStorage.getItem("bksda_user");
@@ -599,6 +608,11 @@ function PortalContent() {
 
           {/* CENTER COLUMN: MAIN WORKSPACE OR SPECIFIC MENU ITEM */}
           <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
+            <EmailConnectDialog
+              currentEmail={data.user.email}
+              isVerified={Boolean((data.user as any).email_verified_at)}
+              onSuccess={fetchDashboard}
+            />
             {inlineFormType === "general" ? (
               <GeneralReportInlineForm
                 onBack={() => {
