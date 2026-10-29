@@ -98,40 +98,40 @@
 ---
 
 ## Fase 2 — BKSDA Drive MVP
-- [ ] **2.0 SPIKE (wajib lolos dulu, 1 hari)**: pada versi RustFS yang di-pin, buktikan lewat Cloudflare Tunnel: presigned PUT dari browser, multipart presigned 3 part + complete, CORS (expose `ETag`), dan GET dengan `ResponseContentDisposition`. Kalau ada yang gagal → putuskan dulu (Transform Rule / ganti versi) sebelum lanjut.
-- [ ] **2.1** Disk `drive` + `drive_signer`; command buat bucket `bksda-drive` (private) + CORS.
-- [ ] **2.2** Migrasi `drive_units` (seed 9 unit D7), `drive_unit_members`, `drive_folders`, `drive_files` (`s3_key` relatif, `size`, `mime`, `source_module`, `source_id` unique, `deleted_at`), `drive_uploads` (reservasi), kolom `users.drive_quota_bytes` (default 5 GB).
-- [ ] **2.3** `DriveAccess::unitRole()` (design §7.4) + policy folder/file.
-- [ ] **2.4** `DriveController`: folder CRUD, list per ruang, cari, rename, pindah, bintang, sampah/pulihkan.
-- [ ] **2.5** Upload `init` (cek izin + reservasi kuota + soft cap disk) / `complete` (HEAD + finfo + ukuran ≤ deklarasi).
-- [ ] **2.6** Endpoint URL unduh/preview (inline vs attachment).
-- [ ] **2.7** Job terjadwal: cleanup `drive_uploads` kedaluwarsa (per jam), purge sampah 30 hari (harian).
-- [ ] **2.8** Frontend `/drive`: sidebar ruang, indikator kuota, uploader drag-and-drop (multipart, paralel 3, retry per part), preview PDF/gambar/video, kelola anggota unit (manager).
-- [ ] **2.9** Kartu "BKSDA Drive" di Portal dan Module Switcher.
+- [x] **2.0 SPIKE (wajib lolos dulu, 1 hari)**: pada versi RustFS yang di-pin, buktikan lewat Cloudflare Tunnel: presigned PUT dari browser, multipart presigned 3 part + complete, CORS (expose `ETag`), dan GET dengan `ResponseContentDisposition`. Kalau ada yang gagal → putuskan dulu (Transform Rule / ganti versi) sebelum lanjut.
+- [x] **2.1** Disk `drive` + `drive_signer`; command buat bucket `bksda-drive` (private) + CORS.
+- [x] **2.2** Migrasi `drive_units` (seed 9 unit D7), `drive_unit_members`, `drive_folders`, `drive_files` (`s3_key` relatif, `size`, `mime`, `source_module`, `source_id` unique, `deleted_at`), `drive_uploads` (reservasi), kolom `users.drive_quota_bytes` (default 5 GB).
+- [x] **2.3** `DriveAccess::unitRole()` (design §7.4) + policy folder/file.
+- [x] **2.4** `DriveController`: folder CRUD, list per ruang, cari, rename, pindah, bintang, sampah/pulihkan.
+- [x] **2.5** Upload `init` (cek izin + reservasi kuota + soft cap disk) / `complete` (HEAD + finfo + ukuran ≤ deklarasi).
+- [x] **2.6** Endpoint URL unduh/preview (inline vs attachment).
+- [x] **2.7** Job terjadwal: cleanup `drive_uploads` kedaluwarsa (per jam), purge sampah 30 hari (harian).
+- [x] **2.8** Frontend `/drive`: sidebar ruang, indikator kuota, uploader drag-and-drop (multipart, paralel 3, retry per part), preview PDF/gambar/video, kelola anggota unit (manager).
+- [x] **2.9** Kartu "BKSDA Drive" di Portal dan Module Switcher.
 
 **AC**: PDF 2 MB dan video 1 GB berhasil diunggah lewat Cloudflare (video bisa dilanjutkan setelah koneksi diputus); objek tanpa presigned URL → 403; pegawai SKW I tidak bisa melihat `skw-2-tenggarong`; `.html` yang diganti nama jadi `.pdf` ditolak; upload melebihi kuota ditolak di `init`; upload yang ditinggal hilang dalam ≤ 25 jam; mengganti `STORAGE_PUBLIC_ENDPOINT` mengubah host URL tanpa mengubah DB.
-**Self-check**: `backend/tests/Feature/DriveTest.php` — host URL `drive_signer`, matriks `unitRole` (user DB nyata dari tiap satuan kerja), reservasi kuota, deteksi MIME palsu, cleanup reservasi kedaluwarsa.
+**Self-check**: `backend/tests/Feature/DriveTest.php` — host URL `drive_signer`, matriks `unitRole` (user DB nyata dari tiap satuan kerja), reservasi kuota, deteksi MIME palsu, cleanup reservasi kedaluwarsa (TERVERIFIKASI LULUS).
 **Rollback**: sembunyikan modul `drive` dari Module Switcher/`RouteGuard`. Tabel `drive_*` dan bucket terisolasi.
 
 ---
 
 ## Fase 3 — Berbagi
-- [ ] **3.1** Migrasi `drive_shares` (internal: user/unit + role; publik: token 32 byte acak, `expires_at`, `password_hash`, `download_count`).
-- [ ] **3.2** `DriveShareController` + halaman publik `/drive/s/[token]` dengan header `X-Robots-Tag: noindex, nofollow`, `throttle:10,1` untuk password, dan pemilik bisa mencabut link.
+- [x] **3.1** Migrasi `drive_shares` (internal: user/unit + role; publik: token 32 byte acak, `expires_at`, `password_hash`, `download_count`).
+- [x] **3.2** `DriveShareController` + halaman publik `/drive/s/[token]` dengan header `X-Robots-Tag: noindex, nofollow`, `throttle:10,1` untuk password, dan pemilik bisa mencabut link.
 
 **AC**: link kedaluwarsa/dicabut → 404; password salah 10x → 429; header noindex ada; share internal muncul di "Dibagikan ke saya".
-**Self-check**: `backend/tests/Feature/DriveShareTest.php`.
+**Self-check**: `backend/tests/Feature/DriveShareTest.php` (TERVERIFIKASI LULUS).
 **Rollback**: env `DRIVE_PUBLIC_SHARE=false` menonaktifkan route publik.
 
 ---
 
 ## Fase 4 — Auto-Archive
-- [ ] **4.1** Job `ArchiveOfficialDocument` (design §7.5) dengan stream copy lintas disk `local`/`s3` dan `firstOrCreate` pada `(source_module, source_id)`.
-- [ ] **4.2** Dispatch saat scan ST diunggah, SK/Izin Cuti TTE terbit, dokumen BMN final disimpan.
-- [ ] **4.3** Command `drive:backfill-archive` untuk dokumen lama (idempoten, bisa diulang).
+- [x] **4.1** Job `ArchiveOfficialDocument` (design §7.5) dengan stream copy lintas disk `local`/`s3` dan `firstOrCreate` pada `(source_module, source_id)`.
+- [x] **4.2** Dispatch saat scan ST diunggah, SK/Izin Cuti TTE terbit, dokumen BMN final disimpan.
+- [x] **4.3** Command `drive:backfill-archive` untuk dokumen lama (idempoten, bisa diulang).
 
 **AC**: dokumen yang sama diproses 2x → tetap 1 baris; menghapus berkas asli di `bksda` tidak menghapus arsip; kalau RustFS dimatikan, persetujuan cuti tetap sukses dan job masuk `failed_jobs` + alert.
-**Self-check**: `backend/tests/Feature/AutoArchiveTest.php` — `Storage::fake('local')`, `Storage::fake('drive')`, idempotensi.
+**Self-check**: `backend/tests/Feature/AutoArchiveTest.php` — `Storage::fake('local')`, `Storage::fake('drive')`, idempotensi (TERVERIFIKASI LULUS).
 **Rollback**: hapus dispatch (1 baris per modul). Arsip yang sudah tersalin tetap aman.
 
 ---
