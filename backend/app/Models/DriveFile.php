@@ -45,4 +45,9 @@ class DriveFile extends Model
     {
         return $this->belongsTo(DriveFolder::class, 'folder_id');
     }
+
+    public function shares()
+    {
+        return $this->hasMany(DriveShare::class, 'file_id');
+    }
 }

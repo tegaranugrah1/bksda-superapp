@@ -41,6 +41,10 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->midd
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,15');
 Route::post('/webhooks/resend', [AuthController::class, 'webhookResend'])->middleware('throttle:60,1');
 
+// Public Drive Sharing (Fase 3)
+Route::get('/drive/s/{token}', [\App\Http\Controllers\Api\DriveShareController::class, 'getPublicShareInfo'])->middleware('throttle:60,1');
+Route::post('/drive/s/{token}/download', [\App\Http\Controllers\Api\DriveShareController::class, 'downloadPublicShare'])->middleware('throttle:10,1');
+
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me'])->middleware('throttle:120,1');
@@ -91,4 +95,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:60,1');
     Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:60,1');
     Route::get('/drive/files/{id}/url', [\App\Http\Controllers\Api\DriveController::class, 'downloadUrl'])->whereNumber('id')->middleware('throttle:120,1');
+
+    // Drive Sharing (Fase 3)
+    Route::post('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'createShare'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::get('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'listShares'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::delete('/drive/shares/{id}', [\App\Http\Controllers\Api\DriveShareController::class, 'deleteShare'])->whereNumber('id')->middleware('throttle:30,1');
 });

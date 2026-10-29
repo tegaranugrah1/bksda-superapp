@@ -53,8 +53,18 @@ class DriveController extends Controller
             $fileQuery->where('is_starred', true);
         }
 
-        // Scope per ruang (Drive Saya vs Drive Bersama)
-        if ($unit) {
+        if ($filter === 'shared_with_me') {
+            $userUnits = DriveUnit::all()->filter(fn($u) => DriveAccess::unitRole($user, $u) !== null)->pluck('id');
+            $sharedFileIds = \App\Models\DriveShare::where('share_type', 'internal')
+                ->where(function ($q) use ($user, $userUnits) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereIn('unit_id', $userUnits);
+                })
+                ->pluck('file_id');
+
+            $folderQuery->whereRaw('1 = 0');
+            $fileQuery->whereIn('id', $sharedFileIds)->whereNull('deleted_at');
+        } elseif ($unit) {
             $folderQuery->where('unit_id', $unit->id);
             $fileQuery->where('unit_id', $unit->id);
         } else {

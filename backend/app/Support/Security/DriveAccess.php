@@ -63,4 +63,36 @@ class DriveAccess
     {
         return self::unitRole($user, $unit) === 'manager';
     }
+
+    public static function canReadFile(User $user, \App\Models\DriveFile $file): bool
+    {
+        if ($user->role === 'super_admin') {
+            return true;
+        }
+
+        if ($file->unit_id) {
+            $unit = $file->unit ?? DriveUnit::find($file->unit_id);
+            return $unit ? self::canRead($user, $unit) : false;
+        }
+
+        if ($file->user_id === $user->id) {
+            return true;
+        }
+
+        return $file->shares()->where('user_id', $user->id)->exists();
+    }
+
+    public static function canWriteFile(User $user, \App\Models\DriveFile $file): bool
+    {
+        if ($user->role === 'super_admin') {
+            return true;
+        }
+
+        if ($file->unit_id) {
+            $unit = $file->unit ?? DriveUnit::find($file->unit_id);
+            return $unit ? self::canWrite($user, $unit) : false;
+        }
+
+        return $file->user_id === $user->id;
+    }
 }

@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Building2,
   FolderOpen,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,11 +31,11 @@ export interface StorageStats {
 
 interface DriveSidebarProps {
   currentSpace: string; // 'my' | unitId
-  currentFilter: "all" | "starred" | "trash";
+  currentFilter: "all" | "starred" | "trash" | "shared_with_me";
   units: DriveUnitItem[];
   storage: StorageStats;
   onSelectSpace: (space: string) => void;
-  onSelectFilter: (filter: "all" | "starred" | "trash") => void;
+  onSelectFilter: (filter: "all" | "starred" | "trash" | "shared_with_me") => void;
 }
 
 function formatBytes(bytes: number, decimals = 1): string {
@@ -138,6 +139,20 @@ export function DriveSidebar({
               </div>
             )}
           </div>
+
+          {/* Dibagikan ke Saya */}
+          <button
+            onClick={() => onSelectFilter("shared_with_me")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left",
+              currentFilter === "shared_with_me"
+                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400 shadow-xs"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/60"
+            )}
+          >
+            <Share2 className="w-4 h-4 text-indigo-500" />
+            <span>Dibagikan ke Saya</span>
+          </button>
 
           {/* Berbintang */}
           <button

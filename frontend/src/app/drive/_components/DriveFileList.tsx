@@ -17,6 +17,7 @@ import {
   Eye,
   RotateCcw,
   ShieldAlert,
+  Share2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,6 +61,7 @@ interface DriveFileListProps {
   onOpenFolder: (folderId: number) => void;
   onPreviewFile: (file: DriveFileItem) => void;
   onDownloadFile: (file: DriveFileItem) => void;
+  onShareFile?: (file: DriveFileItem) => void;
   onToggleStar: (type: "folder" | "file", id: number) => void;
   onRename: (type: "folder" | "file", id: number, newName: string) => Promise<void>;
   onTrash: (type: "folder" | "file", id: number) => void;
@@ -97,6 +99,7 @@ export function DriveFileList({
   onOpenFolder,
   onPreviewFile,
   onDownloadFile,
+  onShareFile,
   onToggleStar,
   onRename,
   onTrash,
@@ -316,6 +319,11 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFile(file)}>
                               <Download className="w-3.5 h-3.5 mr-2" /> Unduh
                             </DropdownMenuItem>
+                            {canWrite && onShareFile && (
+                              <DropdownMenuItem onClick={() => onShareFile(file)}>
+                                <Share2 className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Bagikan Berkas
+                              </DropdownMenuItem>
+                            )}
                             {canWrite && (
                               <DropdownMenuItem
                                 onClick={() => {

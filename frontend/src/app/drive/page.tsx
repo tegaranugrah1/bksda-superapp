@@ -34,6 +34,7 @@ import {
 } from "./_components/DriveFileList";
 import { DriveUploadDialog } from "./_components/DriveUploadDialog";
 import { DrivePreviewModal } from "./_components/DrivePreviewModal";
+import { DriveShareDialog } from "./_components/DriveShareDialog";
 
 function DriveDashboard() {
   const router = useRouter();
@@ -41,7 +42,7 @@ function DriveDashboard() {
   // Navigation & Filter state
   const [currentSpace, setCurrentSpace] = useState<string>("my"); // 'my' or unitId string
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
-  const [currentFilter, setCurrentFilter] = useState<"all" | "starred" | "trash">("all");
+  const [currentFilter, setCurrentFilter] = useState<"all" | "starred" | "trash" | "shared_with_me">("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -61,6 +62,7 @@ function DriveDashboard() {
   // Dialogs
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<DriveFileItem | null>(null);
+  const [shareFile, setShareFile] = useState<DriveFileItem | null>(null);
 
   const isUnit = currentSpace !== "my";
   const unitIdNumber = isUnit ? parseInt(currentSpace, 10) : null;
@@ -115,7 +117,7 @@ function DriveDashboard() {
     setSearch("");
   };
 
-  const handleSelectFilter = (filter: "all" | "starred" | "trash") => {
+  const handleSelectFilter = (filter: "all" | "starred" | "trash" | "shared_with_me") => {
     setCurrentFilter(filter);
     setCurrentFolderId(null);
   };
@@ -309,6 +311,7 @@ function DriveDashboard() {
               onOpenFolder={handleNavigateFolder}
               onPreviewFile={setPreviewFile}
               onDownloadFile={handleDownloadFile}
+              onShareFile={setShareFile}
               onToggleStar={handleToggleStar}
               onRename={handleRename}
               onTrash={handleTrash}
@@ -332,6 +335,13 @@ function DriveDashboard() {
       <DrivePreviewModal
         file={previewFile}
         onClose={() => setPreviewFile(null)}
+      />
+
+      {/* File Share Dialog */}
+      <DriveShareDialog
+        file={shareFile}
+        open={Boolean(shareFile)}
+        onOpenChange={(open) => !open && setShareFile(null)}
       />
     </div>
   );
