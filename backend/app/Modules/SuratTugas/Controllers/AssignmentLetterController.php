@@ -90,18 +90,13 @@ class AssignmentLetterController extends Controller
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->findOrFail($cleanId);
 
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
         $isAssignedEmployee = $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
         $isCreator = (int) $surat->created_by === (int) $user->id;
 
-        if (! $isAssignedEmployee && ! $isCreator) {
+        if (! $isAdmin && ! $isAssignedEmployee && ! $isCreator) {
             return response()->json([
                 'message' => 'Anda tidak memiliki akses ke Surat Tugas ini.',
-            ], 403);
-        }
-
-        if (! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
-            return response()->json([
-                'message' => 'Surat Tugas ini masih dalam proses penyusunan/persetujuan dan belum dapat diakses.',
             ], 403);
         }
 
@@ -125,16 +120,20 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
-        $surat = AssignmentLetter::with(['employees'])
-            ->where(function ($q) use ($employee, $user) {
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+
+        $query = AssignmentLetter::with(['employees']);
+        if (! $isAdmin) {
+            $query->where(function ($q) use ($employee, $user) {
                 $q->whereHas('employees', function ($eq) use ($employee) {
                     $eq->where('kpg_employees.id', $employee->id);
                 })->orWhere('created_by', $user->id);
-            })
-            ->findOrFail($cleanId);
+            });
+        }
+        $surat = $query->findOrFail($cleanId);
 
         $isCreator = (int) $surat->created_by === (int) $user->id;
-        if (! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+        if (! $isAdmin && ! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
             return response()->json([
                 'message' => 'Dokumen Surat Tugas belum diterbitkan secara resmi.',
             ], 403);

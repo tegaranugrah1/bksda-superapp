@@ -1,8 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
-import { Mail, CheckCircle2, AlertTriangle, ShieldCheck, ArrowRight, Loader2, KeyRound } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import {
+  Mail,
+  CheckCircle2,
+  AlertTriangle,
+  ShieldCheck,
+  ArrowRight,
+  Loader2,
+  KeyRound,
+  RefreshCw,
+  Send,
+  Pencil,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,16 +32,61 @@ interface EmailConnectDialogProps {
   onSuccess?: () => void;
 }
 
-export function EmailConnectDialog({ currentEmail, isVerified = false, onSuccess }: EmailConnectDialogProps) {
+export function EmailConnectDialog({
+  currentEmail,
+  isVerified = false,
+  onSuccess,
+}: EmailConnectDialogProps) {
   const [open, setOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showChangeForm, setShowChangeForm] = useState(false);
 
-  const isLocalEmail = !currentEmail || currentEmail.toLowerCase().endsWith(".local");
+  const isLocalEmail =
+    !currentEmail || currentEmail.toLowerCase().endsWith(".local");
   const needsVerification = isLocalEmail || !isVerified;
 
+  useEffect(() => {
+    if (open) {
+      if (currentEmail && !currentEmail.toLowerCase().endsWith(".local")) {
+        setNewEmail(currentEmail);
+        setShowChangeForm(false);
+      } else {
+        setNewEmail("");
+        setShowChangeForm(true);
+      }
+      setErrorMsg(null);
+      setCurrentPassword("");
+    }
+  }, [open, currentEmail]);
+
+  // One-click Resend Verification to existing email (no password needed!)
+  const handleResendVerification = async () => {
+    setResending(true);
+    setErrorMsg(null);
+    try {
+      const resp = await api.post("/email/verification-notification");
+      toast.success(
+        resp.data?.message || "Tautan verifikasi baru berhasil dikirim ke email Anda!"
+      );
+      setOpen(false);
+      onSuccess?.();
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Gagal mengirim ulang email verifikasi.";
+      setErrorMsg(msg);
+      toast.error(msg);
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // Change Email Submit (requires current password)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -50,13 +112,18 @@ export function EmailConnectDialog({ currentEmail, isVerified = false, onSuccess
         current_password: currentPassword,
       });
 
-      toast.success(resp.data?.message || "Tautan verifikasi berhasil dikirim ke email Anda!");
+      toast.success(
+        resp.data?.message || "Tautan verifikasi berhasil dikirim ke email Anda!"
+      );
       setOpen(false);
       setNewEmail("");
       setCurrentPassword("");
       onSuccess?.();
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.response?.data?.error || "Gagal memperbarui email akun.";
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Gagal memperbarui email akun.";
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -76,7 +143,9 @@ export function EmailConnectDialog({ currentEmail, isVerified = false, onSuccess
               </div>
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {isLocalEmail ? "Hubungkan Akun Gmail Pribadi Anda" : "Email Anda Belum Terverifikasi"}
+                  {isLocalEmail
+                    ? "Hubungkan Akun Gmail Pribadi Anda"
+                    : "Email Anda Belum Terverifikasi"}
                 </h4>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 max-w-xl">
                   {isLocalEmail
@@ -92,7 +161,7 @@ export function EmailConnectDialog({ currentEmail, isVerified = false, onSuccess
               className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
             >
               <Mail className="w-4 h-4 mr-2" />
-              {isLocalEmail ? "Hubungkan Gmail" : "Ganti / Kirim Ulang"}
+              {isLocalEmail ? "Hubungkan Gmail" : "Kirim Ulang / Ganti"}
             </Button>
           </div>
         </div>
@@ -106,83 +175,148 @@ export function EmailConnectDialog({ currentEmail, isVerified = false, onSuccess
               <ShieldCheck className="h-6 w-6" />
             </div>
             <DialogTitle className="text-center text-lg font-bold">
-              Hubungkan Alamat Email
+              {isLocalEmail ? "Hubungkan Alamat Email" : "Verifikasi Alamat Email"}
             </DialogTitle>
             <DialogDescription className="text-center text-xs text-slate-500">
               Gunakan akun Gmail pribadi atau dinas aktif Anda. Kami akan mengirimkan tautan konfirmasi untuk mengaktifkannya.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-            {errorMsg && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
-                {errorMsg}
+          {errorMsg && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
+              {errorMsg}
+            </div>
+          )}
+
+          {/* Skenario 1: Email asli sudah terisi tapi belum diverifikasi */}
+          {!isLocalEmail && !showChangeForm ? (
+            <div className="space-y-4 pt-2">
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 space-y-2 text-center">
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+                  Alamat Email Terdaftar
+                </span>
+                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block font-mono">
+                  {currentEmail}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="w-3 h-3" />
+                  Belum Terverifikasi
+                </span>
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="new-email" className="text-xs font-semibold">
-                Alamat Gmail Baru
-              </Label>
-              <Input
-                id="new-email"
-                type="email"
-                placeholder="nama.pegawai@gmail.com"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                required
-                className="h-10 text-sm"
-              />
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending}
+                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm gap-2"
+                >
+                  {resending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Mengirim Tautan Verifikasi...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Kirim Ulang Tautan Verifikasi</span>
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowChangeForm(true)}
+                  className="w-full text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 font-semibold"
+                >
+                  <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                  Ganti ke Alamat Email Lain
+                </Button>
+              </div>
             </div>
+          ) : (
+            /* Skenario 2: Form Input Email Baru (Wajib kata sandi saat ini) */
+            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="new-email" className="text-xs font-semibold">
+                  Alamat Gmail Baru
+                </Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  placeholder="nama.pegawai@gmail.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  required
+                  className="h-10 text-sm rounded-xl"
+                  autoFocus
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="current-pw" className="text-xs font-semibold">
-                Kata Sandi Akun Saat Ini
-              </Label>
-              <Input
-                id="current-pw"
-                type="password"
-                placeholder="Masukkan kata sandi login Anda"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="h-10 text-sm"
-              />
-              <p className="text-[11px] text-slate-400">
-                Wajib diisi untuk memastikan hanya pemilik akun sah yang dapat mengubah email.
-              </p>
-            </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="current-pw" className="text-xs font-semibold flex items-center justify-between">
+                  <span>Kata Sandi Akun Saat Ini</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Wajib diisi</span>
+                </Label>
+                <Input
+                  id="current-pw"
+                  type="password"
+                  placeholder="Masukkan kata sandi login Anda"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  className="h-10 text-sm rounded-xl"
+                />
+                <p className="text-[11px] text-slate-400">
+                  Diperlukan untuk memverifikasi bahwa perubahan dilakukan oleh pemilik akun sah.
+                </p>
+              </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setOpen(false)}
-                disabled={loading}
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={loading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  <>
-                    Simpan & Kirim Tautan
-                    <ArrowRight className="w-4 h-4 ml-1.5" />
-                  </>
+              <div className="flex justify-end gap-2 pt-2">
+                {!isLocalEmail && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowChangeForm(false)}
+                    disabled={loading}
+                    className="text-xs rounded-xl"
+                  >
+                    Kembali
+                  </Button>
                 )}
-              </Button>
-            </div>
-          </form>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOpen(false)}
+                  disabled={loading}
+                  className="text-xs rounded-xl"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={loading}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      Simpan & Kirim Tautan
+                      <ArrowRight className="w-4 h-4 ml-1.5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </>

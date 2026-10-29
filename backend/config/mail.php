@@ -86,7 +86,7 @@ return [
             'scheme' => 'smtps',
             'username' => 'resend',
             'password' => env('RESEND_API_KEY'),
-            'timeout' => 5,
+            'timeout' => 3,
         ],
 
         'brevo_smtp' => [
@@ -96,16 +96,16 @@ return [
             'scheme' => null,
             'username' => env('BREVO_SMTP_USER'),
             'password' => env('BREVO_SMTP_KEY'),
-            'timeout' => 5,
+            'timeout' => 3,
         ],
 
         'failover' => [
             'transport' => 'failover',
-            'mailers' => [
-                'resend_smtp',
-                'brevo_smtp',
+            'mailers' => array_values(array_filter([
+                env('RESEND_API_KEY') ? 'resend_smtp' : null,
+                env('BREVO_SMTP_KEY') ? 'brevo_smtp' : null,
                 'log',
-            ],
+            ])),
             'retry_after' => 60,
         ],
 

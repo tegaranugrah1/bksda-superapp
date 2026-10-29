@@ -261,10 +261,22 @@ class AuthController extends Controller
 
         $employee = Employee::where('nip', $user->username)->first();
 
+        $emailChanged = false;
         if ($request->has('email')) {
             $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
-            if ($cleanEmail !== null) {
-                $user->update(['email' => $cleanEmail]);
+            if ($cleanEmail !== null && $cleanEmail !== $user->email) {
+                $user->email = $cleanEmail;
+                $user->email_verified_at = null;
+                $user->save();
+                $emailChanged = true;
+
+                if (!str_ends_with($cleanEmail, '.local') && NotificationSetting::emailEnabled('email_master_enabled')) {
+                    try {
+                        $user->sendEmailVerificationNotification();
+                    } catch (\Throwable $e) {
+                        // non-blocking
+                    }
+                }
             }
         }
 
@@ -275,7 +287,10 @@ class AuthController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Profil berhasil diperbarui.']);
+        $msg = $emailChanged
+            ? 'Profil berhasil diperbarui. Tautan verifikasi telah dikirim ke email baru Anda.'
+            : 'Profil berhasil diperbarui.';
+        return response()->json(['message' => $msg]);
     }
 
     /**
@@ -406,6 +421,35 @@ class AuthController extends Controller
 
         $frontendUrl = rtrim(config('app.frontend_url') ?: config('app.url', 'http://localhost:3000'), '/');
         return redirect()->away("{$frontendUrl}/portal?email_verified=1");
+    }
+
+    /**
+     * Endpoint: POST /api/email/verification-notification
+     * Mengirim ulang link verifikasi ke email akun yang sedang login.
+     */
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Alamat email akun Anda sudah terverifikasi.'], 400);
+        }
+
+        if (empty($user->email) || str_ends_with(strtolower((string) $user->email), '.local')) {
+            return response()->json(['message' => 'Harap masukkan alamat Gmail atau dinas resmi terlebih dahulu.'], 422);
+        }
+
+        if (NotificationSetting::emailEnabled('email_master_enabled')) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                // non-blocking
+            }
+        }
+
+        return response()->json([
+            'message' => "Tautan verifikasi baru berhasil dikirim ke {$user->email}.",
+        ]);
     }
 
     /**
