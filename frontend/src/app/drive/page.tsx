@@ -235,7 +235,7 @@ function DriveDashboard() {
 
             <div className="flex items-center gap-2">
               <Image
-                src="/images/logo-kemenlhk.png"
+                src="/logo_bksda.png"
                 alt="Logo BKSDA"
                 width={28}
                 height={28}

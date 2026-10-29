@@ -125,7 +125,7 @@ export default function PublicSharePage() {
       <header className="w-full max-w-xl flex items-center justify-between pb-6 border-b border-slate-200/80 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <Image
-            src="/images/logo-kemenlhk.png"
+            src="/logo_bksda.png"
             alt="Logo BKSDA"
             width={36}
             height={36}
