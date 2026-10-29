@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
+import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { calculateMasaKerja } from "../_lib/employee-helpers";
 import {
@@ -102,6 +103,11 @@ export default function InboxSuratCutiPage() {
       });
       return data;
     },
+  });
+
+  // Real-time inbox update via WebSocket
+  useAdminInboxLive("kepegawaian", () => {
+    queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 
   const list: LeaveRequestItem[] = responseData?.data || (Array.isArray(responseData) ? responseData : []);

@@ -573,6 +573,12 @@ class AssignmentLetterController extends Controller
             //     \Illuminate\Support\Facades\Log::warning('GoogleSheets sync failed: ' . $e->getMessage());
             // }
 
+            try {
+                event(new \App\Events\AdminInboxChanged('surat_tugas', 'created', (string) $surat->id));
+            } catch (\Throwable $e) {
+                Log::warning('Broadcast AdminInboxChanged store SuratTugas failed: '.$e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
                 'data' => $surat,
@@ -833,6 +839,12 @@ class AssignmentLetterController extends Controller
             }
         } catch (\Throwable $e) {
             Log::warning('Gagal mengirim portal notification pada updateStatus SuratTugas: '.$e->getMessage());
+        }
+
+        try {
+            event(new \App\Events\AdminInboxChanged('surat_tugas', 'status_updated', (string) $surat->id));
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast AdminInboxChanged updateStatus SuratTugas failed: '.$e->getMessage());
         }
 
         return response()->json([

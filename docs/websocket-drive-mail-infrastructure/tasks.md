@@ -51,15 +51,15 @@
 ---
 
 ## Fase 1A — WebSocket & Notifikasi Real-Time
-- [ ] **1A.1** `composer require laravel/reverb`; `install:broadcasting --reverb`; `withBroadcasting` prefix `api` + `auth:sanctum` (design §4).
-- [ ] **1A.2** `routes/channels.php` memakai `hasPermission("{$module}.view")`.
-- [ ] **1A.3** Event `PortalNotificationCreated` (ShouldBroadcast) + `$dispatchesEvents` di model `PortalNotification`.
-- [ ] **1A.4** Event `AdminInboxChanged($module)` (payload minimal) dipanggil saat ST/Cuti/BMN diajukan atau diproses.
-- [ ] **1A.5** nginx `location /app` (design §2), `ARG NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/Dockerfile`.
-- [ ] **1A.6** Frontend: `laravel-echo` + `pusher-js`, helper `echo.ts`; lonceng, toast, dan refetch inbox. Kalau WS gagal → tidak ada error di UI.
+- [x] **1A.1** `composer require laravel/reverb`; `install:broadcasting --reverb`; `withBroadcasting` prefix `api` + `auth:sanctum` (design §4).
+- [x] **1A.2** `routes/channels.php` memakai `hasPermission("{$module}.view")`.
+- [x] **1A.3** Event `PortalNotificationCreated` (ShouldBroadcast) + `$dispatchesEvents` di model `PortalNotification`.
+- [x] **1A.4** Event `AdminInboxChanged($module)` (payload minimal) dipanggil saat ST/Cuti/BMN diajukan atau diproses.
+- [x] **1A.5** nginx `location /app` (design §2), `ARG NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/Dockerfile`.
+- [x] **1A.6** Frontend: `laravel-echo` + `pusher-js`, helper `echo.ts`; lonceng, toast, dan refetch inbox (`useAdminInboxLive`). Kalau WS gagal → tidak ada error di UI.
 
 **AC**: notifikasi muncul tanpa reload dengan p95 < 2 detik (10 percobaan lewat Cloudflare); admin BMN mendapat 403 saat subscribe `admin.inbox.kepegawaian`; admin `kepegawaian` bisa subscribe `admin.inbox.surat_tugas`; mematikan `reverb` tidak merusak halaman mana pun.
-**Self-check**: `backend/tests/Feature/BroadcastChannelAuthTest.php` — matriks user DB nyata (super_admin, admin kepegawaian, user bmn, user biasa) × 3 modul.
+**Self-check**: `backend/tests/Feature/BroadcastChannelAuthTest.php` — matriks user DB nyata (super_admin, admin kepegawaian, user bmn, user biasa) × 3 modul (TERVERIFIKASI LULUS).
 **Rollback**: `BROADCAST_CONNECTION=null`; frontend tidak menginisialisasi Echo jika `NEXT_PUBLIC_REVERB_APP_KEY` kosong.
 
 ---

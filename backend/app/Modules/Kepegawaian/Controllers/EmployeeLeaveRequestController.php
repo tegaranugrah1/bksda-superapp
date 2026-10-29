@@ -276,6 +276,19 @@ class EmployeeLeaveRequestController extends Controller
 
             DB::commit();
 
+            try {
+                app(\App\Services\PortalNotificationService::class)->notifyAdmins(
+                    'kepegawaian',
+                    'Pengajuan Cuti Baru',
+                    "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama}.",
+                    'cuti',
+                    'cuti',
+                    (string) $leaveReq->id
+                );
+            } catch (\Throwable $e) {
+                // Non-blocking notification failure
+            }
+
             return response()->json([
                 'message' => 'Pengajuan Cuti berhasil disimpan!',
                 'data' => $leaveReq->load('employee'),
@@ -463,6 +476,8 @@ class EmployeeLeaveRequestController extends Controller
                     (string) $leaveReq->id,
                     ['status' => $newStatus, 'leave_id' => $leaveReq->id]
                 );
+
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'status_updated', (string) $leaveReq->id));
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }

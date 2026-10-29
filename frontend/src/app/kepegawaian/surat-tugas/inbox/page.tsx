@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Inbox } from "lucide-react";
 import api from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
+import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 
 import type {
   AssignmentLetter,
@@ -140,6 +141,15 @@ export default function SuratTugasInbox() {
     [listResponse?.data]
   );
   const meta: PaginationMeta | undefined = listResponse?.meta;
+
+  // Real-time inbox update via WebSocket
+  useAdminInboxLive(
+    "surat_tugas",
+    useCallback(() => {
+      fetchCounts();
+      fetchLetters();
+    }, [fetchCounts, fetchLetters])
+  );
 
   // Sync selected letter if split view is enabled and letters load
   useEffect(() => {
