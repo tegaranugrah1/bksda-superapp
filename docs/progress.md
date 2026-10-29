@@ -1,3 +1,52 @@
+# Progress - Phase 228: Perencanaan Arsitektur & Spesifikasi Teknis Infrastruktur WebSocket Real-Time (Laravel Reverb), BKSDA Drive (RustFS), & Sistem Email Selektif (Resend + Cloudflare)
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: RENCANA v3.0 (revisi setelah review jujur v2 = 6/10, 30 temuan). Belum ada kode yang diubah.
+
+### Update v3.0 (2026-10-29)
+- Review ulang v2 terhadap kode & DB lokal: 12 masalah kritis, antara lain channel `database` bentrok dengan `portal_notifications`, cek modul `surat_tugas` salah (admin ST memakai `kepegawaian`, `surat` = Persuratan), auth broadcast Sanctum belum ada, `route('password.reset')` tidak ada, SKW III = Balikpapan (bukan Paser), retensi vzdump 17 salinan penuh tidak muat 2 TB, tidak ada offsite, image backend tanpa `pg_dump`, jebakan rotasi `POSTGRES_PASSWORD`/`APP_KEY`, webhook tanpa verifikasi Svix. Detail di [plan-review-v2.md](file:///C:/Users/USER/.gemini/antigravity/brain/0d16b89b-13d8-4156-8565-5ffecddb9f93/plan-review-v2.md).
+- Keputusan baru: offsite terenkripsi (DB + arsip resmi + scan cuti); `/dev/sdc` boleh diformat; Proxmox Backup Server (VM) di `/dev/sdb`; cadangan email Brevo (SMTP); 2FA hanya TOTP, wajib admin/super_admin; reset admin = password acak tampil sekali / link reset; Drive Bersama otomatis `skw-1-berau`, `skw-2-tenggarong`, `skw-3-balikpapan`, `kantor-balai` + unit manual.
+- Ketiga dokumen ditulis ulang ke v3; fase dipecah 0A/0B/1A/1B/1C/2/3/4/5 dengan estimasi ±20 hari kerja.
+- **Eksekusi Fase 0A Berjalan**:
+  1. Harddisk kedua `/dev/sdb` (2 TB) berhasil diformat (ext4) dan dimount sebagai storage `local-backup-2tb` (1.86 TB free).
+  2. Harddisk USB SSD `/dev/sdc` (2 TB) berhasil dibersihkan dan diformat (ext4) sebagai storage `backup-usb-2tb` (1.86 TB free).
+  3. Jadwal otomatis backup `vzdump` VM 106 snapshot harian 02:30 WITA (`keep-daily=7, keep-weekly=4, keep-monthly=6`) berhasil didaftarkan di Proxmox Cluster Backup.
+  4. Uji coba backup snapshot VM 106 perdana ke `local-backup-2tb` sukses 100% (6.65 GB zstd snapshot).
+  5. Sinkronisasi snapshot ke USB SSD `/dev/sdc` berhasil diuji (840 MB/s) dan cron otomatis dipasang di `/etc/cron.d/bksda-backup-sync`.
+  6. Script dump PostgreSQL harian (`/srv/backup/run-daily-backup.sh`) dan pengarsipan `backend-storage` dipasang di VM 106 pada crontab 01:00 WITA.
+  7. Uji restore database berhasil 100%: dump di-restore ke database `bksda_restore_verify` dengan 152 baris `users` & `kpg_employees` cocok utuh.
+- **Eksekusi Fase 0B Dimulai**:
+  1. Migrasi antrean dan cache (`jobs`, `failed_jobs`, `cache`, `cache_locks`, `job_batches`) dibuat dan diverifikasi di PostgreSQL.
+  2. `docker-compose.dokploy.yml` diperbarui: memisahkan `backend`, `queue`, `reverb`, dan `scheduler`, beralih ke `CACHE_STORE=database` dan `QUEUE_CONNECTION=database`.
+  3. Reverse proxy WebSocket `/app` ke `http://reverb:8080` ditambahkan pada `deploy/nginx-backend.conf`.
+  4. Build arg `NEXT_PUBLIC_REVERB_APP_KEY` ditambahkan ke `frontend/Dockerfile` dan package `laravel-echo` + `pusher-js` diinstal pada frontend.
+  5. Endpoint otorisasi broadcast `/api/broadcasting/auth` diamankan dengan middleware `auth:sanctum` dan otorisasi channel granular di `backend/routes/channels.php`.
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Sistem Email Transaksional Selektif via Resend & Cloudflare Email Routing)**:
+  - Server VM 106 (`192.168.100.203`) berjalan di balik **Cloudflare Tunnel (`cloudflared`)** dan seluruh pegawai menggunakan `@gmail.com`.
+  - Agar email tidak masuk Spam dan hemat kuota gratis **Resend** (100 email/hari, 3.000/bulan), pengiriman email difokuskan secara selektif hanya untuk **(1) Reset Password**, **(2) Pengajuan Baru ke Admin** (1 email ringkasan per ST/Cuti/BMN), dan **(3) Dokumen Final Terbit ke Pegawai** (ST Terbit / SK Cuti TTE), lengkap dengan *toggle* per jenis event dan penghitung kuota harian di Pengaturan Admin.
+- **Kebutuhan 2 (WebSocket Real-Time via `Laravel Reverb`)**:
+  - Notifikasi progres/revisi rutin dan lonceng notifikasi di Portal Pegawai (`/portal`) maupun Header Admin membutuhkan push *real-time* (< 100 ms), auto-refresh angka *badge* & tabel Inbox Admin saat ada pengajuan baru, serta indikator *Presence* di ST Builder saat 2 Admin membuka surat yang sama.
+- **Kebutuhan 3 (BKSDA Drive Mirip Google Drive di Atas `RustFS` S3)**:
+  - Memanfaatkan sisa kapasitas **455 GB (97% lega)** dan `rustfs` yang sudah berjalan di VM 106 untuk membangun **BKSDA Drive** dengan 3 ruang utama: **Drive Saya** (kuota default 5 GB/pegawai), **Drive Bersama per Seksi/Bidang**, dan **Arsip Resmi Sistem (*Auto-Archive* ST, Cuti, & BMN)**, dilengkapi *Presigned URL upload/download*, *inline preview*, *Share Link* ber-password/kedaluwarsa, dan *Trash 30 hari*.
+
+---
+
+## 2. Dokumen Spesifikasi yang Dibuat (Diperbarui ke v2.0 — 10/10 Spec)
+- [`docs/websocket-drive-mail-infrastructure/requirements.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/requirements.md):
+  - Memuat hasil audit nyata terhadap Proxmox `192.168.100.11` (8 Core, 64 GB RAM, `/dev/sda` `local-lvm` sisa 1,65 TB kosong + `/dev/sdb` 2 TB Enterprise HDD 100% kosong untuk backup + `/dev/sdc` 2 TB Kingston USB SSD) dan database (`152 user @bksda.local`).
+  - Memuat spesifikasi **4 Alur Keamanan Password & 2FA** (Reset Admin + `must_change_password`, Ubah Mandiri + *Security Alert*, Lupa Password bawaan `Password::sendResetLink()`, serta **2FA TOTP Authenticator** + *Recovery Codes*), **Laravel Notifications (`via()`)**, **Failover Mailer (`resend` $\rightarrow$ `smtp` Gmail)**, *sending subdomain* `notif.bksdakaltim.web.id`, DMARC bertahap, webhook bounce Resend, serta arsitektur **100% Domain-Agnostic** (siap beralih dari `bksdakaltim.web.id` ke `bksdakaltim.id`).
+- [`docs/websocket-drive-mail-infrastructure/design.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/design.md):
+  - Memisahkan container Docker (`backend`, `queue`, `reverb`, `scheduler`), mengisolasi channel WebSocket Admin per modul (`admin.inbox.{module}` sesuai `$user->access_modules` di `User.php`), merancang **Dual-Endpoint S3 Signer (`drive` vs `drive_signer`)**, **S3 Multipart Upload (> 80 MB dipotong per 25 MB untuk menembus batas 100 MB Cloudflare Free Tier)**, validasi *magic bytes* (`finfo`), dan **Backup 3-2-1 otomatis ke `/dev/sdb` (2 TB)**.
+- [`docs/websocket-drive-mail-infrastructure/tasks.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/tasks.md):
+  - *Checklist* tahapan implementasi **Fase 0 s/d Fase 4** lengkap dengan *Acceptance Criteria*, *1 Runnable Self-Check*, dan *Rollback Plan* di setiap fase.
+
+---
+
 # Progress - Phase 227: Auto-Sinkronisasi Template ST dari Sumber Dana (FOLU Dinamis), Redesign Konsiderans 2 Card Mandiri, Perbaikan Placeholder `{paket}`, & Sanitasi Butir Tambahan Untuk
 
 > Document updated: 2026-10-29
