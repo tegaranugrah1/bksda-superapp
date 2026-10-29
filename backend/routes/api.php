@@ -79,4 +79,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/2fa/enable', [AuthController::class, 'enable2Fa'])->middleware('throttle:5,1');
     Route::post('/me/2fa/confirm', [AuthController::class, 'confirm2Fa'])->middleware('throttle:5,1');
     Route::delete('/me/2fa', [AuthController::class, 'disable2Fa'])->middleware('throttle:5,1');
+
+    // BKSDA Drive Routes (Fase 2)
+    Route::get('/drive', [\App\Http\Controllers\Api\DriveController::class, 'index'])->middleware('throttle:120,1');
+    Route::post('/drive/folders', [\App\Http\Controllers\Api\DriveController::class, 'createFolder'])->middleware('throttle:60,1');
+    Route::put('/drive/{type}/{id}/rename', [\App\Http\Controllers\Api\DriveController::class, 'rename'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::put('/drive/{type}/{id}/star', [\App\Http\Controllers\Api\DriveController::class, 'toggleStar'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::delete('/drive/{type}/{id}', [\App\Http\Controllers\Api\DriveController::class, 'trash'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::post('/drive/{type}/{id}/restore', [\App\Http\Controllers\Api\DriveController::class, 'restore'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::delete('/drive/{type}/{id}/force', [\App\Http\Controllers\Api\DriveController::class, 'forceDelete'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:60,1');
+    Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:60,1');
+    Route::get('/drive/files/{id}/url', [\App\Http\Controllers\Api\DriveController::class, 'downloadUrl'])->whereNumber('id')->middleware('throttle:120,1');
 });
