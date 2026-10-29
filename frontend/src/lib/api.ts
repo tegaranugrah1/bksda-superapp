@@ -93,6 +93,19 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
 
+    if (status === 423 && typeof window !== "undefined") {
+      const reason = error.response?.data?.reason;
+      if (reason === "must_change_password") {
+        if (!window.location.pathname.startsWith("/portal") || !window.location.search.includes("force_password_change")) {
+          window.location.href = "/portal?force_password_change=1";
+        }
+      } else if (reason === "must_setup_2fa") {
+        if (!window.location.pathname.startsWith("/portal") || !window.location.search.includes("force_setup_2fa")) {
+          window.location.href = "/portal?force_setup_2fa=1";
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );

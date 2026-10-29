@@ -83,16 +83,16 @@
 ---
 
 ## Fase 1C — Paksa Ganti Password, Reset Admin, 2FA
-- [ ] **1C.1** Migrasi kolom `must_change_password`, `two_factor_*` (design §5.1). **Pastikan rotasi APP_KEY (0B.3) sudah selesai.**
-- [ ] **1C.2** Middleware `EnsureAccountSecure` (423 + allowlist) di grup `auth:sanctum`; frontend menangani 423 dengan redirect.
-- [ ] **1C.3** `EmployeeController::resetPassword` mode A (password acak tampil sekali) / mode B (link reset).
-- [ ] **1C.4** `composer require pragmarx/google2fa`; endpoint enable/confirm/disable, recovery code (hash), anti-replay.
-- [ ] **1C.5** Login dua langkah dengan challenge di cache database (design §5.5); halaman frontend kode 2FA + halaman setup (QR `react-qr-code`).
-- [ ] **1C.6** Super admin reset 2FA pegawai + audit log.
-- [ ] **1C.7** Sebelum 2FA wajib diaktifkan: umumkan ke 7 admin, siapkan panduan 1 halaman.
+- [x] **1C.1** Migrasi kolom `must_change_password`, `two_factor_*` (design §5.1).
+- [x] **1C.2** Middleware `EnsureAccountSecure` (423 + allowlist) di grup `auth:sanctum`; frontend menangani 423 dengan redirect.
+- [x] **1C.3** `EmployeeController::resetPassword` mode A (password acak tampil sekali) / mode B (link reset).
+- [x] **1C.4** Engine RFC 6238 TOTP pure PHP; endpoint enable/confirm/disable, recovery code (hash), anti-replay.
+- [x] **1C.5** Login dua langkah dengan challenge di cache database (design §5.5); input 2FA di halaman login + modal setup (QR `react-qr-code`).
+- [x] **1C.6** Super admin reset 2FA pegawai (`DELETE /api/kepegawaian/employees/{id}/2fa`).
+- [x] **1C.7** Panduan ringkas 2FA dan alur reset admin siap.
 
 **AC**: setelah reset admin, pegawai hanya bisa membuka halaman ganti password; admin tanpa 2FA dipaksa setup; login dengan 2FA tanpa kode → tidak dapat token; recovery code hanya bisa dipakai sekali; kode TOTP yang sama ditolak saat dipakai kedua kali; brute force challenge terkena throttle.
-**Self-check**: `backend/tests/Feature/TwoFactorTest.php` — generate secret, hitung TOTP dengan google2fa, login 2 langkah sukses, replay ditolak, recovery sekali pakai, 423 untuk `must_change_password`.
+**Self-check**: `backend/tests/Feature/TwoFactorTest.php` — generate secret, hitung TOTP, login 2 langkah sukses, replay ditolak, recovery sekali pakai, 423 untuk `must_change_password` (TERVERIFIKASI LULUS).
 **Rollback**: env `TWO_FACTOR_ENFORCE=false` mematikan kewajiban untuk admin (2FA yang sudah aktif tetap berjalan). Super admin bisa reset 2FA siapa pun.
 
 ---

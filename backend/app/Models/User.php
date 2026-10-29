@@ -37,6 +37,10 @@ class User extends Authenticatable
         'email',
         'email_verified_at',
         'password',
+        'must_change_password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
         'role',
         'access_modules',
         'permissions',
@@ -54,6 +58,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -67,6 +73,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
             'access_modules' => 'array', // Mengubah JSON DB menjadi Array PHP
             'permissions' => 'array',
             'is_active' => 'boolean',

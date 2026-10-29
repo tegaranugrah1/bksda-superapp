@@ -27,6 +27,7 @@ import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
 import { NotificationBell } from "./_components/NotificationBell";
 import { EmailConnectDialog } from "./_components/EmailConnectDialog";
+import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components/SecurityModals";
 
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
@@ -341,6 +342,8 @@ function PortalContent() {
 
   const [myLeaveRequests, setMyLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [forcePasswordChangeOpen, setForcePasswordChangeOpen] = useState(false);
+  const [setup2FaOpen, setSetup2FaOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
 
   useEffect(() => {
@@ -373,6 +376,12 @@ function PortalContent() {
       if (params.get("email_verified") === "1") {
         toast.success("Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif.");
         window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      if (params.get("force_password_change") === "1") {
+        setForcePasswordChangeOpen(true);
+      }
+      if (params.get("force_setup_2fa") === "1") {
+        setSetup2FaOpen(true);
       }
     }
 
@@ -810,6 +819,24 @@ function PortalContent() {
             onClose={() => setStPreviewOpen(false)}
           />
         )}
+
+        {/* SECURITY GATES (FASE 1C) */}
+        <MandatoryChangePasswordModal
+          open={forcePasswordChangeOpen}
+          onSuccess={() => {
+            setForcePasswordChangeOpen(false);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchDashboard();
+          }}
+        />
+        <TwoFactorSetupModal
+          open={setup2FaOpen}
+          onOpenChange={setSetup2FaOpen}
+          onSuccess={() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchDashboard();
+          }}
+        />
       </div>
   );
 }

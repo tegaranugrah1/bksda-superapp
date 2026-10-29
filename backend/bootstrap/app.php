@@ -48,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\AuthenticateQueryToken::class,
         ], append: [
             AuditLogMiddleware::class,
+            \App\Http\Middleware\EnsureAccountSecure::class,
         ]);
 
     })

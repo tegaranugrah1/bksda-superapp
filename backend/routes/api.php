@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\PortalNotificationController;
 
 // Public Auth Route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/login/2fa', [AuthController::class, 'login2Fa'])->middleware('throttle:5,1');
 
 // Email & Password Security Public Routes
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
@@ -73,4 +74,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/email/settings', [AuthController::class, 'getEmailSettings'])->middleware('throttle:60,1');
     Route::put('/admin/email/settings', [AuthController::class, 'updateEmailSettings'])->middleware('throttle:30,1');
     Route::post('/admin/email/test', [AuthController::class, 'sendTestEmail'])->middleware('throttle:5,1');
+
+    // Two-Factor Authentication (2FA)
+    Route::post('/me/2fa/enable', [AuthController::class, 'enable2Fa'])->middleware('throttle:5,1');
+    Route::post('/me/2fa/confirm', [AuthController::class, 'confirm2Fa'])->middleware('throttle:5,1');
+    Route::delete('/me/2fa', [AuthController::class, 'disable2Fa'])->middleware('throttle:5,1');
 });

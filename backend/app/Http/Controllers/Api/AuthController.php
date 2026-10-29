@@ -45,6 +45,21 @@ class AuthController extends Controller
             ]);
         }
 
+        // Jika 2FA aktif, berikan challenge token (design §5.5)
+        if ($user->two_factor_confirmed_at !== null) {
+            $challengeToken = Str::random(64);
+            \Illuminate\Support\Facades\Cache::put("2fa_challenge:{$challengeToken}", [
+                'user_id' => $user->id,
+                'ip' => $request->ip(),
+            ], now()->addMinutes(5));
+
+            return response()->json([
+                'requires_2fa' => true,
+                'challenge_token' => $challengeToken,
+                'message' => 'Silakan masukkan kode 6-digit dari aplikasi authenticator Anda.',
+            ]);
+        }
+
         // Hapus token lama jika ada (agar tidak menumpuk di DB)
         $user->tokens()->delete();
 
@@ -601,5 +616,157 @@ class AuthController extends Controller
         );
 
         return response()->json(['message' => 'Email uji coba berhasil dikirim.']);
+    }
+
+    /**
+     * Endpoint: POST /api/login/2fa
+     * Verifikasi kode 6-digit TOTP atau 10-char recovery code.
+     */
+    public function login2Fa(Request $request): JsonResponse
+    {
+        $request->validate([
+            'challenge_token' => ['required', 'string'],
+            'code' => ['required', 'string'],
+        ]);
+
+        $challengeKey = "2fa_challenge:{$request->challenge_token}";
+        $data = \Illuminate\Support\Facades\Cache::get($challengeKey);
+
+        if (! $data) {
+            throw ValidationException::withMessages([
+                'challenge_token' => ['Sesi verifikasi 2FA telah kedaluwarsa. Silakan login kembali.'],
+            ]);
+        }
+
+        $user = User::findOrFail($data['user_id']);
+        $rawCode = trim(str_replace([' ', '-'], '', (string) $request->code));
+        $valid = false;
+
+        // 1. Cek kode 6-digit TOTP dengan anti-replay 90 detik
+        $replayKey = "totp_used:{$user->id}:{$rawCode}";
+        if (! \Illuminate\Support\Facades\Cache::has($replayKey)) {
+            if ($user->two_factor_secret && \App\Support\Security\Totp::verify($user->two_factor_secret, $rawCode)) {
+                \Illuminate\Support\Facades\Cache::put($replayKey, true, 90);
+                $valid = true;
+            }
+        }
+
+        // 2. Cek Recovery Code jika TOTP tidak cocok (hanya bisa dipakai sekali)
+        if (! $valid && ! empty($user->two_factor_recovery_codes)) {
+            $hashedAttempt = hash('sha256', strtoupper($rawCode));
+            $recoveryCodes = (array) $user->two_factor_recovery_codes;
+            $idx = array_search($hashedAttempt, $recoveryCodes, true);
+            if ($idx !== false) {
+                unset($recoveryCodes[$idx]);
+                $user->two_factor_recovery_codes = array_values($recoveryCodes);
+                $user->save();
+                $valid = true;
+            }
+        }
+
+        if (! $valid) {
+            throw ValidationException::withMessages([
+                'code' => ['Kode verifikasi 2FA atau recovery code tidak valid.'],
+            ]);
+        }
+
+        // Hapus token challenge agar tidak bisa dipakai ulang
+        \Illuminate\Support\Facades\Cache::forget($challengeKey);
+
+        // Terbitkan token Sanctum baru
+        $user->tokens()->delete();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        return response()->json([
+            'data' => new UserResource($user),
+            'token' => $token,
+            'message' => 'Verifikasi dua langkah berhasil',
+        ]);
+    }
+
+    /**
+     * Endpoint: POST /api/me/2fa/enable
+     */
+    public function enable2Fa(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $secret = \App\Support\Security\Totp::generateSecret(16);
+        $user->two_factor_secret = $secret;
+        $user->two_factor_confirmed_at = null;
+        $user->save();
+
+        $qrUri = \App\Support\Security\Totp::getQrUri('BKSDA Kaltim', (string) $user->username, $secret);
+
+        return response()->json([
+            'secret' => $secret,
+            'qr_uri' => $qrUri,
+        ]);
+    }
+
+    /**
+     * Endpoint: POST /api/me/2fa/confirm
+     */
+    public function confirm2Fa(Request $request): JsonResponse
+    {
+        $request->validate(['code' => ['required', 'string']]);
+        $user = $request->user();
+
+        if (! $user->two_factor_secret) {
+            return response()->json(['message' => 'Silakan generate kunci 2FA terlebih dahulu.'], 400);
+        }
+
+        $code = trim(str_replace(' ', '', (string) $request->code));
+        if (! \App\Support\Security\Totp::verify($user->two_factor_secret, $code)) {
+            throw ValidationException::withMessages([
+                'code' => ['Kode verifikasi TOTP tidak cocok. Pastikan jam pada perangkat Anda akurat.'],
+            ]);
+        }
+
+        $plainCodes = [];
+        $hashedCodes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $c = strtoupper(Str::random(10));
+            $plainCodes[] = $c;
+            $hashedCodes[] = hash('sha256', $c);
+        }
+
+        $user->two_factor_recovery_codes = $hashedCodes;
+        $user->two_factor_confirmed_at = now();
+        $user->save();
+
+        return response()->json([
+            'message' => 'Autentikasi 2 Langkah berhasil diaktifkan.',
+            'recovery_codes' => $plainCodes,
+        ]);
+    }
+
+    /**
+     * Endpoint: DELETE /api/me/2fa
+     */
+    public function disable2Fa(Request $request): JsonResponse
+    {
+        $request->validate(['current_password' => ['required', 'string']]);
+        $user = $request->user();
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Kata sandi saat ini tidak cocok.'],
+            ]);
+        }
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Autentikasi 2 Langkah berhasil dinonaktifkan.',
+        ]);
     }
 }

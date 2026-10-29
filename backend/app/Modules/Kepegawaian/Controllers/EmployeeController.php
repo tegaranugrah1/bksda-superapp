@@ -465,10 +465,6 @@ class EmployeeController extends Controller
      */
     public function resetPassword(Request $request, $id): JsonResponse
     {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:8', 'max:255'],
-        ]);
-
         $employee = Employee::findOrFail($id);
 
         $nip = trim((string) $employee->nip);
@@ -487,15 +483,61 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        $user->update([
-            'password' => $validated['password'],
-        ]);
+        // Mode B: Kirim link reset jika diminta dan user punya email valid
+        if ($request->input('mode') === 'send_link' && $user->hasDeliverableEmail()) {
+            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->email]);
+            return response()->json([
+                'message' => 'Tautan reset kata sandi telah dikirimkan ke email terverifikasi pegawai (' . $user->email . ').',
+            ]);
+        }
+
+        // Mode A (Default): Generate password acak 12 karakter & paksa ganti saat login berikutnya
+        $customPassword = $request->input('password');
+        $temporaryPassword = !empty($customPassword)
+            ? (string) $customPassword
+            : \Illuminate\Support\Str::password(12);
+
+        $user->forceFill([
+            'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+            'must_change_password' => true,
+        ])->save();
 
         // Revoke active sessions / bearer tokens upon password reset
         $user->tokens()->delete();
 
         return response()->json([
-            'message' => 'Password berhasil direset.',
+            'message' => 'Password berhasil direset. Pegawai wajib menggantinya saat login berikutnya.',
+            'temporary_password' => $temporaryPassword,
+        ]);
+    }
+
+    /**
+     * DELETE /api/kepegawaian/employees/{id}/2fa
+     * Super admin mereset 2FA pegawai yang kehilangan akses / ganti HP.
+     */
+    public function reset2Fa(Request $request, $id): JsonResponse
+    {
+        $currentUser = $request->user();
+        if ($currentUser?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya Super Admin yang berhak mereset 2FA pegawai.'], 403);
+        }
+
+        $employee = Employee::findOrFail($id);
+        $nip = trim((string) $employee->nip);
+        $user = $nip !== '' ? User::where('username', $nip)->first() : null;
+
+        if (! $user) {
+            return response()->json(['message' => 'Akun user untuk pegawai ini tidak ditemukan.'], 404);
+        }
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Autentikasi 2 Langkah (2FA) untuk ' . ($employee->nama_lengkap ?? $user->name) . ' berhasil direset.',
         ]);
     }
 
