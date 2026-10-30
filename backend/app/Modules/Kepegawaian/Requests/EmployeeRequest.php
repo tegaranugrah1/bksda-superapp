@@ -29,6 +29,9 @@ class EmployeeRequest extends FormRequest
         if ($this->has('satuan_kerja')) {
             $this->merge(['satuan_kerja' => strip_tags(trim((string) $this->input('satuan_kerja'))) ?: null]);
         }
+        if ($this->has('resor')) {
+            $this->merge(['resor' => strip_tags(trim((string) $this->input('resor'))) ?: null]);
+        }
         if ($this->has('pangkat_golongan')) {
             $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
         }
@@ -80,6 +83,43 @@ class EmployeeRequest extends FormRequest
             'jabatan' => ['nullable', 'string', 'max:255'],
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'resor' => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $resorVal = trim((string) $value);
+                    if ($resorVal === '') {
+                        return;
+                    }
+
+                    $validResors = array_keys(\App\Constants\BksdaConstants::RESORS);
+                    if (! in_array($resorVal, $validResors, true)) {
+                        $fail('Kode resor penempatan tidak valid.');
+                        return;
+                    }
+
+                    $satker = strtolower((string) $this->input('satuan_kerja', ''));
+
+                    // Cross-validation: Balai tidak boleh ditempatkan di resor wilayah
+                    if (str_contains($satker, 'balai') || str_contains($satker, 'samarinda')) {
+                        $fail('Pegawai kantor Balai tidak dapat ditempatkan di resor wilayah.');
+                        return;
+                    }
+
+                    $resorMeta = \App\Constants\BksdaConstants::RESORS[$resorVal] ?? null;
+                    if (! $resorMeta) return;
+
+                    $expectedSkw = (int) ($resorMeta['skw'] ?? 0);
+                    if ($expectedSkw === 1 && ! (str_contains($satker, 'wilayah i') || str_contains($satker, 'skw i') || str_contains($satker, 'berau'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
+                    } elseif ($expectedSkw === 2 && ! (str_contains($satker, 'wilayah ii') || str_contains($satker, 'skw ii') || str_contains($satker, 'tenggarong'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
+                    } elseif ($expectedSkw === 3 && ! (str_contains($satker, 'wilayah iii') || str_contains($satker, 'skw iii') || str_contains($satker, 'balikpapan'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                    }
+                },
+            ],
             'is_active' => ['boolean'],
             'foto' => UploadValidationRules::image(required: false, maxKilobytes: 10240),
         ];

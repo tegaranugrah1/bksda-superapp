@@ -60,6 +60,7 @@ class Employee extends Model
         'jabatan',
         'pangkat_golongan',
         'satuan_kerja',
+        'resor',
         'is_active',
         'foto_profil',
     ];
