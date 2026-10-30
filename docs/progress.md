@@ -114,6 +114,14 @@
 - [`docs/websocket-drive-mail-infrastructure/tasks.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/tasks.md):
   - *Checklist* tahapan implementasi **Fase 0 s/d Fase 4** lengkap dengan *Acceptance Criteria*, *1 Runnable Self-Check*, dan *Rollback Plan* di setiap fase.
 
+### Dokumen Spesifikasi Baru: Peningkatan DeReporting & BKSDA Drive
+- [`docs/dereporting-forms-and-drive-enhancements/requirements.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md):
+  - Kebutuhan integrasi otomatis berkas form ke BKSDA Drive (alokasi kuota Balai, bebas kuota pribadi pegawai), multi-file upload (1-10 berkas), notifikasi email tanggapan, grafik visual analytics, unduh folder ZIP, pindah berkas/folder, transfer kepemilikan, filter chips, dan input GPS koordinat.
+- [`docs/dereporting-forms-and-drive-enhancements/design.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md):
+  - Arsitektur end-to-end, skema migrasi tabel `dr_forms`, struktur JSON `fields` & `answers`, background job `ArchiveFormResponseFilesJob`, streaming ZIP service on-the-fly, dan kontrak API baru.
+- [`docs/dereporting-forms-and-drive-enhancements/tasks.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md):
+  - Rencana kerja 6 fase terstruktur dilengkapi acceptance criteria dan runnable self-check di setiap fase.
+
 ---
 
 # Progress - Phase 227: Auto-Sinkronisasi Template ST dari Sumber Dana (FOLU Dinamis), Redesign Konsiderans 2 Card Mandiri, Perbaikan Placeholder `{paket}`, & Sanitasi Butir Tambahan Untuk
