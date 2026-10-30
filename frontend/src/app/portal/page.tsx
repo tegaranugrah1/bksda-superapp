@@ -375,6 +375,7 @@ function PortalContent() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("email_verified") === "1") {
         toast.success("Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif.");
+        try { localStorage.removeItem("bksda_portal_dashboard_cache"); } catch {}
         window.history.replaceState({}, document.title, window.location.pathname);
       }
       if (params.get("force_password_change") === "1") {

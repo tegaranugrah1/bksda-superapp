@@ -32,7 +32,7 @@ const api = axios.create({
     Accept: "application/json",
   },
   withCredentials: true,
-  timeout: 10000,
+  timeout: 20000,
 });
 
 function getCookie(name: string): string | null {

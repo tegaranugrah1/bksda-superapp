@@ -35,8 +35,15 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($username.'|'.$request->ip());
         });
 
-        // Signed URL untuk verifikasi email pegawai
+        // Signed URL untuk verifikasi email pegawai (mengutamakan PUBLIC_APP_URL agar bisa dibuka di HP)
         VerifyEmail::createUrlUsing(function ($notifiable) {
+            $rootUrl = env('PUBLIC_APP_URL') ?: config('app.url');
+            if ($rootUrl) {
+                URL::forceRootUrl(rtrim($rootUrl, '/'));
+                if (str_starts_with($rootUrl, 'https://')) {
+                    URL::forceScheme('https');
+                }
+            }
             return URL::temporarySignedRoute(
                 'verification.verify',
                 now()->addMinutes(60),

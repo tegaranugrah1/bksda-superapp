@@ -126,6 +126,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules ?? [],
+                'email_verified_at' => $user->email_verified_at?->toISOString(),
             ],
             'employee' => $employee ? [
                 'id' => $employee->id,
@@ -374,28 +375,31 @@ class AuthController extends Controller
         $user->email_verified_at = null;
         $user->save();
 
-        // Beritahu email lama jika sebelumnya sudah terverifikasi
-        if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
-            try {
-                Mail::raw(
-                    "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$newEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
-                    function ($m) use ($oldEmail) {
-                        $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
-                    }
-                );
-            } catch (\Throwable $e) {
-                // Non-blocking
+        // Kirim notifikasi email secara non-blocking setelah respons HTTP dikirim ke browser
+        dispatch(function () use ($user, $wasDeliverable, $oldEmail, $newEmail) {
+            // Beritahu email lama jika sebelumnya sudah terverifikasi
+            if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
+                try {
+                    Mail::raw(
+                        "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$newEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
+                        function ($m) use ($oldEmail) {
+                            $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
+                        }
+                    );
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Security alert email failed: '.$e->getMessage());
+                }
             }
-        }
 
-        // Kirim link verifikasi ke email baru
-        if (NotificationSetting::emailEnabled('email_master_enabled')) {
-            try {
-                $user->sendEmailVerificationNotification();
-            } catch (\Throwable $e) {
-                // Non-blocking
+            // Kirim link verifikasi ke email baru
+            if (NotificationSetting::emailEnabled('email_master_enabled')) {
+                try {
+                    $user->sendEmailVerificationNotification();
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Verification email failed: '.$e->getMessage());
+                }
             }
-        }
+        })->afterResponse();
 
         return response()->json([
             'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
@@ -440,11 +444,13 @@ class AuthController extends Controller
         }
 
         if (NotificationSetting::emailEnabled('email_master_enabled')) {
-            try {
-                $user->sendEmailVerificationNotification();
-            } catch (\Throwable $e) {
-                // non-blocking
-            }
+            dispatch(function () use ($user) {
+                try {
+                    $user->sendEmailVerificationNotification();
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Resend verification email failed: '.$e->getMessage());
+                }
+            })->afterResponse();
         }
 
         return response()->json([
