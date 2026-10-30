@@ -44,6 +44,17 @@ export function EmailConnectDialog({
   const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showChangeForm, setShowChangeForm] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const isLocalEmail =
     !currentEmail || currentEmail.toLowerCase().endsWith(".local");
@@ -69,6 +80,7 @@ export function EmailConnectDialog({
     setErrorMsg(null);
     try {
       const resp = await api.post("/email/verification-notification");
+      setCooldown(60);
       toast.success(
         resp.data?.message || "Tautan verifikasi baru berhasil dikirim ke email Anda!"
       );
@@ -115,6 +127,7 @@ export function EmailConnectDialog({
       toast.success(
         resp.data?.message || "Tautan verifikasi berhasil dikirim ke email Anda!"
       );
+      setCooldown(60);
       setOpen(false);
       setNewEmail("");
       setCurrentPassword("");
@@ -208,13 +221,18 @@ export function EmailConnectDialog({
                 <Button
                   type="button"
                   onClick={handleResendVerification}
-                  disabled={resending}
+                  disabled={resending || cooldown > 0}
                   className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm gap-2"
                 >
                   {resending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Mengirim Tautan Verifikasi...</span>
+                    </>
+                  ) : cooldown > 0 ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin text-emerald-200" />
+                      <span>Tautan Telah Dikirim (Tunggu {cooldown}s)</span>
                     </>
                   ) : (
                     <>

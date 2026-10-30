@@ -375,6 +375,9 @@ class AuthController extends Controller
         $user->email_verified_at = null;
         $user->save();
 
+        // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
+        Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
+
         // Kirim notifikasi email secara non-blocking setelah respons HTTP dikirim ke browser
         dispatch(function () use ($user, $wasDeliverable, $oldEmail, $newEmail) {
             // Beritahu email lama jika sebelumnya sudah terverifikasi
