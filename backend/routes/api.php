@@ -105,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/drive/folders/{id}/zip-token', [\App\Http\Controllers\Api\DriveController::class, 'requestZipToken'])->whereNumber('id')->middleware('throttle:30,1');
     Route::post('/drive/files/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFile'])->whereNumber('id')->middleware('throttle:60,1');
     Route::post('/drive/folders/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFolder'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::post('/drive/folders/{id}/assign-manager', [\App\Http\Controllers\Api\DriveController::class, 'assignManager'])->whereNumber('id')->middleware('throttle:30,1');
 
     // Drive Sharing (Fase 3)
     Route::post('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'createShare'])->whereNumber('id')->middleware('throttle:30,1');

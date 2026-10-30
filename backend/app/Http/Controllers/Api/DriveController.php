@@ -39,6 +39,14 @@ class DriveController extends Controller
             }
         }
 
+        // Pengecekan akses ke folder spesifik (Anti-IDOR)
+        if ($folderId) {
+            $targetFolder = DriveFolder::find($folderId);
+            if ($targetFolder && ! DriveAccess::canReadFolder($user, $targetFolder)) {
+                return response()->json(['message' => 'Anda tidak memiliki akses ke folder ini.'], 403);
+            }
+        }
+
         // Folder Query
         $folderQuery = DriveFolder::query();
         $fileQuery = DriveFile::query();
@@ -57,16 +65,19 @@ class DriveController extends Controller
         }
 
         if ($filter === 'shared_with_me') {
-            $userUnits = DriveUnit::all()->filter(fn($u) => DriveAccess::unitRole($user, $u) !== null)->pluck('id');
-            $sharedFileIds = \App\Models\DriveShare::where('share_type', 'internal')
+            $userUnits = DriveAccess::getUserUnitIds($user);
+            $shares = \App\Models\DriveShare::where('share_type', 'internal')
                 ->where(function ($q) use ($user, $userUnits) {
                     $q->where('user_id', $user->id)
                       ->orWhereIn('unit_id', $userUnits);
                 })
-                ->pluck('file_id');
+                ->get();
 
-            $folderQuery->whereRaw('1 = 0');
-            $fileQuery->whereIn('id', $sharedFileIds)->whereNull('deleted_at');
+            $sharedFileIds = $shares->whereNotNull('file_id')->pluck('file_id');
+            $sharedFolderIds = $shares->whereNotNull('folder_id')->pluck('folder_id');
+
+            $folderQuery->whereIn('id', $sharedFolderIds);
+            $fileQuery->whereIn('id', $sharedFileIds);
         } elseif ($unit) {
             $folderQuery->where('unit_id', $unit->id);
             $fileQuery->where('unit_id', $unit->id);
@@ -89,8 +100,14 @@ class DriveController extends Controller
             $fileQuery->where('name', 'like', "%{$search}%");
         }
 
-        $folders = $folderQuery->orderBy('name')->get();
-        $files = $fileQuery->orderByDesc('created_at')->get();
+        // Anti-Search Leak: saring hanya folder dan berkas yang berhak dibaca user
+        $folders = $folderQuery->orderBy('name')->get()
+            ->filter(fn ($f) => DriveAccess::canReadFolder($user, $f))
+            ->values();
+
+        $files = $fileQuery->orderByDesc('created_at')->get()
+            ->filter(fn ($f) => DriveAccess::canReadFile($user, $f))
+            ->values();
 
         // Breadcrumbs hierarchy
         $breadcrumbs = [];
@@ -159,13 +176,28 @@ class DriveController extends Controller
         $parentFolder = ! empty($validated['parent_id']) ? DriveFolder::find($validated['parent_id']) : null;
         $unitId = $validated['unit_id'] ?? $parentFolder?->unit_id;
 
-        if (! empty($unitId)) {
+        if ($parentFolder) {
+            if (! DriveAccess::canWriteFolder($user, $parentFolder)) {
+                return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
+            }
+        } elseif (! empty($unitId)) {
             $unit = DriveUnit::findOrFail($unitId);
             if (! DriveAccess::canWrite($user, $unit)) {
                 return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
             }
-        } elseif ($parentFolder && ! DriveAccess::canWriteFolder($user, $parentFolder)) {
-            return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
+        }
+
+        // Warisi restriksi subfolder dari parent folder (Subfolder Inheritance)
+        $isRestricted = false;
+        $folderScope = 'umum';
+        $resorCode = null;
+        $roomCode = null;
+
+        if ($parentFolder && $parentFolder->is_restricted) {
+            $isRestricted = true;
+            $folderScope = $parentFolder->folder_scope;
+            $resorCode = $parentFolder->resor_code;
+            $roomCode = $parentFolder->room_code;
         }
 
         $folder = DriveFolder::create([
@@ -174,6 +206,10 @@ class DriveController extends Controller
             'parent_id' => $validated['parent_id'] ?? null,
             'name' => trim($validated['name']),
             'color' => $validated['color'] ?? null,
+            'is_restricted' => $isRestricted,
+            'folder_scope' => $folderScope,
+            'resor_code' => $resorCode,
+            'room_code' => $roomCode,
         ]);
 
         return response()->json([
@@ -192,14 +228,16 @@ class DriveController extends Controller
         ]);
 
         $user = $request->user();
-        $model = $type === 'folder' ? DriveFolder::findOrFail($id) : DriveFile::findOrFail($id);
-
-        if ($model->unit_id) {
-            if (! DriveAccess::canWrite($user, $model->unit)) {
+        if ($type === 'folder') {
+            $model = DriveFolder::findOrFail($id);
+            if (! DriveAccess::canWriteFolder($user, $model)) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
-        } elseif ($model->user_id !== $user->id && $user->role !== 'super_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        } else {
+            $model = DriveFile::findOrFail($id);
+            if (! DriveAccess::canWriteFile($user, $model)) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
 
         $model->update(['name' => trim($validated['name'])]);
@@ -224,14 +262,16 @@ class DriveController extends Controller
     public function trash(Request $request, string $type, int $id): JsonResponse
     {
         $user = $request->user();
-        $model = $type === 'folder' ? DriveFolder::findOrFail($id) : DriveFile::findOrFail($id);
-
-        if ($model->unit_id) {
-            if (! DriveAccess::canWrite($user, $model->unit)) {
+        if ($type === 'folder') {
+            $model = DriveFolder::findOrFail($id);
+            if (! DriveAccess::canWriteFolder($user, $model)) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
-        } elseif ($model->user_id !== $user->id && $user->role !== 'super_admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        } else {
+            $model = DriveFile::findOrFail($id);
+            if (! DriveAccess::canWriteFile($user, $model)) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
 
         $model->delete();
@@ -523,11 +563,7 @@ class DriveController extends Controller
         $user = $request->user();
         $file = DriveFile::findOrFail($id);
 
-        if ($file->unit_id) {
-            if (! DriveAccess::canRead($user, $file->unit)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-        } elseif ($file->user_id !== $user->id && $user->role !== 'super_admin') {
+        if (! DriveAccess::canReadFile($user, $file)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -591,7 +627,7 @@ class DriveController extends Controller
         $signedUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
             'drive.folder.download_zip',
             now()->addMinutes(15),
-            ['id' => $folder->id]
+            ['id' => $folder->id, 'u' => $user->id]
         );
 
         return response()->json([
@@ -603,7 +639,7 @@ class DriveController extends Controller
 
     /**
      * GET /api/drive/folders/{id}/download-zip
-     * Men-stream arsip ZIP folder secara instan ke browser dengan proteksi anti Zip-Slip.
+     * Men-stream arsip ZIP folder secara instan ke browser dengan proteksi anti Zip-Slip dan anti-leak.
      */
     public function downloadFolderZip(Request $request, int $id)
     {
@@ -611,18 +647,24 @@ class DriveController extends Controller
             abort(403, 'Tautan unduhan ZIP tidak valid atau sudah kedaluwarsa.');
         }
 
+        $userId = $request->query('u');
         $folder = DriveFolder::findOrFail($id);
+        $user = ($userId ? \App\Models\User::find($userId) : null) ?? $request->user() ?? \App\Models\User::find($folder->user_id);
+
+        if (! $user || ! DriveAccess::canReadFolder($user, $folder)) {
+            abort(403, 'Anda tidak memiliki hak untuk mengunduh arsip ZIP folder ini.');
+        }
 
         $cleanFolderName = preg_replace('/[^\w\-]/', '_', $folder->name) ?: 'folder';
         $zipFilename = "{$cleanFolderName}.zip";
 
-        return response()->streamDownload(function () use ($folder) {
+        return response()->streamDownload(function () use ($folder, $user) {
             $zip = new \ZipStream\ZipStream(
                 outputStream: fopen('php://output', 'wb'),
                 sendHttpHeaders: false
             );
 
-            $this->addFolderToZipStream($zip, $folder, '');
+            $this->addFolderToZipStream($zip, $folder, '', $user);
 
             $zip->finish();
         }, $zipFilename, [
@@ -632,13 +674,17 @@ class DriveController extends Controller
     }
 
     /**
-     * Rekursif menambahkan berkas dan subfolder ke ZipStream dengan proteksi anti Zip-Slip (CWE-22).
+     * Rekursif menambahkan berkas dan subfolder ke ZipStream dengan proteksi anti Zip-Slip (CWE-22) dan isolasi RBAC.
      */
-    protected function addFolderToZipStream(\ZipStream\ZipStream $zip, DriveFolder $folder, string $basePath): void
+    protected function addFolderToZipStream(\ZipStream\ZipStream $zip, DriveFolder $folder, string $basePath, \App\Models\User $user): void
     {
         // Ambil semua berkas di folder ini
         $files = DriveFile::where('folder_id', $folder->id)->whereNull('deleted_at')->get();
         foreach ($files as $file) {
+            if (! DriveAccess::canReadFile($user, $file)) {
+                continue;
+            }
+
             // Anti-Zip-Slip (CWE-22): Sanitasi nama berkas, cegah path traversal
             $cleanName = basename(preg_replace('/(\.\.[\/\\\\])+/', '', (string) $file->name));
             if ($cleanName === '' || $cleanName === '.' || $cleanName === '..') {
@@ -661,15 +707,19 @@ class DriveController extends Controller
             }
         }
 
-        // Telusuri subfolder
+        // Telusuri subfolder (Anti-Bulk ZIP bypass: lewati subfolder yang tidak dapat dibaca user)
         $subfolders = DriveFolder::where('parent_id', $folder->id)->whereNull('deleted_at')->get();
         foreach ($subfolders as $sub) {
+            if (! DriveAccess::canReadFolder($user, $sub)) {
+                continue;
+            }
+
             $subClean = basename(preg_replace('/(\.\.[\/\\\\])+/', '', (string) $sub->name));
             if ($subClean === '' || $subClean === '.' || $subClean === '..') {
                 $subClean = "folder_{$sub->id}";
             }
             $subPath = ltrim(($basePath !== '' ? "{$basePath}/" : '') . $subClean, '/');
-            $this->addFolderToZipStream($zip, $sub, $subPath);
+            $this->addFolderToZipStream($zip, $sub, $subPath, $user);
         }
     }
 
@@ -780,6 +830,36 @@ class DriveController extends Controller
 
         return response()->json([
             'message' => 'Folder berhasil dipindahkan.',
+            'folder' => $folder->fresh(),
+        ]);
+    }
+
+    /**
+     * POST /api/drive/folders/{id}/assign-manager
+     * Menunjuk seorang pegawai/user sebagai Admin/Manager dari folder resor/ruangan.
+     */
+    public function assignManager(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Hanya Superadmin atau Admin Drive yang berhak menunjuk Admin Resor/Ruangan.'], 403);
+        }
+
+        $folder = DriveFolder::findOrFail($id);
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $newManager = \App\Models\User::findOrFail($validated['user_id']);
+        $folder->update(['user_id' => $newManager->id]);
+
+        \App\Models\DriveShare::updateOrCreate(
+            ['folder_id' => $folder->id, 'user_id' => $newManager->id],
+            ['role' => 'manager', 'share_type' => 'internal', 'created_by' => $user->id]
+        );
+
+        return response()->json([
+            'message' => "Pengguna {$newManager->name} berhasil ditunjuk sebagai Admin untuk folder {$folder->name}.",
             'folder' => $folder->fresh(),
         ]);
     }
