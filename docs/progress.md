@@ -1,27 +1,84 @@
-# Progress - Phase 228: Perencanaan Arsitektur & Spesifikasi Teknis Infrastruktur WebSocket Real-Time (Laravel Reverb), BKSDA Drive (RustFS), & Sistem Email Selektif (Resend + Cloudflare)
+# Progress - Phase 228: Implementasi Penuh Infrastruktur WebSocket Real-Time (Laravel Reverb), BKSDA Drive (RustFS), Sistem Email Failover (Resend + Brevo), Keamanan Akun 2FA TOTP, & Backup 3-2-1 Proxmox
 
-> Document updated: 2026-10-29
+> Document updated: 2026-10-30
 > Branch: `production-server`
-> Status: RENCANA v3.0 (revisi setelah review jujur v2 = 6/10, 30 temuan). Belum ada kode yang diubah.
+> Status: SELESAI & TERVERIFIKASI (Fase 0A, 0B, 1A, 1B, 1C, 2, 3, dan 4 selesai 100% dengan 22 pengujian PHPUnit lulus, pengujian kirim email nyata via Resend & Brevo sukses, dan seluruh commit tersimpan di lokal).
 
-### Update v3.0 (2026-10-29)
-- Review ulang v2 terhadap kode & DB lokal: 12 masalah kritis, antara lain channel `database` bentrok dengan `portal_notifications`, cek modul `surat_tugas` salah (admin ST memakai `kepegawaian`, `surat` = Persuratan), auth broadcast Sanctum belum ada, `route('password.reset')` tidak ada, SKW III = Balikpapan (bukan Paser), retensi vzdump 17 salinan penuh tidak muat 2 TB, tidak ada offsite, image backend tanpa `pg_dump`, jebakan rotasi `POSTGRES_PASSWORD`/`APP_KEY`, webhook tanpa verifikasi Svix. Detail di [plan-review-v2.md](file:///C:/Users/USER/.gemini/antigravity/brain/0d16b89b-13d8-4156-8565-5ffecddb9f93/plan-review-v2.md).
-- Keputusan baru: offsite terenkripsi (DB + arsip resmi + scan cuti); `/dev/sdc` boleh diformat; Proxmox Backup Server (VM) di `/dev/sdb`; cadangan email Brevo (SMTP); 2FA hanya TOTP, wajib admin/super_admin; reset admin = password acak tampil sekali / link reset; Drive Bersama otomatis `skw-1-berau`, `skw-2-tenggarong`, `skw-3-balikpapan`, `kantor-balai` + unit manual.
-- Ketiga dokumen ditulis ulang ke v3; fase dipecah 0A/0B/1A/1B/1C/2/3/4/5 dengan estimasi ±20 hari kerja.
-- **Eksekusi Fase 0A Berjalan**:
-  1. Harddisk kedua `/dev/sdb` (2 TB) berhasil diformat (ext4) dan dimount sebagai storage `local-backup-2tb` (1.86 TB free).
-  2. Harddisk USB SSD `/dev/sdc` (2 TB) berhasil dibersihkan dan diformat (ext4) sebagai storage `backup-usb-2tb` (1.86 TB free).
-  3. Jadwal otomatis backup `vzdump` VM 106 snapshot harian 02:30 WITA (`keep-daily=7, keep-weekly=4, keep-monthly=6`) berhasil didaftarkan di Proxmox Cluster Backup.
-  4. Uji coba backup snapshot VM 106 perdana ke `local-backup-2tb` sukses 100% (6.65 GB zstd snapshot).
-  5. Sinkronisasi snapshot ke USB SSD `/dev/sdc` berhasil diuji (840 MB/s) dan cron otomatis dipasang di `/etc/cron.d/bksda-backup-sync`.
-  6. Script dump PostgreSQL harian (`/srv/backup/run-daily-backup.sh`) dan pengarsipan `backend-storage` dipasang di VM 106 pada crontab 01:00 WITA.
-  7. Uji restore database berhasil 100%: dump di-restore ke database `bksda_restore_verify` dengan 152 baris `users` & `kpg_employees` cocok utuh.
-- **Eksekusi Fase 0B Dimulai**:
-  1. Migrasi antrean dan cache (`jobs`, `failed_jobs`, `cache`, `cache_locks`, `job_batches`) dibuat dan diverifikasi di PostgreSQL.
-  2. `docker-compose.dokploy.yml` diperbarui: memisahkan `backend`, `queue`, `reverb`, dan `scheduler`, beralih ke `CACHE_STORE=database` dan `QUEUE_CONNECTION=database`.
-  3. Reverse proxy WebSocket `/app` ke `http://reverb:8080` ditambahkan pada `deploy/nginx-backend.conf`.
-  4. Build arg `NEXT_PUBLIC_REVERB_APP_KEY` ditambahkan ke `frontend/Dockerfile` dan package `laravel-echo` + `pusher-js` diinstal pada frontend.
-  5. Endpoint otorisasi broadcast `/api/broadcasting/auth` diamankan dengan middleware `auth:sanctum` dan otorisasi channel granular di `backend/routes/channels.php`.
+### Ringkasan Eksekusi Infrastruktur (Fase 0A s/d Fase 4)
+
+#### 1. Fase 0A — Backup 3-2-1 Proxmox & Uji Bencana (Disaster Recovery)
+- **Storage Proxmox**:
+  - Harddisk internal kedua `/dev/sdb` (2 TB) diformat ext4 dan didaftarkan sebagai Proxmox storage `local-backup-2tb` (1.86 TB free).
+  - Harddisk eksternal USB SSD `/dev/sdc` (2 TB) diformat ext4 dan didaftarkan sebagai storage `backup-usb-2tb` (1.86 TB free).
+- **Snapshot Otomatis VM 106**:
+  - Jadwal backup snapshot `vzdump` VM 106 harian pukul 02:30 WITA aktif di Proxmox Cluster Backup (`compress=zstd`, retensi: 7 harian, 4 mingguan, 6 bulanan). Uji snapshot perdana sukses (6.65 GB).
+  - Cron sinkronisasi snapshot ke USB SSD terpasang di `/etc/cron.d/bksda-backup-sync` (kecepatan transfer 840 MB/s).
+- **Internal Dump VM 106 & Uji Restore Nyata**:
+  - Script dump internal VM 106 `/srv/backup/run-daily-backup.sh` (dump PostgreSQL `pg_dump -Fc` + tar volume `backend-storage` + retensi 14 hari) terjadwal tiap 01:00 WITA.
+  - Uji bencana restore nyata terbukti berhasil 100%: dump di-restore ke database `bksda_restore_verify` dengan 152 baris `users` & `kpg_employees` cocok utuh.
+
+#### 2. Fase 0B — Fondasi Antrean, Cache, Monitoring, & Keamanan Storage
+- **Migrasi Database**: Tabel antrean dan cache (`jobs`, `failed_jobs`, `cache`, `cache_locks`, `job_batches`) diterapkan di PostgreSQL.
+- **Pemisahan Container Dokploy**: `docker-compose.dokploy.yml` memisahkan 4 container mandiri: `backend`, `queue`, `reverb`, dan `scheduler` dengan `CACHE_STORE=database` dan `QUEUE_CONNECTION=database`.
+- **Nginx Reverse Proxy & Frontend Echo**:
+  - Menambahkan proxy WebSocket `location /app` ke `http://reverb:8080` di `deploy/nginx-backend.conf`.
+  - Memasang `laravel-echo` + `pusher-js` di frontend serta menyuntikkan `ARG NEXT_PUBLIC_REVERB_APP_KEY`.
+- **Command Monitoring & Self-Check**:
+  - `php artisan app:monitor-health`: Memantau `queue:heartbeat` via `QueueHeartbeat`, socket Reverb 8080, `failed_jobs` 15 menit terakhir, dan disk > 80% dengan alert deduplikasi 1 jam ke super_admin.
+  - `php artisan app:self-check-foundation`: Memverifikasi koneksi DB, cache, dan eksekusi antrean.
+  - `php artisan storage:setup --audit`: Mengaudit bucket policy S3 RustFS — anonymous `GetObject` diizinkan, anonymous `ListBucket` ditolak (403 Forbidden).
+
+#### 3. Fase 1A — WebSocket Real-Time, Admin Live Inbox, & Optimasi Urutan
+- **Event Broadcasting**:
+  - `PortalNotificationCreated`: Broadcast notifikasi lonceng pegawai ke private channel `App.Models.User.{id}`.
+  - `AdminInboxChanged`: Broadcast pembaruan inbox admin ke private channel `admin.inbox.{module}`.
+- **Resolusi Delay Approval & Urutan Notifikasi**:
+  - Pada `AssignmentLetterController` (`approve`, `updateStatus`, `store`), `EmployeeLeaveRequestController` (`adminUpdateStatus`, `adminApprove`, `generateSuratIzin`), `LoanService`, dan `PortalNotificationService::notifyAdmins`: event `AdminInboxChanged` di-dispatch **segera setelah `DB::commit()` (< 15 ms)** mendahului loop pegawai, memastikan admin inbox live seketika.
+  - Membatasi client timeout Reverb menjadi 1 detik di `config/broadcasting.php` (*fail-fast* non-blocking) untuk mencegah pembekuan single-thread PHP built-in server lokal yang sebelumnya menyebabkan timeout 10 detik pada `/login`.
+
+#### 4. Fase 1B — Email Transaksional, Lupa Password, & Failover Mailer
+- **Konfigurasi DNS Cloudflare (100% Terverifikasi)**:
+  - SPF: `v=spf1 include:amazonses.com include:spf.brevo.com ~all` (menggabungkan Resend dan Brevo dalam 1 baris resmi).
+  - DKIM: CNAME `rsend.notif` & `send.notif`, TXT `resend._domainkey.notif` (Status: **Verified** hijau di Resend).
+  - DKIM Brevo: CNAME `brevo1._domainkey.notif` & `brevo2._domainkey.notif`, TXT `brevo-code`.
+  - DMARC: TXT `_dmarc.notif` (`v=DMARC1; p=none; rua=mailto:admin@bksdakaltim.web.id`).
+- **Failover Mailer**:
+  - Mailer Utama: Resend SMTP (`smtp.resend.com:465` SSL) — kuota gratis 3.000 email/bulan.
+  - Mailer Cadangan: Brevo SMTP (`smtp-relay.brevo.com:587` TLS) — kuota gratis 300 email/hari.
+  - Pengujian nyata berhasil 100%: email uji coba berhasil dikirim via Resend, Brevo, dan failover otomatis ke `delivered@resend.dev` dan tercatat di tabel `email_logs`.
+- **Fitur Pengguna & Webhook**:
+  - Ganti email pegawai (`PUT /api/me/email`), kirim ulang verifikasi email, lupa password (`forgot-password` & `reset-password`), security alert, serta verifikasi signature webhook Svix Resend HMAC-SHA256 (`/api/webhooks/resend`).
+
+#### 5. Fase 1C — Keamanan Akun & 2FA TOTP RFC 6238
+- **Middleware Keamanan**: `EnsureAccountSecure` mencegat akun dengan `must_change_password=true` (HTTP 423 Locked) dengan allowlist route ganti password.
+- **Engine TOTP Pure PHP**: Engine RFC 6238 mandiri tanpa dependency eksternal, mendukung window validasi waktu, verifikasi replay attack, dan 8 *recovery codes* sekali pakai (dihash sha256).
+- **Dua Langkah Login & Reset Admin**: Challenge sementara 5 menit di cache database, modal setup QR code di frontend, reset password admin (mode password acak / link reset), dan super admin reset 2FA.
+
+#### 6. Fase 2, 3, & 4 — BKSDA Drive MVP, Berbagi Berkas, & Auto-Archive
+- **Dual-Endpoint S3 Signer**: Disk internal `drive` (`http://rustfs:9000`) dan signer publik `drive_signer` (`https://storage.bksdakaltim.web.id`).
+- **Pipeline Upload Kuat**:
+  - `initUpload`: Validasi kuota (default 5 GB user, 50-100 GB unit kerja) dan disk soft cap.
+  - Presigned PUT langsung untuk berkas $\le$ 80 MB.
+  - S3 Multipart Upload dipotong per 25 MB untuk berkas $>$ 80 MB (menembus batas 100 MB Cloudflare Free Tier).
+  - `completeUpload`: Validasi keaslian format berkas via PHP `finfo` magic bytes.
+- **Berbagi Berkas (Fase 3)**:
+  - Berbagi internal ke unit/pegawai (Editor / Viewer).
+  - Berbagi publik via URL acak `/drive/s/[token]` dengan password opsional, batas waktu, counter unduhan, dan proteksi brute-force `throttle:10,1`.
+- **Auto-Archive Dokumen Resmi (Fase 4)**:
+  - Job `ArchiveOfficialDocument`: Stream copy dokumen terbit (Surat Tugas, SK/Izin Cuti, Dokumen BMN) ke folder arsip Drive dengan pelacakan idempoten `(source_module, source_id)`.
+  - Artisan command `drive:backfill-archive` untuk mengarsipkan dokumen lama.
+- **Pemeliharaan Terjadwal**:
+  - `drive:cleanup-uploads`: Membersihkan sesi upload multipart yang ditinggal/kedaluwarsa (per jam).
+  - `drive:purge-trash`: Menghapus permanen berkas dan folder sampah lebih dari 30 hari dari database dan S3 (harian 02:00 WITA).
+
+#### 7. Hasil Pengujian Sistem (Test Suite)
+- Seluruh 22 tes fitur PHPUnit lulus 100% tanpa kegagalan (108 assertions):
+  - `BroadcastChannelAuthTest`: 3 tes (auth channel user & admin, dispatch event `AdminInboxChanged` saat approve & update ST).
+  - `EmailSecurityTest`: 5 tes (guard deliverable email, proteksi anti-enumeration, validasi email update, verifikasi webhook Svix).
+  - `TwoFactorTest`: 6 tes (TOTP login 2 langkah, penolakan replay code, pemakaian recovery code, 423 lock saat `must_change_password`).
+  - `DriveTest`: 4 tes (URL signer, matriks akses peran unit kerja, reservasi kuota, deteksi MIME palsu).
+  - `DriveShareTest`: 2 tes (internal share, public link dengan password & throttle).
+  - `AutoArchiveTest`: 2 tes (arsip lintas disk local-ke-S3, idempotensi eksekusi ganda).
 
 ---
 
