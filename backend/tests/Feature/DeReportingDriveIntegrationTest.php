@@ -109,11 +109,12 @@ class DeReportingDriveIntegrationTest extends TestCase
         $this->assertEquals(-0.502106, $dbResponse->answers['titik_lokasi']['latitude']);
         $this->assertCount(2, $dbResponse->file_paths['foto_dokumentasi']);
 
-        // 2. Verifikasi File tercatat di drive_files
+        // 2. Verifikasi File tercatat di drive_files (2 berkas lampiran + 1 Ringkasan_Laporan.txt)
         $driveFiles = DriveFile::where('source_module', 'dereporting')->get();
-        $this->assertCount(2, $driveFiles);
+        $this->assertCount(3, $driveFiles);
+        $this->assertTrue($driveFiles->contains('name', 'Ringkasan_Laporan.txt'));
 
-        $firstDriveFile = $driveFiles->first();
+        $firstDriveFile = $driveFiles->where('name', 'satwa1.jpg')->first() ?? $driveFiles->first();
         $this->assertNotNull($firstDriveFile->unit_id);
         $this->assertEquals($creator->id, $firstDriveFile->user_id);
         $this->assertTrue(Storage::disk('drive')->exists($firstDriveFile->s3_key));

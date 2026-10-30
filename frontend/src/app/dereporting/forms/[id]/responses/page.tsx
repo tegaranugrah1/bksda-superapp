@@ -50,6 +50,7 @@ interface ResponseItem {
     id: string;
     answers: Record<string, unknown>;
     file_paths: Record<string, string>;
+    drive_folder_id?: number | null;
     ip_address: string | null;
     created_at: string;
 }
@@ -700,12 +701,13 @@ export default function DeReportingFormResponsesPage({
                                         </th>
                                     ))}
                                     <th className="p-3.5">IP Address</th>
+                                    <th className="p-3.5 text-center">Berkas Drive</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                                 {isLoadingTable ? (
                                     <tr>
-                                        <td colSpan={fields.length + 3} className="p-16 text-center text-violet-500">
+                                        <td colSpan={fields.length + 4} className="p-16 text-center text-violet-500">
                                             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" />
                                             <span className="text-xs font-bold uppercase tracking-widest">
                                                 Memuat Rekap Tanggapan...
@@ -714,7 +716,7 @@ export default function DeReportingFormResponsesPage({
                                     </tr>
                                 ) : tableItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={fields.length + 3} className="p-16 text-center text-zinc-500">
+                                        <td colSpan={fields.length + 4} className="p-16 text-center text-zinc-500">
                                             <TableProperties className="w-8 h-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" />
                                             Belum ada tanggapan masuk untuk formulir ini.
                                         </td>
@@ -807,6 +809,22 @@ export default function DeReportingFormResponsesPage({
 
                                             <td className="p-3.5 text-zinc-400 font-mono text-[11px]">
                                                 {resp.ip_address || "-"}
+                                            </td>
+                                            <td className="p-3.5 text-center">
+                                                {resp.drive_folder_id ? (
+                                                    <Link
+                                                        href={`/drive?space=1&folder_id=${resp.drive_folder_id}`}
+                                                        target="_blank"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                                                        title="Buka folder tanggapan di BKSDA Drive"
+                                                    >
+                                                        <HardDrive className="w-3.5 h-3.5 text-blue-500" />
+                                                        <span>Buka Folder</span>
+                                                        <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-zinc-400 italic text-[11px]">-</span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))

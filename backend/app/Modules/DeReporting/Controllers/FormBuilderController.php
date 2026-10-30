@@ -5,6 +5,7 @@ namespace App\Modules\DeReporting\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\DeReporting\Models\DynamicForm;
 use App\Modules\DeReporting\Models\DynamicFormResponse;
+use App\Support\Security\DriveAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -309,7 +310,10 @@ class FormBuilderController extends Controller
             foreach ($fields as $field) {
                 $headerRow[] = $field['label'] ?? 'Pertanyaan';
             }
+            $headerRow[] = 'Link Folder Drive';
             fputcsv($handle, $headerRow);
+
+            $frontendUrl = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'https://bksdakaltim.web.id')), '/');
 
             // Baris data jawaban
             foreach ($responses as $idx => $resp) {
@@ -356,6 +360,10 @@ class FormBuilderController extends Controller
                         $row[] = $valStr;
                     }
                 }
+
+                $row[] = $resp->drive_folder_id
+                    ? "{$frontendUrl}/drive?space=1&folder_id={$resp->drive_folder_id}"
+                    : '-';
 
                 fputcsv($handle, $row);
             }
@@ -626,16 +634,134 @@ class FormBuilderController extends Controller
             }
         }
 
+        // Heuristik ekstraksi Judul Laporan dan Nama Pelapor
+        $rawTitle = null;
+        $rawReporter = null;
+
+        foreach ($fields as $field) {
+            $fId = $field['id'] ?? null;
+            if (! $fId || ! isset($answers[$fId])) continue;
+            $val = is_scalar($answers[$fId]) ? (string) $answers[$fId] : '';
+            if (empty($val)) continue;
+
+            $label = strtolower($field['label'] ?? '');
+            if (! $rawTitle && preg_match('/(judul|kegiatan|laporan|perihal|nama_kegiatan)/i', $label)) {
+                $rawTitle = $val;
+            }
+            if (! $rawReporter && preg_match('/(nama|pelapor|petugas|nama_petugas|nama_lengkap)/i', $label)) {
+                $rawReporter = $val;
+            }
+        }
+
+        $cleanTitle = $rawTitle ? trim(preg_replace('/[\/\\\\:*?"<>|]/', '', $rawTitle)) : 'Laporan';
+        $cleanTitle = mb_substr($cleanTitle ?: 'Laporan', 0, 40);
+
+        $cleanReporter = $rawReporter ? trim(preg_replace('/[\/\\\\:*?"<>|]/', '', $rawReporter)) : 'Anonim';
+        $cleanReporter = mb_substr($cleanReporter ?: 'Anonim', 0, 40);
+
+        $dateStr = now()->format('Y-m-d');
+        $shortHash = substr(md5($responseId . microtime()), 0, 4);
+        $subfolderName = "[{$dateStr}] - {$cleanTitle} ({$cleanReporter}) #{$shortHash}";
+
+        // Buat dedicated subfolder di bawah folder Formulir DeReporting
+        $submissionFolder = null;
+        if ($ownerId && $formFolder) {
+            try {
+                $submissionFolder = \App\Models\DriveFolder::create([
+                    'unit_id' => $unit?->id ?: 1,
+                    'user_id' => $ownerId,
+                    'parent_id' => $formFolder->id,
+                    'name' => $subfolderName,
+                    'color' => '#3B82F6',
+                    'is_restricted' => false,
+                    'folder_scope' => 'submission',
+                ]);
+            } catch (\Throwable $e) {
+                // Non-blocking folder creation
+            }
+        }
+
+        $targetFolderId = $submissionFolder?->id ?: $formFolder?->id;
+
         $response = new DynamicFormResponse();
         $response->id = $responseId;
         $response->form_id = $form->id;
         $response->answers = $answers;
         $response->file_paths = $filePaths;
+        $response->drive_folder_id = $submissionFolder?->id;
         $response->ip_address = $request->ip();
         $response->save();
 
         foreach ($savedDriveFiles as $dfData) {
+            if ($targetFolderId) {
+                $dfData['folder_id'] = $targetFolderId;
+            }
             \App\Models\DriveFile::create($dfData);
+        }
+
+        // Auto-generate Ringkasan_Laporan.txt ke dalam subfolder laporan
+        if ($submissionFolder && $ownerId) {
+            try {
+                $lines = [];
+                $lines[] = '========================================================';
+                $lines[] = 'RINGKASAN FORMULIR LAPORAN BKSDA KALTIM';
+                $lines[] = '========================================================';
+                $lines[] = 'Formulir       : ' . $form->title;
+                $lines[] = 'Waktu Submit   : ' . now()->timezone('Asia/Makassar')->format('Y-m-d H:i:s') . ' WITA';
+                $lines[] = 'ID Respon      : ' . $responseId;
+                $lines[] = 'Subfolder Drive: ' . $submissionFolder->name;
+                $lines[] = '--------------------------------------------------------';
+                $lines[] = 'DETAIL JAWABAN:';
+
+                foreach ($fields as $field) {
+                    $fId = $field['id'] ?? null;
+                    $label = $field['label'] ?? 'Bidang';
+                    $fType = $field['type'] ?? 'text';
+
+                    if ($fType === 'file') {
+                        $count = isset($filePaths[$fId]) ? count((array) $filePaths[$fId]) : 0;
+                        $lines[] = "{$label}: {$count} berkas terlampir";
+                    } elseif ($fType === 'gps_location') {
+                        if (isset($answers[$fId])) {
+                            $gps = $answers[$fId];
+                            $lat = $gps['latitude'] ?? '-';
+                            $lng = $gps['longitude'] ?? '-';
+                            $addr = !empty($gps['address_hint']) ? " ({$gps['address_hint']})" : '';
+                            $lines[] = "{$label}: Lat {$lat}, Lng {$lng}{$addr}";
+                        } else {
+                            $lines[] = "{$label}: -";
+                        }
+                    } else {
+                        $val = $answers[$fId] ?? '-';
+                        if (is_array($val)) {
+                            $val = implode(', ', $val);
+                        }
+                        $lines[] = "{$label}: {$val}";
+                    }
+                }
+
+                $lines[] = '--------------------------------------------------------';
+                $lines[] = 'Total Lampiran Berkas: ' . count($savedDriveFiles) . ' berkas';
+                $lines[] = '========================================================';
+                $txtContent = implode("\r\n", $lines);
+
+                $txtS3Key = "units/balai-samarinda/dereporting/{$form->slug}/summary_{$submissionFolder->id}_{$responseId}.txt";
+                Storage::disk('drive')->put($txtS3Key, $txtContent);
+
+                \App\Models\DriveFile::create([
+                    'unit_id' => $unit?->id ?: 1,
+                    'user_id' => $ownerId,
+                    'folder_id' => $submissionFolder->id,
+                    'name' => 'Ringkasan_Laporan.txt',
+                    's3_key' => $txtS3Key,
+                    'size_bytes' => strlen($txtContent),
+                    'mime_type' => 'text/plain',
+                    'source_module' => 'dereporting',
+                    'source_id' => "{$responseId}:summary:txt",
+                ]);
+            } catch (\Throwable $e) {
+                // Non-blocking summary creation
+            }
         }
 
         // Kirim Notifikasi Real-Time Portal & WebSocket ke Pembuat Formulir
@@ -663,6 +789,47 @@ class FormBuilderController extends Controller
         return response()->json([
             'message' => 'Terima kasih, tanggapan Anda berhasil dikirim ke BKSDA Kaltim.',
             'id' => $response->id,
+        ], 201);
+    }
+
+    /**
+     * POST /api/dereporting/forms/responses/{id}/share
+     * Membagikan folder tanggapan laporan (subfolder) ke seksi / resor lain via drive_shares.
+     */
+    public function shareResponseFolder(Request $request, string $id): JsonResponse
+    {
+        $response = DynamicFormResponse::with('form')->findOrFail($id);
+        $user = $request->user();
+
+        // Otorisasi: Pembuat form atau Admin Drive/Superadmin
+        if (! DriveAccess::isDriveAdmin($user) && (int) $response->form?->created_by !== (int) $user->id) {
+            return response()->json(['message' => 'Anda tidak memiliki hak untuk membagikan folder tanggapan ini.'], 403);
+        }
+
+        if (! $response->drive_folder_id) {
+            return response()->json(['message' => 'Tanggapan ini belum memiliki folder Drive.'], 422);
+        }
+
+        $validated = $request->validate([
+            'target_type' => ['required', 'in:user,unit'],
+            'target_id' => ['required', 'integer'],
+            'role' => ['nullable', 'in:viewer,editor'],
+        ]);
+
+        $folder = \App\Models\DriveFolder::findOrFail($response->drive_folder_id);
+
+        $share = \App\Models\DriveShare::create([
+            'folder_id' => $folder->id,
+            'share_type' => 'internal',
+            'user_id' => $validated['target_type'] === 'user' ? $validated['target_id'] : null,
+            'unit_id' => $validated['target_type'] === 'unit' ? $validated['target_id'] : null,
+            'role' => $validated['role'] ?? 'viewer',
+            'created_by' => $user->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Folder tanggapan laporan berhasil dibagikan.',
+            'share' => $share,
         ], 201);
     }
 
