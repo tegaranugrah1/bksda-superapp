@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { authStore } from "@/lib/auth-store";
+import { setEmailCooldown } from "@/lib/email-cooldown";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,11 +128,19 @@ export function PortalProfileSidebar({
 
     setEditLoading(true);
     try {
-      await api.post("/me/update-profile", {
+      const resp = await api.post("/me/update-profile", {
         email: cleanEmail,
         phone: cleanPhone,
       });
-      toast.success("Profil kontak berhasil diperbarui!");
+      if (resp.data?.email_changed) {
+        setEmailCooldown(resp.data?.cooldown_seconds || 60);
+      }
+      toast.success(
+        resp.data?.message ||
+          (resp.data?.email_changed
+            ? `Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke ${cleanEmail}.`
+            : "Profil kontak berhasil diperbarui!")
+      );
       setEditDialogOpen(false);
       onRefreshDashboard?.();
     } catch (error: unknown) {

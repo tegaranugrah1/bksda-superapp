@@ -15,6 +15,7 @@ use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -117,6 +118,9 @@ class AuthController extends Controller
             }
         }
 
+        $cooldownExpiry = Cache::get('email_verify_cooldown:'.$user->id);
+        $remainingCooldown = ($cooldownExpiry && $cooldownExpiry > now()->timestamp) ? (int) ($cooldownExpiry - now()->timestamp) : 0;
+
         // Create a dashboard data object instead of using resource with relations
         $dashboardData = [
             'user' => [
@@ -127,6 +131,7 @@ class AuthController extends Controller
                 'role' => $user->role,
                 'access_modules' => $user->access_modules ?? [],
                 'email_verified_at' => $user->email_verified_at?->toISOString(),
+                'email_cooldown_remaining' => $remainingCooldown,
             ],
             'employee' => $employee ? [
                 'id' => $employee->id,
@@ -271,12 +276,17 @@ class AuthController extends Controller
                 $user->save();
                 $emailChanged = true;
 
+                // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
+                Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
+
                 if (!str_ends_with($cleanEmail, '.local') && NotificationSetting::emailEnabled('email_master_enabled')) {
-                    try {
-                        $user->sendEmailVerificationNotification();
-                    } catch (\Throwable $e) {
-                        // non-blocking
-                    }
+                    dispatch(function () use ($user) {
+                        try {
+                            $user->sendEmailVerificationNotification();
+                        } catch (\Throwable $e) {
+                            \Illuminate\Support\Facades\Log::warning('Verification email failed: '.$e->getMessage());
+                        }
+                    })->afterResponse();
                 }
             }
         }
@@ -289,9 +299,14 @@ class AuthController extends Controller
         }
 
         $msg = $emailChanged
-            ? 'Profil berhasil diperbarui. Tautan verifikasi telah dikirim ke email baru Anda.'
-            : 'Profil berhasil diperbarui.';
-        return response()->json(['message' => $msg]);
+            ? 'Profil kontak berhasil diperbarui. Tautan verifikasi telah dikirim ke email baru Anda.'
+            : 'Profil kontak berhasil diperbarui.';
+
+        return response()->json([
+            'message' => $msg,
+            'email_changed' => $emailChanged,
+            'cooldown_seconds' => $emailChanged ? 60 : 0,
+        ]);
     }
 
     /**
@@ -406,6 +421,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
+            'email_changed' => true,
+            'cooldown_seconds' => 60,
         ]);
     }
 
@@ -446,6 +463,20 @@ class AuthController extends Controller
             return response()->json(['message' => 'Harap masukkan alamat Gmail atau dinas resmi terlebih dahulu.'], 422);
         }
 
+        // Cek apakah cooldown 60 detik masih aktif
+        $cooldownExpiry = Cache::get('email_verify_cooldown:'.$user->id);
+        if ($cooldownExpiry && $cooldownExpiry > now()->timestamp) {
+            $remaining = (int) ($cooldownExpiry - now()->timestamp);
+            return response()->json([
+                'message' => "Silakan tunggu {$remaining} detik sebelum meminta tautan verifikasi baru.",
+                'retry_after' => $remaining,
+                'cooldown_seconds' => $remaining,
+            ], 429);
+        }
+
+        // Pasang cooldown 60 detik
+        Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
+
         if (NotificationSetting::emailEnabled('email_master_enabled')) {
             dispatch(function () use ($user) {
                 try {
@@ -458,6 +489,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => "Tautan verifikasi baru berhasil dikirim ke {$user->email}.",
+            'cooldown_seconds' => 60,
         ]);
     }
 

@@ -211,4 +211,51 @@ class EmailSecurityTest extends TestCase
         $user->refresh();
         $this->assertNull($user->email_verified_at);
     }
+
+    /**
+     * Test email verification cooldown guard on resend and profile update.
+     */
+    public function test_verification_cooldown_enforced_across_profile_and_resend(): void
+    {
+        Notification::fake();
+
+        $user = User::create([
+            'name' => 'Cooldown Test User',
+            'username' => '199001012020011001',
+            'email' => 'cooldown.user@gmail.com',
+            'password' => Hash::make('Secret123!'),
+            'role' => 'user',
+            'email_verified_at' => null,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        // 1. First resend -> 200 and triggers cooldown
+        $res1 = $this->postJson('/api/email/verification-notification');
+        $res1->assertStatus(200)
+             ->assertJsonFragment(['cooldown_seconds' => 60]);
+
+        // 2. Second resend immediately -> 429 Too Many Requests
+        $res2 = $this->postJson('/api/email/verification-notification');
+        $res2->assertStatus(429)
+             ->assertJsonStructure(['message', 'retry_after', 'cooldown_seconds']);
+
+        // 3. Update profile with new email -> 200, updates email, resets verification, re-engages cooldown
+        $resProfile = $this->postJson('/api/me/update-profile', [
+            'email' => 'cooldown.new@gmail.com',
+        ]);
+        $resProfile->assertStatus(200)
+                   ->assertJsonFragment([
+                       'email_changed' => true,
+                       'cooldown_seconds' => 60,
+                   ]);
+
+        $user->refresh();
+        $this->assertEquals('cooldown.new@gmail.com', $user->email);
+        $this->assertNull($user->email_verified_at);
+
+        // 4. Immediate resend after profile change is still guarded -> 429
+        $res3 = $this->postJson('/api/email/verification-notification');
+        $res3->assertStatus(429);
+    }
 }

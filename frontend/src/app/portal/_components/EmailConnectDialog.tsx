@@ -25,16 +25,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useEmailCooldown } from "@/lib/email-cooldown";
 
 interface EmailConnectDialogProps {
   currentEmail?: string | null;
   isVerified?: boolean;
+  initialCooldown?: number;
   onSuccess?: () => void;
 }
 
 export function EmailConnectDialog({
   currentEmail,
   isVerified = false,
+  initialCooldown = 0,
   onSuccess,
 }: EmailConnectDialogProps) {
   const [open, setOpen] = useState(false);
@@ -44,17 +47,7 @@ export function EmailConnectDialog({
   const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showChangeForm, setShowChangeForm] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (cooldown > 0) {
-      timer = setInterval(() => {
-        setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [cooldown]);
+  const { cooldown, startCooldown } = useEmailCooldown(initialCooldown);
 
   const isLocalEmail =
     !currentEmail || currentEmail.toLowerCase().endsWith(".local");
@@ -80,13 +73,16 @@ export function EmailConnectDialog({
     setErrorMsg(null);
     try {
       const resp = await api.post("/email/verification-notification");
-      setCooldown(60);
+      startCooldown(resp.data?.cooldown_seconds || 60);
       toast.success(
         resp.data?.message || "Tautan verifikasi baru berhasil dikirim ke email Anda!"
       );
       setOpen(false);
       onSuccess?.();
     } catch (err: any) {
+      if (err?.response?.status === 429 && err?.response?.data?.retry_after) {
+        startCooldown(err.response.data.retry_after);
+      }
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -124,10 +120,10 @@ export function EmailConnectDialog({
         current_password: currentPassword,
       });
 
+      startCooldown(resp.data?.cooldown_seconds || 60);
       toast.success(
-        resp.data?.message || "Tautan verifikasi berhasil dikirim ke email Anda!"
+        resp.data?.message || `Tautan verifikasi berhasil dikirim ke ${emailTrimmed}!`
       );
-      setCooldown(60);
       setOpen(false);
       setNewEmail("");
       setCurrentPassword("");
@@ -168,14 +164,55 @@ export function EmailConnectDialog({
               </div>
             </div>
 
-            <Button
-              onClick={() => setOpen(true)}
-              size="sm"
-              className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              {isLocalEmail ? "Hubungkan Gmail" : "Kirim Ulang / Ganti"}
-            </Button>
+            {isLocalEmail ? (
+              <Button
+                onClick={() => {
+                  setShowChangeForm(true);
+                  setOpen(true);
+                }}
+                size="sm"
+                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Hubungkan Gmail
+              </Button>
+            ) : cooldown > 0 ? (
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  disabled
+                  size="sm"
+                  className="bg-amber-600/70 dark:bg-amber-700/60 text-white font-semibold shadow-sm cursor-not-allowed opacity-90"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin text-amber-200" />
+                  Tunggu ({cooldown}s)
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowChangeForm(true);
+                    setOpen(true);
+                  }}
+                  className="text-xs border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 bg-white/70 dark:bg-slate-900/70 font-semibold"
+                >
+                  <Pencil className="w-3.5 h-3.5 mr-1" />
+                  Ganti Email
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  setShowChangeForm(false);
+                  setOpen(true);
+                }}
+                size="sm"
+                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Kirim Ulang / Ganti
+              </Button>
+            )}
           </div>
         </div>
       )}

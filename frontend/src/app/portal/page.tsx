@@ -91,7 +91,15 @@ const SuratTugasLetterPreview = dynamic(
 );
 
 interface DashboardData {
-  user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
+  user: {
+    name: string;
+    username: string;
+    email: string | null;
+    role: string;
+    access_modules: string[];
+    email_verified_at?: string | null;
+    email_cooldown_remaining?: number;
+  };
   employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
   my_assets: Array<{ id: number | string; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null; jenis_bmn?: string; no_polisi?: string | null; nup_lama?: string | null }>;
 }
@@ -620,7 +628,8 @@ function PortalContent() {
           <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
             <EmailConnectDialog
               currentEmail={data.user.email}
-              isVerified={Boolean((data.user as any).email_verified_at)}
+              isVerified={Boolean(data.user.email_verified_at)}
+              initialCooldown={data.user.email_cooldown_remaining || 0}
               onSuccess={fetchDashboard}
             />
             {inlineFormType === "general" ? (

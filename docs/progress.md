@@ -72,13 +72,25 @@
   - `drive:purge-trash`: Menghapus permanen berkas dan folder sampah lebih dari 30 hari dari database dan S3 (harian 02:00 WITA).
 
 #### 7. Hasil Pengujian Sistem (Test Suite)
-- Seluruh 22 tes fitur PHPUnit lulus 100% tanpa kegagalan (108 assertions):
+- Seluruh 23 tes fitur PHPUnit lulus 100% tanpa kegagalan (120 assertions):
   - `BroadcastChannelAuthTest`: 3 tes (auth channel user & admin, dispatch event `AdminInboxChanged` saat approve & update ST).
-  - `EmailSecurityTest`: 5 tes (guard deliverable email, proteksi anti-enumeration, validasi email update, verifikasi webhook Svix).
+  - `EmailSecurityTest`: 6 tes (guard deliverable email, proteksi anti-enumeration, validasi email update, verifikasi webhook Svix, proteksi cooldown 60 detik lintas profil dan kirim ulang verifikasi).
   - `TwoFactorTest`: 6 tes (TOTP login 2 langkah, penolakan replay code, pemakaian recovery code, 423 lock saat `must_change_password`).
   - `DriveTest`: 4 tes (URL signer, matriks akses peran unit kerja, reservasi kuota, deteksi MIME palsu).
   - `DriveShareTest`: 2 tes (internal share, public link dengan password & throttle).
   - `AutoArchiveTest`: 2 tes (arsip lintas disk local-ke-S3, idempotensi eksekusi ganda).
+
+#### 8. Sinkronisasi Cooldown Verifikasi Email 60 Detik & Feedback Edit Kontak Profil
+- **Masalah Teridentifikasi**: Saat pengguna mengganti alamat email melalui ikon pensil di atas foto profil (`PortalProfileSidebar.tsx`), sistem backend mengirimkan email verifikasi pertama. Namun karena cooldown tidak dibagikan dan tidak dipasang di route kirim ulang (`/email/verification-notification`), banner "Email Anda Belum Terverifikasi" langsung mengizinkan klik "Kirim Ulang Tautan Verifikasi", sehingga dua email verifikasi terkirim sekaligus ke Gmail pengguna dalam hitungan detik.
+- **Penyelesaian Backend (`AuthController.php`)**:
+  - `updateProfile`: Saat alamat email berubah, pasang cooldown 60 detik di Cache (`email_verify_cooldown:{$userId}`), kirim email verifikasi asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta kembalikan `email_changed: true` dan `cooldown_seconds: 60`.
+  - `resendVerificationEmail`: Tambahkan pengecekan `email_verify_cooldown:{$userId}`. Jika cooldown masih aktif, tolak permintaan dengan status HTTP 429 Too Many Requests beserta sisa waktu `retry_after`.
+  - `dashboard`: Kembalikan `email_cooldown_remaining` di dalam objek `data.user` agar sinkronisasi state tetap akurat bahkan setelah refresh halaman.
+- **Penyelesaian Frontend**:
+  - Modul Reusable `email-cooldown.ts`: Menyediakan `useEmailCooldown` dan `setEmailCooldown` berbasis `localStorage` + `CustomEvent` agar seluruh komponen dan tab browser tersinkronisasi dalam waktu nyata (*lockstep*).
+  - `PortalProfileSidebar.tsx`: Menampilkan pesan toast sukses yang jelas bahwa tautan verifikasi telah dikirim ke email baru serta memicu cooldown 60 detik.
+  - `EmailConnectDialog.tsx`: Banner "Email Anda Belum Terverifikasi" kini menampilkan tombol dinonaktifkan dengan hitung mundur `Tunggu (Xs)` saat cooldown aktif, disertai tombol alternatif `Ganti Email` jika pengguna salah mengetik email. Tombol di dalam modal dialog juga terkunci dengan `Tautan Telah Dikirim (Tunggu Xs)`.
+  - Pengujian fitur `test_verification_cooldown_enforced_across_profile_and_resend` ditambahkan ke `EmailSecurityTest.php` dan lulus 100%.
 
 ---
 
