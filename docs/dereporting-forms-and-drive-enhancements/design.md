@@ -1,7 +1,7 @@
-# Desain Arsitektur: Peningkatan DeReporting Form Builder & BKSDA Drive
+# Desain Arsitektur v2: Peningkatan DeReporting Form Builder & BKSDA Drive
 
 > **Dokumen Terkait**: [requirements.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md) | [tasks.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md)
-> **Versi**: 1.0 — Desain Arsitektur Teknis Lengkap
+> **Versi**: 2.0 — Arsitektur Teknis Bersih (Efisiensi Tinggi, Bebas Redundansi Disk & Kuota Pribadi)
 
 ---
 
@@ -9,51 +9,50 @@
 
 ```mermaid
 flowchart TD
-    subgraph Klien_Responden["Klien Responden (Masyarakat / Pegawai)"]
-        FormUI["Formulir Publik (/lapor/:slug)"]
-        MultiUpload["Multi-File & Image Upload (1-10 Files)"]
-        GPSCapture["GPS Geolocation / Pin Point Map"]
+    subgraph Klien_Responden["Klien Responden (/lapor/:slug)"]
+        FormUI["Formulir Publik"]
+        CanvasCompress["Kompresi Foto Klien (Canvas max 1600px JPEG)"]
+        GPSCapture["GPS Geolocation / Leaflet Pin"]
     end
 
     subgraph Backend_Laravel["Backend Laravel 13"]
-        FormCtrl["FormBuilderController::submitPublic()"]
-        Queue["Database Queue: jobs"]
-        ArchiveJob["ArchiveFormResponseFilesJob"]
-        ZipService["DriveZipStreamService"]
-        ShareCtrl["DriveShareController"]
-        DriveAccessCtrl["DriveAccess (RBAC Guard)"]
+        SubmitCtrl["FormBuilderController::submitPublic()"]
+        FinfoValidator["Validasi Keaslian MIME (finfo Magic Bytes)"]
+        DriveFolderResolver["DriveFolderResolver (Unit Balai Samarinda)"]
+        WSNotifier["PortalNotificationService (WebSocket Reverb)"]
+        ZipStreamService["DriveZipStreamService (Signed URL GET)"]
     end
 
-    subgraph Penyimpanan["Penyimpanan & Database"]
+    subgraph Penyimpanan["Penyimpanan Terpadu (Single Storage)"]
         DB_Postgres[("PostgreSQL: dr_forms, dr_responses, drive_files, drive_folders")]
-        RustFS_S3[("RustFS S3 Bucket: drive")]
+        RustFS_S3[("RustFS S3 Disk: drive")]
     end
 
-    subgraph Klien_Pegawai["Klien Pegawai (Pembuat Form / Admin)"]
+    subgraph Klien_Pegawai["Klien Pembuat Form / Admin"]
         FormResponses["Dashboard Respon (/dereporting/forms/:id/responses)"]
-        SummaryAnalytics["Tab Ringkasan Visual (Pie / Bar Charts)"]
+        VisualAnalytics["Tab Ringkasan Visual (Pie / Bar Recharts)"]
         DriveUI["BKSDA Drive (/drive)"]
-        ZipDownload["Unduh Folder (.ZIP)"]
+        DirectZip["Unduh Browser Direct (.ZIP via Signed URL)"]
     end
 
-    FormUI -->|Kirim Jawaban & Berkas| FormCtrl
-    MultiUpload --> FormCtrl
-    GPSCapture --> FormCtrl
+    FormUI --> CanvasCompress
+    CanvasCompress -->|Unggah Multipart < 25M| SubmitCtrl
+    GPSCapture --> SubmitCtrl
 
-    FormCtrl -->|Simpan Cepat < 100ms| DB_Postgres
-    FormCtrl -->|Dispatch Non-blocking| Queue
-    Queue --> ArchiveJob
+    SubmitCtrl --> FinfoValidator
+    FinfoValidator -->|Tulis Langsung ke S3| RustFS_S3
+    SubmitCtrl --> DriveFolderResolver
+    DriveFolderResolver -->|Catat DriveFile di Bawah Unit Balai| DB_Postgres
+    SubmitCtrl -->|Simpan Jawaban dr_responses| DB_Postgres
 
-    ArchiveJob -->|1. Cek / Buat Folder Form| DB_Postgres
-    ArchiveJob -->|2. Stream Copy Berkas| RustFS_S3
-    ArchiveJob -->|3. Catat DriveFile di Kuota Balai| DB_Postgres
-    ArchiveJob -->|4. Berikan Hak Akses Editor ke Pembuat| DB_Postgres
+    SubmitCtrl -->|Push Real-Time < 100ms| WSNotifier
+    WSNotifier -->|Lonceng Aktif| FormResponses
 
-    FormResponses -->|Shortcut Satu-Klik| DriveUI
-    FormResponses --> SummaryAnalytics
+    FormResponses -->|Pintasan 1-Klik| DriveUI
+    FormResponses --> VisualAnalytics
 
-    DriveUI -->|Request Unduh Folder| ZipService
-    ZipService -->|Stream On-the-Fly ZIP| ZipDownload
+    DriveUI -->|Minta Unduh Folder| ZipStreamService
+    ZipStreamService -->|Direct Download Stream| DirectZip
 ```
 
 ---
@@ -61,115 +60,145 @@ flowchart TD
 ## 2. Perubahan Skema Basis Data (Database Schema)
 
 ### 2.1. Tabel `dr_forms`
-Penambahan kolom pendukung integrasi Drive, notifikasi, dan penjadwalan:
-```sql
-ALTER TABLE dr_forms
-    ADD COLUMN drive_folder_id BIGINT UNSIGNED NULL REFERENCES drive_folders(id) ON DELETE SET NULL,
-    ADD COLUMN email_notifications_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN closed_at TIMESTAMP NULL,
-    ADD COLUMN closed_message TEXT NULL;
+Migrasi PostgreSQL menggunakan tipe data yang valid (UUID foreign reference dan nullable BigInt):
+```php
+Schema::table('dr_forms', function (Blueprint $table) {
+    $table->foreignId('drive_folder_id')
+        ->nullable()
+        ->constrained('drive_folders')
+        ->nullOnDelete();
+    $table->timestamp('closed_at')->nullable();
+    $table->text('closed_message')->nullable();
+});
 ```
 
-### 2.2. Struktur JSON Field Skema (`fields`)
-Mendukung `file` (multi-file) dan `gps_location`:
+### 2.2. Format Komposit Kunci Unik di `drive_files`
+Tabel `drive_files` memiliki indeks `UNIQUE(source_module, source_id)`.
+Agar satu tanggapan form dengan multiple berkas tidak bertabrakan (*key collision*), `source_id` diformat sebagai komposit:
+```php
+$sourceId = "{$response->id}:{$fieldId}:{$fileIndex}";
+// Contoh: "9d7a2f1b-3c4e-4f5a-8b9c-1d2e3f4a5b6c:foto_satwa:0"
+```
+
+### 2.3. Struktur JSON Field Skema (`fields`)
+Mendukung `file` (multi-file 1 s.d. 5) dan `gps_location`:
 ```json
 [
   {
-    "id": "foto_dokumentasi",
+    "id": "foto_temuan",
     "type": "file",
-    "label": "Dokumentasi Foto di Lapangan",
+    "label": "Dokumentasi Foto Satwa / Patroli",
     "required": true,
     "max_files": 5,
     "allowed_types": ["image/*", "application/pdf"],
     "max_size_mb": 10
   },
   {
-    "id": "titik_koordinat",
+    "id": "koordinat_lokasi",
     "type": "gps_location",
-    "label": "Lokasi Kejadian / Temuan",
+    "label": "Titik Koordinat Lokasi Temuan",
     "required": true
   }
 ]
 ```
 
-### 2.3. Struktur Jawaban (`answers` & `file_paths` di `dr_responses`)
+### 2.4. Struktur JSON Jawaban (`dr_responses`)
 - `file_paths`:
   ```json
   {
-    "foto_dokumentasi": [
-      "private/dereporting/forms/patroli/uuid1.jpg",
-      "private/dereporting/forms/patroli/uuid2.jpg"
+    "foto_temuan": [
+      "users/balai-samarinda/dereporting/form-slug/uuid1.jpg",
+      "users/balai-samarinda/dereporting/form-slug/uuid2.jpg"
     ]
   }
   ```
-- `answers` untuk GPS:
+- `answers`:
   ```json
   {
-    "titik_koordinat": {
+    "koordinat_lokasi": {
       "latitude": -0.502106,
       "longitude": 117.153709,
-      "accuracy": 12.5,
-      "address_hint": "Sungai Karang Mumus, Samarinda"
+      "accuracy": 8.4,
+      "address_hint": "Taman Hutan Raya Bukit Soeharto"
     }
   }
   ```
 
 ---
 
-## 3. Desain Komponen Inti
+## 3. Desain Komponen Inti & Kebijakan Hak Akses
 
-### 3.1. Job Asinkron: `ArchiveFormResponseFilesJob`
-- **Tujuan**: Memastikan berkas masuk ke BKSDA Drive tanpa memperlambat pengalaman pengguna di formulir.
-- **Hierarki Folder**:
-  - Root: `Formulir DeReporting` (dibuat di bawah unit Balai / user SuperAdmin).
-  - Subfolder: `[Judul Formulir] (Tanggapan)`.
-- **Alokasi Kuota**:
-  - `DriveFile.user_id = SuperAdmin` (kuota institusi/balai).
-  - `DriveShare`: Secara otomatis menyematkan izin `role = 'editor'` kepada `form->created_by`.
-- **Nama Berkas Search-Friendly**:
-  `RESP-{id}_{field_label}_{index}_{clean_filename}`
+### 3.1. Pengalokasian Folder & Kuota di BKSDA Drive
+- **Unit Kerja Balai**: Folder form dibuat di bawah unit kerja `balai-samarinda` (kuota 100 GB).
+- **Hierarki**:
+  `Drive Bersama > Balai BKSDA Samarinda > Formulir DeReporting > [Judul Formulir] (Tanggapan)`
+- **Bebas Kuota Pribadi Pegawai**: Kolom `user_id` pada `DriveFile` diisi `super_admin_id` dan `unit_id` diisi ID unit `balai-samarinda`. Dengan demikian, formula kuota pribadi pegawai:
+  `DriveFile::where('user_id', $pegawai->id)->whereNull('unit_id')->sum('size_bytes')`
+  tetap bernilai **0 byte**. Kuota 5 GB milik pembuat form tidak tersedot.
 
-### 3.2. Streaming Download Folder ZIP (`ZipStreamService`)
-- Menggunakan standar pustaka streaming ZIP HTTP (`maennchen/zipstream-php` atau stdlib native PHP zip stream output).
-- Alur kerja:
-  1. Ambil daftar seluruh file di dalam folder (dan subfolder).
-  2. Buka `php://output` dengan header `Content-Type: application/zip` dan `Content-Disposition: attachment; filename="[Nama_Folder].zip"`.
-  3. Baca stream setiap berkas langsung dari disk S3 RustFS (`Storage::disk('drive')->readStream($s3Key)`) dan masukkan ke dalam zip.
-  4. **Keuntungan**: Tidak memerlukan penyimpanan sementara (*zero temp disk space*) dan memori RAM server tetap konstan ($\le$ 10 MB).
+### 3.2. Resolusi Otorisasi Pembuat Form di `DriveAccess.php`
+Agar pembuat form selalu berhak mengelola, melihat, mengunduh, dan membagikan folder dan berkas form miliknya tanpa dependensi tabel per-file:
+```php
+// app/Support/Security/DriveAccess.php
+public static function canWriteFile(User $user, DriveFile $file): bool
+{
+    if ($user->role === 'super_admin') return true;
 
-### 3.3. Pindahkan Berkas/Folder (*Move To*)
-- Endpoint:
-  - `POST /api/drive/files/{id}/move` $\rightarrow$ `{ "folder_id": 42 }`
-  - `POST /api/drive/folders/{id}/move` $\rightarrow$ `{ "parent_id": 10 }`
-- Validasi: Mencegah siklus rekursif (*circular reference* di mana folder dipindahkan ke dalam anaknya sendiri).
+    // Cek keterkaitan dengan form DeReporting milik user
+    if ($file->source_module === 'dereporting' && $file->source_id) {
+        $parts = explode(':', $file->source_id);
+        $responseId = $parts[0] ?? null;
+        if ($responseId) {
+            $resp = DynamicFormResponse::with('form')->find($responseId);
+            if ($resp && (string)$resp->form?->created_by === (string)$user->id) {
+                return true;
+            }
+        }
+    }
 
-### 3.4. Transfer Kepemilikan (*Transfer Ownership*)
-- Endpoint: `POST /api/drive/folders/{id}/transfer-ownership`
-- Payload: `{ "target_user_id": 1 }`
-- Logika Atomik:
-  1. Cari seluruh rekursi `folder_id`.
-  2. `UPDATE drive_folders SET user_id = :target WHERE id IN (:allIds)`.
-  3. `UPDATE drive_files SET user_id = :target WHERE folder_id IN (:allIds)`.
-  4. Berikan izin `DriveShare` editor kepada pemilik lama.
+    if ($file->unit_id) {
+        $unit = $file->unit ?? DriveUnit::find($file->unit_id);
+        return $unit ? self::canWrite($user, $unit) : false;
+    }
 
-### 3.5. Ringkasan Grafik Tanggapan (*Summary Visual Analytics*)
-- Endpoint: `GET /api/dereporting/forms/{id}/summary`
-- Mengembalikan agregasi data:
-  - Pilihan ganda / Select / Radio: Frekuensi tiap opsi (persentase & jumlah).
-  - Checkbox: Frekuensi kombinasi pilihan.
-  - Tanggal: Distribusi entri per hari/minggu.
-  - File: Jumlah berkas terunggah & total ukuran bytes.
-- Frontend me-render menggunakan pustaka diagram ringan (misal: Recharts atau native SVG Bar/Pie) dengan tema gelap/terang.
+    return $file->user_id === $user->id;
+}
+```
+
+### 3.3. Unduh Folder ZIP Cepat & Hemat Memori (`ZipStream-PHP`)
+- **Alur Kerja**:
+  1. Frontend meminta URL unduhan: `POST /api/drive/folders/{id}/zip-token`.
+  2. Backend memvalidasi hak akses dan mengembalikan signed URL:
+     `URL::temporarySignedRoute('drive.folder.zip', now()->addMinutes(15), ['id' => $folder->id])`.
+  3. Frontend memicu browser native download via `window.location.href = signedUrl`.
+  4. Controller membuka output stream dengan `ZipStream-PHP`, mengambil stream berkas dari RustFS S3, dan membersihkan nama berkas dari path traversal:
+     `$safePath = preg_replace('/(\.\.[\/\\\\])+/', '', $file->name);`
+  5. **Hasil**: Memori browser 0 byte (langsung ke disk unduhan OS), memori RAM server $\le$ 10 MB konstan.
+
+### 3.4. Notifikasi Real-Time Murni (Tanpa Kuota Email)
+Saat responden berhasil mengirim formulir publik:
+```php
+// Backend tidak mengirim email transaksional per tanggapan!
+// Cukup trigger WebSocket instan ke pembuat form:
+if ($form->created_by) {
+    PortalNotificationService::notify(
+        userId: $form->created_by,
+        title: "Tanggapan Baru Diterima",
+        message: "Laporan baru masuk pada formulir '{$form->title}'.",
+        actionUrl: "/dereporting/forms/{$form->id}/responses",
+        module: "dereporting"
+    );
+}
+```
 
 ---
 
-## 4. API Endpoint Baru & Pembaruan Kontrak
+## 4. Rincian API Endpoint Baru
 
 | Metode | Endpoint | Hak Akses | Keterangan |
 |---|---|---|---|
-| `GET` | `/api/dereporting/forms/{id}/summary` | Pembuat / Admin | Mengambil agregasi grafik jawaban |
-| `POST` | `/api/drive/folders/{id}/download-zip` | Reader / Editor | Mengunduh seluruh folder sebagai ZIP |
-| `POST` | `/api/drive/folders/{id}/move` | Editor / Manager | Memindahkan folder ke parent baru |
+| `GET` | `/api/dereporting/forms/{id}/summary` | Pembuat / Admin | Mengambil data statistik diagram respon |
+| `POST` | `/api/drive/folders/{id}/zip-token` | Reader / Editor | Menghasilkan signed URL untuk unduh ZIP |
+| `GET` | `/api/drive/folders/{id}/download-zip` | Signed URL Valid | Men-stream arsip ZIP folder ke browser |
+| `POST` | `/api/drive/folders/{id}/move` | Editor / Manager | Memindahkan folder ke parent folder baru |
 | `POST` | `/api/drive/files/{id}/move` | Editor / Manager | Memindahkan berkas ke folder baru |
-| `POST` | `/api/drive/folders/{id}/transfer-ownership` | Owner / SuperAdmin | Menyerahkan kepemilikan folder & berkas |
-| `POST` | `/api/drive/files/{id}/transfer-ownership` | Owner / SuperAdmin | Menyerahkan kepemilikan satu berkas |

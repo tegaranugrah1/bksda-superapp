@@ -1,69 +1,86 @@
-# Tasks: Rencana Kerja Peningkatan DeReporting & BKSDA Drive
+# Tasks v2: Rencana Kerja Peningkatan DeReporting & BKSDA Drive (Revisi Terverifikasi)
 
 > **Dokumen Terkait**: [requirements.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md) | [design.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md)
-> **Pedoman Eksekusi**: Mengikuti prinsip `/ponytail` (minimalis, tanpa dependensi berlebih, aman, dan dapat diverifikasi dengan 1 runnable self-check per fase).
+> **Pedoman Eksekusi**: Mengikuti prinsip `/ponytail` (minimalis, tanpa dependensi berlebih, aman, efisien, dan menyertakan 1 runnable test file per fase).
 
 ---
 
 ## Daftar Tahapan Pekerjaan (Phases)
 
 ### 📌 Fase 1: Integrasi Otomatis Foto Form DeReporting ke BKSDA Drive & Shortcut UI
-- [ ] **1.1. Migrasi Database**: Buat file migrasi untuk menambahkan `drive_folder_id` pada tabel `dr_forms`.
-- [ ] **1.2. Job Antrean Pengarsipan**: Buat `ArchiveFormResponseFilesJob` untuk:
-  - Membuat/mengambil folder `Formulir DeReporting > [Judul Form]` di bawah akun Balai/SuperAdmin.
-  - Melakukan stream copy berkas lampiran dari disk sementara ke disk `drive` (RustFS S3).
-  - Mencatat rekaman `drive_files` dengan `source_module = 'dereporting'` dan otomatis memberikan `DriveShare` izin editor ke `form->created_by`.
-- [ ] **1.3. Sambungkan ke Submisi Publik**: Panggil job di `FormBuilderController::submitPublic()`.
+- [ ] **1.1. Migrasi Database PostgreSQL**:
+  - Buat migrasi penambahan kolom `drive_folder_id` (nullable foreign key ke `drive_folders.id`) pada tabel `dr_forms`.
+- [ ] **1.2. Direct S3 Upload & Registrasi DriveFile**:
+  - Pada `FormBuilderController::submitPublic()`, simpan file langsung ke disk S3 `drive` di bawah folder Unit Balai Samarinda (`balai-samarinda`).
+  - Catat record `DriveFile` dengan `unit_id` terisi (bebas kuota pribadi pegawai pembuat form) dan format komposit `source_id = "{$response->id}:{$fieldId}:{$index}"`.
+- [ ] **1.3. Otorisasi Pembuat Form di `DriveAccess.php`**:
+  - Berikan izin baca, tulis, unduh, dan bagikan otomatis kepada pembuat formulir (`dr_forms.created_by`).
 - [ ] **1.4. Pintasan UI**:
-  - Pasang tombol ikon Drive di card formulir ([`frontend/src/app/dereporting/forms/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/dereporting/forms/page.tsx)).
-  - Pasang tombol **"Buka Folder di BKSDA Drive"** di halaman tanggapan ([`frontend/src/app/dereporting/forms/[id]/responses/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/dereporting/forms/%5Bid%5D/responses/page.tsx)).
-- [ ] **Self-Check Fase 1**: Buat formulir uji coba dengan upload foto $\rightarrow$ submit jawaban $\rightarrow$ periksa folder di `/drive` $\rightarrow$ pastikan foto muncul di Drive tanpa memotong kuota pribadi pegawai.
+  - Tombol ikon Drive di kartu formulir ([`frontend/src/app/dereporting/forms/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/dereporting/forms/page.tsx)).
+  - Tombol **"Buka Folder di BKSDA Drive"** di halaman tanggapan ([`frontend/src/app/dereporting/forms/[id]/responses/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/dereporting/forms/%5Bid%5D/responses/page.tsx)).
+- [ ] **1.5. Automated Test Suite (Self-Check)**:
+  - Buat `backend/tests/Feature/DeReportingDriveIntegrationTest.php`:
+    - Tes submit formulir publik dengan upload foto $\rightarrow$ file tersimpan di S3 `drive` $\rightarrow$ tercatat di `drive_files` $\rightarrow$ kuota pribadi pembuat form tetap 0 byte terpakai $\rightarrow$ pembuat form memiliki izin `canWriteFile`.
+  - Verifikasi runnable: `php artisan test --filter="DeReportingDriveIntegrationTest"`.
 
 ---
 
-### 📌 Fase 2: Multi-File Upload & Notifikasi Email Tanggapan Baru
-- [ ] **2.1. Skema Multi-File**: Perbarui Form Builder agar pertanyaan jenis `file` mendukung opsi `max_files` (1 s.d. 10 berkas).
-- [ ] **2.2. Validasi Backend Form**: Perbarui `FormBuilderController::submitPublic()` untuk menerima array berkas pada satu pertanyaan berkas.
-- [ ] **2.3. Komponen Form Responden**: Perbarui komponen input file di `/lapor/[slug]` agar mendukung multi-file drag-and-drop & pemilihan banyak foto dari galeri HP.
-- [ ] **2.4. Notifikasi Email**:
-  - Tambahkan toggle `email_notifications_enabled` pada pengaturan form.
-  - Kirim email ringkasan ke email terverifikasi pembuat form saat tanggapan baru berhasil dikirim via failover mailer.
-- [ ] **Self-Check Fase 2**: Submit form dengan 3 foto sekaligus $\rightarrow$ periksa ketiga foto tersimpan rapi di DB dan Drive $\rightarrow$ pembuat form menerima notifikasi email.
+### 📌 Fase 2: Multi-File Upload & Notifikasi Real-Time (Portal & WebSocket)
+- [ ] **2.1. Skema Multi-File di Form Builder**:
+  - Pertanyaan tipe `file` mendukung opsi `max_files` (1 s.d. 5 berkas).
+- [ ] **2.2. Kompresi Gambar Sisi Klien di `/lapor/[slug]`**:
+  - Responden dapat memilih hingga 5 foto sekaligus dari galeri HP/PC.
+  - Kompresi canvas otomatis ($\le$ 1600px JPEG) sebelum dikirim untuk menjaga total payload di bawah 25 MB.
+- [ ] **2.3. Validasi & Sanitasi Backend**:
+  - Pengecekan MIME *magic bytes* (`finfo`) pada setiap file yang masuk.
+  - Penolakan berkas executable atau zip/rar di formulir publik.
+- [ ] **2.4. Notifikasi Real-Time WebSocket**:
+  - Pemicu `PortalNotificationService::notify()` ke `created_by` saat ada laporan baru dari publik.
+- [ ] **2.5. Automated Test Suite (Self-Check)**:
+  - Buat tes verifikasi multi-upload & push notifikasi di `DeReportingDriveIntegrationTest.php`.
+  - Verifikasi runnable: `php artisan test --filter="DeReportingDriveIntegrationTest"`.
 
 ---
 
 ### 📌 Fase 3: Fitur BKSDA Drive — Unduh Folder sebagai ZIP & Pindah Berkas/Folder
-- [ ] **3.1. Service ZipStream Backend**: Implementasikan endpoint `POST /api/drive/folders/{id}/download-zip` dengan streaming *on-the-fly* langsung dari RustFS S3.
-- [ ] **3.2. UI Unduh Folder**: Tambahkan opsi menu **"Unduh sebagai ZIP"** pada klik kanan / menu titik tiga folder di BKSDA Drive.
-- [ ] **3.3. Endpoint Pindah (Move To)**:
-  - `POST /api/drive/files/{id}/move`
-  - `POST /api/drive/folders/{id}/move` dengan validasi anti-circular parent.
-- [ ] **3.4. Dialog UI "Pindahkan ke..."**: Modal pohon folder di antarmuka Drive untuk memilih folder tujuan.
-- [ ] **Self-Check Fase 3**: Klik unduh ZIP pada folder berisi berkas $\rightarrow$ berkas .zip terunduh dan dapat diekstrak utuh $\rightarrow$ uji pemindahan berkas ke folder lain.
+- [ ] **3.1. Service ZipStream Backend**:
+  - Buat `DriveZipStreamService` memanfaatkan `maennchen/zipstream-php` yang sudah tersedia di `composer.lock`.
+  - Endpoint `POST /api/drive/folders/{id}/zip-token` menghasilkan signed URL sementara (15 menit).
+  - Endpoint `GET /api/drive/folders/{id}/download-zip` men-stream arsip ZIP on-the-fly dengan proteksi anti *zip-slip*.
+- [ ] **3.2. UI Unduh Folder di BKSDA Drive**:
+  - Tombol menu aksi **"Unduh sebagai ZIP"** pada folder di BKSDA Drive.
+  - Trigger unduhan langsung browser native tanpa memakan RAM JavaScript.
+- [ ] **3.3. Endpoint & UI Pindah Berkas/Folder (*Move To*)**:
+  - `POST /api/drive/files/{id}/move` dan `POST /api/drive/folders/{id}/move` dengan validasi anti-circular parent.
+  - Modal pohon folder di frontend Drive untuk memilih folder tujuan.
+- [ ] **3.4. Automated Test Suite (Self-Check)**:
+  - Buat `backend/tests/Feature/DriveZipDownloadTest.php`:
+    - Tes pembuatan signed URL $\rightarrow$ tes download stream ZIP $\rightarrow$ verifikasi integritas isi ZIP.
+  - Verifikasi runnable: `php artisan test --filter="DriveZipDownloadTest"`.
 
 ---
 
-### 📌 Fase 4: Fitur BKSDA Drive — Transfer Kepemilikan & Filter Chips
-- [ ] **4.1. Endpoint Transfer Kepemilikan**:
-  - `POST /api/drive/folders/{id}/transfer-ownership`
-  - Rekursif update `user_id` seluruh folder dan berkas, serta sematkan `DriveShare` editor ke pemilik lama.
-- [ ] **4.2. UI Dialog Transfer**: Tombol aksi "Serahkan Kepemilikan ke SuperAdmin/Pegawai" lengkap dengan konfirmasi pembebasan kuota.
-- [ ] **4.3. Filter Chips di Toolbar Drive**: Tombol filter cepat kategori `[Semua]`, `[Foto/Gambar]`, `[Dokumen PDF]`, `[Excel]`.
-- [ ] **Self-Check Fase 4**: Lakukan transfer kepemilikan folder $\rightarrow$ kuota storage user asal berkurang seketika $\rightarrow$ user asal tetap bisa membuka dan mengunduh berkas.
+### 📌 Fase 4: Visualisasi Grafik Ringkasan Tanggapan (Summary Visual Analytics)
+- [ ] **4.1. Endpoint Agregasi Data Backend**:
+  - `GET /api/dereporting/forms/{id}/summary`: Menghitung frekuensi jawaban pilihan ganda, checkbox, dan galeri foto dengan query agregasi SQL efisien.
+- [ ] **4.2. Tab Ringkasan di Frontend**:
+  - Pasang tab "Ringkasan" di halaman tanggapan ([`frontend/src/app/dereporting/forms/[id]/responses/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/dereporting/forms/%5Bid%5D/responses/page.tsx)).
+  - Menggunakan komponen diagram `recharts` yang sudah terpasang di `frontend/package.json`:
+    - Pie Chart untuk pertanyaan pilihan ganda/radio.
+    - Bar Chart untuk pertanyaan checkbox & select.
+    - Galeri thumbnail gambar dengan `loading="lazy"`.
+- [ ] **4.3. Automated Test Suite (Self-Check)**:
+  - Buat tes verifikasi agregasi summary di `DeReportingDriveIntegrationTest.php`.
 
 ---
 
-### 📌 Fase 5: Visualisasi Grafik Ringkasan Jawaban (Summary Analytics)
-- [ ] **5.1. Agregasi Backend**: Implementasikan endpoint `GET /api/dereporting/forms/{id}/summary` yang menghitung frekuensi jawaban pilihan ganda, checkbox, dan galeri foto.
-- [ ] **5.2. Tab Ringkasan di Frontend**: Buat tab "Ringkasan" di halaman `/dereporting/forms/[id]/responses` dengan komponen diagram visual (Pie / Bar Chart).
-- [ ] **Self-Check Fase 5**: Buka tab ringkasan formulir yang sudah memiliki tanggapan $\rightarrow$ diagram persentase pilihan ganda dan galeri foto tampil interaktif.
-
----
-
-### 📌 Fase 6: Jadwal Penutupan Otomatis & Pertanyaan Koordinat GPS Lapangan
-- [ ] **6.1. Pengaturan Jadwal Tutup**: Input `closed_at` dan `closed_message` di builder formulir.
-- [ ] **6.2. Proteksi Submisi**: Validasi batas waktu saat responden membuka dan mengirimkan `/lapor/[slug]`.
-- [ ] **6.3. Tipe Pertanyaan GPS Lapangan**:
-  - Pertanyaan `gps_location` di builder.
-  - Tombol *"Ambil Lokasi GPS Saya"* + peta interaktif di formulir responden.
-- [ ] **Self-Check Fase 6**: Coba formulir yang telah kedaluwarsa $\rightarrow$ muncul pesan penutupan resmi. Uji pertanyaan GPS di ponsel $\rightarrow$ koordinat lintang & bujur tersimpan akurat.
+### 📌 Fase 5: Jadwal Penutupan Form Otomatis & Pertanyaan Koordinat GPS Lapangan
+- [ ] **5.1. Jadwal Tutup Otomatis**:
+  - Kolom `closed_at` dan `closed_message` di builder formulir.
+  - Proteksi sisi server: tolak submisi jika waktu sekarang melebihi `closed_at`.
+- [ ] **5.2. Tipe Pertanyaan Koordinat GPS Lapangan**:
+  - Tipe pertanyaan baru: `gps_location` di form builder.
+  - Komponen input lokasi di formulir publik menggunakan Geolocation API ponsel + pin point peta `leaflet` / `react-leaflet` yang sudah terpasang.
+  - Teks persetujuan privasi (*consent*) bagi pelapor publik.
+- [ ] **5.3. Automated Test Suite (Self-Check)**:
+  - Tes validasi form kedaluwarsa & koordinat GPS di test suite.
