@@ -18,6 +18,7 @@ import {
   RotateCcw,
   ShieldAlert,
   Share2,
+  FolderInput,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,6 +63,8 @@ interface DriveFileListProps {
   onPreviewFile: (file: DriveFileItem) => void;
   onDownloadFile: (file: DriveFileItem) => void;
   onShareFile?: (file: DriveFileItem) => void;
+  onDownloadFolderZip?: (folder: DriveFolderItem) => void;
+  onMoveItem?: (type: "folder" | "file", item: DriveFolderItem | DriveFileItem) => void;
   onToggleStar: (type: "folder" | "file", id: number) => void;
   onRename: (type: "folder" | "file", id: number, newName: string) => Promise<void>;
   onTrash: (type: "folder" | "file", id: number) => void;
@@ -100,6 +103,8 @@ export function DriveFileList({
   onPreviewFile,
   onDownloadFile,
   onShareFile,
+  onDownloadFolderZip,
+  onMoveItem,
   onToggleStar,
   onRename,
   onTrash,
@@ -207,6 +212,14 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onOpenFolder(folder.id)}>
                               <Eye className="w-3.5 h-3.5 mr-2" /> Buka
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onDownloadFolderZip?.(folder)}>
+                              <FileArchive className="w-3.5 h-3.5 mr-2 text-amber-500" /> Unduh sebagai ZIP
+                            </DropdownMenuItem>
+                            {canWrite && (
+                              <DropdownMenuItem onClick={() => onMoveItem?.("folder", folder)}>
+                                <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
+                              </DropdownMenuItem>
+                            )}
                             {canWrite && (
                               <DropdownMenuItem
                                 onClick={() => {
@@ -319,6 +332,11 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFile(file)}>
                               <Download className="w-3.5 h-3.5 mr-2" /> Unduh
                             </DropdownMenuItem>
+                            {canWrite && (
+                              <DropdownMenuItem onClick={() => onMoveItem?.("file", file)}>
+                                <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
+                              </DropdownMenuItem>
+                            )}
                             {canWrite && onShareFile && (
                               <DropdownMenuItem onClick={() => onShareFile(file)}>
                                 <Share2 className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Bagikan Berkas

@@ -45,6 +45,12 @@ Route::post('/webhooks/resend', [AuthController::class, 'webhookResend'])->middl
 Route::get('/drive/s/{token}', [\App\Http\Controllers\Api\DriveShareController::class, 'getPublicShareInfo'])->middleware('throttle:60,1');
 Route::post('/drive/s/{token}/download', [\App\Http\Controllers\Api\DriveShareController::class, 'downloadPublicShare'])->middleware('throttle:10,1');
 
+// Signed ZIP download
+Route::get('/drive/folders/{id}/download-zip', [\App\Http\Controllers\Api\DriveController::class, 'downloadFolderZip'])
+    ->whereNumber('id')
+    ->name('drive.folder.download_zip')
+    ->middleware('throttle:30,1');
+
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me'])->middleware('throttle:120,1');
@@ -96,6 +102,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:60,1');
     Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:60,1');
     Route::get('/drive/files/{id}/url', [\App\Http\Controllers\Api\DriveController::class, 'downloadUrl'])->whereNumber('id')->middleware('throttle:120,1');
+    Route::post('/drive/folders/{id}/zip-token', [\App\Http\Controllers\Api\DriveController::class, 'requestZipToken'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::post('/drive/files/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFile'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::post('/drive/folders/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFolder'])->whereNumber('id')->middleware('throttle:60,1');
 
     // Drive Sharing (Fase 3)
     Route::post('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'createShare'])->whereNumber('id')->middleware('throttle:30,1');

@@ -11,6 +11,10 @@ import {
   Folder,
   HardDrive,
   Building2,
+  Image,
+  FileText,
+  FileSpreadsheet,
+  FileArchive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +33,8 @@ interface DriveToolbarProps {
   search: string;
   viewMode: "grid" | "list";
   canWrite: boolean;
+  categoryFilter?: string;
+  onCategoryFilterChange?: (cat: string) => void;
   onSearchChange: (search: string) => void;
   onViewModeChange: (mode: "grid" | "list") => void;
   onNavigateFolder: (folderId: number | null) => void;
@@ -43,6 +49,8 @@ export function DriveToolbar({
   search,
   viewMode,
   canWrite,
+  categoryFilter = "all",
+  onCategoryFilterChange,
   onSearchChange,
   onViewModeChange,
   onNavigateFolder,
@@ -157,6 +165,30 @@ export function DriveToolbar({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Chip Filter Kategori Berkas */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 px-1 text-xs">
+        {[
+          { id: "all", label: "Semua Berkas" },
+          { id: "image", label: "Foto & Gambar" },
+          { id: "pdf", label: "Dokumen PDF" },
+          { id: "data", label: "Excel & Data" },
+          { id: "archive", label: "Arsip / ZIP" },
+        ].map((chip) => (
+          <button
+            key={chip.id}
+            type="button"
+            onClick={() => onCategoryFilterChange?.(chip.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              categoryFilter === chip.id
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
+            }`}
+          >
+            {chip.label}
+          </button>
+        ))}
       </div>
 
       {/* Modal Folder Baru */}

@@ -70,13 +70,14 @@ class DriveAccess
             return true;
         }
 
+        // Pemilik berkas atau pembuat form DeReporting berhak membaca berkasnya
+        if ($file->user_id === $user->id) {
+            return true;
+        }
+
         if ($file->unit_id) {
             $unit = $file->unit ?? DriveUnit::find($file->unit_id);
             return $unit ? self::canRead($user, $unit) : false;
-        }
-
-        if ($file->user_id === $user->id) {
-            return true;
         }
 
         return $file->shares()->where('user_id', $user->id)->exists();
@@ -88,11 +89,52 @@ class DriveAccess
             return true;
         }
 
+        // Pemilik berkas atau pembuat form DeReporting berhak mengelola berkasnya
+        if ($file->user_id === $user->id) {
+            return true;
+        }
+
         if ($file->unit_id) {
             $unit = $file->unit ?? DriveUnit::find($file->unit_id);
             return $unit ? self::canWrite($user, $unit) : false;
         }
 
-        return $file->user_id === $user->id;
+        return false;
+    }
+
+    public static function canReadFolder(User $user, \App\Models\DriveFolder $folder): bool
+    {
+        if ($user->role === 'super_admin') {
+            return true;
+        }
+
+        if ($folder->user_id === $user->id) {
+            return true;
+        }
+
+        if ($folder->unit_id) {
+            $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
+            return $unit ? self::canRead($user, $unit) : false;
+        }
+
+        return false;
+    }
+
+    public static function canWriteFolder(User $user, \App\Models\DriveFolder $folder): bool
+    {
+        if ($user->role === 'super_admin') {
+            return true;
+        }
+
+        if ($folder->user_id === $user->id) {
+            return true;
+        }
+
+        if ($folder->unit_id) {
+            $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
+            return $unit ? self::canWrite($user, $unit) : false;
+        }
+
+        return false;
     }
 }

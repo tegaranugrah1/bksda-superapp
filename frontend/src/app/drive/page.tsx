@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Loader2,
@@ -35,13 +35,20 @@ import {
 import { DriveUploadDialog } from "./_components/DriveUploadDialog";
 import { DrivePreviewModal } from "./_components/DrivePreviewModal";
 import { DriveShareDialog } from "./_components/DriveShareDialog";
+import { DriveMoveDialog } from "./_components/DriveMoveDialog";
 
 function DriveDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Navigation & Filter state
-  const [currentSpace, setCurrentSpace] = useState<string>("my"); // 'my' or unitId string
-  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+  // Navigation & Filter state (support initial space & folder_id from URL)
+  const initialSpace = searchParams.get("space") || "my";
+  const initialFolderId = searchParams.get("folder_id") ? parseInt(searchParams.get("folder_id")!, 10) : null;
+
+  const [currentSpace, setCurrentSpace] = useState<string>(initialSpace);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(initialFolderId);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [moveItem, setMoveItem] = useState<{ type: "folder" | "file"; id: number; name: string } | null>(null);
   const [currentFilter, setCurrentFilter] = useState<"all" | "starred" | "trash" | "shared_with_me">("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -72,6 +79,21 @@ function DriveDashboard() {
     return units.find((u) => u.id === unitIdNumber) || null;
   }, [units, isUnit, unitIdNumber]);
 
+  const filteredFiles = useMemo(() => {
+    if (categoryFilter === "all") return files;
+    if (categoryFilter === "image") return files.filter((f) => f.mime_type.toLowerCase().includes("image"));
+    if (categoryFilter === "pdf") return files.filter((f) => f.mime_type.toLowerCase().includes("pdf"));
+    if (categoryFilter === "data") return files.filter((f) => {
+      const m = f.mime_type.toLowerCase();
+      return m.includes("sheet") || m.includes("excel") || m.includes("csv");
+    });
+    if (categoryFilter === "archive") return files.filter((f) => {
+      const m = f.mime_type.toLowerCase();
+      return m.includes("zip") || m.includes("tar") || m.includes("rar");
+    });
+    return files;
+  }, [files, categoryFilter]);
+
   const spaceName = useMemo(() => {
     if (!isUnit) return "Drive Saya";
     return currentUnit?.name || "Drive Bersama";
@@ -90,11 +112,11 @@ function DriveDashboard() {
       const res = await api.get(`/drive?${params.toString()}`);
       const data = res.data;
 
-      setUnits(data.units || []);
+      setUnits(data.units || data.available_units || []);
       setFolders(data.folders || []);
       setFiles(data.files || []);
       setBreadcrumbs(data.breadcrumbs || []);
-      setCanWrite(Boolean(data.can_write));
+      setCanWrite(data.can_write !== undefined ? Boolean(data.can_write) : true);
       if (data.storage) {
         setStorage(data.storage);
       }
@@ -217,6 +239,39 @@ function DriveDashboard() {
     }
   };
 
+  const handleDownloadFolderZip = async (folder: DriveFolderItem) => {
+    try {
+      toast.loading("Mempersiapkan unduhan ZIP...", { id: "zip-download" });
+      const res = await api.post(`/drive/folders/${folder.id}/zip-token`);
+      if (res.data?.download_url) {
+        toast.success("Mengunduh arsip ZIP folder...", { id: "zip-download" });
+        window.location.href = res.data.download_url;
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengunduh folder sebagai ZIP.", { id: "zip-download" });
+    }
+  };
+
+  const handleMoveSubmit = async (type: "folder" | "file", id: number, targetFolderId: number | null) => {
+    try {
+      if (type === "folder") {
+        await api.post(`/drive/folders/${id}/move`, {
+          destination_parent_id: targetFolderId,
+        });
+      } else {
+        await api.post(`/drive/files/${id}/move`, {
+          destination_folder_id: targetFolderId,
+          destination_unit_id: unitIdNumber,
+        });
+      }
+      toast.success("Item berhasil dipindahkan.");
+      loadDriveData(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal memindahkan item.");
+      throw err;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Top Navigation Bar */}
@@ -304,7 +359,7 @@ function DriveDashboard() {
           ) : (
             <DriveFileList
               folders={folders}
-              files={files}
+              files={filteredFiles}
               viewMode={viewMode}
               isTrash={currentFilter === "trash"}
               canWrite={canWrite}
@@ -312,6 +367,8 @@ function DriveDashboard() {
               onPreviewFile={setPreviewFile}
               onDownloadFile={handleDownloadFile}
               onShareFile={setShareFile}
+              onDownloadFolderZip={handleDownloadFolderZip}
+              onMoveItem={(type, item) => setMoveItem({ type, id: item.id, name: item.name })}
               onToggleStar={handleToggleStar}
               onRename={handleRename}
               onTrash={handleTrash}
@@ -342,6 +399,16 @@ function DriveDashboard() {
         file={shareFile}
         open={Boolean(shareFile)}
         onOpenChange={(open) => !open && setShareFile(null)}
+      />
+
+      {/* Move Item Dialog */}
+      <DriveMoveDialog
+        isOpen={Boolean(moveItem)}
+        onClose={() => setMoveItem(null)}
+        item={moveItem}
+        folders={folders}
+        spaceName={spaceName}
+        onMove={handleMoveSubmit}
       />
     </div>
   );

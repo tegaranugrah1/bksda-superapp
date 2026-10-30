@@ -32,7 +32,10 @@ class DriveController extends Controller
         if ($space !== 'my') {
             $unit = DriveUnit::findOrFail((int) $space);
             if (! DriveAccess::canRead($user, $unit)) {
-                return response()->json(['message' => 'Anda tidak memiliki akses ke Drive Unit ini.'], 403);
+                $targetFolder = $folderId ? DriveFolder::find($folderId) : null;
+                if (! ($targetFolder && DriveAccess::canReadFolder($user, $targetFolder))) {
+                    return response()->json(['message' => 'Anda tidak memiliki akses ke Drive Unit ini.'], 403);
+                }
             }
         }
 
@@ -135,6 +138,8 @@ class DriveController extends Controller
                 'used_percent' => $quotaBytes > 0 ? round(($usedBytes / $quotaBytes) * 100, 1) : 0,
             ],
             'available_units' => $allUnits,
+            'units' => $allUnits,
+            'can_write' => $unit ? DriveAccess::canWrite($user, $unit) : true,
         ]);
     }
 
@@ -151,15 +156,20 @@ class DriveController extends Controller
         ]);
 
         $user = $request->user();
-        if (! empty($validated['unit_id'])) {
-            $unit = DriveUnit::findOrFail($validated['unit_id']);
+        $parentFolder = ! empty($validated['parent_id']) ? DriveFolder::find($validated['parent_id']) : null;
+        $unitId = $validated['unit_id'] ?? $parentFolder?->unit_id;
+
+        if (! empty($unitId)) {
+            $unit = DriveUnit::findOrFail($unitId);
             if (! DriveAccess::canWrite($user, $unit)) {
                 return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
             }
+        } elseif ($parentFolder && ! DriveAccess::canWriteFolder($user, $parentFolder)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
         }
 
         $folder = DriveFolder::create([
-            'unit_id' => $validated['unit_id'] ?? null,
+            'unit_id' => $unitId,
             'user_id' => $user->id,
             'parent_id' => $validated['parent_id'] ?? null,
             'name' => trim($validated['name']),
@@ -284,11 +294,17 @@ class DriveController extends Controller
 
         $user = $request->user();
         $size = (int) $validated['size'];
-        $unit = ! empty($validated['unit_id']) ? DriveUnit::findOrFail($validated['unit_id']) : null;
+        $targetFolder = ! empty($validated['folder_id']) ? DriveFolder::find($validated['folder_id']) : null;
+        $unitId = $validated['unit_id'] ?? $targetFolder?->unit_id;
+        $unit = ! empty($unitId) ? DriveUnit::findOrFail($unitId) : null;
 
-        // 1. Otorisasi Unit
+        // 1. Otorisasi Unit / Folder
         if ($unit && ! DriveAccess::canWrite($user, $unit)) {
-            return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
+            if (! ($targetFolder && DriveAccess::canWriteFolder($user, $targetFolder))) {
+                return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
+            }
+        } elseif ($targetFolder && ! DriveAccess::canWriteFolder($user, $targetFolder)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
         }
 
         // 2. Pengecekan Kuota
@@ -325,6 +341,7 @@ class DriveController extends Controller
         if (! $isMultipart) {
             // Single Upload: direct signed PUT
             $presignedUrl = Storage::disk('drive_signer')->temporaryUploadUrl($s3Key, $expiresAt);
+            $targetUrl = is_array($presignedUrl) ? ($presignedUrl['url'] ?? '') : (string) $presignedUrl;
 
             DriveUpload::create([
                 'id' => $uploadId,
@@ -343,7 +360,7 @@ class DriveController extends Controller
                 'upload_id' => $uploadId,
                 's3_key' => $s3Key,
                 'is_multipart' => false,
-                'presigned_url' => $presignedUrl,
+                'presigned_url' => $targetUrl,
             ]);
         }
 
@@ -554,6 +571,216 @@ class DriveController extends Controller
             'size' => $file->size_bytes,
             'mime_type' => $file->mime_type,
             'is_inline' => $isInline,
+        ]);
+    }
+
+    /**
+     * POST /api/drive/folders/{id}/zip-token
+     * Menghasilkan URL sementara bertanda tangan (signed URL) untuk unduh folder sebagai ZIP.
+     */
+    public function requestZipToken(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $folder = DriveFolder::findOrFail($id);
+
+        if (! DriveAccess::canReadFolder($user, $folder)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak untuk mengunduh folder ini.'], 403);
+        }
+
+        // URL bertanda tangan (HMAC-SHA256) berlaku 15 menit
+        $signedUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'drive.folder.download_zip',
+            now()->addMinutes(15),
+            ['id' => $folder->id]
+        );
+
+        return response()->json([
+            'download_url' => $signedUrl,
+            'folder_name' => $folder->name,
+            'expires_in_minutes' => 15,
+        ]);
+    }
+
+    /**
+     * GET /api/drive/folders/{id}/download-zip
+     * Men-stream arsip ZIP folder secara instan ke browser dengan proteksi anti Zip-Slip.
+     */
+    public function downloadFolderZip(Request $request, int $id)
+    {
+        if (! $request->hasValidSignature()) {
+            abort(403, 'Tautan unduhan ZIP tidak valid atau sudah kedaluwarsa.');
+        }
+
+        $folder = DriveFolder::findOrFail($id);
+
+        $cleanFolderName = preg_replace('/[^\w\-]/', '_', $folder->name) ?: 'folder';
+        $zipFilename = "{$cleanFolderName}.zip";
+
+        return response()->streamDownload(function () use ($folder) {
+            $zip = new \ZipStream\ZipStream(
+                outputStream: fopen('php://output', 'wb'),
+                sendHttpHeaders: false
+            );
+
+            $this->addFolderToZipStream($zip, $folder, '');
+
+            $zip->finish();
+        }, $zipFilename, [
+            'Content-Type' => 'application/zip',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ]);
+    }
+
+    /**
+     * Rekursif menambahkan berkas dan subfolder ke ZipStream dengan proteksi anti Zip-Slip (CWE-22).
+     */
+    protected function addFolderToZipStream(\ZipStream\ZipStream $zip, DriveFolder $folder, string $basePath): void
+    {
+        // Ambil semua berkas di folder ini
+        $files = DriveFile::where('folder_id', $folder->id)->whereNull('deleted_at')->get();
+        foreach ($files as $file) {
+            // Anti-Zip-Slip (CWE-22): Sanitasi nama berkas, cegah path traversal
+            $cleanName = basename(preg_replace('/(\.\.[\/\\\\])+/', '', (string) $file->name));
+            if ($cleanName === '' || $cleanName === '.' || $cleanName === '..') {
+                $cleanName = "file_{$file->id}";
+            }
+            $safePath = ltrim(($basePath !== '' ? "{$basePath}/" : '') . $cleanName, '/');
+
+            try {
+                if (Storage::disk('drive')->exists($file->s3_key)) {
+                    $stream = Storage::disk('drive')->readStream($file->s3_key);
+                    if ($stream) {
+                        $zip->addFileFromStream(fileName: $safePath, stream: $stream);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Lewati berkas yang bermasalah agar unduhan folder tidak terputus
+            }
+        }
+
+        // Telusuri subfolder
+        $subfolders = DriveFolder::where('parent_id', $folder->id)->whereNull('deleted_at')->get();
+        foreach ($subfolders as $sub) {
+            $subClean = basename(preg_replace('/(\.\.[\/\\\\])+/', '', (string) $sub->name));
+            if ($subClean === '' || $subClean === '.' || $subClean === '..') {
+                $subClean = "folder_{$sub->id}";
+            }
+            $subPath = ltrim(($basePath !== '' ? "{$basePath}/" : '') . $subClean, '/');
+            $this->addFolderToZipStream($zip, $sub, $subPath);
+        }
+    }
+
+    /**
+     * POST /api/drive/files/{id}/move
+     * Memindahkan berkas ke folder atau unit tujuan.
+     */
+    public function moveFile(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $file = DriveFile::findOrFail($id);
+
+        if (! DriveAccess::canWriteFile($user, $file)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak untuk memindahkan berkas ini.'], 403);
+        }
+
+        $validated = $request->validate([
+            'destination_folder_id' => ['nullable', 'integer', 'exists:drive_folders,id'],
+            'destination_unit_id' => ['nullable', 'integer', 'exists:drive_units,id'],
+        ]);
+
+        $destFolderId = $validated['destination_folder_id'] ?? null;
+        $destUnitId = $validated['destination_unit_id'] ?? null;
+
+        if ($destFolderId) {
+            $destFolder = DriveFolder::findOrFail($destFolderId);
+            if (! DriveAccess::canWriteFolder($user, $destFolder)) {
+                return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder tujuan.'], 403);
+            }
+            $file->update([
+                'folder_id' => $destFolder->id,
+                'unit_id' => $destFolder->unit_id,
+            ]);
+        } else {
+            // Pindah ke root unit atau root personal
+            if ($destUnitId) {
+                $destUnit = DriveUnit::findOrFail($destUnitId);
+                if (! DriveAccess::canWrite($user, $destUnit)) {
+                    return response()->json(['message' => 'Anda tidak memiliki hak menulis di unit tujuan.'], 403);
+                }
+                $file->update([
+                    'folder_id' => null,
+                    'unit_id' => $destUnit->id,
+                ]);
+            } else {
+                // Pindah ke root drive pribadi
+                $file->update([
+                    'folder_id' => null,
+                    'unit_id' => null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Berkas berhasil dipindahkan.',
+            'file' => $file->fresh(),
+        ]);
+    }
+
+    /**
+     * POST /api/drive/folders/{id}/move
+     * Memindahkan folder dengan proteksi loop sirkular (CWE-674).
+     */
+    public function moveFolder(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $folder = DriveFolder::findOrFail($id);
+
+        if (! DriveAccess::canWriteFolder($user, $folder)) {
+            return response()->json(['message' => 'Anda tidak memiliki hak untuk memindahkan folder ini.'], 403);
+        }
+
+        $validated = $request->validate([
+            'destination_parent_id' => ['nullable', 'integer', 'exists:drive_folders,id'],
+        ]);
+
+        $destParentId = $validated['destination_parent_id'] ?? null;
+
+        if ($destParentId) {
+            if ((int) $destParentId === (int) $folder->id) {
+                return response()->json(['message' => 'Folder tidak dapat dipindahkan ke dalam dirinya sendiri.'], 422);
+            }
+
+            $destParent = DriveFolder::findOrFail($destParentId);
+            if (! DriveAccess::canWriteFolder($user, $destParent)) {
+                return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder tujuan.'], 403);
+            }
+
+            // Anti-Circular Parent: cegah memindahkan folder ke dalam anak/cucunya sendiri
+            $curr = $destParent;
+            while ($curr) {
+                if ((int) $curr->id === (int) $folder->id) {
+                    return response()->json([
+                        'message' => 'Folder tidak dapat dipindahkan ke dalam subfoldernya sendiri.',
+                    ], 422);
+                }
+                $curr = $curr->parent_id ? DriveFolder::find($curr->parent_id) : null;
+            }
+
+            $folder->update([
+                'parent_id' => $destParent->id,
+                'unit_id' => $destParent->unit_id,
+            ]);
+        } else {
+            // Pindahkan ke root
+            $folder->update(['parent_id' => null]);
+        }
+
+        return response()->json([
+            'message' => 'Folder berhasil dipindahkan.',
+            'folder' => $folder->fresh(),
         ]);
     }
 }

@@ -79,7 +79,8 @@ export function DriveUploadDialog({
 
     if (!initData.is_multipart) {
       // Direct Single PUT to presigned URL
-      await axios.put(initData.presigned_url, f, {
+      const uploadUrl = typeof initData.presigned_url === "string" ? initData.presigned_url : (initData.presigned_url?.url || "");
+      await axios.put(uploadUrl, f, {
         headers: {
           "Content-Type": f.type || "application/octet-stream",
         },

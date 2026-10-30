@@ -1,38 +1,48 @@
-# Progress - Phase 229: Rencana Peningkatan DeReporting Form Builder & BKSDA Drive (Integrasi Otomatis Drive, Multi-File Upload, ZIP Download, & Visual Analytics)
+# Progress - Phase 229: Peningkatan DeReporting Form Builder & BKSDA Drive (Integrasi Otomatis Drive, Multi-File Upload, ZIP Download, & Visual Analytics)
 
 > Document updated: 2026-10-30
 > Branch: `production-server`
-> Status: SIAP DIKERJAKAN (Dokumen spesifikasi teknis requirements.md, design.md, dan tasks.md selesai direvisi v2 100%. Pengerjaan dibagi dalam 5 fase implementasi bersih).
+> Status: SELESAI & TERVERIFIKASI (100% Selesai — 5 Fase Implementasi selesai dikerjakan dengan standar /ponytail, /security-audit, dan UI/UX Pro Max. 12 automated tests PHPUnit lulus dengan 60 assertions tanpa error, TypeScript check 0 error, dan database migrasi diterapkan).
 > Dokumen Referensi:
 > - Requirements v2: [docs/dereporting-forms-and-drive-enhancements/requirements.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md)
 > - Architecture Design v2: [docs/dereporting-forms-and-drive-enhancements/design.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md)
 > - Task Breakdown v2: [docs/dereporting-forms-and-drive-enhancements/tasks.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md)
 
-### Rencana Eksekusi Fitur yang Akan Dikerjakan (5 Fase Terverifikasi):
+### Ringkasan Eksekusi Fitur yang Selesai Dikerjakan (5 Fase Terverifikasi):
 
 1. **Fase 1 — Integrasi Otomatis Foto Form DeReporting ke BKSDA Drive & Shortcut UI**:
-   - Berkas/foto responden form dinamis otomatis masuk ke folder terorganisir di BKSDA Drive (`Drive Bersama > Balai BKSDA Samarinda > Formulir DeReporting > [Judul Form]`).
-   - Alokasi kuota storage dibebankan ke Unit Balai Samarinda (100 GB) sehingga **tidak memotong kuota pribadi 5 GB pembuat form (0 byte terpakai)**.
-   - Pembuat form otomatis diakui oleh `DriveAccess` sebagai **Editor/Manager** yang berhak melihat, mengunduh, pratinjau, dan membagikan berkas.
-   - Tombol pintasan **"Buka Folder di BKSDA Drive"** di halaman riwayat `/dereporting/forms` dan `/dereporting/forms/[id]/responses`.
-   - Tes otomatis: `DeReportingDriveIntegrationTest.php`.
+   - **Database Migration**: `2026_10_30_120000_add_drive_and_schedule_to_dr_forms_table.php` menambahkan foreign key `drive_folder_id`, `closed_at`, dan `closed_message` pada tabel `dr_forms`.
+   - **S3 RustFS Storage**: Berkas/foto responden form otomatis tersimpan langsung ke disk S3 `drive` di path `units/balai-samarinda/dereporting/{form->slug}/...`.
+   - **Zero Personal Quota Consumption**: `DriveFile` dicatat dengan `unit_id = 1` (Balai Samarinda 100 GB quota) dan `source_id = "{$response->id}:{$fieldId}:{$index}"`. Kuota pribadi pembuat form (5 GB) tetap **0 byte terpakai**.
+   - **Otorisasi DriveAccess**: Pembuat formulir (`dr_forms.created_by`) diakui secara otomatis oleh `DriveAccess` (`canReadFile`, `canWriteFile`, `canReadFolder`, `canWriteFolder`) untuk membaca, mengunduh, pratinjau, dan membagikan berkas tanpa hambatan hak akses unit.
+   - **Pintasan UI Pro Max**: Tombol pintasan *"Buka Folder di BKSDA Drive"* di kartu formulir (`/dereporting/forms`) dan di header halaman tanggapan (`/dereporting/forms/[id]/responses`).
 
 2. **Fase 2 — Multi-File Upload & Notifikasi Real-Time (Portal & WebSocket)**:
-   - Dukungan unggah 1 s.d. 5 berkas sekaligus dalam satu pertanyaan lampiran form dengan kompresi otomatis di browser responden (canvas $\le$ 1600px JPEG) agar payload tetap aman di bawah batas server 25 MB.
-   - Pengecekan MIME *magic bytes* (`finfo`) dan penolakan berkas arsip/executable publik.
-   - Notifikasi instan murni melalui **Portal Notifikasi + WebSocket (Laravel Reverb)** tanpa menguras kuota email Resend.
+   - **Multi-File Form Builder**: Opsi konfigurasi `max_files` (1 s.d. 5 berkas) pada pertanyaan bertipe `file`.
+   - **Kompresi Canvas Sisi Klien**: Responden publik pada `/lapor/[slug]` dapat memilih hingga 5 foto sekaligus dengan kompresi otomatis via HTML5 Canvas ($\le 1600\text{px}$ JPEG quality 0.82) sebelum dikirim, menjaga total payload selalu aman di bawah batas 25 MB.
+   - **Validasi Keamanan Ketat (`/security-audit`)**: Pemeriksaan MIME *magic bytes* via PHP `finfo` pada backend dan pencegahan unggahan file executable/script berbahaya.
+   - **Notifikasi Real-Time WebSocket**: Integrasi `PortalNotificationService::notifyUser()` via Laravel Reverb / `PortalNotificationCreated` saat responden mengirim submisi baru, tanpa menguras kuota email Resend/Brevo.
 
-3. **Fase 3 — Fitur BKSDA Drive: Download Folder sebagai ZIP & Pindah Berkas/Folder (Move To)**:
-   - Unduh seluruh folder beserta seluruh foto di dalamnya menjadi 1 file `.zip` via streaming on-the-fly (`ZipStream-PHP`) menggunakan temporary signed URL GET (zero memory leak di browser dan proteksi anti zip-slip).
-   - Menu aksi *"Pindahkan ke..."* (*Move to*) untuk merapikan berkas/folder dengan validasi anti-circular parent.
-   - Tes otomatis: `DriveZipDownloadTest.php`.
+3. **Fase 3 — Fitur BKSDA Drive: Unduh Folder sebagai ZIP & Pindah Berkas/Folder (Move To)**:
+   - **Temporary Signed URL GET**: Endpoint `POST /api/drive/folders/{id}/zip-token` menghasilkan signed URL sementara dengan masa berlaku 15 menit.
+   - **Streaming On-the-fly (`ZipStream-PHP`)**: Endpoint `GET /api/drive/folders/{id}/download-zip` men-stream arsip ZIP langsung ke browser dengan proteksi anti zip-slip path traversal (CWE-22) dan zero memory footprint di server.
+   - **Fitur Pindah Berkas/Folder (Move To)**: Endpoint `POST /api/drive/files/{id}/move` dan `POST /api/drive/folders/{id}/move` dilengkapi validasi pencegahan circular parent loop (CWE-674), terintegrasi dengan komponen UI `DriveMoveDialog.tsx`.
+   - **Filter Kategori Toolbar Drive**: Chip filter cepat di BKSDA Drive untuk menyaring berkas berdasarkan tipe ("Semua", "Foto & Gambar", "Dokumen PDF", "Excel & Data", "Arsip / ZIP").
 
 4. **Fase 4 — Visualisasi Grafik Ringkasan Jawaban (Summary Visual Analytics)**:
-   - Tab "Ringkasan" di `/dereporting/forms/[id]/responses`: diagram lingkaran (*pie chart*) untuk pilihan ganda, diagram batang (*bar chart*) untuk checkbox/dropdown memanfaatkan `recharts`, dan galeri thumbnail foto lazy load.
+   - **Endpoint Agregasi**: `GET /api/dereporting/forms/{id}/summary` menghitung agregat statistik pilihan ganda, checkbox, dropdown, galeri thumbnail berkas, koordinat GPS, serta tren 30 hari.
+   - **Visual Analytics UI**: Tab *"Ringkasan"* di `/dereporting/forms/[id]/responses` menyajikan Pie Chart dan Bar Chart menggunakan `recharts`, galeri thumbnail responsif dengan unduhan berkas individual, dan kartu pratinjau koordinat GPS.
 
 5. **Fase 5 — Jadwal Penutupan Form Otomatis & Pertanyaan Koordinat GPS Lapangan**:
-   - Pengaturan tanggal/jam penutupan otomatis (`closed_at`) dan pesan penutupan resmi.
-   - Tipe pertanyaan baru `gps_location` dengan tombol satu-klik *"Ambil Lokasi Saya (GPS)"* + pin point peta interaktif Leaflet.
+   - **Jadwal Tutup Otomatis**: Form builder dan modal create form mendukung pemilihan tanggal/jam `closed_at` dan pesan penutupan resmi `closed_message`. Server-side guard pada `submitPublic()` menolak submisi form kedaluwarsa dengan HTTP 403 Forbidden.
+   - **Tipe Pertanyaan Koordinat GPS**: Tipe field `gps_location` dengan tombol satu-klik *"Ambil Lokasi Saya (GPS)"* via HTML5 Geolocation API, pin point koordinat, tautan Google Maps, serta badge persetujuan privasi (*consent*).
+
+### Verifikasi & Pengujian Otomatis (Passing 100%):
+- `backend/tests/Feature/DeReportingDriveIntegrationTest.php`: 4 test cases, 28 assertions — **PASSED**.
+- `backend/tests/Feature/DriveZipDownloadTest.php`: 4 test cases, 19 assertions — **PASSED**.
+- `backend/tests/Feature/DriveTest.php`: 4 test cases, 13 assertions — **PASSED**.
+- Total Test Suite: **12 tests, 60 assertions, 0 failures**.
+- Frontend TypeScript Check: `npx tsc --noEmit` — **0 compilation errors**.
 
 ---
 
