@@ -15,15 +15,32 @@ use App\Modules\Kepegawaian\Models\Employee;
  */
 class DriveAccess
 {
+    private static ?\WeakMap $employeeCache = null;
+    private static ?\WeakMap $unitIdsCache = null;
+
+    public static function clearCache(?User $user = null): void
+    {
+        if ($user) {
+            if (self::$employeeCache !== null) unset(self::$employeeCache[$user]);
+            if (self::$unitIdsCache !== null) unset(self::$unitIdsCache[$user]);
+        } else {
+            self::$employeeCache = new \WeakMap();
+            self::$unitIdsCache = new \WeakMap();
+        }
+    }
+
     /**
      * Memoize pencarian profil pegawai per instance user untuk menghindari N+1 query.
      */
     public static function getEmployee(User $user): ?Employee
     {
-        if (! property_exists($user, '_memoized_employee')) {
-            $user->_memoized_employee = Employee::where('nip', $user->username)->first();
+        if (self::$employeeCache === null) {
+            self::$employeeCache = new \WeakMap();
         }
-        return $user->_memoized_employee;
+        if (! isset(self::$employeeCache[$user])) {
+            self::$employeeCache[$user] = Employee::where('nip', $user->username)->first();
+        }
+        return self::$employeeCache[$user];
     }
 
     public static function isDriveAdmin(User $user): bool
@@ -88,10 +105,13 @@ class DriveAccess
      */
     public static function getUserUnitIds(User $user): \Illuminate\Support\Collection
     {
-        if (! property_exists($user, '_memoized_unit_ids')) {
-            $user->_memoized_unit_ids = DriveUnit::all()->filter(fn($u) => self::unitRole($user, $u) !== null)->pluck('id');
+        if (self::$unitIdsCache === null) {
+            self::$unitIdsCache = new \WeakMap();
         }
-        return $user->_memoized_unit_ids;
+        if (! isset(self::$unitIdsCache[$user])) {
+            self::$unitIdsCache[$user] = DriveUnit::all()->filter(fn($u) => self::unitRole($user, $u) !== null)->pluck('id');
+        }
+        return self::$unitIdsCache[$user];
     }
 
     /**

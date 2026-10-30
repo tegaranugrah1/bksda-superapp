@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('drive_shares', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('file_id')->constrained('drive_files')->cascadeOnDelete();
+            $table->foreignId('file_id')->nullable()->constrained('drive_files')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->foreignId('unit_id')->nullable()->constrained('drive_units')->cascadeOnDelete();
             $table->string('share_type', 16)->default('internal'); // internal, public

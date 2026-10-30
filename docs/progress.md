@@ -1,40 +1,43 @@
 # Progress - Phase 230: Penataan Hierarki 4 Unit Utama BKSDA Drive, Folder Resor Terisolasi per SKW, Folder Ruangan Balai, Sinkronisasi Mutasi Kepegawaian, & RBAC Admin Drive
 
-> Document updated: 2026-10-30
+> Document updated: 2026-10-31
 > Branch: `production-server`
-> Status: SIAP DIKERJAKAN (Dokumen spesifikasi teknis requirements.md, design.md, dan tasks.md selesai disusun 100%. Phase 229 telah di-commit. Phase 230 siap dikerjakan dengan status UNCOMMITTED).
+> Status: SELESAI & TERVERIFIKASI (100% Selesai — Seluruh 6 Fase Implementasi selesai dikerjakan dengan standar /ponytail dan /security-audit. 18 automated tests PHPUnit lulus dengan 88 assertions tanpa error, TypeScript check 0 error, dan setiap fase telah di-commit secara terisolasi).
 > Dokumen Referensi:
 > - Requirements: [docs/hierarchical-drive-and-resor-rbac/requirements.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/requirements.md)
 > - Architecture Design: [docs/hierarchical-drive-and-resor-rbac/design.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/design.md)
 > - Task Breakdown: [docs/hierarchical-drive-and-resor-rbac/tasks.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/tasks.md)
 
-### Rencana Eksekusi Fitur yang Akan Dikerjakan (6 Fase v2 — Standar 10/10):
-1. **Fase 1 — Skema Database Minimalis & Seeder Folder Hierarki Resmi**:
-   - Konsolidasi 4 Unit Utama BKSDA Drive: Balai BKSDA Samarinda, SKW I Berau, SKW II Tenggarong, dan SKW III Balikpapan (unit lama 5 s.d. 9 dihapus bersih).
-   - Pembuatan otomatis 14 Folder Resor resmi di bawah 3 SKW dengan kode standar `resor_01` s.d. `resor_14` (`is_restricted = true`, `folder_scope = 'resor'`).
-   - Pembuatan otomatis 8 Folder Ruangan di bawah Balai BKSDA Samarinda.
-   - Pemanfaatan kembali tabel `drive_shares` untuk delegasi folder (`folder_id` nullable), tanpa membuat tabel baru.
-   - Penambahan kolom `drive_folder_id` pada `dr_form_responses` untuk penautan langsung subfolder tanggapan.
-2. **Fase 2 — Otorisasi Anti-Celah Keamanan di `DriveAccess.php` & Backend Drive**:
-   - Otorisasi folder level: Pegawai resor hanya melihat foldernya sendiri. Staf umum seksi tidak otomatis mengakses folder resor.
-   - **Anti-IDOR Berkas**: `canReadFile` wajib memvalidasi izin folder induk (`folder_id`).
-   - **Anti-Search Leak**: Query pencarian mengecualikan berkas di dalam folder terisolasi yang tidak berhak diakses.
-   - **Pewarisan Subfolder**: Subfolder baru otomatis mewarisi status restricted dari folder induk.
-   - **O(1) Memoization**: Memoize objek pegawai per lifecycle HTTP request guna mengeliminasi N+1 database queries.
-3. **Fase 3 — Pengorganisasian Subfolder Laporan DeReporting & Ringkasan Laporan**:
-   - Pembuatan subfolder otomatis per laporan: `[YYYY-MM-DD] - [Judul Laporan] ([Nama Pelapor])` di bawah folder form.
-   - Pembuatan file otomatis `Ringkasan_Laporan.txt` di dalam subfolder berisi seluruh data isian dan koordinat GPS.
-   - Kolom *"Link Folder Drive"* pada fitur Export CSV/Excel rekapitulasi tanggapan.
-   - Fitur Virtual Sharing laporan ke unit SKW/Resor terkait via `drive_shares`.
-4. **Fase 4 — Dropdown Resor Penempatan di Modul Kepegawaian & Auto-Sync Mutasi**:
-   - Input dropdown "Resor Penempatan" pada form Edit Pegawai di Kepegawaian (menyimpan kode `resor_01` s.d. `resor_14`).
-   - Auto-revoke hak akses folder resor lama dan auto-grant hak akses folder resor baru secara dinamis seketika saat data disimpan.
-5. **Fase 5 — Hak Akses Modul "Admin Drive" & Peningkatan UI Drive**:
-   - Penambahan modul `drive` pada `EmployeeAccessSheet.tsx` (`access_modules`).
-   - Indikator gembok privasi pada folder terisolasi di antarmuka Drive dan modal kelola Admin Resor bagi Superadmin.
+### Rangkuman Eksekusi 6 Fase (v2 — Standar 10/10):
+1. **Fase 1 — Skema Database Minimalis & Seeder Folder Hierarki Resmi (Commit: `d8833a5d`)**:
+   - Konsolidasi 4 Unit Utama BKSDA Drive: Balai BKSDA Samarinda (1), SKW I Berau (2), SKW II Tenggarong (3), dan SKW III Balikpapan (4) (unit lama 5 s.d. 9 dipruning).
+   - Migrasi menambahkan `is_restricted`, `folder_scope`, `resor_code`, `room_code` pada `drive_folders`, `drive_folder_id` pada `dr_form_responses`, serta `folder_id` pada `drive_shares`.
+   - Seeder `DriveHierarchicalFoldersSeeder` berhasil mengeksekusi 14 folder resor resmi dan 8 folder ruangan kantor Balai.
+2. **Fase 2 — Otorisasi Anti-Celah Keamanan di `DriveAccess.php` & Backend Drive (Commit: `7f379a85`)**:
+   - Otorisasi folder terisolasi: pegawai resor hanya mengakses folder resornya sendiri; staf umum seksi dilarang tanpa akses penugasan.
+   - **Anti-IDOR Berkas**: `canReadFile` dan `canWriteFile` memeriksa izin folder induk (`folder_id`).
+   - **Anti-Search Leak**: Query index drive otomatis memfilter folder & berkas terisolasi yang tidak berhak diakses.
+   - **Anti-Bulk ZIP Bypass**: Unduhan ZIP folder induk otomatis melompati subfolder terisolasi.
+   - **Pewarisan Subfolder**: Subfolder yang dibuat di dalam folder resor otomatis mewarisi pembatasan akses.
+   - **Endpoint Assign Manager**: Superadmin & Admin Drive dapat menunjuk penanggung jawab folder via `POST /api/drive/folders/{id}/assign-manager`.
+3. **Fase 3 — Pengorganisasian Subfolder Laporan DeReporting & Ringkasan Laporan (Commit: `2734b711`)**:
+   - Submisi publik membuat subfolder khusus `[YYYY-MM-DD] - [Judul Laporan] ([Nama Pelapor]) #[ShortHash]` di bawah folder form.
+   - Berkas lampiran laporan otomatis disimpan di dalam subfolder tersebut.
+   - File `Ringkasan_Laporan.txt` dibuat otomatis secara native di dalam subfolder (`source_module = 'dereporting'`, `source_id = "{$response->id}:summary:txt"`).
+   - Ekspor CSV tanggapan memuat kolom *"Link Folder Drive"* dengan tautan langsung ke subfolder laporan.
+   - UI tabel tanggapan DeReporting memuat tombol *"Buka Folder"* langsung ke BKSDA Drive.
+4. **Fase 4 — Dropdown Resor Penempatan di Modul Kepegawaian & Auto-Sync Mutasi (Commit: `b1eb38b8`)**:
+   - Input dropdown "Resor Penempatan" ditambahkan pada form biodata pegawai (Create & Edit) dengan opsi dinamis dari `RESOR_OPTIONS`.
+   - Validasi silang: penempatan resor dilarang untuk staf Balai; staf SKW wajib memilih resor yang sesuai dengan SKW yang bersangkutan.
+   - Mutasi penempatan staf seketika merevoke akses resor lama dan meng-grant akses resor baru (zero-queue/zero-cron).
+5. **Fase 5 — Hak Akses Modul "Admin Drive" & Peningkatan UI Drive (Commit: `3621903e`)**:
+   - Modul `drive` ditambahkan pada `EmployeeAccessSheet.tsx` (`access_modules`).
+   - Indikator badge gembok privasi terpasang pada folder terisolasi di file list dan grid BKSDA Drive.
+   - Dialog "Atur Admin Resor" terpasang di menu aksi folder bagi Superadmin dan Admin Drive.
 6. **Fase 6 — Automated Test Suite (Self-Check PHPUnit) & Verifikasi E2E**:
-   - Feature test PHPUnit `DriveHierarchicalResorRBACTest.php` (8 test cases menguji anti-IDOR, anti-search leak, subfolder DeReporting, `Ringkasan_Laporan.txt`, export CSV link, mutasi instan, dan hak Admin Drive).
-   - Verifikasi kompilasi frontend `npx tsc --noEmit`.
+   - Feature test PHPUnit `DriveHierarchicalResorRBACTest.php` (10 test cases komprehensif menguji seluruh skenario hierarki, RBAC terisolasi, anti-IDOR, anti-search leak, anti-bulk zip bypass, virtual sharing, subfolder DeReporting, `Ringkasan_Laporan.txt`, export CSV link, dan mutasi dinamis lulus 100%).
+   - Total 18 feature test PHPUnit lulus (88 assertions).
+   - TypeScript compilation check `npx tsc --noEmit` lulus 100% tanpa error.
 
 ---
 
