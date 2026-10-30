@@ -94,7 +94,7 @@ return [
             'host' => 'smtp-relay.brevo.com',
             'port' => 587,
             'scheme' => null,
-            'username' => env('BREVO_SMTP_USER'),
+            'username' => env('BREVO_SMTP_USER', env('BREVO_SMTP_LOGIN')),
             'password' => env('BREVO_SMTP_KEY'),
             'timeout' => 3,
         ],
