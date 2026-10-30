@@ -41,8 +41,8 @@
 - [x] **0B.2.2** Tambahkan `ARG NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/Dockerfile` dan pasang `laravel-echo` + `pusher-js` di `frontend`.
 - [x] **0B.2.3** Konfigurasi `withBroadcasting` dengan prefix `/api` & `auth:sanctum` di `backend/bootstrap/app.php` serta otorisasi channel granular di `backend/routes/channels.php`.
 - [ ] **0B.3** Rotasi secret sesuai urutan design §9 (DB `ALTER USER` dulu, `APP_PREVIOUS_KEYS`, key RustFS). Ganti default di compose dengan `${VAR:?wajib}` saat deploy Dokploy.
-- [ ] **0B.4** Audit policy bucket `bksda`: anonymous `GetObject` boleh, `ListBucket` ditolak.
-- [ ] **0B.5** Monitoring: `QueueHeartbeat`, cek reverb, cek `failed_jobs`, cek disk 80%.
+- [x] **0B.4** Audit policy bucket `bksda`: anonymous `GetObject` boleh, `ListBucket` ditolak. Terverifikasi via `php artisan storage:setup --audit`.
+- [x] **0B.5** Monitoring: `QueueHeartbeat`, cek reverb, cek `failed_jobs`, cek disk 80%, jadwal di `routes/console.php` dan alert dedup 1 jam. Terverifikasi via `php artisan app:monitor-health`.
 
 **AC**: `migrate` sukses di produksi; 4 service `Up`; `docker kill` pada `queue` → container kembali sendiri; job uji diproses < 5 detik; aplikasi login normal setelah rotasi secret; listing bucket `bksda` 403.
 **Self-check**: `php artisan app:self-check-foundation` — dispatch job yang menulis cache, tunggu sampai 10 detik, assert nilainya ada, dan assert `CACHE_STORE`/`QUEUE_CONNECTION` = `database`.
