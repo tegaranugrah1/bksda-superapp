@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Events\AdminInboxChanged;
 use App\Models\User;
+use App\Modules\SuratTugas\Models\AssignmentLetter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -119,5 +122,59 @@ class BroadcastChannelAuthTest extends TestCase
             'channel_name' => 'private-admin.inbox.bmn',
             'socket_id' => '1234.5678',
         ])->assertStatus(200);
+    }
+
+    /**
+     * Approving or updating Surat Tugas immediately dispatches AdminInboxChanged event.
+     */
+    public function test_surat_tugas_approval_and_status_update_dispatches_admin_inbox_changed(): void
+    {
+        Event::fake([AdminInboxChanged::class]);
+
+        $admin = User::create([
+            'name' => 'Admin ST',
+            'username' => 'adminst',
+            'email' => 'adminst@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'access_modules' => ['surat_tugas'],
+        ]);
+
+        $letter = AssignmentLetter::create([
+            'nomor_surat' => 'ST.999/BKSDA/2026',
+            'maksud_tujuan' => 'Uji Broadcast WebSocket Approval',
+            'tanggal_mulai' => '2026-08-01',
+            'tanggal_selesai' => '2026-08-02',
+            'tanggal_surat' => '2026-07-31',
+            'status' => 'pending',
+            'created_by' => $admin->id,
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        // 1. Update status
+        $resUpdate = $this->putJson("/api/surat-tugas/{$letter->id}/status", [
+            'status' => 'approved',
+        ]);
+        $resUpdate->assertStatus(200);
+
+        Event::assertDispatched(AdminInboxChanged::class, function ($event) use ($letter) {
+            return $event->module === 'surat_tugas' &&
+                   $event->action === 'status_updated' &&
+                   $event->referenceId === (string) $letter->id;
+        });
+
+        // 2. Approve endpoint
+        $resApprove = $this->putJson("/api/surat-tugas/{$letter->id}/approve", [
+            'nomor_surat' => 'ST.999/BKSDA/2026-APP',
+            'status' => 'approved',
+        ]);
+        $resApprove->assertStatus(200);
+
+        Event::assertDispatched(AdminInboxChanged::class, function ($event) use ($letter) {
+            return $event->module === 'surat_tugas' &&
+                   $event->action === 'approved' &&
+                   $event->referenceId === (string) $letter->id;
+        });
     }
 }

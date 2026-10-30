@@ -460,6 +460,12 @@ class EmployeeLeaveRequestController extends Controller
             DB::commit();
 
             try {
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'status_updated', (string) $leaveReq->id));
+            } catch (\Throwable $e) {
+                // Log and continue gracefully
+            }
+
+            try {
                 $isApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
                 $statusText = $isApproved ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
                 $notifTitle = "Permohonan Cuti {$statusText}";
@@ -476,8 +482,6 @@ class EmployeeLeaveRequestController extends Controller
                     (string) $leaveReq->id,
                     ['status' => $newStatus, 'leave_id' => $leaveReq->id]
                 );
-
-                event(new \App\Events\AdminInboxChanged('kepegawaian', 'status_updated', (string) $leaveReq->id));
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }
@@ -601,6 +605,12 @@ class EmployeeLeaveRequestController extends Controller
                     null,
                     $leaveReq->user_id ?? Auth::id()
                 );
+            }
+
+            try {
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'approved', (string) $leaveReq->id));
+            } catch (\Throwable $e) {
+                // Log and continue gracefully
             }
 
             try {
@@ -1309,6 +1319,12 @@ class EmployeeLeaveRequestController extends Controller
             ]);
 
             DB::commit();
+
+            try {
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'approved', (string) $leaveReq->id));
+            } catch (\Throwable $e) {
+                // Log and continue gracefully
+            }
 
             try {
                 $notifTitle = 'Permohonan Cuti Disetujui';

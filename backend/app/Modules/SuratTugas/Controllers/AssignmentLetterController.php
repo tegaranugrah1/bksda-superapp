@@ -537,6 +537,13 @@ class AssignmentLetterController extends Controller
             }
 
             DB::commit();
+
+            try {
+                event(new \App\Events\AdminInboxChanged('surat_tugas', 'created', (string) $surat->id));
+            } catch (\Throwable $e) {
+                Log::warning('Broadcast AdminInboxChanged store SuratTugas failed: '.$e->getMessage());
+            }
+
             $surat->load('employees');
 
             try {
@@ -581,12 +588,6 @@ class AssignmentLetterController extends Controller
             // } catch (\Exception $e) {
             //     \Illuminate\Support\Facades\Log::warning('GoogleSheets sync failed: ' . $e->getMessage());
             // }
-
-            try {
-                event(new \App\Events\AdminInboxChanged('surat_tugas', 'created', (string) $surat->id));
-            } catch (\Throwable $e) {
-                Log::warning('Broadcast AdminInboxChanged store SuratTugas failed: '.$e->getMessage());
-            }
 
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
@@ -792,6 +793,13 @@ class AssignmentLetterController extends Controller
             }
 
             DB::commit();
+
+            try {
+                event(new \App\Events\AdminInboxChanged('surat_tugas', 'updated', (string) $surat->id));
+            } catch (\Throwable $e) {
+                Log::warning('Broadcast AdminInboxChanged update SuratTugas failed: '.$e->getMessage());
+            }
+
             $surat->load('employees');
 
             return response()->json([
@@ -840,6 +848,12 @@ class AssignmentLetterController extends Controller
         $surat->save();
 
         try {
+            event(new \App\Events\AdminInboxChanged('surat_tugas', 'status_updated', (string) $surat->id));
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast AdminInboxChanged updateStatus SuratTugas failed: '.$e->getMessage());
+        }
+
+        try {
             $surat->load('employees');
             $isApproved = in_array($cleanStatus, ['approved', 'completed'], true);
             $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Status Surat Tugas: '.strtoupper($cleanStatus);
@@ -858,12 +872,6 @@ class AssignmentLetterController extends Controller
             }
         } catch (\Throwable $e) {
             Log::warning('Gagal mengirim portal notification pada updateStatus SuratTugas: '.$e->getMessage());
-        }
-
-        try {
-            event(new \App\Events\AdminInboxChanged('surat_tugas', 'status_updated', (string) $surat->id));
-        } catch (\Throwable $e) {
-            Log::warning('Broadcast AdminInboxChanged updateStatus SuratTugas failed: '.$e->getMessage());
         }
 
         return response()->json([
@@ -899,6 +907,12 @@ class AssignmentLetterController extends Controller
 
         $surat->delete();
 
+        try {
+            event(new \App\Events\AdminInboxChanged('surat_tugas', 'deleted', (string) $surat->id));
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast AdminInboxChanged destroy SuratTugas failed: '.$e->getMessage());
+        }
+
         return response()->json(['message' => 'Dokumen dipindahkan ke Arsip Sampah.']);
     }
 
@@ -923,6 +937,12 @@ class AssignmentLetterController extends Controller
         }
 
         $surat->restore();
+
+        try {
+            event(new \App\Events\AdminInboxChanged('surat_tugas', 'restored', (string) $surat->id));
+        } catch (\Throwable $e) {
+            Log::warning('Broadcast AdminInboxChanged restore SuratTugas failed: '.$e->getMessage());
+        }
 
         return response()->json(['message' => 'Dokumen berhasil dipulihkan.']);
     }
@@ -1296,9 +1316,16 @@ class AssignmentLetterController extends Controller
 
             DB::commit();
 
+            $isApproved = in_array(strtolower($surat->status ?? ''), ['approved', 'completed', 'published', 'diterbitkan'], true);
+
+            try {
+                event(new \App\Events\AdminInboxChanged('surat_tugas', $isApproved ? 'approved' : 'status_updated', (string) $surat->id));
+            } catch (\Throwable $e) {
+                Log::warning('Broadcast AdminInboxChanged approve SuratTugas failed: '.$e->getMessage());
+            }
+
             try {
                 $surat->load('employees');
-                $isApproved = in_array(strtolower($surat->status ?? ''), ['approved', 'completed', 'published', 'diterbitkan'], true);
                 $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Pembaruan Surat Tugas';
                 $notifMsg = $isApproved
                     ? "Surat tugas resmi telah diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')

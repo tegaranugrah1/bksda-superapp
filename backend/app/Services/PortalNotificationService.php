@@ -131,6 +131,13 @@ class PortalNotificationService
         ?string $referenceId = null,
         ?array $data = null
     ): int {
+        // Broadcast to private-admin.inbox.{module} FIRST so admin live UI reacts immediately
+        try {
+            event(new \App\Events\AdminInboxChanged($module, 'inbox_updated', $referenceId));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast AdminInboxChanged notifyAdmins failed: '.$e->getMessage());
+        }
+
         $count = 0;
         $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
         foreach ($admins as $admin) {
@@ -140,9 +147,6 @@ class PortalNotificationService
                 }
             }
         }
-
-        // Broadcast to private-admin.inbox.{module}
-        event(new \App\Events\AdminInboxChanged($module, 'inbox_updated', $referenceId));
 
         return $count;
     }
