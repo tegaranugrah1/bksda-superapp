@@ -25,7 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useEmailCooldown } from "@/lib/email-cooldown";
 
 interface EmailConnectDialogProps {
   currentEmail?: string | null;
@@ -47,7 +46,19 @@ export function EmailConnectDialog({
   const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showChangeForm, setShowChangeForm] = useState(false);
-  const { cooldown, startCooldown } = useEmailCooldown(initialCooldown);
+  const [cooldown, setCooldown] = useState(initialCooldown);
+
+  useEffect(() => {
+    setCooldown(initialCooldown);
+  }, [initialCooldown]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const isLocalEmail =
     !currentEmail || currentEmail.toLowerCase().endsWith(".local");
@@ -73,7 +84,7 @@ export function EmailConnectDialog({
     setErrorMsg(null);
     try {
       const resp = await api.post("/email/verification-notification");
-      startCooldown(resp.data?.cooldown_seconds || 60);
+      setCooldown(resp.data?.cooldown_seconds || 60);
       toast.success(
         resp.data?.message || "Tautan verifikasi baru berhasil dikirim ke email Anda!"
       );
@@ -81,7 +92,7 @@ export function EmailConnectDialog({
       onSuccess?.();
     } catch (err: any) {
       if (err?.response?.status === 429 && err?.response?.data?.retry_after) {
-        startCooldown(err.response.data.retry_after);
+        setCooldown(err.response.data.retry_after);
       }
       const msg =
         err?.response?.data?.message ||
@@ -120,7 +131,7 @@ export function EmailConnectDialog({
         current_password: currentPassword,
       });
 
-      startCooldown(resp.data?.cooldown_seconds || 60);
+      setCooldown(resp.data?.cooldown_seconds || 60);
       toast.success(
         resp.data?.message || `Tautan verifikasi berhasil dikirim ke ${emailTrimmed}!`
       );

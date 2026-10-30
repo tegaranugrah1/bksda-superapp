@@ -271,6 +271,21 @@ class AuthController extends Controller
         if ($request->has('email')) {
             $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
             if ($cleanEmail !== null && $cleanEmail !== $user->email) {
+                if (str_ends_with($cleanEmail, '.local')) {
+                    throw ValidationException::withMessages([
+                        'email' => ['Alamat email tidak boleh menggunakan domain .local.'],
+                    ]);
+                }
+
+                if (! $request->filled('current_password') || ! Hash::check($request->input('current_password'), $user->password)) {
+                    throw ValidationException::withMessages([
+                        'current_password' => ['Kata sandi saat ini wajib diisi dengan benar untuk mengubah alamat email.'],
+                    ]);
+                }
+
+                $oldEmail = $user->email;
+                $wasDeliverable = $user->hasDeliverableEmail();
+
                 $user->email = $cleanEmail;
                 $user->email_verified_at = null;
                 $user->save();
@@ -279,15 +294,28 @@ class AuthController extends Controller
                 // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
                 Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
 
-                if (!str_ends_with($cleanEmail, '.local') && NotificationSetting::emailEnabled('email_master_enabled')) {
-                    dispatch(function () use ($user) {
+                dispatch(function () use ($user, $wasDeliverable, $oldEmail, $cleanEmail) {
+                    if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
+                        try {
+                            Mail::raw(
+                                "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$cleanEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
+                                function ($m) use ($oldEmail) {
+                                    $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
+                                }
+                            );
+                        } catch (\Throwable $e) {
+                            \Illuminate\Support\Facades\Log::warning('Security alert email failed: '.$e->getMessage());
+                        }
+                    }
+
+                    if (NotificationSetting::emailEnabled('email_master_enabled')) {
                         try {
                             $user->sendEmailVerificationNotification();
                         } catch (\Throwable $e) {
                             \Illuminate\Support\Facades\Log::warning('Verification email failed: '.$e->getMessage());
                         }
-                    })->afterResponse();
-                }
+                    }
+                })->afterResponse();
             }
         }
 
@@ -463,19 +491,17 @@ class AuthController extends Controller
             return response()->json(['message' => 'Harap masukkan alamat Gmail atau dinas resmi terlebih dahulu.'], 422);
         }
 
-        // Cek apakah cooldown 60 detik masih aktif
-        $cooldownExpiry = Cache::get('email_verify_cooldown:'.$user->id);
-        if ($cooldownExpiry && $cooldownExpiry > now()->timestamp) {
-            $remaining = (int) ($cooldownExpiry - now()->timestamp);
+        // Atomic check-and-set: Cache::add returns true only if the key was NOT already present
+        $targetExpiry = now()->addSeconds(60)->timestamp;
+        if (! Cache::add('email_verify_cooldown:'.$user->id, $targetExpiry, 60)) {
+            $existingExpiry = Cache::get('email_verify_cooldown:'.$user->id) ?? $targetExpiry;
+            $remaining = max(1, (int) ($existingExpiry - now()->timestamp));
             return response()->json([
                 'message' => "Silakan tunggu {$remaining} detik sebelum meminta tautan verifikasi baru.",
                 'retry_after' => $remaining,
                 'cooldown_seconds' => $remaining,
             ], 429);
         }
-
-        // Pasang cooldown 60 detik
-        Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
 
         if (NotificationSetting::emailEnabled('email_master_enabled')) {
             dispatch(function () use ($user) {

@@ -12,7 +12,6 @@ import {
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { authStore } from "@/lib/auth-store";
-import { setEmailCooldown } from "@/lib/email-cooldown";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,7 +76,7 @@ export function PortalProfileSidebar({
 
   // Dialog States
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editData, setEditData] = useState({ email: "", phone: "" });
+  const [editData, setEditData] = useState({ email: "", phone: "", current_password: "" });
   const [editLoading, setEditLoading] = useState(false);
 
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
@@ -108,6 +107,7 @@ export function PortalProfileSidebar({
     setEditData({
       email: employee?.email || user?.email || "",
       phone: employee?.phone || "",
+      current_password: "",
     });
     setEditDialogOpen(true);
   }, [employee, user]);
@@ -116,6 +116,8 @@ export function PortalProfileSidebar({
     e.preventDefault();
     const cleanEmail = editData.email.trim();
     const cleanPhone = editData.phone.trim();
+    const currentRegisteredEmail = (employee?.email || user?.email || "").toLowerCase();
+    const isEmailChanging = cleanEmail.toLowerCase() !== currentRegisteredEmail;
 
     if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       toast.error("Format email tidak valid.");
@@ -125,16 +127,18 @@ export function PortalProfileSidebar({
       toast.error("Nomor telepon hanya boleh berisi angka, tanda plus, tanda hubung, atau spasi.");
       return;
     }
+    if (isEmailChanging && !editData.current_password) {
+      toast.error("Kata sandi akun saat ini wajib diisi untuk mengonfirmasi perubahan alamat email.");
+      return;
+    }
 
     setEditLoading(true);
     try {
       const resp = await api.post("/me/update-profile", {
         email: cleanEmail,
         phone: cleanPhone,
+        current_password: editData.current_password,
       });
-      if (resp.data?.email_changed) {
-        setEmailCooldown(resp.data?.cooldown_seconds || 60);
-      }
       toast.success(
         resp.data?.message ||
           (resp.data?.email_changed
@@ -659,6 +663,29 @@ export function PortalProfileSidebar({
                 />
               </div>
             </div>
+
+            {editData.email.trim().toLowerCase() !== (employee?.email || user?.email || "").toLowerCase() && (
+              <div className="space-y-1.5 rounded-xl p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40">
+                <Label className="text-xs font-bold flex justify-between items-center text-amber-900 dark:text-amber-200">
+                  <span>Kata Sandi Akun Saat Ini</span>
+                  <span className="text-[10px] font-normal text-amber-700 dark:text-amber-400">Wajib konfirmasi</span>
+                </Label>
+                <div className="relative mt-1">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <Input
+                    type="password"
+                    required
+                    placeholder="Masukkan kata sandi login Anda"
+                    value={editData.current_password}
+                    onChange={(e) => setEditData({ ...editData, current_password: e.target.value })}
+                    className="pl-9 text-xs rounded-xl bg-white dark:bg-slate-900"
+                  />
+                </div>
+                <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                  Verifikasi kata sandi diperlukan untuk melindungi akun saat mengganti alamat email.
+                </p>
+              </div>
+            )}
 
             <DialogFooter className="pt-2">
               <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-xl text-xs">

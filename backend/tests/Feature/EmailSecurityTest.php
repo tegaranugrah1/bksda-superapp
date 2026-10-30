@@ -240,9 +240,25 @@ class EmailSecurityTest extends TestCase
         $res2->assertStatus(429)
              ->assertJsonStructure(['message', 'retry_after', 'cooldown_seconds']);
 
-        // 3. Update profile with new email -> 200, updates email, resets verification, re-engages cooldown
+        // 3. Update profile with new email WITHOUT password -> 422
+        $resNoPw = $this->postJson('/api/me/update-profile', [
+            'email' => 'cooldown.new@gmail.com',
+        ]);
+        $resNoPw->assertStatus(422)
+                ->assertJsonValidationErrors(['current_password']);
+
+        // Cannot change to .local -> 422
+        $resLocal = $this->postJson('/api/me/update-profile', [
+            'email' => 'cooldown.new@bksda.local',
+            'current_password' => 'Secret123!',
+        ]);
+        $resLocal->assertStatus(422)
+                 ->assertJsonValidationErrors(['email']);
+
+        // Update profile with new email WITH correct password -> 200
         $resProfile = $this->postJson('/api/me/update-profile', [
             'email' => 'cooldown.new@gmail.com',
+            'current_password' => 'Secret123!',
         ]);
         $resProfile->assertStatus(200)
                    ->assertJsonFragment([

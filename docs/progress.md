@@ -83,14 +83,14 @@
 #### 8. Sinkronisasi Cooldown Verifikasi Email 60 Detik & Feedback Edit Kontak Profil
 - **Masalah Teridentifikasi**: Saat pengguna mengganti alamat email melalui ikon pensil di atas foto profil (`PortalProfileSidebar.tsx`), sistem backend mengirimkan email verifikasi pertama. Namun karena cooldown tidak dibagikan dan tidak dipasang di route kirim ulang (`/email/verification-notification`), banner "Email Anda Belum Terverifikasi" langsung mengizinkan klik "Kirim Ulang Tautan Verifikasi", sehingga dua email verifikasi terkirim sekaligus ke Gmail pengguna dalam hitungan detik.
 - **Penyelesaian Backend (`AuthController.php`)**:
-  - `updateProfile`: Saat alamat email berubah, pasang cooldown 60 detik di Cache (`email_verify_cooldown:{$userId}`), kirim email verifikasi asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta kembalikan `email_changed: true` dan `cooldown_seconds: 60`.
-  - `resendVerificationEmail`: Tambahkan pengecekan `email_verify_cooldown:{$userId}`. Jika cooldown masih aktif, tolak permintaan dengan status HTTP 429 Too Many Requests beserta sisa waktu `retry_after`.
-  - `dashboard`: Kembalikan `email_cooldown_remaining` di dalam objek `data.user` agar sinkronisasi state tetap akurat bahkan setelah refresh halaman.
-- **Penyelesaian Frontend**:
-  - Modul Reusable `email-cooldown.ts`: Menyediakan `useEmailCooldown` dan `setEmailCooldown` berbasis `localStorage` + `CustomEvent` agar seluruh komponen dan tab browser tersinkronisasi dalam waktu nyata (*lockstep*).
-  - `PortalProfileSidebar.tsx`: Menampilkan pesan toast sukses yang jelas bahwa tautan verifikasi telah dikirim ke email baru serta memicu cooldown 60 detik.
-  - `EmailConnectDialog.tsx`: Banner "Email Anda Belum Terverifikasi" kini menampilkan tombol dinonaktifkan dengan hitung mundur `Tunggu (Xs)` saat cooldown aktif, disertai tombol alternatif `Ganti Email` jika pengguna salah mengetik email. Tombol di dalam modal dialog juga terkunci dengan `Tautan Telah Dikirim (Tunggu Xs)`.
-  - Pengujian fitur `test_verification_cooldown_enforced_across_profile_and_resend` ditambahkan ke `EmailSecurityTest.php` dan lulus 100%.
+  - `updateProfile`: Saat alamat email diubah, wajib memvalidasi kata sandi saat ini (`current_password`), menolak domain `.local`, mengirimkan *security alert* ke email lama jika sebelumnya terverifikasi, memasang cooldown 60 detik di Cache (`email_verify_cooldown:{$userId}`), mengirimkan email verifikasi secara asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta mengembalikan `email_changed: true` dan `cooldown_seconds: 60`.
+  - `resendVerificationEmail`: Menggunakan `Cache::add` atomik (*check-and-set* dalam satu operasi tanpa *race condition*). Jika cooldown masih aktif, tolak permintaan dengan status HTTP 429 Too Many Requests beserta sisa waktu `retry_after`.
+  - `dashboard`: Mengembalikan `email_cooldown_remaining` di dalam objek `data.user` agar sinkronisasi state tetap akurat bahkan setelah refresh halaman tanpa perlu dependensi tambahan.
+- **Penyelesaian Frontend (Mengikuti Prinsip /ponytail — Zero Overengineering)**:
+  - Menyederhanakan frontend dengan menghapus abstraksi berlebih `email-cooldown.ts` (penurunan ~90 baris kode). `EmailConnectDialog.tsx` cukup mengonsumsi prop `initialCooldown` bawaan dari data dashboard server dan menjalankan timer hitung mundur native.
+  - `PortalProfileSidebar.tsx`: Menambahkan kolom konfirmasi kata sandi secara kondisional hanya ketika pengguna mengubah alamat email (tidak diperlukan jika hanya mengubah nomor telepon/WA). Menampilkan pesan toast sukses bahwa tautan verifikasi telah dikirim ke email baru.
+  - `EmailConnectDialog.tsx`: Banner "Email Anda Belum Terverifikasi" menampilkan tombol dinonaktifkan dengan hitung mundur `Tunggu (Xs)` saat cooldown aktif, disertai tombol alternatif `Ganti Email` jika pengguna salah mengetik email. Tombol di dalam modal dialog juga terkunci dengan `Tautan Telah Dikirim (Tunggu Xs)`.
+  - Pengujian fitur `test_verification_cooldown_enforced_across_profile_and_resend` di `EmailSecurityTest.php` memverifikasi validasi kata sandi ganti email, penolakan `.local`, dan pembatasan cooldown atomik (lulus 100%).
 
 ---
 
