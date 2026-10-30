@@ -14,6 +14,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Shield, ShieldCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -70,6 +75,45 @@ function DriveDashboard() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<DriveFileItem | null>(null);
   const [shareFile, setShareFile] = useState<DriveFileItem | null>(null);
+  const [assignManagerFolder, setAssignManagerFolder] = useState<DriveFolderItem | null>(null);
+  const [selectedEmployeeNip, setSelectedEmployeeNip] = useState<string>("");
+  const [assigning, setAssigning] = useState<boolean>(false);
+
+  const { user } = useAuth();
+  const isDriveAdmin = Boolean(
+    user?.role === "super_admin" ||
+    (Array.isArray(user?.access_modules) && user.access_modules.includes("drive"))
+  );
+
+  const { data: employeesData } = useQuery({
+    queryKey: ["employees-for-folder-manager"],
+    queryFn: async () => {
+      const res = await api.get<{ data: Array<{ id: string; nip: string; nama_lengkap: string; jabatan?: string; satuan_kerja?: string }> }>("/kepegawaian/employees", {
+        params: { per_page: "all" },
+      });
+      return res.data.data;
+    },
+    enabled: !!assignManagerFolder,
+  });
+
+  const handleAssignManagerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignManagerFolder || !selectedEmployeeNip) return;
+    setAssigning(true);
+    try {
+      await api.post(`/drive/folders/${assignManagerFolder.id}/assign-manager`, {
+        nip: selectedEmployeeNip,
+      });
+      toast.success("Penanggung jawab folder berhasil ditunjuk!");
+      setAssignManagerFolder(null);
+      setSelectedEmployeeNip("");
+      loadDriveData(true);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal menunjuk penanggung jawab folder.");
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   const isUnit = currentSpace !== "my";
   const unitIdNumber = isUnit ? parseInt(currentSpace, 10) : null;
@@ -400,6 +444,62 @@ function DriveDashboard() {
         open={Boolean(shareFile)}
         onOpenChange={(open) => !open && setShareFile(null)}
       />
+
+      {/* Assign Manager Dialog */}
+      <Dialog open={!!assignManagerFolder} onOpenChange={(open) => !open && setAssignManagerFolder(null)}>
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Atur Admin Resor / Folder
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Tunjuk pegawai sebagai Penanggung Jawab / Admin untuk folder:{" "}
+              <strong className="text-slate-800 dark:text-slate-200">{assignManagerFolder?.name}</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAssignManagerSubmit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Pilih Pegawai / Petugas Lapangan</Label>
+              <select
+                value={selectedEmployeeNip}
+                onChange={(e) => setSelectedEmployeeNip(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                required
+              >
+                <option value="">-- Pilih Pegawai --</option>
+                {employeesData?.map((emp) => (
+                  <option key={emp.nip} value={emp.nip}>
+                    {emp.nama_lengkap} ({emp.nip}) - {emp.satuan_kerja || "BKSDA"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAssignManagerFolder(null)}
+                className="rounded-xl text-xs"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={assigning || !selectedEmployeeNip}
+                className="rounded-xl text-xs bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+              >
+                {assigning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                Simpan Penugasan
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Move Item Dialog */}
       <DriveMoveDialog

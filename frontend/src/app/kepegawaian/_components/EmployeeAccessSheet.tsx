@@ -41,6 +41,7 @@ const AVAILABLE_MODULES = [
   { id: "bmn", label: "BMN & Aset", description: "Barang Milik Negara & Inventaris Aset" },
   { id: "inventory", label: "Inventory", description: "Stok Barang & Logistik Persediaan" },
   { id: "dereporting", label: "D-Reporting", description: "Pelaporan Kejadian Digital Elektronik" },
+  { id: "drive", label: "BKSDA Drive", description: "Admin Penyimpanan Cloud & Manajemen Berkas" },
   { id: "cms", label: "CMS Panel", description: "Manajemen Konten Website & Portal Publik" },
   { id: "surat", label: "Persuratan & Disposisi", description: "Pengelolaan Surat Masuk & Keluar" },
 ];

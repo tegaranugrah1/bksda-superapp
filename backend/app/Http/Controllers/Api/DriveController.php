@@ -847,10 +847,31 @@ class DriveController extends Controller
 
         $folder = DriveFolder::findOrFail($id);
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'nip' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $newManager = \App\Models\User::findOrFail($validated['user_id']);
+        if (empty($validated['user_id']) && empty($validated['nip'])) {
+            return response()->json(['message' => 'Wajib memilih pegawai atau akun pengguna.'], 422);
+        }
+
+        $newManager = null;
+        if (! empty($validated['user_id'])) {
+            $newManager = \App\Models\User::findOrFail($validated['user_id']);
+        } elseif (! empty($validated['nip'])) {
+            $newManager = \App\Models\User::where('username', trim($validated['nip']))->first();
+            if (! $newManager) {
+                $emp = \App\Modules\Kepegawaian\Models\Employee::where('nip', trim($validated['nip']))->firstOrFail();
+                $newManager = \App\Models\User::create([
+                    'name' => $emp->nama_lengkap,
+                    'username' => $emp->nip,
+                    'email' => strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $emp->nip)) . '@bksda.local',
+                    'password' => \Illuminate\Support\Facades\Hash::make('Bksda123!'),
+                    'role' => 'user',
+                ]);
+            }
+        }
+
         $folder->update(['user_id' => $newManager->id]);
 
         \App\Models\DriveShare::updateOrCreate(

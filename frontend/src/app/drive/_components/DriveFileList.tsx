@@ -19,6 +19,8 @@ import {
   ShieldAlert,
   Share2,
   FolderInput,
+  Lock,
+  Shield,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,6 +40,11 @@ export interface DriveFolderItem {
   name: string;
   color?: string | null;
   is_starred: boolean;
+  is_restricted?: boolean;
+  folder_scope?: "resor" | "ruangan" | "submission" | "umum";
+  resor_code?: string | null;
+  room_code?: string | null;
+  user_id?: number | null;
   updated_at: string;
   deleted_at?: string | null;
 }
@@ -59,6 +66,8 @@ interface DriveFileListProps {
   viewMode: "grid" | "list";
   isTrash: boolean;
   canWrite: boolean;
+  isDriveAdmin?: boolean;
+  onAssignManager?: (folder: DriveFolderItem) => void;
   onOpenFolder: (folderId: number) => void;
   onPreviewFile: (file: DriveFileItem) => void;
   onDownloadFile: (file: DriveFileItem) => void;
@@ -99,6 +108,8 @@ export function DriveFileList({
   viewMode,
   isTrash,
   canWrite,
+  isDriveAdmin,
+  onAssignManager,
   onOpenFolder,
   onPreviewFile,
   onDownloadFile,
@@ -180,6 +191,15 @@ export function DriveFileList({
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                       {folder.name}
                     </span>
+                    {folder.is_restricted && (
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0"
+                        title={folder.folder_scope === "resor" ? "Folder Terisolasi Resor (Hanya Staf Resor & Superadmin)" : "Folder Terbatas"}
+                      >
+                        <Lock className="w-2.5 h-2.5" />
+                        <span>{folder.folder_scope === "resor" ? "Resor" : "Terbatas"}</span>
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0 self-end">
@@ -215,6 +235,11 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFolderZip?.(folder)}>
                               <FileArchive className="w-3.5 h-3.5 mr-2 text-amber-500" /> Unduh sebagai ZIP
                             </DropdownMenuItem>
+                            {isDriveAdmin && !isTrash && folder.is_restricted && (
+                              <DropdownMenuItem onClick={() => onAssignManager?.(folder)}>
+                                <Shield className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Atur Admin Resor
+                              </DropdownMenuItem>
+                            )}
                             {canWrite && (
                               <DropdownMenuItem onClick={() => onMoveItem?.("folder", folder)}>
                                 <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
