@@ -1,3 +1,42 @@
+# Progress - Phase 229: Rencana Peningkatan DeReporting Form Builder & BKSDA Drive (Integrasi Otomatis Drive, Multi-File Upload, ZIP Download, & Visual Analytics)
+
+> Document updated: 2026-10-30
+> Branch: `production-server`
+> Status: SIAP DIKERJAKAN (Dokumen spesifikasi teknis requirements.md, design.md, dan tasks.md selesai 100%. Pengerjaan dibagi dalam 6 fase implementasi).
+> Dokumen Referensi:
+> - Requirements: [docs/dereporting-forms-and-drive-enhancements/requirements.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md)
+> - Architecture Design: [docs/dereporting-forms-and-drive-enhancements/design.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md)
+> - Task Breakdown: [docs/dereporting-forms-and-drive-enhancements/tasks.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md)
+
+### Rencana Eksekusi Fitur yang Akan Dikerjakan:
+
+1. **Fase 1 — Integrasi Otomatis Foto Form DeReporting ke BKSDA Drive & Shortcut UI**:
+   - Berkas/foto responden form dinamis otomatis masuk ke folder terorganisir di BKSDA Drive (`Drive Balai > Formulir DeReporting > [Judul Form]`).
+   - Alokasi kuota storage dibebankan ke SuperAdmin / Balai sehingga **tidak memotong kuota pribadi 5 GB pembuat form**.
+   - Pembuat form otomatis mendapatkan izin kelola (*Editor/Manager*).
+   - Tombol pintasan **"Buka Folder di BKSDA Drive"** di halaman riwayat `/dereporting/forms` dan `/dereporting/forms/[id]/responses`.
+
+2. **Fase 2 — Multi-File Upload & Notifikasi Email Tanggapan Baru**:
+   - Dukungan unggah 1 s.d. 10 berkas sekaligus dalam satu pertanyaan lampiran form (multi-file drag-and-drop & galeri HP).
+   - Toggle pengaturan notifikasi email di form builder untuk mengirimkan email ringkasan ke pembuat form via Resend/Brevo saat ada tanggapan baru.
+
+3. **Fase 3 — Fitur BKSDA Drive: Download Folder sebagai ZIP & Pindah Berkas/Folder (Move To)**:
+   - Unduh seluruh folder beserta seluruh foto di dalamnya menjadi 1 file `.zip` via streaming on-the-fly (RAM efisien $\le$ 10 MB).
+   - Menu aksi *"Pindahkan ke..."* (*Move to*) untuk memindahkan file/folder ke lokasi lain.
+
+4. **Fase 4 — Fitur BKSDA Drive: Transfer Kepemilikan & Filter Chips Pencarian**:
+   - Fitur serahkan kepemilikan folder/file ke SuperAdmin atau pegawai lain secara rekursif dan membebaskan kuota pemilik lama.
+   - Filter chips pencarian instan di toolbar: `Semua`, `Foto & Gambar`, `Dokumen PDF`, `Spreadsheet Excel`.
+
+5. **Fase 5 — Visualisasi Grafik Ringkasan Jawaban (Summary Visual Analytics)**:
+   - Tab "Ringkasan" di `/dereporting/forms/[id]/responses`: diagram lingkaran (*pie chart*) untuk pilihan ganda, diagram batang (*bar chart*) untuk checkbox/dropdown, dan galeri thumbnail untuk foto.
+
+6. **Fase 6 — Jadwal Penutupan Form Otomatis & Pertanyaan Koordinat GPS Lapangan**:
+   - Pengaturan tanggal/jam penutupan otomatis (`closed_at`) dan pesan penutupan kustom.
+   - Tipe pertanyaan baru `gps_location` dengan tombol satu-klik *"Ambil Lokasi Saya (GPS)"* + pin point peta interaktif Leaflet.
+
+---
+
 # Progress - Phase 228: Implementasi Penuh Infrastruktur WebSocket Real-Time (Laravel Reverb), BKSDA Drive (RustFS), Sistem Email Failover (Resend + Brevo), Keamanan Akun 2FA TOTP, & Backup 3-2-1 Proxmox
 
 > Document updated: 2026-10-30
