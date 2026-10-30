@@ -12,6 +12,7 @@ class DriveShare extends Model
 
     protected $fillable = [
         'file_id',
+        'folder_id',
         'user_id',
         'unit_id',
         'share_type',
@@ -35,6 +36,11 @@ class DriveShare extends Model
     public function file(): BelongsTo
     {
         return $this->belongsTo(DriveFile::class, 'file_id');
+    }
+
+    public function folder(): BelongsTo
+    {
+        return $this->belongsTo(DriveFolder::class, 'folder_id');
     }
 
     public function user(): BelongsTo

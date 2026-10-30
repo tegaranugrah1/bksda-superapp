@@ -19,6 +19,7 @@ class DynamicFormResponse extends Model
         'answers',
         'file_paths',
         'ip_address',
+        'drive_folder_id',
     ];
 
     protected $casts = [
@@ -29,5 +30,10 @@ class DynamicFormResponse extends Model
     public function form(): BelongsTo
     {
         return $this->belongsTo(DynamicForm::class, 'form_id');
+    }
+
+    public function driveFolder(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\DriveFolder::class, 'drive_folder_id');
     }
 }

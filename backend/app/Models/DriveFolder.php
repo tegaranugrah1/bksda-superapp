@@ -18,12 +18,17 @@ class DriveFolder extends Model
         'name',
         'color',
         'is_starred',
+        'is_restricted',
+        'folder_scope',
+        'resor_code',
+        'room_code',
     ];
 
     protected function casts(): array
     {
         return [
             'is_starred' => 'boolean',
+            'is_restricted' => 'boolean',
         ];
     }
 
@@ -50,5 +55,10 @@ class DriveFolder extends Model
     public function files(): HasMany
     {
         return $this->hasMany(DriveFile::class, 'folder_id');
+    }
+
+    public function shares(): HasMany
+    {
+        return $this->hasMany(DriveShare::class, 'folder_id');
     }
 }
