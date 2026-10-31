@@ -1,9 +1,24 @@
-# Handoff perbaikan hasil review keamanan Surat Tugas — 31 Oktober 2026
+# Handoff Review Keamanan Surat Tugas — status remediasi terkini
 
-> Status: **CLOSED — 3 temuan review (R-ST-01, R-ST-02, R-ST-03) telah diperbaiki dengan prinsip /ponytail dan terverifikasi GREEN (13/13 tes lulus, 77 assertions).**
-> Source: `cb0cc137a75dc121bd0c1d518e5c3d45a556ec80`, branch `codex/portal-security-pentest`; worktree bersih saat review dimulai.
-> Tujuan: pekerjaan konkret untuk AI berikutnya. Handoff ini hanya dokumentasi; tidak memperbaiki kode aplikasi, menambah tes permanen, commit, push, deploy atau mengubah database produksi.
-> Prioritas: R-ST-01 dahulu, lalu R-ST-02 dan R-ST-03. Jangan menandai selesai berdasarkan sepuluh tes lama saja.
+> Status: **PERBAIKAN HASIL REVIEW DITUTUP PADA SKENARIO YANG DIUJI**.
+> Baseline tindak lanjut: `de86b099`; commit yang membawa dokumen ini memuat perbaikan dan regresi permanen.
+> Hasil akhir: 20/125 tes/assertions keamanan + 10/105 full-schema + 61/254 regresi = **91 tes / 484 assertions lulus**.
+> Laporan, command, source hashes dan batas klaim: [laporan remediasi](surat-tugas-security-pentest-2026-10-31.md).
+
+## 0. Penutupan hasil review dan acceptance tambahan
+
+- R-ST-01: namespace file berdasarkan ID + filename generated; nomor/slug sama tidak overwrite. Referensi legacy aktif dan trashed terlindungi saat update, single/bulk force-delete.
+- Update upload berhasil 200 dengan actor arsip yang benar. False write, DB failure dan rollback transaksi luar menjaga file/referensi lama; callback native membersihkan staged file yang dibatalkan.
+- R-ST-02: seluruh caller konflik menggunakan policy detail actor, termasuk update dan approve.
+- R-ST-03: membership modul tetap diperlukan; real IAM revoke, login ulang, actor/permission matrix dan credential expired diuji. Inactive bearer pada endpoint publik ditolak sebelum detail diberikan.
+- Tambahan arsip: nullable system owner sesuai kontrak job, signed URL tetap menolak ordinary user; retry tidak menduplikasi/resurrect metadata trashed. Sync job dan worker database queue failure/release/retry telah dijalankan pada schema penuh dengan storage fake.
+- Migrasi owner nullable hanya dijalankan pada DB dummy. Down menolak penghilangan ownerless records; data dan FK dilindungi. Sertakan migrasi dalam rilis, tanpa menjalankannya di produksi dari sesi ini.
+
+Tes permanen kini ada pada [SuratTugasSecurityPentestTest](../../backend/tests/Feature/SuratTugasSecurityPentestTest.php) dan [SuratTugasFullSchemaSecurityTest](../../backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php). Gunakan keduanya untuk verifikasi current source; jangan menyalin fixture historis 617 baris dari revision lama sebagai bukti source terbaru.
+
+Ini penutupan remediasi, bukan penutupan seluruh rencana 14 unit: PostgreSQL concurrency dan Chromium/print belum diuji pada tindak lanjut ini. Bagian historis di bawah menyimpan hasil red dan rencana acceptance pada cb0cc137. Angka 3 failures/17 assertions, uraian source lama dan tabel gap di sana **adalah keadaan saat review pertama**, bukan hasil current source. Untuk mereproduksi red gunakan revisi Git yang disebutkan, bukan checkout yang telah diperbaiki. Cakupan terkini mengikuti laporan remediasi di atas.
+
+## Arsip review pertama — baseline cb0cc137, 31 Oktober 2026
 
 Acuan: [progress](../progress.md), [laporan awal yang dikoreksi](surat-tugas-security-pentest-2026-10-31.md), [rencana 14 unit](surat-tugas-security-pentest-plan.md), [panduan sandbox/pentest](panduan-uji-keamanan-dan-pentest-portal.md), [Ponytail](../../.agents/skills/ponytail/SKILL.md), [security-audit](../../.agents/skills/security-audit/SKILL.md).
 
@@ -32,7 +47,7 @@ Log suite asli memuat error `no such table: portal_notifications` dan warning `n
 
 ## 2. R-ST-01 — High: unggahan publik menimpa byte dokumen approved
 
-**Status: CLOSED (Verified Green).** Diperbaiki dengan namespace folder storage berbasis ID surat $surat->id di AssignmentLetterController::resolveSuratStorageFolder(). Dibuktikan oleh 	est_review_public_upload_cannot_replace_existing_approved_file.
+**Status historis: direproduksi pada baseline cb0cc137; penutupan terkini ada pada bagian 0 di atas.**
 
 ### Lokasi dan akar masalah
 
@@ -74,7 +89,7 @@ Actual:   %PDF-1.4\nDUMMY_UNAUTHORIZED_REPLACEMENT\n%%EOF
 
 ## 3. R-ST-02 — Medium: edit surat membocorkan alasan cuti pegawai lain
 
-**Status: CLOSED (Verified Green).** Diperbaiki pada AssignmentLetterController::update() dengan meneruskan $canViewDetails = ->canViewConflictDetails() ke checkConflicts(). Dibuktikan oleh 	est_review_edit_does_not_disclose_other_employee_leave_reason.
+**Status historis: direproduksi pada baseline cb0cc137; penutupan terkini ada pada bagian 0 di atas.**
 
 ### Lokasi dan akar masalah
 
@@ -110,7 +125,7 @@ JSON di atas adalah potongan field relevan dari respons, bukan seluruh response 
 
 ## 4. R-ST-03 — Medium: retained permission membuka detail tanpa akses modul
 
-**Status: CLOSED (Verified Green).** Diperbaiki pada AssignmentLetterController::canViewConflictDetails() dengan mensyaratkan keanggotaan modul ($hasModule) sebelum mengizinkan permission surat_tugas.approve. Dibuktikan oleh 	est_review_conflicts_require_module_even_with_retained_permission.
+**Status historis: direproduksi pada baseline cb0cc137; penutupan terkini ada pada bagian 0 di atas.**
 
 ### Lokasi dan akar masalah
 

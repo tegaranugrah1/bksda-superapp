@@ -47,7 +47,7 @@ class ArchiveOfficialDocument implements ShouldQueue
     public function handle(): void
     {
         // 1. Idempotency check: Already archived?
-        $existing = DriveFile::where('source_module', $this->sourceModule)
+        $existing = DriveFile::withTrashed()->where('source_module', $this->sourceModule)
             ->where('source_id', $this->sourceId)
             ->first();
 
@@ -102,7 +102,7 @@ class ArchiveOfficialDocument implements ShouldQueue
         }
 
         // 5. Create DriveFile record
-        DriveFile::firstOrCreate(
+        DriveFile::withTrashed()->firstOrCreate(
             [
                 'source_module' => $this->sourceModule,
                 'source_id' => $this->sourceId,

@@ -1,70 +1,45 @@
-# Progress — Pentest & Audit Keamanan Modul Surat Tugas (31 Oktober 2026)
+# Progress — Remediasi Review Keamanan Surat Tugas (31 Oktober 2026)
 
-> Branch: codex/portal-security-pentest
-> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 13/13 Tes, Semua 5 Celah Keamanan Tertutup, Zero Regression)**.
-> Dokumen Laporan Hasil: [docs/security/surat-tugas-security-pentest-2026-10-31.md](security/surat-tugas-security-pentest-2026-10-31.md)
-> Dokumen Handoff Review: [docs/security/surat-tugas-security-review-handoff-2026-10-31.md](security/surat-tugas-security-review-handoff-2026-10-31.md)
-> Dokumen Rencana Pentest: [docs/security/surat-tugas-security-pentest-plan.md](security/surat-tugas-security-pentest-plan.md)
-> Panduan Standar Pentest: [docs/security/panduan-uji-keamanan-dan-pentest-portal.md](security/panduan-uji-keamanan-dan-pentest-portal.md)
-> Metode: /security-audit dan /ponytail (minimal diff, choke-point bersama, zero boilerplate).
-> Pekerjaan ini tidak melakukan push ke remote, deployment, atau perubahan skema database produksi.
+> Status: **PERBAIKAN TEMUAN REVIEW SELESAI DAN TERVERIFIKASI LOKAL**.
+> Branch: `codex/portal-security-pentest`; baseline implementasi AI sebelumnya `de86b099`.
+> Hasil: **30 tes keamanan / 230 assertions + 61 tes regresi / 254 assertions; total 91 tes / 484 assertions lulus**.
+> Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).
+> Status ini menutup perbaikan hasil review; tidak menyatakan seluruh audit 14 unit selesai atau semua celah aplikasi tertutup.
 
-## Ringkasan Eksekusi & Hasil Pentest
+## Perubahan yang selesai
 
-Pengujian penetrasi keamanan menyeluruh terhadap modul Surat Tugas (App\Modules\SuratTugas) telah berhasil menemukan 5 kerentanan nyata (2 High, 3 Medium), mereproduksinya secara lokal (*Red*), memperbaikinya di titik akar bersama (*choke-point*), dan memverifikasi seluruhnya lulus (*Green*):
+| Area | Perbaikan dan bukti |
+|---|---|
+| Upload baru/penggantian | Store/update memakai satu helper model: disk local, direktori ID surat, nama generated dan pemeriksaan write. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
+| File legacy | Cleanup update/single/bulk force-delete memeriksa referensi aktif maupun soft-deleted. File yang masih dipakai surat lain dipertahankan. |
+| Transaksi storage | Callback native afterCommit/afterRollBack menjaga file lama, menghapus staged upload setelah rollback, dan menunda arsip hingga commit. False write, kegagalan database dan rollback transaksi luar diuji. |
+| Update upload 500 | Pemakaian authUser yang tidak terdefinisi dihapus; ID actor aktual diteruskan ke jalur arsip bersama. Penggantian sah kembali 200. |
+| Konflik privat | Policy detail dipakai semua caller termasuk approve; membership modul dan wewenang tetap berlaku. R-ST-02/R-ST-03, matrix permission dan IAM revoke/relogin lulus. |
+| Akun nonaktif | Shared middleware membaca fallback Sanctum pada endpoint publik; real inactive bearer mendapat 403 dan token dicabut. |
+| Arsip anonim | Migrasi baru mengizinkan owner null untuk arsip sistem; ordinary user tetap 403 pada signed URL. Up/down dan guard rollback yang melindungi data diuji, foreign key tetap ada. |
+| Retry arsip | Lookup dengan withTrashed mencegah duplikasi/resurrection arsip trash. Sync job serta database queue worker dengan failure/release/retry diuji memakai storage fake dan schema penuh. |
+| Portabilitas fixture Drive | Generator JPEG/GD diganti byte PNG valid; assertion bisnis/storage/RBAC tetap sama, tanpa dependency baru. |
 
-1. **ST-01 (High) — Privilege Escalation on Public Submit / Cross-Module Bypass**:
-   - *Masalah*: Admin modul lain tanpa modul surat_tugas atau kepegawaian dapat memanggil POST /api/surat-tugas/submit dengan status: approved untuk menerbitkan surat tugas sah secara sepihak.
-   - *Perbaikan*: Method store() pada AssignmentLetterController.php membatasi auto-approval hanya untuk rute internal berizin modul surat_tugas/kepegawaian, dan memblokir auto-approval pada endpoint publik pi/surat-tugas/submit.
-2. **ST-02 (Medium) — Sensitive Information Disclosure in Public Conflicts**:
-   - *Masalah*: Endpoint publik POST /api/surat-tugas/check-conflicts membocorkan alasan cuti medis/pribadi rahasia (lasan_cuti) dan maksud misi internal (maksud_tujuan) ke pemanggil publik/anonim.
-   - *Perbaikan*: AssignmentLetterConflictService.php menambahkan parameter sanitasi $canViewDetails. Jika pemanggil tidak memiliki otorisasi modul, respons disanitasi menjadi label generik ('Cuti Aktif' dan 'Penugasan Aktif').
-3. **R-ST-01 (High) — Storage Namespace Collision & Unauthorized File Overwrite**:
-   - *Masalah*: Folder upload dihitung dari slug 
-omor_surat tanpa UUID row, sehingga upload publik dengan nomor sama dapat menimpa dokumen pproved.
-   - *Perbaikan*: Method 
-esolveSuratStorageFolder() mengisolasi namespace folder dengan UUID row: 'surat-tugas/' . ->id . ( ? '-' .  : '').
-4. **R-ST-02 (Medium) — Privacy Leak on Edit / Update Conflict Check**:
-   - *Masalah*: Endpoint PUT /api/surat-tugas/{id} memaksa flag detail 	rue pada checkConflicts(), membocorkan alasan cuti privat pegawai lain ke non-admin creator.
-   - *Perbaikan*: Menggunakan $this->canViewConflictDetails() pada method update().
-5. **R-ST-03 (Medium) — Retained Permission without Module Access**:
-   - *Masalah*: Evaluasi OR langsung pada hasPermission('surat_tugas.approve') tanpa syarat modul pada ccess_modules.
-   - *Perbaikan*: Memeriksa $hasModule sebelum memeriksa hak surat_tugas.approve.
+Tiga temuan R-ST-01/02/03 yang dilaporkan AI lain serta temuan follow-up yang terkait telah ditutup pada skenario review yang diuji. Perbaikan sebelumnya pada submit publik, personal access, approval dan privasi tetap lulus. Tidak ada unique nomor global, layer policy baru atau migrasi massal file legacy.
 
-## Hasil Pengujian Otomatis
+## Verifikasi yang dapat direproduksi
 
-| Suite Pengujian | Hasil | Keterangan |
-|---|---|---|
-| SuratTugasSecurityPentestTest.php | **13 passed (77 assertions)** | 10 tes asli + 3 tes temuan review (R-ST-01, R-ST-02, R-ST-03) lulus 100% |
-| SuratTugasMobileListApiTest.php | **6 passed (57 assertions)** | Regresi API mobile & paginasi Surat Tugas |
-| PortalPersonalSecurityTest.php | **25 passed (60 assertions)** | Regresi akses dokumen personal portal |
-| DriveHierarchicalResorRBACTest.php | **10 passed (40 assertions)** | Regresi RBAC BKSDA Drive & DeReporting |
+| Suite | Hasil |
+|---|---|
+| SuratTugasSecurityPentestTest | 20 lulus / 125 assertions |
+| SuratTugasFullSchemaSecurityTest | 10 lulus / 105 assertions |
+| Regresi terpilih: Drive, PortalPersonal, mobile ST, cuti, 2FA lama, email, broadcast | 61 lulus / 254 assertions |
+| Total tiga eksekusi terpisah | 91 lulus / 484 assertions, seluruh exit 0 |
+| Syntax | 8 file PHP diubah lulus php -l |
 
-**Total Suite Regresi**: **41 Tests, 157 Assertions, 0 Failures**.
+Baseline red tujuh kasus baru: 20 tes / 91 assertions / 7 failures, dengan 13 tes lama tetap lulus. Seluruh tujuh kasus kemudian green tanpa menghapus kontrol sah. Perintah, image ID, hash source, sandbox, fake boundaries, dan pengecualian lima data-only roster migrations tersedia pada laporan. Tidak memakai output historis run-4 sebagai bukti source baru; tidak membuat artefak audit enam fase baru.
 
----|---|---|---|
-| R-ST-01 | **High** | Anonim mengunggah PDF dengan nomor sama, peserta berbeda; row baru pending, row lama approved, tetapi byte file lama tertimpa. Folder memakai slug nomor + nama file tetap. | **OPEN** — namespace berdasarkan ID surat; telusuri store/update, legacy references, download, cleanup dan arsip. |
-| R-ST-02 | **Medium** | Creator nonadmin mengedit surat pending sendiri, memilih pegawai lain yang cuti; 422 membocorkan alasan cuti. update memaksa flag detail true. | **OPEN** — otorisasi detail konsisten di semua caller; hak edit surat sendiri tidak memberi hak alasan cuti orang lain. |
-| R-ST-03 | **Medium** | Admin hanya bermodul Keuangan dengan explicit surat_tugas.approve mendapat 403 manajemen, tetapi alasan cuti lengkap lewat check-conflicts. | **OPEN** — permission detail tetap terikat membership; bypass superadmin sesuai kontrak. Uji IAM/relogin nyata sebagai tindak lanjut. |
+## Migrasi dan batas pekerjaan
 
-Lokasi kode, payload, kontrol positif/negatif, tiga metode tes lengkap, batas bukti, sandbox dan acceptance ada dalam [handoff](security/surat-tugas-security-review-handoff-2026-10-31.md). Temuan belum diperbaiki; jangan closed hanya karena suite lama hijau.
-
-## Hasil verifikasi dan asal bukti
-
-| Pemeriksaan | Hasil | Keterangan |
-|---|---|---|
-| Suite asli SuratTugasSecurityPentestTest.php | **10 passed, 60 assertions**, exit 0 | Diulang; sebagian ST-01/02/03/04/05/06/07/11/13, bukan semua ST-01 sampai ST-13. |
-| Tiga tes review test_review_* | **3 failures, 17 assertions**, exit 1 | Tiga perlindungan belum terpenuhi; reproduksi lengkap pada handoff. |
-| Log fixture suite asli | Tabel portal_notifications dan personal_access_tokens tidak tersedia | Error efek samping ditangkap aplikasi; hijau bukan bukti notifikasi/realtime lulus. |
-| Suite mobile/personal/Drive dan script conflict pada laporan awal | **Tidak diulang pada review ini** | Angka lama tetap pada laporan awal; bukan verifikasi ulang saat ini. |
-
-Batas eksekusi: kernel HTTP, principal dummy, SQLite memory dan storage fake; auth memakai Sanctum::actingAs. Pada overwrite, job ArchiveOfficialDocument di-fake. Produksi, full IAM/token lifecycle, PG concurrency, browser print/preview dan hasil arsip nyata tidak diuji pada review ini. Fixture tambahan hanya sementara di luar checkout dan sudah dihapus; tidak ada artefak target review yang disimpan sebagai run audit baru.
-
-## Cakupan yang masih harus dilanjutkan
-
-- ST-08 concurrency dua worker PG; ST-09 kontrak penomoran; ST-10 upload/namespace/failure; ST-12 browser preview/print; ST-14 archive/rollback/retry belum dibuktikan oleh suite baru AI sebelumnya.
-- Unit lain masih memerlukan kelengkapan actor, status/lifecycle, mode download, bulk mixed ownership dan assertion body/byte sesuai rencana. Rincian per unit ada pada handoff.
-- Urutan: reproduksi red dengan ref tercatat, fix akar bersama sesuai Ponytail, simpan regresi minimal, buktikan green dan kontrol sah, lalu lengkapi coverage sebelum status keseluruhan selesai.
+- Migrasi baru `2026_10_31_180000_allow_system_owned_drive_archives.php` perlu disertakan saat rilis. Sudah diuji pada SQLite memory; **belum dijalankan pada DB pengembangan/produksi**. Down menolak ketika ownerless archives masih ada, tanpa menghapus data atau memilih owner pengganti.
+- Pekerjaan ini memakai data dummy, Docker network-none, source/toolchain read-only, scratch bounded dan env allowlist. Full-schema suite menjalankan job asli dan worker database queue di proses fixture yang sama; storage/provider tetap fake.
+- Rencana audit 14 unit lebih luas: ST-08 dua worker PostgreSQL, ST-12 Chromium/dua print paths, dan kelengkapan seluruh matrix/lifecycle masih perlu audit tersendiri. Penomoran diuji sebagai suggestion, bukan reservasi atomik. Tidak ada klaim full-audit atau zero regression seluruh aplikasi.
+- Tidak ada deployment, push, migrasi produksi atau pengujian provider nyata. Commit lokal dilakukan sesuai permintaan user setelah pemeriksaan akhir.
 
 ---
 

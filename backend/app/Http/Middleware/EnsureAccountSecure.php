@@ -15,7 +15,8 @@ class EnsureAccountSecure
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        // Public API actions may read Sanctum credentials without auth middleware.
+        $user = $request->user() ?: auth('sanctum')->user();
         if (! $user) {
             return $next($request);
         }

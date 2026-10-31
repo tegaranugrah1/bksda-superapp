@@ -292,7 +292,11 @@ class DriveHierarchicalResorRBACTest extends TestCase
             'created_by' => $this->superAdmin->id,
         ]);
 
-        $file1 = UploadedFile::fake()->image('patroli1.jpg', 600, 400);
+        // Valid PNG bytes keep this storage/RBAC regression independent of GD.
+        $file1 = UploadedFile::fake()->createWithContent('patroli1.png', base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jf3sAAAAASUVORK5CYII=',
+            true
+        ));
 
         $payload = [
             'judul_laporan' => 'Patroli Jalur Sungai',

@@ -141,7 +141,7 @@ class AssignmentLetterController extends Controller
             ], 403);
         }
 
-        if ($surat->file_surat_path && Storage::exists($surat->file_surat_path)) {
+        if ($surat->file_surat_path && Storage::disk('local')->exists($surat->file_surat_path)) {
             $ext = pathinfo($surat->file_surat_path, PATHINFO_EXTENSION) ?: 'pdf';
             $dasarSurat = $surat->maksud_tujuan ? substr(preg_replace('/[^a-zA-Z0-9\s]/', '', $surat->maksud_tujuan), 0, 50) : 'Surat Tugas';
             $namaPersonel = $surat->employees->first()?->nama_lengkap ?? 'Pegawai';
@@ -150,15 +150,15 @@ class AssignmentLetterController extends Controller
             $filename = preg_replace('/[\r\n\/\\\\:*?"<>|]/', '_', $filename);
 
             if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
-                $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
+                $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
                 return response()->json([
                     'mime_type' => $mime,
                     'file_name' => $filename,
-                    'data_url' => "data:{$mime};base64," . base64_encode(Storage::get($surat->file_surat_path)),
+                    'data_url' => "data:{$mime};base64," . base64_encode(Storage::disk('local')->get($surat->file_surat_path)),
                 ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
             }
 
-            return Storage::download($surat->file_surat_path, $filename, [
+            return Storage::disk('local')->download($surat->file_surat_path, $filename, [
                 'X-Content-Type-Options' => 'nosniff',
             ]);
         }
@@ -522,21 +522,7 @@ class AssignmentLetterController extends Controller
             }
 
             if ($request->hasFile('file_surat')) {
-                $folder = $this->resolveSuratStorageFolder($surat);
-                $ext = $request->file('file_surat')->extension();
-                $filename = 'dasar-surat.'.$ext;
-                $path = $request->file('file_surat')->storeAs($folder, $filename);
-                $surat->update(['file_surat_path' => $path]);
-
-                \App\Jobs\ArchiveOfficialDocument::dispatch(
-                    'surat_tugas',
-                    $surat->id,
-                    'local',
-                    $path,
-                    $surat->nomor_surat ? "ST-{$surat->nomor_surat}.{$ext}" : $filename,
-                    null,
-                    $authUser ? (int) $authUser->id : null
-                );
+                $surat->replaceUploadedFile($request->file('file_surat'), $authUser?->id);
             }
 
             DB::commit();
@@ -597,7 +583,7 @@ class AssignmentLetterController extends Controller
                 'data' => $surat,
             ], 201);
 
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
@@ -775,24 +761,7 @@ class AssignmentLetterController extends Controller
             }
 
             if ($request->hasFile('file_surat')) {
-                if ($surat->file_surat_path) {
-                    Storage::delete($surat->file_surat_path);
-                }
-                $folder = $this->resolveSuratStorageFolder($surat);
-                $ext = $request->file('file_surat')->extension();
-                $filename = 'dasar-surat.'.$ext;
-                $path = $request->file('file_surat')->storeAs($folder, $filename);
-                $surat->update(['file_surat_path' => $path]);
-
-                \App\Jobs\ArchiveOfficialDocument::dispatch(
-                    'surat_tugas',
-                    $surat->id,
-                    'local',
-                    $path,
-                    $surat->nomor_surat ? "ST-{$surat->nomor_surat}.{$ext}" : $filename,
-                    null,
-                    $authUser ? (int) $authUser->id : null
-                );
+                $surat->replaceUploadedFile($request->file('file_surat'), $user?->id);
             }
 
             DB::commit();
@@ -963,11 +932,9 @@ class AssignmentLetterController extends Controller
         }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
 
-        if ($surat->file_surat_path) {
-            Storage::delete($surat->file_surat_path);
-        }
-
+        $path = $surat->file_surat_path;
         $surat->forceDelete();
+        DB::afterCommit(fn () => AssignmentLetter::deleteUnreferencedFile($path));
 
         return response()->json(['message' => 'Dokumen dihapus permanen dari arsip.']);
     }
@@ -1075,9 +1042,7 @@ class AssignmentLetterController extends Controller
         });
 
         foreach (array_unique($filesToDelete) as $path) {
-            if (Storage::exists($path)) {
-                Storage::delete($path);
-            }
+            DB::afterCommit(fn () => AssignmentLetter::deleteUnreferencedFile($path));
         }
 
         return response()->json(['message' => $count . ' dokumen berhasil dihapus permanen dari arsip.']);
@@ -1124,7 +1089,7 @@ class AssignmentLetterController extends Controller
             ], 403);
         }
 
-        if (! $surat->file_surat_path || ! Storage::exists($surat->file_surat_path)) {
+        if (! $surat->file_surat_path || ! Storage::disk('local')->exists($surat->file_surat_path)) {
             return response()->json(['message' => 'Berkas dokumen dasar tidak ditemukan di server.'], 404);
         }
 
@@ -1140,24 +1105,24 @@ class AssignmentLetterController extends Controller
 
         // Mode pratinjau JSON base64 data_url (mencegah IDM hook & error CORS XHR)
         if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
-            $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
+            $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
             return response()->json([
                 'mime_type' => $mime,
                 'file_name' => $filename,
-                'data_url' => "data:{$mime};base64," . base64_encode(Storage::get($surat->file_surat_path)),
+                'data_url' => "data:{$mime};base64," . base64_encode(Storage::disk('local')->get($surat->file_surat_path)),
             ], 200, ['Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0']);
         }
 
         if ($request->query('stream') || $request->query('inline')) {
-            $mime = Storage::mimeType($surat->file_surat_path) ?: 'application/pdf';
-            return response(Storage::get($surat->file_surat_path), 200, [
+            $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+            return response(Storage::disk('local')->get($surat->file_surat_path), 200, [
                 'Content-Type' => $mime,
                 'Content-Disposition' => 'inline; filename="' . $filename . '"',
                 'X-Content-Type-Options' => 'nosniff',
             ]);
         }
 
-        return Storage::download($surat->file_surat_path, $filename, [
+        return Storage::disk('local')->download($surat->file_surat_path, $filename, [
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
@@ -1254,7 +1219,7 @@ class AssignmentLetterController extends Controller
             $targetTanggalMulai,
             $targetTanggalSelesai,
             $cleanId,
-            true
+            $this->canViewConflictDetails($user)
         );
 
         if ($conflictCheck['has_conflict']) {
@@ -1431,12 +1396,6 @@ class AssignmentLetterController extends Controller
         }
 
         return in_array($user->role, ['admin'], true) || $user->hasPermission('surat_tugas.approve');
-    }
-
-    private function resolveSuratStorageFolder(AssignmentLetter $surat): string
-    {
-        $slugPart = $surat->nomor_surat ? Str::slug($surat->nomor_surat) : Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
-        return 'surat-tugas/' . $surat->id . ($slugPart ? '-' . $slugPart : '');
     }
 
     public function checkConflicts(Request $request): JsonResponse
