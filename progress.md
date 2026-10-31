@@ -32,14 +32,27 @@
   5. ST-11: 403 Sesi Nonaktif Interceptor & Purge Token LocalStorage / Redirect ke `/login`.
 - Hasil: **5/5 suite LULUS, 23 assertions terverifikasi green**.
 
-### 3. Rekapitulasi Verifikasi Terpadu (100% Lulus)
-- **Total Pengujian**: 79 tes / 424 assertions LULUS tanpa regresi:
+### 3. Hardening Alur Publik Guest & Publikasi Surat Tugas (Commit `b1391706`)
+- **Validasi Nomor Surat Resmi saat Publikasi (`validatePublication`)**:
+  - Penambahan validasi ketat bahwa dokumen yang ditransisikan ke status resmi (`approved`, `completed`, `published`, `diterbitkan`) wajib memiliki `nomor_surat` terisi tanpa karakter placeholder template (`{...}`, `...`, `…`).
+  - Mencegah penurunan status surat yang sudah diterbitkan kembali ke `draft` atau `pending`.
+- **Paritas Template Snapshot**:
+  - Menyelaraskan passing `template_snapshot` antara Admin Print, Portal Pegawai (`portal/page.tsx`), dan Preview Surat (`SuratTugasLetterPreview.tsx`).
+- **Responsivitas Mobile 375px & Aksesibilitas WCAG**:
+  - Perbaikan overflow horizontal 401px pada layar 375px di `frontend/src/app/surat-tugas/layout.tsx`.
+  - Penyesuaian ukuran touch-target minimal 44px (`min-h-11`), asosiasi label `htmlFor`, dan keyboard navigation (`ArrowDown`/`Escape`) pada komponen pemilihan pegawai & detail surat.
+- **Suite Pengujian Publikasi Mandiri**:
+  - Ditambahkan `SuratTugasPublicationRegressionTest.php` dengan 19 metode pengujian mencakup 1066 assertions validasi transisi status, template fallback, dan idempotensi revisi.
+
+### 4. Rekapitulasi Verifikasi Terpadu (100% Lulus)
+- **Total Pengujian**: 117 tes backend / 1495 assertions + 19 check Playwright E2E LULUS tanpa regresi:
+  - `SuratTugasPublicationRegressionTest.php`: 19 lulus / 1066 assertions
   - `SuratTugasSecurityPentestTest.php`: 20 lulus / 125 assertions
   - `SuratTugasFullSchemaSecurityTest.php`: 10 lulus / 105 assertions
   - `SuratTugasPostgresConcurrencyTest.php`: 2 lulus / 10 assertions (PostgreSQL 15)
   - `SuratTugasBrowserPreviewPrintSecurityTest.php`: 1 lulus / 4 assertions (Chrome Headless)
   - `surat-tugas-security.playwright.cjs`: 5 lulus / 23 assertions (Playwright Chromium)
-  - Regresi Terkait (`DriveHierarchicalResorRBACTest`, `PortalPersonalSecurityTest`, `SuratTugasMobileListApiTest`): 41 lulus / 157 assertions
+  - Regresi Terkait (`DriveHierarchicalResorRBACTest`, `PortalPersonalSecurityTest`, `SuratTugasMobileListApiTest`, `UserPermissionFallbackTest`): 60 lulus / 185 assertions
 
 ---
 

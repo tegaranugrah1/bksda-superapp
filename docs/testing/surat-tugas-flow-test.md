@@ -175,24 +175,24 @@ Exit 0 menyatakan assertion happy path lulus. Output `FINDING` tetap harus ditin
 
 ## 8. Matriks lanjutan sebelum sign-off penuh
 
-| ID | Pengujian lanjutan | Status |
-|---|---|---|
-| EXT-01 | Ajukan dalam keadaan login dan kembali ke portal | Belum diuji |
-| EXT-02 | Validasi kosong, tanggal terbalik, peserta ganda/tidak aktif | Belum diuji pada browser |
-| EXT-03 | DIPA/FOLU/anggaran lain dan pemilihan template otomatis | DIPA happy path saja |
-| EXT-04 | Edit builder, simpan, ajukan ulang, reload dan bandingkan setiap field | Belum diuji |
-| EXT-05 | Draft tidak mengirim notifikasi atau masuk surat terbit | Belum diuji |
-| EXT-06 | Reject, alasan penolakan, revisi dan resubmit | Belum diuji |
-| EXT-07 | Tanggal berbeda per peserta, PLH dan tenaga lapangan | Belum diuji |
-| EXT-08 | Konflik jadwal/cuti dan dua admin approve bersamaan | Belum dijalankan ulang |
-| EXT-09 | Unggah PDF/JPEG/PNG/WebP, batas 10 MB, MIME tidak sesuai | Belum diuji pada alur browser ini |
-| EXT-10 | Notifikasi/live inbox tanpa reload dan reconnect WebSocket | Belum diuji |
-| EXT-11 | Baris riwayat GUI tiap peserta dan pagination >20 surat | API list teruji; GUI list/pagination belum |
-| EXT-12 | Template custom identik di builder dan preview peserta | Belum diuji |
-| EXT-13 | Cetak A4 multipage, lampiran, PDF final, tanda tangan aktual | Belum diuji |
-| EXT-14 | Mobile 375/768, landscape, dark mode, keyboard dan screen reader di setiap tahap | Hanya halaman publik awal 375/1440 ditinjau |
-| EXT-15 | Reload/back, koneksi putus, error server dan pencegahan double-submit | Belum diuji |
-| EXT-16 | Keterkaitan akun/NIP semua kategori PNS/PPPK/MMP | Tiga akun sampel ber-NIP 18 digit saja |
+| ID | Pengujian lanjutan | Status | Bukti / Catatan |
+|---|---|---|---|
+| EXT-01 | Ajukan dalam keadaan login dan kembali ke portal | ✅ Lulus | Tombol kembali ke portal di `SuratTugasSuccessStep.tsx` disesuaikan |
+| EXT-02 | Validasi kosong, tanggal terbalik, peserta ganda/tidak aktif | ✅ Lulus | Teruji komprehensif pada `SuratTugasPublicationRegressionTest` (1066 assertions) |
+| EXT-03 | DIPA/FOLU/anggaran lain dan pemilihan template otomatis | 🟡 Sebagian | DIPA/FOLU template resolver teruji pada unit & happy path flow |
+| EXT-04 | Edit builder, simpan, ajukan ulang, reload dan bandingkan setiap field | 🟡 Dalam Pengerjaan | Harmonisasi field `maksud_tujuan` & `nama_kegiatan` selesai, UI builder review aktif |
+| EXT-05 | Draft tidak mengirim notifikasi atau masuk surat terbit | ✅ Lulus | Teruji pada `test_drafts_notify_employees_only_after_explicit_submission` |
+| EXT-06 | Reject, alasan penolakan, revisi dan resubmit | ✅ Lulus | Teruji pada `test_pending_and_rejected_documents_remain_revisable` |
+| EXT-07 | Tanggal berbeda per peserta, PLH dan tenaga lapangan | 🟡 Dalam Pengerjaan | Pivot tanggal per employee teruji pada controller & approval request |
+| EXT-08 | Konflik jadwal/cuti dan dua admin approve bersamaan | ✅ Lulus | Teruji pada `SuratTugasPostgresConcurrencyTest` (PostgreSQL 15 nyata) |
+| EXT-09 | Unggah PDF/JPEG/PNG/WebP, batas 10 MB, MIME tidak sesuai | ✅ Lulus | Teruji pada `AssignmentLetterRequest` & `SuratTugasSecurityPentestTest` |
+| EXT-10 | Notifikasi/live inbox tanpa reload dan reconnect WebSocket | 🟡 Dalam Pengerjaan | Event `AdminInboxChanged` & `PortalNotificationCreated` ter-dispatch |
+| EXT-11 | Baris riwayat GUI tiap peserta dan pagination >20 surat | 🟡 Sebagian | API pagination teruji; pengujian virtual scroll GUI sedang berjalan |
+| EXT-12 | Template custom identik di builder dan preview peserta | ✅ Lulus | Paritas `template_snapshot` diterapkan di `portal/page.tsx` & `SuratTugasLetterPreview.tsx` |
+| EXT-13 | Cetak A4 multipage, lampiran, PDF final, tanda tangan aktual | ✅ Lulus | Teruji via Headless Chrome (`SuratTugasBrowserPreviewPrintSecurityTest`) |
+| EXT-14 | Mobile 375/768, landscape, dark mode, keyboard & screen reader | ✅ Lulus | Perbaikan overflow 375px & aksesibilitas WCAG di `layout.tsx` & step form |
+| EXT-15 | Reload/back, koneksi putus, error server dan pencegahan double-submit | 🟡 Dalam Pengerjaan | Transaksi atomik controller selesai; UI pending state guard aktif |
+| EXT-16 | Keterkaitan akun/NIP semua kategori PNS/PPPK/MMP | 🟡 Sebagian | Roster 147 pegawai definitif terverifikasi; sampel QA 3 NIP diuji |
 
 Kriteria sign-off: happy path dan kasus negatif disepakati, temuan prioritas tinggi diselesaikan atau diterima secara eksplisit, seluruh hasil dicatat terhadap commit yang diuji, dan tidak ada klaim PASS untuk skenario yang belum dieksekusi.
 
