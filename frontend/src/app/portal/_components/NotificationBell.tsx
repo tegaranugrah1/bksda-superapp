@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getEcho } from "@/lib/echo";
+import { getEcho, getRealtimeTokenId } from "@/lib/echo";
 import { getAuthSnapshot, parseAuthSnapshot } from "@/lib/auth-store";
 
 export interface PortalNotificationItem {
@@ -179,10 +179,12 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
     const user = parseAuthSnapshot(getAuthSnapshot()).user;
     if (!user || !user.id) return;
 
+    const tokenId = getRealtimeTokenId();
+    if (!tokenId) return;
     const echo = getEcho();
     if (!echo) return;
 
-    const channelName = `App.Models.User.${user.id}`;
+    const channelName = `App.Models.User.${user.id}.${tokenId}`;
     const channel = echo.private(channelName);
 
     const handleCreated = (item: PortalNotificationItem) => {

@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\PortalNotification;
+use App\Models\User;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
@@ -20,9 +21,13 @@ class PortalNotificationCreated implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('App.Models.User.'.$this->notification->user_id),
-        ];
+        $user = User::find($this->notification->user_id);
+        $channels = [];
+        foreach ($user?->broadcastTokenIds() ?? [] as $tokenId) {
+            $channels[] = new PrivateChannel('App.Models.User.'.$user->id.'.'.$tokenId);
+        }
+
+        return $channels;
     }
 
     /**

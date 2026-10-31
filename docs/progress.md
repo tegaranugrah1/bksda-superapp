@@ -1,3 +1,12 @@
+# Progress — Pentest dan Perbaikan Keamanan Portal (31 Oktober 2026)
+
+> Branch: `codex/portal-security-pentest`
+> Status: **SELESAI LOKAL** — 9 akar masalah direproduksi dan diperbaiki. Semua 40 regresi keamanan, 26 tes fitur lama terkait, typecheck dan lint frontend lulus. PHP sandbox diperbarui ke 8.4.27; pengujian tidak menyentuh produksi.
+
+Detail perbaikan, cakupan, bukti baseline/retest dan dampak pemetaan aset lama: [Catatan pentest portal](security/portal-security-pentest-2026-10-31.md).
+
+---
+
 # Progress - Phase 230: Penataan Hierarki 4 Unit Utama BKSDA Drive, Folder Resor Terisolasi per SKW, Folder Ruangan Balai, Sinkronisasi Mutasi Kepegawaian, & RBAC Admin Drive
 
 > Document updated: 2026-10-31
@@ -9286,3 +9295,10 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Ponytail (`/ponytail`)**:
      - Memperbaiki pemanggilan endpoint `/api/kepegawaian/leave-types` (prefix `/api` ganda) menjadi `/kepegawaian/leave-types` di `LeaveTypesTab.tsx`.
      - Mengekstrak fungsi duplikat `templateCodeFromName` dan `errorMessage` ke `st-templates/_components/utils.ts`.
+
+
+## 31 Oktober2026 — Portal pentest lanjutan run-4
+
+- 7 temuan tambahan diperbaiki dengan helper/native framework bersama, tanpa dependency aplikasi atau schema baru: recovery email, photo ownership, transaksi cuti/master, revocation realtime, fanout notice dan native form password URL.
+- Regresi dua-tab profile/dashboard juga diperbaiki. Hasil:78/868 PHPUnit keamanan,29/162 regresi terkait,8 cache,6 concurrency PG,34 Reverb,21 browser dan native fallback form lulus; typecheck/lint/schema lulus.
+- New2FA hunting/produksi/provider tetap di luar cakupan. Detail dan batas uji: [laporan portal](security/portal-security-pentest-2026-10-31.md). Perubahan hanya working tree, tanpa deploy/commit.

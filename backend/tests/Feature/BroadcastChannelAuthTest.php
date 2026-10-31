@@ -3,16 +3,44 @@
 namespace Tests\Feature;
 
 use App\Events\AdminInboxChanged;
+use App\Events\PortalNotificationCreated;
 use App\Models\User;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Laravel\Sanctum\Sanctum;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class BroadcastChannelAuthTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Mail::fake();
+        Notification::fake();
+        config([
+            'auth.two_factor_enforce' => false,
+            'broadcasting.default' => 'pusher',
+            'broadcasting.connections.pusher' => [
+                'driver' => 'pusher', 'key' => 'dummy-channel-key', 'secret' => 'dummy-channel-secret',
+                'app_id' => 'dummy-channel-app',
+                'options' => ['host' => '127.0.0.1', 'port' => 9, 'scheme' => 'http', 'useTLS' => false],
+            ],
+        ]);
+        require base_path('routes/channels.php');
+    }
+
+    private function authenticateBearer(User $user): int
+    {
+        $credential = $user->createToken('dummy-broadcast-channel-test');
+        $this->app['auth']->forgetGuards();
+        $this->app['auth']->setDefaultDriver('web');
+        $this->withToken($credential->plainTextToken);
+        return $credential->accessToken->id;
+    }
 
     /**
      * User can subscribe to their own private user channel, but not to other users.
@@ -22,7 +50,7 @@ class BroadcastChannelAuthTest extends TestCase
         $user1 = User::create([
             'name' => 'User One',
             'username' => 'user1',
-            'email' => 'user1@example.com',
+            'email' => 'user1@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'user',
         ]);
@@ -30,23 +58,23 @@ class BroadcastChannelAuthTest extends TestCase
         $user2 = User::create([
             'name' => 'User Two',
             'username' => 'user2',
-            'email' => 'user2@example.com',
+            'email' => 'user2@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'user',
         ]);
 
-        Sanctum::actingAs($user1);
+        $tokenId = $this->authenticateBearer($user1);
 
         // Own channel -> OK
         $resSelf = $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-App.Models.User.'.$user1->id,
+            'channel_name' => 'private-App.Models.User.'.$user1->id.'.'.$tokenId,
             'socket_id' => '1234.5678',
         ]);
         $resSelf->assertStatus(200);
 
         // Other user's channel -> 403
         $resOther = $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-App.Models.User.'.$user2->id,
+            'channel_name' => 'private-App.Models.User.'.$user2->id.'.'.$tokenId,
             'socket_id' => '1234.5678',
         ]);
         $resOther->assertStatus(403);
@@ -61,16 +89,16 @@ class BroadcastChannelAuthTest extends TestCase
         $regularUser = User::create([
             'name' => 'Regular User',
             'username' => 'regular',
-            'email' => 'reg@example.com',
+            'email' => 'reg@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'user',
             'access_modules' => [],
         ]);
 
-        Sanctum::actingAs($regularUser);
+        $tokenId = $this->authenticateBearer($regularUser);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.kepegawaian',
+            'channel_name' => 'private-admin.inbox.kepegawaian.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(403);
 
@@ -78,26 +106,26 @@ class BroadcastChannelAuthTest extends TestCase
         $adminKpg = User::create([
             'name' => 'Admin Kepegawaian',
             'username' => 'adminkpg',
-            'email' => 'kpg@example.com',
+            'email' => 'kpg@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'admin',
             'access_modules' => ['kepegawaian'],
         ]);
 
-        Sanctum::actingAs($adminKpg);
+        $tokenId = $this->authenticateBearer($adminKpg);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.kepegawaian',
+            'channel_name' => 'private-admin.inbox.kepegawaian.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(200);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.surat_tugas',
+            'channel_name' => 'private-admin.inbox.surat_tugas.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(200);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.bmn',
+            'channel_name' => 'private-admin.inbox.bmn.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(403);
 
@@ -105,21 +133,21 @@ class BroadcastChannelAuthTest extends TestCase
         $superAdmin = User::create([
             'name' => 'Super Admin',
             'username' => 'superadmin',
-            'email' => 'root@example.com',
+            'email' => 'root@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'super_admin',
             'access_modules' => ['*'],
         ]);
 
-        Sanctum::actingAs($superAdmin);
+        $tokenId = $this->authenticateBearer($superAdmin);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.kepegawaian',
+            'channel_name' => 'private-admin.inbox.kepegawaian.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(200);
 
         $this->postJson('/api/broadcasting/auth', [
-            'channel_name' => 'private-admin.inbox.bmn',
+            'channel_name' => 'private-admin.inbox.bmn.'.$tokenId,
             'socket_id' => '1234.5678',
         ])->assertStatus(200);
     }
@@ -129,12 +157,12 @@ class BroadcastChannelAuthTest extends TestCase
      */
     public function test_surat_tugas_approval_and_status_update_dispatches_admin_inbox_changed(): void
     {
-        Event::fake([AdminInboxChanged::class]);
+        Event::fake([AdminInboxChanged::class, PortalNotificationCreated::class]);
 
         $admin = User::create([
             'name' => 'Admin ST',
             'username' => 'adminst',
-            'email' => 'adminst@example.com',
+            'email' => 'adminst@broadcast.example.test',
             'password' => bcrypt('password'),
             'role' => 'admin',
             'access_modules' => ['surat_tugas'],
@@ -150,7 +178,7 @@ class BroadcastChannelAuthTest extends TestCase
             'created_by' => $admin->id,
         ]);
 
-        Sanctum::actingAs($admin);
+        $this->authenticateBearer($admin);
 
         // 1. Update status
         $resUpdate = $this->putJson("/api/surat-tugas/{$letter->id}/status", [

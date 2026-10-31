@@ -10,6 +10,11 @@ if (typeof window !== "undefined") {
 let echoInstance: Echo<"reverb"> | null = null;
 let currentToken: string | null = null;
 
+export function getRealtimeTokenId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("bksda_token")?.match(/^([1-9]\d*)\|[^|\s]+$/)?.[1] ?? null;
+}
+
 /**
  * Mendapatkan singleton instance Laravel Echo (Reverb).
  * Mengembalikan null jika:
@@ -28,7 +33,7 @@ export function getEcho(): Echo<"reverb"> | null {
   }
 
   const token = localStorage.getItem("bksda_token");
-  if (!token) {
+  if (!token || !getRealtimeTokenId()) {
     disconnectEcho();
     return null;
   }

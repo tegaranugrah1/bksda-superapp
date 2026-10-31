@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\User;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
@@ -22,9 +23,23 @@ class AdminInboxChanged implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('admin.inbox.'.$this->module),
-        ];
+        if (! in_array($this->module, ['surat_tugas', 'kepegawaian', 'bmn'], true)) {
+            return [];
+        }
+
+        $channels = [];
+        $users = User::where('is_active', true)->whereIn('role', ['admin', 'super_admin'])->cursor();
+        foreach ($users as $user) {
+            if (! $user->canAccessAdminInbox($this->module)) {
+                continue;
+            }
+
+            foreach ($user->broadcastTokenIds() as $tokenId) {
+                $channels[] = new PrivateChannel('admin.inbox.'.$this->module.'.'.$tokenId);
+            }
+        }
+
+        return $channels;
     }
 
     /**

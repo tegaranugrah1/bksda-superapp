@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { getEcho } from "@/lib/echo";
+import { getEcho, getRealtimeTokenId } from "@/lib/echo";
 
 export interface AdminInboxEventData {
   module: string;
@@ -12,7 +12,7 @@ export interface AdminInboxEventData {
 
 /**
  * Hook untuk berlangganan pembaruan inbox admin secara real-time via WebSocket.
- * Channel: private-admin.inbox.{module}
+ * Channel: private-admin.inbox.{module}.{tokenId}
  * Modul: 'surat_tugas' | 'kepegawaian' | 'bmn'
  *
  * Mengikuti prinsip ponytail:
@@ -25,13 +25,17 @@ export function useAdminInboxLive(
   onChanged: (data: AdminInboxEventData) => void
 ): void {
   const callbackRef = useRef(onChanged);
-  callbackRef.current = onChanged;
+  useEffect(() => {
+    callbackRef.current = onChanged;
+  }, [onChanged]);
 
   useEffect(() => {
+    const tokenId = getRealtimeTokenId();
+    if (!tokenId) return;
     const echo = getEcho();
     if (!echo) return;
 
-    const channelName = `admin.inbox.${module}`;
+    const channelName = `admin.inbox.${module}.${tokenId}`;
     const channel = echo.private(channelName);
 
     const handleEvent = (data: AdminInboxEventData) => {

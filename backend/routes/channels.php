@@ -3,10 +3,10 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('App.Models.User.{id}', function (User $user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('App.Models.User.{id}.{tokenId}', function (User $user, string $id, string $tokenId) {
+    return (string) $user->getKey() === $id && $user->canUseBroadcastToken($tokenId);
 });
 
-Broadcast::channel('admin.inbox.{module}', function (User $user, string $module) {
-    return in_array($module, ['surat_tugas', 'kepegawaian', 'bmn'], true) && $user->hasPermission("{$module}.view");
+Broadcast::channel('admin.inbox.{module}.{tokenId}', function (User $user, string $module, string $tokenId) {
+    return $user->canAccessAdminInbox($module) && $user->canUseBroadcastToken($tokenId);
 });

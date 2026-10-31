@@ -102,7 +102,7 @@ class EmployeeLeave extends Model
 
         return (int) EmployeeLeaveRequest::where('employee_id', $this->employee_id)
             ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
-            ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
+            ->annual()
             ->whereYear('tanggal_mulai', $this->year)
             ->sum('jumlah_hari');
     }

@@ -6,7 +6,8 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:security-cache": "node tests/cache-security.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class User extends Authenticatable
 {
@@ -23,6 +25,15 @@ class User extends Authenticatable
                 $user->email = ($base !== '' ? $base : Str::uuid()->toString()) . '@bksda.local';
             }
         });
+
+        static::updated(function (User $user) {
+            if ($user->wasChanged('email')) {
+                $previous = clone $user;
+                $previous->email = $user->getRawOriginal('email');
+                Password::deleteToken($previous);
+                Password::deleteToken($user);
+            }
+        });
     }
 
     /**
@@ -31,6 +42,8 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $attributes = ['is_active' => true];
+
     protected $fillable = [
         'name',
         'username',
@@ -90,6 +103,65 @@ class User extends Authenticatable
     public function dereportingBidang()
     {
         return $this->belongsTo(Bidang::class, 'dereporting_bidang_id');
+    }
+
+    /**
+     * @return list<string> Current persistent credentials that may receive private events.
+     */
+    public function broadcastTokenIds(): array
+    {
+        // A queued event or retained model may predate the owner's deactivation.
+        if (! static::query()->whereKey($this->getKey())->where('is_active', true)->exists()) {
+            return [];
+        }
+
+        $now = now();
+        $expiration = (int) config('sanctum.expiration');
+
+        return $this->tokens()
+            ->where(function ($query) use ($now) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', $now);
+            })
+            ->when($expiration, fn ($query) => $query->where('created_at', '>', $now->copy()->subMinutes($expiration)))
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+    }
+
+    public function canUseBroadcastToken(string $tokenId): bool
+    {
+        $bearer = request()->bearerToken();
+        if (! $bearer) {
+            return false;
+        }
+
+        // Verify the actual secret even when Sanctum selected a cookie session.
+        $token = PersonalAccessToken::findToken($bearer);
+
+        return $token !== null
+            && (string) $token->getKey() === $tokenId
+            && $token->tokenable_type === $this->getMorphClass()
+            && (string) $token->tokenable_id === (string) $this->getKey()
+            && in_array($tokenId, $this->broadcastTokenIds(), true);
+    }
+
+    public function canAccessAdminInbox(string $module): bool
+    {
+        if (! in_array($module, ['surat_tugas', 'kepegawaian', 'bmn'], true)) {
+            return false;
+        }
+
+        $user = static::query()->select(['id', 'role', 'access_modules', 'permissions', 'is_active'])->find($this->getKey());
+        if (! $user || ! $user->is_active || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            return false;
+        }
+
+        $modules = $user->access_modules ?? [];
+        $hasModule = $user->role === 'super_admin'
+            || in_array($module, $modules, true)
+            || ($module === 'surat_tugas' && in_array('kepegawaian', $modules, true));
+
+        return $hasModule && $user->hasPermission("{$module}.view");
     }
 
     /**

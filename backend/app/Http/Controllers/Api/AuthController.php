@@ -130,6 +130,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules ?? [],
+                'permissions' => $user->permissions,
                 'email_verified_at' => $user->email_verified_at?->toISOString(),
                 'email_cooldown_remaining' => $remainingCooldown,
             ],
@@ -175,17 +176,14 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        // Login keeps one bearer; revoke it even when Sanctum selected a cookie session.
+        $request->user()->tokens()->delete();
+
         // Logout dari guard session dan invalidate session cookie
         \Illuminate\Support\Facades\Auth::guard('web')->logout();
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-        }
-
-        // Hapus token yang sedang digunakan jika terautentikasi lewat token
-        $token = $request->user()?->currentAccessToken();
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
         }
 
         return response()->json([
@@ -202,6 +200,7 @@ class AuthController extends Controller
 
         $user->update([
             'password' => Hash::make($request->new_password),
+            'must_change_password' => false,
         ]);
 
         // Password change is a credential reset event; revoke every issued token.
@@ -235,18 +234,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 404);
         }
 
-        // Delete old photo
-        if ($employee->foto_profil && !str_starts_with($employee->foto_profil, 'http')) {
-            Storage::delete($employee->foto_profil);
-        }
-
-        // Store new photo
-        $slugName = \Illuminate\Support\Str::slug(($employee->nip ? $employee->nip . '-' : '') . ($employee->nama_lengkap ?: 'pegawai'));
-        $folder = 'employees/' . $slugName . '/foto-profil';
-        $ext = $request->file('foto')->extension();
-        $filename = $slugName . '_profil.' . $ext;
-        $path = $request->file('foto')->storeAs($folder, $filename);
-        $employee->update(['foto_profil' => $path]);
+        $path = $employee->replaceProfilePhoto($request->file('foto'));
 
         return response()->json([
             'message' => 'Foto profil berhasil diperbarui.',
@@ -288,7 +276,7 @@ class AuthController extends Controller
 
                 $user->email = $cleanEmail;
                 $user->email_verified_at = null;
-                $user->save();
+                $user->saveOrFail();
                 $emailChanged = true;
 
                 // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
@@ -349,15 +337,7 @@ class AuthController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $fullName = trim($employee->nama_lengkap ?? '');
-        $escapedName = addcslashes(mb_strtolower($fullName), '%_');
-        $assets = \App\Modules\Bmn\Models\Asset::where(function ($q) use ($employee, $fullName, $escapedName) {
-            $q->where('employee_id', $employee->id);
-            if (mb_strlen($fullName) >= 3) {
-                $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                  ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
-            }
-        })
+        $assets = \App\Modules\Bmn\Models\Asset::where('employee_id', $employee->id)
         ->select([
             'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
             'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
@@ -416,7 +396,7 @@ class AuthController extends Controller
         $newEmail = strtolower(trim((string) $request->email));
         $user->email = $newEmail;
         $user->email_verified_at = null;
-        $user->save();
+        $user->saveOrFail();
 
         // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
         Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
@@ -750,6 +730,15 @@ class AuthController extends Controller
         }
 
         $user = User::findOrFail($data['user_id']);
+        if (! $user->is_active) {
+            Cache::forget($challengeKey);
+
+            return response()->json([
+                'reason' => 'account_inactive',
+                'message' => 'Akun Anda sudah dinonaktifkan.',
+            ], 403);
+        }
+
         $rawCode = trim(str_replace([' ', '-'], '', (string) $request->code));
         $valid = false;
 
@@ -806,6 +795,12 @@ class AuthController extends Controller
     public function enable2Fa(Request $request): JsonResponse
     {
         $user = $request->user();
+        if ($user->two_factor_confirmed_at !== null) {
+            return response()->json([
+                'message' => '2FA sudah aktif. Nonaktifkan dengan kata sandi saat ini sebelum mengganti authenticator.',
+            ], 409);
+        }
+
         $secret = \App\Support\Security\Totp::generateSecret(16);
         $user->two_factor_secret = $secret;
         $user->two_factor_confirmed_at = null;
@@ -826,6 +821,12 @@ class AuthController extends Controller
     {
         $request->validate(['code' => ['required', 'string']]);
         $user = $request->user();
+
+        if ($user->two_factor_confirmed_at !== null) {
+            return response()->json([
+                'message' => '2FA sudah dikonfirmasi. Kode pemulihan tidak dapat dibuat ulang melalui konfirmasi setup.',
+            ], 409);
+        }
 
         if (! $user->two_factor_secret) {
             return response()->json(['message' => 'Silakan generate kunci 2FA terlebih dahulu.'], 400);

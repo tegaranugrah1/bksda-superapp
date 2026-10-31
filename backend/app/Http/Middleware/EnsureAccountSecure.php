@@ -20,6 +20,21 @@ class EnsureAccountSecure
             return $next($request);
         }
 
+        // Deactivation applies to every credential path, including recovery allowlisted routes.
+        if (! $user->is_active) {
+            $user->tokens()->delete();
+            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+
+            return response()->json([
+                'reason' => 'account_inactive',
+                'message' => 'Akun Anda sudah dinonaktifkan.',
+            ], 403);
+        }
+
         // Allowlist routes yang boleh diakses saat terkunci
         if ($this->isAllowedRoute($request)) {
             return $next($request);

@@ -131,7 +131,7 @@ class PortalNotificationService
         ?string $referenceId = null,
         ?array $data = null
     ): int {
-        // Broadcast to private-admin.inbox.{module} FIRST so admin live UI reacts immediately
+        // Broadcast to current token-scoped admin channels before creating personal notices.
         try {
             event(new \App\Events\AdminInboxChanged($module, 'inbox_updated', $referenceId));
         } catch (\Throwable $e) {
@@ -141,7 +141,7 @@ class PortalNotificationService
         $count = 0;
         $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
         foreach ($admins as $admin) {
-            if ($admin->hasPermission("{$module}.view")) {
+            if ($admin->canAccessAdminInbox($module)) {
                 if ($this->notifyUser($admin->id, $title, $message, $type, $actionTab, $referenceId, $data)) {
                     $count++;
                 }

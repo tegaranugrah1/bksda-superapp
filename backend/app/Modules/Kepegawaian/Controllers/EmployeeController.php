@@ -162,19 +162,11 @@ class EmployeeController extends Controller
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $slug = Str::slug($validated['nama_lengkap']) ?: 'emp-' . Str::lower(Str::random(6));
-            $folder = 'employees/' . $slug . '/foto-profil';
-            $filename = $slug . '_profil.' . ($file->extension() ?: 'jpg');
-            $path = $file->storeAs($folder, $filename);
-            if ($path) {
-                $validated['foto_profil'] = $path;
-            }
-        }
-
-        $employee = DB::transaction(function () use ($validated) {
+        $employee = DB::transaction(function () use ($validated, $request) {
             $employee = Employee::create($validated);
+            if ($request->hasFile('foto')) {
+                $employee->replaceProfilePhoto($request->file('foto'));
+            }
 
             // Auto-create inactive user account with random secure password if it doesn't exist yet
             $nip = trim((string) $employee->nip);
@@ -235,17 +227,7 @@ class EmployeeController extends Controller
 
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
-            // Hapus foto lama dari server agar tidak jadi file sampah (Orphan file)
-            if ($employee->foto_profil) {
-                Storage::delete($employee->foto_profil);
-            }
-
-            // Simpan foto baru
-            $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
-            $ext = $request->file('foto')->extension();
-            $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
-            $path = $request->file('foto')->storeAs($folder, $filename);
-            $validated['foto_profil'] = $path;
+            $employee->replaceProfilePhoto($request->file('foto'));
         }
 
         $employee->update($validated);
@@ -286,16 +268,7 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        // Delete old photo
-        if ($employee->foto_profil) {
-            Storage::delete($employee->foto_profil);
-        }
-
-        $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
-        $ext = $request->file('foto')->extension();
-        $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
-        $path = $request->file('foto')->storeAs($folder, $filename);
-        $employee->update(['foto_profil' => $path]);
+        $path = $employee->replaceProfilePhoto($request->file('foto'));
 
         return response()->json([
             'message' => 'Foto pegawai berhasil diperbarui.',

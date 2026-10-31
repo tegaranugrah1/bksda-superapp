@@ -90,7 +90,8 @@ class AssignmentLetterController extends Controller
         $surat = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,satuan_kerja'])
             ->findOrFail($cleanId);
 
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = $user->role === 'super_admin'
+            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
         $isAssignedEmployee = $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
         $isCreator = (int) $surat->created_by === (int) $user->id;
 
@@ -120,7 +121,8 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan'], 404);
         }
 
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = $user->role === 'super_admin'
+            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
 
         $query = AssignmentLetter::with(['employees']);
         if (! $isAdmin) {

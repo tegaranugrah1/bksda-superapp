@@ -9,10 +9,11 @@ import {
   Boxes, FileText, LayoutGrid, Mail, Bell, Banknote,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, getApiSessionSnapshot } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import dynamic from "next/dynamic";
@@ -269,8 +270,10 @@ function PortalContent() {
   const employeeId = data?.employee?.id;
 
   const fetchDashboard = useCallback(async () => {
+    const session = getApiSessionSnapshot();
     try {
       const response = await api.get("/me/dashboard");
+      if (session !== getApiSessionSnapshot()) return;
       const resData = response.data?.data || response.data;
       if (resData) {
         setData(resData);
@@ -282,6 +285,7 @@ function PortalContent() {
         }
       }
     } catch (error: unknown) {
+      if (session !== getApiSessionSnapshot()) return;
       const err = error as { response?: { status?: number } };
       if (err.response?.status === 401) { router.push("/login"); }
       else { setFetchError("Gagal memuat data dashboard."); }
@@ -852,9 +856,10 @@ function PortalContent() {
 }
 
 export default function PersonalDashboard() {
+  const { user } = useAuth();
   return (
     <RouteGuard>
-      <PortalContent />
+      <PortalContent key={user?.username || user?.id || "anonymous"} />
     </RouteGuard>
   );
 }

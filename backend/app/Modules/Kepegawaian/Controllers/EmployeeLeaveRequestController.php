@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
+use App\Modules\Kepegawaian\Models\LeaveType;
 use App\Modules\Surat\Models\SuratKeluar;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -104,19 +105,22 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
-        $leaveReq = EmployeeLeaveRequest::where('employee_id', $employee->id)->findOrFail($id);
+        return DB::transaction(function () use ($employee, $id) {
+            Employee::lockForLeaveUpdate($employee->id);
+            $leaveReq = EmployeeLeaveRequest::where('employee_id', $employee->id)->lockForUpdate()->findOrFail($id);
 
-        if (! in_array(strtoupper($leaveReq->status), ['PENGAJUAN', 'PENDING'], true)) {
+            if (! in_array(strtoupper($leaveReq->status), ['PENGAJUAN', 'PENDING'], true)) {
+                return response()->json([
+                    'message' => 'Hanya permohonan cuti yang masih berstatus PENGAJUAN yang dapat dibatalkan.',
+                ], 422);
+            }
+
+            $leaveReq->delete();
+
             return response()->json([
-                'message' => 'Hanya permohonan cuti yang masih berstatus PENGAJUAN yang dapat dibatalkan.',
-            ], 422);
-        }
-
-        $leaveReq->delete();
-
-        return response()->json([
-            'message' => 'Permohonan cuti berhasil dibatalkan.',
-        ]);
+                'message' => 'Permohonan cuti berhasil dibatalkan.',
+            ]);
+        });
     }
 
     /**
@@ -140,117 +144,112 @@ class EmployeeLeaveRequestController extends Controller
             'telepon' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
         ]);
 
-        $leaveType = \App\Modules\Kepegawaian\Models\LeaveType::where('is_active', true)
-            ->where(function ($q) use ($validated) {
-                $q->where('nama', $validated['jenis_cuti'])
-                  ->orWhere('kode', $validated['jenis_cuti']);
-            })
-            ->first();
-
-        $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
-        $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
-
-        // Calculate working days or calendar days based on LeaveType configuration
-        $isHariKerja = $leaveType 
-            ? ($leaveType->hitung_hari === 'hari_kerja') 
-            : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
-
-        if ($isHariKerja) {
-            $jumlahHari = 0;
-            $curr = $start->copy();
-            while ($curr->lte($end)) {
-                if (!$curr->isWeekend()) {
-                    $jumlahHari++;
-                }
-                $curr->addDay();
-            }
-        } else {
-            $jumlahHari = $start->diffInDays($end) + 1;
-        }
-
-        if ($employee->is_pppk && str_contains(strtolower($validated['jenis_cuti']), 'alasan penting')) {
-            return response()->json([
-                'message' => 'Pegawai PPPK tidak berhak mengajukan Cuti Karena Alasan Penting.',
-            ], 422);
-        }
-
-        if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
-            return response()->json([
-                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
-            ], 422);
-        }
-
-        if ($start->year !== $end->year) {
-            return response()->json([
-                'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun anggaran sesuai PerBKN 24/2017.',
-            ], 422);
-        }
-
-        if ($jumlahHari > 365) {
-            return response()->json([
-                'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
-            ], 422);
-        }
-
-        if ($start->year < 2000 || $start->year > 2100) {
-            return response()->json([
-                'message' => 'Tahun pengajuan cuti tidak valid.',
-            ], 422);
-        }
-
-        $year = $start->year;
-
-        // Fetch current leave balance for snapshot
-        $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->first();
-
-        $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
-        $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
-        $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
-
-        $totalQuota = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
-
-        $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
-            ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
-            ->whereYear('tanggal_mulai', $year)
-            ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
-            ->sum('jumlah_hari');
-
-        $availableQuota = max(0, $totalQuota - $pendingDays);
-        $isTahunan = $leaveType ? $leaveType->potong_kuota_tahunan : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
-        if ($isTahunan && $jumlahHari > $availableQuota) {
-            $msg = $pendingDays > 0
-                ? "Jumlah hari cuti ({$jumlahHari} hari) melebihi sisa hak cuti tahunan yang belum diajukan ({$availableQuota} hari tersisa dari total {$totalQuota} hari, {$pendingDays} hari sedang dalam proses pengajuan)."
-                : "Jumlah hari cuti ({$jumlahHari} hari) melebihi total sisa cuti tahunan yang tersedia ({$totalQuota} hari).";
-            return response()->json([
-                'message' => $msg,
-            ], 422);
-        }
-
-        // Prevent overlapping leave requests
-        $overlap = EmployeeLeaveRequest::where('employee_id', $employee->id)
-            ->whereIn('status', ['PENGAJUAN', 'DISETUJUI', 'PENDING', 'APPROVED', 'pengajuan', 'disetujui', 'pending', 'approved'])
-            ->where(function ($q) use ($validated) {
-                $q->whereBetween('tanggal_mulai', [$validated['tanggal_mulai'], $validated['tanggal_selesai']])
-                    ->orWhereBetween('tanggal_selesai', [$validated['tanggal_mulai'], $validated['tanggal_selesai']])
-                    ->orWhere(function ($sub) use ($validated) {
-                        $sub->where('tanggal_mulai', '<=', $validated['tanggal_mulai'])
-                            ->where('tanggal_selesai', '>=', $validated['tanggal_selesai']);
-                    });
-            })->exists();
-
-        if ($overlap) {
-            return response()->json([
-                'message' => 'Anda sudah memiliki permohonan cuti aktif pada rentang tanggal tersebut.',
-            ], 422);
-        }
-
-        $atasan = $this->getAtasanLangsung($employee->satuan_kerja ?? '');
-        $kepalaBalai = $this->getKepalaBalai();
-
         DB::beginTransaction();
         try {
+            $employee = Employee::lockForLeaveUpdate($employee->id);
+            $leaveType = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
+            $validated['jenis_cuti'] = $leaveType->nama;
+
+            $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+            if ($start->year !== $end->year) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun anggaran sesuai PerBKN 24/2017.',
+                ], 422);
+            }
+
+            if ($start->year < 2000 || $start->year > 2100) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Tahun pengajuan cuti tidak valid.',
+                ], 422);
+            }
+
+            // Calculate working days or calendar days based on LeaveType configuration
+            $isHariKerja = $leaveType->hitung_hari === 'hari_kerja';
+
+            if ($isHariKerja) {
+                $jumlahHari = 0;
+                $curr = $start->copy();
+                while ($curr->lte($end)) {
+                    if (!$curr->isWeekend()) {
+                        $jumlahHari++;
+                    }
+                    $curr->addDay();
+                }
+            } else {
+                $jumlahHari = $start->diffInDays($end) + 1;
+            }
+
+            if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
+                ], 422);
+            }
+
+            if ($jumlahHari > 365) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
+                ], 422);
+            }
+
+            $year = $start->year;
+
+            // Fetch current leave balance for snapshot
+            $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
+                ->where('year', $year)
+                ->first();
+
+            $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
+            $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
+            $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
+
+            $totalQuota = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+
+            $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
+                ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
+                ->whereYear('tanggal_mulai', $year)
+                ->annual()
+                ->sum('jumlah_hari');
+
+            $availableQuota = max(0, $totalQuota - $pendingDays);
+            $isTahunan = $leaveType->potong_kuota_tahunan;
+            if ($isTahunan && $jumlahHari > $availableQuota) {
+                $msg = $pendingDays > 0
+                    ? "Jumlah hari cuti ({$jumlahHari} hari) melebihi sisa hak cuti tahunan yang belum diajukan ({$availableQuota} hari tersisa dari total {$totalQuota} hari, {$pendingDays} hari sedang dalam proses pengajuan)."
+                    : "Jumlah hari cuti ({$jumlahHari} hari) melebihi total sisa cuti tahunan yang tersedia ({$totalQuota} hari).";
+                DB::rollBack();
+                return response()->json([
+                    'message' => $msg,
+                ], 422);
+            }
+
+            // Prevent overlapping leave requests
+            $overlap = EmployeeLeaveRequest::where('employee_id', $employee->id)
+                ->whereIn('status', ['PENGAJUAN', 'DISETUJUI', 'PENDING', 'APPROVED', 'pengajuan', 'disetujui', 'pending', 'approved'])
+                ->where(function ($q) use ($validated) {
+                    $q->whereBetween('tanggal_mulai', [$validated['tanggal_mulai'], $validated['tanggal_selesai']])
+                        ->orWhereBetween('tanggal_selesai', [$validated['tanggal_mulai'], $validated['tanggal_selesai']])
+                        ->orWhere(function ($sub) use ($validated) {
+                            $sub->where('tanggal_mulai', '<=', $validated['tanggal_mulai'])
+                                ->where('tanggal_selesai', '>=', $validated['tanggal_selesai']);
+                        });
+                })->exists();
+
+            if ($overlap) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Anda sudah memiliki permohonan cuti aktif pada rentang tanggal tersebut.',
+                ], 422);
+            }
+
+            $atasan = $this->getAtasanLangsung($employee->satuan_kerja ?? '');
+            $kepalaBalai = $this->getKepalaBalai();
+
             $leaveReq = EmployeeLeaveRequest::create([
                 'employee_id' => $employee->id,
                 'nomor_pengajuan' => null, // Saat pengajuan belum ada nomornya dahulu, nanti diisi oleh admin kepegawaian
@@ -293,6 +292,9 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => 'Pengajuan Cuti berhasil disimpan!',
                 'data' => $leaveReq->load('employee'),
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -398,12 +400,14 @@ class EmployeeLeaveRequestController extends Controller
             'DITOLAK' => 'DITOLAK',
             'REJECTED' => 'DITOLAK',
         ];
-        $oldStatus = strtoupper($leaveReq->status);
         $newStatus = $statusMap[strtoupper($validated['status'])] ?? strtoupper($validated['status']);
 
         DB::beginTransaction();
         try {
-            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
+            $oldStatus = strtoupper($leaveReq->status);
+            $isTahunan = $leaveReq->isAnnual();
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
             $isNewApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
 
@@ -490,6 +494,9 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => 'Status pengajuan cuti berhasil diperbarui',
                 'data' => $leaveReq->fresh('employee'),
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -516,9 +523,11 @@ class EmployeeLeaveRequestController extends Controller
 
         DB::beginTransaction();
         try {
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
             $oldStatus = strtoupper($leaveReq->status);
             $newStatus = 'DISETUJUI';
-            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            $isTahunan = $leaveReq->isAnnual();
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
 
             if ($isTahunan && !$isOldApproved) {
@@ -634,6 +643,9 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => 'Permohonan cuti berhasil disetujui.',
                 'data' => $leaveReq->fresh('employee'),
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -660,7 +672,10 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['message' => 'Pilih setidaknya satu berkas scan untuk diunggah.'], 422);
         }
 
+        DB::beginTransaction();
         try {
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
             $updateData = [];
             if ($request->hasFile('file_scan_formulir')) {
                 $fileFormulir = $request->file('file_scan_formulir');
@@ -691,11 +706,17 @@ class EmployeeLeaveRequestController extends Controller
 
             $leaveReq->update($updateData);
 
+            DB::commit();
+
             return response()->json([
                 'message' => 'Berkas scan surat cuti berhasil diunggah.',
                 'data' => $leaveReq->fresh('employee'),
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'error' => 'Gagal mengunggah berkas scan',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat mengunggah berkas.',
@@ -887,48 +908,49 @@ class EmployeeLeaveRequestController extends Controller
         $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
         $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
 
-        $leaveType = \App\Modules\Kepegawaian\Models\LeaveType::where('is_active', true)
-            ->where(function ($q) use ($validated) {
-                $q->where('nama', $validated['jenis_cuti'])
-                  ->orWhere('kode', $validated['jenis_cuti']);
-            })
-            ->first();
-
-        $isHariKerja = $leaveType
-            ? ($leaveType->hitung_hari === 'hari_kerja')
-            : str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
-
-        if ($isHariKerja) {
-            $newJumlahHari = 0;
-            $curr = $start->copy();
-            while ($curr->lte($end)) {
-                if (! $curr->isWeekend()) {
-                    $newJumlahHari++;
-                }
-                $curr->addDay();
-            }
-            $newJumlahHari = max(1, $newJumlahHari);
-        } else {
-            $newJumlahHari = $start->diffInDays($end) + 1;
-        }
-
-        if ($start->year !== $end->year) {
-            return response()->json([
-                'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
-            ], 422);
-        }
-
-        if ($newJumlahHari > 365) {
-            return response()->json([
-                'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
-            ], 422);
-        }
-
         DB::beginTransaction();
         try {
+            $employee = Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
+            $leaveType = LeaveType::forEmployee(
+                $validated['jenis_cuti'],
+                $employee
+            );
+            $validated['jenis_cuti'] = $leaveType->nama;
+
+            if ($start->year !== $end->year) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
+                ], 422);
+            }
+
+            $isHariKerja = $leaveType->hitung_hari === 'hari_kerja';
+
+            if ($isHariKerja) {
+                $newJumlahHari = 0;
+                $curr = $start->copy();
+                while ($curr->lte($end)) {
+                    if (! $curr->isWeekend()) {
+                        $newJumlahHari++;
+                    }
+                    $curr->addDay();
+                }
+                $newJumlahHari = max(1, $newJumlahHari);
+            } else {
+                $newJumlahHari = $start->diffInDays($end) + 1;
+            }
+
+            if ($newJumlahHari > 365) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
+                ], 422);
+            }
+
             $oldJumlahHari = $leaveReq->jumlah_hari;
-            $oldIsTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
-            $newIsTahunan = str_contains(strtolower($validated['jenis_cuti']), 'tahunan');
+            $oldIsTahunan = $leaveReq->isAnnual();
+            $newIsTahunan = $leaveType->potong_kuota_tahunan;
 
             if ($oldIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $oldYear = Carbon::parse($leaveReq->tanggal_mulai)->year;
@@ -985,6 +1007,9 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => 'Pengajuan cuti berhasil diperbarui',
                 'data' => $leaveReq->fresh('employee'),
             ]);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -1003,7 +1028,9 @@ class EmployeeLeaveRequestController extends Controller
 
         DB::beginTransaction();
         try {
-            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
+            $isTahunan = $leaveReq->isAnnual();
 
             if ($isTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
@@ -1019,6 +1046,9 @@ class EmployeeLeaveRequestController extends Controller
             DB::commit();
 
             return response()->json(['message' => 'Pengajuan cuti berhasil dihapus']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -1155,7 +1185,7 @@ class EmployeeLeaveRequestController extends Controller
             ->first();
 
         $currentAvailable = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
-        $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+        $isTahunan = $leaveReq->isAnnual();
         $isOldApproved = in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true);
 
         // Jika belum disetujui dan cuti tahunan, sisa cuti setelah disetujui berkurang jumlah_hari
@@ -1200,9 +1230,11 @@ class EmployeeLeaveRequestController extends Controller
 
         DB::beginTransaction();
         try {
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::with('employee')->lockForUpdate()->findOrFail($id);
             $oldStatus = strtoupper($leaveReq->status);
             $newStatus = 'DISETUJUI';
-            $isTahunan = str_contains(strtolower($leaveReq->jenis_cuti), 'tahunan');
+            $isTahunan = $leaveReq->isAnnual();
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
 
             $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
@@ -1348,6 +1380,9 @@ class EmployeeLeaveRequestController extends Controller
                 'data' => $leaveReq->fresh(['employee', 'suratKeluar']),
                 'surat_keluar_id' => $suratKeluar->id,
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
