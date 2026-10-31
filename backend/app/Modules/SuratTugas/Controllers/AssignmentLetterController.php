@@ -522,10 +522,7 @@ class AssignmentLetterController extends Controller
             }
 
             if ($request->hasFile('file_surat')) {
-                $folderName = $surat->nomor_surat
-                    ? Str::slug($surat->nomor_surat)
-                    : date('Y-m').'-'.$surat->id.'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
-                $folder = 'surat-tugas/'.$folderName;
+                $folder = $this->resolveSuratStorageFolder($surat);
                 $ext = $request->file('file_surat')->extension();
                 $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
@@ -660,12 +657,14 @@ class AssignmentLetterController extends Controller
         $targetTanggalMulai = $validated['tanggal_mulai'] ?? ($surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
         $targetTanggalSelesai = $validated['tanggal_selesai'] ?? ($surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
 
+        $canViewDetails = $this->canViewConflictDetails($user);
+
         $conflictCheck = $this->conflictService->checkConflicts(
             $employees,
             $targetTanggalMulai,
             $targetTanggalSelesai,
             $cleanId,
-            true
+            $canViewDetails
         );
 
         if ($conflictCheck['has_conflict']) {
@@ -779,10 +778,7 @@ class AssignmentLetterController extends Controller
                 if ($surat->file_surat_path) {
                     Storage::delete($surat->file_surat_path);
                 }
-                $folderName = $surat->nomor_surat
-                    ? Str::slug($surat->nomor_surat)
-                    : date('Y-m').'-'.$surat->id.'-'.Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
-                $folder = 'surat-tugas/'.$folderName;
+                $folder = $this->resolveSuratStorageFolder($surat);
                 $ext = $request->file('file_surat')->extension();
                 $filename = 'dasar-surat.'.$ext;
                 $path = $request->file('file_surat')->storeAs($folder, $filename);
@@ -1421,11 +1417,26 @@ class AssignmentLetterController extends Controller
 
     private function canViewConflictDetails(?\App\Models\User $user): bool
     {
-        return $user && (
-            $user->role === 'super_admin' ||
-            ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])) ||
-            $user->hasPermission('surat_tugas.approve')
-        );
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->role === 'super_admin') {
+            return true;
+        }
+
+        $hasModule = ! empty(array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
+        if (! $hasModule) {
+            return false;
+        }
+
+        return in_array($user->role, ['admin'], true) || $user->hasPermission('surat_tugas.approve');
+    }
+
+    private function resolveSuratStorageFolder(AssignmentLetter $surat): string
+    {
+        $slugPart = $surat->nomor_surat ? Str::slug($surat->nomor_surat) : Str::slug(substr($surat->maksud_tujuan ?: 'surat-tugas', 0, 40));
+        return 'surat-tugas/' . $surat->id . ($slugPart ? '-' . $slugPart : '');
     }
 
     public function checkConflicts(Request $request): JsonResponse

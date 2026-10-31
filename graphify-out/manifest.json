@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1793421833.814911,
-    "ast_hash": "f6c56df0dd24170fb84c68540020f934",
+    "mtime": 1793432453.338281,
+    "ast_hash": "4164ce26b84919ae4d1859721f37ddb9",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793421928.441589,
-    "ast_hash": "77b1f17ec0d36297f6e6574b4a469e9f",
+    "mtime": 1793432623.5815966,
+    "ast_hash": "a082b60c326fa41ea325860a7b1afdfe",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -7410,8 +7410,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/SuratTugasSecurityPentestTest.php": {
-    "mtime": 1793421606.4353404,
-    "ast_hash": "cc9f9c35ee3c5c8db256e1a7c47c106c",
+    "mtime": 1793432291.8028364,
+    "ast_hash": "9ccb9ab404ab5268b4cc93885ccff353",
     "semantic_hash": ""
   },
   "backend/tests/Security/leave-concurrency.php": {
@@ -7450,13 +7450,18 @@
     "semantic_hash": ""
   },
   "docs/security/surat-tugas-security-pentest-2026-10-31.md": {
-    "mtime": 1793421904.2200513,
-    "ast_hash": "81f448dc9e9575d9b1ffe0c922cad729",
+    "mtime": 1793432598.212591,
+    "ast_hash": "09396fcdc9e2064201cf89464682fbbc",
     "semantic_hash": ""
   },
   "docs/security/surat-tugas-security-pentest-plan.md": {
     "mtime": 1793420782.2877874,
     "ast_hash": "dd7a6d45b7790a2687180ab8774c72c9",
+    "semantic_hash": ""
+  },
+  "docs/security/surat-tugas-security-review-handoff-2026-10-31.md": {
+    "mtime": 1793432544.185638,
+    "ast_hash": "c612699de19a7c9134140773fe5b5fb5",
     "semantic_hash": ""
   }
 }
