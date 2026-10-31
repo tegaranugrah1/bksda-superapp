@@ -345,9 +345,15 @@ export function SuratTugasForm({
   }, []);
 
   // Status & Edit Builder Specific States
-  const { canWrite } = useRole();
+  const { canWrite, hasPermission } = useRole();
+  const canApprove = hasPermission("surat_tugas.approve");
   const [isInitializing, setIsInitializing] = useState(mode === "edit");
   const [suratStatus, setSuratStatus] = useState<string>("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const saveInFlightRef = useRef(false);
+  const isDraftSave = mode === "create" || suratStatus.toLowerCase() === "draft";
+  const saveLabel = isDraftSave ? "Simpan Draft" : "Simpan Perubahan";
 
   const isPublished =
     !canWrite ||
@@ -2097,7 +2103,7 @@ export function SuratTugasForm({
 
     const fullNomorSurat =
       nomorNumberingType === "naskah_auto"
-        ? (customNomorNaskah.trim() || "${nomor_naskah}")
+        ? (customNomorNaskah.trim() || null)
         : (stNumber.trim() && klasifikasi.trim()
             ? buildNomorSurat(stNumber.trim(), klasifikasi.trim())
             : null);
@@ -2158,62 +2164,80 @@ export function SuratTugasForm({
     };
   };
 
+  const reportSaveError = (error: unknown, fallback: string) => {
+    let message = fallback;
+    if (isAxiosError<{
+      message?: string;
+      errors?: Record<string, string[]>;
+      conflicts?: Array<{ message?: string }>;
+    }>(error)) {
+      const data = error.response?.data;
+      const fields = Object.entries(data?.errors || {})
+        .map(([field, messages]) => `${field}: ${messages.join(" ")}`)
+        .join("\n");
+      const conflicts = data?.conflicts?.map((conflict) => conflict.message).filter(Boolean).join("\n");
+      message = fields
+        ? `Perbaiki isian berikut, lalu simpan atau ajukan kembali:\n${fields}`
+        : conflicts ? `Bentrok Jadwal Penugasan:\n${conflicts}` : data?.message || fallback;
+    }
+    setSaveError(message);
+    toast.error(message);
+  };
+
   // Actions
   const handleSaveDraft = async () => {
+    if (isPublished || saveInFlightRef.current) return;
     if (hasConflict) {
       return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
     }
-    const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
-    if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
-    if (!getTempatTujuanForPayload()) {
-      return toast.error(
-        isPlhTemplate ? "Wilayah/tujuan PLH harus diisi." : "Tujuan kegiatan harus diisi."
-      );
+    if (!isDraftSave) {
+      const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
+      if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
+      if (!effectiveMulai || !effectiveSelesai) return toast.error("Tanggal kegiatan harus diisi.");
     }
-    if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
     const confirmed = await confirm({
-      title: "Simpan sebagai draft?",
-      description:
-        "Surat Tugas akan disimpan ke Inbox sebagai draft dan masih bisa diedit sebelum diterbitkan.",
-      confirmText: "Simpan Draft",
+      title: isDraftSave ? "Simpan sebagai draft?" : "Simpan perubahan?",
+      description: isDraftSave
+        ? "Surat Tugas akan disimpan ke Inbox sebagai draft dan masih bisa diedit sebelum diterbitkan."
+        : "Perubahan surat akan disimpan tanpa mengubah status saat ini.",
+      confirmText: saveLabel,
       cancelText: "Batal",
       variant: "default",
     });
-    if (!confirmed) return;
+    if (!confirmed || saveInFlightRef.current) return;
 
+    saveInFlightRef.current = true;
+    setIsSaving(true);
+    setSaveError("");
     try {
-      const payload = buildPayload();
+      const payload = buildPayload(isDraftSave ? "draft" : undefined);
       if (mode === "create") {
         await api.post("/surat-tugas", payload);
         toast.success("Draft Surat Tugas berhasil disimpan.");
         router.push("/kepegawaian/surat-tugas/inbox");
       } else if (mode === "edit" && letterId) {
         await api.put(`/surat-tugas/${letterId}`, payload);
-        toast.success("Draft berhasil diperbarui!");
+        toast.success(isDraftSave ? "Draft berhasil diperbarui!" : "Perubahan berhasil disimpan. Status surat tetap.");
         await queryClient.invalidateQueries({ queryKey: ["surat-tugas-detail", letterId] });
         await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       }
     } catch (err: unknown) {
-      console.error(err);
-      let errorMessage = "Gagal menyimpan draft.";
-      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
-        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
-          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
-          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
-        } else {
-          errorMessage = err.response?.data?.message || errorMessage;
-        }
-      }
-      toast.error(errorMessage);
+      reportSaveError(err, "Gagal menyimpan Surat Tugas. Coba lagi.");
+    } finally {
+      saveInFlightRef.current = false;
+      setIsSaving(false);
     }
   };
 
   const handleApprove = async () => {
+    if (!canApprove || isPublished || saveInFlightRef.current) return;
     if (hasConflict) {
       return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
     }
-    if (nomorNumberingType === "st_pattern" && !stNumber) return toast.error("Nomor surat harus diisi.");
+    if (nomorNumberingType === "st_pattern" && (!stNumber.trim() || !klasifikasi.trim())) return toast.error("Nomor surat dan klasifikasi harus diisi.");
+    if (nomorNumberingType === "naskah_auto" && !customNomorNaskah.trim()) return toast.error("Isi nomor naskah yang sebenarnya sebelum diterbitkan.");
+    if (!effectiveMulai || !effectiveSelesai) return toast.error("Tanggal kegiatan harus diisi.");
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
     if (!getTempatTujuanForPayload()) {
@@ -2230,8 +2254,11 @@ export function SuratTugasForm({
       cancelText: "Batal",
       variant: "warning",
     });
-    if (!confirmed) return;
+    if (!confirmed || saveInFlightRef.current) return;
 
+    saveInFlightRef.current = true;
+    setIsSaving(true);
+    setSaveError("");
     try {
       const payload = buildPayload("approved");
       if (mode === "create") {
@@ -2246,21 +2273,15 @@ export function SuratTugasForm({
         router.push("/kepegawaian/surat-tugas/inbox");
       }
     } catch (err: unknown) {
-      console.error(err);
-      let errorMessage = "Gagal menerbitkan Surat Tugas.";
-      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
-        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
-          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
-          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
-        } else {
-          errorMessage = err.response?.data?.message || errorMessage;
-        }
-      }
-      toast.error(errorMessage);
+      reportSaveError(err, "Gagal menerbitkan Surat Tugas. Periksa isian dan coba lagi.");
+    } finally {
+      saveInFlightRef.current = false;
+      setIsSaving(false);
     }
   };
 
   const handleSubmitForApproval = async () => {
+    if (!canApprove || isPublished || saveInFlightRef.current) return;
     if (hasConflict) {
       return toast.error("Terdapat bentrok jadwal tugas atau cuti aktif untuk personel yang dipilih. Harap sesuaikan tanggal atau personel.");
     }
@@ -2270,8 +2291,11 @@ export function SuratTugasForm({
     }
     const realEmployees = selectedEmployees.filter((e) => !isBuruhEmployee(e));
     if (realEmployees.length === 0) return toast.error("Minimal harus ada satu pegawai yang ditugaskan.");
-    if (!tanggalMulai || !tanggalSelesai) return toast.error("Tanggal kegiatan harus diisi.");
+    if (!effectiveMulai || !effectiveSelesai) return toast.error("Tanggal kegiatan harus diisi.");
 
+    saveInFlightRef.current = true;
+    setIsSaving(true);
+    setSaveError("");
     try {
       const payload = buildPayload("pending");
       await api.put(`/surat-tugas/${letterId}/approve`, payload);
@@ -2280,42 +2304,51 @@ export function SuratTugasForm({
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
       router.push("/kepegawaian/surat-tugas/inbox");
     } catch (err: unknown) {
-      console.error(err);
-      let errorMessage = "Gagal mengajukan ST.";
-      if (isAxiosError<{ message?: string; conflicts?: Array<{ message?: string }> }>(err)) {
-        if (err.response?.data?.conflicts && err.response.data.conflicts.length > 0) {
-          const conflictMsg = err.response.data.conflicts.map((c) => c.message).filter(Boolean).join("\n");
-          errorMessage = `Bentrok Jadwal Penugasan:\n${conflictMsg}`;
-        } else {
-          errorMessage = err.response?.data?.message || errorMessage;
-        }
-      }
-      toast.error(errorMessage);
+      reportSaveError(err, "Gagal mengajukan ST. Periksa isian dan coba lagi.");
+    } finally {
+      saveInFlightRef.current = false;
+      setIsSaving(false);
     }
   };
 
   const handleUpdateNomorSurat = async () => {
-    if (!letterId) return;
+    if (!letterId || !canWrite || !canApprove || saveInFlightRef.current) return;
+    if (nomorNumberingType === "naskah_auto" && !customNomorNaskah.trim()) {
+      return toast.error("Isi nomor naskah yang sebenarnya sebelum menyimpan nomor surat.");
+    }
     if (nomorNumberingType === "st_pattern") {
-      if (nomorNumberingType === "st_pattern" && !stNumber) return toast.error("Nomor surat harus diisi.");
-      if (!klasifikasi) return toast.error("Klasifikasi harus diisi.");
+      if (!stNumber.trim()) return toast.error("Nomor surat harus diisi.");
+      if (!klasifikasi.trim()) return toast.error("Klasifikasi harus diisi.");
     }
 
+    saveInFlightRef.current = true;
+    setIsSaving(true);
+    setSaveError("");
     try {
       const fullNomorSurat =
         nomorNumberingType === "naskah_auto"
-          ? (customNomorNaskah.trim() || "${nomor_naskah}")
-          : buildNomorSurat(stNumber, klasifikasi);
-      await api.put(`/surat-tugas/${letterId}/nomor`, { nomor_surat: fullNomorSurat });
+          ? customNomorNaskah.trim()
+          : buildNomorSurat(stNumber.trim(), klasifikasi.trim());
+      // Omit status and document content: this is a partial number correction, not reapproval.
+      await api.put(`/surat-tugas/${letterId}/approve`, {
+        nomor_surat: fullNomorSurat,
+        kode_surat: nomorNumberingType === "naskah_auto" ? null : `K.18/TU/${klasifikasi.trim()}/B`,
+        template_snapshot: {
+          configuration: {
+            nomor_numbering_type: nomorNumberingType,
+            custom_nomor_naskah: nomorNumberingType === "naskah_auto" ? customNomorNaskah.trim() : "",
+          },
+        },
+      });
       toast.success("Nomor surat berhasil diperbarui!");
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-detail", letterId] });
       await queryClient.invalidateQueries({ queryKey: ["surat-tugas-inbox"] });
+      await queryClient.invalidateQueries({ queryKey: ["surat-tugas-history"] });
     } catch (err: unknown) {
-      let errorMessage = "Gagal memperbarui nomor surat.";
-      if (isAxiosError<{ message?: string }>(err)) {
-        errorMessage = err.response?.data?.message || errorMessage;
-      }
-      toast.error(errorMessage);
+      reportSaveError(err, "Gagal memperbarui nomor surat. Periksa nomor dan coba lagi.");
+    } finally {
+      saveInFlightRef.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -2392,7 +2425,7 @@ export function SuratTugasForm({
           {isPublished && (
             <div className="p-3 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-800/80 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-2">
               <Shield className="w-4 h-4 text-blue-600 shrink-0" />
-              <span>Surat Tugas ini sudah diterbitkan dan bersifat Read Only.</span>
+              <span>Surat Tugas ini bersifat Read Only. Admin hanya dapat memperbaiki nomor surat.</span>
             </div>
           )}
 
@@ -2450,6 +2483,8 @@ export function SuratTugasForm({
               <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-xs font-medium">
                 <button
                   type="button"
+                  disabled={!canWrite || isSaving}
+                  aria-pressed={nomorNumberingType === "st_pattern"}
                   onClick={() => setNomorNumberingType("st_pattern")}
                   className={cn(
                     "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
@@ -2462,6 +2497,8 @@ export function SuratTugasForm({
                 </button>
                 <button
                   type="button"
+                  disabled={!canWrite || isSaving}
+                  aria-pressed={nomorNumberingType === "naskah_auto"}
                   onClick={() => setNomorNumberingType("naskah_auto")}
                   className={cn(
                     "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
@@ -2481,7 +2518,8 @@ export function SuratTugasForm({
                     type="text"
                     placeholder="01"
                     value={stNumber}
-                    disabled={isPublished}
+                    aria-label="Nomor Surat Tugas"
+                    disabled={!canWrite || isSaving}
                     onChange={(e) => setStNumber(e.target.value)}
                     className="w-16 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                   />
@@ -2489,7 +2527,8 @@ export function SuratTugasForm({
                   <input
                     type="text"
                     value={klasifikasi}
-                    disabled={isPublished}
+                    aria-label="Klasifikasi Surat Tugas"
+                    disabled={!canWrite || isSaving}
                     onChange={(e) => setKlasifikasi(e.target.value)}
                     className="w-24 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                   />
@@ -2505,7 +2544,8 @@ export function SuratTugasForm({
                       type="text"
                       placeholder="${nomor_naskah}"
                       value={customNomorNaskah}
-                      disabled={isPublished}
+                      aria-label="Nomor naskah"
+                      disabled={!canWrite || isSaving}
                       onChange={(e) => setCustomNomorNaskah(e.target.value)}
                       className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
                     />
@@ -3645,7 +3685,13 @@ export function SuratTugasForm({
         </div>
 
         {/* Footer Actions */}
-        <footer className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
+        <footer aria-busy={isSaving} className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
+          {isSaving && <p role="status" className="text-xs font-semibold text-blue-700 dark:text-blue-300">Menyimpan Surat Tugas...</p>}
+          {saveError && (
+            <p role="alert" className="max-h-32 overflow-y-auto whitespace-pre-line break-words rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+              {saveError}
+            </p>
+          )}
           {conflicts.length > 0 && (
             <div className="pb-1">
               <ScheduleConflictBanner conflicts={conflicts} />
@@ -3657,7 +3703,7 @@ export function SuratTugasForm({
                 <Button
                   onClick={handleSaveDraft}
                   variant="outline"
-                  disabled={hasConflict}
+                  disabled={hasConflict || isSaving || isPublished}
                   className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
@@ -3670,9 +3716,10 @@ export function SuratTugasForm({
                   <Printer className="w-4 h-4 mr-1.5" /> Preview Cetak
                 </Button>
               </div>
+              {canApprove && !isPublished && (
               <Button
                 onClick={handleApprove}
-                disabled={hasConflict}
+                disabled={hasConflict || isSaving}
                 className={cn(
                   "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
                   hasConflict
@@ -3681,8 +3728,9 @@ export function SuratTugasForm({
                 )}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />{" "}
-                {hasConflict ? "Jadwal Bentrok — Perbaiki Tanggal / Personel" : "Terbitkan & Cetak"}
+                {hasConflict ? "Jadwal Bentrok — Perbaiki Tanggal / Personel" : "Terbitkan Surat Tugas"}
               </Button>
+              )}
             </>
           ) : (
             <>
@@ -3691,16 +3739,16 @@ export function SuratTugasForm({
                   <Button
                     onClick={handleSaveDraft}
                     variant="outline"
-                    disabled={hasConflict}
+                    disabled={hasConflict || isSaving}
                     className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <FileText className="w-4 h-4 mr-1.5" /> Simpan Draft
+                    <FileText className="w-4 h-4 mr-1.5" /> {saveLabel}
                   </Button>
                 ) : (
                   <Button
                     onClick={handleUpdateNomorSurat}
                     variant="outline"
-                    disabled={!canWrite}
+                    disabled={!canWrite || !canApprove || isSaving}
                     className="w-full h-10 rounded-xl font-bold text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
                   >
                     <FileText className="w-4 h-4 mr-1.5" /> Simpan Nomor
@@ -3716,6 +3764,15 @@ export function SuratTugasForm({
                 </Button>
               </div>
 
+              {canApprove && !isPublished && (
+                <Button
+                  onClick={handleApprove}
+                  disabled={hasConflict || isSaving}
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" /> Terbitkan Surat Tugas
+                </Button>
+              )}
               {isPublished ? (
                 <Button
                   disabled
@@ -3723,17 +3780,10 @@ export function SuratTugasForm({
                 >
                   <CheckCircle className="w-4 h-4 mr-2" /> Sudah Diterbitkan
                 </Button>
-              ) : suratStatus === "approved" || suratStatus === "completed" ? (
-                <Button
-                  disabled
-                  className="w-full h-11 bg-emerald-500 text-white rounded-xl font-bold text-xs opacity-80 cursor-not-allowed"
-                >
-                  <Send className="w-4 h-4 mr-2" /> Sudah Disetujui
-                </Button>
-              ) : (
+              ) : canApprove ? (
                 <Button
                   onClick={handleSubmitForApproval}
-                  disabled={hasConflict}
+                  disabled={hasConflict || isSaving}
                   className={cn(
                     "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
                     hasConflict
@@ -3748,7 +3798,7 @@ export function SuratTugasForm({
                     ? "Perbarui & Ajukan"
                     : "Ajukan Persetujuan"}
                 </Button>
-              )}
+              ) : null}
             </>
           )}
         </footer>

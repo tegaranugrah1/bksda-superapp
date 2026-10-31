@@ -27,6 +27,7 @@ import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
   getStatusLabel,
+  needsBuilderCompletion,
   getResolvedTempatTujuan,
   extractDalamRangka,
   cleanMaksudTujuan,
@@ -81,6 +82,7 @@ export function GmailReaderView({
 }: GmailReaderViewProps) {
   const router = useRouter();
   const employees = letter.employees || [];
+  const needsCompletion = needsBuilderCompletion(letter);
   const tujuan = getResolvedTempatTujuan(letter);
   const mainTitle = extractDalamRangka(letter.maksud_tujuan);
   const cleanedContext = cleanMaksudTujuan(letter.maksud_tujuan);
@@ -149,10 +151,10 @@ export function GmailReaderView({
               disabled={updatingStatus}
               onClick={() => onApprove(letter)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
-              title="Setujui & Terbitkan Surat Tugas"
+              title={needsCompletion ? "Lengkapi Surat Tugas di Builder sebelum diterbitkan" : "Setujui & Terbitkan Surat Tugas"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Setujui & Terbitkan</span>
+              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              <span>{needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan"}</span>
             </button>
           )}
 

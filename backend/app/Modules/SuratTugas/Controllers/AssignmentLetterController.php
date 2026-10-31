@@ -9,7 +9,9 @@ use App\Modules\Kepegawaian\Models\StTemplate;
 use App\Modules\Kepegawaian\Services\StTemplateService;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
 use App\Modules\SuratTugas\Requests\AssignmentLetterRequest;
-use Exception;
+use App\Modules\SuratTugas\Requests\ApproveAssignmentLetterRequest;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -426,6 +428,10 @@ class AssignmentLetterController extends Controller
         $canViewDetails = $this->canViewConflictDetails($authUser);
 
         $employees = $validated['employees'] ?? [];
+        $isPublicSubmit = $request->is('api/surat-tugas/submit');
+        $status = ! $isPublicSubmit && $canViewDetails && strtolower((string) $request->input('status')) === 'approved'
+            ? 'approved'
+            : (! $isPublicSubmit && $authUser && strtolower((string) $request->input('status')) === 'draft' ? 'draft' : 'pending');
 
         DB::beginTransaction();
         try {
@@ -447,6 +453,7 @@ class AssignmentLetterController extends Controller
                 ], 422);
             }
 
+            $this->validatePublication(null, array_replace($validated, ['status' => $status]), $employees);
             $authUser = auth('sanctum')->user() ?: $request->user();
             $template = $this->resolveTemplate($validated);
 
@@ -502,10 +509,8 @@ class AssignmentLetterController extends Controller
                 'jumlah_buruh' => (int) $request->input('jumlah_buruh', 0),
                 'tanda_setuju' => $request->input('tanda_setuju'),
                 'keterangan' => $request->input('keterangan'),
-                'status' => (! $request->is('api/surat-tugas/submit') && $canViewDetails && strtolower((string) $request->input('status')) === 'approved')
-                    ? 'approved'
-                    : ($authUser && strtolower((string) $request->input('status')) === 'draft' ? 'draft' : 'pending'),
-                'approved_by' => (! $request->is('api/surat-tugas/submit') && $canViewDetails && strtolower((string) $request->input('status')) === 'approved')
+                'status' => $status,
+                'approved_by' => $status === 'approved'
                     ? (int) $authUser->id
                     : null,
                 'created_by' => $authUser ? (int) $authUser->id : null,
@@ -539,27 +544,29 @@ class AssignmentLetterController extends Controller
 
             $surat->load('employees');
 
-            try {
-                $cleanStatus = strtolower($surat->status ?? 'pending');
-                $isApproved = in_array($cleanStatus, ['approved', 'completed', 'published', 'diterbitkan'], true);
-                $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Penugasan Baru Diajukan';
-                $notifMsg = $isApproved
-                    ? "Surat tugas resmi diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
-                    : "Anda didaftarkan dalam pengajuan Surat Tugas: '{$surat->maksud_tujuan}'";
+            if ($status !== 'draft') {
+                try {
+                    $cleanStatus = strtolower($surat->status ?? 'pending');
+                    $isApproved = in_array($cleanStatus, ['approved', 'completed', 'published', 'diterbitkan'], true);
+                    $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Penugasan Baru Diajukan';
+                    $notifMsg = $isApproved
+                        ? "Surat tugas resmi diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                        : "Anda didaftarkan dalam pengajuan Surat Tugas: '{$surat->maksud_tujuan}'";
 
-                foreach ($surat->employees as $emp) {
-                    $this->notificationService->notifyEmployee(
-                        $emp,
-                        $notifTitle,
-                        $notifMsg,
-                        'surat_tugas',
-                        'surat_tugas',
-                        (string) $surat->id,
-                        ['status' => $cleanStatus, 'nomor_surat' => $surat->nomor_surat]
-                    );
+                    foreach ($surat->employees as $emp) {
+                        $this->notificationService->notifyEmployee(
+                            $emp,
+                            $notifTitle,
+                            $notifMsg,
+                            'surat_tugas',
+                            'surat_tugas',
+                            (string) $surat->id,
+                            ['status' => $cleanStatus, 'nomor_surat' => $surat->nomor_surat]
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Gagal mengirim portal notification pada store SuratTugas: '.$e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Gagal mengirim portal notification pada store SuratTugas: '.$e->getMessage());
             }
 
             // [DISABLED] Google Sheets sync — dimatikan sementara (lihat HANDOFF.md)
@@ -589,6 +596,9 @@ class AssignmentLetterController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($e instanceof ValidationException) {
+                throw $e;
+            }
 
             return response()->json([
                 'message' => config('app.debug') ? 'Terjadi kegagalan sistem: '.$e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan pengajuan Surat Tugas.',
@@ -635,22 +645,20 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.'], 403);
         }
 
-        $employees = $validated['employees'] ?? [];
-        if (empty($employees)) {
-            $employees = $surat->employees()->get()->map(fn ($e) => [
-                'id' => $e->id,
-                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->format('Y-m-d')) : null,
-                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->format('Y-m-d')) : null,
-            ])->toArray();
-        }
-
-        $targetTanggalMulai = $validated['tanggal_mulai'] ?? ($surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
-        $targetTanggalSelesai = $validated['tanggal_selesai'] ?? ($surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
-
-        $canViewDetails = $this->canViewConflictDetails($user);
-
         DB::beginTransaction();
         try {
+            $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            if (! $isAdmin && in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'], true)) {
+                abort(403, 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.');
+            }
+
+            $employees = array_key_exists('employees', $validated)
+                ? ($validated['employees'] ?? [])
+                : $this->existingEmployees($surat);
+            $targetTanggalMulai = $request->input('tanggal_mulai', $surat->tanggal_mulai?->format('Y-m-d'));
+            $targetTanggalSelesai = $request->input('tanggal_selesai', $surat->tanggal_selesai?->format('Y-m-d'));
+            $canViewDetails = $this->canViewConflictDetails($user);
+
             $this->lockEmployeesForScheduling($employees);
 
             $conflictCheck = $this->conflictService->checkConflicts(
@@ -668,93 +676,19 @@ class AssignmentLetterController extends Controller
                     'conflicts' => $conflictCheck['conflicts'],
                 ], 422);
             }
-            $updateTemplate = $this->resolveTemplate($validated);
-            $updateData = [
-                'maksud_tujuan' => $validated['maksud_tujuan'] ?? $surat->maksud_tujuan,
-                'dasar_hukum' => $validated['dasar_hukum'] ?? null,
-                'tanggal_mulai' => $validated['tanggal_mulai'] ?? $surat->tanggal_mulai,
-                'tanggal_selesai' => $validated['tanggal_selesai'] ?? $surat->tanggal_selesai,
-                'tempat_tujuan' => $validated['tempat_tujuan'] ?? null,
-                'sumber_dana' => $request->input('sumber_dana', $surat->sumber_dana),
-                'sumber_dana_other' => $request->input('sumber_dana_other', $surat->sumber_dana_other),
-                'template_type' => $validated['template_type'] ?? null,
-                'template_id' => $validated['template_id'] ?? $surat->template_id,
-                'template_snapshot' => (function () use ($updateTemplate, $validated, $request, $surat) {
-                    $baseSnapshot = $updateTemplate
-                        ? $this->templateService->snapshot($updateTemplate, [
-                            'menimbang' => $request->input('menimbang', $surat->menimbang),
-                            'dasar' => $request->input('dasar', $surat->dasar),
-                            'penandatangan_nama' => $validated['penandatangan_nama'] ?? $surat->penandatangan_nama,
-                            'penandatangan_nip' => $validated['penandatangan_nip'] ?? $surat->penandatangan_nip,
-                        ])
-                        : ($surat->template_snapshot ?? []);
-
-                    $reqSnapshot = $request->input('template_snapshot');
-                    if (is_array($reqSnapshot)) {
-                        if ($baseSnapshot) {
-                            $baseConfig = $baseSnapshot['configuration'] ?? [];
-                            $reqConfig = $reqSnapshot['configuration'] ?? [];
-                            if (is_array($reqConfig)) {
-                                $baseSnapshot['configuration'] = array_merge($baseConfig, $reqConfig);
-                            }
-                            return $baseSnapshot;
-                        }
-                        return $reqSnapshot;
-                    }
-                    return $baseSnapshot;
-                })(),
-                'template_version' => $updateTemplate?->version ?? $surat->template_version,
-                'menimbang' => $request->input('menimbang', $surat->menimbang),
-                'dasar' => $request->input('dasar', $surat->dasar),
-                'tembusan' => $request->input('tembusan', $surat->tembusan),
-                'penandatangan_nama' => $validated['penandatangan_nama'] ?? null,
-                'penandatangan_nip' => $validated['penandatangan_nip'] ?? null,
-            ];
-
-            if ($request->has('nomor_surat')) {
-                $updateData['nomor_surat'] = $request->input('nomor_surat');
-            }
-            if ($request->has('kode_surat')) {
-                $updateData['kode_surat'] = $request->input('kode_surat');
-            }
-            if ($request->has('task_type_id')) {
-                $updateData['task_type_id'] = $request->input('task_type_id');
-            }
-            if ($request->has('sertakan_laporan')) {
-                $updateData['sertakan_laporan'] = (bool) $request->input('sertakan_laporan');
-            }
-            if ($request->has('status')) {
-                $targetStatus = strtolower((string) $request->input('status'));
-                if (! $isAdmin && in_array($targetStatus, ['approved', 'completed', 'published', 'diterbitkan'])) {
-                    return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk mengubah status dokumen menjadi disetujui.'], 403);
+            $updateData = $this->documentUpdates($validated, $surat);
+            if (in_array($updateData['status'] ?? '', ['approved', 'completed', 'published', 'diterbitkan'], true)) {
+                if (! $isAdmin) {
+                    abort(403, 'Anda tidak memiliki otorisasi untuk mengubah status dokumen menjadi disetujui.');
                 }
-                $updateData['status'] = $targetStatus;
+                $updateData['approved_by'] = (int) $user->id;
             }
-            if ($request->has('nama_plh')) {
-                $updateData['nama_plh'] = $request->input('nama_plh');
-            }
-            if ($request->has('has_seksi_employee')) {
-                $updateData['has_seksi_employee'] = (bool) $request->input('has_seksi_employee');
-            }
-            if ($request->has('jumlah_buruh')) {
-                $updateData['jumlah_buruh'] = max(0, min(100, (int) $request->input('jumlah_buruh')));
-            }
-            if ($request->has('tanda_setuju')) {
-                $updateData['tanda_setuju'] = $request->input('tanda_setuju');
-            }
-            if ($request->has('keterangan')) {
-                $updateData['keterangan'] = $request->input('keterangan');
-            }
-            if ($request->has('template_snapshot') && is_array($request->input('template_snapshot'))) {
-                $baseSnapshot = $updateData['template_snapshot'] ?? $surat->template_snapshot ?? [];
-                $updateData['template_snapshot'] = array_replace_recursive($baseSnapshot, $request->input('template_snapshot'));
-            }
-
+            $this->validatePublication($surat, $updateData, $employees);
             $surat->update($updateData);
 
-            if (isset($validated['employees']) && is_array($validated['employees'])) {
+            if (array_key_exists('employees', $validated)) {
                 $pivotData = [];
-                foreach ($validated['employees'] as $emp) {
+                foreach ($validated['employees'] ?? [] as $emp) {
                     if (isset($emp['id'])) {
                         $pivotData[$emp['id']] = [
                             'peran' => $emp['peran'] ?? null,
@@ -787,6 +721,9 @@ class AssignmentLetterController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($e instanceof ValidationException || $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                throw $e;
+            }
             Log::error('Update Surat Tugas failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
@@ -811,19 +748,36 @@ class AssignmentLetterController extends Controller
             'nomor_surat' => 'nullable|string',
         ]);
 
-        $surat = AssignmentLetter::findOrFail($cleanId);
         $cleanStatus = strtolower($request->status);
-        $surat->status = $cleanStatus;
+        $surat = DB::transaction(function () use ($cleanId, $cleanStatus, $request, $user) {
+            $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            $employees = $this->existingEmployees($surat);
+            $updateData = ['status' => $cleanStatus];
+            if ($request->has('nomor_surat')) {
+                $updateData['nomor_surat'] = $request->input('nomor_surat');
+            }
+            $this->validatePublication($surat, $updateData, $employees);
+            if (in_array($cleanStatus, ['approved', 'completed'], true)) {
+                $this->lockEmployeesForScheduling($employees);
+                $conflictCheck = $this->conflictService->checkConflicts(
+                    $employees, $surat->tanggal_mulai?->format('Y-m-d'), $surat->tanggal_selesai?->format('Y-m-d'),
+                    $cleanId, $this->canViewConflictDetails($user)
+                );
+                if ($conflictCheck['has_conflict']) {
+                    return response()->json([
+                        'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                        'conflicts' => $conflictCheck['conflicts'],
+                    ], 422);
+                }
+                $updateData['approved_by'] = (int) $user->id;
+            }
+            $surat->update($updateData);
 
-        if (in_array($cleanStatus, ['approved', 'completed'], true)) {
-            $surat->approved_by = (int) $user->id;
+            return $surat;
+        });
+        if ($surat instanceof JsonResponse) {
+            return $surat;
         }
-
-        if ($request->has('nomor_surat')) {
-            $surat->nomor_surat = $request->nomor_surat;
-        }
-
-        $surat->save();
 
         try {
             event(new \App\Events\AdminInboxChanged('surat_tugas', 'status_updated', (string) $surat->id));
@@ -1171,7 +1125,7 @@ class AssignmentLetterController extends Controller
         ]);
     }
 
-    public function approve(Request $request, string $id)
+    public function approve(ApproveAssignmentLetterRequest $request, string $id)
     {
         $cleanId = preg_replace('/^st-/', '', $id);
         if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
@@ -1182,46 +1136,20 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menyetujui Surat Tugas.'], 403);
         }
 
-        $request->validate([
-            'nomor_surat' => 'nullable|string',
-            'kode_surat' => 'nullable|string',
-            'nama_kegiatan' => 'nullable|string',
-            'tanggal_mulai' => 'nullable|date',
-            'tanggal_selesai' => 'nullable|date',
-            'tanggal_surat' => 'nullable|date',
-            'sumber_dana' => 'nullable|string',
-            'sumber_dana_other' => 'nullable|string',
-            'template_type' => 'nullable|string|max:50',
-            'menimbang' => 'nullable|array',
-            'dasar' => 'nullable|array',
-            'tembusan' => 'nullable|array',
-            'penandatangan_nama' => 'nullable|string|max:255',
-            'penandatangan_nip' => 'nullable|string|max:50',
-            'employee_ids' => 'nullable|array',
-            'status' => 'nullable|in:pending,approved,PENDING,APPROVED',
-        ]);
-
-        $surat = AssignmentLetter::findOrFail($cleanId);
-
-        $targetStatus = $request->input('status'); // null if not provided
-
-        $employees = $request->input('employees', []);
-        if (empty($employees) && $request->has('employee_ids')) {
-            $employees = $request->input('employee_ids', []);
-        }
-        if (empty($employees)) {
-            $employees = $surat->employees()->get()->map(fn ($e) => [
-                'id' => $e->id,
-                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->format('Y-m-d')) : null,
-                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->format('Y-m-d')) : null,
-            ])->toArray();
-        }
-
-        $targetTanggalMulai = $request->input('tanggal_mulai', $surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
-        $targetTanggalSelesai = $request->input('tanggal_selesai', $surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
+        $validated = $request->validated();
+        $targetStatus = strtolower((string) $request->input('status'));
 
         DB::beginTransaction();
         try {
+            $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            if (! array_key_exists('employees', $validated) && array_key_exists('employee_ids', $validated)) {
+                $validated['employees'] = array_map(fn ($id) => ['id' => $id], $validated['employee_ids'] ?? []);
+            }
+            $employees = array_key_exists('employees', $validated)
+                ? ($validated['employees'] ?? [])
+                : $this->existingEmployees($surat);
+            $targetTanggalMulai = $request->input('tanggal_mulai', $surat->tanggal_mulai?->format('Y-m-d'));
+            $targetTanggalSelesai = $request->input('tanggal_selesai', $surat->tanggal_selesai?->format('Y-m-d'));
             $this->lockEmployeesForScheduling($employees);
 
             $conflictCheck = $this->conflictService->checkConflicts(
@@ -1239,45 +1167,16 @@ class AssignmentLetterController extends Controller
                     'conflicts' => $conflictCheck['conflicts'],
                 ], 422);
             }
-            $updateData = array_filter([
-                'nomor_surat' => $request->nomor_surat,
-                'kode_surat' => $request->kode_surat,
-                'maksud_tujuan' => $request->nama_kegiatan,
-                'tempat_tujuan' => $request->tempat_tujuan,
-                'tanggal_mulai' => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'tanggal_surat' => $request->tanggal_surat,
-                'sumber_dana' => $request->sumber_dana,
-                'sumber_dana_other' => $request->sumber_dana_other,
-                'template_type' => $request->template_type,
-                'menimbang' => $request->menimbang,
-                'dasar' => $request->dasar,
-                'tembusan' => $request->tembusan,
-                'penandatangan_nama' => $request->penandatangan_nama,
-                'penandatangan_nip' => $request->penandatangan_nip,
-            ], fn ($v) => $v !== null);
-
-            // Only update status if explicitly provided
-            if ($targetStatus) {
-                $cleanTargetStatus = strtolower($targetStatus);
-                $updateData['status'] = $cleanTargetStatus;
-                if ($cleanTargetStatus === 'approved') {
-                    $updateData['approved_by'] = (int) ($user?->id ?? auth()->id());
-                }
+            $updateData = $this->documentUpdates($validated, $surat);
+            if (($updateData['status'] ?? null) === 'approved') {
+                $updateData['approved_by'] = (int) $user->id;
             }
-
-            if ($request->has('keterangan')) {
-                $updateData['keterangan'] = $request->input('keterangan');
-            }
-            if ($request->has('template_snapshot') && is_array($request->input('template_snapshot'))) {
-                $updateData['template_snapshot'] = array_replace_recursive($surat->template_snapshot ?? [], $request->input('template_snapshot'));
-            }
-
+            $this->validatePublication($surat, $updateData, $employees);
             $surat->update($updateData);
 
-            if ($request->has('employees') && is_array($request->employees)) {
+            if (array_key_exists('employees', $validated)) {
                 $pivotData = [];
-                foreach ($request->employees as $emp) {
+                foreach ($validated['employees'] ?? [] as $emp) {
                     if (isset($emp['id'])) {
                         $pivotData[$emp['id']] = [
                             'peran' => $emp['peran'] ?? null,
@@ -1287,8 +1186,6 @@ class AssignmentLetterController extends Controller
                     }
                 }
                 $surat->employees()->sync($pivotData);
-            } elseif ($request->has('employee_ids') && is_array($request->employee_ids)) {
-                $surat->employees()->sync($request->employee_ids);
             }
 
             DB::commit();
@@ -1301,26 +1198,28 @@ class AssignmentLetterController extends Controller
                 Log::warning('Broadcast AdminInboxChanged approve SuratTugas failed: '.$e->getMessage());
             }
 
-            try {
-                $surat->load('employees');
-                $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Pembaruan Surat Tugas';
-                $notifMsg = $isApproved
-                    ? "Surat tugas resmi telah diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
-                    : "Pembaruan data pada Surat Tugas: '{$surat->maksud_tujuan}'";
+            if (strtolower((string) $surat->status) !== 'draft') {
+                try {
+                    $surat->load('employees');
+                    $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Pembaruan Surat Tugas';
+                    $notifMsg = $isApproved
+                        ? "Surat tugas resmi telah diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                        : "Pembaruan data pada Surat Tugas: '{$surat->maksud_tujuan}'";
 
-                foreach ($surat->employees as $emp) {
-                    $this->notificationService->notifyEmployee(
-                        $emp,
-                        $notifTitle,
-                        $notifMsg,
-                        'surat_tugas',
-                        'surat_tugas',
-                        (string) $surat->id,
-                        ['status' => $surat->status, 'nomor_surat' => $surat->nomor_surat]
-                    );
+                    foreach ($surat->employees as $emp) {
+                        $this->notificationService->notifyEmployee(
+                            $emp,
+                            $notifTitle,
+                            $notifMsg,
+                            'surat_tugas',
+                            'surat_tugas',
+                            (string) $surat->id,
+                            ['status' => $surat->status, 'nomor_surat' => $surat->nomor_surat]
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Gagal mengirim portal notification pada approve SuratTugas: '.$e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Gagal mengirim portal notification pada approve SuratTugas: '.$e->getMessage());
             }
 
             // [DISABLED] Google Sheets update sync — dimatikan sementara (lihat HANDOFF.md)
@@ -1352,8 +1251,11 @@ class AssignmentLetterController extends Controller
                 'message' => "Surat Tugas {$statusLabel}.",
                 'data' => $surat->load('employees'),
             ]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            if ($e instanceof ValidationException || $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                throw $e;
+            }
 
             return response()->json([
                 'message' => config('app.debug') ? 'Gagal memproses surat: '.$e->getMessage() : 'Terjadi kesalahan sistem saat memproses persetujuan Surat Tugas.',
@@ -1386,6 +1288,77 @@ class AssignmentLetterController extends Controller
             'next_number' => str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT),
             'current_year' => $year,
         ]);
+    }
+
+    private function existingEmployees(AssignmentLetter $surat): array
+    {
+        return $surat->employees()->get()->map(fn ($employee) => [
+            'id' => $employee->id,
+            'tanggal_mulai' => $employee->pivot?->tanggal_mulai?->format('Y-m-d'),
+            'tanggal_selesai' => $employee->pivot?->tanggal_selesai?->format('Y-m-d'),
+        ])->all();
+    }
+
+    private function documentUpdates(array $validated, AssignmentLetter $surat): array
+    {
+        $data = array_intersect_key($validated, array_flip($surat->getFillable()));
+        if (isset($data['status'])) {
+            $data['status'] = strtolower($data['status']);
+        } else {
+            unset($data['status']);
+        }
+
+        $snapshot = $surat->template_snapshot;
+        if (array_key_exists('template_id', $validated) && $validated['template_id'] === null) {
+            $data['template_version'] = null;
+        } elseif (isset($validated['template_id']) || isset($validated['template_type'])) {
+            $template = $this->resolveTemplate($validated);
+            $data['template_id'] = $template?->id;
+            $data['template_version'] = $template?->version;
+            $snapshot = $this->templateService->snapshot($template, array_replace($surat->attributesToArray(), $data));
+            $data['template_snapshot'] = $snapshot;
+        }
+
+        if (array_key_exists('template_snapshot', $validated)) {
+            $incoming = $validated['template_snapshot'];
+            $data['template_snapshot'] = $incoming;
+            if (is_array($incoming) && is_array($snapshot)) {
+                $data['template_snapshot'] = array_replace($snapshot, $incoming);
+                if (isset($incoming['signer']) && is_array($incoming['signer']) && ! array_is_list($incoming['signer']) && is_array($snapshot['signer'] ?? null)) {
+                    $data['template_snapshot']['signer'] = array_replace($snapshot['signer'], $incoming['signer']);
+                }
+                if (isset($incoming['configuration']) && is_array($incoming['configuration'])) {
+                    // Replace supplied lists, including [], instead of retaining stale list entries.
+                    $data['template_snapshot']['configuration'] = array_replace($snapshot['configuration'] ?? [], $incoming['configuration']);
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private function validatePublication(?AssignmentLetter $surat, array $changes, array $employees): void
+    {
+        $officialStatuses = ['approved', 'completed', 'published', 'diterbitkan'];
+        $status = strtolower((string) ($changes['status'] ?? $surat?->status));
+        if (in_array(strtolower((string) $surat?->status), $officialStatuses, true) && ! in_array($status, $officialStatuses, true)) {
+            throw ValidationException::withMessages(['status' => 'Surat Tugas yang sudah diterbitkan tidak dapat dikembalikan ke status sebelum penerbitan tanpa pencabutan resmi.']);
+        }
+        if (! in_array($status, $officialStatuses, true)) {
+            return;
+        }
+
+        $document = array_replace($surat?->attributesToArray() ?? [], $changes, ['employees' => $employees]);
+        foreach (['nomor_surat', 'maksud_tujuan', 'sumber_dana'] as $field) {
+            if (is_string($document[$field] ?? null)) {
+                $document[$field] = trim($document[$field]);
+            }
+        }
+        Validator::make($document, array_replace(AssignmentLetterRequest::requiredDocumentRules(), [
+            'nomor_surat' => ['required', 'string', 'not_regex:/[{}]|\.{3}|…/u'],
+        ]), [
+            'nomor_surat.not_regex' => 'Nomor surat harus diisi lengkap tanpa placeholder.',
+        ])->validate();
     }
 
     private function lockEmployeesForScheduling(array $employees): void

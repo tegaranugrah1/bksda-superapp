@@ -15,15 +15,15 @@ export default function SuratTugasLayout({
   const { canWrite } = useRole();
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-500/20">
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-blue-500/20 motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none">
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center p-1">
               <Image
                 src="/logo_bksda.png"
-                alt="Logo"
+                alt="Logo BKSDA Kalimantan Timur"
                 width={40}
                 height={40}
                 className="w-full h-full object-contain"
@@ -42,7 +42,7 @@ export default function SuratTugasLayout({
           {isAuthenticated ? (
             <Link
               href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/portal"}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+              className="inline-flex min-h-11 items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
             >
               {canWrite ? (
                 <>
@@ -60,14 +60,14 @@ export default function SuratTugasLayout({
             <div className="flex items-center gap-2">
               <Link
                 href="/"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Beranda</span>
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
+                className="inline-flex min-h-11 items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>Login Pegawai</span>

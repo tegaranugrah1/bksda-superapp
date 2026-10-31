@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import dynamic from "next/dynamic";
 import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
+import type { SuratTugasPreviewData } from "@/components/SuratTugasLetterPreview";
 import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
@@ -115,37 +116,7 @@ interface SuratTugasItem {
   file_surat_path: string | null;
 }
 
-interface DasarItem {
-  id?: string;
-  text: string;
-}
-
-interface SuratTugasDetail {
-  id: string;
-  nomor_surat: string | null;
-  kode_surat: string | null;
-  maksud_tujuan: string;
-  tempat_tujuan: string;
-  tanggal_mulai: string;
-  tanggal_selesai: string;
-  tanggal_surat: string | null;
-  status: string;
-  transportasi: string | null;
-  sumber_dana: string | null;
-  nama_plh: string | null;
-  keterangan: string | null;
-  dasar: DasarItem[] | string | null;
-  menimbang: DasarItem[] | string | null;
-  tembusan: string[] | null;
-  employees?: Array<{
-    id: string;
-    nama_lengkap: string;
-    nip: string;
-    jabatan?: string;
-    pivot?: { peran?: string };
-  }>;
-  approver?: { id: number; name: string; nip?: string };
-}
+type SuratTugasDetail = SuratTugasPreviewData;
 
 
 
@@ -805,31 +776,7 @@ function PortalContent() {
         {/* Surat Tugas Formal Letter Preview */}
         {stPreviewOpen && stDetail && (
           <SuratTugasLetterPreview
-            data={{
-              id: stDetail.id,
-              nomor_surat: stDetail.nomor_surat,
-              kode_surat: stDetail.kode_surat,
-              menimbang: stDetail.menimbang,
-              dasar: stDetail.dasar,
-              maksud_tujuan: stDetail.maksud_tujuan,
-              tempat_tujuan: stDetail.tempat_tujuan,
-              tanggal_mulai: stDetail.tanggal_mulai,
-              tanggal_selesai: stDetail.tanggal_selesai,
-              tanggal_surat: stDetail.tanggal_surat,
-              sumber_dana: stDetail.sumber_dana,
-              nama_plh: stDetail.nama_plh,
-              status: stDetail.status,
-              keterangan: stDetail.keterangan,
-              tembusan: stDetail.tembusan,
-              employees: stDetail.employees?.map(e => ({
-                id: e.id,
-                nama_lengkap: e.nama_lengkap,
-                nip: e.nip,
-                jabatan: e.jabatan,
-                pivot: e.pivot,
-              })),
-              approver: stDetail.approver ? { name: stDetail.approver.name, nip: stDetail.approver.nip } : undefined,
-            }}
+            data={stDetail}
             onClose={() => setStPreviewOpen(false)}
           />
         )}

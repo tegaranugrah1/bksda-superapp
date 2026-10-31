@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:security-cache": "node tests/cache-security.cjs",
-    "test:security-playwright": "node tests/surat-tugas-security.playwright.cjs"
+    "test:security-playwright": "node tests/surat-tugas-security.playwright.cjs",
+    "test:surat-tugas-flow": "node tests/surat-tugas-flow.playwright.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
