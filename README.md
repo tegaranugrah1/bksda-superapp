@@ -159,16 +159,31 @@ bksda-superapp/
 
 ---
 
-## Deployment Produksi
+## Infrastruktur Server & Deployment Produksi
 
-Aplikasi di-deploy menggunakan **Dokploy** pada VPS / infrastruktur cloud mandiri:
+Aplikasi beroperasi di atas infrastruktur server mandiri berbasis **Proxmox VE** dengan orkestrasi **Dokploy**:
 
+### 1. Spesifikasi Host Fisik (Proxmox VE)
+- **Host Node**: Proxmox VE 7.4 (`192.168.100.11`)
+- **CPU**: 8 Core Processor
+- **RAM**: 64 GB RAM (Terpakai: ~19 GB, **Sisa Bebas: ~45 GB**)
+- **Penyimpanan Fisik**:
+  - `/dev/sda` (2 TB HDD, `local-lvm`): ~1.65 TB ruang bebas (penyimpanan VM).
+  - `/dev/sdb` (2 TB HDD): Datastore utama Proxmox Backup Server (PBS).
+  - `/dev/sdc` (2 TB USB SSD Kingston): Salinan datastore backup PBS lokal.
+
+### 2. Pemetaan Virtual Machine (VM)
+| VM ID | IP Address | Peruntukan / Workload | Alokasi Resource | Status |
+|-------|------------|-----------------------|------------------|--------|
+| **VM 106** | `192.168.100.203` | **Dokploy Production** (Next.js FE, Laravel BE, PostgreSQL 15, RustFS S3, Reverb WS) | 16 GB RAM, 500 GB Disk | 🟢 Aktif (Produksi) |
+| **VM 100** | `192.168.100.151` | **Staging & Storage Sync** (Migrasi Aset BMN & Uji Coba) | 8 GB RAM, 100 GB Disk | 🟡 Staging / Ops |
+| **PBS VM** | Internal Proxmox | **Proxmox Backup Server** (Backup otomatis terenkripsi harian) | 4 GB RAM, 32 GB OS Disk | 🟢 Aktif |
+| **VM Hermes** | *(Planned)* | **Hermes Bot & Agent AI** (Bot notifikasi, background daemon, integrasi otomasi) | *Slot tersedia (~8–16 GB RAM, 100–200 GB Disk)* | 📋 Planned |
+
+### 3. Akses Domain & Reverse Proxy
 - **Domain Utama (Frontend)**: `https://bksdakaltim.web.id` (mirror: `https://bksdakaltim.net`)
 - **Backend API**: `https://api.bksdakaltim.web.id`
-- **Orchestration**: Docker Compose (`docker-compose.dokploy.yml`)
-- **Database**: PostgreSQL 15 Container (`bksda-db`) dengan persistent volume
-- **Object Storage**: RustFS S3-compatible container (`rustfs-data`) untuk aset media
-- **Reverse Proxy**: Traefik / Nginx dengan SSL otomatis (Let's Encrypt)
+- **Reverse Proxy**: Traefik / Nginx dengan SSL otomatis Let's Encrypt (Cloudflare DNS & Tunnel)
 
 ---
 

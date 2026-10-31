@@ -32,6 +32,16 @@
 | Testing | PHPUnit (Unit/Feature/Concurrency/Browser) + Playwright (Frontend Security E2E) |
 | Deployment | Self-hosted Docker Compose via Dokploy (https://bksdakaltim.web.id / https://bksdakaltim.net) |
 
+### 2.1. Infrastruktur Server & Pemetaan VM (Proxmox VE)
+
+Host fisik server beroperasi menggunakan **Proxmox VE** pada jaringan lokal:
+- **Host Node**: Proxmox VE 7.4 (`192.168.100.11`), 8 Core CPU, 64 GB RAM (Terpakai: ~19 GB, **Sisa Bebas: ~45 GB RAM**; storage `/dev/sda` bebas **~1.65 TB**).
+- **Daftar VM**:
+  - **VM 106 (`192.168.100.203`)**: **Dokploy Production** (Next.js FE, Laravel BE, PostgreSQL 15, RustFS S3, Reverb WS) — 16 GB RAM, 500 GB Disk.
+  - **VM 100 (`192.168.100.151`)**: **Staging / Data Migration** (Sync aset BMN & media).
+  - **PBS VM**: **Proxmox Backup Server** (Backup otomatis terdeduplikasi harian ke `/dev/sdb` & `/dev/sdc`).
+  - **VM Hermes *(Planned)***: Slot VM untuk **Hermes Bot & AI Agent** (asisten bot, background daemon, automasi bot kantor). Host memiliki sisa kapasitas yang sangat memadai (tersedia ~45 GB RAM dan ~1.65 TB disk).
+
 ---
 
 ## 3. Struktur Monorepo
