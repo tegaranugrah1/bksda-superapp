@@ -19,6 +19,10 @@
 | **R-ST-02 & R-ST-03 — Privasi Konflik & Membership** | Policy detail dipakai konsisten oleh `store`, `update`, `approve` dan `check-conflicts`; non-admin tidak memperoleh alasan cuti orang lain, dan retained permission tanpa modul ditolak. |
 | **Akun Nonaktif pada Rute Publik** | `EnsureAccountSecure` membaca fallback Sanctum pada endpoint publik; real inactive bearer ditolak 403 dan token dicabut. |
 | **Arsip Anonim & Idempotensi Drive** | Migrasi `2026_10_31_180000_allow_system_owned_drive_archives.php` mengizinkan owner null untuk arsip sistem resmi, dan lookup dengan `withTrashed()` mencegah duplikasi atau resurrection arsip trash. |
+| **Publikasi & Validasi Nomor Surat (Commit `b1391706`)** | `validatePublication()` dan `ApproveAssignmentLetterRequest` mewajibkan `nomor_surat` resmi tanpa placeholder template (`{...}`, `...`, `…`) saat ditransisikan ke status resmi (`approved`, `completed`, `published`, `diterbitkan`), serta mencegah penurunan status surat terbit kembali ke `draft`/`pending`. Dibuktikan lewat `SuratTugasPublicationRegressionTest.php` (19 tes / 1066 assertions). |
+| **Responsivitas Mobile 375px & Aksesibilitas WCAG** | Memperbaiki overflow horizontal header 401px pada layar 375px di `layout.tsx`, standardisasi touch-target minimum 44px (`min-h-11`), asosiasi label `htmlFor`, dan navigasi keyboard `ArrowDown`/`Escape` pada form surat tugas. |
+| **Paritas Snapshot Template** | Menyelaraskan passing `template_snapshot` antara Admin Print, Portal Pegawai (`portal/page.tsx`), dan Preview Surat (`SuratTugasLetterPreview.tsx`) untuk paritas render visual dokumen lintas peran. |
+| **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)** | Menambahkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` agar seluruh pengujian PHPUnit memakai fake storage lokal secara terisolasi tanpa terpengaruh variabel lingkungan S3 pada `.env`. |
 
 ## Verifikasi yang Dapat Direproduksi
 

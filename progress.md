@@ -43,6 +43,8 @@
   - Penyesuaian ukuran touch-target minimal 44px (`min-h-11`), asosiasi label `htmlFor`, dan keyboard navigation (`ArrowDown`/`Escape`) pada komponen pemilihan pegawai & detail surat.
 - **Suite Pengujian Publikasi Mandiri**:
   - Ditambahkan `SuratTugasPublicationRegressionTest.php` dengan 19 metode pengujian mencakup 1066 assertions validasi transisi status, template fallback, dan idempotensi revisi.
+- **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)**:
+  - Menetapkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` untuk mencegah test suite mewarisi konfigurasi S3 pada `.env`, menjamin pengujian fake storage berjalan deterministik dan terisolasi.
 
 ### 4. Rekapitulasi Verifikasi Terpadu (100% Lulus)
 - **Total Pengujian**: 117 tes backend / 1495 assertions + 19 check Playwright E2E LULUS tanpa regresi:
