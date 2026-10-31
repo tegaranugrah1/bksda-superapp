@@ -422,12 +422,16 @@ class AssignmentLetterController extends Controller
     {
         $validated = $request->validated();
 
+        $authUser = auth('sanctum')->user() ?: $request->user();
+        $canViewDetails = $this->canViewConflictDetails($authUser);
+
         $employees = $validated['employees'] ?? [];
         $conflictCheck = $this->conflictService->checkConflicts(
             $employees,
             $validated['tanggal_mulai'] ?? null,
             $validated['tanggal_selesai'] ?? null,
-            null
+            null,
+            $canViewDetails
         );
 
         if ($conflictCheck['has_conflict']) {
@@ -494,10 +498,10 @@ class AssignmentLetterController extends Controller
                 'jumlah_buruh' => (int) $request->input('jumlah_buruh', 0),
                 'tanda_setuju' => $request->input('tanda_setuju'),
                 'keterangan' => $request->input('keterangan'),
-                'status' => (in_array($authUser?->role, ['super_admin', 'admin'], true) && strtolower((string) $request->input('status')) === 'approved')
+                'status' => (! $request->is('api/surat-tugas/submit') && $canViewDetails && strtolower((string) $request->input('status')) === 'approved')
                     ? 'approved'
                     : ($authUser && strtolower((string) $request->input('status')) === 'draft' ? 'draft' : 'pending'),
-                'approved_by' => (in_array($authUser?->role, ['super_admin', 'admin'], true) && strtolower((string) $request->input('status')) === 'approved')
+                'approved_by' => (! $request->is('api/surat-tugas/submit') && $canViewDetails && strtolower((string) $request->input('status')) === 'approved')
                     ? (int) $authUser->id
                     : null,
                 'created_by' => $authUser ? (int) $authUser->id : null,
@@ -660,7 +664,8 @@ class AssignmentLetterController extends Controller
             $employees,
             $targetTanggalMulai,
             $targetTanggalSelesai,
-            $cleanId
+            $cleanId,
+            true
         );
 
         if ($conflictCheck['has_conflict']) {
@@ -1252,7 +1257,8 @@ class AssignmentLetterController extends Controller
             $employees,
             $targetTanggalMulai,
             $targetTanggalSelesai,
-            $cleanId
+            $cleanId,
+            true
         );
 
         if ($conflictCheck['has_conflict']) {
@@ -1413,6 +1419,15 @@ class AssignmentLetterController extends Controller
         ]);
     }
 
+    private function canViewConflictDetails(?\App\Models\User $user): bool
+    {
+        return $user && (
+            $user->role === 'super_admin' ||
+            ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])) ||
+            $user->hasPermission('surat_tugas.approve')
+        );
+    }
+
     public function checkConflicts(Request $request): JsonResponse
     {
         $request->validate([
@@ -1428,11 +1443,15 @@ class AssignmentLetterController extends Controller
             $employees = $request->input('employee_ids', []);
         }
 
+        $authUser = auth('sanctum')->user() ?: $request->user();
+        $canViewDetails = $this->canViewConflictDetails($authUser);
+
         $result = $this->conflictService->checkConflicts(
             $employees,
             $request->input('tanggal_mulai'),
             $request->input('tanggal_selesai'),
-            $request->input('exclude_id')
+            $request->input('exclude_id'),
+            $canViewDetails
         );
 
         return response()->json($result);

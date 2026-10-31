@@ -1,3 +1,36 @@
+# Progress — Pentest & Audit Keamanan Modul Surat Tugas (31 Oktober 2026)
+
+> Branch: `codex/portal-security-pentest`
+> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 2 Celah Tertutup, Zero Regression)**.
+> Dokumen Laporan Hasil: [docs/security/surat-tugas-security-pentest-2026-10-31.md](file:///e:/bksda-superapp/docs/security/surat-tugas-security-pentest-2026-10-31.md)
+> Dokumen Rencana Pentest: [docs/security/surat-tugas-security-pentest-plan.md](file:///e:/bksda-superapp/docs/security/surat-tugas-security-pentest-plan.md)
+> Panduan Standar Pentest: [docs/security/panduan-uji-keamanan-dan-pentest-portal.md](file:///e:/bksda-superapp/docs/security/panduan-uji-keamanan-dan-pentest-portal.md)
+> Metode: `security-audit` untuk pembuktian red/green dan Ponytail untuk perbaikan minimal di titik akar bersama.
+> Pekerjaan ini tidak melakukan push ke remote, deployment, atau perubahan skema database produksi.
+
+## Ringkasan Eksekusi & Hasil Pentest
+
+Pengujian penetrasi keamanan menyeluruh terhadap modul Surat Tugas (`App\Modules\SuratTugas`) telah berhasil menemukan 2 kerentanan nyata, mereproduksinya secara lokal (*Red*), memperbaikinya di titik akar bersama (*choke-point*), dan memverifikasi seluruhnya lulus (*Green*):
+
+1. **ST-01 (High) — Privilege Escalation on Public Submit / Cross-Module Bypass**:
+   - *Masalah*: Admin modul lain (Keuangan/BMN tanpa modul `surat_tugas` atau `kepegawaian`) dapat memanggil `POST /api/surat-tugas/submit` dengan `status: approved` untuk menerbitkan surat tugas sah secara sepihak.
+   - *Perbaikan*: Method `store()` pada `AssignmentLetterController.php` membatasi auto-approval hanya untuk rute internal berizin modul `surat_tugas`/`kepegawaian`, dan memblokir auto-approval pada endpoint publik `api/surat-tugas/submit`.
+2. **ST-02 (Medium) — Sensitive Information Disclosure in Public Conflicts**:
+   - *Masalah*: Endpoint publik `POST /api/surat-tugas/check-conflicts` membocorkan alasan cuti medis/pribadi rahasia (`alasan_cuti`) dan maksud misi internal (`maksud_tujuan`) ke pemanggil publik/anonim.
+   - *Perbaikan*: `AssignmentLetterConflictService.php` menambahkan parameter sanitasi `$canViewDetails`. Jika pemanggil tidak memiliki otorisasi modul, respons disanitasi menjadi label generik (`'Cuti Aktif'` dan `'Penugasan Aktif'`) tanpa mengekspos alasan sensitif atau nomor dokumen internal.
+
+## Hasil Pengujian Otomatis
+
+| Suite Pengujian | Hasil | Keterangan |
+|---|---|---|
+| `SuratTugasSecurityPentestTest.php` | 10 passed (60 assertions) | Menguji ST-01 s.d. ST-13 (IDOR, Approval, Immutability, QR Disclosure, Download Sanitization, Delete Guard) |
+| `SuratTugasMobileListApiTest.php` | 6 passed (57 assertions) | Regresi API mobile & paginasi Surat Tugas |
+| `PortalPersonalSecurityTest.php` | 25 passed (60 assertions) | Regresi akses dokumen personal portal |
+| `SuratTugasConflictTest.php` | 5 passed (100%) | Boundary check tanggal bentrok jadwal |
+| `DriveHierarchicalResorRBACTest.php` | 10 passed (40 assertions) | Regresi RBAC BKSDA Drive & DeReporting |
+
+---
+
 # Progress — Keamanan Portal dan Panduan Pentest (31 Oktober 2026)
 
 > Branch: `codex/portal-security-pentest`
