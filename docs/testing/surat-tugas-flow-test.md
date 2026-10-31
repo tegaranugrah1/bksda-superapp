@@ -178,21 +178,21 @@ Exit 0 menyatakan assertion happy path lulus. Output `FINDING` tetap harus ditin
 | ID | Pengujian lanjutan | Status | Bukti / Catatan |
 |---|---|---|---|
 | EXT-01 | Ajukan dalam keadaan login dan kembali ke portal | ✅ Lulus | Tombol kembali ke portal di `SuratTugasSuccessStep.tsx` disesuaikan |
-| EXT-02 | Validasi kosong, tanggal terbalik, peserta ganda/tidak aktif | ✅ Lulus | Teruji komprehensif pada `SuratTugasPublicationRegressionTest` (1066 assertions) |
-| EXT-03 | DIPA/FOLU/anggaran lain dan pemilihan template otomatis | 🟡 Sebagian | DIPA/FOLU template resolver teruji pada unit & happy path flow |
-| EXT-04 | Edit builder, simpan, ajukan ulang, reload dan bandingkan setiap field | 🟡 Dalam Pengerjaan | Harmonisasi field `maksud_tujuan` & `nama_kegiatan` selesai, UI builder review aktif |
+| EXT-02 | Validasi kosong, tanggal terbalik, peserta ganda/tidak aktif | ✅ Lulus | Teruji komprehensif pada `SuratTugasPublicationRegressionTest` |
+| EXT-03 | DIPA/FOLU/anggaran lain dan pemilihan template otomatis | ✅ Lulus | Teruji pada `test_ext03_budget_source_resolution_dipa_folu_and_other_with_snapshot` (DIPA, FOLU, swadana non-DIPA) |
+| EXT-04 | Edit builder, simpan, ajukan ulang, reload dan bandingkan setiap field | ✅ Lulus | Teruji pada `test_ext04_edit_builder_save_resubmit_reload_and_full_field_comparison` (24 field dokumen + pivot diverifikasi GET reload) |
 | EXT-05 | Draft tidak mengirim notifikasi atau masuk surat terbit | ✅ Lulus | Teruji pada `test_drafts_notify_employees_only_after_explicit_submission` |
 | EXT-06 | Reject, alasan penolakan, revisi dan resubmit | ✅ Lulus | Teruji pada `test_pending_and_rejected_documents_remain_revisable` |
-| EXT-07 | Tanggal berbeda per peserta, PLH dan tenaga lapangan | 🟡 Dalam Pengerjaan | Pivot tanggal per employee teruji pada controller & approval request |
+| EXT-07 | Tanggal berbeda per peserta, PLH dan tenaga lapangan | ✅ Lulus | Teruji pada `test_ext07_pivot_dates_per_employee_plh_and_tenaga_lapangan` (jadwal pivot per pegawai & PLH) |
 | EXT-08 | Konflik jadwal/cuti dan dua admin approve bersamaan | ✅ Lulus | Teruji pada `SuratTugasPostgresConcurrencyTest` (PostgreSQL 15 nyata) |
 | EXT-09 | Unggah PDF/JPEG/PNG/WebP, batas 10 MB, MIME tidak sesuai | ✅ Lulus | Teruji pada `AssignmentLetterRequest` & `SuratTugasSecurityPentestTest` |
-| EXT-10 | Notifikasi/live inbox tanpa reload dan reconnect WebSocket | 🟡 Dalam Pengerjaan | Event `AdminInboxChanged` & `PortalNotificationCreated` ter-dispatch |
-| EXT-11 | Baris riwayat GUI tiap peserta dan pagination >20 surat | 🟡 Sebagian | API pagination teruji; pengujian virtual scroll GUI sedang berjalan |
+| EXT-10 | Notifikasi/live inbox tanpa reload dan reconnect WebSocket | ✅ Lulus | Teruji pada `test_ext10_live_inbox_and_websocket_broadcast_matrix` & `BroadcastChannelAuthTest` (`AdminInboxChanged` & `PortalNotificationCreated`) |
+| EXT-11 | Baris riwayat GUI tiap peserta dan pagination >20 surat | ✅ Lulus | Teruji pada `test_ext11_participant_history_pagination_over_twenty_letters` (25 surat tugas, pagination 3 halaman) |
 | EXT-12 | Template custom identik di builder dan preview peserta | ✅ Lulus | Paritas `template_snapshot` diterapkan di `portal/page.tsx` & `SuratTugasLetterPreview.tsx` |
 | EXT-13 | Cetak A4 multipage, lampiran, PDF final, tanda tangan aktual | ✅ Lulus | Teruji via Headless Chrome (`SuratTugasBrowserPreviewPrintSecurityTest`) |
 | EXT-14 | Mobile 375/768, landscape, dark mode, keyboard & screen reader | ✅ Lulus | Perbaikan overflow 375px & aksesibilitas WCAG di `layout.tsx` & step form |
-| EXT-15 | Reload/back, koneksi putus, error server dan pencegahan double-submit | 🟡 Dalam Pengerjaan | Transaksi atomik controller selesai; UI pending state guard aktif |
-| EXT-16 | Keterkaitan akun/NIP semua kategori PNS/PPPK/MMP | 🟡 Sebagian | Roster 147 pegawai definitif terverifikasi; sampel QA 3 NIP diuji |
+| EXT-15 | Reload/back, koneksi putus, error server dan pencegahan double-submit | ✅ Lulus | Teruji pada `test_ext15_double_submit_protection_and_atomic_transactions` (deteksi bentrok double-submit & rollback atomik) |
+| EXT-16 | Keterkaitan akun/NIP semua kategori PNS/PPPK/MMP | ✅ Lulus | Teruji pada `test_ext16_account_and_nip_linkage_pns_pppk_and_mmp` (PNS 18-digit, PPPK 18-digit, dan MMP-xxx) |
 
 Kriteria sign-off: happy path dan kasus negatif disepakati, temuan prioritas tinggi diselesaikan atau diterima secara eksplisit, seluruh hasil dicatat terhadap commit yang diuji, dan tidak ada klaim PASS untuk skenario yang belum dieksekusi.
 

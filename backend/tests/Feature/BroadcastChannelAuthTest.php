@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Events\AdminInboxChanged;
 use App\Events\PortalNotificationCreated;
 use App\Models\User;
+use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -168,15 +169,23 @@ class BroadcastChannelAuthTest extends TestCase
             'access_modules' => ['surat_tugas'],
         ]);
 
+        $employee = Employee::create([
+            'nip' => '199001012020011999',
+            'nama_lengkap' => 'Pegawai Uji Broadcast',
+            'is_active' => true,
+        ]);
+
         $letter = AssignmentLetter::create([
             'nomor_surat' => 'ST.999/BKSDA/2026',
             'maksud_tujuan' => 'Uji Broadcast WebSocket Approval',
             'tanggal_mulai' => '2026-08-01',
             'tanggal_selesai' => '2026-08-02',
             'tanggal_surat' => '2026-07-31',
+            'sumber_dana' => 'dipa',
             'status' => 'pending',
             'created_by' => $admin->id,
         ]);
+        $letter->employees()->attach($employee->id);
 
         $this->authenticateBearer($admin);
 

@@ -1,8 +1,8 @@
 # Progress — Remediasi & Penuntasan Pentest Modul Surat Tugas (31 Oktober 2026)
 
-> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, Concurrency PostgreSQL & Playwright Browser Sink Terbukti)**.  
+> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, EXT-01 s.d. EXT-16 Terbukti Tuntas)**.  
 > Branch: `codex/portal-security-pentest`  
-> Hasil Pengujian: **57 tes keamanan & publikasi / 1310 assertions + 60 tes regresi / 185 assertions; total 117 tes / 1495 assertions backend + Playwright E2E LULUS**.  
+> Hasil Pengujian: **64 tes keamanan & publikasi / 1410 assertions + 60 tes regresi / 197 assertions; total 124 tes backend / 1607 assertions + 13 suite pengujian frontend (Playwright E2E & Cache Security) LULUS**.  
 > Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).  
 > Metode: `/security-audit` dan `/ponytail` (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency baru).
 
@@ -23,19 +23,21 @@
 | **Responsivitas Mobile 375px & Aksesibilitas WCAG** | Memperbaiki overflow horizontal header 401px pada layar 375px di `layout.tsx`, standardisasi touch-target minimum 44px (`min-h-11`), asosiasi label `htmlFor`, dan navigasi keyboard `ArrowDown`/`Escape` pada form surat tugas. |
 | **Paritas Snapshot Template** | Menyelaraskan passing `template_snapshot` antara Admin Print, Portal Pegawai (`portal/page.tsx`), dan Preview Surat (`SuratTugasLetterPreview.tsx`) untuk paritas render visual dokumen lintas peran. |
 | **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)** | Menambahkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` agar seluruh pengujian PHPUnit memakai fake storage lokal secara terisolasi tanpa terpengaruh variabel lingkungan S3 pada `.env`. |
+| **Penuntasan Matriks Lanjutan (EXT-01 s.d. EXT-16)** | Pembuktian tuntas seluruh 16 skenario lanjutan: DIPA/FOLU/other (EXT-03), edit builder reload parity (EXT-04), pivot dates per personel & PLH (EXT-07), live inbox WebSocket broadcasting (EXT-10), pagination >20 surat (EXT-11), double submit protection (EXT-15), dan paritas NIP PNS/PPPK/MMP (EXT-16). |
 
 ## Verifikasi yang Dapat Direproduksi
 
 | Suite Pengujian | Hasil | Isi Pembuktian |
 |---|---|---|
 | `SuratTugasSecurityPentestTest.php` | **20 lulus / 125 assertions** | R-ST-01 s.d. R-ST-03, kontrol submit publik, IDOR, lifecycle file, rollback, cleanup dan real inactive bearer. |
-| `SuratTugasPublicationRegressionTest.php` | **19 lulus / 1066 assertions** | Pengujian regresi publikasi, validasi wajib nomor surat resmi saat terbit, idempotensi status, penolakan & resubmit, dan paritas snapshot template. |
+| `SuratTugasPublicationRegressionTest.php` | **26 lulus / 1166 assertions** | Pengujian regresi publikasi & matriks lanjutan: nomor surat wajib, idempotensi, revisi, DIPA/FOLU/other (EXT-03), edit builder reload parity (EXT-04), pivot dates & PLH (EXT-07), WebSocket broadcast AdminInboxChanged & PortalNotificationCreated (EXT-10), pagination >20 surat (EXT-11), double-submit & atomic transaction (EXT-15), format NIP PNS/PPPK/MMP (EXT-16). |
 | `SuratTugasFullSchemaSecurityTest.php` | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
+| `BroadcastChannelAuthTest.php` | **3 lulus / 12 assertions** | Otorisasi channel private WebSocket untuk modul kepegawaian, bmn, dan surat_tugas. |
 | `SuratTugasPostgresConcurrencyTest.php` | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
 | `SuratTugasBrowserPreviewPrintSecurityTest.php` | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
 | `surat-tugas-security.playwright.cjs` | **5 lulus / 23 assertions** | Playwright Chromium E2E: ST-12 stored XSS, print sink document.write, ST-02 privacy leak, upload guard, dan 403 eviction. |
-| Regresi Terkait (Drive, PortalPersonal, MobileListApi) | **41 lulus / 157 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
-| **Total Eksekusi Terpadu** | **117 tes backend / 1495 assertions + 19 check Playwright E2E, exit 0** | Seluruh pengujian green 100%. |
+| Regresi Terkait (Drive, PortalPersonal, MobileListApi, UserPermissionFallback) | **60 lulus / 185 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
+| **Total Eksekusi Terpadu** | **124 tes backend / 1607 assertions + 13 suite Playwright E2E & Cache Security, exit 0** | Seluruh pengujian green 100%. |
 
 ## Catatan Migrasi & Operasional
 

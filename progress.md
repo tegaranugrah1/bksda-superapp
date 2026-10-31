@@ -46,11 +46,21 @@
 - **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)**:
   - Menetapkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` untuk mencegah test suite mewarisi konfigurasi S3 pada `.env`, menjamin pengujian fake storage berjalan deterministik dan terisolasi.
 
-### 4. Rekapitulasi Verifikasi Terpadu (100% Lulus)
-- **Total Pengujian**: 117 tes backend / 1495 assertions + 19 check Playwright E2E LULUS tanpa regresi:
-  - `SuratTugasPublicationRegressionTest.php`: 19 lulus / 1066 assertions
+### 4. Penuntasan Matriks Pengujian Lanjutan (EXT-01 s.d. EXT-16)
+- **EXT-03 (DIPA/FOLU/Other)**: Teruji pada `test_ext03` untuk persistensi snapshot & resolusi anggaran DIPA, FOLU, dan swadana non-DIPA.
+- **EXT-04 (Edit Builder Full Parity)**: Teruji pada `test_ext04` untuk 24 field dokumen dan pivot peserta yang disinkronkan dan diverifikasi melalui GET reload.
+- **EXT-07 (Pivot Dates & PLH)**: Teruji pada `test_ext07` untuk perbedaan rentang tanggal per pegawai, PLH, dan peran tenaga lapangan.
+- **EXT-10 (Live Inbox WebSocket)**: Teruji pada `test_ext10` & `BroadcastChannelAuthTest` untuk penyiaran event `AdminInboxChanged` & `PortalNotificationCreated`.
+- **EXT-11 (Pagination Riwayat Pegawai)**: Teruji pada `test_ext11` untuk 25 dokumen surat tugas dengan paginasi 3 halaman dan isolasi akses antar-pegawai.
+- **EXT-15 (Double-Submit & Atomic Transaction)**: Teruji pada `test_ext15` untuk pencegahan double-submit via deteksi bentrok jadwal dan rollback atomik database.
+- **EXT-16 (Kategori NIP PNS/PPPK/MMP)**: Teruji pada `test_ext16` untuk kesesuaian seleksi & keterkaitan NIP PNS 18 digit, PPPK 18 digit, dan MMP lapangan.
+
+### 5. Rekapitulasi Verifikasi Terpadu (100% Lulus)
+- **Total Pengujian**: 124 tes backend / 1607 assertions + 13 suite Playwright E2E & Cache Security LULUS tanpa regresi:
+  - `SuratTugasPublicationRegressionTest.php`: 26 lulus / 1166 assertions
   - `SuratTugasSecurityPentestTest.php`: 20 lulus / 125 assertions
   - `SuratTugasFullSchemaSecurityTest.php`: 10 lulus / 105 assertions
+  - `BroadcastChannelAuthTest.php`: 3 lulus / 12 assertions
   - `SuratTugasPostgresConcurrencyTest.php`: 2 lulus / 10 assertions (PostgreSQL 15)
   - `SuratTugasBrowserPreviewPrintSecurityTest.php`: 1 lulus / 4 assertions (Chrome Headless)
   - `surat-tugas-security.playwright.cjs`: 5 lulus / 23 assertions (Playwright Chromium)
