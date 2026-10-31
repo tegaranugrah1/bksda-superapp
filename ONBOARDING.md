@@ -26,10 +26,11 @@
 |-------|-----------|
 | Frontend | Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui |
 | Backend | Laravel 11 (PHP 8.2) — Arsitektur Modular (`app/Modules/`) |
-| Database | PostgreSQL via Supabase (Connection Pooler port 6543) |
-| Storage | Supabase Storage (S3-compatible) via `SupabaseStorageService` |
-| Auth | Laravel Sanctum — Bearer Token (7 hari expiry) |
-| Deployment | Vercel (Frontend + Backend Serverless) |
+| Database | PostgreSQL 15 via Docker / Dokploy |
+| Storage | RustFS (S3-compatible) & Local Storage |
+| Auth | Laravel Sanctum — Bearer Token dengan Role & Permission Granular |
+| Testing | PHPUnit (Unit/Feature/Concurrency/Browser) + Playwright (Frontend Security E2E) |
+| Deployment | Self-hosted Docker Compose via Dokploy (https://bksdakaltim.web.id / https://bksdakaltim.net) |
 
 ---
 
@@ -99,16 +100,15 @@ Semua pekerjaan diatur via **125 issue specs** di `docs/issues/`. Setiap file be
 | 1 | #001–#008 | ✅ Done | Project Init & Foundation (DB, Docker, IDE Helper) |
 | 2 | #009–#021 | ✅ Done | IAM & Auth (Sanctum, Roles, Login UI) |
 | 3 | #022–#034 | ✅ Done | Kepegawaian Module (Pegawai CRUD, Admin Layout, IAM) |
-| 4 | #035–#045 | ✅ Done | Surat Tugas Module |
-| 5 | #046–#059 | ✅ Done | Inventory Module |
-| 6 | #060–#076 | ✅ Done | BMN Module |
-| 7 | #077–#090 | 📋 Spec | DeReporting Module |
-| 8 | #091–#108 | 📋 Spec | CMS Module (Public Web & Admin) |
-| 9 | #109–#115 | ✅ Done | UI Components & Utilities |
-| 10 | #116–#125 | ✅ Done | DevOps & Deployment |
+| 4 | #035–#045 | ✅ Done | Surat Tugas Module (Builder, QR, Approval, Concurrency Lock, XSS Sink Protection) |
+| 5 | #046–#059 | ✅ Done | Inventory Module (Stok Barang & Permohonan) |
+| 6 | #060–#076 | ✅ Done | BMN Module (Aset Negara, Lelang, Berita Acara, RustFS Media) |
+| 7 | #077–#090 | ✅ Done | DeReporting & Keuangan SPD/Visum (Smart Patrol, Visum DIPA/FOLU Net Sink 2030) |
+| 8 | #091–#108 | ✅ Done | CMS Module (Website Publik & Admin Berita/Kawasan) |
+| 9 | #109–#115 | ✅ Done | UI Components & Utilities (shadcn/ui, Layout & Themes) |
+| 10 | #116–#125 | ✅ Done | DevOps, Hardening & Security Pentest (Dokploy, Concurrency Serialization, Playwright E2E) |
 
-> **Phase 1–3, 9, 10 sudah selesai.** Phase 4–8 belum diimplementasi.
-
+> **Seluruh Fase 1–10 telah selesai diimplementasikan.** Status saat ini adalah pemeliharaan operasional, security hardening, dan verifikasi otomatis (PHPUnit + Playwright).
 ### 🎨 PENTING: Standar Kualitas Frontend (UI Overhaul)
 Setiap kali sebuah Phase (misalnya Phase 2, Phase 3, dst) selesai dikerjakan berdasarkan urutan Issue-nya, **WAJIB** melakukan pengecekan ulang terhadap *Frontend* referensi di `e:\superapp-inventory\`. 
 
@@ -161,17 +161,17 @@ File rules lengkap ada di workspace (`rules.md`), ringkasan kunci:
 |----------|-----------|------------|
 | `APP_DEBUG` | `true` | **`false`** |
 | `DB_CONNECTION` | `pgsql` | `pgsql` |
-| `DB_PORT` | `5432` | `6543` (pooler!) |
-| `SESSION_DRIVER` | `database` | `array` (Vercel!) |
-| `LOG_CHANNEL` | `stack` | `stderr` (Vercel!) |
-| `FRONTEND_URL` | `http://localhost:3000` | `https://bksda-superapp.vercel.app` |
+| DB_PORT | 5432 | 5432 (Docker / Dokploy) |
+| SESSION_DRIVER | database | database |
+| LOG_CHANNEL | stack | daily / stderr |
+| FRONTEND_URL | http://localhost:3000 | https://bksdakaltim.web.id |
 
 ### Frontend (.env.local)
 
 | Variable | Dev Value | Prod Value |
 |----------|-----------|------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | `https://backend-bksda.vercel.app` |
-| `NEXT_PUBLIC_STORAGE_URL` | — | `https://xxx.supabase.co/storage/v1/object/public/cms` |
+| NEXT_PUBLIC_API_URL | http://localhost:8000 | https://api.bksdakaltim.web.id |
+| NEXT_PUBLIC_STORAGE_URL | — | https://api.bksdakaltim.web.id/storage |
 
 ---
 

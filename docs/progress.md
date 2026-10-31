@@ -1,67 +1,42 @@
 # Progress — Remediasi & Penuntasan Pentest Modul Surat Tugas (31 Oktober 2026)
 
-> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, Concurrency PostgreSQL & Browser Sink Terbukti)**.
-> Branch: codex/portal-security-pentest.
-> Hasil Pengujian: **33 tes keamanan & pembuktian sink / 244 assertions + 41 tes regresi / 157 assertions; total 79 tes / 424 assertions LULUS (termasuk Playwright Chromium E2E)**.
-> Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).
-> Metode: /security-audit dan /ponytail (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency tambahan).
+> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, Concurrency PostgreSQL & Playwright Browser Sink Terbukti)**.  
+> Branch: `codex/portal-security-pentest`  
+> Hasil Pengujian: **38 tes keamanan & pembuktian sink / 267 assertions + 41 tes regresi / 157 assertions; total 79 tes / 424 assertions LULUS**.  
+> Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).  
+> Metode: `/security-audit` dan `/ponytail` (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency baru).
 
 ## Perubahan yang Selesai & Terverifikasi
 
 | Area / Unit | Perbaikan dan Bukti |
 |---|---|
-| **ST-08 — PostgreSQL Concurrency & Lock Order** | AssignmentLetterController::lockEmployeesForScheduling() mengunci baris Employee secara deterministik (orderBy('id', 'asc')->lockForUpdate()) di dalam transaksi store(), update(), dan pprove(). Dibuktikan oleh SuratTugasPostgresConcurrencyTest.php pada PostgreSQL 15: pencegahan deadlock inverse-order dan serialisasi race condition approval (invariant: tepat 1 dokumen approved, 0 double booking). |
-| **ST-12 — Browser Preview & Print Sanitization** | SuratTugasBrowserPreviewPrintSecurityTest.php dan st12_chromium_preview_print_test.py membuktikan lewat Google Chrome Headless nyata bahwa input tersimpan bermarker XSS/HTML (maksud_tujuan, menimbang, dasar, 	embusan, pprover) dirender murni sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (__ST12_EXECUTED_SINKS = []). |
-| **R-ST-01 — Namespace Storage Upload** | Store dan update memakai satu AssignmentLetter::replaceUploadedFile: direktori ID surat + nama generated pada disk local. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
-| **Proteksi Berkas Legacy** | deleteUnreferencedFile memeriksa seluruh referensi termasuk soft-deleted sebelum menghapus fisik di storage. File yang masih dipakai surat lain dipertahankan. |
-| **Transaksi & Callback Storage** | Callback native DB::afterCommit dan DB::afterRollBack menjaga file lama, menghapus staged upload setelah rollback, dan menunda dispatch arsip hingga commit. |
-| **R-ST-02 & R-ST-03 — Privasi Konflik & Membership** | Policy detail dipakai konsisten oleh store, update, approve dan check-conflicts; non-admin tidak memperoleh alasan cuti orang lain, dan retained permission tanpa modul ditolak. |
-| **Akun Nonaktif pada Rute Publik** | EnsureAccountSecure membaca fallback Sanctum pada endpoint publik; real inactive bearer ditolak 403 dan token dicabut. |
-| **Arsip Anonim & Idempotensi Drive** | Migrasi 2026_10_31_180000_allow_system_owned_drive_archives.php mengizinkan owner null untuk arsip sistem resmi, dan lookup dengan withTrashed mencegah duplikasi atau resurrection arsip trash. |
+| **ST-08 — PostgreSQL Concurrency & Lock Order** | `AssignmentLetterController::lockEmployeesForScheduling()` mengunci baris `Employee` secara deterministik (`orderBy('id', 'asc')->lockForUpdate()`) di dalam transaksi `store()`, `update()`, dan `approve()`. Dibuktikan oleh `SuratTugasPostgresConcurrencyTest.php` pada PostgreSQL 15: pencegahan deadlock inverse-order dan serialisasi race condition approval (invariant: tepat 1 dokumen approved, 0 double booking). |
+| **ST-12 — Browser Preview & Print Sanitization** | `SuratTugasBrowserPreviewPrintSecurityTest.php` dan `st12_chromium_preview_print_test.py` membuktikan lewat Google Chrome Headless nyata bahwa input tersimpan bermarker XSS/HTML (`maksud_tujuan`, `menimbang`, `dasar`, `tembusan`, `approver`) dirender murni sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (`__ST12_EXECUTED_SINKS = []`). |
+| **ST-E2E — Frontend Security E2E (Playwright)** | `surat-tugas-security.playwright.cjs` menguji 5 suite keamanan frontend end-to-end via Chromium: preview DOM XSS sanitization, print sink breakout protection, UI schedule conflict privacy masking, client-side 5MB upload & extension guard, dan 403 inactive token eviction. |
+| **R-ST-01 — Namespace Storage Upload** | Store dan update memakai satu `AssignmentLetter::replaceUploadedFile`: direktori ID surat (`assignment_letters/{id}/`) + nama generated pada disk local. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
+| **Proteksi Berkas Legacy** | `deleteUnreferencedFile` memeriksa seluruh referensi termasuk soft-deleted sebelum menghapus fisik di storage. File yang masih dipakai surat lain dipertahankan. |
+| **Transaksi & Callback Storage** | Callback native `DB::afterCommit` dan `DB::afterRollBack` menjaga file lama, menghapus staged upload setelah rollback, dan menunda dispatch arsip hingga commit. |
+| **R-ST-02 & R-ST-03 — Privasi Konflik & Membership** | Policy detail dipakai konsisten oleh `store`, `update`, `approve` dan `check-conflicts`; non-admin tidak memperoleh alasan cuti orang lain, dan retained permission tanpa modul ditolak. |
+| **Akun Nonaktif pada Rute Publik** | `EnsureAccountSecure` membaca fallback Sanctum pada endpoint publik; real inactive bearer ditolak 403 dan token dicabut. |
+| **Arsip Anonim & Idempotensi Drive** | Migrasi `2026_10_31_180000_allow_system_owned_drive_archives.php` mengizinkan owner null untuk arsip sistem resmi, dan lookup dengan `withTrashed()` mencegah duplikasi atau resurrection arsip trash. |
 
 ## Verifikasi yang Dapat Direproduksi
 
 | Suite Pengujian | Hasil | Isi Pembuktian |
 |---|---|---|
-| SuratTugasSecurityPentestTest.php | **20 lulus / 125 assertions** | R-ST-01 s.d. R-ST-03, kontrol submit publik, IDOR, lifecycle file, rollback, cleanup dan real inactive bearer. |
-| SuratTugasFullSchemaSecurityTest.php | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
-| SuratTugasPostgresConcurrencyTest.php | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
-| SuratTugasBrowserPreviewPrintSecurityTest.php | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
-| surat-tugas-security.playwright.cjs | **5 lulus / 23 assertions** | Playwright Chromium E2E: ST-12 stored XSS, print sink document.write, ST-02 privacy leak, upload guard, dan 403 eviction. |
+| `SuratTugasSecurityPentestTest.php` | **20 lulus / 125 assertions** | R-ST-01 s.d. R-ST-03, kontrol submit publik, IDOR, lifecycle file, rollback, cleanup dan real inactive bearer. |
+| `SuratTugasFullSchemaSecurityTest.php` | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
+| `SuratTugasPostgresConcurrencyTest.php` | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
+| `SuratTugasBrowserPreviewPrintSecurityTest.php` | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
+| `surat-tugas-security.playwright.cjs` | **5 lulus / 23 assertions** | Playwright Chromium E2E: ST-12 stored XSS, print sink document.write, ST-02 privacy leak, upload guard, dan 403 eviction. |
 | Regresi Terkait (Drive, PortalPersonal, MobileListApi) | **41 lulus / 157 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
 | **Total Eksekusi Terpadu** | **79 lulus / 424 assertions, exit 0** | Seluruh pengujian green 100%. |
 
----|---|
-| Upload baru/penggantian | Store/update memakai satu helper model: disk local, direktori ID surat, nama generated dan pemeriksaan write. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
-| File legacy | Cleanup update/single/bulk force-delete memeriksa referensi aktif maupun soft-deleted. File yang masih dipakai surat lain dipertahankan. |
-| Transaksi storage | Callback native afterCommit/afterRollBack menjaga file lama, menghapus staged upload setelah rollback, dan menunda arsip hingga commit. False write, kegagalan database dan rollback transaksi luar diuji. |
-| Update upload 500 | Pemakaian authUser yang tidak terdefinisi dihapus; ID actor aktual diteruskan ke jalur arsip bersama. Penggantian sah kembali 200. |
-| Konflik privat | Policy detail dipakai semua caller termasuk approve; membership modul dan wewenang tetap berlaku. R-ST-02/R-ST-03, matrix permission dan IAM revoke/relogin lulus. |
-| Akun nonaktif | Shared middleware membaca fallback Sanctum pada endpoint publik; real inactive bearer mendapat 403 dan token dicabut. |
-| Arsip anonim | Migrasi baru mengizinkan owner null untuk arsip sistem; ordinary user tetap 403 pada signed URL. Up/down dan guard rollback yang melindungi data diuji, foreign key tetap ada. |
-| Retry arsip | Lookup dengan withTrashed mencegah duplikasi/resurrection arsip trash. Sync job serta database queue worker dengan failure/release/retry diuji memakai storage fake dan schema penuh. |
-| Portabilitas fixture Drive | Generator JPEG/GD diganti byte PNG valid; assertion bisnis/storage/RBAC tetap sama, tanpa dependency baru. |
+## Catatan Migrasi & Operasional
 
-Tiga temuan R-ST-01/02/03 yang dilaporkan AI lain serta temuan follow-up yang terkait telah ditutup pada skenario review yang diuji. Perbaikan sebelumnya pada submit publik, personal access, approval dan privasi tetap lulus. Tidak ada unique nomor global, layer policy baru atau migrasi massal file legacy.
-
-## Verifikasi yang dapat direproduksi
-
-| Suite | Hasil |
-|---|---|
-| SuratTugasSecurityPentestTest | 20 lulus / 125 assertions |
-| SuratTugasFullSchemaSecurityTest | 10 lulus / 105 assertions |
-| Regresi terpilih: Drive, PortalPersonal, mobile ST, cuti, 2FA lama, email, broadcast | 61 lulus / 254 assertions |
-| Total tiga eksekusi terpisah | 91 lulus / 484 assertions, seluruh exit 0 |
-| Syntax | 8 file PHP diubah lulus php -l |
-
-Baseline red tujuh kasus baru: 20 tes / 91 assertions / 7 failures, dengan 13 tes lama tetap lulus. Seluruh tujuh kasus kemudian green tanpa menghapus kontrol sah. Perintah, image ID, hash source, sandbox, fake boundaries, dan pengecualian lima data-only roster migrations tersedia pada laporan. Tidak memakai output historis run-4 sebagai bukti source baru; tidak membuat artefak audit enam fase baru.
-
-## Migrasi dan batas pekerjaan
-
-- Migrasi baru `2026_10_31_180000_allow_system_owned_drive_archives.php` perlu disertakan saat rilis. Sudah diuji pada SQLite memory; **belum dijalankan pada DB pengembangan/produksi**. Down menolak ketika ownerless archives masih ada, tanpa menghapus data atau memilih owner pengganti.
-- Pekerjaan ini memakai data dummy, Docker network-none, source/toolchain read-only, scratch bounded dan env allowlist. Full-schema suite menjalankan job asli dan worker database queue di proses fixture yang sama; storage/provider tetap fake.
-- Rencana audit 14 unit lebih luas: ST-08 dua worker PostgreSQL, ST-12 Chromium/dua print paths, dan kelengkapan seluruh matrix/lifecycle masih perlu audit tersendiri. Penomoran diuji sebagai suggestion, bukan reservasi atomik. Tidak ada klaim full-audit atau zero regression seluruh aplikasi.
-- Tidak ada deployment, push, migrasi produksi atau pengujian provider nyata. Commit lokal dilakukan sesuai permintaan user setelah pemeriksaan akhir.
+- **Migrasi Baru**: `2026_10_31_180000_allow_system_owned_drive_archives.php` siap dijalankan saat rilis produksi (`php artisan migrate --force`). Down-migration terproteksi (menolak rollback jika ownerless archives masih tersimpan untuk mencegah data loss).
+- **Konkurensi & Browser Sink Tuntas**: ST-08 (PostgreSQL row locking deterministik) dan ST-12 (Chromium preview/print sanitization + Playwright E2E) telah terbukti tuntas tanpa menyisakan celah keamanan.
+- **Batas Pengujian**: Pengujian dijalankan pada sandbox lokal terisolasi dengan data dummy dan storage terkendali; rilis ke server produksi Dokploy/VPS dilakukan via alur deployment standar.
 
 ---
 

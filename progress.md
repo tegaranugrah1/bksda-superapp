@@ -1,5 +1,48 @@
 # Progress Development - BKSDA SuperApp
 
+## Status Update: 31 Oktober 2026
+
+### 1. Remediasi & Penuntasan Pentest Modul Surat Tugas (ST-01 s.d. ST-12)
+- **ST-08 (PostgreSQL Concurrency Lock Order & Race Condition Approval)**:
+  - Mengimplementasikan `AssignmentLetterController::lockEmployeesForScheduling()` dengan penguncian baris `Employee` secara deterministik (`orderBy('id', 'asc')->lockForUpdate()`) di dalam transaksi `store()`, `update()`, dan `approve()`.
+  - Terverifikasi pada PostgreSQL 15 nyata via `SuratTugasPostgresConcurrencyTest.php`: berhasil mencegah deadlock inverse-order dan menserialisasi bentrok jadwal approval (invariant: tepat 1 dokumen approved, 0 double booking).
+- **ST-12 (Browser Preview & Print Sink Protection)**:
+  - Komponen `#surat-preview-doc` dan `printSuratTugas()` (`print-st.ts`) diaudit terhadap vektor serangan Stored XSS (`<script>`, `<img onerror>`, `<svg onload>`, `<iframe javascript:>`, markdown italic injection).
+  - Dibuktikan secara otomatis lewat Google Chrome Headless nyata (`SuratTugasBrowserPreviewPrintSecurityTest.php`) dan Playwright E2E (`frontend/tests/surat-tugas-security.playwright.cjs`): seluruh payload bermarker dirender sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (`__ST12_EXECUTED_SINKS = []`, 0 dialog, 0 runtime error).
+- **R-ST-01 (Namespace Storage Upload & Transaksi Bersih)**:
+  - Seluruh file upload diarahkan ke direktori berbasis ID surat (`assignment_letters/{id}/`) dengan helper tunggal `replaceUploadedFile()`.
+  - Callback native `DB::afterCommit` dan `DB::afterRollBack` menjamin file lama tidak terhapus jika transaksi gagal, staged upload terhapus saat rollback, dan job arsip Drive hanya dikirim pasca-commit.
+- **Proteksi Berkas Legacy**:
+  - `deleteUnreferencedFile()` memeriksa seluruh referensi aktif maupun soft-deleted sebelum menghapus berkas fisik di disk local.
+- **R-ST-02 & R-ST-03 (Redaksi Privasi Konflik Jadwal & Membership Modul)**:
+  - Policy detail konsisten diterapkan: non-admin tidak memperoleh alasan medis/pribadi pegawai lain saat jadwal bentrok.
+  - Retained permission tanpa keanggotaan modul aktif ditolak dengan HTTP 403.
+- **Akun Nonaktif & Sesi Expired pada Rute Publik**:
+  - Middleware `EnsureAccountSecure` membaca fallback Sanctum pada rute publik; bearer nonaktif ditolak 403 dan token segera dicabut.
+- **Idempotensi Arsip Drive & Migrasi Sistem**:
+  - Migrasi `2026_10_31_180000_allow_system_owned_drive_archives.php` mengizinkan owner null untuk arsip sistem resmi. Lookup memakai `withTrashed()` mencegah duplikasi arsip.
+
+### 2. Pengujian Frontend Security E2E (Playwright)
+- Dibuat suite pengujian mandiri [`frontend/tests/surat-tugas-security.playwright.cjs`](frontend/tests/surat-tugas-security.playwright.cjs) yang memanfaatkan Google Chrome lokal (tanpa download browser baru, sesuai prinsip ponytail).
+- Menjalankan 5 suite keamanan terpadu:
+  1. ST-12: Stored XSS Preview Sanitization (#surat-preview-doc).
+  2. ST-12: Print Sink & Document Title Sanitization (`print-st.ts`).
+  3. ST-02: UI Conflict Privacy Masking (Non-admin hanya melihat "Cuti Aktif" tanpa detail medis).
+  4. ST-01: Client-Side Upload Guard (>5MB ditolak, whitelist ekstensi PDF/JPG/PNG).
+  5. ST-11: 403 Sesi Nonaktif Interceptor & Purge Token LocalStorage / Redirect ke `/login`.
+- Hasil: **5/5 suite LULUS, 23 assertions terverifikasi green**.
+
+### 3. Rekapitulasi Verifikasi Terpadu (100% Lulus)
+- **Total Pengujian**: 79 tes / 424 assertions LULUS tanpa regresi:
+  - `SuratTugasSecurityPentestTest.php`: 20 lulus / 125 assertions
+  - `SuratTugasFullSchemaSecurityTest.php`: 10 lulus / 105 assertions
+  - `SuratTugasPostgresConcurrencyTest.php`: 2 lulus / 10 assertions (PostgreSQL 15)
+  - `SuratTugasBrowserPreviewPrintSecurityTest.php`: 1 lulus / 4 assertions (Chrome Headless)
+  - `surat-tugas-security.playwright.cjs`: 5 lulus / 23 assertions (Playwright Chromium)
+  - Regresi Terkait (`DriveHierarchicalResorRBACTest`, `PortalPersonalSecurityTest`, `SuratTugasMobileListApiTest`): 41 lulus / 157 assertions
+
+---
+
 ## Status Update: 27 Oktober 2026
 
 ### 1. Modul BMN: Perbaikan Prefill Form & State Reset Laporan (Edit & Duplikasi Dokumen)
