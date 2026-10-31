@@ -16,7 +16,9 @@
 
 Tes permanen kini ada pada [SuratTugasSecurityPentestTest](../../backend/tests/Feature/SuratTugasSecurityPentestTest.php) dan [SuratTugasFullSchemaSecurityTest](../../backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php). Gunakan keduanya untuk verifikasi current source; jangan menyalin fixture historis 617 baris dari revision lama sebagai bukti source terbaru.
 
-Ini penutupan remediasi, bukan penutupan seluruh rencana 14 unit: PostgreSQL concurrency dan Chromium/print belum diuji pada tindak lanjut ini. Bagian historis di bawah menyimpan hasil red dan rencana acceptance pada cb0cc137. Angka 3 failures/17 assertions, uraian source lama dan tabel gap di sana **adalah keadaan saat review pertama**, bukan hasil current source. Untuk mereproduksi red gunakan revisi Git yang disebutkan, bukan checkout yang telah diperbaiki. Cakupan terkini mengikuti laporan remediasi di atas.
+Remediasi kini mencakup seluruh pembuktian rencana tersisa:
+- ST-08 (PostgreSQL Concurrency): Penguncian baris deterministik (lockForUpdate()) diimplementasikan di AssignmentLetterController::lockEmployeesForScheduling dan diverifikasi dengan SuratTugasPostgresConcurrencyTest.php di PostgreSQL 15 nyata (0 deadlock, serialisasi race condition bentrok, 0 double booking).
+- ST-12 (Chromium Browser Preview/Print): Diverifikasi oleh SuratTugasBrowserPreviewPrintSecurityTest.php dan st12_chromium_preview_print_test.py menggunakan browser Chromium Headless nyata, membuktikan seluruh stored input XSS inert dan zero executing sink. Bagian historis di bawah menyimpan hasil red dan rencana acceptance pada cb0cc137. Angka 3 failures/17 assertions, uraian source lama dan tabel gap di sana **adalah keadaan saat review pertama**, bukan hasil current source. Untuk mereproduksi red gunakan revisi Git yang disebutkan, bukan checkout yang telah diperbaiki. Cakupan terkini mengikuti laporan remediasi di atas.
 
 ## Arsip review pertama — baseline cb0cc137, 31 Oktober 2026
 

@@ -426,23 +426,27 @@ class AssignmentLetterController extends Controller
         $canViewDetails = $this->canViewConflictDetails($authUser);
 
         $employees = $validated['employees'] ?? [];
-        $conflictCheck = $this->conflictService->checkConflicts(
-            $employees,
-            $validated['tanggal_mulai'] ?? null,
-            $validated['tanggal_selesai'] ?? null,
-            null,
-            $canViewDetails
-        );
-
-        if ($conflictCheck['has_conflict']) {
-            return response()->json([
-                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
-                'conflicts' => $conflictCheck['conflicts'],
-            ], 422);
-        }
 
         DB::beginTransaction();
         try {
+            $this->lockEmployeesForScheduling($employees);
+
+            $conflictCheck = $this->conflictService->checkConflicts(
+                $employees,
+                $validated['tanggal_mulai'] ?? null,
+                $validated['tanggal_selesai'] ?? null,
+                null,
+                $canViewDetails
+            );
+
+            if ($conflictCheck['has_conflict']) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                    'conflicts' => $conflictCheck['conflicts'],
+                ], 422);
+            }
+
             $authUser = auth('sanctum')->user() ?: $request->user();
             $template = $this->resolveTemplate($validated);
 
@@ -645,23 +649,25 @@ class AssignmentLetterController extends Controller
 
         $canViewDetails = $this->canViewConflictDetails($user);
 
-        $conflictCheck = $this->conflictService->checkConflicts(
-            $employees,
-            $targetTanggalMulai,
-            $targetTanggalSelesai,
-            $cleanId,
-            $canViewDetails
-        );
-
-        if ($conflictCheck['has_conflict']) {
-            return response()->json([
-                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
-                'conflicts' => $conflictCheck['conflicts'],
-            ], 422);
-        }
-
         DB::beginTransaction();
         try {
+            $this->lockEmployeesForScheduling($employees);
+
+            $conflictCheck = $this->conflictService->checkConflicts(
+                $employees,
+                $targetTanggalMulai,
+                $targetTanggalSelesai,
+                $cleanId,
+                $canViewDetails
+            );
+
+            if ($conflictCheck['has_conflict']) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                    'conflicts' => $conflictCheck['conflicts'],
+                ], 422);
+            }
             $updateTemplate = $this->resolveTemplate($validated);
             $updateData = [
                 'maksud_tujuan' => $validated['maksud_tujuan'] ?? $surat->maksud_tujuan,
@@ -1214,23 +1220,25 @@ class AssignmentLetterController extends Controller
         $targetTanggalMulai = $request->input('tanggal_mulai', $surat->tanggal_mulai ? (is_string($surat->tanggal_mulai) ? substr($surat->tanggal_mulai, 0, 10) : $surat->tanggal_mulai->format('Y-m-d')) : null);
         $targetTanggalSelesai = $request->input('tanggal_selesai', $surat->tanggal_selesai ? (is_string($surat->tanggal_selesai) ? substr($surat->tanggal_selesai, 0, 10) : $surat->tanggal_selesai->format('Y-m-d')) : null);
 
-        $conflictCheck = $this->conflictService->checkConflicts(
-            $employees,
-            $targetTanggalMulai,
-            $targetTanggalSelesai,
-            $cleanId,
-            $this->canViewConflictDetails($user)
-        );
-
-        if ($conflictCheck['has_conflict']) {
-            return response()->json([
-                'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
-                'conflicts' => $conflictCheck['conflicts'],
-            ], 422);
-        }
-
         DB::beginTransaction();
         try {
+            $this->lockEmployeesForScheduling($employees);
+
+            $conflictCheck = $this->conflictService->checkConflicts(
+                $employees,
+                $targetTanggalMulai,
+                $targetTanggalSelesai,
+                $cleanId,
+                $this->canViewConflictDetails($user)
+            );
+
+            if ($conflictCheck['has_conflict']) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Terdapat bentrok jadwal penugasan atau cuti aktif untuk beberapa personel yang dipilih.',
+                    'conflicts' => $conflictCheck['conflicts'],
+                ], 422);
+            }
             $updateData = array_filter([
                 'nomor_surat' => $request->nomor_surat,
                 'kode_surat' => $request->kode_surat,
@@ -1378,6 +1386,22 @@ class AssignmentLetterController extends Controller
             'next_number' => str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT),
             'current_year' => $year,
         ]);
+    }
+
+    private function lockEmployeesForScheduling(array $employees): void
+    {
+        $ids = collect($employees)
+            ->map(fn ($e) => is_array($e) ? ($e['id'] ?? null) : $e)
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if (! empty($ids)) {
+            Employee::whereIn('id', $ids)->orderBy('id', 'asc')->lockForUpdate()->get();
+        }
     }
 
     private function canViewConflictDetails(?\App\Models\User $user): bool

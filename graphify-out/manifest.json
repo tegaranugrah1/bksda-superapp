@@ -1055,8 +1055,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
-    "mtime": 1793432453.338281,
-    "ast_hash": "4164ce26b84919ae4d1859721f37ddb9",
+    "mtime": 1793442421.5258412,
+    "ast_hash": "ac655f1d47e46f8ec11f0518e7059acb",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_05_09_000001_create_st_assignment_letters_table.php": {
@@ -1110,8 +1110,8 @@
     "semantic_hash": "ef1cca231a7e138e45bb92c678384ebf"
   },
   "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php": {
-    "mtime": 1793092074.2711618,
-    "ast_hash": "aacc0ff762a76bacc826c5538e57f18d",
+    "mtime": 1793440334.4631252,
+    "ast_hash": "07450933e06f39df20b9fdcdda673c09",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Models/AssignmentLetterEmployee.php": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793432623.5815966,
-    "ast_hash": "a082b60c326fa41ea325860a7b1afdfe",
+    "mtime": 1793442784.4015286,
+    "ast_hash": "9cb24f8107afad303d8aa12fc30fc494",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -7090,13 +7090,13 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/EnsureAccountSecure.php": {
-    "mtime": 1793405256.6931717,
-    "ast_hash": "7d827cfd22bdacaf4bb319f891856a1b",
+    "mtime": 1793439111.899791,
+    "ast_hash": "ebe12eb75344ee073ff70c56639edfa8",
     "semantic_hash": ""
   },
   "backend/app/Jobs/ArchiveOfficialDocument.php": {
-    "mtime": 1793264480.2209089,
-    "ast_hash": "739c1cef7005c68886f18252f6a99fd9",
+    "mtime": 1793439660.4916432,
+    "ast_hash": "f49d39cb85bb39da351d5e039738372c",
     "semantic_hash": ""
   },
   "backend/app/Jobs/QueueHeartbeat.php": {
@@ -7370,8 +7370,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/DriveHierarchicalResorRBACTest.php": {
-    "mtime": 1793401089.9549384,
-    "ast_hash": "70dd35171cf3e77a33a3915522094f46",
+    "mtime": 1793440123.8466768,
+    "ast_hash": "6eb0954b4be465f29b3c355b26147cdc",
     "semantic_hash": ""
   },
   "docs/hierarchical-drive-and-resor-rbac/design.md": {
@@ -7410,8 +7410,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/SuratTugasSecurityPentestTest.php": {
-    "mtime": 1793432291.8028364,
-    "ast_hash": "9ccb9ab404ab5268b4cc93885ccff353",
+    "mtime": 1793439858.713958,
+    "ast_hash": "cfd896540b35e154142149713f216834",
     "semantic_hash": ""
   },
   "backend/tests/Security/leave-concurrency.php": {
@@ -7450,18 +7450,43 @@
     "semantic_hash": ""
   },
   "docs/security/surat-tugas-security-pentest-2026-10-31.md": {
-    "mtime": 1793432598.212591,
-    "ast_hash": "09396fcdc9e2064201cf89464682fbbc",
+    "mtime": 1793442755.0972495,
+    "ast_hash": "4ddf22e3c7e9d13e60296d0d5465b653",
     "semantic_hash": ""
   },
   "docs/security/surat-tugas-security-pentest-plan.md": {
-    "mtime": 1793420782.2877874,
-    "ast_hash": "dd7a6d45b7790a2687180ab8774c72c9",
+    "mtime": 1793440673.3561416,
+    "ast_hash": "ed74145acc5ad43e14359dfdcf71283f",
     "semantic_hash": ""
   },
   "docs/security/surat-tugas-security-review-handoff-2026-10-31.md": {
-    "mtime": 1793432544.185638,
-    "ast_hash": "c612699de19a7c9134140773fe5b5fb5",
+    "mtime": 1793442767.2281914,
+    "ast_hash": "1041637837ef7fa369c37991fed7415c",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_10_31_180000_allow_system_owned_drive_archives.php": {
+    "mtime": 1793439660.4906447,
+    "ast_hash": "1c0c27f47df63b336b9efcb1bb5996aa",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/SuratTugasBrowserPreviewPrintSecurityTest.php": {
+    "mtime": 1793442689.274796,
+    "ast_hash": "5d4e077003abca4c64eb770080312eb2",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php": {
+    "mtime": 1793440672.6604083,
+    "ast_hash": "02da6c09dbb742d98a1bb08f0e3e2b1a",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/SuratTugasPostgresConcurrencyTest.php": {
+    "mtime": 1793442631.5173526,
+    "ast_hash": "9c441b509f2f05c352497f9b3f7f45a1",
+    "semantic_hash": ""
+  },
+  "backend/tests/Security/st12_chromium_preview_print_test.py": {
+    "mtime": 1793442674.0974612,
+    "ast_hash": "c99e57cb701dc7f9d4514717d7dcda78",
     "semantic_hash": ""
   }
 }

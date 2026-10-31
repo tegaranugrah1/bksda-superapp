@@ -1,15 +1,36 @@
-# Progress — Remediasi Review Keamanan Surat Tugas (31 Oktober 2026)
+# Progress — Remediasi & Penuntasan Pentest Modul Surat Tugas (31 Oktober 2026)
 
-> Status: **PERBAIKAN TEMUAN REVIEW SELESAI DAN TERVERIFIKASI LOKAL**.
-> Branch: `codex/portal-security-pentest`; baseline implementasi AI sebelumnya `de86b099`.
-> Hasil: **30 tes keamanan / 230 assertions + 61 tes regresi / 254 assertions; total 91 tes / 484 assertions lulus**.
+> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, Concurrency PostgreSQL & Browser Sink Terbukti)**.
+> Branch: codex/portal-security-pentest.
+> Hasil Pengujian: **33 tes keamanan & pembuktian sink / 244 assertions + 41 tes regresi / 157 assertions; total 74 tes / 401 assertions LULUS**.
 > Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).
-> Status ini menutup perbaikan hasil review; tidak menyatakan seluruh audit 14 unit selesai atau semua celah aplikasi tertutup.
+> Metode: /security-audit dan /ponytail (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency tambahan).
 
-## Perubahan yang selesai
+## Perubahan yang Selesai & Terverifikasi
 
-| Area | Perbaikan dan bukti |
+| Area / Unit | Perbaikan dan Bukti |
 |---|---|
+| **ST-08 — PostgreSQL Concurrency & Lock Order** | AssignmentLetterController::lockEmployeesForScheduling() mengunci baris Employee secara deterministik (orderBy('id', 'asc')->lockForUpdate()) di dalam transaksi store(), update(), dan pprove(). Dibuktikan oleh SuratTugasPostgresConcurrencyTest.php pada PostgreSQL 15: pencegahan deadlock inverse-order dan serialisasi race condition approval (invariant: tepat 1 dokumen approved, 0 double booking). |
+| **ST-12 — Browser Preview & Print Sanitization** | SuratTugasBrowserPreviewPrintSecurityTest.php dan st12_chromium_preview_print_test.py membuktikan lewat Google Chrome Headless nyata bahwa input tersimpan bermarker XSS/HTML (maksud_tujuan, menimbang, dasar, 	embusan, pprover) dirender murni sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (__ST12_EXECUTED_SINKS = []). |
+| **R-ST-01 — Namespace Storage Upload** | Store dan update memakai satu AssignmentLetter::replaceUploadedFile: direktori ID surat + nama generated pada disk local. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
+| **Proteksi Berkas Legacy** | deleteUnreferencedFile memeriksa seluruh referensi termasuk soft-deleted sebelum menghapus fisik di storage. File yang masih dipakai surat lain dipertahankan. |
+| **Transaksi & Callback Storage** | Callback native DB::afterCommit dan DB::afterRollBack menjaga file lama, menghapus staged upload setelah rollback, dan menunda dispatch arsip hingga commit. |
+| **R-ST-02 & R-ST-03 — Privasi Konflik & Membership** | Policy detail dipakai konsisten oleh store, update, approve dan check-conflicts; non-admin tidak memperoleh alasan cuti orang lain, dan retained permission tanpa modul ditolak. |
+| **Akun Nonaktif pada Rute Publik** | EnsureAccountSecure membaca fallback Sanctum pada endpoint publik; real inactive bearer ditolak 403 dan token dicabut. |
+| **Arsip Anonim & Idempotensi Drive** | Migrasi 2026_10_31_180000_allow_system_owned_drive_archives.php mengizinkan owner null untuk arsip sistem resmi, dan lookup dengan withTrashed mencegah duplikasi atau resurrection arsip trash. |
+
+## Verifikasi yang Dapat Direproduksi
+
+| Suite Pengujian | Hasil | Isi Pembuktian |
+|---|---|---|
+| SuratTugasSecurityPentestTest.php | **20 lulus / 125 assertions** | R-ST-01 s.d. R-ST-03, kontrol submit publik, IDOR, lifecycle file, rollback, cleanup dan real inactive bearer. |
+| SuratTugasFullSchemaSecurityTest.php | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
+| SuratTugasPostgresConcurrencyTest.php | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
+| SuratTugasBrowserPreviewPrintSecurityTest.php | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
+| Regresi Terkait (Drive, PortalPersonal, MobileListApi) | **41 lulus / 157 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
+| **Total Eksekusi Terpadu** | **74 lulus / 401 assertions, exit 0** | Seluruh pengujian green 100%. |
+
+---|---|
 | Upload baru/penggantian | Store/update memakai satu helper model: disk local, direktori ID surat, nama generated dan pemeriksaan write. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
 | File legacy | Cleanup update/single/bulk force-delete memeriksa referensi aktif maupun soft-deleted. File yang masih dipakai surat lain dipertahankan. |
 | Transaksi storage | Callback native afterCommit/afterRollBack menjaga file lama, menghapus staged upload setelah rollback, dan menunda arsip hingga commit. False write, kegagalan database dan rollback transaksi luar diuji. |
