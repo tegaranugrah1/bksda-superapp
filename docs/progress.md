@@ -2,7 +2,7 @@
 
 > Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, Concurrency PostgreSQL & Browser Sink Terbukti)**.
 > Branch: codex/portal-security-pentest.
-> Hasil Pengujian: **33 tes keamanan & pembuktian sink / 244 assertions + 41 tes regresi / 157 assertions; total 74 tes / 401 assertions LULUS**.
+> Hasil Pengujian: **33 tes keamanan & pembuktian sink / 244 assertions + 41 tes regresi / 157 assertions; total 79 tes / 424 assertions LULUS (termasuk Playwright Chromium E2E)**.
 > Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).
 > Metode: /security-audit dan /ponytail (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency tambahan).
 
@@ -27,8 +27,9 @@
 | SuratTugasFullSchemaSecurityTest.php | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
 | SuratTugasPostgresConcurrencyTest.php | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
 | SuratTugasBrowserPreviewPrintSecurityTest.php | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
+| surat-tugas-security.playwright.cjs | **5 lulus / 23 assertions** | Playwright Chromium E2E: ST-12 stored XSS, print sink document.write, ST-02 privacy leak, upload guard, dan 403 eviction. |
 | Regresi Terkait (Drive, PortalPersonal, MobileListApi) | **41 lulus / 157 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
-| **Total Eksekusi Terpadu** | **74 lulus / 401 assertions, exit 0** | Seluruh pengujian green 100%. |
+| **Total Eksekusi Terpadu** | **79 lulus / 424 assertions, exit 0** | Seluruh pengujian green 100%. |
 
 ---|---|
 | Upload baru/penggantian | Store/update memakai satu helper model: disk local, direktori ID surat, nama generated dan pemeriksaan write. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |

@@ -1555,8 +1555,8 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1793405412.901178,
-    "ast_hash": "9bdaa7f64a86035ec5222535e4b39e5a",
+    "mtime": 1793444252.5881152,
+    "ast_hash": "1f8490281294d3cef038621e3b2cb473",
     "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793442784.4015286,
-    "ast_hash": "9cb24f8107afad303d8aa12fc30fc494",
+    "mtime": 1793444350.8611991,
+    "ast_hash": "e7ea1b3d375eb0fcc46168230e445d0a",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -7487,6 +7487,11 @@
   "backend/tests/Security/st12_chromium_preview_print_test.py": {
     "mtime": 1793442674.0974612,
     "ast_hash": "c99e57cb701dc7f9d4514717d7dcda78",
+    "semantic_hash": ""
+  },
+  "frontend/tests/surat-tugas-security.playwright.cjs": {
+    "mtime": 1793444222.383089,
+    "ast_hash": "c089edaf98091636d18b3522862830d9",
     "semantic_hash": ""
   }
 }
