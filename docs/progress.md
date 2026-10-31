@@ -1,9 +1,60 @@
-# Progress — Pentest dan Perbaikan Keamanan Portal (31 Oktober 2026)
+# Progress — Keamanan Portal dan Panduan Pentest (31 Oktober 2026)
 
 > Branch: `codex/portal-security-pentest`
-> Status: **SELESAI LOKAL** — 9 akar masalah direproduksi dan diperbaiki. Semua 40 regresi keamanan, 26 tes fitur lama terkait, typecheck dan lint frontend lulus. PHP sandbox diperbarui ke 8.4.27; pengujian tidak menyentuh produksi.
+> Status: **SELESAI DAN TERVERIFIKASI LOKAL PADA CAKUPAN AUDIT**.
+> Commit implementasi, tes, sandbox dan panduan: `a67a57706a3509fb886f9da889f8370ad6028894` — `fix(portal): perketat keamanan dan tambahkan panduan pentest` (43 file).
+> Pekerjaan ini tidak melakukan push, deployment, migrasi atau backfill database produksi.
 
-Detail perbaikan, cakupan, bukti baseline/retest dan dampak pemetaan aset lama: [Catatan pentest portal](security/portal-security-pentest-2026-10-31.md).
+## Ringkasan pekerjaan yang selesai
+
+Audit awal run-3 mereproduksi dan memperbaiki **9 akar masalah**: pembatasan self-service dan kepemilikan aset BMN, proteksi enrollment 2FA yang sudah aktif, akun nonaktif, logout cookie/bearer, aturan jenis dan kuota cuti, akses Surat Tugas personal, role mutasi master Visum, serta isolasi cache antar sesi. Semua perbaikan tersebut dipertahankan pada pengujian lanjutan.
+
+Run-4 menambahkan **7 temuan terkonfirmasi yang sudah diperbaiki** (1 high, 6 medium). Total kedua tahap adalah 16 akar masalah; regresi correctness dashboard dan hardening metadata tidak dihitung sebagai kerentanan tambahan.
+
+| Area | Perbaikan lanjutan yang selesai |
+|---|---|
+| Email dan recovery | Kedua writer email mencabut token reset yang terikat alamat lama/destinasi melalui lifecycle User dan password broker Laravel; penyimpanan memakai transaksi `saveOrFail`. |
+| Foto pegawai | Empat writer memakai `Employee.replaceProfilePhoto`: direktori ID pegawai, filename generated, pemeriksaan write failure dan cleanup yang menjaga referensi legacy/soft-deleted. |
+| Transaksi cuti | 13 jalur memakai lock pegawai sebelum keputusan kuota/status dan memuat ulang request; submission/approval paralel menjaga reservasi, debit dan idempotence. |
+| Master jenis cuti | Native catalog lock PostgreSQL menyatukan create request dengan empat mutator master agar rename tidak membuat cuti hilang dari accounting. |
+| Realtime | Topic personal/admin terikat token Sanctum yang masih valid; callback dan recipient dispatch memeriksa bearer, owner, expiration serta akun aktif. Kedua consumer frontend memakai namespace dan cleanup yang sama. |
+| Notifikasi admin | Policy role/module/permission dipakai bersama agar admin yang membership-nya dicabut tidak menerima private notice baru setelah login ulang. |
+| Form login | Native `method="post"` menjaga password tidak masuk document URL saat JavaScript tidak tersedia. Pengujian tidak mengklaim login fallback tanpa JS sudah berfungsi. |
+
+Regresi dua tab juga diselesaikan: refresh profil membersihkan cache tanpa membatalkan request valid sesi yang sama; dashboard mempertahankan nilai permissions seperti login/me. Perubahan kredensial, identitas atau otoritas tetap membatalkan respons lama. Ref callback hook diperbarui melalui native React effect. Prinsip **Ponytail** diterapkan dengan helper bersama dan fitur native, tanpa dependency aplikasi, service atau schema baru.
+
+## Hasil verifikasi akhir
+
+| Pemeriksaan | Hasil |
+|---|---|
+| PHPUnit keamanan terpadu | 78 tes, 868 assertions, lulus |
+| Regresi fitur terkait | 29 tes, 162 assertions, lulus |
+| API/cache asli dengan adapter terkendali | 8 kasus, lulus |
+| PostgreSQL asli, dua worker kernel HTTP | 5 invariant cuti + 1 rename master, lulus |
+| WebSocket/Reverb asli | 34 kasus, lulus |
+| Chromium + aplikasi asli, dua akun dan dua tab | 21 kasus, 0 gagal, 0 gap pada skenario yang diuji |
+| Native form tanpa JavaScript | Credential di POST body; password tidak masuk URL |
+| TypeScript, ESLint source frontend berubah dan PHP syntax | Lulus |
+| Validator findings dan coverage | 8 record dan 28 unit valid |
+| Dokumentasi metode | 13 tautan lokal dan sintaks 16 contoh command diperiksa; command tidak dijalankan ulang saat penulisan panduan |
+
+Tiga `BroadcastChannelAuthTest` berada pada kedua suite PHP di atas, sehingga angka kedua suite tidak dijumlahkan sebagai jumlah tes unik. Satu klaim activity metadata ditolak karena tidak membuktikan tambahan data rahasia di luar akses modul yang sah. Setiap confirmed record memperoleh final verifier tersendiri; replacement lengkap foto ditinjau verifier baru. Coverage critic final tidak menyisakan accepted missing unit atau reassignment.
+
+## Sandbox dan regresi yang dapat dipelihara
+
+- Runtime lokal: PHP 8.4.27, Node 22.23.4, Chromium 156 dan PostgreSQL 15. Eksekusi target memakai network-none, env dummy allowlist, source/toolchain/root read-only, writable scratch terbatas dan limit resource/time. Bukti dipromosikan observer setelah seluruh writer berhenti.
+- Regresi PHP: `PortalAuthSecurityTest.php`, `PortalPersonalSecurityTest.php`, `PortalUploadSecurityTest.php`, `PortalIdentityBoundaryTest.php` dan `BroadcastChannelAuthTest.php` di `backend/tests/Feature/`.
+- Regresi tambahan: `frontend/tests/cache-security.cjs`, dua fixture PostgreSQL di `backend/tests/Security/`, serta recipe image di `docker/security-sandbox/`.
+- Receipt, snapshot dan manifest audit historis disimpan di `C:/Users/USER/security-audit-skill/bksda-superapp/run-4/`. Arsip lokal tersebut bukan bagian dari Git; source terbaru harus dibandingkan dengan snapshot sebelum hasil replay diklaim berlaku.
+
+## Dokumentasi dan batas pengujian
+
+- [Laporan portal, lokasi perbaikan dan hasil sebelum/sesudah](security/portal-security-pentest-2026-10-31.md).
+- [Panduan lengkap uji keamanan dan pentest untuk AI](security/panduan-uji-keamanan-dan-pentest-portal.md): persiapan snapshot/sandbox, resep per area, command runner, pemeriksaan evidence, red/green, reviewer, error setup, syarat selesai dan prompt siap pakai.
+- Hunting 2FA baru tidak termasuk run-4; regresi otomatis lama tetap dipertahankan. Produksi/provider, TLS/proxy operasional, CMS, mobile dan keseluruhan infrastruktur berada di luar pass ini.
+- General/SMART diuji pada input teks manual, preview/print media, discard dan reopen akun B. Autofill Surat Tugas, upload laporan, dialog cetak OS dan PDF viewer belum diuji.
+- Fault injection atomicity storage baru mencakup foto. Atomicity kegagalan tulis scan belum diuji dan tetap dicatat sebagai batas reliability, tanpa klaim dampak lintas otoritas.
+- Frontend/backend realtime harus dirilis bersama karena namespace token berubah. Belum ada deployment dalam pekerjaan ini; frame yang sudah dipilih/in-flight tidak dijanjikan batal retroaktif.
 
 ---
 
@@ -9295,10 +9346,3 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Ponytail (`/ponytail`)**:
      - Memperbaiki pemanggilan endpoint `/api/kepegawaian/leave-types` (prefix `/api` ganda) menjadi `/kepegawaian/leave-types` di `LeaveTypesTab.tsx`.
      - Mengekstrak fungsi duplikat `templateCodeFromName` dan `errorMessage` ke `st-templates/_components/utils.ts`.
-
-
-## 31 Oktober2026 — Portal pentest lanjutan run-4
-
-- 7 temuan tambahan diperbaiki dengan helper/native framework bersama, tanpa dependency aplikasi atau schema baru: recovery email, photo ownership, transaksi cuti/master, revocation realtime, fanout notice dan native form password URL.
-- Regresi dua-tab profile/dashboard juga diperbaiki. Hasil:78/868 PHPUnit keamanan,29/162 regresi terkait,8 cache,6 concurrency PG,34 Reverb,21 browser dan native fallback form lulus; typecheck/lint/schema lulus.
-- New2FA hunting/produksi/provider tetap di luar cakupan. Detail dan batas uji: [laporan portal](security/portal-security-pentest-2026-10-31.md). Perubahan hanya working tree, tanpa deploy/commit.
