@@ -26,22 +26,22 @@ Standarisasi layout BMN mengacu langsung pada arsitektur `kepegawaian/layout.tsx
 ## Fase 2: Standarisasi Header, Tabel, Touch Targets & React Query
 Penerapan standar UI-UX-Pro-Max dan efisiensi Ponytail pada halaman katalog dan transaksi.
 
-- [ ] **2.1. Aksesibilitas Touch Target & Aksi Tabel**:
-  - [ ] Ubah selektor aksi tabel di `bmn/assets/page.tsx` dari `opacity-0 group-hover:opacity-100` menjadi `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`.
-  - [ ] Pastikan ukuran tombol aksi minimal 36–44px untuk memenuhi standar WCAG 2.1 AA.
-  - [ ] Jaga integritas sinkronisasi 8 filter URL `searchParams` (`search`, `nup`, `kondisi`, `jenis_bmn`, `lokasi_ruang`, `tag_ids`, `page`, `per_page`).
-- [ ] **2.2. Enterprise Header Card**:
-  - [ ] Pasang header seragam berbingkai `rounded-2xl border` dengan ikon badge bertema emerald di:
-    - [ ] `frontend/src/app/bmn/assets/page.tsx`
-    - [ ] `frontend/src/app/bmn/loans/page.tsx`
-    - [ ] `frontend/src/app/bmn/maintenances/page.tsx`
-    - [ ] `frontend/src/app/bmn/disposal/page.tsx`
-    - [ ] `frontend/src/app/bmn/auction-batches/page.tsx`
-- [ ] **2.3. Migrasi `loans/page.tsx` ke `@tanstack/react-query`**:
-  - [ ] Ganti `fetchRecords()` manual dan `useState` lokal dengan hook `useQuery`.
-  - [ ] Hilangkan 60+ baris boilerplate penanganan loading, error, dan pagination lokal.
-- [ ] **2.4. Penerapan Skeleton Table Loading**:
-  - [ ] Ganti spinner tunggal `Loader2` di tengah cell kosong dengan 5 baris skeleton berdenyut di halaman tabel master untuk mengeliminasi CLS.
+- [x] **2.1. Aksesibilitas Touch Target & Aksi Tabel**:
+  - [x] Ubah selektor aksi tabel di `bmn/assets/page.tsx` dari `opacity-0 group-hover:opacity-100` menjadi `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`.
+  - [x] Pastikan ukuran tombol aksi minimal 36–44px untuk memenuhi standar WCAG 2.1 AA.
+  - [x] Jaga integritas sinkronisasi 8 filter URL `searchParams` (`search`, `nup`, `kondisi`, `jenis_bmn`, `lokasi_ruang`, `tag_ids`, `page`, `per_page`).
+- [x] **2.2. Enterprise Header Card**:
+  - [x] Pasang header seragam berbingkai `rounded-2xl border` dengan ikon badge bertema emerald di:
+    - [x] `frontend/src/app/bmn/assets/page.tsx`
+    - [x] `frontend/src/app/bmn/loans/page.tsx`
+    - [x] `frontend/src/app/bmn/maintenances/page.tsx`
+    - [x] `frontend/src/app/bmn/disposal/page.tsx`
+    - [x] `frontend/src/app/bmn/auction-batches/page.tsx`
+- [x] **2.3. Migrasi `loans/page.tsx` ke `@tanstack/react-query`**:
+  - [x] Ganti `fetchRecords()` manual dan `useState` lokal dengan hook `useQuery`.
+  - [x] Hilangkan 60+ baris boilerplate penanganan loading, error, dan pagination lokal.
+- [x] **2.4. Penerapan Skeleton Table Loading**:
+  - [x] Ganti spinner tunggal `Loader2` di tengah cell kosong dengan 5 baris skeleton berdenyut di halaman tabel master untuk mengeliminasi CLS.
 
 ---
 

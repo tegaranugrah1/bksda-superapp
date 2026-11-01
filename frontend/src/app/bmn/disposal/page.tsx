@@ -107,22 +107,33 @@ export default function BmnDisposalPage() {
 
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <Trash2 className="w-6 h-6 text-red-500" /> Aset Dihapus
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Daftar aset yang telah di-dispose{canWrite ? ". Bisa di-restore atau dihapus permanen." : "."}
-          </p>
+      {/* Enterprise Header Card */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-900/50 shadow-xs">
+            <Trash2 className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-zinc-900 dark:text-white">
+                Aset Dihapus (Disposal)
+              </h1>
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                Arsip Penghapusan
+              </span>
+            </div>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Daftar aset BMN yang telah dihapus buku{canWrite ? ". Dapat di-restore atau dihapus permanen sesuai hak akses." : "."}
+            </p>
+          </div>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
-            type="text" placeholder="Cari aset..."
+            type="text" placeholder="Cari aset dihapus..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-            className="pl-9 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 w-56"
+            className="w-full sm:w-64 pl-9 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
           />
         </div>
       </div>
@@ -191,12 +202,30 @@ export default function BmnDisposalPage() {
                 )}
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Tgl Penghapusan</th>
                 <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Identitas BMN</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Nilai</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase text-right">Nilai</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
               {isLoading ? (
-                <tr><td colSpan={canWrite ? 4 : 3} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-red-500 mx-auto mb-2" /><p className="text-sm text-zinc-400">Memuat...</p></td></tr>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    {canWrite && (
+                      <td className="px-4 py-3">
+                        <div className="h-4 w-4 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                      </td>
+                    )}
+                    <td className="px-4 py-3">
+                      <div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                    </td>
+                    <td className="px-4 py-3 space-y-1.5">
+                      <div className="h-4 w-48 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                      <div className="h-3 w-32 bg-zinc-100 dark:bg-zinc-800/60 rounded" />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="h-4 w-20 bg-zinc-200 dark:bg-zinc-800 rounded ml-auto" />
+                    </td>
+                  </tr>
+                ))
               ) : assets.length === 0 ? (
                 <tr><td colSpan={canWrite ? 4 : 3} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" /><p className="text-sm text-zinc-400">Tidak ada aset yang dihapus.</p></td></tr>
               ) : (
@@ -238,7 +267,7 @@ export default function BmnDisposalPage() {
         </div>
         <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400">{response?.total || assets.length} item total</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{response?.total || assets.length} item total</span>
             <select
               value={perPage}
               onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
