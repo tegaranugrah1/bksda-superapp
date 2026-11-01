@@ -7,19 +7,19 @@
 ## Fase 1: Modernisasi Layout & Navigasi Sidebar BMN
 Standarisasi layout BMN mengacu langsung pada arsitektur `kepegawaian/layout.tsx`.
 
-- [ ] **1.1. Restrukturisasi Menu & Kategori**:
-  - [ ] Definisikan `BMN_SIDEBAR_ITEMS` dengan 4 kelompok (`Ringkasan`, `Inventaris & Transaksi`, `Penghapusan & Lelang`, `Dokumen & Pengaturan`) di `frontend/src/app/bmn/layout.tsx`.
-  - [ ] Pasang heading grup uppercase 10px tracking-widest dan border pemisah halus.
-- [ ] **1.2. Implementasi Collapsible Rail Sidebar Desktop**:
-  - [ ] Tambahkan state `collapsed` (toggle `w-72` $\leftrightarrow$ `w-20`) dengan tombol `PanelLeftClose`/`PanelLeftOpen`.
-  - [ ] Aktifkan mode ikon terpusat saat `collapsed` dengan atribut `title={item.label}` untuk tooltip native.
-  - [ ] Tambahkan garis aksen aktif emerald vertikal 4px di sisi kiri (`bg-emerald-600 dark:bg-emerald-400`).
-- [ ] **1.3. Perbaikan Navigasi Mobile Drawer**:
-  - [ ] Hapus tombol floating FAB bulat di kanan bawah yang menabrak pagination tabel dan modal footer.
-  - [ ] Pasang trigger menu mobile terpadu di top bar dengan backdrop redup `bg-slate-950/60` dan auto-close saat navigasi diklik.
-- [ ] **1.4. Footer Pengguna & Unifikasi Token Dark Mode**:
-  - [ ] Pasang avatar inisial pengguna, badge role, dan tombol logout terpadu.
-  - [ ] Unifikasi palet warna dark mode ke `zinc-900`/`zinc-950`.
+- [x] **1.1. Restrukturisasi Menu & Kategori**:
+  - [x] Definisikan `BMN_SIDEBAR_ITEMS` dengan 4 kelompok (`Ringkasan`, `Inventaris & Transaksi`, `Penghapusan & Lelang`, `Dokumen & Pengaturan`) di `frontend/src/app/bmn/layout.tsx`.
+  - [x] Pasang heading grup uppercase 10px tracking-widest dan border pemisah halus.
+- [x] **1.2. Implementasi Collapsible Rail Sidebar Desktop**:
+  - [x] Tambahkan state `collapsed` (toggle `w-72` $\leftrightarrow$ `w-20`) dengan tombol `PanelLeftClose`/`PanelLeftOpen`.
+  - [x] Aktifkan mode ikon terpusat saat `collapsed` dengan atribut `title={item.label}` untuk tooltip native.
+  - [x] Tambahkan garis aksen aktif emerald vertikal 4px di sisi kiri (`bg-emerald-600 dark:bg-emerald-400`).
+- [x] **1.3. Perbaikan Navigasi Mobile Drawer**:
+  - [x] Hapus tombol floating FAB bulat di kanan bawah yang menabrak pagination tabel dan modal footer.
+  - [x] Pasang trigger menu mobile terpadu di top bar dengan backdrop redup `bg-slate-950/60` dan auto-close saat navigasi diklik.
+- [x] **1.4. Footer Pengguna & Unifikasi Token Dark Mode**:
+  - [x] Pasang avatar inisial pengguna, badge role, dan tombol logout terpadu.
+  - [x] Unifikasi palet warna dark mode ke `zinc-900`/`zinc-950`.
 
 ---
 
