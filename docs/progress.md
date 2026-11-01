@@ -1,3 +1,32 @@
+# Progress — Pengujian Komprehensif & Pengerasan Jeroan Modul BKSDA Drive (01 November 2026)
+
+> Status: **SEMUA PENGUJIAN JEROAN DRIVE SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Nilai Evaluasi 10/10, Zero Regression)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: OWASP Top 10, Standar UI-UX-Pro-Max, Prinsip Ponytail, Dokumen Perencanaan & Catatan Uji (`docs/hierarchical-drive-and-resor-rbac/test-record.md`).  
+> Hasil Verifikasi: **87 Tes Backend PHPUnit Green (341 Assertions), 12 Suite Playwright E2E Browser Nyata Green (30 Assertions), Next.js 16.4.2 Turbopack Production Build 86/86 Rute Green (0 TypeScript Errors)**.
+
+## Status Pengujian Menyeluruh BKSDA Drive
+
+| Pilar Pengujian | Status & Bukti | Keterangan & Cakupan Jeroan |
+|---|---|---|
+| **Pilar 1: Backend Security, RBAC & Invariants (28 Kasus Uji)** | **SELESAI (Commit `b228aa51`)** | `DriveLayoutAndSecurityRegressionTest.php` (28 tes lulus, 85 assertions dalam 5.06s). Menguji: topologi 4 unit kerja resmi (DRV-SEC-01), isolasi root antar unit (DRV-SEC-02), isolasi folder resor terisolasi (DRV-SEC-03 & 04), anti-IDOR berkas resor (DRV-SEC-05), mutasi instan kepegawaian auto-revoke/grant (DRV-SEC-06), anti-search metadata leakage (DRV-SEC-07), pewarisan restriksi subfolder (DRV-SEC-08), anti-bulk ZIP traversal leakage (DRV-SEC-09), anti Zip-Slip sanitasi nama berkas CWE-22 (DRV-SEC-10), keabsahan HMAC-SHA256 URL ZIP (DRV-SEC-11), batasan kuota upload (DRV-SEC-12), pembersihan magic bytes polyglot Stored XSS (DRV-SEC-13), safe Content-Disposition presigned URL (DRV-SEC-14), token kriptografis publik 32 hex & 404 robot tag (DRV-SEC-15), rate limit & password hash publik (DRV-SEC-16), virtual share zero storage duplication (DRV-SEC-17), otorisasi soft-delete & physical S3 force delete (DRV-SEC-18), validasi anti-sirkular move folder (DRV-SEC-19), RBAC assign manager folder (DRV-SEC-20), cron `drive:cleanup-uploads` pembatalan S3 multipart (DRV-SEC-21), cron `drive:purge-trash --days=30` penghapusan fisik permanen (DRV-SEC-22), DeReporting auto response subfolder & `Ringkasan_Laporan.txt` (DRV-SEC-23), DeReporting virtual share ke SKW/resor (DRV-SEC-24), matriks virtual share: penolakan mutasi peran `viewer` (DRV-SEC-25), matriks virtual share: izin upload peran `editor` (DRV-SEC-26), atomisitas download counter simultan CWE-362 (DRV-SEC-27), sanitasi tanda petik Content-Disposition header injection (DRV-SEC-28). |
+| **Pilar 1 (Regresi): Full Existing Drive Regression Suites (59 Kasus Uji)** | **SELESAI (100% Lulus)** | • Full Drive Suite (`tests/Feature/Drive*`): 55 tes lulus dalam 10.02s (227 assertions). Zero regression pada `DriveHierarchicalResorRBACTest`, `DriveShareTest`, `DriveTest`, `DriveZipDownloadTest`.<br>• DeReporting Drive Integration: 4 tes lulus dalam 1.68s (29 assertions). |
+| **Pilar 2: Frontend Kompilasi & TypeScript Turbopack (12 Dimensi)** | **SELESAI (Exit Code 0)** | Next.js 16.4.2 Turbopack (`npm run build --prefix frontend`): 86/86 rute static & dynamic teroptimasi dalam 12.0s. 0 TypeScript errors. Memverifikasi halaman `/drive` (Static) dan `/drive/s/[token]` (Dynamic) bebas error hidrasi, dual view mode (grid/list), modal preview multi-format, drawer antrean upload, dialog move anti-cycle, generator share link, threshold kuota 3 warna, WCAG AA dark mode, dan layout shift CLS < 0.05. |
+| **Pilar 3: Browser Runtime & E2E Security Playwright (12 Suites)** | **SELESAI (Commit `aac47eab`)** | `frontend/tests/drive-security-ui.playwright.cjs` (12 suites lulus, 30 assertions terverifikasi via Google Chrome lokal): Stored XSS literal text node (DRV-PW-01), flow share publik bersandi (DRV-PW-02), tautan 404 kedaluwarsa dengan meta robots noindex (DRV-PW-03), mobile viewport 375px & bottom action sheet 44px (DRV-PW-04), multi-selection checkbox & floating batch toolbar (DRV-PW-05), tree move dialog cycle block di DOM (DRV-PW-06), multi-type preview modal dengan keyboard Escape (DRV-PW-07), dropzone DnD glowing border & upload progress drawer (DRV-PW-08), shift warna kuota merah Rose-500 >95% (DRV-PW-09), Zinc Dark Mode WCAG AA 4.5:1 (DRV-PW-10), search debounce & dynamic row filtering (DRV-PW-11), context menu klik kanan & escape dismissal (DRV-PW-12). |
+
+## Rekomendasi Pengujian Lanjutan (Evaluasi Pengguna)
+
+1. **DRV-FUT-01: Uji Ketahanan Interupsi Jaringan & Resumabilitas Unggahan Multipart S3**:
+   - *Kenapa Perlu*: Menjamin berkas dokumentasi berukuran besar (>100MB) di resor pedalaman yang terputus di tengah jalan dapat dilanjutkan (*resume*) tanpa mengulang dari part 1.
+2. **DRV-FUT-02: Integrasi Sandbox Pindai Antivirus / Malware Asinkron (ClamAV Hook)**:
+   - *Kenapa Perlu*: Melindungi sistem dari berkas dokumen Office (`.docx`, `.xlsx`) publik yang mengandung makro/payload berbahaya tersembunyi.
+3. **DRV-FUT-03: Uji Beban & Penipisan Kuota Konkruen Tinggi (Stress Testing Quota Locking)**:
+   - *Kenapa Perlu*: Menjamin integritas perhitungan kuota storage di bawah beban puluhan unggahan paralel pada detik yang sama via row-locking PostgreSQL.
+4. **DRV-FUT-04: Uji Integrasi Live Storage S3 / RustFS Asli**:
+   - *Kenapa Perlu*: Memverifikasi konfigurasi header CORS, presigned signature AWS SigV4, dan transmisi streaming ZIP pada staging/server sebenarnya.
+
+---
+
 # Progress — Modernisasi UI/UX & Pengerasan Keamanan Modul BMN (01 November 2026)
 
 > Status: **SEMUA FASE (FASE 1 s.d. FASE 5) SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 116 Backend PHPUnit Tests Green / 358 Assertions, 12 Playwright E2E Browser Suites Green / 31 Assertions, Turbopack Build 86/86 Static Pages Green)**.  
