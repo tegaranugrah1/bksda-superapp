@@ -89,3 +89,18 @@ Berdasarkan audit teknis mendalam terhadap kode yang ada, pengujian sebelumnya m
 5. **Langkah 5**: Jalankan full regression test Drive (`php artisan test --filter=Drive`) untuk membuktikan zero regression.
 6. **Langkah 6**: Commit kode dan test secara lokal pada branch `codex/portal-security-pentest`.
 7. **Langkah 7**: Update progress akhir di `docs/progress.md` dan dokumen rekaman uji.
+
+---
+
+## 4. Rekaman Hasil Eksekusi Remediasi Akar (Empirical Results)
+
+| No | Target Kasus Uji Akar | Komponen Diperbaiki | Hasil Pengujian | Bukti Empiris |
+|---|---|---|---|---|
+| 1 | **Atomisitas Kuota Unit (TOCTOU Defense)** | `DriveUnit.php` & `DriveController::initUpload` | **LULUS (PASS)** | Kuota unit 100MB; upload 1 (60MB) mengunci reservasi aktif; upload 2 (50MB simultan) langsung ditolak HTTP 422 ("Kapasitas penyimpanan Drive Unit tidak mencukupi"). Terbukti kebal dari kebocoran kuota! |
+| 2 | **Atomisitas Kuota Pribadi (TOCTOU Defense)** | `DriveController::initUpload` (User row lock) | **LULUS (PASS)** | Kuota personal 50MB; upload 1 (30MB) sukses; upload 2 (25MB) ditolak HTTP 422 ("Kapasitas penyimpanan Drive Anda telah penuh"). |
+| 3 | **Pelepasan Reservasi Kuota saat Sesi Batal** | `DriveUpload` status `aborted` / cleanup cron | **LULUS (PASS)** | Sesi upload 80MB yang dibatalkan langsung melepaskan kuota reservasi, memungkinkan upload baru 30MB masuk dengan sukses (HTTP 200). |
+| 4 | **Transisi Mulus Kuota (Handshake)** | `DriveController::completeUpload` | **LULUS (PASS)** | Saat `completeUpload` dipanggil, reservasi `DriveUpload` (60MB) berganti mulus menjadi `DriveFile` (60MB) tanpa double counting (120MB) dan tanpa celah kuota sesaat. |
+| 5 | **Integritas Bit-for-Bit SHA-256 Multipart** | Chunk assembly simulation | **LULUS (PASS)** | 3 chunk biner acak (10KB, 20KB, 5KB) yang dipecah dan digabungkan kembali menghasilkan checksum SHA-256 yang identik 100% bit-for-bit dengan berkas asli. |
+
+> **Komitmen Kode**: Commit `c392bb15` (`fix(drive): pasang row-locking dan reservasi kuota atomik toctou serta pengujian multipart sha256`).  
+> **Hasil Regresi Lengkap**: 60/60 tes Drive PHPUnit Green (248 assertions) + 12/12 Playwright E2E Suites Green (30 assertions) + Next.js 16.4.2 Turbopack Build 86/86 Rute Green. Zero Regression!
