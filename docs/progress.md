@@ -1,3 +1,18 @@
+# Progress — Pengujian Komprehensif Alur Surat Tugas, Approval & Portal Notification (02 November 2026)
+
+> Status: **SEMUA PENGUJIAN AKAR JEROAN & BROWSER E2E SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 7/7 Backend Invariants Green / 30 Assertions, 6/6 Playwright E2E Browser Chromium Green / 9 Assertions, Total 105 Backend Tests Green, 28 Playwright Suites Green)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Lembar Uji (`docs/kepegawaian/surat-tugas-approval-portal-test-plan.md`).  
+
+## Status Pengujian Alur Kepegawaian (Surat Tugas -> Approval -> Portal)
+
+| Pilar Pengujian | Status & Bukti | Keterangan & Cakupan Jeroan |
+|---|---|---|
+| **Pilar 1: Backend Security & Invariants (7 Kasus Uji)** | **SELESAI (100% Lulus / 30 Assertions)** | `backend/tests/Feature/SuratTugasApprovalAndPortalNotificationTest.php` (7 tes lulus dalam 2.58s):<br>• Emisi notifikasi portal tertarget pada approval (ST-ROOT-01)<br>• Penolakan vertical privilege escalation staf biasa HTTP 403 (ST-ROOT-02)<br>• Penolakan bentrok jadwal personel overlapping CWE-362 HTTP 422 (ST-ROOT-03)<br>• Penolakan nomor surat ber-placeholder mentah HTTP 422 (ST-ROOT-04)<br>• Anti-reversion status approved ke draft HTTP 422 (ST-ROOT-05)<br>• Isolasi anti-IDOR notifikasi antar-pegawai HTTP 404 (ST-ROOT-06)<br>• Atomisitas mark-all-read & counter synchronization (ST-ROOT-07). |
+| **Pilar 2: Browser Runtime & E2E Interaction Playwright (6 Kasus Uji)** | **SELESAI (100% Lulus / 9 Assertions)** | `frontend/tests/kepegawaian-surat-tugas-portal.playwright.cjs` (6 suites lulus via Google Chrome lokal):<br>• Render badge lonceng notifikasi angka 1 tepat di DOM (ST-PW-01)<br>• Pembukaan popover interaktif & inspeksi konten surat tugas resmi (ST-PW-02)<br>• Optimistic auto-read & decrement counter saat item diklik (ST-PW-03)<br>• Deep-link navigasi otomatis beralih ke tab surat_tugas di portal (ST-PW-04)<br>• Batch action 'Tandai Semua Dibaca' mengosongkan antrean (ST-PW-05)<br>• Modal riwayat lengkap & penyaringan filter status (ST-PW-06). |
+
+---
+
 # Progress — Pengujian Komprehensif & Pengerasan Jeroan Modul BKSDA Drive (01 November 2026)
 
 > Status: **SEMUA PENGUJIAN & REMEDIASI AKAR JEROAN SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 98 Tes Backend PHPUnit Green / 382 Assertions, 22 Suite Playwright E2E Browser Nyata Green / 52 Assertions, Next.js 16.4.2 Turbopack Production Build 86/86 Rute Green / 0 TS Errors)**.  
