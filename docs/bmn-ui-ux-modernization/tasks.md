@@ -72,17 +72,17 @@ Penyelesaian isu dark mode, stepper, error handling, dan responsivitas halaman d
 ## Fase 4: Pengerasan Keamanan Backend, Proteksi Print A4 & Automated Test
 Pencegahan kebocoran data ekspor, validasi upload, dan pengujian regresi menyeluruh.
 
-- [ ] **4.1. Pengerasan Hak Akses Ekspor Data Sensitif**:
-  - [ ] Perbarui rute `assets/export`, `loans/export`, dan `maintenances/export` di `backend/app/Modules/Bmn/Routes/api.php` agar mewajibkan `permission:bmn.asset.export` atau `permission:bmn.asset.update`.
-  - [ ] Pastikan akun bertingkat staf biasa (`bmn.view`) ditolak dengan kode respon HTTP 403 Forbidden.
-- [ ] **4.2. Pengerasan Validasi Unggah Berkas Import Review**:
-  - [ ] Perketat validasi pada `ImportReviewController::upload` dengan batas `max:10240` (10MB) dan ekstensi strictly `xlsx,xls`.
-- [ ] **4.3. Penyelarasan Permission Laporan di Frontend**:
-  - [ ] Perbaiki pengecekan hak akses di `frontend/src/app/bmn/reports/page.tsx` agar tombol terbitkan dokumen mengacu pada `bmn.document.generate`.
-  - [ ] Pastikan akun read-only tidak melihat checkbox bulk aksi atau tombol mutasi yang tidak berhak.
-- [ ] **4.4. Verifikasi Proteksi Format Cetak Dokumen A4**:
-  - [ ] Pastikan isolasi template cetak resmi (`*Document.tsx` dan `AuctionDocumentRenderer.tsx`) tidak terganggu, margin A4 dan kop dinas tetap presisi 100%.
-- [ ] **4.5. Pembuatan Automated Test Suite Mandiri**:
-  - [ ] Buat file test `backend/tests/Feature/BmnLayoutAndSecurityRegressionTest.php` yang menguji proteksi ekspor, upload guard, dan integritas otorisasi CRUD.
-  - [ ] Jalankan seluruh suite test backend dan frontend (`npm run build` / playwright checks).
-  - [ ] Perbarui `docs/progress.md` dan lakukan commit lokal.
+- [x] **4.1. Pengerasan Hak Akses Ekspor Data Sensitif**:
+  - [x] Perbarui rute `assets/export`, `loans/export`, dan `maintenances/export` di `backend/app/Modules/Bmn/Routes/api.php` agar mewajibkan `permission:bmn.asset.export` atau `permission:bmn.asset.update`.
+  - [x] Pastikan akun bertingkat staf biasa (`bmn.view`) ditolak dengan kode respon HTTP 403 Forbidden.
+- [x] **4.2. Pengerasan Validasi Unggah Berkas Import Review**:
+  - [x] Perketat validasi pada `ImportReviewController::upload` dengan batas `max:10240` (10MB) dan ekstensi strictly `xlsx,xls`.
+- [x] **4.3. Penyelarasan Permission Laporan di Frontend**:
+  - [x] Perbaiki pengecekan hak akses di `frontend/src/app/bmn/reports/page.tsx` agar tombol terbitkan dokumen mengacu pada `bmn.document.generate`.
+  - [x] Pastikan akun read-only tidak melihat checkbox bulk aksi atau tombol mutasi yang tidak berhak.
+- [x] **4.4. Verifikasi Proteksi Format Cetak Dokumen A4**:
+  - [x] Pastikan isolasi template cetak resmi (`*Document.tsx` dan `AuctionDocumentRenderer.tsx`) tidak terganggu, margin A4 dan kop dinas tetap presisi 100%.
+- [x] **4.5. Pembuatan Automated Test Suite Mandiri**:
+  - [x] Buat file test `backend/tests/Feature/BmnLayoutAndSecurityRegressionTest.php` yang menguji proteksi ekspor, upload guard, dan integritas otorisasi CRUD.
+  - [x] Jalankan seluruh suite test backend dan frontend (`npm run build` / playwright checks).
+  - [x] Perbarui `docs/progress.md` dan lakukan commit lokal.

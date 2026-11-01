@@ -27,7 +27,7 @@ export default function BmnReportsPage() {
   const { hasPermission } = useRole();
   const canDelete = hasPermission("bmn.document.delete");
   const canGenerate = hasPermission("bmn.document.generate");
-  const canWrite = canDelete;
+  const canWrite = canGenerate;
 
   const [activeTab, setActiveTab] = useState<"exports" | "documents" | "history">("exports");
   const [activeDocumentType, setActiveDocumentType] = useState<

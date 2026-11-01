@@ -38,10 +38,19 @@ class CheckPermission
             ], 401);
         }
 
-        // 2. VALIDASI UTAMA: Gunakan helper hasPermission di model User
-        if (! $user->hasPermission($permission)) {
+        // 2. VALIDASI UTAMA: Gunakan helper hasPermission di model User (mendukung pemisah pipe |)
+        $requiredPerms = array_map('trim', explode('|', $permission));
+        $hasAccess = false;
+        foreach ($requiredPerms as $p) {
+            if ($user->hasPermission($p)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (! $hasAccess) {
             // Special exception for BMN view permission: Allow regular employees to see their own assets
-            if ($permission === 'bmn.view') {
+            if (in_array('bmn.view', $requiredPerms, true)) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
                 if ($employee) {
                     // 1. List assets endpoint: check if they are filtering by their own employee_id

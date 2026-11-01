@@ -38,10 +38,10 @@ Route::get('/ping', function () {
     ]);
 });
 
-// 4. EXPORT EXCEL (harus sebelum apiResource/custom routes agar tidak conflict)
-Route::get('assets/export', [ExportController::class, 'assets'])->middleware('permission:bmn.view');
-Route::get('loans/export', [ExportController::class, 'loans'])->middleware('permission:bmn.view');
-Route::get('maintenances/export', [ExportController::class, 'maintenances'])->middleware('permission:bmn.view');
+// 4. EXPORT EXCEL (harus sebelum apiResource/custom routes agar tidak conflict - elevated to export/update permission)
+Route::get('assets/export', [ExportController::class, 'assets'])->middleware('permission:bmn.asset.export|bmn.asset.update');
+Route::get('loans/export', [ExportController::class, 'loans'])->middleware('permission:bmn.asset.export|bmn.asset.update');
+Route::get('maintenances/export', [ExportController::class, 'maintenances'])->middleware('permission:bmn.asset.export|bmn.asset.update');
 Route::get('document-histories', [DocumentHistoryController::class, 'index'])->middleware('permission:bmn.document.history.view');
 
 // 4b. BERITA ACARA PEMAKAIAN BMN

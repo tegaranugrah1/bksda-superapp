@@ -1,6 +1,6 @@
 # Progress — Modernisasi UI/UX & Pengerasan Keamanan Modul BMN (01 November 2026)
 
-> Status: **FASE 1, FASE 2 & FASE 3 SELESAI & TERVERIFIKASI LOKAL (Zero Error, Turbopack Build 86/86 Green)**.  
+> Status: **SEMUA FASE (FASE 1 s.d. FASE 4) SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 70 Backend Tests Green, Turbopack Build 86/86 Static Pages Green)**.  
 > Branch: `codex/portal-security-pentest`  
 > Referensi: Modul Kepegawaian (`frontend/src/app/kepegawaian/`), Standar UI-UX-Pro-Max, Prinsip Ponytail, Dokumen Perencanaan (`docs/bmn-ui-ux-modernization/`).  
 
@@ -10,8 +10,8 @@
 |---|---|---|
 | **Fase 1: Modernisasi Layout & Sidebar** | **SELESAI (Commit `272acba4`)** | 4 grup navigasi logis, collapsible rail `w-72` $\leftrightarrow$ `w-20` dengan native tooltip, aksen vertikal emerald 4px, penghapusan FAB kanan-bawah yang menabrak pagination, user footer terpadu, Zinc dark palette. |
 | **Fase 2: Standarisasi Header, Tabel, Touch Targets & React Query** | **SELESAI (Commit `483cf500`)** | Enterprise Header Card seragam berbingkai `rounded-2xl` dengan badge tema di 5 submodul (`assets`, `loans`, `maintenances`, `disposal`, `auction-batches`); migrasi total `loans/page.tsx` ke `@tanstack/react-query` mengeliminasi 60+ baris boilerplate; 5-row pulsing skeleton loader menggantikan single spinner; standardisasi touch target minimum 36-44px; sinkronisasi 8 filter URL `searchParams`. |
-| **Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)** | **SELESAI** | Wizard Tambah Aset Dark Mode Zinc 5-step responsif; penyaringan aset peminjam (larangan pinjam kondisi Rusak Berat / status tidak aktif) & surface backend error messages; responsivitas ringkasan review import batch `grid-cols-2 md:grid-cols-4` + Zinc styling; eliminasi polling zombie 3 detik pada detail aset + mobile breadcrumbs + sticky mobile edit actions; mobile dropdown switcher & stacked cards taksiran lelang di layar kecil. |
-| **Fase 4: Pengerasan Keamanan Backend & Regression Tests** | **MENUNGGU EKSEKUSI** | Elevasi hak akses ekspor BMN di `api.php`, proteksi limit upload & mime check import, perbaikan permission report, automated test suite `BmnLayoutAndSecurityRegressionTest.php`. |
+| **Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)** | **SELESAI (Commit `0332687a`)** | Wizard Tambah Aset Dark Mode Zinc 5-step responsif; penyaringan aset peminjam (larangan pinjam kondisi Rusak Berat / status tidak aktif) & surface backend error messages; responsivitas ringkasan review import batch `grid-cols-2 md:grid-cols-4` + Zinc styling; eliminasi polling zombie 3 detik pada detail aset + mobile breadcrumbs + sticky mobile edit actions; mobile dropdown switcher & stacked cards taksiran lelang di layar kecil. |
+| **Fase 4: Pengerasan Keamanan Backend & Regression Tests** | **SELESAI** | Elevasi hak akses ekspor BMN di `api.php` (`bmn.asset.export\|bmn.asset.update`); dukungan pipe permission di `CheckPermission.php`; pengetatan validasi unggah berkas import review batas 10MB (`max:10240`) dan ekstensi strictly `xlsx,xls`; perbaikan hak akses `bmn.document.generate` di halaman laporan; preservasi 100% isolasi format cetak A4 dinas; automated regression test suite `BmnLayoutAndSecurityRegressionTest.php` (8/8 lulus, 15 assertions) + full BMN suite (70/70 lulus, 243 assertions). |
 
 ---
 
