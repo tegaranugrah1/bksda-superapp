@@ -48,24 +48,24 @@ Penerapan standar UI-UX-Pro-Max dan efisiensi Ponytail pada halaman katalog dan 
 ## Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)
 Penyelesaian isu dark mode, stepper, error handling, dan responsivitas halaman detail & wizard.
 
-- [ ] **3.1. Wizard Tambah Aset (`assets/create/page.tsx`)**:
-  - [ ] Terapkan Dark Mode Zinc pada seluruh 5 step wizard (hilangkan hardcoded putih terang).
-  - [ ] Ubah baris stepper 5 tombol menjadi responsif di layar ponsel `< 640px` (badge step ringkas).
-  - [ ] Ubah grid form menjadi `grid-cols-1 sm:grid-cols-2` agar tidak terjepit.
-- [ ] **3.2. Formulir Peminjaman Baru (`loans/create/page.tsx`)**:
-  - [ ] Saring opsi aset agar aset berstatus `active_loan` atau `Rusak Berat` diberi penanda non-aktif.
-  - [ ] Perbaiki penanganan error agar pesan validasi backend ditampilkan ke pengguna via toast.
-- [ ] **3.3. Review Import Batch (`import-review/[batchId]/page.tsx`)**:
-  - [ ] Ubah summary cards dari `grid-cols-4` menjadi `grid-cols-2 md:grid-cols-4`.
-  - [ ] Tambahkan styling Dark Mode pada filter identitas dan toolbar seleksi massal.
-  - [ ] Format komparasi diff menjadi kartu vertikal bertumpuk di layar ponsel.
-- [ ] **3.4. Detail Aset & Eliminasi Polling 3 Detik (`assets/[id]/page.tsx`)**:
-  - [ ] Hapus `refetchInterval: 3000`. Refetch data reaktif via invalidasi query.
-  - [ ] Rapikan breadcrumb navigasi top bar di resolusi mobile 375px.
-  - [ ] Pasang *sticky bottom action bar* untuk tombol simpan/batal pada mode edit di layar ponsel.
-- [ ] **3.5. Detail Lelang 10 Tab (`auction-batches/[id]/page.tsx`)**:
-  - [ ] Pasang *Dropdown Select Switcher* atau *Scrollable Pill Rail* di layar ponsel `< md`.
-  - [ ] Terapkan format kartu tumpuk (*stacked valuation card*) pada tabel taksiran harga di layar < 640px.
+- [x] **3.1. Wizard Tambah Aset (`assets/create/page.tsx`)**:
+  - [x] Terapkan Dark Mode Zinc pada seluruh 5 step wizard (hilangkan hardcoded putih terang).
+  - [x] Ubah baris stepper 5 tombol menjadi responsif di layar ponsel `< 640px` (badge step ringkas).
+  - [x] Ubah grid form menjadi `grid-cols-1 sm:grid-cols-2` agar tidak terjepit.
+- [x] **3.2. Formulir Peminjaman Baru (`loans/create/page.tsx`)**:
+  - [x] Saring opsi aset agar aset berstatus `active_loan` atau `Rusak Berat` diberi penanda non-aktif.
+  - [x] Perbaiki penanganan error agar pesan validasi backend ditampilkan ke pengguna via toast.
+- [x] **3.3. Review Import Batch (`import-review/[batchId]/page.tsx`)**:
+  - [x] Ubah summary cards dari `grid-cols-4` menjadi `grid-cols-2 md:grid-cols-4`.
+  - [x] Tambahkan styling Dark Mode pada filter identitas dan toolbar seleksi massal.
+  - [x] Format komparasi diff menjadi kartu vertikal bertumpuk di layar ponsel.
+- [x] **3.4. Detail Aset & Eliminasi Polling 3 Detik (`assets/[id]/page.tsx`)**:
+  - [x] Hapus `refetchInterval: 3000`. Refetch data reaktif via invalidasi query.
+  - [x] Rapikan breadcrumb navigasi top bar di resolusi mobile 375px.
+  - [x] Pasang *sticky bottom action bar* untuk tombol simpan/batal pada mode edit di layar ponsel.
+- [x] **3.5. Detail Lelang 10 Tab (`auction-batches/[id]/page.tsx`)**:
+  - [x] Pasang *Dropdown Select Switcher* atau *Scrollable Pill Rail* di layar ponsel `< md`.
+  - [x] Terapkan format kartu tumpuk (*stacked valuation card*) pada tabel taksiran harga di layar < 640px.
 
 ---
 

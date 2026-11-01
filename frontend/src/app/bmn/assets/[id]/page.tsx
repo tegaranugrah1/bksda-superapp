@@ -72,7 +72,6 @@ function AssetDetail({ assetId }: { assetId: string }) {
       const res = await api.get(`/bmn/assets/${assetId}`);
       return res.data.data;
     },
-    refetchInterval: 3000,
     refetchOnWindowFocus: true,
   });
 
@@ -331,24 +330,24 @@ function AssetDetail({ assetId }: { assetId: string }) {
       {/* ==================== TOP OPERATIONAL COCKPIT BAR ==================== */}
       <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-6 lg:px-10 py-3.5 flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 shadow-xs">
         {/* Navigation & Breadcrumbs */}
-        <div className="flex items-center gap-3 text-xs flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 text-xs flex-wrap min-w-0">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 font-semibold text-slate-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors group"
+            className="inline-flex items-center gap-1.5 font-semibold text-zinc-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors shrink-0"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Kembali ke Katalog</span>
+            <span className="hidden sm:inline">Kembali</span>
           </button>
-          <span className="text-slate-300 dark:text-zinc-700">/</span>
-          <span className="uppercase tracking-wider font-semibold text-slate-500 dark:text-zinc-500 truncate max-w-[200px] sm:max-w-xs">
+          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
+          <span className="uppercase tracking-wider font-semibold text-zinc-500 dark:text-zinc-500 truncate max-w-[120px] sm:max-w-xs hidden sm:inline">
             {asset.jenis_bmn || "Aset BMN"}
           </span>
-          <span className="text-slate-300 dark:text-zinc-700">/</span>
-          <span className="font-mono font-semibold text-slate-600 dark:text-zinc-300">
+          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
+          <span className="font-mono font-semibold text-zinc-600 dark:text-zinc-300 hidden sm:inline">
             {asset.kode_barang}
           </span>
-          <span className="text-slate-300 dark:text-zinc-700">/</span>
-          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
+          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
+          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md text-[11px]">
             NUP {asset.nup}
           </span>
         </div>
@@ -1151,6 +1150,27 @@ function AssetDetail({ assetId }: { assetId: string }) {
           }
         }}
       />
+
+      {/* Sticky Mobile Edit Actions */}
+      {canWrite && isEditMode && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 p-3 flex items-center justify-between gap-3 shadow-lg">
+          <button
+            onClick={handleCancelEdit}
+            disabled={isSaving}
+            className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSaveAll}
+            disabled={isSaving}
+            className="flex-1 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+            Simpan Perubahan
+          </button>
+        </div>
+      )}
     </div>
   );
 }
