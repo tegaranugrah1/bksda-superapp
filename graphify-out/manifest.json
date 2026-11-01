@@ -7523,5 +7523,20 @@
     "mtime": 1793447101.0676615,
     "ast_hash": "e14e48f4c94fa9574971319422d94922",
     "semantic_hash": ""
+  },
+  "docs/bmn-ui-ux-modernization/design.md": {
+    "mtime": 1793486893.6258986,
+    "ast_hash": "abb712f0e5ceceeb0fb1e851016eec55",
+    "semantic_hash": ""
+  },
+  "docs/bmn-ui-ux-modernization/requirements.md": {
+    "mtime": 1793486876.6882706,
+    "ast_hash": "715920c2565d13a535bb1feef17380d5",
+    "semantic_hash": ""
+  },
+  "docs/bmn-ui-ux-modernization/tasks.md": {
+    "mtime": 1793486906.440037,
+    "ast_hash": "277faa3caabf0c7e57033b9b1fcf4695",
+    "semantic_hash": ""
   }
 }

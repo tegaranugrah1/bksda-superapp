@@ -174,19 +174,23 @@ class DriveController extends Controller
         ]);
 
         $user = $request->user();
-        $parentFolder = ! empty($validated['parent_id']) ? DriveFolder::find($validated['parent_id']) : null;
-        $unitId = $validated['unit_id'] ?? $parentFolder?->unit_id;
-
-        if ($parentFolder) {
+        $parentFolder = null;
+        if (! empty($validated['parent_id'])) {
+            $parentFolder = DriveFolder::find($validated['parent_id']);
+            if (! $parentFolder) {
+                return response()->json(['message' => 'Folder induk tidak ditemukan atau sudah dihapus.'], 404);
+            }
             if (! DriveAccess::canWriteFolder($user, $parentFolder)) {
                 return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
             }
-        } elseif (! empty($unitId)) {
-            $unit = DriveUnit::findOrFail($unitId);
+        } elseif (! empty($validated['unit_id'])) {
+            $unit = DriveUnit::findOrFail($validated['unit_id']);
             if (! DriveAccess::canWrite($user, $unit)) {
                 return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
             }
         }
+
+        $unitId = $validated['unit_id'] ?? $parentFolder?->unit_id;
 
         // Warisi restriksi subfolder dari parent folder (Subfolder Inheritance)
         $isRestricted = false;
@@ -201,11 +205,13 @@ class DriveController extends Controller
             $roomCode = $parentFolder->room_code;
         }
 
+        $cleanName = $this->sanitizeFilesystemName($validated['name'], 'folder');
+
         $folder = DriveFolder::create([
             'unit_id' => $unitId,
             'user_id' => $user->id,
-            'parent_id' => $validated['parent_id'] ?? null,
-            'name' => trim($validated['name']),
+            'parent_id' => $parentFolder?->id,
+            'name' => $cleanName,
             'color' => $validated['color'] ?? null,
             'is_restricted' => $isRestricted,
             'folder_scope' => $folderScope,
@@ -234,14 +240,16 @@ class DriveController extends Controller
             if (! DriveAccess::canWriteFolder($user, $model)) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
+            $cleanName = $this->sanitizeFilesystemName($validated['name'], 'folder');
         } else {
             $model = DriveFile::findOrFail($id);
             if (! DriveAccess::canWriteFile($user, $model)) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
+            $cleanName = $this->sanitizeFilesystemName($validated['name'], 'file');
         }
 
-        $model->update(['name' => trim($validated['name'])]);
+        $model->update(['name' => $cleanName]);
 
         return response()->json(['message' => 'Nama berhasil diperbarui.', 'item' => $model]);
     }
@@ -335,7 +343,19 @@ class DriveController extends Controller
 
         $user = $request->user();
         $size = (int) $validated['size'];
-        $targetFolder = ! empty($validated['folder_id']) ? DriveFolder::find($validated['folder_id']) : null;
+
+        // Root check: jika folder_id diberikan, pastikan folder tujuan ada dan tidak trashed
+        $targetFolder = null;
+        if (! empty($validated['folder_id'])) {
+            $targetFolder = DriveFolder::find($validated['folder_id']);
+            if (! $targetFolder) {
+                return response()->json(['message' => 'Folder tujuan tidak ditemukan atau sudah dihapus.'], 404);
+            }
+            if (! DriveAccess::canWriteFolder($user, $targetFolder)) {
+                return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
+            }
+        }
+
         $unitId = $validated['unit_id'] ?? $targetFolder?->unit_id;
         $unit = ! empty($unitId) ? DriveUnit::findOrFail($unitId) : null;
 
@@ -344,12 +364,12 @@ class DriveController extends Controller
             if (! ($targetFolder && DriveAccess::canWriteFolder($user, $targetFolder))) {
                 return response()->json(['message' => 'Anda tidak memiliki hak menulis di Drive Unit ini.'], 403);
             }
-        } elseif ($targetFolder && ! DriveAccess::canWriteFolder($user, $targetFolder)) {
-            return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
         }
 
+        $cleanFilename = $this->sanitizeFilesystemName($validated['name'], 'file');
+
         // 2 & 3. Pengecekan Kuota dengan Row-Locking & Atomic Reservation (CWE-362)
-        $ext = pathinfo($validated['name'], PATHINFO_EXTENSION);
+        $ext = pathinfo($cleanFilename, PATHINFO_EXTENSION);
         $safeExt = $ext ? '.'.strtolower($ext) : '';
         $uuid = Str::uuid()->toString();
         $year = date('Y');
@@ -364,7 +384,7 @@ class DriveController extends Controller
         $quotaError = null;
         $createdUpload = null;
 
-        DB::transaction(function () use ($unit, $user, $size, $validated, $uploadId, $s3Key, $expiresAt, &$quotaError, &$createdUpload) {
+        DB::transaction(function () use ($unit, $user, $size, $validated, $cleanFilename, $uploadId, $s3Key, $expiresAt, &$quotaError, &$createdUpload) {
             if ($unit) {
                 $lockedUnit = DriveUnit::where('id', $unit->id)->lockForUpdate()->first();
                 $used = $lockedUnit ? $lockedUnit->usedStorageBytes() : 0;
@@ -397,7 +417,7 @@ class DriveController extends Controller
                 'user_id' => $user->id,
                 'unit_id' => $unit?->id,
                 'folder_id' => $validated['folder_id'] ?? null,
-                'filename' => $validated['name'],
+                'filename' => $cleanFilename,
                 's3_key' => $s3Key,
                 'total_size_bytes' => $size,
                 'parts_count' => 1,
@@ -493,6 +513,22 @@ class DriveController extends Controller
         ]);
 
         $upload = DriveUpload::where('id', $validated['upload_id'])->firstOrFail();
+
+        // Otorisasi kepemilikan upload (anti-takeover CWE-284)
+        $user = $request->user();
+        if ($user && (int) $upload->user_id !== (int) $user->id && ! in_array($user->role, ['super_admin', 'admin'], true)) {
+            return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk menyelesaikan upload ini.'], 403);
+        }
+
+        // Cek apakah target folder masih ada dan belum dihapus (anti-orphaned file)
+        if ($upload->folder_id) {
+            $targetFolder = DriveFolder::find($upload->folder_id);
+            if (! $targetFolder) {
+                Storage::disk('drive')->delete($upload->s3_key);
+                $upload->update(['status' => 'aborted']);
+                return response()->json(['message' => 'Folder tujuan telah dihapus sebelum upload selesai.'], 404);
+            }
+        }
 
         // If multipart, finalize S3 multipart upload
         if ($upload->upload_id && ! empty($validated['parts'])) {
@@ -884,5 +920,31 @@ class DriveController extends Controller
             'message' => "Pengguna {$newManager->name} berhasil ditunjuk sebagai Admin untuk folder {$folder->name}.",
             'folder' => $folder->fresh(),
         ]);
+    }
+
+    /**
+     * Sanitasi nama berkas dan folder agar tahan terhadap Zip-Slip, OS Reserved Devices,
+     * Path Traversal, Null Bytes, dan Unicode Directional Overrides (CWE-22, CWE-73).
+     */
+    protected function sanitizeFilesystemName(string $name, string $default = 'item'): string
+    {
+        // 1. Bersihkan null byte dan Unicode RTL / LTR overrides
+        $name = str_replace(["\0", "\u{202E}", "\u{202D}", "\u{202C}", "\u{200E}", "\u{200F}"], '', $name);
+
+        // 2. Cegah path traversal
+        $name = preg_replace('/(\.\.[\/\\\\])+/', '', $name);
+
+        // 3. Ganti karakter terlarang filesystem & kontrol dengan underscore
+        $name = preg_replace('/[\x00-\x1F\x7F\/\\\\:*?"<>|]/', '_', $name);
+
+        // 4. Trim spasi dan titik di awal/akhir
+        $clean = trim($name, " .\t\n\r\0\x0B");
+
+        // 5. Windows reserved device names (CON, PRN, AUX, NUL, COM1-9, LPT1-9)
+        if (preg_match('/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i', $clean)) {
+            $clean = "safe_{$clean}";
+        }
+
+        return $clean !== '' ? $clean : $default;
     }
 }
