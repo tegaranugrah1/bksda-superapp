@@ -10,6 +10,7 @@ use App\Models\DriveUpload;
 use App\Support\Security\DriveAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -347,21 +348,7 @@ class DriveController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki hak menulis di folder ini.'], 403);
         }
 
-        // 2. Pengecekan Kuota
-        if ($unit) {
-            $used = $unit->usedStorageBytes();
-            if ($used + $size > $unit->storage_quota_bytes) {
-                return response()->json(['message' => 'Kapasitas penyimpanan Drive Unit tidak mencukupi.'], 422);
-            }
-        } else {
-            $used = (int) DriveFile::where('user_id', $user->id)->whereNull('unit_id')->whereNull('deleted_at')->sum('size_bytes');
-            $quota = (int) ($user->drive_quota_bytes ?: 5368709120);
-            if ($used + $size > $quota) {
-                return response()->json(['message' => 'Kapasitas penyimpanan Drive Anda telah penuh.'], 422);
-            }
-        }
-
-        // 3. Generate path S3
+        // 2 & 3. Pengecekan Kuota dengan Row-Locking & Atomic Reservation (CWE-362)
         $ext = pathinfo($validated['name'], PATHINFO_EXTENSION);
         $safeExt = $ext ? '.'.strtolower($ext) : '';
         $uuid = Str::uuid()->toString();
@@ -372,18 +359,40 @@ class DriveController extends Controller
 
         $uploadId = Str::random(32);
         $isMultipart = ! empty($validated['is_multipart']) || $size > (100 * 1024 * 1024); // > 100MB auto multipart
-
         $expiresAt = now()->addHours(2);
 
-        // 4. Buat Presigned URL dengan disk drive_signer
-        $bucket = config('filesystems.disks.drive_signer.bucket', 'bksda-drive');
+        $quotaError = null;
+        $createdUpload = null;
 
-        if (! $isMultipart) {
-            // Single Upload: direct signed PUT
-            $presignedUrl = Storage::disk('drive_signer')->temporaryUploadUrl($s3Key, $expiresAt);
-            $targetUrl = is_array($presignedUrl) ? ($presignedUrl['url'] ?? '') : (string) $presignedUrl;
+        DB::transaction(function () use ($unit, $user, $size, $validated, $uploadId, $s3Key, $expiresAt, &$quotaError, &$createdUpload) {
+            if ($unit) {
+                $lockedUnit = DriveUnit::where('id', $unit->id)->lockForUpdate()->first();
+                $used = $lockedUnit ? $lockedUnit->usedStorageBytes() : 0;
+                $reserved = $lockedUnit ? $lockedUnit->reservedStorageBytes() : 0;
+                $limit = $lockedUnit ? $lockedUnit->storage_quota_bytes : 0;
 
-            DriveUpload::create([
+                if ($used + $reserved + $size > $limit) {
+                    $quotaError = 'Kapasitas penyimpanan Drive Unit tidak mencukupi.';
+                    return;
+                }
+            } else {
+                $lockedUser = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+                $used = (int) DriveFile::where('user_id', $user->id)->whereNull('unit_id')->whereNull('deleted_at')->sum('size_bytes');
+                $reserved = (int) DriveUpload::where('user_id', $user->id)
+                    ->whereNull('unit_id')
+                    ->where('status', 'initiated')
+                    ->where('expires_at', '>', now())
+                    ->sum('total_size_bytes');
+                $quota = (int) ($lockedUser?->drive_quota_bytes ?: 5368709120);
+
+                if ($used + $reserved + $size > $quota) {
+                    $quotaError = 'Kapasitas penyimpanan Drive Anda telah penuh.';
+                    return;
+                }
+            }
+
+            // Reservasi atomik kuota langsung tercatat di dalam transaksi
+            $createdUpload = DriveUpload::create([
                 'id' => $uploadId,
                 'user_id' => $user->id,
                 'unit_id' => $unit?->id,
@@ -395,6 +404,19 @@ class DriveController extends Controller
                 'status' => 'initiated',
                 'expires_at' => $expiresAt,
             ]);
+        });
+
+        if ($quotaError !== null) {
+            return response()->json(['message' => $quotaError], 422);
+        }
+
+        // 4. Buat Presigned URL dengan disk drive_signer
+        $bucket = config('filesystems.disks.drive_signer.bucket', 'bksda-drive');
+
+        if (! $isMultipart) {
+            // Single Upload: direct signed PUT
+            $presignedUrl = Storage::disk('drive_signer')->temporaryUploadUrl($s3Key, $expiresAt);
+            $targetUrl = is_array($presignedUrl) ? ($presignedUrl['url'] ?? '') : (string) $presignedUrl;
 
             return response()->json([
                 'upload_id' => $uploadId,
@@ -416,18 +438,6 @@ class DriveController extends Controller
         } catch (\Throwable $e) {
             // Fallback to single presigned upload if multipart fails
             $presignedUrl = Storage::disk('drive_signer')->temporaryUploadUrl($s3Key, $expiresAt);
-            DriveUpload::create([
-                'id' => $uploadId,
-                'user_id' => $user->id,
-                'unit_id' => $unit?->id,
-                'folder_id' => $validated['folder_id'] ?? null,
-                'filename' => $validated['name'],
-                's3_key' => $s3Key,
-                'total_size_bytes' => $size,
-                'parts_count' => 1,
-                'status' => 'initiated',
-                'expires_at' => $expiresAt,
-            ]);
 
             return response()->json([
                 'upload_id' => $uploadId,
@@ -457,18 +467,9 @@ class DriveController extends Controller
             ];
         }
 
-        DriveUpload::create([
-            'id' => $uploadId,
-            'user_id' => $user->id,
-            'unit_id' => $unit?->id,
-            'folder_id' => $validated['folder_id'] ?? null,
-            'filename' => $validated['name'],
-            's3_key' => $s3Key,
+        $createdUpload->update([
             'upload_id' => $s3UploadId,
-            'total_size_bytes' => $size,
             'parts_count' => $partsCount,
-            'status' => 'initiated',
-            'expires_at' => $expiresAt,
         ]);
 
         return response()->json([

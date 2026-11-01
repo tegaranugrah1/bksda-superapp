@@ -38,4 +38,15 @@ class DriveUnit extends Model
     {
         return (int) $this->files()->whereNull('deleted_at')->sum('size_bytes');
     }
+
+    /**
+     * Hitung total kapasitas disk yang sedang direservasi oleh sesi upload aktif (status: initiated dan belum kedaluwarsa).
+     */
+    public function reservedStorageBytes(): int
+    {
+        return (int) DriveUpload::where('unit_id', $this->id)
+            ->where('status', 'initiated')
+            ->where('expires_at', '>', now())
+            ->sum('total_size_bytes');
+    }
 }
