@@ -9488,3 +9488,8 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Sifat Surat Tunggal (Single-Select)**: Popover sifat surat interaktif dengan radio/single-select instan (`Biasa`, `Penting`, `Sangat Penting`, `Rahasia`, `Segera`, `Kilat`).
    - **Diteruskan Ke (Ruang & Pegawai Balai)**: Selector interaktif Diteruskan Ke yang memuat lokasi khusus Balai dari pengaturan BMN dan pegawai khusus Balai KSDA Kaltim, defaulting ke status belum diisi (`+ Pilih Penerus`) sebelum ada arahan pimpinan.
 
+9. **BMN Kandidat Lelang (`/bmn/auction-candidates`) — Penyelarasan Aturan Kelayakan Dokumen Aset (`AuctionAssetDocumentReadinessService.php`)**:
+   - **Alat Angkutan Bermotor ber-No Polisi**: Hanya aset dengan `jenis_bmn` mengandung `ANGKUTAN BERMOTOR` dan memiliki nomor polisi valid (bukan tanda strip `-` atau kosong) yang dievaluasi dokumen lengkap kendaraan (BPKB, STNK, No Rangka, No Mesin, Foto fisik, dan Verifikasi BMN).
+   - **Aset Selain Jenis Tersebut (Non-Kendaraan Ber-Nopol)**: Aset non-kendaraan (Tanah, Bangunan, Mesin/Peralatan TIK & Non-TIK, Peralatan Kantor, Alat Besar) maupun angkutan tanpa nopol hanya mensyaratkan **Foto Fisik** (`jumlah_foto > 0` atau berkas foto fisik) dan **Verifikasi BMN** (`verified_at`). Jika foto dan verifikasi terpenuhi, status dokumen dinyatakan `Ready` (Oke) tanpa menagih BPKB/STNK/mesin/rangka.
+
+

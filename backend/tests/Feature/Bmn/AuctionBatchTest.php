@@ -963,7 +963,7 @@ class AuctionBatchTest extends TestCase
     {
         $service = app(AuctionAssetDocumentReadinessService::class);
 
-        // 1. Incomplete vehicle
+        // 1. Incomplete vehicle (Alat Angkutan Bermotor with Nopol, but missing BPKB)
         $assetVehicleIncomplete = $this->createAsset([
             'no_bpkp' => null,
         ]);
@@ -973,7 +973,7 @@ class AuctionBatchTest extends TestCase
         $this->assertTrue($eval['requires_document_review']);
         $this->assertEquals('warning', $eval['items']['bpkb']);
 
-        // 2. Non-vehicle
+        // 2. Non-vehicle without photo & verification requires review
         $assetNonVehicle = Asset::create([
             'jenis_bmn' => 'Gedung dan Bangunan',
             'kode_barang' => '4.01.01.01.001',
@@ -984,7 +984,26 @@ class AuctionBatchTest extends TestCase
 
         $evalNon = $service->evaluate($assetNonVehicle);
         $this->assertEquals('general', $evalNon['asset_type']);
-        $this->assertFalse($evalNon['requires_document_review']);
+        $this->assertTrue($evalNon['requires_document_review']);
+        $this->assertContains('Foto fisik aset belum tersedia/diunggah.', $evalNon['warnings']);
+        $this->assertContains('Aset belum diverifikasi oleh Petugas BMN.', $evalNon['warnings']);
+        $this->assertNotContains('Nomor BPKB belum tersedia di master aset.', $evalNon['warnings']);
+
+        // 3. Non-vehicle with photo and verification is Ready / OK
+        $assetNonVehicleReady = Asset::create([
+            'jenis_bmn' => 'Gedung dan Bangunan',
+            'kode_barang' => '4.01.01.01.002',
+            'nup' => '2',
+            'nama_barang' => 'Pos Jaga',
+            'kondisi' => 'Rusak Berat',
+            'jumlah_foto' => 1,
+            'verified_at' => now(),
+        ]);
+
+        $evalNonReady = $service->evaluate($assetNonVehicleReady);
+        $this->assertEquals('general', $evalNonReady['asset_type']);
+        $this->assertFalse($evalNonReady['requires_document_review']);
+        $this->assertEmpty($evalNonReady['warnings']);
     }
 
     public function test_validity_service_approval_review_warning(): void
