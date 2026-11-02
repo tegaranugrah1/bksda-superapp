@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/CheckPermission.php": {
-    "mtime": 1793405273.8820014,
-    "ast_hash": "dd016ca54e747d718102bce5cc1248f3",
+    "mtime": 1793494170.9412744,
+    "ast_hash": "ed3fcdec64d31e5756562b0ebc6a4247",
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/CheckRole.php": {
@@ -115,8 +115,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/ImportReviewController.php": {
-    "mtime": 1792746997.3528738,
-    "ast_hash": "73467406ff00b5af28f709f2ede076ac",
+    "mtime": 1793494190.5296,
+    "ast_hash": "dde3ef6cc7925eb7fd1834eef3a71150",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/LoanController.php": {
@@ -470,8 +470,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Routes/api.php": {
-    "mtime": 1790729346.8858986,
-    "ast_hash": "5f5ec2a69121ef0b01634f567ac02611",
+    "mtime": 1793494180.8979735,
+    "ast_hash": "ea1303d3ea596f9580c52e4492764723",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AssetService.php": {
@@ -1670,13 +1670,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1791807652.9419081,
-    "ast_hash": "47cbcae1445421d71e7bb057994905eb",
+    "mtime": 1793493988.5408862,
+    "ast_hash": "c10cacd760eeef285b63abe34c3506d6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/create/page.tsx": {
-    "mtime": 1791807652.9439087,
-    "ast_hash": "2136935a713fe5dc4d8f6108ab2871ea",
+    "mtime": 1793493634.565312,
+    "ast_hash": "2c3e46c361338c9a728df2f367540271",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -1685,8 +1685,8 @@
     "semantic_hash": "e67d5c5c17a7a1813c22b2998deb0fdb"
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1791807652.9439087,
-    "ast_hash": "fa1e2561799bef8a4dd1fe1a89fd6fc2",
+    "mtime": 1793493033.8382337,
+    "ast_hash": "c71aa7e7fd9f5bc6922e5ce4481605c3",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AssetsLotTab.tsx": {
@@ -1720,13 +1720,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/ValuationTab.tsx": {
-    "mtime": 1791812339.440653,
-    "ast_hash": "461e35ec7996149b67e40b56d87e8661",
+    "mtime": 1793493925.3395162,
+    "ast_hash": "606035b6cd584b455ad02120141c0555",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/page.tsx": {
-    "mtime": 1790734380.631024,
-    "ast_hash": "0ca65ed0a0446fa8eba0f905b4370379",
+    "mtime": 1793493888.003678,
+    "ast_hash": "7a93bb2fe73a8b10d40ad7d726dc2836",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/_lib/api.ts": {
@@ -1740,8 +1740,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/page.tsx": {
-    "mtime": 1790729346.8930502,
-    "ast_hash": "4473642cb3dce90b4f957e737c38ac53",
+    "mtime": 1793493379.84539,
+    "ast_hash": "8905ee83c5a222f4570da2dd8c92b716",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx": {
@@ -2055,14 +2055,14 @@
     "semantic_hash": "e77fc09e48d95edd3281a5fe37d59631"
   },
   "frontend/src/app/bmn/disposal/page.tsx": {
-    "mtime": 1781750155.2773926,
-    "ast_hash": "3a3e187a82e22f513922a18145aafc20",
-    "semantic_hash": "3a3e187a82e22f513922a18145aafc20"
+    "mtime": 1793493343.4141123,
+    "ast_hash": "a22d5f4a704a8a4bb0cc8a344d3dc929",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/import-review/[batchId]/page.tsx": {
-    "mtime": 1781750155.278401,
-    "ast_hash": "36218f68e2d47dc8a3d6504a11b89249",
-    "semantic_hash": "36218f68e2d47dc8a3d6504a11b89249"
+    "mtime": 1793493812.2211306,
+    "ast_hash": "8426fd532bc55e4e85452815f8f5d0b0",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/import-review/page.tsx": {
     "mtime": 1781750155.2793925,
@@ -2070,23 +2070,23 @@
     "semantic_hash": "10d3ca24ab5b58158df825af77205d37"
   },
   "frontend/src/app/bmn/layout.tsx": {
-    "mtime": 1790324134.9241984,
-    "ast_hash": "9447fa65cd5e757b80bd04cee91beb50",
+    "mtime": 1793492777.3764415,
+    "ast_hash": "5482e631a05bda9d15bba05a302bc46f",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/page.tsx": {
-    "mtime": 1778913561.33962,
-    "ast_hash": "e3eae9ec14a91874d181dcf5a534d86c",
-    "semantic_hash": "e3eae9ec14a91874d181dcf5a534d86c"
+    "mtime": 1793493695.706802,
+    "ast_hash": "ae168929325166f66e99438109a3e6b1",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/page.tsx": {
-    "mtime": 1790729346.8940492,
-    "ast_hash": "0dc7d417a04ca87378b8b7e86f49a27d",
+    "mtime": 1793493417.6062691,
+    "ast_hash": "27884930cd1ff7122f5f298c355cfde1",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/maintenances/page.tsx": {
-    "mtime": 1791365019.1550376,
-    "ast_hash": "f6461978200f51b985038867ff69f037",
+    "mtime": 1793493191.8871386,
+    "ast_hash": "03d156f4260d1c812885529fe8313e9f",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/page.tsx": {
@@ -2110,8 +2110,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/page.tsx": {
-    "mtime": 1793004280.843878,
-    "ast_hash": "5d069129382bfe9eb74c962171920227",
+    "mtime": 1793494140.937725,
+    "ast_hash": "fa088743743af36f9bd1850f4ef814a8",
     "semantic_hash": ""
   },
   "frontend/src/app/cms/_components/CrudFormDrawer.tsx": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793485212.143883,
-    "ast_hash": "89c8f8d48609e04adeec18aadca349dd",
+    "mtime": 1793573549.9682698,
+    "ast_hash": "89788a54b32aa810078bf626ff58d7a2",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -7080,8 +7080,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveController.php": {
-    "mtime": 1793400834.383827,
-    "ast_hash": "12e1cb8a06ca448001535bc0daa00120",
+    "mtime": 1793548195.930805,
+    "ast_hash": "0812292246d659e4e2926642c6c03a92",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveShareController.php": {
@@ -7125,8 +7125,8 @@
     "semantic_hash": ""
   },
   "backend/app/Models/DriveUnit.php": {
-    "mtime": 1793263374.9236784,
-    "ast_hash": "520c7d1e549a274aa43107719790961d",
+    "mtime": 1793545099.6984153,
+    "ast_hash": "59a0504b8f528df412dac3ae05b10387",
     "semantic_hash": ""
   },
   "backend/app/Models/DriveUpload.php": {
@@ -7525,18 +7525,88 @@
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/design.md": {
-    "mtime": 1793486893.6258986,
-    "ast_hash": "abb712f0e5ceceeb0fb1e851016eec55",
+    "mtime": 1793492071.8867145,
+    "ast_hash": "62096608fb121e6b68db8c8d750a8202",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/requirements.md": {
-    "mtime": 1793486876.6882706,
-    "ast_hash": "715920c2565d13a535bb1feef17380d5",
+    "mtime": 1793492049.1183844,
+    "ast_hash": "be879105d04ac4adeb3718da96f06b68",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/tasks.md": {
-    "mtime": 1793486906.440037,
-    "ast_hash": "277faa3caabf0c7e57033b9b1fcf4695",
+    "mtime": 1793494323.412081,
+    "ast_hash": "2395773dcc1a1c550a2704c5fd3b830f",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/BmnLayoutAndSecurityRegressionTest.php": {
+    "mtime": 1793497328.135331,
+    "ast_hash": "19b43a392c1534c1687b679038574490",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/DriveDeepRootSecurityTest.php": {
+    "mtime": 1793548251.6710732,
+    "ast_hash": "c8cedae0508c32abd85786b4a905f877",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/DriveLayoutAndSecurityRegressionTest.php": {
+    "mtime": 1793539536.82612,
+    "ast_hash": "44706e473ab1268cb2962147f8336a4d",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/DriveRootConcurrencyAndMultipartTest.php": {
+    "mtime": 1793545314.2999911,
+    "ast_hash": "9071443d6f6b44041fea2825b0344dde",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/SuratTugasApprovalAndPortalNotificationTest.php": {
+    "mtime": 1793573381.9046445,
+    "ast_hash": "8b8ab42b65f3d10fa3da989ea5b1c235",
+    "semantic_hash": ""
+  },
+  "frontend/tests/bmn-security-ui.playwright.cjs": {
+    "mtime": 1793497454.8803265,
+    "ast_hash": "75fe8476293a03794263a1b25e2843be",
+    "semantic_hash": ""
+  },
+  "frontend/tests/drive-agentic-root.playwright.cjs": {
+    "mtime": 1793548326.6580508,
+    "ast_hash": "6aec642b9786136f7e7cb2d9f07a4aad",
+    "semantic_hash": ""
+  },
+  "frontend/tests/drive-security-ui.playwright.cjs": {
+    "mtime": 1793539668.5874417,
+    "ast_hash": "3267721d166ce3046f243e9ce63c2a7d",
+    "semantic_hash": ""
+  },
+  "frontend/tests/kepegawaian-surat-tugas-portal.playwright.cjs": {
+    "mtime": 1793573504.309943,
+    "ast_hash": "ddef3c7401b192867729820cace6a6b7",
+    "semantic_hash": ""
+  },
+  "docs/bmn-ui-ux-modernization/test-record.md": {
+    "mtime": 1793497534.4073515,
+    "ast_hash": "a8d3e7ad701b76b4550d808058a7a95b",
+    "semantic_hash": ""
+  },
+  "docs/hierarchical-drive-and-resor-rbac/advanced-followup-test-plan.md": {
+    "mtime": 1793545412.7240489,
+    "ast_hash": "a12f86c08b92fe18f6d72576fdf23a86",
+    "semantic_hash": ""
+  },
+  "docs/hierarchical-drive-and-resor-rbac/agentic-e2e-test-plan.md": {
+    "mtime": 1793548101.3501227,
+    "ast_hash": "f110e7bd9e6da0f3e0b1e32322f8eef1",
+    "semantic_hash": ""
+  },
+  "docs/hierarchical-drive-and-resor-rbac/test-record.md": {
+    "mtime": 1793539797.4523635,
+    "ast_hash": "89754a953be89715e52ec746606d9c55",
+    "semantic_hash": ""
+  },
+  "docs/kepegawaian/surat-tugas-approval-portal-test-plan.md": {
+    "mtime": 1793573184.2698085,
+    "ast_hash": "d3c21b790d90c6b3deca74e2bd1429ad",
     "semantic_hash": ""
   }
 }

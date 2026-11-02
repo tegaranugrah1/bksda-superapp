@@ -2510,13 +2510,13 @@
     "semantic_hash": "80308f5658e231c1a23f6e271dbc10a5"
   },
   "frontend/src/app/surat/_components/LembarDisposisiForm.tsx": {
-    "mtime": 1785369781.9468753,
-    "ast_hash": "d19ba14f81c774ff0e0ca562096a01a6",
-    "semantic_hash": "d19ba14f81c774ff0e0ca562096a01a6"
+    "mtime": 1793583082.4512706,
+    "ast_hash": "495a10c76eeb732b41babfde298150e8",
+    "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisiSheet.tsx": {
-    "mtime": 1786320232.9218454,
-    "ast_hash": "53a2fd3d6768e5f4b5322595e1ad6082",
+    "mtime": 1793584149.2509177,
+    "ast_hash": "7986e9684f51d19a1b045b60e267c704",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/surat-api.ts": {
@@ -2550,8 +2550,8 @@
     "semantic_hash": "9f6980144a98c186ee147da71863035d"
   },
   "frontend/src/app/surat/masuk/page.tsx": {
-    "mtime": 1790324134.9531977,
-    "ast_hash": "c59fb64a93c56b742e4c2543abbf76f4",
+    "mtime": 1793583065.1488497,
+    "ast_hash": "c65d653e84138490c823331d7de6d326",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793573549.9682698,
-    "ast_hash": "89788a54b32aa810078bf626ff58d7a2",
+    "mtime": 1793583233.6220613,
+    "ast_hash": "e3470eaa617a27987bbd50918a659336",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -6460,8 +6460,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/PowerOfAttorneyTab.tsx": {
-    "mtime": 1793004567.1747985,
-    "ast_hash": "8591ce1fc63ab6d08b24e5397cd741b2",
+    "mtime": 1793580452.2066905,
+    "ast_hash": "02ab6d7643a0afdc59eb489a989d14fa",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/UsageAgreementTab.tsx": {
@@ -7607,6 +7607,31 @@
   "docs/kepegawaian/surat-tugas-approval-portal-test-plan.md": {
     "mtime": 1793573184.2698085,
     "ast_hash": "d3c21b790d90c6b3deca74e2bd1429ad",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/masuk/_components/BatchPrintDisposisiModal.tsx": {
+    "mtime": 1793584187.4941306,
+    "ast_hash": "8bd67374345f16fea39c2493e74036c5",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/masuk/_components/DiteruskanCellPopover.tsx": {
+    "mtime": 1793583204.0840058,
+    "ast_hash": "047331b3a8f8634f88f8a079d25ad208",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/masuk/_components/SifatCellPopover.tsx": {
+    "mtime": 1793583173.2751832,
+    "ast_hash": "cdc7755387e6106015e241059a86348d",
+    "semantic_hash": ""
+  },
+  "frontend/tests/surat-masuk-2up-diteruskan.playwright.cjs": {
+    "mtime": 1793583114.099529,
+    "ast_hash": "ed0886a260638c9947584f35f323bbab",
+    "semantic_hash": ""
+  },
+  "docs/surat/cetak-2up-batch-dan-penerusan-disposisi-plan.md": {
+    "mtime": 1793583219.464017,
+    "ast_hash": "cffda411b166c78e4737d3e0cbf6bb72",
     "semantic_hash": ""
   }
 }
