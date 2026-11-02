@@ -81,6 +81,10 @@ export default function SuratHubPage() {
         suratKeluarList: keluarItems.slice(0, 5),
       };
     },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
   });
 
   const totalSuratMasuk = hubData?.totalSuratMasuk ?? 0;

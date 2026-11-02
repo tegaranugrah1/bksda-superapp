@@ -35,6 +35,9 @@ class EmployeeRequest extends FormRequest
         if ($this->has('pangkat_golongan')) {
             $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
         }
+        if ($this->has('masa_kerja')) {
+            $this->merge(['masa_kerja' => strip_tags(trim((string) $this->input('masa_kerja'))) ?: null]);
+        }
 
         if ($jenis === 'MMP') {
             $employeeId = $this->route('employee');
@@ -83,6 +86,7 @@ class EmployeeRequest extends FormRequest
             'jabatan' => ['nullable', 'string', 'max:255'],
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'masa_kerja' => ['nullable', 'string', 'max:100'],
             'resor' => [
                 'nullable',
                 'string',

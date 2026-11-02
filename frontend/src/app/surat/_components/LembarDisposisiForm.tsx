@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ function formatDateForInput(dateStr?: string | null): string {
 
 export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: LembarDisposisiFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [internalSubmitting, setInternalSubmitting] = useState(false);
   const loading = isSubmitting || internalSubmitting;
 
@@ -321,6 +323,15 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           } catch (e) {}
         }
       }
+
+      // Invalidate cache immediately so agenda list and counters update without manual refresh
+      queryClient.invalidateQueries({ queryKey: ["surat-masuk"] });
+      queryClient.invalidateQueries({ queryKey: ["surat-masuk-next-agenda"] });
+      queryClient.invalidateQueries({ queryKey: ["surat-hub-summary"] });
+      if (initialData?.id) {
+        queryClient.invalidateQueries({ queryKey: ["surat-masuk-detail", String(initialData.id)] });
+      }
+
       toast.success(
         isTwoUpMode && newItem2
           ? `2 Surat Masuk (Agenda ${newItem.no_agenda} & ${newItem2.no_agenda}) berhasil disimpan!`

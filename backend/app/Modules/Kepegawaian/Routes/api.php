@@ -92,6 +92,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
 
     // Operasi tulis/hapus hanya untuk Admin/SuperAdmin
     Route::middleware('role:super_admin,admin')->group(function () {
+        Route::get('/employees/{employee}/histories', [EmployeeController::class, 'histories']);
         Route::post('/employees', [EmployeeController::class, 'store']);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);

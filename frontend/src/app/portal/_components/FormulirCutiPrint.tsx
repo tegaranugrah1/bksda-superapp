@@ -37,6 +37,7 @@ export interface LeaveRequestPrintData {
     jabatan?: string;
     satuan_kerja?: string;
     pangkat_golongan?: string;
+    masa_kerja?: string | null;
   };
 }
 
@@ -154,7 +155,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Jabatan</td>
             <td className="px-2.5 py-0.5 uppercase border-r border-black">{emp.jabatan || "-"}</td>
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Masa Kerja</td>
-            <td className="px-2.5 py-0.5">{data.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
+            <td className="px-2.5 py-0.5">{data.masa_kerja || emp.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
           </tr>
           <tr>
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Unit Kerja</td>

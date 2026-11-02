@@ -13,6 +13,7 @@ export interface Employee {
   jenis_pegawai?: "PNS" | "PPPK" | "MMP";
   foto_url?: string | null;
   resor?: string | null;
+  masa_kerja?: string | null;
   deleted_at?: string | null;
 }
 

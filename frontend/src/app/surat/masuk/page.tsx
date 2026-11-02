@@ -77,6 +77,10 @@ export default function SuratMasukListPage() {
       return res.data;
     },
     placeholderData: keepPreviousData,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   const suratList: SuratMasuk[] = useMemo(() => {
@@ -271,13 +275,24 @@ export default function SuratMasukListPage() {
           />
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-3 text-xs font-semibold text-slate-500 dark:text-zinc-400">
+        <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400">
           {isFetching && (
             <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
               <RefreshCw className="h-3 w-3 animate-spin" />
               Menyinkronkan...
             </span>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Segarkan data agenda surat masuk"
+            className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-emerald-600" : ""}`} />
+          </Button>
           <span>
             Total <span className="text-slate-900 font-bold dark:text-white">{totalCount}</span> Surat Masuk
           </span>

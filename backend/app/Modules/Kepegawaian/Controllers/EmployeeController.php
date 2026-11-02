@@ -5,6 +5,7 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\EmployeeHistory;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
@@ -225,6 +226,12 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'is_active'];
+        $oldValues = [];
+        foreach ($trackedFields as $field) {
+            $oldValues[$field] = $employee->$field;
+        }
+
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
             $employee->replaceProfilePhoto($request->file('foto'));
@@ -232,6 +239,29 @@ class EmployeeController extends Controller
 
         $employee->update($validated);
         $newNip = trim((string) $employee->nip);
+
+        // Catat riwayat audit jika ada field biodata yang berubah
+        $changes = [];
+        foreach ($trackedFields as $field) {
+            $newVal = $employee->$field;
+            $oldVal = $oldValues[$field];
+            if ($oldVal != $newVal) {
+                $changes[$field] = [
+                    'old' => $oldVal,
+                    'new' => $newVal,
+                ];
+            }
+        }
+
+        if (! empty($changes)) {
+            EmployeeHistory::create([
+                'employee_id' => $employee->id,
+                'user_id' => $currentUser?->id,
+                'action' => 'UPDATE_BIODATA',
+                'changes' => $changes,
+                'created_at' => now(),
+            ]);
+        }
 
         if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
             User::where('username', $oldNip)->update([
@@ -243,6 +273,25 @@ class EmployeeController extends Controller
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
             'data' => $employee,
+        ]);
+    }
+
+    /**
+     * Ambil riwayat perubahan biodata pegawai untuk Tab Riwayat Perubahan.
+     * GET /api/kepegawaian/employees/{id}/histories
+     */
+    public function histories(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $histories = EmployeeHistory::where('employee_id', $employee->id)
+            ->with(['user:id,name,username'])
+            ->latest('created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $histories,
         ]);
     }
 

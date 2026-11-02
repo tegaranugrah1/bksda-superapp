@@ -62,6 +62,7 @@ class Employee extends Model
         'pangkat_golongan',
         'satuan_kerja',
         'resor',
+        'masa_kerja',
         'is_active',
         'foto_profil',
     ];
@@ -326,5 +327,10 @@ class Employee extends Model
     public function leaves(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(EmployeeLeave::class, 'employee_id');
+    }
+
+    public function histories(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmployeeHistory::class, 'employee_id')->latest('created_at');
     }
 }

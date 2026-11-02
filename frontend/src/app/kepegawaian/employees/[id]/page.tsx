@@ -18,12 +18,15 @@ import {
   X,
   KeyRound,
   Calendar,
+  History,
+  RotateCcw,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { AssignmentLetterHistory } from "../_components/AssignmentLetterHistory";
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
+import { EmployeeAuditHistoryTab } from "../_components/EmployeeAuditHistoryTab";
 import {
   calculateMasaKerja,
   isMmpEmployee,
@@ -53,8 +56,8 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"history" | "biodata" | "leave">("history");
-  const { canManageAccess, canWrite } = useRole();
+  const [activeTab, setActiveTab] = useState<"history" | "biodata" | "leave" | "audit">("history");
+  const { canManageAccess, canWrite, isAdmin } = useRole();
 
   // Biodata edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +69,7 @@ export default function EmployeeDetailPage() {
     pangkat_golongan: "",
     satuan_kerja: "",
     resor: "",
+    masa_kerja: "",
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
@@ -110,6 +114,7 @@ export default function EmployeeDetailPage() {
       pangkat_golongan: detected === "MMP" ? "" : employee.pangkat_golongan || "",
       satuan_kerja: employee.satuan_kerja || "",
       resor: employee.resor || "",
+      masa_kerja: employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap),
       is_active: employee.is_active,
     });
     setIsEditing(true);
@@ -198,11 +203,13 @@ export default function EmployeeDetailPage() {
         pangkat_golongan: editJenis === "MMP" ? null : editForm.pangkat_golongan || null,
         satuan_kerja: editForm.satuan_kerja || null,
         resor: editForm.resor || null,
+        masa_kerja: editJenis === "MMP" ? null : (editForm.masa_kerja || null),
         is_active: editForm.is_active,
       });
       toast.success("Biodata berhasil diperbarui.");
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["employee", id] });
+      queryClient.invalidateQueries({ queryKey: ["employee-histories", id] });
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
     } catch (err: unknown) {
@@ -486,6 +493,17 @@ export default function EmployeeDetailPage() {
                 {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
               </span>
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab("audit")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                  activeTab === "audit" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
+                )}
+              >
+                <History className="w-4 h-4" /> Riwayat Perubahan
+              </button>
+            )}
           </div>
 
           {activeTab === "history" && (
@@ -571,7 +589,7 @@ export default function EmployeeDetailPage() {
                     value={
                       empCategory === "MMP"
                         ? "-"
-                        : calculateMasaKerja(employee.nip, employee.nama_lengkap)
+                        : (employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap))
                     }
                   />
                   <BioItem
@@ -713,12 +731,12 @@ export default function EmployeeDetailPage() {
                       const satker = (editForm.satuan_kerja || "").toLowerCase();
                       const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
                       let availableResors = RESOR_OPTIONS;
-                      if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau")) {
-                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
-                      } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong")) {
-                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-                      } else if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan")) {
+                      if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan") || satker.includes("seksi 3") || satker.includes("seksi iii")) {
                         availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
+                      } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong") || satker.includes("seksi 2") || satker.includes("seksi ii")) {
+                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
+                      } else if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau") || satker.includes("seksi 1") || satker.includes("seksi i")) {
+                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
                       }
 
                       return (
@@ -756,13 +774,35 @@ export default function EmployeeDetailPage() {
 
                     {editJenis !== "MMP" && (
                       <BioField label="Masa Kerja">
-                        <input
-                          type="text"
-                          readOnly
-                          disabled
-                          value={calculateMasaKerja(editForm.nip, editForm.nama_lengkap)}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-semibold cursor-not-allowed"
-                        />
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={editForm.masa_kerja}
+                              onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
+                              placeholder="Contoh: 4 Tahun 5 Bulan"
+                              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-semibold outline-none transition-all"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const autoVal = calculateMasaKerja(editForm.nip, editForm.nama_lengkap);
+                                setEditForm({ ...editForm, masa_kerja: autoVal });
+                                toast.info(`Masa kerja direset ke hitungan otomatis: ${autoVal}`);
+                              }}
+                              className="shrink-0 h-11 px-3 text-xs font-semibold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 rounded-xl gap-1.5 cursor-pointer"
+                              title="Hitung ulang otomatis berdasarkan NIP & Gelar"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>Reset ke Otomatis</span>
+                            </Button>
+                          </div>
+                          <p className="text-[11px] text-slate-400">
+                            Default terisi otomatis dari NIP & gelar. Admin dapat menyesuaikan jika terdapat penyesuaian masa kerja (PMK).
+                          </p>
+                        </div>
                       </BioField>
                     )}
 
@@ -785,6 +825,10 @@ export default function EmployeeDetailPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === "audit" && isAdmin && (
+            <EmployeeAuditHistoryTab employeeId={employee.id} />
           )}
         </div>
 
