@@ -9492,4 +9492,13 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Alat Angkutan Bermotor ber-No Polisi**: Hanya aset dengan `jenis_bmn` mengandung `ANGKUTAN BERMOTOR` dan memiliki nomor polisi valid (bukan tanda strip `-` atau kosong) yang dievaluasi dokumen lengkap kendaraan (BPKB, STNK, No Rangka, No Mesin, Foto fisik, dan Verifikasi BMN).
    - **Aset Selain Jenis Tersebut (Non-Kendaraan Ber-Nopol)**: Aset non-kendaraan (Tanah, Bangunan, Mesin/Peralatan TIK & Non-TIK, Peralatan Kantor, Alat Besar) maupun angkutan tanpa nopol hanya mensyaratkan **Foto Fisik** (`jumlah_foto > 0` atau berkas foto fisik) dan **Verifikasi BMN** (`verified_at`). Jika foto dan verifikasi terpenuhi, status dokumen dinyatakan `Ready` (Oke) tanpa menagih BPKB/STNK/mesin/rangka.
 
+10. **Inisialisasi Dokumen Spesifikasi Modernisasi UI/UX, Arsitektur Jeroan & Pengerasan Keamanan Modul Persuratan (`SURAT-MODERNIZATION-2026`)**:
+   - Menyusun dokumen kebutuhan teknis (`docs/surat-modernization/requirements.md`), desain arsitektur (`docs/surat-modernization/design.md`), dan daftar tugas pelaksanaan bertahap 5 fase (`docs/surat-modernization/tasks.md`).
+   - Menyelaraskan seluruh arsitektur modul Persuratan mengacu pada standar emas Modul Kepegawaian dan Modul BMN:
+     1. Penataan sidebar hierarkis 4 kategori semantik, mode collapsible desktop rail (`w-72` $\leftrightarrow$ `w-20`), dan penghapusan floating action button (FAB) mobile.
+     2. Eliminasi penuh anti-pattern `localStorage` (`bksda_saved_surat_masuk`) dan migrasi ke `@tanstack/react-query` v5 dengan server-side pagination & URL searchParams sync.
+     3. Desain komponen standar enterprise: Header Card Zinc, Skeleton Loader, Responsive Stacked Cards di layar ponsel, dan Sticky Action Bar pada formulir registrasi.
+     4. Pengerasan keamanan backend: Granular RBAC (`surat.view`, `surat.create`, `surat.update`, `surat.delete`, `surat.export`), validasi ketat upload pindaian surat (max 10MB, strictly PDF/JPG/PNG), serta test suite regresi otomatis.
+
+
 

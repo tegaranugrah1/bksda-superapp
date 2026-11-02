@@ -215,6 +215,14 @@ class User extends Authenticatable
                 return $this->role === 'admin' && $hasModuleAccess;
             }
 
+            if (str_starts_with($permission, 'surat.')) {
+                $isReadPermission = in_array($permission, ['surat.view', 'surat.document.view']);
+                if ($isReadPermission) {
+                    return in_array('surat', $this->access_modules ?? []);
+                }
+                return $this->role === 'admin' && in_array('surat', $this->access_modules ?? []);
+            }
+
             return false;
         }
 

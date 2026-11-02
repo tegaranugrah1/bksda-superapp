@@ -156,7 +156,7 @@ export default function SuratKeluarListPage() {
   };
 
   return (
-    <div className="space-y-4 px-5 py-4 md:px-6">
+    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="space-y-0.5">

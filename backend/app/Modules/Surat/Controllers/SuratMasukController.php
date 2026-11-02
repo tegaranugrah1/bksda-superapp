@@ -78,6 +78,41 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    public function nextAgenda(Request $request): JsonResponse
+    {
+        $year = (int) ($request->input('year') ?: date('Y'));
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            $maxNumber = DB::table('surat_masuk')
+                ->whereYear('tanggal_agenda', $year)
+                ->whereNull('deleted_at')
+                ->selectRaw("COALESCE(MAX(CAST(NULLIF(regexp_replace(no_agenda, '[^0-9]', '', 'g'), '') AS INTEGER)), 0) as max_val")
+                ->value('max_val');
+        } else {
+            // Driver-agnostic fallback for SQLite in automated tests
+            $allAgendas = DB::table('surat_masuk')
+                ->whereYear('tanggal_agenda', $year)
+                ->whereNull('deleted_at')
+                ->pluck('no_agenda');
+
+            $maxNumber = 0;
+            foreach ($allAgendas as $agenda) {
+                $num = (int) preg_replace('/[^0-9]/', '', (string)$agenda);
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        $next = (int) $maxNumber + 1;
+
+        return response()->json([
+            'next_agenda' => (string) $next,
+            'year' => $year,
+        ]);
+    }
+
     public function store(SuratMasukRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -93,21 +128,10 @@ class SuratMasukController extends Controller
 
             $validated['created_by'] = $request->user()?->id;
 
-            $noAgenda = $validated['no_agenda'] ?? null;
-            if ($noAgenda) {
-                $suratMasuk = SuratMasuk::updateOrCreate(
-                    ['no_agenda' => $noAgenda],
-                    $validated
-                );
-            } else {
-                $suratMasuk = SuratMasuk::create($validated);
-            }
+            $suratMasuk = SuratMasuk::create($validated);
 
             if (!empty($validated['disposisi'])) {
-                $suratMasuk->disposisi()->updateOrCreate(
-                    ['surat_masuk_id' => $suratMasuk->id],
-                    $validated['disposisi']
-                );
+                $suratMasuk->disposisi()->create($validated['disposisi']);
             }
 
             DB::commit();
