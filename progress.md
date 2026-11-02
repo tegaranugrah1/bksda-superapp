@@ -2,7 +2,29 @@
 
 ## Status Update: 2 November 2026
 
-### 1. Fitur Hitung & Rekonsiliasi Uang Makan Pegawai (SIKADIR vs Surat Tugas)
+### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB)
+- **Perencanaan Dokumen Standar 3-Pilar Selesai**:
+  - `docs/hermes-agent/requirements.md`: Analisis kebutuhan operasional WhatsApp BKSDA, flow percakapan cuti & ST, strategi anti-ban, dan isolasi coding agent.
+  - `docs/hermes-agent/design.md`: Arsitektur host Proxmox VE (192.168.100.11) -> VM 108 (192.168.100.205, 16 GB RAM), stack Docker Evolution API v2, antarmuka REST API /api/agent/v1/*, dan sequence diagram NLU Gemini AI Pro.
+  - `docs/hermes-agent/tasks.md`: Rincian 6 fase pengerjaan (27 checklist items) dari provisioning VM, WhatsApp Gateway, NLU Gemini Pro, hingga pipeline koding otomatis Git PR.
+- **Topologi Server Terverifikasi**: Memanfaatkan sisa memori bebas 45 GB dan storage 1.6 TB pada host Proxmox fisik kantor tanpa perlu sewa VPS eksternal tambahan.
+
+### 2. Audit Keamanan Menyeluruh Modul Kepegawaian & Push ke Production Server
+- **Audit 6 Bidang Permukaan Serangan (Attack Surface)**:
+  - Formula Injection: Ditutup pada generator Excel uang makan (MealAllowanceExcelExport.php) via helper safeCell() dan casting numerik ketat rate PPh21.
+  - Zip Bomb & Memory Exhaustion: Dibatasi maksimal 200 berkas dan 5 MB stream buffer per file pada SikadirParserService.php.
+  - Celah Lintas Tahun Kalender Cuti: Validasi PerBKN 24/2017 dipasang pada storeRecord() dan updateRecord() di EmployeeLeaveController.php.
+  - Rate Limiting: Middleware 	hrottle:60,1 dipasang pada endpoint komputasi berat /uang-makan/reconcile dan /uang-makan/export-excel.
+  - Password Policy: Validasi panjang minimum 8 karakter dipasang pada esetPassword() di EmployeeController.php.
+  - Data Masking: ID user internal created_by dan updated_by disembunyikan untuk request publik di StExpenseTemplateResource.php.
+- **Verifikasi & Deployment**:
+  - Suite pengujian baru: ackend/tests/Feature/KepegawaianSecurityAuditTest.php (4 tests, 20 assertions, 100% lulus).
+  - Total pengujian Kepegawaian: 24 tests, 104 assertions lulus.
+  - Script otorisasi berkas scan cuti: LeaveScanSecurityTest.php lulus.
+  - Frontend production build Next.js: 87 halaman terkompilasi bersih dalam 4.3 detik.
+  - Commit `fed93dbb` berhasil di-merge (Fast-Forward) dan di-push ke remote branch `production-server`.
+
+### 3. Fitur Hitung & Rekonsiliasi Uang Makan Pegawai (SIKADIR vs Surat Tugas)
 - **Engine Rekonsiliasi 10/10 Presisi Tinggi**:
   - SikadirParserService.php: Ekstraksi berkas HTML/XLS SIKADIR via DOMXPath (2.36 ms latency), Golden Checksum validation, dan ZIP sanitizer.
   - AdaptiveTariffResolver.php: Resolusi tarif SBM (PNS & PPPK Golongan I-IV/I-XVII) dan potongan PPh 21 dengan fallback kelas jabatan.
