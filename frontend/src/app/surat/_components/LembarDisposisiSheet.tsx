@@ -36,7 +36,7 @@ export function LembarDisposisiSheet({
   customDiteruskanList,
   catatanDisposisi = "",
 }: LembarDisposisiSheetProps) {
-  const diteruskanItems = customDiteruskanList || DITERUSKAN_OPTIONS;
+  const diteruskanItems = (customDiteruskanList && customDiteruskanList.length > 0) ? customDiteruskanList : DITERUSKAN_OPTIONS;
 
   return (
     <div
@@ -132,15 +132,15 @@ export function LembarDisposisiSheet({
         {/* ── 3. Metadata Surat (2 Equal Columns, Double Height Single Box) ── */}
         <div className="border-b border-black grid grid-cols-2 divide-x divide-black">
           {/* Left Block: No Surat (Single box, double height) */}
-          <div className="p-1 px-2 flex items-center min-h-10">
-            <span className="w-20 shrink-0 font-normal text-[14px]" style={FONT_AGENCY}>No Surat</span>
-            <span className="break-all font-bold text-[16px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
+          <div className="p-1 px-2 flex items-center min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>No Surat</span>
+            <span className="break-all font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {data.no_surat || "36/APEKLI/VII/2026"}</span>
           </div>
 
           {/* Right Block: Tanggal Surat (Single box, double height) */}
-          <div className="p-1 px-2 flex items-center whitespace-nowrap min-h-10">
-            <span className="w-20 shrink-0 font-normal text-[14px]" style={FONT_AGENCY}>Tanggal</span>
-            <span className="font-bold text-[16px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
+          <div className="p-1 px-2 flex items-center whitespace-nowrap min-h-13">
+            <span className="w-20 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Tanggal</span>
+            <span className="font-bold text-[17px]" style={FONT_ARIAL_NOVA_COND}>: {formatDateDdMmYy(data.tanggal_surat || "23/07/26")}</span>
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export function LembarDisposisiSheet({
             <span className="inline-block w-22 shrink-0 font-normal text-[14.5px]" style={FONT_AGENCY}>Isi Ringkas</span>
             <span className="text-[14.5px]" style={FONT_AGENCY}>: </span>
           </div>
-          <p className="font-bold text-[15.5px] mt-0.5 leading-snug line-clamp-2" style={FONT_ARIAL_NOVA_COND}>
+          <p className="font-bold text-[17px] mt-0.5 leading-normal" style={FONT_ARIAL_NOVA_COND}>
             {data.isi_ringkas || "Usulan Evaluasi Kouta Ekspor Reptil Konsumsi Tahun 2026 Tahap I"}
           </p>
         </div>
@@ -176,7 +176,7 @@ export function LembarDisposisiSheet({
             </div>
             <div className="divide-y divide-black">
               {diteruskanItems.map((option) => (
-                <div key={option} className="grid grid-cols-[1fr_56px] divide-x divide-black min-h-5">
+                <div key={option} className="grid grid-cols-[1fr_56px] divide-x divide-black min-h-5.25">
                   <span className="p-0.5 px-2 leading-none flex items-center font-normal text-[13.5px]">{option}</span>
                   <div className="h-full" />
                 </div>
@@ -229,24 +229,24 @@ export function LembarDisposisiSheet({
       </div>
 
       {/* ── 5. Catatan & TTD Box (Label Agency FB, Value Arial Nova Cond) ── */}
-      <div className="divide-y divide-black flex-1 flex flex-col text-[13px]">
+      <div className="divide-y divide-black flex-1 flex flex-col text-[13.5px]">
         {/* Upper Box: Ka Sub Bag TU */}
-        <div className="p-1 px-2 flex-1 min-h-8 flex flex-col justify-end">
-          <div className="text-right pr-3 font-extrabold text-[14.5px]" style={FONT_AGENCY}>
+        <div className="p-1 px-2 flex-1 min-h-10 flex flex-col justify-end">
+          <div className="text-right pr-3 font-extrabold text-[15px]" style={FONT_AGENCY}>
             Ka Sub Bag TU
           </div>
         </div>
 
         {/* Lower Box: Catatan & Kepala Balai */}
-        <div className="p-1 px-2 flex-1 min-h-12 flex flex-col justify-between">
+        <div className="p-1 px-2 flex-1 min-h-15 flex flex-col justify-between">
           <div>
-            <span className="font-bold text-[14px]" style={FONT_AGENCY}>Catatan :</span>
-            <p className="mt-0.5 italic whitespace-pre-wrap leading-tight text-[13px] font-semibold line-clamp-2" style={FONT_ARIAL_NOVA_COND}>
+            <span className="font-bold text-[14.5px]" style={FONT_AGENCY}>Catatan :</span>
+            <p className="mt-0.5 italic whitespace-pre-wrap leading-tight text-[14px] font-semibold" style={FONT_ARIAL_NOVA_COND}>
               {catatanDisposisi || data.catatan || ""}
             </p>
           </div>
 
-          <div className="text-right pr-3 font-extrabold text-[14.5px]" style={FONT_AGENCY}>
+          <div className="text-right pr-3 font-extrabold text-[15px]" style={FONT_AGENCY}>
             Kepala Balai
           </div>
         </div>

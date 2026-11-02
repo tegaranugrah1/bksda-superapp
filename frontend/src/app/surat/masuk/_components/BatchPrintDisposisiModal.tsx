@@ -24,7 +24,7 @@ export function BatchPrintDisposisiModal({
     setMounted(true);
   }, []);
 
-  // Pair letters two-by-two for 2-Up printing per physical sheet
+  // Pair letters two-by-two for 2-Up printing per physical sheet (Letter/Folio Landscape)
   const sheets = useMemo(() => {
     const pairs: Array<{ left: SuratMasuk; right?: SuratMasuk; sheetIndex: number }> = [];
     for (let i = 0; i < selectedSurat.length; i += 2) {
@@ -55,7 +55,7 @@ export function BatchPrintDisposisiModal({
         }
         @media print {
           @page {
-            size: landscape;
+            size: 330mm 215mm;
             margin: 0 !important;
           }
           html, body {
@@ -64,9 +64,9 @@ export function BatchPrintDisposisiModal({
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
+            width: 330mm !important;
             height: auto !important;
-            overflow: visible !important;
+            min-width: 330mm !important;
           }
           /* Strip all other body children from the document flow completely */
           body > *:not(#batch-print-portal-root) {
@@ -77,7 +77,7 @@ export function BatchPrintDisposisiModal({
           #batch-print-portal-root {
             display: block !important;
             position: static !important;
-            width: 100% !important;
+            width: 330mm !important;
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
@@ -87,17 +87,16 @@ export function BatchPrintDisposisiModal({
             visibility: visible !important;
           }
           .batch-clean-sheet {
-            width: 100% !important;
-            max-width: 330mm !important;
-            height: 190mm !important;
-            max-height: 190mm !important;
-            padding: 2mm 3.5mm !important;
+            width: 330mm !important;
+            height: 213mm !important;
+            max-height: 213mm !important;
+            padding: 3.5mm 4mm !important;
             box-sizing: border-box !important;
             background: white !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             overflow: hidden !important;
-            page-break-after: avoid !important;
-            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
           /* Page break ONLY between sheets (adjacent siblings), NEVER on 1st sheet or trailing page! */
           .batch-clean-sheet + .batch-clean-sheet {
@@ -105,20 +104,26 @@ export function BatchPrintDisposisiModal({
             break-before: page !important;
           }
           .batch-clean-grid {
-            width: 100% !important;
-            height: 186mm !important;
-            max-height: 186mm !important;
+            width: 322mm !important;
+            height: 204mm !important;
+            max-height: 204mm !important;
             display: grid !important;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
-            gap: 8px !important;
+            gap: 12px !important;
+            align-items: stretch !important;
             box-sizing: border-box !important;
             margin: 0 !important;
             padding: 0 !important;
           }
+          .print-invisible,
+          .print-invisible * {
+            visibility: hidden !important;
+            opacity: 0 !important;
+          }
         }
       `}</style>
 
-      {/* Render all sheets */}
+      {/* Render all sheets for physical print */}
       {sheets.map((sheet, idx) => (
         <div key={idx} className="batch-clean-sheet">
           <div className="batch-clean-grid">
@@ -130,20 +135,23 @@ export function BatchPrintDisposisiModal({
               />
             </div>
 
-            {/* Vertical Dashed Cut Line */}
-            <div className="relative flex items-center justify-center w-4 h-full overflow-hidden">
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-black" />
+            {/* Vertical Dashed Cut Line Guide (Identical to LembarDisposisi2UpPrint) */}
+            <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
             </div>
 
             {/* Right Form */}
-            <div className="w-full h-full flex flex-col">
+            <div className={`w-full h-full flex flex-col ${!sheet.right ? "invisible print-invisible opacity-0" : ""}`}>
               {sheet.right ? (
                 <LembarDisposisiSheet
                   data={sheet.right}
                   catatanDisposisi={sheet.right.catatan || ""}
                 />
               ) : (
-                <div className="w-full h-full invisible opacity-0" />
+                /* Render identical sheet invisibly to guarantee exact symmetric 50-50 column width */
+                <LembarDisposisiSheet
+                  data={sheet.left}
+                />
               )}
             </div>
           </div>
