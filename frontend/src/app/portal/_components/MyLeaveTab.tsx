@@ -217,59 +217,83 @@ export function MyLeaveTab({
                     </Button>
                   )}
                   {(() => {
-                    const isApproved = item.status?.toUpperCase() === "DISETUJUI" || item.status?.toUpperCase() === "APPROVED";
+                    const statusUpper = (item.status || "").toUpperCase();
+                    const atasanStatusUpper = (item.status_pertimbangan_atasan || "").toUpperCase();
+                    const isRejected = statusUpper === "DITOLAK" || statusUpper === "REJECTED" || atasanStatusUpper === "DITOLAK" || atasanStatusUpper === "REJECTED";
+                    const isApproved = statusUpper === "DISETUJUI" || statusUpper === "APPROVED";
                     const hasSuratIzin = !!(item.scan_surat_izin_path || item.scan_surat_path);
                     const hasFormulir = !!item.scan_formulir_path;
 
-                    if (isApproved && (hasSuratIzin || hasFormulir)) {
+                    // 1. Status Ditolak: Sembunyikan seluruh tombol aksi
+                    if (isRejected) {
+                      return null;
+                    }
+
+                    // 2. Status Disetujui: Tombol Cetak Formulir Cuti HILANG, digantikan tombol berkas fisik/scan resmi
+                    if (isApproved) {
                       return (
                         <>
-                          {hasSuratIzin && (
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={() =>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={!hasSuratIzin}
+                            onClick={() => {
+                              if (hasSuratIzin) {
                                 setViewerModal({
                                   url: `/me/leave-requests/${item.id}/scan-surat-izin`,
                                   fileName: item.scan_surat_izin_nama || item.scan_surat_nama,
                                   title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
-                                })
+                                });
                               }
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
-                              title="Lihat Surat Izin Cuti Resmi (TTE Kepala Balai)"
-                            >
-                              <FileCheck className="w-3.5 h-3.5" />
-                              Surat Izin (TTE)
-                            </Button>
-                          )}
-                          {hasFormulir && (
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={() =>
+                            }}
+                            className={cn(
+                              "font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs transition-colors",
+                              hasSuratIzin
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                                : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-500 border border-slate-200 dark:border-zinc-700 cursor-not-allowed opacity-70"
+                            )}
+                            title={hasSuratIzin ? "Lihat Surat Izin Cuti Resmi (TTE Kepala Balai)" : "Menunggu Unggahan Admin"}
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            <span>Surat Izin (Fisik/TTE)</span>
+                          </Button>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={!hasFormulir}
+                            onClick={() => {
+                              if (hasFormulir) {
                                 setViewerModal({
                                   url: `/me/leave-requests/${item.id}/scan-formulir`,
                                   fileName: item.scan_formulir_nama,
                                   title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
-                                })
+                                });
                               }
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
-                              title="Lihat Scan Formulir Cuti (TTD Manual & Cap Balai)"
-                            >
-                              <FileText className="w-3.5 h-3.5" />
-                              Scan Formulir
-                            </Button>
-                          )}
+                            }}
+                            className={cn(
+                              "font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs transition-colors",
+                              hasFormulir
+                                ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                                : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-500 border border-slate-200 dark:border-zinc-700 cursor-not-allowed opacity-70"
+                            )}
+                            title={hasFormulir ? "Lihat Scan Formulir Cuti (TTD Manual & Cap Balai)" : "Menunggu Unggahan Admin"}
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Formulir Scan</span>
+                          </Button>
                         </>
                       );
                     }
 
+                    // 3. Status Pengajuan / Verifikasi Atasan: Tombol Cetak Formulir Cuti aktif
                     return (
                       <Button
                         type="button"
                         size="sm"
                         onClick={() => onPrintLeave(item)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs cursor-pointer"
+                        title="Cetak Formulir Cuti untuk penandatanganan fisik"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         Cetak Formulir Cuti
