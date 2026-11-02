@@ -1,5 +1,27 @@
 # Progress Development - BKSDA SuperApp
 
+## Status Update: 2 November 2026
+
+### 1. Fitur Hitung & Rekonsiliasi Uang Makan Pegawai (SIKADIR vs Surat Tugas)
+- **Engine Rekonsiliasi 10/10 Presisi Tinggi**:
+  - SikadirParserService.php: Ekstraksi berkas HTML/XLS SIKADIR via DOMXPath (2.36 ms latency), Golden Checksum validation, dan ZIP sanitizer.
+  - AdaptiveTariffResolver.php: Resolusi tarif SBM (PNS & PPPK Golongan I-IV/I-XVII) dan potongan PPh 21 dengan fallback kelas jabatan.
+  - HolidayCalendarHelper.php: Deteksi otomatis hari libur nasional & cuti bersama SKB 3 Menteri 2025-2027.
+  - AttendanceReconcilerService.php: Komparasi tanggal multi-hari terhadap Surat Tugas resmi; auto-override Hadir (H) menjadi PD* dengan logging audit.
+  - MealAllowanceExcelExport.php: Generator berkas resmi Excel 2-Sheet (Sheet Matriks Presensi + Sheet Daftar Nominatif) dengan tanda tangan tunggal Kasubbag TU.
+- **Frontend Antarmuka UI/UX Pro Max Full Screen (/kepegawaian/uang-makan)**:
+  - Interactive Matrix Grid dengan CSS sticky columns (No, NIP/Nama, Golongan) dan horizontal scroll 31 hari.
+  - Inline Popover Editing per sel tanggal (H, PD, CT, S, I, TK, -).
+  - One-click Header Toggle untuk menetapkan seluruh pegawai pada tanggal tertentu sebagai Hari Libur Nasional (-).
+  - Reaktivitas kalkulasi real-time (Hadir, PD, Bruto, Pajak, Netto).
+  - Filter bar lengkap, preview Sheet 2 Nominatif, dan tab Riwayat Batch tersimpan.
+- **Verifikasi Pengujian & Keamanan**:
+  - **Backend PHPUnit**: 7 methods, 37 assertions, 100% lulus (MealAllowanceSecurityAndReconciliationTest.php).
+  - **Frontend Playwright E2E**: 8 test suites, 100% lulus (kepegawaian-uang-makan.playwright.cjs).
+  - **Next.js Production Build**: 100% compile tanpa error TypeScript / ESLint.
+
+---
+
 ## Status Update: 31 Oktober 2026
 
 ### 1. Remediasi & Penuntasan Pentest Modul Surat Tugas (ST-01 s.d. ST-12)
