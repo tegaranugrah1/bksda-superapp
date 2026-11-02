@@ -9477,3 +9477,14 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Ponytail (`/ponytail`)**:
      - Memperbaiki pemanggilan endpoint `/api/kepegawaian/leave-types` (prefix `/api` ganda) menjadi `/kepegawaian/leave-types` di `LeaveTypesTab.tsx`.
      - Mengekstrak fungsi duplikat `templateCodeFromName` dan `errorMessage` ke `st-templates/_components/utils.ts`.
+
+7. **BMN Surat Kuasa Kendaraan (`/bmn/loans`) — Perbaikan Simpan Payload (`79b02679`)**:
+   - Memasukkan `employee_id` secara eksplisit pada payload simpan surat kuasa kendaraan di `backend/app/Http/Controllers/Api/PowerOfAttorneyController.php` dan form frontend guna mencegah HTTP 422 Unprocessable Content.
+
+8. **Surat Masuk Cetak Batch 2-Up, Sifat Surat Tunggal, & Penerusan Balai (`/surat/masuk`) — Commit `1c539f05`, `e813b925`**:
+   - **Cetak Batch 2-Up Sisi Kiri-Kanan**: Memungkinkan seleksi multi-surat pada tabel `/surat/masuk` untuk dicetak berdampingan 2 lembar disposisi per halaman fisik (Letter/Folio Landscape `330mm x 215mm`). Jika ganjil, lembar terakhir hanya mencetak sisi kiri dan sisi kanan dikosongkan bersih agar kertas dapat digunakan kembali.
+   - **Pencegahan Halaman Berlebih**: Isolasi cetak via `createPortal` dan pembatasan kontainer tinggi `213mm` dengan `page-break-before: always` antar lembar, menjamin tepat 1 lembar kertas per 2 nomor agenda tanpa halaman kedua kosong.
+   - **Preservasi Format Fisik Template Disposisi**: Mempertahankan 9 poin template fisik (`1. Ka Sub Bag TU` s.d. `9. PPK FOLU NC 2030`) pada hasil cetak agar pimpinan dapat mencentang dan mendisposisikan secara manual di atas kertas.
+   - **Sifat Surat Tunggal (Single-Select)**: Popover sifat surat interaktif dengan radio/single-select instan (`Biasa`, `Penting`, `Sangat Penting`, `Rahasia`, `Segera`, `Kilat`).
+   - **Diteruskan Ke (Ruang & Pegawai Balai)**: Selector interaktif Diteruskan Ke yang memuat lokasi khusus Balai dari pengaturan BMN dan pegawai khusus Balai KSDA Kaltim, defaulting ke status belum diisi (`+ Pilih Penerus`) sebelum ada arahan pimpinan.
+
