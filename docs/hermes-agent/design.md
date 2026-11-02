@@ -253,7 +253,7 @@ version: '3.8'
 
 services:
   evolution-api:
-    image: atendai/evolution-api:v2.1.2
+    image: evoapicloud/evolution-api:v2.3.7
     container_name: hermes-wa-gateway
     restart: always
     ports:

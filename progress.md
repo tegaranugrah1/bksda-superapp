@@ -2,12 +2,46 @@
 
 ## Status Update: 2 November 2026
 
-### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB)
-- **Perencanaan Dokumen Standar 3-Pilar Selesai & Diperketat Menuju 10/10**:
-  - `docs/hermes-agent/requirements.md`: Analisis kebutuhan operasional WhatsApp BKSDA, normalisasi E.164 nomor telepon pegawai, penanganan pesan non-teks (Voice Note/Foto Surat Dokter), ketahanan sesi WhatsApp (zero-drop reboot), dan isolasi air-gap Coding Agent.
-  - `docs/hermes-agent/design.md`: Arsitektur host Proxmox VE (192.168.100.11) -> VM 108 (192.168.100.205, 16 GB RAM), stack Docker Compose persistensi sesi Baileys host volume, mitigasi race condition pesan cepat via Redis Debounce Buffer & Mutex Lock, serta Circuit Breaker API Gemini Pro (HTTP 429/503).
-  - `docs/hermes-agent/tasks.md`: Rincian 6 fase pengerjaan (33 checklist items) mencakup pengujian edge-case riil lapangan, idempotensi transaksi cuti, hingga stress test RAM 16 GB.
-- **Topologi Server Terverifikasi**: Memanfaatkan sisa memori bebas 45 GB dan storage 1.6 TB pada host Proxmox fisik kantor tanpa perlu sewa VPS eksternal tambahan.
+### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB) - SELESAI PENUH (33/33 Tasks 100%)
+- **Fase 1: Provisioning VM 108 Proxmox (`192.168.100.205`) Selesai**:
+  - VM 108 (`hermes-agent-dev`) di-provisioning otomatis pada host Proxmox VE fisik kantor (`192.168.100.11`) menggunakan Cloud-Init Ubuntu Server 24.04 LTS: 16 GB RAM, 4 vCPU, 100 GB NVMe disk (`local-lvm`), static IP `192.168.100.205/24`, Gateway `192.168.100.1`, DNS `192.168.100.1` & `8.8.8.8`.
+  - Akses SSH tanpa password terkonfigurasi dengan RSA key injection (`~/.ssh/authorized_keys`), UFW firewall aktif (port 22 & 8080).
+  - Toolchain pengembang terpasang lengkap: Docker Engine 29.9.2, Docker Compose v5.6.1, Node.js v20.20.2, npm 10.8.2, PHP 8.4.27 CLI (ekstensi: curl, mbstring, xml, zip, pgsql, sqlite3, bcmath, gd), Composer v2.11.1, dan GitHub CLI (`gh`).
+  - Direktori persistensi host: `/opt/hermes/data/{evolution_instances,evolution_store,redis,logs,postgres}` (chmod 775).
+- **Fase 2: Backend Modul Agent BKSDA SuperApp (VM 106) Selesai**:
+  - Migrasi `2026_11_02_210000_add_telepon_to_kpg_employees_table.php` sukses dijalankan, 97 nomor telepon pegawai berhasil di-backfill dari data cuti historis.
+  - `AgentServiceProvider` didaftarkan di `backend/bootstrap/providers.php` dengan routing prefix `/api/agent/v1`.
+  - Middleware `RestrictAgentClientIp`: membatasi akses khusus IP `192.168.100.205` dan `127.0.0.1` serta verifikasi header `X-Agent-Internal-Key`.
+  - `PhoneSanitizerService`: normalisasi E.164, stripping karakter non-digit, pencocokan fleksibel PostgreSQL regex.
+  - `AgentAuthController`: endpoint `/auth/verify-phone` dan `/auth/link-phone`.
+  - `AgentLeaveController`: endpoint saldo cuti `/employees/{nip}/leaves` (aturan PerBKN 24/2017) dan pengajuan cuti mandiri `/leaves/request` dengan penguncian pesimistik `Employee::lockForLeaveUpdate()` dan perlindungan idempoten `idempotency_key`.
+  - `AgentSuratTugasController` & `DispatchSuratTugasWebhook`: otomatis mengirimkan payload ke WhatsApp saat Surat Tugas diterbitkan.
+  - Pengujian Backend `AgentModuleTest.php`: 9 tests, 24 assertions, **100% PASS**. Kepegawaian security suite (4 tests, 20 assertions): **100% PASS**.
+- **Fase 3: Deployment WhatsApp Gateway (Evolution API v2) Selesai**:
+  - Konfigurasi `docker-compose.yml` di `/opt/hermes/gateway/` menggunakan stack `evoapicloud/evolution-api:v2.3.7`, `postgres:16-alpine`, dan `redis:7.2-alpine`.
+  - Instance WhatsApp `bksda-assistant` diinisialisasi via Baileys engine, QR code live berhasil digenerate dan disimpan ke artefak visual (`whatsapp_qr.png`).
+  - Zero-Drop Reboot test teruji: sesi dan volume host `/opt/hermes/data/` bertahan utuh tanpa reset QR saat container di-restart.
+- **Fase 4: Core Assistant Service & Integrasi Gemini AI Pro Selesai**:
+  - Service Express/TypeScript di `/opt/hermes/assistant/` terkompilasi bersih tanpa error TypeScript.
+  - Berjalan sebagai service background Linux `hermes-assistant.service` (systemd auto-restart).
+  - System prompt NLU kontekstual BKSDA Kaltim (istilah Balai, SKW, Resor, Polhut, Cuti, PerBKN, DIPA).
+  - Redis Debounce Buffer 2.0 detik untuk menggabungkan pesan terpisah yang dikirim cepat oleh pegawai.
+  - Redis Mutex Lock (`lock:assistant:{phone}`) untuk mitigasi race-condition concurrency.
+  - State Machine percakapan: alur konfirmasi dua tahap (`AWAITING_LEAVE_CONFIRMATION` -> `YA` / `BATAL`).
+  - Fallback non-teks: panduan ramah saat pegawai mengirim Voice Note audio atau foto berkas.
+  - Circuit Breaker dengan 2x retry exponential backoff dan fallback otomatis ke rule-based regex saat kuota LLM habis atau API key offline.
+- **Fase 5: Coding Sandbox Pipeline & Gemini CLI Selesai**:
+  - Workspace `/opt/hermes/coding-sandbox/workspace/bksda-superapp` di-clone dari repository resmi.
+  - Dependensi Composer (PHP 8.4) dan npm (Next.js) terpasang di VM 108.
+  - Production build Next.js 16 (Turbopack) sukses menghasilkan 86 static pages tanpa error.
+  - Gemini CLI executable `/usr/local/bin/gemini` terpasang di VM 108 dengan mode dual-engine.
+  - Skrip pipeline `/opt/hermes/coding-sandbox/run-agent-task.sh` menjamin runnable checks wajib (PHPUnit test + Next.js build 100% hijau) sebelum membuka GitHub Pull Request.
+  - Isolasi air-gap terverifikasi: service asisten WA tidak memiliki child process/shell exec, sehingga aman dari bahaya WhatsApp prompt injection.
+- **Fase 6: Pengujian Integrasi End-to-End & Security Pentest Selesai (100% Lulus)**:
+  - Security Pentest: penyaringan nomor HP tidak dikenal berhasil mengarahkan ke alur penautan NIP mandiri; pembatalan pengajuan cuti ("batal") tidak memutasi database.
+  - Edge-cases: Voice note, image, dan burst double message teruji lulus.
+  - Stress Test RAM 16 GB: Penggunaan memori saat kompilasi Next.js hanya ~931 MB dari total 16 GB (bebas >14 GB, CPU Load <1.7).
+  - Webhook Surat Tugas teruji memproses payload dan menyiapkan pengiriman notifikasi berkala dengan delay 1.5 detik per staf (anti-ban).
 
 ### 2. Audit Keamanan Menyeluruh Modul Kepegawaian & Push ke Production Server
 - **Audit 6 Bidang Permukaan Serangan (Attack Surface)**:

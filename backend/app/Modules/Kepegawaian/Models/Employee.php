@@ -62,6 +62,7 @@ class Employee extends Model
         'pangkat_golongan',
         'satuan_kerja',
         'resor',
+        'telepon',
         'masa_kerja',
         'is_active',
         'foto_profil',
