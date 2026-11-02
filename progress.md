@@ -3,10 +3,10 @@
 ## Status Update: 2 November 2026
 
 ### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB)
-- **Perencanaan Dokumen Standar 3-Pilar Selesai**:
-  - `docs/hermes-agent/requirements.md`: Analisis kebutuhan operasional WhatsApp BKSDA, flow percakapan cuti & ST, strategi anti-ban, dan isolasi coding agent.
-  - `docs/hermes-agent/design.md`: Arsitektur host Proxmox VE (192.168.100.11) -> VM 108 (192.168.100.205, 16 GB RAM), stack Docker Evolution API v2, antarmuka REST API /api/agent/v1/*, dan sequence diagram NLU Gemini AI Pro.
-  - `docs/hermes-agent/tasks.md`: Rincian 6 fase pengerjaan (27 checklist items) dari provisioning VM, WhatsApp Gateway, NLU Gemini Pro, hingga pipeline koding otomatis Git PR.
+- **Perencanaan Dokumen Standar 3-Pilar Selesai & Diperketat Menuju 10/10**:
+  - `docs/hermes-agent/requirements.md`: Analisis kebutuhan operasional WhatsApp BKSDA, normalisasi E.164 nomor telepon pegawai, penanganan pesan non-teks (Voice Note/Foto Surat Dokter), ketahanan sesi WhatsApp (zero-drop reboot), dan isolasi air-gap Coding Agent.
+  - `docs/hermes-agent/design.md`: Arsitektur host Proxmox VE (192.168.100.11) -> VM 108 (192.168.100.205, 16 GB RAM), stack Docker Compose persistensi sesi Baileys host volume, mitigasi race condition pesan cepat via Redis Debounce Buffer & Mutex Lock, serta Circuit Breaker API Gemini Pro (HTTP 429/503).
+  - `docs/hermes-agent/tasks.md`: Rincian 6 fase pengerjaan (33 checklist items) mencakup pengujian edge-case riil lapangan, idempotensi transaksi cuti, hingga stress test RAM 16 GB.
 - **Topologi Server Terverifikasi**: Memanfaatkan sisa memori bebas 45 GB dan storage 1.6 TB pada host Proxmox fisik kantor tanpa perlu sewa VPS eksternal tambahan.
 
 ### 2. Audit Keamanan Menyeluruh Modul Kepegawaian & Push ke Production Server

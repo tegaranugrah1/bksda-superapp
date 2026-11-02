@@ -45,10 +45,11 @@
 ## 3. Kebutuhan Fungsional (Functional Requirements)
 
 ### 3.1. Sub-Sistem Asisten WhatsApp (Hermes Daily Assistant)
-- **FR-01 (Identifikasi Nomor Pengirim)**:
-  - Sistem mengidentifikasi pengirim berdasarkan nomor telepon internasional (+62).
-  - Sistem mencocokkan nomor tersebut dengan kolom `telepon` / kontak resmi di tabel `kpg_employees`.
-  - Jika tidak ditemukan, bot menolak akses fitur internal dan memberikan panduan cara mendaftarkan nomor ke admin kepegawaian.
+- **FR-01 (Identifikasi & Normalisasi Nomor Pengirim E.164)**:
+  - Sistem menerima format nomor WhatsApp pengirim internasional mentah (`628xxxxxxxxxx@s.whatsapp.net`).
+  - Dilengkapi engine normalisasi telepon yang membersihkan format kotor (`08...`, `+628...`, `628...`, spasi, strip, tanda kurung) menjadi format kanonikal E.164.
+  - Pencocokan dilakukan dengan pencarian fleksibel terhadap kolom `telepon` di tabel `kpg_employees`. Jika data nomor pegawai di database belum lengkap atau ganda, sistem menyediakan instruksi verifikasi mandiri nomor WA di profil portal pegawai.
+  - Jika nomor tidak dikenali, bot menolak akses fitur internal secara sopan dan mengarahkan staf untuk menghubungi Bagian Tata Usaha.
 - **FR-02 (NLU & Entity Extraction dengan Gemini AI Pro)**:
   - Pesan teks percakapan bebas diurai menjadi intent dan payload terstruktur (JSON).
   - Ekstraksi mencakup: `jenis_cuti`, `tanggal_mulai`, `tanggal_selesai`, `alasan_cuti`, `personil_tugas`, `tempat_tujuan`.
@@ -59,6 +60,12 @@
 - **FR-04 (Gerbang Konfirmasi Eksplisit - Confirmation Gatekeeper)**:
   - Sebelum data dikirim ke API SuperApp, bot wajib menyajikan ringkasan rincian data dan meminta balasan konfirmasi (misal: *"Ketik 'YA' untuk memproses"*).
   - Jika pengguna membatalkan atau tidak membalas dalam 10 menit, sesi pengajuan dibatalkan otomatis.
+- **FR-04a (Debounce & Concurrency Mutex Lock)**:
+  - Menangani pesan berurutan cepat (*rapid double-tap/split message*) dengan mekanisme jeda penampung (*debounce window*) 2 detik per pengirim di Redis.
+  - Mengunci sesi pengirim dengan Redis Mutex saat LLM sedang memproses, mencegah duplikasi request atau konflik state machine.
+- **FR-04b (Penanganan Pesan Non-Teks & Media Fallback)**:
+  - Jika pegawai mengirim *Voice Note* (audio) atau dokumen/gambar (foto surat dokter), asisten tidak mengalami error, melainkan memberikan balasan panduan ramah (*graceful fallback*).
+  - Khusus foto surat sakit, sistem memandu pegawai untuk melanjutkan konfirmasi teks permohonan terlebih dahulu, lalu memberikan tautan unggah berkas resmi ke portal SuperApp.
 - **FR-05 (Webhook Notifikasi Penugasan)**:
   - Menyediakan endpoint webhook lokal yang menerima trigger dari SuperApp saat ST berstatus `DITERBITKAN` atau status Cuti diperbarui (`DISETUJUI` / `DITOLAK`).
   - Mengirim pesan WhatsApp terformat rapi ke masing-masing personil terkait.
@@ -77,6 +84,9 @@
 - **FR-09 (Otomasi Pull Request GitHub)**:
   - Men-push branch yang telah lolos tes ke remote `origin`.
   - Membuat GitHub Pull Request (PR) otomatis dengan rangkuman perubahan yang terstruktur.
+- **FR-10 (Air-Gapped Triggering - Imunitas Prompt Injection)**:
+  - Coding Agent **100% terisolasi secara logika dan jaringan** dari antarmuka WhatsApp.
+  - Perintah koding **hanya dapat dieksekusi oleh developer** melalui sesi terminal terautentikasi (SSH / CLI internal) dan **tidak dapat dipicu** melalui pesan WhatsApp, menutup celah *prompt injection* dari pihak eksternal.
 
 ---
 
@@ -104,3 +114,7 @@
   - Engine WhatsApp mendukung pemutusan sesi lama dan pemindaian ulang QR code nomor baru kapan saja tanpa kehilangan riwayat data di SuperApp.
 - **NFR-07 (Kemudahan Resize Proxmox)**:
   - Konfigurasi VM 108 mendukung penambahan RAM (memory hotplug) dan penambahan disk storage (disk resize) langsung dari Web UI Proxmox tanpa perlu instalasi ulang.
+- **NFR-08 (Ketahanan Sesi WhatsApp - Zero Drop pada Reboot)**:
+  - Sesi koneksi WhatsApp (kriptografi Baileys) di-mount secara persisten pada volume Docker host VM 108 (`/opt/hermes/data/evolution_instances`), memastikan server atau container yang melakukan reboot tidak meminta scan QR ulang.
+- **NFR-09 (Resiliensi Layanan LLM & Circuit Breaker)**:
+  - Layanan integrasi Gemini AI Pro wajib memiliki timeout 10 detik, *retry exponential backoff* untuk eror sementara, serta *circuit breaker* yang memberikan respons tanggap darurat yang ramah saat kuota habis (HTTP 429) atau server Google sibuk (HTTP 503).
