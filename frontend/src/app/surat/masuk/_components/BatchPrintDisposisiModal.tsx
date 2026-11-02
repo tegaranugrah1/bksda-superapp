@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Printer, X, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SuratMasuk } from "../../_lib/surat-types";
@@ -17,6 +18,12 @@ export function BatchPrintDisposisiModal({
   onClose,
   selectedSurat,
 }: BatchPrintDisposisiModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Pair letters two-by-two for 2-Up printing per physical sheet
   const sheets = useMemo(() => {
     const pairs: Array<{ left: SuratMasuk; right?: SuratMasuk; sheetIndex: number }> = [];
@@ -36,10 +43,16 @@ export function BatchPrintDisposisiModal({
     window.print();
   };
 
-  return (
-    <>
-      {/* ── Strict Print CSS: Completely isolates printing from modal viewport ── */}
+  // Dedicated Print Content to be teleported directly to document.body
+  const printPortalContent = (
+    <div id="batch-print-portal-root">
+      {/* ── Strict Print Styles (Active ONLY during browser print) ── */}
       <style jsx global>{`
+        @media screen {
+          #batch-print-portal-root {
+            display: none !important;
+          }
+        }
         @media print {
           @page {
             size: landscape;
@@ -53,59 +66,48 @@ export function BatchPrintDisposisiModal({
             padding: 0 !important;
             width: 100% !important;
             height: auto !important;
-            min-height: 100% !important;
             overflow: visible !important;
           }
-          /* Hide all UI elements, layout wrappers, headers, modals, and backdrop */
-          .no-print,
-          .no-print *,
-          header,
-          nav,
-          footer,
-          aside {
+          /* Strip all other body children from the document flow completely */
+          body > *:not(#batch-print-portal-root) {
             display: none !important;
             visibility: hidden !important;
           }
-          body * {
-            visibility: hidden;
-          }
-          /* Only the pure dedicated print canvas is visible */
-          #batch-print-pure-canvas,
-          #batch-print-pure-canvas * {
-            visibility: visible !important;
-          }
-          #batch-print-pure-canvas {
+          /* Normal static flow for print root - No ghost elements, no trailing pages */
+          #batch-print-portal-root {
             display: block !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: static !important;
             width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
-            z-index: 99999999 !important;
+            visibility: visible !important;
+          }
+          #batch-print-portal-root * {
+            visibility: visible !important;
           }
           .batch-clean-sheet {
-            page-break-after: always !important;
-            break-after: page !important;
             width: 100% !important;
             max-width: 330mm !important;
-            height: 202mm !important;
-            max-height: 202mm !important;
-            padding: 2.5mm 3.5mm !important;
+            height: 190mm !important;
+            max-height: 190mm !important;
+            padding: 2mm 3.5mm !important;
             box-sizing: border-box !important;
             background: white !important;
             margin: 0 auto !important;
             overflow: hidden !important;
-          }
-          .batch-clean-sheet:last-child {
             page-break-after: avoid !important;
             break-after: avoid !important;
           }
+          /* Page break ONLY between sheets (adjacent siblings), NEVER on 1st sheet or trailing page! */
+          .batch-clean-sheet + .batch-clean-sheet {
+            page-break-before: always !important;
+            break-before: page !important;
+          }
           .batch-clean-grid {
             width: 100% !important;
-            height: 196mm !important;
-            max-height: 196mm !important;
+            height: 186mm !important;
+            max-height: 186mm !important;
             display: grid !important;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
             gap: 8px !important;
@@ -116,7 +118,43 @@ export function BatchPrintDisposisiModal({
         }
       `}</style>
 
-      {/* ── Screen Modal UI (Completely stripped with .no-print during print) ── */}
+      {/* Render all sheets */}
+      {sheets.map((sheet, idx) => (
+        <div key={idx} className="batch-clean-sheet">
+          <div className="batch-clean-grid">
+            {/* Left Form */}
+            <div className="w-full h-full flex flex-col">
+              <LembarDisposisiSheet
+                data={sheet.left}
+                catatanDisposisi={sheet.left.catatan || ""}
+              />
+            </div>
+
+            {/* Vertical Dashed Cut Line */}
+            <div className="relative flex items-center justify-center w-4 h-full overflow-hidden">
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-black" />
+            </div>
+
+            {/* Right Form */}
+            <div className="w-full h-full flex flex-col">
+              {sheet.right ? (
+                <LembarDisposisiSheet
+                  data={sheet.right}
+                  catatanDisposisi={sheet.right.catatan || ""}
+                />
+              ) : (
+                <div className="w-full h-full invisible opacity-0" />
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      {/* ── Screen Modal UI (Preview on Screen Only, Hidden via .no-print on Print) ── */}
       <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
         <div className="relative w-full max-w-6xl max-h-[92vh] flex flex-col rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
@@ -225,39 +263,8 @@ export function BatchPrintDisposisiModal({
         </div>
       </div>
 
-      {/* ── Pure Clean Print Canvas (Used ONLY during window.print()) ── */}
-      <div id="batch-print-pure-canvas" className="hidden print:block">
-        {sheets.map((sheet, idx) => (
-          <div key={idx} className="batch-clean-sheet">
-            <div className="batch-clean-grid">
-              {/* Left Form */}
-              <div className="w-full h-full flex flex-col">
-                <LembarDisposisiSheet
-                  data={sheet.left}
-                  catatanDisposisi={sheet.left.catatan || ""}
-                />
-              </div>
-
-              {/* Vertical Dashed Cut Line */}
-              <div className="relative flex items-center justify-center w-4 h-full overflow-hidden">
-                <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-black" />
-              </div>
-
-              {/* Right Form */}
-              <div className="w-full h-full flex flex-col">
-                {sheet.right ? (
-                  <LembarDisposisiSheet
-                    data={sheet.right}
-                    catatanDisposisi={sheet.right.catatan || ""}
-                  />
-                ) : (
-                  <div className="w-full h-full invisible opacity-0" />
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* ── Teleport Clean Print Root Directly to document.body ── */}
+      {mounted && typeof document !== "undefined" && createPortal(printPortalContent, document.body)}
     </>
   );
 }
