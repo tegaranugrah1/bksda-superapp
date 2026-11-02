@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Settings,
   Archive,
+  UtensilsCrossed,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { href: "/kepegawaian/employees/create", label: "Tambah Pegawai", icon: UserPlus, minRole: "admin", group: "Manajemen SDM" },
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin", group: "Layanan & Persuratan" },
+  { href: "/kepegawaian/uang-makan", label: "Hitung Uang Makan", icon: UtensilsCrossed, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "user", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/settings", label: "Setting", icon: Settings, minRole: "super_admin", group: "Konfigurasi" },
 ];
