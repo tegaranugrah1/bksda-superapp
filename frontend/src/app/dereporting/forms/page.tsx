@@ -22,6 +22,8 @@ import {
     Download,
     Share2,
     Send,
+    HardDrive,
+    Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,9 @@ interface DynamicFormItem {
     is_active: boolean;
     responses_count: number;
     created_at: string;
+    drive_folder_id?: number | null;
+    closed_at?: string | null;
+    closed_message?: string | null;
 }
 
 export default function DeReportingFormsListPage() {
@@ -60,6 +65,8 @@ export default function DeReportingFormsListPage() {
     const [newTitle, setNewTitle] = useState("");
     const [newSlug, setNewSlug] = useState("");
     const [newDesc, setNewDesc] = useState("");
+    const [newClosedAt, setNewClosedAt] = useState("");
+    const [newClosedMessage, setNewClosedMessage] = useState("");
 
     // Dialog Duplikasi Form
     const [duplicateForm, setDuplicateForm] = useState<DynamicFormItem | null>(null);
@@ -89,6 +96,8 @@ export default function DeReportingFormsListPage() {
                 title: newTitle,
                 slug: newSlug || undefined,
                 description: newDesc || undefined,
+                closed_at: newClosedAt || undefined,
+                closed_message: newClosedMessage || undefined,
             });
             return res.data.data;
         },
@@ -98,6 +107,8 @@ export default function DeReportingFormsListPage() {
             setNewTitle("");
             setNewSlug("");
             setNewDesc("");
+            setNewClosedAt("");
+            setNewClosedMessage("");
             queryClient.invalidateQueries({ queryKey: ["dr-dynamic-forms"] });
             router.push(`/dereporting/forms/${form.id}/builder`);
         },
@@ -304,6 +315,13 @@ export default function DeReportingFormsListPage() {
                                     {form.description || "Tanpa deskripsi formulir."}
                                 </p>
 
+                                {form.closed_at && (
+                                    <div className="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 font-medium">
+                                        <Clock className="w-3 h-3 shrink-0" />
+                                        <span>Jadwal Tutup: {new Date(form.closed_at).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })}</span>
+                                    </div>
+                                )}
+
                                 {/* URL Slug Link */}
                                 <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/60 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800/80">
                                     <span className="truncate flex-1">/lapor/{form.slug}</span>
@@ -342,6 +360,15 @@ export default function DeReportingFormsListPage() {
                                 </Link>
 
                                 <div className="flex items-center gap-1">
+                                    {/* Tombol Pintasan BKSDA Drive */}
+                                    <Link
+                                        href={form.drive_folder_id ? `/drive?space=1&folder_id=${form.drive_folder_id}` : `/drive?space=1`}
+                                        target="_blank"
+                                        className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 transition-colors"
+                                        title="Buka Folder di BKSDA Drive"
+                                    >
+                                        <HardDrive className="w-4 h-4" />
+                                    </Link>
                                     {/* Tombol QR Code / Bagikan */}
                                     <button
                                         type="button"
@@ -507,6 +534,28 @@ export default function DeReportingFormsListPage() {
                             <p className="text-[11px] text-zinc-400">
                                 Anda dapat mengubah judul ini sekarang atau nanti saat mengedit pertanyaan.
                             </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-bold">Batas Waktu Tutup (Opsional)</Label>
+                                <Input
+                                    type="datetime-local"
+                                    value={newClosedAt}
+                                    onChange={(e) => setNewClosedAt(e.target.value)}
+                                    className="text-xs rounded-xl"
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-bold">Pesan Saat Ditutup (Opsional)</Label>
+                                <Input
+                                    placeholder="Contoh: Formulir sudah ditutup..."
+                                    value={newClosedMessage}
+                                    onChange={(e) => setNewClosedMessage(e.target.value)}
+                                    className="text-xs rounded-xl"
+                                />
+                            </div>
                         </div>
 
                         <DialogFooter className="pt-2">

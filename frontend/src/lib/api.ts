@@ -1,5 +1,49 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { authStore } from "@/lib/auth-store";
+
+type SessionScope = { key: string; generation: number };
+type ScopedRequest = InternalAxiosRequestConfig & { portalSession?: SessionScope };
+
+let authGeneration = 0;
+let cacheGeneration = 0;
+
+function readSessionKey(): string {
+  if (typeof window === "undefined") return "server";
+  let identity = "";
+  try {
+    const user = JSON.parse(localStorage.getItem("bksda_user") || getCookie("bksda_user") || "null");
+    identity = user?.username || user?.id || "";
+  } catch {}
+  return JSON.stringify([
+    identity,
+    localStorage.getItem("bksda_token") || getCookie("bksda_token") || "",
+    localStorage.getItem("bksda_logged_in") || getCookie("bksda_logged_in") || "",
+  ]);
+}
+
+let sessionKey = readSessionKey();
+
+function currentSession(): SessionScope {
+  if (sessionKey !== readSessionKey()) clearGetCache(true);
+  return { key: sessionKey, generation: authGeneration };
+}
+
+function isCurrentSession(scope: SessionScope): boolean {
+  const current = currentSession();
+  return scope.generation === current.generation && scope.key === current.key;
+}
+
+function rejectStaleSession(config?: AxiosRequestConfig): void {
+  const scope = (config as ScopedRequest | undefined)?.portalSession;
+  if (scope && !isCurrentSession(scope)) {
+    throw new axios.CanceledError("Request belongs to a previous session");
+  }
+}
+
+export function getApiSessionSnapshot(): string {
+  const scope = currentSession();
+  return JSON.stringify([scope.generation, scope.key]);
+}
 
 function getBaseApiUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -32,7 +76,7 @@ const api = axios.create({
     Accept: "application/json",
   },
   withCredentials: true,
-  timeout: 10000,
+  timeout: 20000,
 });
 
 function getCookie(name: string): string | null {
@@ -46,6 +90,7 @@ function getCookie(name: string): string | null {
 }
 
 api.interceptors.request.use((config) => {
+  (config as ScopedRequest).portalSession = currentSession();
   // Prevent double /api prefix if baseURL already contains /api
   if (config.url && config.baseURL) {
     const baseEndsWithApi = config.baseURL.replace(/\/$/, "").endsWith("/api");
@@ -75,11 +120,15 @@ api.interceptors.request.use((config) => {
   }
 
   return config;
-});
+}, undefined, { synchronous: true });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    rejectStaleSession(response.config);
+    return response;
+  },
   (error) => {
+    rejectStaleSession(error.config);
     const status = error.response?.status;
     const url = error.config?.url ?? "unknown endpoint";
 
@@ -93,6 +142,19 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
 
+    if (status === 423 && typeof window !== "undefined") {
+      const reason = error.response?.data?.reason;
+      if (reason === "must_change_password") {
+        if (!window.location.pathname.startsWith("/portal") || !window.location.search.includes("force_password_change")) {
+          window.location.href = "/portal?force_password_change=1";
+        }
+      } else if (reason === "must_setup_2fa") {
+        if (!window.location.pathname.startsWith("/portal") || !window.location.search.includes("force_setup_2fa")) {
+          window.location.href = "/portal?force_setup_2fa=1";
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -102,9 +164,9 @@ const inFlightRequests = new Map<string, Promise<any>>();
 const responseCache = new Map<string, { timestamp: number; response: any }>();
 const CACHE_TTL_MS = 2500; // 2.5 seconds short-term throttle for identical GET requests
 
-function getRequestKey(method: string, url: string, params?: any): string {
+function getRequestKey(scope: SessionScope, method: string, url: string, params?: any): string {
   const paramStr = params ? JSON.stringify(params) : "";
-  return `${method.toLowerCase()}:${url}:${paramStr}`;
+  return JSON.stringify([scope.key, method.toLowerCase(), url, paramStr]);
 }
 
 const originalGet = api.get.bind(api);
@@ -122,13 +184,18 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
     return originalGet<T, R, D>(url, config);
   }
 
-  const key = getRequestKey("get", url, config?.params);
+  const scope = currentSession();
+  const generation = cacheGeneration;
+  const key = getRequestKey(scope, "get", url, config?.params);
 
   // 1. Check short-term cache
   const cached = responseCache.get(key);
   const now = Date.now();
   if (cached && now - cached.timestamp < CACHE_TTL_MS) {
-    return Promise.resolve(cached.response as R);
+    return Promise.resolve().then(() => {
+      if (!isCurrentSession(scope)) throw new axios.CanceledError("Request belongs to a previous session");
+      return cached.response as R;
+    });
   }
 
   // 2. Check in-flight request (promise sharing)
@@ -140,11 +207,12 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
   // 3. Execute request and share promise
   const promise = originalGet<T, R, D>(url, config)
     .then((res) => {
-      responseCache.set(key, { timestamp: Date.now(), response: res });
+      if (!isCurrentSession(scope)) throw new axios.CanceledError("Request belongs to a previous session");
+      if (generation === cacheGeneration) responseCache.set(key, { timestamp: Date.now(), response: res });
       return res;
     })
     .finally(() => {
-      inFlightRequests.delete(key);
+      if (inFlightRequests.get(key) === promise) inFlightRequests.delete(key);
     });
 
   inFlightRequests.set(key, promise);
@@ -152,9 +220,38 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
 };
 
 // Invalidate cache on mutations or logout
-export function clearGetCache() {
+export function clearGetCache(sessionChanged = false) {
+  cacheGeneration++;
+  if (sessionChanged) {
+    authGeneration++;
+    sessionKey = readSessionKey();
+  }
   responseCache.clear();
   inFlightRequests.clear();
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key === "bksda_user") {
+      try {
+        const oldUser = JSON.parse(event.oldValue || "null");
+        const newUser = JSON.parse(event.newValue || "null");
+        const identity = oldUser?.username || oldUser?.id;
+        const authFields = ["id", "username", "role", "access_modules", "permissions"];
+        if (oldUser && newUser &&
+          (typeof identity === "string" ? identity.trim() : Number.isSafeInteger(identity) && identity > 0) &&
+          JSON.stringify(oldUser, authFields) === JSON.stringify(newUser, authFields)) {
+          // Profile refreshes flush cached data without canceling valid same-session requests.
+          clearGetCache();
+          return;
+        }
+      } catch {}
+    }
+    // Keep the boundary even when queued logout/login events restore the same identity.
+    if (event.key === null || ["bksda_user", "bksda_token", "bksda_logged_in"].includes(event.key)) {
+      clearGetCache(true);
+    }
+  });
 }
 
 api.post = function (...args: any[]) {

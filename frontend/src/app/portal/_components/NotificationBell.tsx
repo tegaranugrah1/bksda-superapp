@@ -31,6 +31,8 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getEcho, getRealtimeTokenId } from "@/lib/echo";
+import { getAuthSnapshot, parseAuthSnapshot } from "@/lib/auth-store";
 
 export interface PortalNotificationItem {
   id: number;
@@ -171,6 +173,48 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [fetchLatest]);
+
+  // Real-time WebSocket subscription via Laravel Reverb
+  useEffect(() => {
+    const user = parseAuthSnapshot(getAuthSnapshot()).user;
+    if (!user || !user.id) return;
+
+    const tokenId = getRealtimeTokenId();
+    if (!tokenId) return;
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channelName = `App.Models.User.${user.id}.${tokenId}`;
+    const channel = echo.private(channelName);
+
+    const handleCreated = (item: PortalNotificationItem) => {
+      if (!isMountedRef.current) return;
+      setUnreadCount((c) => c + 1);
+      setNotifications((prev) => [item, ...prev.filter((n) => n.id !== item.id)].slice(0, 8));
+      setHistoryItems((prev) => [item, ...prev.filter((n) => n.id !== item.id)]);
+
+      // UI/UX Pro Max: interactive Sonner toast
+      toast(item.title || "Notifikasi Baru", {
+        description: item.message,
+        action: item.action_tab
+          ? {
+              label: "Buka",
+              onClick: () => onSelectTab?.(item.action_tab!, item.reference_id),
+            }
+          : undefined,
+      });
+    };
+
+    channel.listen(".notification.created", handleCreated);
+
+    return () => {
+      try {
+        echo.leave(channelName);
+      } catch {
+        // Safe fallback
+      }
+    };
+  }, [onSelectTab]);
 
   // Handle open history modal
   useEffect(() => {

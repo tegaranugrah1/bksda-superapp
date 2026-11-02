@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', [
+        'prefix' => 'api',
+        'middleware' => ['api', 'auth:sanctum'],
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Percayai semua proxy reverse (Dokploy / Nginx) untuk mengamankan SSL HTTPS & IP
         $middleware->trustProxies(at: '*');
@@ -44,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\AuthenticateQueryToken::class,
         ], append: [
             AuditLogMiddleware::class,
+            \App\Http\Middleware\EnsureAccountSecure::class,
         ]);
 
     })

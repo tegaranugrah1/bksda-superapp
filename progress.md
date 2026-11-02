@@ -1,5 +1,73 @@
 # Progress Development - BKSDA SuperApp
 
+## Status Update: 31 Oktober 2026
+
+### 1. Remediasi & Penuntasan Pentest Modul Surat Tugas (ST-01 s.d. ST-12)
+- **ST-08 (PostgreSQL Concurrency Lock Order & Race Condition Approval)**:
+  - Mengimplementasikan `AssignmentLetterController::lockEmployeesForScheduling()` dengan penguncian baris `Employee` secara deterministik (`orderBy('id', 'asc')->lockForUpdate()`) di dalam transaksi `store()`, `update()`, dan `approve()`.
+  - Terverifikasi pada PostgreSQL 15 nyata via `SuratTugasPostgresConcurrencyTest.php`: berhasil mencegah deadlock inverse-order dan menserialisasi bentrok jadwal approval (invariant: tepat 1 dokumen approved, 0 double booking).
+- **ST-12 (Browser Preview & Print Sink Protection)**:
+  - Komponen `#surat-preview-doc` dan `printSuratTugas()` (`print-st.ts`) diaudit terhadap vektor serangan Stored XSS (`<script>`, `<img onerror>`, `<svg onload>`, `<iframe javascript:>`, markdown italic injection).
+  - Dibuktikan secara otomatis lewat Google Chrome Headless nyata (`SuratTugasBrowserPreviewPrintSecurityTest.php`) dan Playwright E2E (`frontend/tests/surat-tugas-security.playwright.cjs`): seluruh payload bermarker dirender sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (`__ST12_EXECUTED_SINKS = []`, 0 dialog, 0 runtime error).
+- **R-ST-01 (Namespace Storage Upload & Transaksi Bersih)**:
+  - Seluruh file upload diarahkan ke direktori berbasis ID surat (`assignment_letters/{id}/`) dengan helper tunggal `replaceUploadedFile()`.
+  - Callback native `DB::afterCommit` dan `DB::afterRollBack` menjamin file lama tidak terhapus jika transaksi gagal, staged upload terhapus saat rollback, dan job arsip Drive hanya dikirim pasca-commit.
+- **Proteksi Berkas Legacy**:
+  - `deleteUnreferencedFile()` memeriksa seluruh referensi aktif maupun soft-deleted sebelum menghapus berkas fisik di disk local.
+- **R-ST-02 & R-ST-03 (Redaksi Privasi Konflik Jadwal & Membership Modul)**:
+  - Policy detail konsisten diterapkan: non-admin tidak memperoleh alasan medis/pribadi pegawai lain saat jadwal bentrok.
+  - Retained permission tanpa keanggotaan modul aktif ditolak dengan HTTP 403.
+- **Akun Nonaktif & Sesi Expired pada Rute Publik**:
+  - Middleware `EnsureAccountSecure` membaca fallback Sanctum pada rute publik; bearer nonaktif ditolak 403 dan token segera dicabut.
+- **Idempotensi Arsip Drive & Migrasi Sistem**:
+  - Migrasi `2026_10_31_180000_allow_system_owned_drive_archives.php` mengizinkan owner null untuk arsip sistem resmi. Lookup memakai `withTrashed()` mencegah duplikasi arsip.
+
+### 2. Pengujian Frontend Security E2E (Playwright)
+- Dibuat suite pengujian mandiri [`frontend/tests/surat-tugas-security.playwright.cjs`](frontend/tests/surat-tugas-security.playwright.cjs) yang memanfaatkan Google Chrome lokal (tanpa download browser baru, sesuai prinsip ponytail).
+- Menjalankan 5 suite keamanan terpadu:
+  1. ST-12: Stored XSS Preview Sanitization (#surat-preview-doc).
+  2. ST-12: Print Sink & Document Title Sanitization (`print-st.ts`).
+  3. ST-02: UI Conflict Privacy Masking (Non-admin hanya melihat "Cuti Aktif" tanpa detail medis).
+  4. ST-01: Client-Side Upload Guard (>5MB ditolak, whitelist ekstensi PDF/JPG/PNG).
+  5. ST-11: 403 Sesi Nonaktif Interceptor & Purge Token LocalStorage / Redirect ke `/login`.
+- Hasil: **5/5 suite LULUS, 23 assertions terverifikasi green**.
+
+### 3. Hardening Alur Publik Guest & Publikasi Surat Tugas (Commit `b1391706`)
+- **Validasi Nomor Surat Resmi saat Publikasi (`validatePublication`)**:
+  - Penambahan validasi ketat bahwa dokumen yang ditransisikan ke status resmi (`approved`, `completed`, `published`, `diterbitkan`) wajib memiliki `nomor_surat` terisi tanpa karakter placeholder template (`{...}`, `...`, `…`).
+  - Mencegah penurunan status surat yang sudah diterbitkan kembali ke `draft` atau `pending`.
+- **Paritas Template Snapshot**:
+  - Menyelaraskan passing `template_snapshot` antara Admin Print, Portal Pegawai (`portal/page.tsx`), dan Preview Surat (`SuratTugasLetterPreview.tsx`).
+- **Responsivitas Mobile 375px & Aksesibilitas WCAG**:
+  - Perbaikan overflow horizontal 401px pada layar 375px di `frontend/src/app/surat-tugas/layout.tsx`.
+  - Penyesuaian ukuran touch-target minimal 44px (`min-h-11`), asosiasi label `htmlFor`, dan keyboard navigation (`ArrowDown`/`Escape`) pada komponen pemilihan pegawai & detail surat.
+- **Suite Pengujian Publikasi Mandiri**:
+  - Ditambahkan `SuratTugasPublicationRegressionTest.php` dengan 19 metode pengujian mencakup 1066 assertions validasi transisi status, template fallback, dan idempotensi revisi.
+- **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)**:
+  - Menetapkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` untuk mencegah test suite mewarisi konfigurasi S3 pada `.env`, menjamin pengujian fake storage berjalan deterministik dan terisolasi.
+
+### 4. Penuntasan Matriks Pengujian Lanjutan (EXT-01 s.d. EXT-16)
+- **EXT-03 (DIPA/FOLU/Other)**: Teruji pada `test_ext03` untuk persistensi snapshot & resolusi anggaran DIPA, FOLU, dan swadana non-DIPA.
+- **EXT-04 (Edit Builder Full Parity)**: Teruji pada `test_ext04` untuk 24 field dokumen dan pivot peserta yang disinkronkan dan diverifikasi melalui GET reload.
+- **EXT-07 (Pivot Dates & PLH)**: Teruji pada `test_ext07` untuk perbedaan rentang tanggal per pegawai, PLH, dan peran tenaga lapangan.
+- **EXT-10 (Live Inbox WebSocket)**: Teruji pada `test_ext10` & `BroadcastChannelAuthTest` untuk penyiaran event `AdminInboxChanged` & `PortalNotificationCreated`.
+- **EXT-11 (Pagination Riwayat Pegawai)**: Teruji pada `test_ext11` untuk 25 dokumen surat tugas dengan paginasi 3 halaman dan isolasi akses antar-pegawai.
+- **EXT-15 (Double-Submit & Atomic Transaction)**: Teruji pada `test_ext15` untuk pencegahan double-submit via deteksi bentrok jadwal dan rollback atomik database.
+- **EXT-16 (Kategori NIP PNS/PPPK/MMP)**: Teruji pada `test_ext16` untuk kesesuaian seleksi & keterkaitan NIP PNS 18 digit, PPPK 18 digit, dan MMP lapangan.
+
+### 5. Rekapitulasi Verifikasi Terpadu (100% Lulus)
+- **Total Pengujian**: 124 tes backend / 1607 assertions + 13 suite Playwright E2E & Cache Security LULUS tanpa regresi:
+  - `SuratTugasPublicationRegressionTest.php`: 26 lulus / 1166 assertions
+  - `SuratTugasSecurityPentestTest.php`: 20 lulus / 125 assertions
+  - `SuratTugasFullSchemaSecurityTest.php`: 10 lulus / 105 assertions
+  - `BroadcastChannelAuthTest.php`: 3 lulus / 12 assertions
+  - `SuratTugasPostgresConcurrencyTest.php`: 2 lulus / 10 assertions (PostgreSQL 15)
+  - `SuratTugasBrowserPreviewPrintSecurityTest.php`: 1 lulus / 4 assertions (Chrome Headless)
+  - `surat-tugas-security.playwright.cjs`: 5 lulus / 23 assertions (Playwright Chromium)
+  - Regresi Terkait (`DriveHierarchicalResorRBACTest`, `PortalPersonalSecurityTest`, `SuratTugasMobileListApiTest`, `UserPermissionFallbackTest`): 60 lulus / 185 assertions
+
+---
+
 ## Status Update: 27 Oktober 2026
 
 ### 1. Modul BMN: Perbaikan Prefill Form & State Reset Laporan (Edit & Duplikasi Dokumen)

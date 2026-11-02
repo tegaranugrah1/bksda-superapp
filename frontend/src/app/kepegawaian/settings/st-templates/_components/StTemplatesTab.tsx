@@ -32,6 +32,8 @@ import STBuilderPreview from "../../../surat-tugas/_components/STBuilderPreview"
 import {
   resolveKopImageUrl,
   isFundingDasarText,
+  isGeneratedLaporanItem,
+  isGeneratedBiayaItem,
   buildKegiatanDiktumText,
   buildBiayaTextFor,
   normalizeTaskTypeName,
@@ -139,12 +141,19 @@ export function StTemplatesTab() {
   const [activeCard, setActiveCard] = useState<number>(1);
   const isClickingPillRef = useRef(false);
   const headerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const defaultKegiatanRef = useRef<HTMLTextAreaElement | null>(null);
 
   const currentYear = new Date().getFullYear().toString();
 
   const applyItalicToHeader = () => {
     if (headerTextareaRef.current) {
       toggleItalicInTextarea(headerTextareaRef.current, headerTitle, setHeaderTitle);
+    }
+  };
+
+  const applyItalicToDefaultKegiatan = () => {
+    if (defaultKegiatanRef.current) {
+      toggleItalicInTextarea(defaultKegiatanRef.current, defaultKegiatan, setDefaultKegiatan);
     }
   };
 
@@ -186,18 +195,18 @@ export function StTemplatesTab() {
     void fetchExpenseTemplates();
   }, [fetchTemplates, fetchEmployees, fetchExpenseTemplates]);
 
-  // Auto-scrollspy for the 6 template form cards based on dominant visible area
+  // Auto-scrollspy for the 7 template form cards based on dominant visible area
   useEffect(() => {
     if (!isTemplateFormOpen) return;
 
-    const cardIds = [1, 2, 3, 4, 5, 6];
+    const cardIds = [1, 2, 3, 4, 5, 6, 7];
 
     const updateActiveCard = () => {
       if (isClickingPillRef.current) return;
 
       const main = document.querySelector("main");
       if (main && main.scrollHeight - main.scrollTop - main.clientHeight < 50) {
-        setActiveCard(6);
+        setActiveCard(7);
         return;
       }
 
@@ -321,18 +330,18 @@ export function StTemplatesTab() {
     setIsTemplateFormOpen(false);
   };
 
-  const handleEditTemplate = (template: StTemplate) => {
-    setActiveCard(1);
-    setEditTemplateId(template.id);
-    setTemplateName(template.name);
-    setTemplateCode(template.code || templateCodeFromName(template.name));
-    setTemplateDescription(template.description || "");
+  const applyTemplatePreset = (template: StTemplate, keepIdentity = false) => {
+    if (!keepIdentity) {
+      setTemplateName(template.name);
+      setTemplateCode(template.code || templateCodeFromName(template.name));
+      setTemplateDescription(template.description || "");
+      setTemplateIsActive(template.is_active);
+      setTemplateIsDefault(template.is_default);
+    }
     setTemplateType(template.type);
     setMenimbangItems(template.menimbang || []);
     setDasarItems(template.dasar || []);
     setSignerId(template.default_signer_employee_id ? String(template.default_signer_employee_id) : "");
-    setTemplateIsActive(template.is_active);
-    setTemplateIsDefault(template.is_default);
 
     const config = template.configuration || {};
     setTemplateConfiguration(config);
@@ -368,7 +377,15 @@ export function StTemplatesTab() {
       typeof config.default_kegiatan === "string" ? config.default_kegiatan : "";
     setDefaultKegiatan(existingKegiatan);
 
-    const existingUntuk = Array.isArray(config.untuk) ? config.untuk : [];
+    const existingUntuk = Array.isArray(config.untuk)
+      ? config.untuk.filter((item) => {
+          const text = (item?.text || "").trim();
+          if (!text) return false;
+          if (isGeneratedLaporanItem(text)) return false;
+          if (isGeneratedBiayaItem(text, expenseTemplates)) return false;
+          return true;
+        })
+      : [];
     setUntukItems(existingUntuk);
 
     setHeaderTitle(
@@ -395,7 +412,12 @@ export function StTemplatesTab() {
     const existingKop = typeof config.kop_image_url === "string" ? config.kop_image_url : null;
     setKopImageUrl(existingKop);
     setKopMode(existingKop ? "custom" : "default");
+  };
 
+  const handleEditTemplate = (template: StTemplate) => {
+    setActiveCard(1);
+    setEditTemplateId(template.id);
+    applyTemplatePreset(template, false);
     setIsTemplateFormOpen(true);
   };
 
@@ -721,10 +743,11 @@ export function StTemplatesTab() {
                 {[
                   { id: 1, label: "1. Identitas" },
                   { id: 2, label: "2. Kepala & Nomor" },
-                  { id: 3, label: "3. Konsiderans" },
-                  { id: 4, label: "4. Diktum & Biaya" },
-                  { id: 5, label: "5. Kaki Surat & TTD" },
-                  { id: 6, label: "6. Tembusan" },
+                  { id: 3, label: "3. Menimbang" },
+                  { id: 4, label: "4. Dasar Hukum" },
+                  { id: 5, label: "5. Diktum & Biaya" },
+                  { id: 6, label: "6. Kaki Surat & TTD" },
+                  { id: 7, label: "7. Tembusan" },
                 ].map((pill) => (
                   <button
                     key={pill.id}
@@ -762,6 +785,37 @@ export function StTemplatesTab() {
                   </p>
                 </div>
               </div>
+
+              {!editTemplateId && templates.length > 0 && (
+                <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                      Buat Cepat: Salin Isian Awal dari Template yang Sudah Ada
+                    </p>
+                    <p className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                      Menyalin otomatis Menimbang, Dasar, Untuk, Kop, dan Tembusan agar Anda tinggal mengubah bagian yang berbeda saja.
+                    </p>
+                  </div>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const found = templates.find((t) => String(t.id) === e.target.value);
+                      if (found) {
+                        applyTemplatePreset(found, true);
+                        toast.success(`Isian awal disalin dari template "${found.name}"`);
+                      }
+                    }}
+                    className="rounded-xl border border-blue-300 bg-white px-3 py-2 text-xs font-semibold text-blue-900 outline-none focus:border-blue-500 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-200 cursor-pointer shrink-0"
+                  >
+                    <option value="">-- Pilih Template untuk Disalin --</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        Salin dari: {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1157,7 +1211,7 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 3. KARTU KONSIDERANS (MENIMBANG & DASAR) */}
+            {/* 3. KARTU KONSIDERANS — MENIMBANG (PERTIMBANGAN PENUGASAN) */}
             {/* ========================================================================= */}
             <div
               id="card-template-3"
@@ -1169,55 +1223,62 @@ export function StTemplatesTab() {
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                    Konsiderans (Menimbang &amp; Dasar)
+                    Konsiderans — Menimbang (Pertimbangan Penugasan)
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    Landasan pertimbangan (huruf a, b...) dan dasar regulasi/DIPA (angka 1, 2...).
+                    Landasan pertimbangan penugasan (huruf a, b, c...) yang selalu diambil dari Template ST ini.
                   </p>
                 </div>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
-                  <EditableItemListSection
-                    title="Default Menimbang"
-                    items={menimbangItems}
-                    onChange={setMenimbangItems}
-                    marker="letter"
-                  />
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
-                  <EditableItemListSection
-                    title="Default Dasar"
-                    items={dasarItems}
-                    onChange={setDasarItems}
-                    onAddItem={handleAddDasarItem}
-                    marker="number"
-                    getItemBadge={(item) => {
-                      if (isFundingDasarText(item.text, expenseTemplates)) {
-                        return (
-                          <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
-                            <Banknote className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                            <span>Otomatis Sinkron Sumber Dana</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                    description={
-                      <p className="text-[11px] text-slate-400">
-                        Butir dasar anggaran (DIPA/PKS/FOLU) ditandai dengan badge dan akan otomatis
-                        digantikan oleh <em>dasar</em> dari Template Sumber Dana yang dipilih saat surat
-                        tugas dibuat (atau otomatis hilang jika DL 1 / Tanpa Biaya).
-                      </p>
-                    }
-                  />
-                </div>
+              <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-[11px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+                <p>
+                  <b className="text-blue-950 dark:text-blue-200">Cara Penggunaan Menimbang:</b> Gunakan{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                    {"{nama kegiatan}"}
+                  </code>{" "}
+                  agar otomatis terisi dengan nama kegiatan surat di Builder, serta{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                    *kata miring*
+                  </code>{" "}
+                  (atau blok teks + <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-[10px]">Ctrl+I</kbd>) untuk istilah asing seperti <i>*Project Management Unit*</i>.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+                <EditableItemListSection
+                  title="Daftar Poin Menimbang (Huruf a, b, dst.)"
+                  items={menimbangItems}
+                  onChange={setMenimbangItems}
+                  marker="letter"
+                  placeholderChips={[
+                    {
+                      token: "{nama kegiatan}",
+                      desc: "Otomatis diganti dengan Nama Kegiatan & Lokasi dari surat",
+                    },
+                    {
+                      token: "{tahun}",
+                      desc: `Tahun Anggaran berjalan (${currentYear})`,
+                    },
+                    {
+                      token: "{pejabat}",
+                      desc: "Khusus PLH: Jabatan pejabat struktural yang digantikan",
+                    },
+                    {
+                      token: "{wilayah}",
+                      desc: "Khusus PLH: Wilayah Seksi (contoh: Wilayah I Berau)",
+                    },
+                    {
+                      token: "{kegiatan_kasi}",
+                      desc: "Khusus PLH: Kegiatan pejabat yang digantikan",
+                    },
+                  ]}
+                />
               </div>
             </div>
 
             {/* ========================================================================= */}
-            {/* 4. KARTU DIKTUM PENUGASAN (UNTUK & BIAYA) */}
+            {/* 4. KARTU KONSIDERANS — DASAR HUKUM & ANGGARAN */}
             {/* ========================================================================= */}
             <div
               id="card-template-4"
@@ -1226,6 +1287,93 @@ export function StTemplatesTab() {
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
                   4
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                    Konsiderans — Dasar Hukum &amp; Regulasi
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Landasan hukum/regulasi (angka 1, 2, 3...) yang selalu ditempatkan di urutan paling atas bagian Dasar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-xs space-y-1.5">
+                <p className="font-bold text-blue-950 dark:text-blue-200">
+                  Aturan 3 Lapis Urutan Otomatis Bagian Dasar di ST Builder:
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-blue-200/70 dark:border-blue-800/60">
+                    <b className="text-blue-700 dark:text-blue-300 block">1. Paling Atas (1..k)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Semua butir Dasar dari <b>Template ST</b> ini.
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-emerald-200/70 dark:border-emerald-800/60">
+                    <b className="text-emerald-700 dark:text-emerald-300 block">2. Tengah (Opsional)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Butir Dasar yang ditambah manual di <b>ST Builder</b>.
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-amber-200/70 dark:border-amber-800/60">
+                    <b className="text-amber-700 dark:text-amber-300 block">3. Paling Bawah (Terakhir)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Dasar DIPA/PKS dari <b>Template Biaya &amp; Sumber Dana</b> (jika ada).
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+                <EditableItemListSection
+                  title="Daftar Poin Dasar (Angka 1, 2, dst. — Paling Atas)"
+                  items={dasarItems}
+                  onChange={setDasarItems}
+                  onAddItem={handleAddDasarItem}
+                  marker="number"
+                  placeholderChips={[
+                    {
+                      token: "{tahun}",
+                      desc: `Tahun Anggaran berjalan (${currentYear})`,
+                    },
+                    {
+                      token: "{nomor_induk}",
+                      desc: "Khusus PLH: Nomor Surat Tugas Induk",
+                    },
+                    {
+                      token: "{tanggal_induk}",
+                      desc: "Khusus PLH: Tanggal Surat Tugas Induk",
+                    },
+                  ]}
+                  getItemBadge={(item) => {
+                    if (isFundingDasarText(item.text, expenseTemplates)) {
+                      return (
+                        <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
+                          <Banknote className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          <span>Otomatis Sinkron Sumber Dana (Paling Bawah)</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md w-fit">
+                        <span>1. Bawaan Template ST (Paling Atas)</span>
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* 5. KARTU DIKTUM PENUGASAN (UNTUK & BIAYA) */}
+            {/* ========================================================================= */}
+            <div
+              id="card-template-5"
+              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+            >
+              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+                  5
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -1280,14 +1428,18 @@ export function StTemplatesTab() {
                     }
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
                   >
-                    <option value="structured">Detail Terstruktur (Otomatis Sesuai Pola Lokasi)</option>
-                    <option value="manual">Tulis Manual (Uraian Bebas Khusus PLH/BMN)</option>
+                    <option value="structured">
+                      Detail Terstruktur (Otomatis Gabungan Jenis Tugas + Lokasi + Waktu)
+                    </option>
+                    <option value="manual">
+                      Tulis Manual (Default Uraian Tugas Jadi Utama + Waktu Otomatis)
+                    </option>
                   </select>
                 </label>
               </div>
 
               {/* Info Ringkas Jenis Tugas Terpilih */}
-              {activeTaskType && (
+              {activeTaskType && defaultModeKegiatan === "structured" && (
                 <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 rounded-xl border border-blue-200/60 dark:border-blue-900/40 text-xs space-y-1.5 animate-in fade-in duration-200">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold text-blue-950 dark:text-blue-100">{activeTaskType.nama}</span>
@@ -1311,40 +1463,78 @@ export function StTemplatesTab() {
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
-                  Default Uraian Tugas / Pola Butir 1 (Opsional)
-                  <span className="block text-xs font-normal text-slate-400">
-                    Teks awal tugas pokok pada formulir penugasan. Untuk template PLH, mendukung
-                    placeholder {"{wilayah}"} (contoh: Wilayah I Berau).
-                  </span>
-                  <textarea
-                    value={defaultKegiatan}
-                    onChange={(event) => setDefaultKegiatan(event.target.value)}
-                    rows={2}
-                    placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white text-sm"
-                  />
-                </label>
-                <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">Sisipkan placeholder:</span>
+              {defaultModeKegiatan === "manual" && (
+                <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/70 dark:border-amber-900/40 text-xs space-y-1 animate-in fade-in duration-200">
+                  <p className="font-bold text-amber-900 dark:text-amber-200">
+                    Mode Tulis Manual Aktif (Seperti PLH / Penugasan Khusus):
+                  </p>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <b>Default Uraian Tugas</b> di bawah akan selalu menjadi kalimat utama <b>Butir 1</b> di Builder (tanpa dibungkus awalan Perjalanan Dinas), dan sistem <b>tetap otomatis menambahkan rentang waktu</b> di akhir kalimat:{" "}
+                    <i>&quot;, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September {currentYear};&quot;</i>.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    Default Uraian Tugas / Pola Butir 1 {defaultModeKegiatan === "manual" ? "(Kalimat Utama Butir 1)" : "(Opsional)"}
+                  </label>
                   <button
                     type="button"
-                    onClick={() =>
-                      setDefaultKegiatan((prev) => (prev ? `${prev} {wilayah}` : "{wilayah}"))
-                    }
-                    className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
-                    title="Klik untuk menyisipkan {wilayah} (otomatis terisi nama seksi wilayah)"
+                    onClick={applyItalicToDefaultKegiatan}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 font-serif text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
+                    title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
                   >
-                    + {"{wilayah}"}
+                    <Italic className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    <span className="italic font-bold">Miringkan (*I*)</span>
                   </button>
+                </div>
+                <span className="block text-xs font-normal text-slate-400">
+                  {defaultModeKegiatan === "manual"
+                    ? "Tulis kalimat utama penugasan (tanpa tanggal). Tanggal & lama hari akan ditempel otomatis di ujung kalimat saat surat dibuat."
+                    : "Teks awal maksud/kegiatan pada formulir penugasan. Mendukung huruf miring (*kata*) dan placeholder di bawah."}
+                </span>
+                <textarea
+                  ref={defaultKegiatanRef}
+                  value={defaultKegiatan}
+                  onChange={(event) => setDefaultKegiatan(event.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      applyItalicToDefaultKegiatan();
+                    }
+                  }}
+                  rows={2}
+                  placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white text-sm"
+                />
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+                  <span className="text-[11px] text-slate-400 font-medium">Sisipkan placeholder:</span>
+                  {[
+                    { tag: "{wilayah}", desc: "Nama Wilayah / Seksi (contoh: Wilayah I Berau)" },
+                    { tag: "{pejabat}", desc: "Jabatan Pejabat yang Digantikan" },
+                    { tag: "{tahun}", desc: "Tahun Anggaran" },
+                  ].map((chip) => (
+                    <button
+                      key={chip.tag}
+                      type="button"
+                      onClick={() =>
+                        setDefaultKegiatan((prev) => (prev ? `${prev} ${chip.tag}` : chip.tag))
+                      }
+                      className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                      title={`Klik untuk menyisipkan ${chip.tag} (${chip.desc})`}
+                    >
+                      + {chip.tag}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Default Butir Tambahan Untuk */}
               <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
                 <EditableItemListSection
-                  title="Default Butir Tambahan (Untuk)"
+                  title="Default Butir Tambahan (Untuk — Mulai Nomor 2 dst.)"
                   items={untukItems}
                   onChange={setUntukItems}
                   marker="number"
@@ -1352,14 +1542,10 @@ export function StTemplatesTab() {
                   description={
                     <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1">
                       <p>
-                        Klausul penugasan tambahan mulai <strong>butir ke-2</strong> (contoh: kewajiban
-                        konsultasi atau laporan tertulis).
+                        Klausul penugasan tambahan mulai <strong>Butir ke-2</strong>. Saat template ini dipilih di Builder, daftar di sini akan <strong>menimpa seluruh butir tambahan Untuk sebelumnya</strong>.
                       </p>
                       <p className="text-[11px] text-slate-400">
-                        * Catatan: Butir <strong>nomor 1</strong> selalu otomatis berupa uraian tugas &amp;
-                        durasi dinas dari form pembuatan surat, dan butir <strong>terakhir</strong> adalah
-                        pembebanan biaya dari Template Sumber Dana (otomatis ditiadakan jika DL 1 /
-                        Tanpa Biaya).
+                        * Urutan Otomatis Bagian Untuk: <strong>1. Tugas Utama &amp; Waktu</strong> → <strong>2..k. Butir Tambahan (Untuk)</strong> → <strong>Biaya (Otomatis turun ke bawah Butir Tambahan)</strong> → <strong>Laporan Tertulis (Selalu Terakhir)</strong>.
                       </p>
                     </div>
                   }
@@ -1401,7 +1587,7 @@ export function StTemplatesTab() {
                     ))}
                   </select>
                   <span className="block text-xs font-normal text-slate-400">
-                    Jika dipilih, sumber dana ini otomatis terpilih saat template ST ini digunakan.
+                    Terhubung 2 arah: sumber dana ini otomatis terpilih saat template ST digunakan, dan pengajuan dari <code>/surat-tugas</code> atau Builder dengan sumber dana ini otomatis memilih template ST ini.
                   </span>
                 </label>
 
@@ -1439,15 +1625,15 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 5. KARTU KAKI SURAT & PENGESAHAN (TANDA TANGAN) */}
+            {/* 6. KARTU KAKI SURAT & PENGESAHAN (TANDA TANGAN) */}
             {/* ========================================================================= */}
             <div
-              id="card-template-5"
+              id="card-template-6"
               className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
             >
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
-                  5
+                  6
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -1603,16 +1789,16 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 6. KARTU TEMBUSAN */}
+            {/* 7. KARTU TEMBUSAN */}
             {/* ========================================================================= */}
             <div
-              id="card-template-6"
+              id="card-template-7"
               className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <div className="flex items-center gap-2.5">
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
-                    6
+                    7
                   </span>
                   <div>
                     <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Tembusan</h3>
@@ -1930,17 +2116,31 @@ export function StTemplatesTab() {
                           );
                           const sampleKegiatan = defaultKegiatan.trim() || "koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi";
 
-                          if (templateType === "plh") {
-                            return sampleKegiatan.replace(/{wilayah}/g, "Wilayah I Berau") + `, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
+                          if (templateType === "plh" || defaultModeKegiatan === "manual") {
+                            const manualBase = (
+                              defaultKegiatan.trim() ||
+                              "Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah Wilayah I Berau"
+                            )
+                              .replace(/\{wilayah\}/gi, "Wilayah I Berau")
+                              .replace(/\{pejabat\}/gi, "Kepala Seksi Konservasi Sumber Daya Alam Wilayah Wilayah I Berau")
+                              .replace(/\{tahun\}/gi, currentYear)
+                              .trim()
+                              .replace(/[;,.]+$/, "");
+                            if (activeTaskType?.aturan_durasi === "wajib_1_hari") {
+                              return `${manualBase}, selama 1 (satu) hari pada tanggal 15 September ${currentYear};`;
+                            }
+                            return `${manualBase}, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
                           }
 
                           const diktum = buildKegiatanDiktumText({
                             modeLokasi: currentModeLokasi,
                             jenisTugas: defaultJenisTugas,
                             kotaAsal: "Samarinda",
-                            kotaTujuan: currentModeLokasi === "dalam_kawasan" ? "Kabupaten Paser" : "Balikpapan",
-                            tempatSpesifik: currentModeLokasi === "dalam_kawasan" ? "Cagar Alam Teluk Adang" : "Kantor Balai",
+                            kotaTujuan: currentModeLokasi === "dalam_kawasan" ? "Kabupaten Paser" : "Kabupaten Kutai Barat",
+                            tempatSpesifik: currentModeLokasi === "dalam_kawasan" ? "Cagar Alam Teluk Adang" : "Suaka Badak Kelian",
                             namaKegiatanText: sampleKegiatan,
+                            untukKegiatanText: "Pemeriksaan Pekerjaan",
+                            contohFormat: activeTaskType?.contoh_format,
                           });
 
                           if (activeTaskType?.aturan_durasi === "wajib_1_hari" || defaultJenisTugas.includes("1 Hari")) {

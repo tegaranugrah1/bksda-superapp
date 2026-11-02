@@ -6,6 +6,7 @@ import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
   getStatusLabel,
+  needsBuilderCompletion,
   getResolvedTempatTujuan,
   extractDalamRangka,
   formatAssignmentDateRange,
@@ -43,6 +44,7 @@ export function GmailRowItem({
   isActive,
 }: GmailRowItemProps) {
   const isPending = letter.status === "pending" || letter.status === "draft";
+  const needsCompletion = needsBuilderCompletion(letter);
   const employees = letter.employees || [];
   const primaryName = employees[0]?.nama_lengkap || "Tanpa Personel";
   const extraCount = employees.length > 1 ? employees.length - 1 : 0;
@@ -218,9 +220,10 @@ export function GmailRowItem({
                 onQuickApprove(letter);
               }}
               className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded text-emerald-600 dark:text-emerald-400 transition-colors"
-              title="Setujui & Terbitkan Surat Tugas"
+              title={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
+              aria-label={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
             </button>
           )}
 

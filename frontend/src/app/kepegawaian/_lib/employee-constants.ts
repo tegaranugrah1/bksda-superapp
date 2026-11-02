@@ -27,6 +27,32 @@ export const SATUAN_KERJA_OPTIONS = [
   "Seksi KSDA Wil III - Resor 14. Ibu Kota Nusantara",
 ];
 
+export interface ResorOption {
+  code: string;
+  name: string;
+  skw: "SKW_1" | "SKW_2" | "SKW_3";
+}
+
+export const RESOR_OPTIONS: ResorOption[] = [
+  // SKW I Berau
+  { code: "resor_01", name: "Resor 01. Berau", skw: "SKW_1" },
+  { code: "resor_02", name: "Resor 02. Pulau Semama dan Pulau Sangalaki", skw: "SKW_1" },
+  { code: "resor_03", name: "Resor 03. Tanjung Selor", skw: "SKW_1" },
+  { code: "resor_04", name: "Resor 04. Tarakan", skw: "SKW_1" },
+  // SKW II Tenggarong
+  { code: "resor_05", name: "Resor 05. Samarinda", skw: "SKW_2" },
+  { code: "resor_06", name: "Resor 06. Padang Luway", skw: "SKW_2" },
+  { code: "resor_07", name: "Resor 07. Muara Kaman Sedulang", skw: "SKW_2" },
+  { code: "resor_08", name: "Resor 08. Sangatta", skw: "SKW_2" },
+  { code: "resor_09", name: "Resor 09. Suaka Badak Kelian", skw: "SKW_2" },
+  // SKW III Balikpapan
+  { code: "resor_10", name: "Resor 10. Balikpapan", skw: "SKW_3" },
+  { code: "resor_11", name: "Resor 11. Teluk Adang", skw: "SKW_3" },
+  { code: "resor_12", name: "Resor 12. Teluk Apar", skw: "SKW_3" },
+  { code: "resor_13", name: "Resor 13. Paser", skw: "SKW_3" },
+  { code: "resor_14", name: "Resor 14. Ibu Kota Nusantara (IKN)", skw: "SKW_3" },
+];
+
 export type JenisPegawai = "PNS" | "PPPK" | "MMP";
 
 export const JENIS_PEGAWAI_OPTIONS: { value: JenisPegawai; label: string; desc: string }[] = [

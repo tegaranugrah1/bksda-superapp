@@ -13,6 +13,10 @@ class AssignmentLetterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (! $this->has('maksud_tujuan') && $this->has('nama_kegiatan')) {
+            $this->merge(['maksud_tujuan' => $this->input('nama_kegiatan')]);
+        }
+
         $fields = ['maksud_tujuan', 'tempat_tujuan', 'keterangan', 'penandatangan_nama', 'penandatangan_nip', 'nama_plh'];
         $clean = [];
         foreach ($fields as $field) {
@@ -50,6 +54,31 @@ class AssignmentLetterRequest extends FormRequest
             }, $this->input('tembusan'));
         }
 
+        if ($this->has('template_snapshot') && is_array($this->input('template_snapshot'))) {
+            $snapshot = $this->input('template_snapshot');
+            if (isset($snapshot['configuration']) && is_array($snapshot['configuration'])) {
+                if (isset($snapshot['configuration']['untuk']) && is_array($snapshot['configuration']['untuk'])) {
+                    $snapshot['configuration']['untuk'] = array_map(function ($item) {
+                        if (is_array($item)) {
+                            if (isset($item['text'])) {
+                                $item['text'] = strip_tags(trim((string) $item['text']));
+                            }
+                            if (isset($item['id'])) {
+                                $item['id'] = strip_tags(trim((string) $item['id']));
+                            }
+                        }
+                        return $item;
+                    }, $snapshot['configuration']['untuk']);
+                }
+                if (isset($snapshot['configuration']['custom_nomor_naskah'])) {
+                    $snapshot['configuration']['custom_nomor_naskah'] = strip_tags(
+                        trim((string) $snapshot['configuration']['custom_nomor_naskah'])
+                    );
+                }
+            }
+            $clean['template_snapshot'] = $snapshot;
+        }
+
         if (!empty($clean)) {
             $this->merge($clean);
         }
@@ -57,22 +86,19 @@ class AssignmentLetterRequest extends FormRequest
 
     public function rules(): array
     {
-        $letterId = $this->route('id');
-        if ($letterId) {
-            $letterId = preg_replace('/^st-/', '', (string) $letterId);
-        }
-        $isDraft = strtolower((string) $this->input('status')) === 'draft';
+        $isDraft = ! $this->is('api/surat-tugas/submit') && strtolower((string) $this->input('status')) === 'draft';
 
         $rules = [
+            'status' => 'nullable|in:draft,pending,approved,rejected,completed,published,diterbitkan,DRAFT,PENDING,APPROVED,REJECTED,COMPLETED,PUBLISHED,DITERBITKAN',
             'nomor_surat' => 'nullable|string',
             'kode_surat' => 'nullable|string',
             'tanggal_surat' => 'nullable|date',
-            'maksud_tujuan' => $isDraft ? 'nullable|string' : 'required|string|min:5',
+            'maksud_tujuan' => 'nullable|string',
             'dasar_hukum' => 'nullable|string',
-            'tanggal_mulai' => $isDraft ? 'nullable|date' : 'required|date',
-            'tanggal_selesai' => $isDraft ? 'nullable|date' : 'required|date|after_or_equal:tanggal_mulai',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
             'tempat_tujuan' => 'nullable|string|max:255',
-            'sumber_dana' => $isDraft ? 'nullable|string' : 'required|string',
+            'sumber_dana' => 'nullable|string',
             'sumber_dana_other' => 'nullable|string',
             'template_type' => 'nullable|string|max:50',
             'template_id' => 'nullable|integer|exists:st_templates,id',
@@ -87,7 +113,7 @@ class AssignmentLetterRequest extends FormRequest
             'tembusan' => 'nullable|array',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
-            'employees' => $isDraft ? 'nullable|array' : 'required|array|min:1',
+            'employees' => 'nullable|array',
             'employees.*.id' => 'required_with:employees|integer|exists:kpg_employees,id',
             'employees.*.peran' => 'nullable|string|max:100',
             'employees.*.tanggal_mulai' => 'nullable|date',
@@ -100,11 +126,27 @@ class AssignmentLetterRequest extends FormRequest
             'template_snapshot' => 'nullable|array',
         ];
 
+        if (! $isDraft) {
+            $rules = array_replace($rules, self::requiredDocumentRules());
+        }
+
         if ($this->isMethod('post') || $this->hasFile('file_surat')) {
             $rules['file_surat'] = 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240';
         }
 
         return $rules;
+    }
+
+    public static function requiredDocumentRules(): array
+    {
+        return [
+            'maksud_tujuan' => 'required|string|min:5',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'sumber_dana' => 'required|string',
+            'employees' => 'required|array|min:1',
+            'employees.*.id' => 'required|integer|exists:kpg_employees,id',
+        ];
     }
 
     public function messages(): array

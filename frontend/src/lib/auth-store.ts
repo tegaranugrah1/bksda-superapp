@@ -146,13 +146,19 @@ export const authStore = {
     localStorage.setItem("bksda_user", userJson);
     if (token) {
       localStorage.setItem("bksda_token", token);
+    } else {
+      localStorage.removeItem("bksda_token");
     }
     
     setAuthCookie("bksda_logged_in", "true");
     setAuthCookie("bksda_user", userJson);
     if (token) {
       setAuthCookie("bksda_token", token);
+    } else {
+      deleteAuthCookie("bksda_token");
     }
+
+    clearGetCache(true);
 
     window.dispatchEvent(new Event("auth-change"));
 
@@ -217,7 +223,7 @@ export const authStore = {
     deleteAuthCookie("XSRF-TOKEN");
 
     try {
-      clearGetCache();
+      clearGetCache(true);
     } catch {}
 
     window.dispatchEvent(new Event("auth-change"));

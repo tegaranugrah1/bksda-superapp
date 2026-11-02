@@ -21,6 +21,9 @@ import {
     MessageSquare,
     Hash,
     Clock,
+    HardDrive,
+    MapPin,
+    ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,7 @@ interface DynamicFormDetail {
     slug: string;
     description: string | null;
     is_active?: boolean;
+    drive_folder_id?: number | null;
     fields: FormField[];
 }
 
@@ -46,6 +50,7 @@ interface ResponseItem {
     id: string;
     answers: Record<string, unknown>;
     file_paths: Record<string, string>;
+    drive_folder_id?: number | null;
     ip_address: string | null;
     created_at: string;
 }
@@ -136,9 +141,10 @@ export default function DeReportingFormResponsesPage({
     };
 
     // Handler Unduh Lampiran Spesifik
-    const handleDownloadAttachment = async (responseId: string, fieldId: string, fieldLabel: string) => {
+    const handleDownloadAttachment = async (responseId: string, fieldId: string, fieldLabel: string, index = 0) => {
         try {
             const res = await api.get(`/dereporting/forms/responses/${responseId}/download/${fieldId}`, {
+                params: { index },
                 responseType: "blob",
             });
             const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -167,6 +173,8 @@ export default function DeReportingFormResponsesPage({
                 return <MessageSquare className="w-4 h-4 text-amber-500" />;
             case "date":
                 return <Calendar className="w-4 h-4 text-cyan-500" />;
+            case "gps_location":
+                return <MapPin className="w-4 h-4 text-emerald-500" />;
             case "file":
                 return <UploadCloud className="w-4 h-4 text-rose-500" />;
             default:
@@ -186,6 +194,8 @@ export default function DeReportingFormResponsesPage({
                 return "Paragraf";
             case "date":
                 return "Tanggal";
+            case "gps_location":
+                return "Koordinat GPS";
             case "file":
                 return "Berkas / Foto";
             default:
@@ -234,6 +244,19 @@ export default function DeReportingFormResponsesPage({
                             className="rounded-xl text-xs font-bold gap-1.5 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                         >
                             <Edit3 className="w-3.5 h-3.5 text-zinc-500" /> Edit Pertanyaan
+                        </Button>
+                    </Link>
+
+                    <Link
+                        href={form?.drive_folder_id ? `/drive?space=1&folder_id=${form.drive_folder_id}` : `/drive?space=1`}
+                        target="_blank"
+                    >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="rounded-xl text-xs font-bold gap-1.5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                        >
+                            <HardDrive className="w-3.5 h-3.5 text-emerald-500" /> Buka Folder di BKSDA Drive
                         </Button>
                     </Link>
 
@@ -404,15 +427,40 @@ export default function DeReportingFormResponsesPage({
                                           .filter((d) => d.length > 0)
                                     : [];
 
-                                // Agregasi Lampiran Berkas
+                                // Agregasi Lampiran Berkas (Multi-File)
                                 const fileAnswers = isFile
                                     ? allItems
                                           .filter((item) => item.file_paths?.[field.id])
-                                          .map((item) => ({
-                                              responseId: item.id,
-                                              path: item.file_paths[field.id],
-                                              date: item.created_at,
-                                          }))
+                                          .flatMap((item) => {
+                                              const rawPaths = item.file_paths[field.id];
+                                              const pathList = Array.isArray(rawPaths) ? rawPaths : [rawPaths];
+                                              return pathList.map((p, idx) => ({
+                                                  responseId: item.id,
+                                                  path: p,
+                                                  index: idx,
+                                                  date: item.created_at,
+                                              }));
+                                          })
+                                    : [];
+
+                                // Agregasi Titik Koordinat GPS
+                                const isGps = field.type === "gps_location";
+                                const gpsAnswers = isGps
+                                    ? allItems
+                                          .map((item) => {
+                                              const val = item.answers?.[field.id] as any;
+                                              return val && val.latitude !== undefined && val.longitude !== undefined
+                                                  ? {
+                                                        responseId: item.id,
+                                                        latitude: val.latitude,
+                                                        longitude: val.longitude,
+                                                        accuracy: val.accuracy,
+                                                        address_hint: val.address_hint,
+                                                        date: item.created_at,
+                                                    }
+                                                  : null;
+                                          })
+                                          .filter(Boolean)
                                     : [];
 
                                 return (
@@ -575,13 +623,56 @@ export default function DeReportingFormResponsesPage({
                                                                     size="sm"
                                                                     variant="outline"
                                                                     onClick={() =>
-                                                                        handleDownloadAttachment(file.responseId, field.id, field.label)
+                                                                        handleDownloadAttachment(file.responseId, field.id, field.label, file.index)
                                                                     }
                                                                     className="h-7 text-[11px] rounded-lg gap-1 font-bold text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
                                                                 >
                                                                     <Download className="w-3 h-3" /> Unduh
                                                                 </Button>
                                                             </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Tampilan Tanggapan Koordinat GPS */}
+                                        {isGps && (
+                                            <div className="space-y-3 pt-1">
+                                                <div className="flex items-center justify-between text-xs text-zinc-500 font-medium">
+                                                    <span>{gpsAnswers.length} Titik Koordinat GPS Terekam</span>
+                                                </div>
+
+                                                {gpsAnswers.length === 0 ? (
+                                                    <p className="text-xs text-zinc-400 italic py-3 text-center">
+                                                        Belum ada titik koordinat GPS yang direkam responden.
+                                                    </p>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                                                        {gpsAnswers.map((g: any, gIdx: number) => (
+                                                            <a
+                                                                key={gIdx}
+                                                                href={`https://www.google.com/maps?q=${g.latitude},${g.longitude}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-between gap-2 hover:border-emerald-500/40 transition-all group"
+                                                            >
+                                                                <div className="truncate">
+                                                                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                                                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                                                        <span>Titik #{gIdx + 1}: {Number(g.latitude).toFixed(4)}, {Number(g.longitude).toFixed(4)}</span>
+                                                                    </div>
+                                                                    {g.address_hint && (
+                                                                        <p className="text-[10px] text-zinc-500 truncate mt-0.5">
+                                                                            {g.address_hint}
+                                                                        </p>
+                                                                    )}
+                                                                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                                                                        Akurasi ±{g.accuracy ? `${Math.round(g.accuracy)}m` : "GPS"} • {new Date(g.date).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                                                    </p>
+                                                                </div>
+                                                                <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-500 shrink-0 transition-colors" />
+                                                            </a>
                                                         ))}
                                                     </div>
                                                 )}
@@ -610,12 +701,13 @@ export default function DeReportingFormResponsesPage({
                                         </th>
                                     ))}
                                     <th className="p-3.5">IP Address</th>
+                                    <th className="p-3.5 text-center">Berkas Drive</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                                 {isLoadingTable ? (
                                     <tr>
-                                        <td colSpan={fields.length + 3} className="p-16 text-center text-violet-500">
+                                        <td colSpan={fields.length + 4} className="p-16 text-center text-violet-500">
                                             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" />
                                             <span className="text-xs font-bold uppercase tracking-widest">
                                                 Memuat Rekap Tanggapan...
@@ -624,7 +716,7 @@ export default function DeReportingFormResponsesPage({
                                     </tr>
                                 ) : tableItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={fields.length + 3} className="p-16 text-center text-zinc-500">
+                                        <td colSpan={fields.length + 4} className="p-16 text-center text-zinc-500">
                                             <TableProperties className="w-8 h-8 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" />
                                             Belum ada tanggapan masuk untuk formulir ini.
                                         </td>
@@ -654,25 +746,53 @@ export default function DeReportingFormResponsesPage({
                                                 const rawVal = resp.answers?.[field.id];
 
                                                 if (isFile) {
+                                                    const rawFiles = resp.file_paths?.[field.id];
+                                                    const fileList = Array.isArray(rawFiles) ? rawFiles : (rawFiles ? [rawFiles] : []);
                                                     return (
                                                         <td key={field.id} className="p-3.5">
-                                                            {hasFile ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() =>
-                                                                        handleDownloadAttachment(resp.id, field.id, field.label)
-                                                                    }
-                                                                    className="h-7 text-[11px] rounded-lg gap-1.5 font-bold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-50 dark:hover:bg-violet-950/30"
-                                                                >
-                                                                    <Download className="w-3 h-3" /> Unduh Berkas
-                                                                </Button>
+                                                            {fileList.length > 0 ? (
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {fileList.map((_, fIdx) => (
+                                                                        <Button
+                                                                            key={fIdx}
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            onClick={() =>
+                                                                                handleDownloadAttachment(resp.id, field.id, field.label, fIdx)
+                                                                            }
+                                                                            className="h-6 text-[10px] rounded-lg gap-1 font-bold text-violet-600 dark:text-violet-400 border-violet-500/30 hover:bg-violet-50 dark:hover:bg-violet-950/30 px-2"
+                                                                        >
+                                                                            <Download className="w-2.5 h-2.5" /> File #{fIdx + 1}
+                                                                        </Button>
+                                                                    ))}
+                                                                </div>
                                                             ) : (
                                                                 <span className="text-zinc-400 italic">-</span>
                                                             )}
                                                         </td>
                                                     );
+                                                }
+
+                                                if (field.type === "gps_location") {
+                                                    const gps = resp.answers?.[field.id] as any;
+                                                    if (gps && gps.latitude !== undefined && gps.longitude !== undefined) {
+                                                        return (
+                                                            <td key={field.id} className="p-3.5">
+                                                                <a
+                                                                    href={`https://www.google.com/maps?q=${gps.latitude},${gps.longitude}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                                                                >
+                                                                    <MapPin className="w-3 h-3 text-emerald-500" />
+                                                                    <span>{Number(gps.latitude).toFixed(4)}, {Number(gps.longitude).toFixed(4)}</span>
+                                                                    <ExternalLink className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                                                                </a>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    return <td key={field.id} className="p-3.5 text-zinc-400 italic">-</td>;
                                                 }
 
                                                 let displayVal = "-";
@@ -689,6 +809,22 @@ export default function DeReportingFormResponsesPage({
 
                                             <td className="p-3.5 text-zinc-400 font-mono text-[11px]">
                                                 {resp.ip_address || "-"}
+                                            </td>
+                                            <td className="p-3.5 text-center">
+                                                {resp.drive_folder_id ? (
+                                                    <Link
+                                                        href={`/drive?space=1&folder_id=${resp.drive_folder_id}`}
+                                                        target="_blank"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                                                        title="Buka folder tanggapan di BKSDA Drive"
+                                                    >
+                                                        <HardDrive className="w-3.5 h-3.5 text-blue-500" />
+                                                        <span>Buka Folder</span>
+                                                        <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                                                    </Link>
+                                                ) : (
+                                                    <span className="text-zinc-400 italic text-[11px]">-</span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))

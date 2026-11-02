@@ -97,6 +97,12 @@ class LoanService
                 $createdLoans[] = $record->load(['asset', 'borrower']);
 
                 try {
+                    event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $record->id));
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
+
+                try {
                     app(\App\Services\PortalNotificationService::class)->notifyEmployee(
                         $data['borrower_employee_id'],
                         'Peminjaman Aset BMN',
@@ -139,6 +145,12 @@ class LoanService
             ]);
 
             $asset->update(['employee_id' => $employeeId]);
+
+            try {
+                event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $loan->id));
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
 
             try {
                 app(\App\Services\PortalNotificationService::class)->notifyEmployee(

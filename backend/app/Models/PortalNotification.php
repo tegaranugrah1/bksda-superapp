@@ -28,6 +28,13 @@ class PortalNotification extends Model
         'read_at',
     ];
 
+    /**
+     * Otomatis pancarkan WebSocket event saat notifikasi baru dibuat.
+     */
+    protected $dispatchesEvents = [
+        'created' => \App\Events\PortalNotificationCreated::class,
+    ];
+
     protected function casts(): array
     {
         return [

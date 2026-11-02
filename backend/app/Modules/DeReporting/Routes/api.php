@@ -49,7 +49,9 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
     Route::post('/forms/{id}/duplicate', [FormBuilderController::class, 'duplicate']);
     Route::get('/forms/{id}/responses', [FormBuilderController::class, 'responses']);
     Route::get('/forms/{id}/responses/export', [FormBuilderController::class, 'exportCsv']);
+    Route::get('/forms/{id}/summary', [FormBuilderController::class, 'summary']);
     Route::get('/forms/responses/{responseId}/download/{fieldId}', [FormBuilderController::class, 'downloadAttachment']);
+    Route::post('/forms/responses/{id}/share', [FormBuilderController::class, 'shareResponseFolder'])->middleware('throttle:30,1');
 
     /*
     |--------------------------------------------------------------------------

@@ -31,6 +31,25 @@ use App\Http\Controllers\Api\PortalNotificationController;
 
 // Public Auth Route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/login/2fa', [AuthController::class, 'login2Fa'])->middleware('throttle:5,1');
+
+// Email & Password Security Public Routes
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->name('verification.verify')
+    ->middleware(['signed', 'throttle:10,1']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,15');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,15');
+Route::post('/webhooks/resend', [AuthController::class, 'webhookResend'])->middleware('throttle:60,1');
+
+// Public Drive Sharing (Fase 3)
+Route::get('/drive/s/{token}', [\App\Http\Controllers\Api\DriveShareController::class, 'getPublicShareInfo'])->middleware('throttle:60,1');
+Route::post('/drive/s/{token}/download', [\App\Http\Controllers\Api\DriveShareController::class, 'downloadPublicShare'])->middleware('throttle:10,1');
+
+// Signed ZIP download
+Route::get('/drive/folders/{id}/download-zip', [\App\Http\Controllers\Api\DriveController::class, 'downloadFolderZip'])
+    ->whereNumber('id')
+    ->name('drive.folder.download_zip')
+    ->middleware('throttle:30,1');
 
 // Protected Auth Routes (wajib bawa Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -59,4 +78,37 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/portal/notifications', [PortalNotificationController::class, 'index'])->middleware('throttle:120,1');
     Route::post('/portal/notifications/{id}/read', [PortalNotificationController::class, 'markAsRead'])->whereNumber('id')->middleware('throttle:120,1');
     Route::post('/portal/notifications/mark-all-read', [PortalNotificationController::class, 'markAllAsRead'])->middleware('throttle:60,1');
+
+    // Email Management & Settings
+    Route::put('/me/email', [AuthController::class, 'updateEmail'])->middleware('throttle:3,10,me_email');
+    Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware('throttle:6,1');
+    Route::get('/admin/email/settings', [AuthController::class, 'getEmailSettings'])->middleware('throttle:60,1');
+    Route::put('/admin/email/settings', [AuthController::class, 'updateEmailSettings'])->middleware('throttle:30,1');
+    Route::post('/admin/email/test', [AuthController::class, 'sendTestEmail'])->middleware('throttle:5,1');
+
+    // Two-Factor Authentication (2FA)
+    Route::post('/me/2fa/enable', [AuthController::class, 'enable2Fa'])->middleware('throttle:5,1');
+    Route::post('/me/2fa/confirm', [AuthController::class, 'confirm2Fa'])->middleware('throttle:5,1');
+    Route::delete('/me/2fa', [AuthController::class, 'disable2Fa'])->middleware('throttle:5,1');
+
+    // BKSDA Drive Routes (Fase 2)
+    Route::get('/drive', [\App\Http\Controllers\Api\DriveController::class, 'index'])->middleware('throttle:120,1');
+    Route::post('/drive/folders', [\App\Http\Controllers\Api\DriveController::class, 'createFolder'])->middleware('throttle:60,1');
+    Route::put('/drive/{type}/{id}/rename', [\App\Http\Controllers\Api\DriveController::class, 'rename'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::put('/drive/{type}/{id}/star', [\App\Http\Controllers\Api\DriveController::class, 'toggleStar'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::delete('/drive/{type}/{id}', [\App\Http\Controllers\Api\DriveController::class, 'trash'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::post('/drive/{type}/{id}/restore', [\App\Http\Controllers\Api\DriveController::class, 'restore'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::delete('/drive/{type}/{id}/force', [\App\Http\Controllers\Api\DriveController::class, 'forceDelete'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
+    Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:60,1');
+    Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:60,1');
+    Route::get('/drive/files/{id}/url', [\App\Http\Controllers\Api\DriveController::class, 'downloadUrl'])->whereNumber('id')->middleware('throttle:120,1');
+    Route::post('/drive/folders/{id}/zip-token', [\App\Http\Controllers\Api\DriveController::class, 'requestZipToken'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::post('/drive/files/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFile'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::post('/drive/folders/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFolder'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::post('/drive/folders/{id}/assign-manager', [\App\Http\Controllers\Api\DriveController::class, 'assignManager'])->whereNumber('id')->middleware('throttle:30,1');
+
+    // Drive Sharing (Fase 3)
+    Route::post('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'createShare'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::get('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'listShares'])->whereNumber('id')->middleware('throttle:60,1');
+    Route::delete('/drive/shares/{id}', [\App\Http\Controllers\Api\DriveShareController::class, 'deleteShare'])->whereNumber('id')->middleware('throttle:30,1');
 });

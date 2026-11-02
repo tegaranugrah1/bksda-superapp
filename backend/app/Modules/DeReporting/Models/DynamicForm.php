@@ -23,16 +23,38 @@ class DynamicForm extends Model
         'fields',
         'is_active',
         'created_by',
+        'drive_folder_id',
+        'closed_at',
+        'closed_message',
     ];
 
     protected $casts = [
         'fields' => 'array',
         'is_active' => 'boolean',
+        'closed_at' => 'datetime',
     ];
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function driveFolder(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\DriveFolder::class, 'drive_folder_id');
+    }
+
+    public function isClosed(): bool
+    {
+        if (! $this->is_active) {
+            return true;
+        }
+
+        if ($this->closed_at && now()->greaterThanOrEqualTo($this->closed_at)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function responses(): HasMany

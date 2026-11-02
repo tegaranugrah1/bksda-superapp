@@ -21,6 +21,7 @@ import {
     UploadCloud,
     Radio,
     Sparkles,
+    MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-type FieldType = "text" | "textarea" | "radio" | "checkbox" | "select" | "date" | "file";
+type FieldType = "text" | "textarea" | "radio" | "checkbox" | "select" | "date" | "file" | "gps_location";
 
 interface FormField {
     id: string;
@@ -36,6 +37,7 @@ interface FormField {
     type: FieldType;
     required: boolean;
     options?: string[];
+    max_files?: number;
 }
 
 interface DynamicFormDetail {
@@ -55,6 +57,7 @@ const FIELD_TYPES: { type: FieldType; label: string; icon: typeof Type }[] = [
     { type: "select", label: "Dropdown", icon: List },
     { type: "date", label: "Tanggal", icon: Calendar },
     { type: "file", label: "Unggah Berkas / Foto", icon: UploadCloud },
+    { type: "gps_location", label: "Titik Koordinat GPS", icon: MapPin },
 ];
 
 export default function DeReportingFormBuilderPage({
@@ -402,7 +405,35 @@ export default function DeReportingFormBuilderPage({
                                     {field.type === "text" && "Pratinjau: Input satu baris teks pendek."}
                                     {field.type === "textarea" && "Pratinjau: Kotak paragraf teks panjang."}
                                     {field.type === "date" && "Pratinjau: Pemilih kalender tanggal."}
-                                    {field.type === "file" && "Pratinjau: Pemilih unggah berkas / foto (maks 10 MB)."}
+                                    {field.type === "file" && (
+                                        <div className="space-y-2">
+                                            <p>Pratinjau: Pemilih unggah berkas / foto (maks 10 MB per berkas).</p>
+                                            <div className="flex items-center gap-2 not-italic">
+                                                <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
+                                                    Maksimal Jumlah Berkas:
+                                                </span>
+                                                <select
+                                                    value={field.max_files || 5}
+                                                    onChange={(e) =>
+                                                        handleUpdateField(index, { max_files: parseInt(e.target.value, 10) })
+                                                    }
+                                                    className="px-2 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold text-zinc-800 dark:text-zinc-200"
+                                                >
+                                                    {[1, 2, 3, 4, 5].map((num) => (
+                                                        <option key={num} value={num}>
+                                                            {num} Berkas
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {field.type === "gps_location" && (
+                                        <div className="text-emerald-600 dark:text-emerald-400 font-medium not-italic flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 shrink-0" />
+                                            <span>Pratinjau: Responden akan mengambil titik koordinat GPS otomatis atau memilih pin di peta interaktif.</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

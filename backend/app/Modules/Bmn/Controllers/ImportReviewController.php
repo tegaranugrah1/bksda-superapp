@@ -25,7 +25,13 @@ class ImportReviewController extends Controller
     public function upload(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => UploadValidationRules::spreadsheet(),
+            'file' => [
+                'required',
+                'file',
+                'mimes:xlsx,xls',
+                'extensions:xlsx,xls',
+                'max:10240',
+            ],
         ]);
 
         try {

@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
+import { needsBuilderCompletion } from "./_lib/status-helpers";
 import { Plus, Inbox } from "lucide-react";
 import api from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
+import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 
 import type {
   AssignmentLetter,
@@ -141,6 +144,15 @@ export default function SuratTugasInbox() {
   );
   const meta: PaginationMeta | undefined = listResponse?.meta;
 
+  // Real-time inbox update via WebSocket
+  useAdminInboxLive(
+    "surat_tugas",
+    useCallback(() => {
+      fetchCounts();
+      fetchLetters();
+    }, [fetchCounts, fetchLetters])
+  );
+
   // Sync selected letter if split view is enabled and letters load
   useEffect(() => {
     if (splitView && letters.length > 0 && !selectedLetter) {
@@ -206,18 +218,26 @@ export default function SuratTugasInbox() {
   };
 
   const handleApprove = async (letter: AssignmentLetter) => {
+    if (needsBuilderCompletion(letter)) {
+      toast.info("Lengkapi Surat Tugas di Builder", {
+        description: "Isi nomor surat, kegiatan, tanggal, sumber dana, dan personel sebelum diterbitkan.",
+      });
+      router.push(`/kepegawaian/surat-tugas/builder/${encodeURIComponent(letter.id)}`);
+      return;
+    }
     const ident = letter.nomor_surat
       ? `Nomor ${letter.nomor_surat}`
       : (letter.maksud_tujuan || "dokumen ini");
     const ok = await confirm({
       title: "Terbitkan Surat Tugas?",
-      description: `Surat tugas (${ident}) akan diterbitkan dan disetujui secara resmi. Nomor surat dan stempel digital akan dikunci.`,
+      description: `Surat tugas (${ident}) akan diterbitkan dan disetujui secara resmi. Pastikan isi dan nomor surat sudah benar.`,
       confirmText: "Terbitkan Sekarang",
       cancelText: "Batal",
       variant: "info",
     });
     if (!ok) return;
 
+    setUpdatingStatus(true);
     try {
       await api.put(`/surat-tugas/${letter.id}/approve`, { status: "approved" });
       toast.success("Surat tugas berhasil diterbitkan", {
@@ -231,9 +251,23 @@ export default function SuratTugasInbox() {
       }
     } catch (error) {
       console.error("Approval failed", error);
+      const data = isAxiosError<{ message?: string; errors?: Record<string, string[]> }>(error)
+        ? error.response?.data : undefined;
+      const fields = Object.entries(data?.errors || {})
+        .map(([field, messages]) => `${field}: ${messages.join(" ")}`)
+        .join("\n");
       toast.error("Gagal menerbitkan surat tugas", {
-        description: "Periksa kelengkapan data atau koneksi Anda.",
+        description: fields || data?.message || "Periksa koneksi Anda, lalu coba lagi.",
+        ...(isAxiosError(error) && error.response?.status === 422 ? {
+          action: {
+            label: "Lengkapi di Builder",
+            onClick: () => router.push(`/kepegawaian/surat-tugas/builder/${encodeURIComponent(letter.id)}`),
+          },
+          duration: 10000,
+        } : {}),
       });
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Briefcase,
   Plus,
@@ -15,10 +15,13 @@ import {
   MapPin,
   Calendar,
   CheckCircle2,
+  Italic,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
+import { buildKegiatanDiktumText } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { renderFormattedItalic, toggleItalicInTextarea } from "@/lib/letter-utils";
 import { errorMessage } from "./utils";
 
 export interface StTaskType {
@@ -57,6 +60,7 @@ export function TaskTypesTab() {
   const [aturanDurasi, setAturanDurasi] = useState<"fleksibel" | "wajib_1_hari">("fleksibel");
   const [defaultSertakanLaporan, setDefaultSertakanLaporan] = useState(true);
   const [contohFormat, setContohFormat] = useState("");
+  const contohFormatRef = useRef<HTMLTextAreaElement | null>(null);
   const [keterangan, setKeterangan] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [urutan, setUrutan] = useState<number>(1);
@@ -605,17 +609,156 @@ export function TaskTypesTab() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                  Contoh / Pola Format Diktum
-                </label>
+              <div className="space-y-2 p-3.5 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/15">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                    Pola Format Diktum (Kalimat Untuk — Butir 1)
+                  </label>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      if (contohFormatRef.current) {
+                        toggleItalicInTextarea(contohFormatRef.current, contohFormat, setContohFormat);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 font-serif text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 cursor-pointer"
+                    title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
+                  >
+                    <Italic className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    <span className="italic font-bold">Miringkan (*I*)</span>
+                  </button>
+                </div>
+
+                {/* Preset Pola Cepat */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">
+                    Pola Cepat:
+                  </span>
+                  {[
+                    {
+                      label: "Luar Wilayah (Standar)",
+                      mode: "luar_wilayah" as const,
+                      pattern:
+                        "Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} dalam rangka {kegiatan} di {tempat}",
+                    },
+                    {
+                      label: "Luar Wilayah + Untuk Kegiatan",
+                      mode: "luar_wilayah" as const,
+                      pattern:
+                        "Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {untuk} dalam rangka {kegiatan} di {tempat}",
+                    },
+                    {
+                      label: "Dalam Kawasan",
+                      mode: "dalam_kawasan" as const,
+                      pattern:
+                        "Melaksanakan perjalanan dinas di {kota} dalam rangka {kegiatan} di {tempat}",
+                    },
+                    {
+                      label: "Tempat Saja / Kegiatan",
+                      mode: "tempat_saja" as const,
+                      pattern: "Melaksanakan Kegiatan {kegiatan} pada {tempat} di {kota}",
+                    },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setModeLokasi(preset.mode);
+                        setContohFormat(preset.pattern);
+                      }}
+                      className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:border-blue-400 hover:text-blue-600 cursor-pointer"
+                    >
+                      + {preset.label}
+                    </button>
+                  ))}
+                </div>
+
                 <textarea
+                  ref={contohFormatRef}
                   rows={2}
                   value={contohFormat}
                   onChange={(e) => setContohFormat(e.target.value)}
-                  placeholder="Contoh format kalimat resmi penugasan..."
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-slate-900 dark:text-white font-medium resize-none"
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      if (contohFormatRef.current) {
+                        toggleItalicInTextarea(contohFormatRef.current, contohFormat, setContohFormat);
+                      }
+                    }
+                  }}
+                  placeholder="Contoh: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {untuk} dalam rangka {kegiatan} di {tempat}"
+                  className="w-full px-3.5 py-2 text-xs bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 text-slate-900 dark:text-white font-mono resize-none"
                 />
+
+                {/* Tombol Sisipkan Placeholder */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">
+                    Sisipkan Placeholder:
+                  </span>
+                  {[
+                    { tag: "{asal}", desc: "Kota Asal (contoh: Samarinda)" },
+                    { tag: "{tujuan}", desc: "Kota/Kabupaten Tujuan" },
+                    { tag: "{untuk}", desc: "Untuk Jenis Kegiatan (sebelum dalam rangka)" },
+                    { tag: "{kegiatan}", desc: "Dalam Rangka / Nama Kegiatan" },
+                    { tag: "{paket}", desc: "Nama Paket Kontrak / Pekerjaan (setelah dalam rangka)" },
+                    { tag: "{tempat}", desc: "Tempat / Kawasan Spesifik" },
+                    { tag: "{kota}", desc: "Kota/Kabupaten Lokasi" },
+                  ].map((chip) => (
+                    <button
+                      key={chip.tag}
+                      type="button"
+                      onClick={() =>
+                        setContohFormat((prev) =>
+                          prev ? `${prev}${prev.endsWith(" ") ? "" : " "}${chip.tag}` : chip.tag
+                        )
+                      }
+                      className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white dark:bg-zinc-800 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 cursor-pointer"
+                      title={chip.desc}
+                    >
+                      + {chip.tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Info Koneksi Otomatis ke /surat-tugas & Builder */}
+                <div className="text-[10px] text-slate-600 dark:text-zinc-400 space-y-1 pt-1 border-t border-blue-200/60 dark:border-blue-900/40 leading-relaxed">
+                  <p>
+                    • <b>Otomatis Terkoneksi ke Form Publik (<code>/surat-tugas</code>) &amp; Builder:</b> Jika pola mengandung{" "}
+                    <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">{"{untuk}"}</code>, sistem otomatis memunculkan kolom input{" "}
+                    <b>&quot;Untuk (Jenis Kegiatan / Tugas)&quot;</b> sebelum <i>dalam rangka</i>.
+                  </p>
+                  <p>
+                    • Keterangan durasi waktu (<i>&quot;, selama X (...) hari terhitung mulai tanggal ...;&quot;</i>) selalu ditambahkan otomatis di akhir kalimat Butir 1.
+                  </p>
+                </div>
+
+                {/* Live Preview Kalimat Untuk Butir 1 */}
+                <div className="p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200/70 dark:border-blue-900/50 space-y-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                    Pratinjau Hasil Kalimat Untuk (Butir 1):
+                  </span>
+                  <p className="text-[11px] font-serif text-slate-800 dark:text-zinc-200 leading-relaxed">
+                    <b className="mr-1.5">1.</b>
+                    {renderFormattedItalic(
+                      `${buildKegiatanDiktumText({
+                        modeLokasi,
+                        jenisTugas: nama || "Perjalanan Dinas Luar Wilayah",
+                        kotaAsal: "Samarinda",
+                        kotaTujuan: "Kabupaten Kutai Barat",
+                        tempatSpesifik: "Suaka Badak Kelian Kabupaten Kutai Barat",
+                        untukKegiatanText: "Pemeriksaan Pekerjaan",
+                        namaKegiatanText:
+                          "Pengelolaan Kontrak Pekerjaan Konstruksi Pembangunan Sarana dan Prasarana Tahun 2026",
+                        contohFormat: contohFormat.trim() || null,
+                      })}${
+                        aturanDurasi === "wajib_1_hari"
+                          ? ", selama 1 (satu) hari pada tanggal 15 September 2026;"
+                          : ", selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September 2026;"
+                      }`
+                    )}
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-1">

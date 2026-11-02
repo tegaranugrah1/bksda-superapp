@@ -1101,7 +1101,8 @@ assert(str_contains($empModelCheck59, "hasOne(User::class, 'username', 'nip')"),
 // 169. Assignment Letter Status Case-Resilience & Canonicalization Invariant
 $stCtrlCheck60 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
 assert(str_contains($stCtrlCheck60, "'status' => 'required|in:pending,approved,rejected,completed,PENDING,APPROVED,REJECTED,COMPLETED'") && str_contains($stCtrlCheck60, "strtolower(\$request->status)"), 'AssignmentLetterController updateStatus must accept case-resilient status values and canonicalize with strtolower()');
-assert(str_contains($stCtrlCheck60, "'status' => 'nullable|in:pending,approved,PENDING,APPROVED'") && str_contains($stCtrlCheck60, "strtolower(\$targetStatus)"), 'AssignmentLetterController approve must accept case-resilient status values and canonicalize with strtolower()');
+$stApproveReqCheck60 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Requests/ApproveAssignmentLetterRequest.php');
+assert(str_contains($stCtrlCheck60, 'public function approve(ApproveAssignmentLetterRequest $request, string $id)') && str_contains($stApproveReqCheck60, "\$rules['status'] = 'nullable|in:pending,approved,PENDING,APPROVED';") && str_contains($stCtrlCheck60, "\$data['status'] = strtolower(\$data['status']);"), 'AssignmentLetterController approve must use the case-resilient approval request and canonicalize the persisted status with strtolower()');
 
 // 170. Employee Select Endpoint Integrity & Limit Invariant
 $empCtrlCheck60 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeController.php');

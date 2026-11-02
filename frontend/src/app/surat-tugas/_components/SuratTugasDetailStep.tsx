@@ -215,7 +215,10 @@ export function SuratTugasDetailStep({
   }, [selectedTaskTypeId, taskTypes, jenisTugas]);
 
   const isJenisKegiatan = React.useMemo(() => {
-    return isJenisKegiatanTask(jenisTugas) || activeTaskType?.kode === "jenis_kegiatan";
+    return (
+      isJenisKegiatanTask(jenisTugas, activeTaskType?.contoh_format) ||
+      activeTaskType?.kode === "jenis_kegiatan"
+    );
   }, [jenisTugas, activeTaskType]);
 
   const modeLokasi = React.useMemo(() => {
@@ -239,7 +242,10 @@ export function SuratTugasDetailStep({
       if (matched.aturan_durasi === "wajib_1_hari") {
         setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
       }
-      if (matched.kode === "jenis_kegiatan" || isJenisKegiatanTask(matched.nama)) {
+      if (
+        matched.kode === "jenis_kegiatan" ||
+        isJenisKegiatanTask(matched.nama, matched.contoh_format)
+      ) {
         if (!untukKegiatanText) {
           setUntukKegiatanText?.("Pengawasan Pekerjaan Konstruksi");
         }
@@ -256,8 +262,9 @@ export function SuratTugasDetailStep({
       tempatSpesifik,
       namaKegiatanText,
       untukKegiatanText,
+      contohFormat: activeTaskType?.contoh_format,
     });
-  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText]);
+  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText, activeTaskType]);
 
   const previewBiayaText = React.useMemo(() => {
     if (!formData.sumber_dana || formData.sumber_dana === "dl1" || formData.sumber_dana.toLowerCase().includes("tidak ada biaya")) {
@@ -277,7 +284,9 @@ export function SuratTugasDetailStep({
         <button
           type="button"
           onClick={() => setStep(1)}
-          className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+          disabled={isSubmitting}
+          aria-label="Kembali ke pemilihan personel"
+          className="w-11 h-11 shrink-0 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -291,7 +300,7 @@ export function SuratTugasDetailStep({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="space-y-8 [&_input:not([type=radio])]:text-base [&_textarea]:text-base [&_select]:text-base [&_label:has(input:focus-visible)]:outline-2 [&_label:has(input:focus-visible)]:outline-blue-600">
         {/* Ringkasan Pegawai */}
         <div className="bg-blue-50/70 border border-blue-100/80 rounded-2xl p-4 flex gap-3 text-blue-900">
           <Users className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
@@ -309,11 +318,12 @@ export function SuratTugasDetailStep({
           {/* Card Klasifikasi Jenis Tugas & Lokasi */}
           <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+              <label htmlFor="task-type" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                 JENIS TUGAS <span className="text-red-500">*</span>
               </label>
 
               <select
+                id="task-type"
                 value={normalizeTaskTypeName(jenisTugas)}
                 onChange={(e) => handleTaskTypeChange(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
@@ -345,10 +355,11 @@ export function SuratTugasDetailStep({
             {modeLokasi === "dalam_kawasan" ? (
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-1" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Di ( Kota / Kabupaten Wilayah Penugasan ) <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="st-detail-field-1"
                     type="text"
                     required
                     value={kotaTujuan}
@@ -359,24 +370,26 @@ export function SuratTugasDetailStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-2" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Dalam Rangka <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    id="st-detail-field-2"
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder="Contoh: kegiatan Patroli Pencegahan/Pengendalian Kebakaran Hutan..."
+                    placeholder="Contoh: Patroli kebakaran hutan"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-3" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Di ( Kawasan / Lokasi Spesifik ) <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="st-detail-field-3"
                     type="text"
                     required
                     value={tempatSpesifik}
@@ -390,10 +403,11 @@ export function SuratTugasDetailStep({
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-4" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-4"
                       type="text"
                       required
                       value={kotaAsal}
@@ -404,10 +418,11 @@ export function SuratTugasDetailStep({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-5" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-5"
                       type="text"
                       required
                       value={kotaTujuan}
@@ -419,10 +434,11 @@ export function SuratTugasDetailStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-6" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Untuk ( Jenis Kegiatan / Tugas ) <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="st-detail-field-6"
                     type="text"
                     required
                     value={untukKegiatanText}
@@ -437,7 +453,7 @@ export function SuratTugasDetailStep({
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-7" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-red-500">*</span>
                     </label>
                     <button
@@ -455,6 +471,7 @@ export function SuratTugasDetailStep({
                     </button>
                   </div>
                   <textarea
+                    id="st-detail-field-7"
                     required
                     rows={2}
                     value={namaKegiatanText}
@@ -466,15 +483,16 @@ export function SuratTugasDetailStep({
                       }
                     }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder="Contoh: pengelolaan kontrak konstruksi sarpras di Suaka Badak Kelian"
+                    placeholder="Contoh: Pengelolaan kontrak sarpras"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-8" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Di ( Tempat Spesifik / Lokasi Proyek )
                   </label>
                   <input
+                    id="st-detail-field-8"
                     type="text"
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
@@ -487,10 +505,11 @@ export function SuratTugasDetailStep({
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-9" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-9"
                       type="text"
                       required
                       value={kotaAsal}
@@ -501,10 +520,11 @@ export function SuratTugasDetailStep({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-10" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-10"
                       type="text"
                       required
                       value={kotaTujuan}
@@ -517,7 +537,7 @@ export function SuratTugasDetailStep({
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-11" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Dalam Rangka <span className="text-red-500">*</span>
                     </label>
                     <button
@@ -535,6 +555,7 @@ export function SuratTugasDetailStep({
                     </button>
                   </div>
                   <textarea
+                    id="st-detail-field-11"
                     required
                     rows={2}
                     value={namaKegiatanText}
@@ -546,15 +567,16 @@ export function SuratTugasDetailStep({
                       }
                     }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
+                    placeholder="Contoh: Inventarisasi satwa"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="st-detail-field-12" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Di ( Tempat Spesifik / Opsional )
                   </label>
                   <input
+                    id="st-detail-field-12"
                     type="text"
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
@@ -567,7 +589,7 @@ export function SuratTugasDetailStep({
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-13" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Nama Kegiatan / Tugas <span className="text-red-500">*</span>
                     </label>
                     <button
@@ -585,6 +607,7 @@ export function SuratTugasDetailStep({
                     </button>
                   </div>
                   <textarea
+                    id="st-detail-field-13"
                     required
                     rows={2}
                     value={namaKegiatanText}
@@ -596,16 +619,17 @@ export function SuratTugasDetailStep({
                       }
                     }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder="Contoh: opname fisik (stok opname) barang persediaan..."
+                    placeholder="Contoh: Stok opname persediaan"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-14" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Pada ( Tempat / Unit Lokasi )
                     </label>
                     <input
+                      id="st-detail-field-14"
                       type="text"
                       value={tempatSpesifik}
                       onChange={(e) => setTempatSpesifik(e.target.value)}
@@ -615,10 +639,11 @@ export function SuratTugasDetailStep({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="st-detail-field-15" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Di ( Kota / Kabupaten ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-15"
                       type="text"
                       required
                       value={kotaTujuan}
@@ -668,12 +693,13 @@ export function SuratTugasDetailStep({
           {/* Waktu & Jadwal Pelaksanaan */}
           {isWajibSatuHari ? (
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+              <label htmlFor="st-detail-field-16" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                 Tanggal Kegiatan ( 1 Hari ) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
+                  id="st-detail-field-16"
                   type="date"
                   required
                   value={formData.tanggal_mulai}
@@ -693,12 +719,13 @@ export function SuratTugasDetailStep({
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                  <label htmlFor="st-detail-field-17" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                     Mulai Tanggal <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     <input
+                      id="st-detail-field-17"
                       type="date"
                       required
                       value={formData.tanggal_mulai}
@@ -711,12 +738,13 @@ export function SuratTugasDetailStep({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                  <label htmlFor="st-detail-field-18" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                     Sampai Tanggal <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     <input
+                      id="st-detail-field-18"
                       type="date"
                       required
                       min={formData.tanggal_mulai}
@@ -745,6 +773,9 @@ export function SuratTugasDetailStep({
                     </div>
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={isBedaHari}
+                      aria-label="Jadwal personel berbeda hari"
                       onClick={() => {
                         const nextVal = !isBedaHari;
                         setIsBedaHari(nextVal);
@@ -764,7 +795,7 @@ export function SuratTugasDetailStep({
                         }
                       }}
                       className={cn(
-                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                        "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-blue-600",
                         isBedaHari ? "bg-amber-600" : "bg-slate-300"
                       )}
                     >
@@ -803,10 +834,11 @@ export function SuratTugasDetailStep({
                               </div>
                               <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 w-full md:w-auto shrink-0">
                                 <div>
-                                  <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                  <label htmlFor={`st-detail-field-19-${emp.id}`} className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
                                     Mulai
                                   </label>
                                   <input
+                                    id={`st-detail-field-19-${emp.id}`}
                                     type="date"
                                     required={isBedaHari}
                                     value={dates.mulai}
@@ -825,10 +857,11 @@ export function SuratTugasDetailStep({
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                  <label htmlFor={`st-detail-field-20-${emp.id}`} className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
                                     Selesai
                                   </label>
                                   <input
+                                    id={`st-detail-field-20-${emp.id}`}
                                     type="date"
                                     required={isBedaHari}
                                     min={dates.mulai}
@@ -877,6 +910,9 @@ export function SuratTugasDetailStep({
                   </div>
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={hasBuruh}
+                    aria-label="Sertakan buruh atau tenaga lapangan"
                     onClick={() => {
                       const nextVal = !hasBuruh;
                       setHasBuruh(nextVal);
@@ -885,7 +921,7 @@ export function SuratTugasDetailStep({
                       }
                     }}
                     className={cn(
-                      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                      "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-blue-600",
                       hasBuruh ? "bg-blue-600" : "bg-slate-300"
                     )}
                   >
@@ -899,9 +935,9 @@ export function SuratTugasDetailStep({
                 </div>
 
                 {hasBuruh && (
-                  <div className="pt-3 border-t border-blue-200/60 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                  <div className="pt-3 border-t border-blue-200/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
                     <div>
-                      <label className="text-xs font-bold text-blue-900 block">
+                      <label htmlFor="worker-count" className="text-xs font-bold text-blue-900 block">
                         Jumlah Buruh (Orang)
                       </label>
                       <p className="text-[11px] text-blue-700/80">
@@ -913,12 +949,14 @@ export function SuratTugasDetailStep({
                         type="button"
                         onClick={() => setJumlahBuruh((prev) => Math.max(1, prev - 1))}
                         disabled={jumlahBuruh <= 1}
-                        className="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                        aria-label="Kurangi jumlah buruh"
+                        className="w-11 h-11 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         -
                       </button>
                       <input
                         type="number"
+                        id="worker-count"
                         min={1}
                         max={100}
                         value={jumlahBuruh}
@@ -932,7 +970,8 @@ export function SuratTugasDetailStep({
                         type="button"
                         onClick={() => setJumlahBuruh((prev) => Math.min(100, prev + 1))}
                         disabled={jumlahBuruh >= 100}
-                        className="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                        aria-label="Tambah jumlah buruh"
+                        className="w-11 h-11 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         +
                       </button>
@@ -989,8 +1028,10 @@ export function SuratTugasDetailStep({
 
             {formData.sumber_dana === "other" && (
               <div className="mt-3 animate-in fade-in slide-in-from-top-2">
+                <label htmlFor="other-funding" className="block mb-2 text-xs font-bold text-slate-600">Nama sumber dana lainnya</label>
                 <input
                   type="text"
+                  id="other-funding"
                   required
                   value={formData.sumber_dana_other}
                   onChange={(e) =>
@@ -1006,19 +1047,34 @@ export function SuratTugasDetailStep({
           {/* PLH Jika ada Pejabat Struktural */}
           {hasPejabatStruktural && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+              <label htmlFor="plh-search" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Nama PLH <span className="text-red-500">*</span>
               </label>
               <p className="text-xs text-amber-700 font-medium bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
                 Wajib diisi karena Kepala Subbagian Tata Usaha atau Kepala Seksi melaksanakan perjalanan dinas.
               </p>
-              <div className="relative" ref={plhDropdownRef}>
+              <div className="relative" ref={plhDropdownRef} onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  plhDropdownRef.current?.querySelector("input")?.focus();
+                  setShowPlhDropdown(false);
+                }
+              }}>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
                   <input
                     type="text"
+                    id="plh-search"
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowDown" && showPlhDropdown) {
+                        const firstResult = plhDropdownRef.current?.querySelector<HTMLButtonElement>("ul button");
+                        if (firstResult) {
+                          event.preventDefault();
+                          firstResult.focus();
+                        }
+                      }
+                    }}
                     required={!namaPlh}
                     value={plhSearchQuery || namaPlh}
                     onChange={(e) => {
@@ -1028,7 +1084,7 @@ export function SuratTugasDetailStep({
                     }}
                     onFocus={() => setShowPlhDropdown(true)}
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
-                    placeholder="Cari nama atau NIP Pelaksana Harian (PLH)..."
+                    placeholder="Nama atau NIP PLH"
                   />
                 </div>
                 {showPlhDropdown &&
@@ -1040,8 +1096,9 @@ export function SuratTugasDetailStep({
                           <li key={emp.id}>
                             <button
                               type="button"
-                              className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors cursor-pointer"
+                              className="w-full text-left px-4 py-3 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-blue-600 flex items-center justify-between transition-colors cursor-pointer"
                               onClick={() => {
+                                plhDropdownRef.current?.querySelector("input")?.focus();
                                 setNamaPlh(emp.name);
                                 setPlhSearchQuery("");
                                 setShowPlhDropdown(false);
@@ -1076,7 +1133,8 @@ export function SuratTugasDetailStep({
                       setNamaPlh("");
                       setPlhSearchQuery("");
                     }}
-                    className="text-blue-400 hover:text-red-500 transition-colors cursor-pointer"
+                    aria-label={`Hapus PLH ${namaPlh}`}
+                    className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full text-blue-400 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-blue-600 transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1179,11 +1237,11 @@ export function SuratTugasDetailStep({
                     : "border-slate-300"
                 )}
               >
-                <div className="flex flex-col items-center justify-center py-4">
+                <div className="flex min-w-0 max-w-full flex-col items-center justify-center px-3 py-4">
                   {selectedFile ? (
                     <>
                       <FileText className="w-7 h-7 text-blue-600 mb-1.5" />
-                      <p className="text-xs font-bold text-blue-900 truncate max-w-xs">
+                      <p className="text-xs font-bold text-blue-900 break-all text-center max-w-full">
                         {selectedFile.name}
                       </p>
                       <p className="text-[10px] text-blue-600 font-medium mt-0.5">
@@ -1208,10 +1266,11 @@ export function SuratTugasDetailStep({
 
           {/* Keterangan Tambahan */}
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <label htmlFor="st-detail-field-21" className="text-xs font-bold uppercase tracking-wider text-slate-600">
               Keterangan Lainnya
             </label>
             <textarea
+              id="st-detail-field-21"
               value={formData.keterangan}
               onChange={(e) =>
                 setFormData({ ...formData, keterangan: e.target.value })
@@ -1223,12 +1282,13 @@ export function SuratTugasDetailStep({
         </div>
 
         {/* Action Button */}
-        <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={() => setStep(1)}
-            className="h-12 px-6 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+            disabled={isSubmitting}
+            className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer"
           >
             Kembali ke Personel
           </Button>
@@ -1237,7 +1297,7 @@ export function SuratTugasDetailStep({
             type="submit"
             disabled={isSubmitting || hasConflict}
             className={cn(
-              "h-12 px-8 rounded-xl font-bold tracking-wide shadow-md transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer",
+              "min-h-12 h-auto whitespace-normal px-4 sm:px-8 py-3 rounded-xl font-bold tracking-wide shadow-md transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer",
               hasConflict
                 ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/10"
                 : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10"

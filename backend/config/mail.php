@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'failover'),
 
     /*
     |--------------------------------------------------------------------------
@@ -79,12 +79,33 @@ return [
             'transport' => 'array',
         ],
 
+        'resend_smtp' => [
+            'transport' => 'smtp',
+            'host' => 'smtp.resend.com',
+            'port' => 465,
+            'scheme' => 'smtps',
+            'username' => 'resend',
+            'password' => env('RESEND_API_KEY'),
+            'timeout' => 3,
+        ],
+
+        'brevo_smtp' => [
+            'transport' => 'smtp',
+            'host' => 'smtp-relay.brevo.com',
+            'port' => 587,
+            'scheme' => null,
+            'username' => env('BREVO_SMTP_USER', env('BREVO_SMTP_LOGIN')),
+            'password' => env('BREVO_SMTP_KEY'),
+            'timeout' => 3,
+        ],
+
         'failover' => [
             'transport' => 'failover',
-            'mailers' => [
-                'smtp',
+            'mailers' => array_values(array_filter([
+                env('RESEND_API_KEY') ? 'resend_smtp' : null,
+                env('BREVO_SMTP_KEY') ? 'brevo_smtp' : null,
                 'log',
-            ],
+            ])),
             'retry_after' => 60,
         ],
 
@@ -111,8 +132,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+        'address' => env('MAIL_FROM_ADDRESS', 'noreply@notif.bksdakaltim.web.id'),
+        'name' => env('MAIL_FROM_NAME', 'BKSDA Kalimantan Timur'),
     ],
 
 ];

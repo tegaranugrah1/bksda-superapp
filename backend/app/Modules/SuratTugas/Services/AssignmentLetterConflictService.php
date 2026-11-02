@@ -21,7 +21,8 @@ class AssignmentLetterConflictService
         array $employees,
         ?string $defaultTanggalMulai,
         ?string $defaultTanggalSelesai,
-        ?string $excludeLetterId = null
+        ?string $excludeLetterId = null,
+        bool $canViewDetails = false
     ): array {
         if (empty($employees)) {
             return ['has_conflict' => false, 'conflicts' => []];
@@ -103,9 +104,9 @@ class AssignmentLetterConflictService
                     'employee_id' => $empId,
                     'employee_name' => $empName,
                     'type' => 'surat_tugas',
-                    'reference_id' => $st->id,
-                    'nomor' => $st->nomor_surat,
-                    'keterangan' => $st->maksud_tujuan,
+                    'reference_id' => $canViewDetails ? $st->id : null,
+                    'nomor' => $canViewDetails ? $st->nomor_surat : null,
+                    'keterangan' => $canViewDetails ? $st->maksud_tujuan : 'Penugasan Aktif',
                     'status' => $st->status,
                     'tanggal_mulai' => $existingMulai,
                     'tanggal_selesai' => $existingSelesai,
@@ -144,9 +145,9 @@ class AssignmentLetterConflictService
                     'employee_id' => $empId,
                     'employee_name' => $empName,
                     'type' => 'cuti',
-                    'reference_id' => $leave->id,
-                    'nomor' => $leave->nomor_pengajuan,
-                    'keterangan' => $leave->alasan_cuti,
+                    'reference_id' => $canViewDetails ? $leave->id : null,
+                    'nomor' => $canViewDetails ? $leave->nomor_pengajuan : null,
+                    'keterangan' => $canViewDetails ? $leave->alasan_cuti : 'Cuti Aktif',
                     'status' => $leave->status,
                     'tanggal_mulai' => $leaveMulai,
                     'tanggal_selesai' => $leaveSelesai,

@@ -162,19 +162,11 @@ class EmployeeController extends Controller
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-            $slug = Str::slug($validated['nama_lengkap']) ?: 'emp-' . Str::lower(Str::random(6));
-            $folder = 'employees/' . $slug . '/foto-profil';
-            $filename = $slug . '_profil.' . ($file->extension() ?: 'jpg');
-            $path = $file->storeAs($folder, $filename);
-            if ($path) {
-                $validated['foto_profil'] = $path;
-            }
-        }
-
-        $employee = DB::transaction(function () use ($validated) {
+        $employee = DB::transaction(function () use ($validated, $request) {
             $employee = Employee::create($validated);
+            if ($request->hasFile('foto')) {
+                $employee->replaceProfilePhoto($request->file('foto'));
+            }
 
             // Auto-create inactive user account with random secure password if it doesn't exist yet
             $nip = trim((string) $employee->nip);
@@ -235,17 +227,7 @@ class EmployeeController extends Controller
 
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
-            // Hapus foto lama dari server agar tidak jadi file sampah (Orphan file)
-            if ($employee->foto_profil) {
-                Storage::delete($employee->foto_profil);
-            }
-
-            // Simpan foto baru
-            $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
-            $ext = $request->file('foto')->extension();
-            $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
-            $path = $request->file('foto')->storeAs($folder, $filename);
-            $validated['foto_profil'] = $path;
+            $employee->replaceProfilePhoto($request->file('foto'));
         }
 
         $employee->update($validated);
@@ -286,16 +268,7 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        // Delete old photo
-        if ($employee->foto_profil) {
-            Storage::delete($employee->foto_profil);
-        }
-
-        $folder = 'employees/' . (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '/foto-profil';
-        $ext = $request->file('foto')->extension();
-        $filename = (Str::slug($employee->nama_lengkap) ?: 'emp-' . $employee->id) . '_profil.' . $ext;
-        $path = $request->file('foto')->storeAs($folder, $filename);
-        $employee->update(['foto_profil' => $path]);
+        $path = $employee->replaceProfilePhoto($request->file('foto'));
 
         return response()->json([
             'message' => 'Foto pegawai berhasil diperbarui.',
@@ -465,10 +438,6 @@ class EmployeeController extends Controller
      */
     public function resetPassword(Request $request, $id): JsonResponse
     {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:8', 'max:255'],
-        ]);
-
         $employee = Employee::findOrFail($id);
 
         $nip = trim((string) $employee->nip);
@@ -487,15 +456,61 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        $user->update([
-            'password' => $validated['password'],
-        ]);
+        // Mode B: Kirim link reset jika diminta dan user punya email valid
+        if ($request->input('mode') === 'send_link' && $user->hasDeliverableEmail()) {
+            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->email]);
+            return response()->json([
+                'message' => 'Tautan reset kata sandi telah dikirimkan ke email terverifikasi pegawai (' . $user->email . ').',
+            ]);
+        }
+
+        // Mode A (Default): Generate password acak 12 karakter & paksa ganti saat login berikutnya
+        $customPassword = $request->input('password');
+        $temporaryPassword = !empty($customPassword)
+            ? (string) $customPassword
+            : \Illuminate\Support\Str::password(12);
+
+        $user->forceFill([
+            'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+            'must_change_password' => true,
+        ])->save();
 
         // Revoke active sessions / bearer tokens upon password reset
         $user->tokens()->delete();
 
         return response()->json([
-            'message' => 'Password berhasil direset.',
+            'message' => 'Password berhasil direset. Pegawai wajib menggantinya saat login berikutnya.',
+            'temporary_password' => $temporaryPassword,
+        ]);
+    }
+
+    /**
+     * DELETE /api/kepegawaian/employees/{id}/2fa
+     * Super admin mereset 2FA pegawai yang kehilangan akses / ganti HP.
+     */
+    public function reset2Fa(Request $request, $id): JsonResponse
+    {
+        $currentUser = $request->user();
+        if ($currentUser?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya Super Admin yang berhak mereset 2FA pegawai.'], 403);
+        }
+
+        $employee = Employee::findOrFail($id);
+        $nip = trim((string) $employee->nip);
+        $user = $nip !== '' ? User::where('username', $nip)->first() : null;
+
+        if (! $user) {
+            return response()->json(['message' => 'Akun user untuk pegawai ini tidak ditemukan.'], 404);
+        }
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Autentikasi 2 Langkah (2FA) untuk ' . ($employee->nama_lengkap ?? $user->name) . ' berhasil direset.',
         ]);
     }
 

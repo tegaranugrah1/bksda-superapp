@@ -2,6 +2,17 @@
  * Helpers untuk styling dan label status Surat Tugas di Inbox.
  */
 
+import type { AssignmentLetter } from "./types";
+
+// This is only a navigation hint; the server validates the complete publication payload.
+export function needsBuilderCompletion(letter: AssignmentLetter): boolean {
+  const number = letter.nomor_surat?.trim();
+  return !number || /[{}]|\.{3}|…/.test(number) ||
+    (letter.maksud_tujuan?.trim().length || 0) < 5 ||
+    !letter.tanggal_mulai || !letter.tanggal_selesai ||
+    !letter.sumber_dana?.trim() || !letter.employees?.length;
+}
+
 export function getStatusStyle(status: string) {
   switch (status) {
     case "draft":

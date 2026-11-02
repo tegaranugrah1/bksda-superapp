@@ -36,7 +36,7 @@ export function LembarDisposisiSheet({
   customDiteruskanList,
   catatanDisposisi = "",
 }: LembarDisposisiSheetProps) {
-  const diteruskanItems = customDiteruskanList || DITERUSKAN_OPTIONS;
+  const diteruskanItems = (customDiteruskanList && customDiteruskanList.length > 0) ? customDiteruskanList : DITERUSKAN_OPTIONS;
 
   return (
     <div

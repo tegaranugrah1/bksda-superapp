@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { useRole } from "@/hooks/useRole";
 import {
   SATUAN_KERJA_OPTIONS as SATUAN_KERJA,
+  RESOR_OPTIONS,
   PANGKAT_PNS_OPTIONS,
   PANGKAT_PPPK_OPTIONS,
   JENIS_PEGAWAI_OPTIONS,
@@ -85,6 +86,7 @@ export default function EmployeeCreatePage() {
     jabatan: "",
     pangkat_golongan: "",
     satuan_kerja: "",
+    resor: "",
     is_active: "1",
   });
 
@@ -143,9 +145,11 @@ export default function EmployeeCreatePage() {
   };
 
   const handleSatkerChange = (val: string) => {
+    const isBalai = val.toLowerCase().includes("balai") || (val.toLowerCase().includes("samarinda") && !val.toLowerCase().includes("wilayah ii") && !val.toLowerCase().includes("skw ii") && !val.toLowerCase().includes("resor 05"));
     setFormData((prev) => ({
       ...prev,
       satuan_kerja: val,
+      resor: isBalai ? "" : prev.resor,
       jabatan:
         jenisPegawai === "MMP" && isAutoMmpJabatan(prev.jabatan)
           ? buildMmpDefaultJabatan(val)
@@ -193,6 +197,7 @@ export default function EmployeeCreatePage() {
         payload.append("pangkat_golongan", formData.pangkat_golongan);
       }
       if (formData.satuan_kerja) payload.append("satuan_kerja", formData.satuan_kerja);
+      if (formData.resor) payload.append("resor", formData.resor);
       payload.append("is_active", formData.is_active);
 
       if (photoFile) {
@@ -487,13 +492,60 @@ export default function EmployeeCreatePage() {
 
             <div className="md:col-span-2">
               <SelectGroup
-                label="Penempatan Satuan Kerja / Resor"
+                label="Penempatan Satuan Kerja"
                 value={formData.satuan_kerja}
                 onChange={handleSatkerChange}
                 options={SATUAN_KERJA}
                 placeholder="Pilih Penempatan Satuan Kerja..."
               />
             </div>
+
+            {(() => {
+              const satker = (formData.satuan_kerja || "").toLowerCase();
+              const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
+              let availableResors = RESOR_OPTIONS;
+              if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau")) {
+                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
+              } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong")) {
+                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
+              } else if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan")) {
+                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
+              }
+
+              return (
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                    Resor Penempatan Lapangan
+                  </label>
+                  <div className="relative">
+                    <select
+                      disabled={isBalai}
+                      value={isBalai ? "" : formData.resor}
+                      onChange={(e) => setFormData({ ...formData, resor: e.target.value })}
+                      className={`w-full px-4 py-3 rounded-xl border outline-none text-xs font-semibold appearance-none cursor-pointer transition-all ${
+                        isBalai
+                          ? "bg-slate-100 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-600 cursor-not-allowed"
+                          : "bg-slate-50 dark:bg-zinc-800/50 border-slate-200/80 dark:border-zinc-800 text-slate-900 dark:text-white focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-900"
+                      }`}
+                    >
+                      {isBalai ? (
+                        <option value="">Pegawai Balai (Bukan Resor Lapangan)</option>
+                      ) : (
+                        <>
+                          <option value="">Kantor Seksi Wilayah (Bukan Resor)</option>
+                          {availableResors.map((opt) => (
+                            <option key={opt.code} value={opt.code}>
+                              {opt.name}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Status Kepegawaian (Clean 2-button Segmented Toggle) */}
             <div className="md:col-span-2 space-y-1.5">

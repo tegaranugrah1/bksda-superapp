@@ -9,14 +9,16 @@ import {
   Boxes, FileText, LayoutGrid, Mail, Bell, Banknote,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, getApiSessionSnapshot } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import dynamic from "next/dynamic";
 import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
+import type { SuratTugasPreviewData } from "@/components/SuratTugasLetterPreview";
 import { SuratTugasTab } from "./_components/SuratTugasTab";
 import { MyAssetsTab, AssetItem } from "./_components/MyAssetsTab";
 import { MyLeaveTab } from "./_components/MyLeaveTab";
@@ -26,6 +28,8 @@ import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
 import { NotificationBell } from "./_components/NotificationBell";
+import { EmailConnectDialog } from "./_components/EmailConnectDialog";
+import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components/SecurityModals";
 
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
@@ -89,7 +93,15 @@ const SuratTugasLetterPreview = dynamic(
 );
 
 interface DashboardData {
-  user: { name: string; username: string; email: string | null; role: string; access_modules: string[] };
+  user: {
+    name: string;
+    username: string;
+    email: string | null;
+    role: string;
+    access_modules: string[];
+    email_verified_at?: string | null;
+    email_cooldown_remaining?: number;
+  };
   employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
   my_assets: Array<{ id: number | string; nama_barang: string; kode_barang: string; nup: string; loan_date: string; due_date: string; status: string; merk: string | null; jenis_bmn?: string; no_polisi?: string | null; nup_lama?: string | null }>;
 }
@@ -104,37 +116,7 @@ interface SuratTugasItem {
   file_surat_path: string | null;
 }
 
-interface DasarItem {
-  id?: string;
-  text: string;
-}
-
-interface SuratTugasDetail {
-  id: string;
-  nomor_surat: string | null;
-  kode_surat: string | null;
-  maksud_tujuan: string;
-  tempat_tujuan: string;
-  tanggal_mulai: string;
-  tanggal_selesai: string;
-  tanggal_surat: string | null;
-  status: string;
-  transportasi: string | null;
-  sumber_dana: string | null;
-  nama_plh: string | null;
-  keterangan: string | null;
-  dasar: DasarItem[] | string | null;
-  menimbang: DasarItem[] | string | null;
-  tembusan: string[] | null;
-  employees?: Array<{
-    id: string;
-    nama_lengkap: string;
-    nip: string;
-    jabatan?: string;
-    pivot?: { peran?: string };
-  }>;
-  approver?: { id: number; name: string; nip?: string };
-}
+type SuratTugasDetail = SuratTugasPreviewData;
 
 
 
@@ -259,8 +241,10 @@ function PortalContent() {
   const employeeId = data?.employee?.id;
 
   const fetchDashboard = useCallback(async () => {
+    const session = getApiSessionSnapshot();
     try {
       const response = await api.get("/me/dashboard");
+      if (session !== getApiSessionSnapshot()) return;
       const resData = response.data?.data || response.data;
       if (resData) {
         setData(resData);
@@ -272,6 +256,7 @@ function PortalContent() {
         }
       }
     } catch (error: unknown) {
+      if (session !== getApiSessionSnapshot()) return;
       const err = error as { response?: { status?: number } };
       if (err.response?.status === 401) { router.push("/login"); }
       else { setFetchError("Gagal memuat data dashboard."); }
@@ -340,6 +325,8 @@ function PortalContent() {
 
   const [myLeaveRequests, setMyLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [forcePasswordChangeOpen, setForcePasswordChangeOpen] = useState(false);
+  const [setup2FaOpen, setSetup2FaOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
 
   useEffect(() => {
@@ -367,6 +354,21 @@ function PortalContent() {
 
   // Initial dashboard load with fast cache populate (strictly validated to active user session)
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("email_verified") === "1") {
+        toast.success("Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif.");
+        try { localStorage.removeItem("bksda_portal_dashboard_cache"); } catch {}
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      if (params.get("force_password_change") === "1") {
+        setForcePasswordChangeOpen(true);
+      }
+      if (params.get("force_setup_2fa") === "1") {
+        setSetup2FaOpen(true);
+      }
+    }
+
     try {
       const cachedStr = localStorage.getItem("bksda_portal_dashboard_cache");
       const currentStoredUser = localStorage.getItem("bksda_user");
@@ -599,6 +601,12 @@ function PortalContent() {
 
           {/* CENTER COLUMN: MAIN WORKSPACE OR SPECIFIC MENU ITEM */}
           <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
+            <EmailConnectDialog
+              currentEmail={data.user.email}
+              isVerified={Boolean(data.user.email_verified_at)}
+              initialCooldown={data.user.email_cooldown_remaining || 0}
+              onSuccess={fetchDashboard}
+            />
             {inlineFormType === "general" ? (
               <GeneralReportInlineForm
                 onBack={() => {
@@ -768,42 +776,37 @@ function PortalContent() {
         {/* Surat Tugas Formal Letter Preview */}
         {stPreviewOpen && stDetail && (
           <SuratTugasLetterPreview
-            data={{
-              id: stDetail.id,
-              nomor_surat: stDetail.nomor_surat,
-              kode_surat: stDetail.kode_surat,
-              menimbang: stDetail.menimbang,
-              dasar: stDetail.dasar,
-              maksud_tujuan: stDetail.maksud_tujuan,
-              tempat_tujuan: stDetail.tempat_tujuan,
-              tanggal_mulai: stDetail.tanggal_mulai,
-              tanggal_selesai: stDetail.tanggal_selesai,
-              tanggal_surat: stDetail.tanggal_surat,
-              sumber_dana: stDetail.sumber_dana,
-              nama_plh: stDetail.nama_plh,
-              status: stDetail.status,
-              keterangan: stDetail.keterangan,
-              tembusan: stDetail.tembusan,
-              employees: stDetail.employees?.map(e => ({
-                id: e.id,
-                nama_lengkap: e.nama_lengkap,
-                nip: e.nip,
-                jabatan: e.jabatan,
-                pivot: e.pivot,
-              })),
-              approver: stDetail.approver ? { name: stDetail.approver.name, nip: stDetail.approver.nip } : undefined,
-            }}
+            data={stDetail}
             onClose={() => setStPreviewOpen(false)}
           />
         )}
+
+        {/* SECURITY GATES (FASE 1C) */}
+        <MandatoryChangePasswordModal
+          open={forcePasswordChangeOpen}
+          onSuccess={() => {
+            setForcePasswordChangeOpen(false);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchDashboard();
+          }}
+        />
+        <TwoFactorSetupModal
+          open={setup2FaOpen}
+          onOpenChange={setSetup2FaOpen}
+          onSuccess={() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            fetchDashboard();
+          }}
+        />
       </div>
   );
 }
 
 export default function PersonalDashboard() {
+  const { user } = useAuth();
   return (
     <RouteGuard>
-      <PortalContent />
+      <PortalContent key={user?.username || user?.id || "anonymous"} />
     </RouteGuard>
   );
 }

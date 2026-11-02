@@ -42,6 +42,7 @@ import {
   PANGKAT_PNS_OPTIONS,
   PANGKAT_PPPK_OPTIONS,
   JENIS_PEGAWAI_OPTIONS,
+  RESOR_OPTIONS,
   SATUAN_KERJA_OPTIONS as UNIT_KERJA_OPTIONS,
   type JenisPegawai,
 } from "../../_lib/employee-constants";
@@ -64,6 +65,7 @@ export default function EmployeeDetailPage() {
     jabatan: "",
     pangkat_golongan: "",
     satuan_kerja: "",
+    resor: "",
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
@@ -107,6 +109,7 @@ export default function EmployeeDetailPage() {
       jabatan: employee.jabatan || "",
       pangkat_golongan: detected === "MMP" ? "" : employee.pangkat_golongan || "",
       satuan_kerja: employee.satuan_kerja || "",
+      resor: employee.resor || "",
       is_active: employee.is_active,
     });
     setIsEditing(true);
@@ -164,9 +167,11 @@ export default function EmployeeDetailPage() {
   };
 
   const handleEditSatkerChange = (val: string) => {
+    const isBalai = val.toLowerCase().includes("balai") || (val.toLowerCase().includes("samarinda") && !val.toLowerCase().includes("wilayah ii") && !val.toLowerCase().includes("skw ii") && !val.toLowerCase().includes("resor 05"));
     setEditForm((prev) => ({
       ...prev,
       satuan_kerja: val,
+      resor: isBalai ? "" : prev.resor,
       jabatan:
         editJenis === "MMP" && isAutoMmpJabatan(prev.jabatan)
           ? buildMmpDefaultJabatan(val)
@@ -192,6 +197,7 @@ export default function EmployeeDetailPage() {
         jabatan: editForm.jabatan || null,
         pangkat_golongan: editJenis === "MMP" ? null : editForm.pangkat_golongan || null,
         satuan_kerja: editForm.satuan_kerja || null,
+        resor: editForm.resor || null,
         is_active: editForm.is_active,
       });
       toast.success("Biodata berhasil diperbarui.");
@@ -553,6 +559,14 @@ export default function EmployeeDetailPage() {
                   />
                   <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
                   <BioItem
+                    label="Resor Penempatan"
+                    value={
+                      RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
+                      employee.resor ||
+                      "-"
+                    }
+                  />
+                  <BioItem
                     label="Masa Kerja"
                     value={
                       empCategory === "MMP"
@@ -694,6 +708,51 @@ export default function EmployeeDetailPage() {
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                       </div>
                     </BioField>
+
+                    {(() => {
+                      const satker = (editForm.satuan_kerja || "").toLowerCase();
+                      const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
+                      let availableResors = RESOR_OPTIONS;
+                      if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau")) {
+                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
+                      } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong")) {
+                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
+                      } else if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan")) {
+                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
+                      }
+
+                      return (
+                        <BioField label="Resor Penempatan">
+                          <div className="relative">
+                            <select
+                              disabled={isBalai}
+                              value={isBalai ? "" : (editForm.resor || "")}
+                              onChange={(e) => setEditForm({ ...editForm, resor: e.target.value })}
+                              className={cn(
+                                "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
+                                isBalai
+                                  ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                                  : "bg-slate-50 border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                              )}
+                            >
+                              {isBalai ? (
+                                <option value="">Pegawai Balai (Bukan Resor Lapangan)</option>
+                              ) : (
+                                <>
+                                  <option value="">Kantor Seksi Wilayah (Bukan Resor)</option>
+                                  {availableResors.map((opt) => (
+                                    <option key={opt.code} value={opt.code}>
+                                      {opt.name}
+                                    </option>
+                                  ))}
+                                </>
+                              )}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          </div>
+                        </BioField>
+                      );
+                    })()}
 
                     {editJenis !== "MMP" && (
                       <BioField label="Masa Kerja">

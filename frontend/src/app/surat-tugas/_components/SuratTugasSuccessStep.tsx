@@ -22,19 +22,19 @@ export function SuratTugasSuccessStep() {
       <p className="text-slate-500 font-medium max-w-sm mx-auto mb-10">
         Pengajuan surat tugas Anda berhasil dikirim dan akan segera diproses oleh Admin.
       </p>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3">
         <Button
           onClick={() => window.location.reload()}
           variant="outline"
-          className="h-12 px-6 border-slate-200 hover:bg-slate-50 font-bold gap-2 cursor-pointer"
+          className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 py-3 border-slate-200 hover:bg-slate-50 font-bold gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Surat Tugas Baru</span>
         </Button>
 
         {isAuthenticated && (
-          <Link href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/"}>
-            <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 cursor-pointer">
+          <Button asChild className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 cursor-pointer">
+            <Link href={canWrite ? "/kepegawaian/surat-tugas/inbox" : "/portal"}>
               {canWrite ? (
                 <>
                   <Inbox className="w-4 h-4" />
@@ -46,8 +46,8 @@ export function SuratTugasSuccessStep() {
                   <span>Kembali ke Portal</span>
                 </>
               )}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         )}
       </div>
     </div>

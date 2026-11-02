@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -60,9 +61,32 @@ class Employee extends Model
         'jabatan',
         'pangkat_golongan',
         'satuan_kerja',
+        'resor',
         'is_active',
         'foto_profil',
     ];
+
+    public static function lockForLeaveUpdate(int $employeeId): self
+    {
+        LeaveType::lockCatalog();
+
+        return static::withTrashed()->lockForUpdate()->findOrFail($employeeId);
+    }
+
+    public function replaceProfilePhoto(UploadedFile $file): string
+    {
+        $oldPath = $this->foto_profil;
+        $path = $file->store('employees/emp-'.$this->getKey().'/foto-profil');
+        abort_if($path === false, 500, 'Foto profil gagal disimpan.');
+
+        $this->update(['foto_profil' => $path]);
+        if ($oldPath && ! str_starts_with($oldPath, 'http')
+            && ! static::withTrashed()->where('foto_profil', $oldPath)->exists()) {
+            Storage::delete($oldPath);
+        }
+
+        return $path;
+    }
 
     // Konversi otomatis string 0/1 dari database menjadi boolean true/false di PHP
     protected $casts = [

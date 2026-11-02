@@ -1,3 +1,623 @@
+# Progress — Cetak Ulang Batch 2-Up & Disposisi Penerusan Ruang/Pegawai Balai (02 November 2026)
+
+> Status: **IMPLEMENTASI SELESAI (Fitur Cetak 2-Up Batch, Kolom Sifat Single-Select Interaktif, dan Diteruskan Ke Ruang/Pegawai Balai Selesai Diimplementasikan; Menunggu Instruksi Pengguna untuk Menjalankan Test)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Analisis Akar (`docs/surat/cetak-2up-batch-dan-penerusan-disposisi-plan.md`).  
+
+## Status Fitur Modul Surat Masuk (`/surat/masuk`)
+
+| Komponen / Fitur | Status & Rencana | Keterangan & Cakupan |
+|---|---|---|
+| **Wawancara Arsitektur `/grill-me`** | **SELESAI (100% Selaras)** | Resolusi seluruh keputusan: checkbox multi-pilih di tabel, cetak batch kelipatan lembar, ekor ganjil 1-Up Kiri (kanan kosong), modal pratinjau in-page tanpa reload, sifat single-select, dan pemisahan template cetak vs penerusan digital pasca-disposisi. |
+| **Penerusan Ruang & Pegawai Balai** | **SELESAI DIIMPLEMENTASIKAN** | Kolom 'Diteruskan Ke' di samping 'Sifat' dengan Popover: default kosong `[]`, memuat Ruangan Balai dari `bmn_locations` (`/api/bmn/locations`) dan Pegawai Balai dari `kpg_employees` (`/api/kepegawaian/employees/select`). Disimpan via `PUT /api/surat-masuk/{id}`. |
+| **Sifat Surat Single-Select (Arahan Pimpinan)** | **SELESAI DIIMPLEMENTASIKAN** | Kolom 'Sifat' interaktif (`SifatCellPopover.tsx`) dan selector di dalam popover penerusan (`DiteruskanCellPopover.tsx`). Dibatasi tepat 1 pilihan (Single-Select: `Biasa`, `Penting`, `Sangat Penting`, `Rahasia`, `Segera`, `Kilat`). |
+| **Cetak Batch 2-Up Multi-Sheet** | **SELESAI DIIMPLEMENTASIKAN** | Komponen `BatchPrintDisposisiModal.tsx` mengemas pasangan surat ke lembar landscape (330mm x 215mm) dengan `break-after: page` dan ekor ganjil sisi kanan kosong memanfaatkan `LembarDisposisiSheet.tsx` (Ponytail). |
+| **Pengujian E2E Playwright Browser** | **STANDBY (Menunggu Konfirmasi User)** | Menunggu aba-aba pengguna ("oke baru test") untuk mengeksekusi suite uji browser Chromium `frontend/tests/surat-masuk-2up-diteruskan.playwright.cjs`. |
+
+---
+
+# Progress — Pengujian Komprehensif Alur Surat Tugas, Approval & Portal Notification (02 November 2026)
+
+> Status: **SEMUA PENGUJIAN AKAR JEROAN & BROWSER E2E SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 7/7 Backend Invariants Green / 30 Assertions, 6/6 Playwright E2E Browser Chromium Green / 9 Assertions, Total 105 Backend Tests Green, 28 Playwright Suites Green)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Lembar Uji (`docs/kepegawaian/surat-tugas-approval-portal-test-plan.md`).  
+
+## Status Pengujian Alur Kepegawaian (Surat Tugas -> Approval -> Portal)
+
+| Pilar Pengujian | Status & Bukti | Keterangan & Cakupan Jeroan |
+|---|---|---|
+| **Pilar 1: Backend Security & Invariants (7 Kasus Uji)** | **SELESAI (100% Lulus / 30 Assertions)** | `backend/tests/Feature/SuratTugasApprovalAndPortalNotificationTest.php` (7 tes lulus dalam 2.58s):<br>• Emisi notifikasi portal tertarget pada approval (ST-ROOT-01)<br>• Penolakan vertical privilege escalation staf biasa HTTP 403 (ST-ROOT-02)<br>• Penolakan bentrok jadwal personel overlapping CWE-362 HTTP 422 (ST-ROOT-03)<br>• Penolakan nomor surat ber-placeholder mentah HTTP 422 (ST-ROOT-04)<br>• Anti-reversion status approved ke draft HTTP 422 (ST-ROOT-05)<br>• Isolasi anti-IDOR notifikasi antar-pegawai HTTP 404 (ST-ROOT-06)<br>• Atomisitas mark-all-read & counter synchronization (ST-ROOT-07). |
+| **Pilar 2: Browser Runtime & E2E Interaction Playwright (6 Kasus Uji)** | **SELESAI (100% Lulus / 9 Assertions)** | `frontend/tests/kepegawaian-surat-tugas-portal.playwright.cjs` (6 suites lulus via Google Chrome lokal):<br>• Render badge lonceng notifikasi angka 1 tepat di DOM (ST-PW-01)<br>• Pembukaan popover interaktif & inspeksi konten surat tugas resmi (ST-PW-02)<br>• Optimistic auto-read & decrement counter saat item diklik (ST-PW-03)<br>• Deep-link navigasi otomatis beralih ke tab surat_tugas di portal (ST-PW-04)<br>• Batch action 'Tandai Semua Dibaca' mengosongkan antrean (ST-PW-05)<br>• Modal riwayat lengkap & penyaringan filter status (ST-PW-06). |
+
+---
+
+# Progress — Pengujian Komprehensif & Pengerasan Jeroan Modul BKSDA Drive (01 November 2026)
+
+> Status: **SEMUA PENGUJIAN & REMEDIASI AKAR JEROAN SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 98 Tes Backend PHPUnit Green / 382 Assertions, 22 Suite Playwright E2E Browser Nyata Green / 52 Assertions, Next.js 16.4.2 Turbopack Production Build 86/86 Rute Green / 0 TS Errors)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: OWASP Top 10, Standar UI-UX-Pro-Max, Prinsip Ponytail, Dokumen Perencanaan & Catatan Uji (`docs/hierarchical-drive-and-resor-rbac/test-record.md`, `docs/hierarchical-drive-and-resor-rbac/agentic-e2e-test-plan.md`).  
+
+## Status Pengujian Menyeluruh BKSDA Drive
+
+| Pilar Pengujian | Status & Bukti | Keterangan & Cakupan Jeroan |
+|---|---|---|
+| **Fase 8: Pengerasan Akar Filesystem & Pencegahan Data Yatim (Anti-Orphan)** | **SELESAI (100% Lulus / 20 Assertions)** | Pengerasan `DriveController.php`: pencegahan pembuatan subfolder pada parent terhapus (404), pencegahan inisialisasi upload ke folder trashed (404), penolakan penyelesaian upload jika folder tujuan dihapus di tengah jalan (404), proteksi kepemilikan upload anti-takeover (403), dan sanitasi nama berkas terhadap Windows reserved (`safe_CON`), null byte, traversal, dan RTL override (`\u202E`). Suite: `backend/tests/Feature/DriveDeepRootSecurityTest.php` (5 tes lulus, 20 assertions dalam 2.03s). |
+| **Fase 7: Eksekusi Agentic Deep-Root E2E Testing (10 Invariant Terdalam)** | **SELESAI (100% Lulus / 22 Assertions)** | Menjalankan pengujian berbasis natural language goals dikemudikan Antigravity Autonomous Driver di atas browser Chromium lokal (Zero-API-Key).<br>Lulus 10/10 skenario akar terdalam: Upload Chaos Resilience (AGT-ROOT-01), Client Quota TOCTOU Race (AGT-ROOT-02), Stale Parent & Orphan Tree Prevention (AGT-ROOT-03), Public Share Lockout UX (AGT-ROOT-04), Mid-Stream Demotion (AGT-ROOT-05), OS Reserved & RTL Traversal Sanitization (AGT-ROOT-06), Move Tree Anti-Cycle (AGT-ROOT-07), Mass Selection & Quota Trap (AGT-ROOT-08), Bulk ZIP Streaming & JS Heap Stability < 50MB (AGT-ROOT-09), Polyglot XSS & Sandbox Isolation (AGT-ROOT-10). Skrip: `frontend/tests/drive-agentic-root.playwright.cjs`. |
+| **Fase 6: Pengerasan Akar Jeroan & Concurrency Row-Locking** | **SELESAI (Commit `c392bb15`)** | • Pemasangan `lockForUpdate()` & `DB::transaction()` atomik pada `DriveController::initUpload` berhasil membasmi celah balapan TOCTOU kuota (CWE-362).<br>• Penambahan method `reservedStorageBytes()` pada model `DriveUnit` & perhitungan dinamis kuota upload berstatus `initiated`.<br>• Test suite `backend/tests/Feature/DriveRootConcurrencyAndMultipartTest.php` lulus 100% (5 tes green, 21 assertions): reservasi kuota unit atomik, reservasi kuota personal atomik, pelepasan reservasi saat abort, transisi mulus ke `DriveFile` tanpa kebocoran, dan integritas bit-for-bit SHA-256 agregasi chunk multipart.<br>• Full regression suite Drive 60 tes green (248 assertions). |
+| **Pilar 1: Backend Security, RBAC & Invariants (28 Kasus Uji)** | **SELESAI (Commit `b228aa51`)** | `DriveLayoutAndSecurityRegressionTest.php` (28 tes lulus, 85 assertions dalam 5.06s). Menguji: topologi 4 unit kerja resmi (DRV-SEC-01), isolasi root antar unit (DRV-SEC-02), isolasi folder resor terisolasi (DRV-SEC-03 & 04), anti-IDOR berkas resor (DRV-SEC-05), mutasi instan kepegawaian auto-revoke/grant (DRV-SEC-06), anti-search metadata leakage (DRV-SEC-07), pewarisan restriksi subfolder (DRV-SEC-08), anti-bulk ZIP traversal leakage (DRV-SEC-09), anti Zip-Slip sanitasi nama berkas CWE-22 (DRV-SEC-10), keabsahan HMAC-SHA256 URL ZIP (DRV-SEC-11), batasan kuota upload (DRV-SEC-12), pembersihan magic bytes polyglot Stored XSS (DRV-SEC-13), safe Content-Disposition presigned URL (DRV-SEC-14), token kriptografis publik 32 hex & 404 robot tag (DRV-SEC-15), rate limit & password hash publik (DRV-SEC-16), virtual share zero storage duplication (DRV-SEC-17), otorisasi soft-delete & physical S3 force delete (DRV-SEC-18), validasi anti-sirkular move folder (DRV-SEC-19), RBAC assign manager folder (DRV-SEC-20), cron `drive:cleanup-uploads` pembatalan S3 multipart (DRV-SEC-21), cron `drive:purge-trash --days=30` penghapusan fisik permanen (DRV-SEC-22), DeReporting auto response subfolder & `Ringkasan_Laporan.txt` (DRV-SEC-23), DeReporting virtual share ke SKW/resor (DRV-SEC-24), matriks virtual share: penolakan mutasi peran `viewer` (DRV-SEC-25), matriks virtual share: izin upload peran `editor` (DRV-SEC-26), atomisitas download counter simultan CWE-362 (DRV-SEC-27), sanitasi tanda petik Content-Disposition header injection (DRV-SEC-28). |
+| **Pilar 1 (Regresi): Full Existing Drive Regression Suites (59 Kasus Uji)** | **SELESAI (100% Lulus)** | • Full Drive Suite (`tests/Feature/Drive*`): 55 tes lulus dalam 10.02s (227 assertions). Zero regression pada `DriveHierarchicalResorRBACTest`, `DriveShareTest`, `DriveTest`, `DriveZipDownloadTest`.<br>• DeReporting Drive Integration: 4 tes lulus dalam 1.68s (29 assertions). |
+| **Pilar 2: Frontend Kompilasi & TypeScript Turbopack (12 Dimensi)** | **SELESAI (Exit Code 0)** | Next.js 16.4.2 Turbopack (`npm run build --prefix frontend`): 86/86 rute static & dynamic teroptimasi dalam 12.0s. 0 TypeScript errors. Memverifikasi halaman `/drive` (Static) dan `/drive/s/[token]` (Dynamic) bebas error hidrasi, dual view mode (grid/list), modal preview multi-format, drawer antrean upload, dialog move anti-cycle, generator share link, threshold kuota 3 warna, WCAG AA dark mode, dan layout shift CLS < 0.05. |
+| **Pilar 3: Browser Runtime & E2E Security Playwright (12 Suites)** | **SELESAI (Commit `aac47eab`)** | `frontend/tests/drive-security-ui.playwright.cjs` (12 suites lulus, 30 assertions terverifikasi via Google Chrome lokal): Stored XSS literal text node (DRV-PW-01), flow share publik bersandi (DRV-PW-02), tautan 404 kedaluwarsa dengan meta robots noindex (DRV-PW-03), mobile viewport 375px & bottom action sheet 44px (DRV-PW-04), multi-selection checkbox & floating batch toolbar (DRV-PW-05), tree move dialog cycle block di DOM (DRV-PW-06), multi-type preview modal dengan keyboard Escape (DRV-PW-07), dropzone DnD glowing border & upload progress drawer (DRV-PW-08), shift warna kuota merah Rose-500 >95% (DRV-PW-09), Zinc Dark Mode WCAG AA 4.5:1 (DRV-PW-10), search debounce & dynamic row filtering (DRV-PW-11), context menu klik kanan & escape dismissal (DRV-PW-12). |
+
+## Rekomendasi Pengujian Lanjutan (Evaluasi Pengguna)
+
+1. **DRV-FUT-01: Uji Ketahanan Interupsi Jaringan & Resumabilitas Unggahan Multipart S3**:
+   - *Kenapa Perlu*: Menjamin berkas dokumentasi berukuran besar (>100MB) di resor pedalaman yang terputus di tengah jalan dapat dilanjutkan (*resume*) tanpa mengulang dari part 1.
+2. **DRV-FUT-02: Integrasi Sandbox Pindai Antivirus / Malware Asinkron (ClamAV Hook)**:
+   - *Kenapa Perlu*: Melindungi sistem dari berkas dokumen Office (`.docx`, `.xlsx`) publik yang mengandung makro/payload berbahaya tersembunyi.
+3. **DRV-FUT-03: Uji Beban & Penipisan Kuota Konkruen Tinggi (Stress Testing Quota Locking)**:
+   - *Kenapa Perlu*: Menjamin integritas perhitungan kuota storage di bawah beban puluhan unggahan paralel pada detik yang sama via row-locking PostgreSQL.
+4. **DRV-FUT-04: Uji Integrasi Live Storage S3 / RustFS Asli**:
+   - *Kenapa Perlu*: Memverifikasi konfigurasi header CORS, presigned signature AWS SigV4, dan transmisi streaming ZIP pada staging/server sebenarnya.
+
+---
+
+# Progress — Modernisasi UI/UX & Pengerasan Keamanan Modul BMN (01 November 2026)
+
+> Status: **SEMUA FASE (FASE 1 s.d. FASE 5) SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 116 Backend PHPUnit Tests Green / 358 Assertions, 12 Playwright E2E Browser Suites Green / 31 Assertions, Turbopack Build 86/86 Static Pages Green)**.  
+> Branch: `codex/portal-security-pentest`  
+> Referensi: Modul Kepegawaian (`frontend/src/app/kepegawaian/`), Standar UI-UX-Pro-Max, Prinsip Ponytail, Dokumen Perencanaan & Catatan Uji (`docs/bmn-ui-ux-modernization/test-record.md`).  
+
+## Status Fase Modernisasi BMN
+
+| Fase | Status | Keterangan & Bukti |
+|---|---|---|
+| **Fase 1: Modernisasi Layout & Sidebar** | **SELESAI (Commit `272acba4`)** | 4 grup navigasi logis, collapsible rail `w-72` $\leftrightarrow$ `w-20` dengan native tooltip, aksen vertikal emerald 4px, penghapusan FAB kanan-bawah yang menabrak pagination, user footer terpadu, Zinc dark palette. |
+| **Fase 2: Standarisasi Header, Tabel, Touch Targets & React Query** | **SELESAI (Commit `483cf500`)** | Enterprise Header Card seragam berbingkai `rounded-2xl` dengan badge tema di 5 submodul (`assets`, `loans`, `maintenances`, `disposal`, `auction-batches`); migrasi total `loans/page.tsx` ke `@tanstack/react-query` mengeliminasi 60+ baris boilerplate; 5-row pulsing skeleton loader menggantikan single spinner; standardisasi touch target minimum 36-44px; sinkronisasi 8 filter URL `searchParams`. |
+| **Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)** | **SELESAI (Commit `0332687a`)** | Wizard Tambah Aset Dark Mode Zinc 5-step responsif; penyaringan aset peminjam (larangan pinjam kondisi Rusak Berat / status tidak aktif) & surface backend error messages; responsivitas ringkasan review import batch `grid-cols-2 md:grid-cols-4` + Zinc styling; eliminasi polling zombie 3 detik pada detail aset + mobile breadcrumbs + sticky mobile edit actions; mobile dropdown switcher & stacked cards taksiran lelang di layar kecil. |
+| **Fase 4: Pengerasan Keamanan Backend & Regression Tests** | **SELESAI (Commit `97adee1d`)** | Elevasi hak akses ekspor BMN di `api.php` (`bmn.asset.export\|bmn.asset.update`); dukungan pipe permission di `CheckPermission.php`; pengetatan validasi unggah berkas import review batas 10MB (`max:10240`) dan ekstensi strictly `xlsx,xls`; perbaikan hak akses `bmn.document.generate` di halaman laporan; preservasi 100% isolasi format cetak A4 dinas; automated regression test suite `BmnLayoutAndSecurityRegressionTest.php` (8/8 lulus, 15 assertions) + full BMN suite (70/70 lulus, 243 assertions). |
+| **Fase 5: Pengujian Menyeluruh (Deep Testing) Backend, Frontend & Playwright E2E** | **SELESAI (Commit `c6b8c8bf`)** | • **Backend Security & Invariant**: 27 tes PHPUnit (`BMN-SEC-01` s.d. `BMN-SEC-27`) lulus 100% (65 assertions). Menguji RBAC export, force delete superadmin-only, approval boundary, self-access IDOR exception, traversal, loan guard & chronology, document delete privilege, tag 1-level depth & cascade lock, geotag open redirect, auction finalize & state machine, replay attack guard, maintenance condition mutation.<br>• **Backend Full Regression**: 89 tes PHPUnit BMN lulus 100% (293 assertions).<br>• **Playwright Chromium E2E**: 12 suites browser nyata (`BMN-PW-01` s.d. `BMN-PW-12`) via Google Chrome lokal lulus 100% (31 assertions): Stored XSS, format cetak A4 kementerian, client upload guard, mobile viewport 375px, loan availability, switcher 10-tab lelang, reactive query invalidation, Dark Mode Zinc WCAG AA, filter deep linking, tag hierarchy DOM guard, import diff toggle, dan debounce anti-double submit.<br>• **Frontend Production Build**: Next.js 16.4.2 Turbopack lulus 100% (86/86 rute teroptimasi, 0 TypeScript errors). Dokumen detail: `docs/bmn-ui-ux-modernization/test-record.md`. |
+
+---
+
+# Progress — Remediasi & Penuntasan Pentest Modul Surat Tugas (31 Oktober 2026)
+
+> Status: **SELESAI & TERVERIFIKASI LOKAL (100% Lulus, Zero Regression, EXT-01 s.d. EXT-16 Terbukti Tuntas)**.  
+> Branch: `codex/portal-security-pentest`  
+> Hasil Pengujian: **64 tes keamanan & publikasi / 1410 assertions + 60 tes regresi / 197 assertions; total 124 tes backend / 1607 assertions + 13 suite pengujian frontend (Playwright E2E & Cache Security) LULUS**.  
+> Detail: [laporan remediasi](security/surat-tugas-security-pentest-2026-10-31.md), [handoff dan histori reproduksi](security/surat-tugas-security-review-handoff-2026-10-31.md), [rencana audit](security/surat-tugas-security-pentest-plan.md).  
+> Metode: `/security-audit` dan `/ponytail` (minimal diff, native PostgreSQL row-locking, headless browser sink verification, zero dependency baru).
+
+## Perubahan yang Selesai & Terverifikasi
+
+| Area / Unit | Perbaikan dan Bukti |
+|---|---|
+| **ST-08 — PostgreSQL Concurrency & Lock Order** | `AssignmentLetterController::lockEmployeesForScheduling()` mengunci baris `Employee` secara deterministik (`orderBy('id', 'asc')->lockForUpdate()`) di dalam transaksi `store()`, `update()`, dan `approve()`. Dibuktikan oleh `SuratTugasPostgresConcurrencyTest.php` pada PostgreSQL 15: pencegahan deadlock inverse-order dan serialisasi race condition approval (invariant: tepat 1 dokumen approved, 0 double booking). |
+| **ST-12 — Browser Preview & Print Sanitization** | `SuratTugasBrowserPreviewPrintSecurityTest.php` dan `st12_chromium_preview_print_test.py` membuktikan lewat Google Chrome Headless nyata bahwa input tersimpan bermarker XSS/HTML (`maksud_tujuan`, `menimbang`, `dasar`, `tembusan`, `approver`) dirender murni sebagai literal text nodes ter-escape tanpa mengeksekusi script sink (`__ST12_EXECUTED_SINKS = []`). |
+| **ST-E2E — Frontend Security E2E (Playwright)** | `surat-tugas-security.playwright.cjs` menguji 5 suite keamanan frontend end-to-end via Chromium: preview DOM XSS sanitization, print sink breakout protection, UI schedule conflict privacy masking, client-side 5MB upload & extension guard, dan 403 inactive token eviction. |
+| **R-ST-01 — Namespace Storage Upload** | Store dan update memakai satu `AssignmentLetter::replaceUploadedFile`: direktori ID surat (`assignment_letters/{id}/`) + nama generated pada disk local. Upload anonim bernomor/slug sama tidak menimpa dokumen lain. |
+| **Proteksi Berkas Legacy** | `deleteUnreferencedFile` memeriksa seluruh referensi termasuk soft-deleted sebelum menghapus fisik di storage. File yang masih dipakai surat lain dipertahankan. |
+| **Transaksi & Callback Storage** | Callback native `DB::afterCommit` dan `DB::afterRollBack` menjaga file lama, menghapus staged upload setelah rollback, dan menunda dispatch arsip hingga commit. |
+| **R-ST-02 & R-ST-03 — Privasi Konflik & Membership** | Policy detail dipakai konsisten oleh `store`, `update`, `approve` dan `check-conflicts`; non-admin tidak memperoleh alasan cuti orang lain, dan retained permission tanpa modul ditolak. |
+| **Akun Nonaktif pada Rute Publik** | `EnsureAccountSecure` membaca fallback Sanctum pada endpoint publik; real inactive bearer ditolak 403 dan token dicabut. |
+| **Arsip Anonim & Idempotensi Drive** | Migrasi `2026_10_31_180000_allow_system_owned_drive_archives.php` mengizinkan owner null untuk arsip sistem resmi, dan lookup dengan `withTrashed()` mencegah duplikasi atau resurrection arsip trash. |
+| **Publikasi & Validasi Nomor Surat (Commit `b1391706`)** | `validatePublication()` dan `ApproveAssignmentLetterRequest` mewajibkan `nomor_surat` resmi tanpa placeholder template (`{...}`, `...`, `…`) saat ditransisikan ke status resmi (`approved`, `completed`, `published`, `diterbitkan`), serta mencegah penurunan status surat terbit kembali ke `draft`/`pending`. Dibuktikan lewat `SuratTugasPublicationRegressionTest.php` (19 tes / 1066 assertions). |
+| **Responsivitas Mobile 375px & Aksesibilitas WCAG** | Memperbaiki overflow horizontal header 401px pada layar 375px di `layout.tsx`, standardisasi touch-target minimum 44px (`min-h-11`), asosiasi label `htmlFor`, dan navigasi keyboard `ArrowDown`/`Escape` pada form surat tugas. |
+| **Paritas Snapshot Template** | Menyelaraskan passing `template_snapshot` antara Admin Print, Portal Pegawai (`portal/page.tsx`), dan Preview Surat (`SuratTugasLetterPreview.tsx`) untuk paritas render visual dokumen lintas peran. |
+| **Isolasi Driver Testing PHPUnit (Commit `f7e7c772`)** | Menambahkan `<env name="FILESYSTEM_DISK" value="local"/>` pada `backend/phpunit.xml` agar seluruh pengujian PHPUnit memakai fake storage lokal secara terisolasi tanpa terpengaruh variabel lingkungan S3 pada `.env`. |
+| **Penuntasan Matriks Lanjutan (EXT-01 s.d. EXT-16)** | Pembuktian tuntas seluruh 16 skenario lanjutan: DIPA/FOLU/other (EXT-03), edit builder reload parity (EXT-04), pivot dates per personel & PLH (EXT-07), live inbox WebSocket broadcasting (EXT-10), pagination >20 surat (EXT-11), double submit protection (EXT-15), dan paritas NIP PNS/PPPK/MMP (EXT-16). |
+
+## Verifikasi yang Dapat Direproduksi
+
+| Suite Pengujian | Hasil | Isi Pembuktian |
+|---|---|---|
+| `SuratTugasSecurityPentestTest.php` | **20 lulus / 125 assertions** | R-ST-01 s.d. R-ST-03, kontrol submit publik, IDOR, lifecycle file, rollback, cleanup dan real inactive bearer. |
+| `SuratTugasPublicationRegressionTest.php` | **26 lulus / 1166 assertions** | Pengujian regresi publikasi & matriks lanjutan: nomor surat wajib, idempotensi, revisi, DIPA/FOLU/other (EXT-03), edit builder reload parity (EXT-04), pivot dates & PLH (EXT-07), WebSocket broadcast AdminInboxChanged & PortalNotificationCreated (EXT-10), pagination >20 surat (EXT-11), double-submit & atomic transaction (EXT-15), format NIP PNS/PPPK/MMP (EXT-16). |
+| `SuratTugasFullSchemaSecurityTest.php` | **10 lulus / 105 assertions** | Schema penuh, actual archive job, database queue worker/retry, IAM revoke/relogin, role matrix, QR aliases, slug collision, migrasi up/down. |
+| `BroadcastChannelAuthTest.php` | **3 lulus / 12 assertions** | Otorisasi channel private WebSocket untuk modul kepegawaian, bmn, dan surat_tugas. |
+| `SuratTugasPostgresConcurrencyTest.php` | **2 lulus / 10 assertions** | PostgreSQL 15 nyata: deterministic ID ordering (deadlock prevention) & serialisasi race condition bentrok jadwal approval. |
+| `SuratTugasBrowserPreviewPrintSecurityTest.php` | **1 lulus / 4 assertions** | Chromium Headless nyata: pembuktian literal text output & zero executing sink pada preview dan print window. |
+| `surat-tugas-security.playwright.cjs` | **5 lulus / 23 assertions** | Playwright Chromium E2E: ST-12 stored XSS, print sink document.write, ST-02 privacy leak, upload guard, dan 403 eviction. |
+| Regresi Terkait (Drive, PortalPersonal, MobileListApi, UserPermissionFallback) | **60 lulus / 185 assertions** | Tidak ada regresi pada fungsionalitas lain aplikasi. |
+| **Total Eksekusi Terpadu** | **124 tes backend / 1607 assertions + 13 suite Playwright E2E & Cache Security, exit 0** | Seluruh pengujian green 100%. |
+
+## Catatan Migrasi & Operasional
+
+- **Migrasi Baru**: `2026_10_31_180000_allow_system_owned_drive_archives.php` siap dijalankan saat rilis produksi (`php artisan migrate --force`). Down-migration terproteksi (menolak rollback jika ownerless archives masih tersimpan untuk mencegah data loss).
+- **Konkurensi & Browser Sink Tuntas**: ST-08 (PostgreSQL row locking deterministik) dan ST-12 (Chromium preview/print sanitization + Playwright E2E) telah terbukti tuntas tanpa menyisakan celah keamanan.
+- **Batas Pengujian**: Pengujian dijalankan pada sandbox lokal terisolasi dengan data dummy dan storage terkendali; rilis ke server produksi Dokploy/VPS dilakukan via alur deployment standar.
+
+---
+
+# Progress — Keamanan Portal dan Panduan Pentest (31 Oktober 2026)
+
+> Branch: `codex/portal-security-pentest`
+> Status: **SELESAI DAN TERVERIFIKASI LOKAL PADA CAKUPAN AUDIT**.
+> Commit implementasi, tes, sandbox dan panduan: `a67a57706a3509fb886f9da889f8370ad6028894` — `fix(portal): perketat keamanan dan tambahkan panduan pentest` (43 file).
+> Pekerjaan ini tidak melakukan push, deployment, migrasi atau backfill database produksi.
+
+## Ringkasan pekerjaan yang selesai
+
+Audit awal run-3 mereproduksi dan memperbaiki **9 akar masalah**: pembatasan self-service dan kepemilikan aset BMN, proteksi enrollment 2FA yang sudah aktif, akun nonaktif, logout cookie/bearer, aturan jenis dan kuota cuti, akses Surat Tugas personal, role mutasi master Visum, serta isolasi cache antar sesi. Semua perbaikan tersebut dipertahankan pada pengujian lanjutan.
+
+Run-4 menambahkan **7 temuan terkonfirmasi yang sudah diperbaiki** (1 high, 6 medium). Total kedua tahap adalah 16 akar masalah; regresi correctness dashboard dan hardening metadata tidak dihitung sebagai kerentanan tambahan.
+
+| Area | Perbaikan lanjutan yang selesai |
+|---|---|
+| Email dan recovery | Kedua writer email mencabut token reset yang terikat alamat lama/destinasi melalui lifecycle User dan password broker Laravel; penyimpanan memakai transaksi `saveOrFail`. |
+| Foto pegawai | Empat writer memakai `Employee.replaceProfilePhoto`: direktori ID pegawai, filename generated, pemeriksaan write failure dan cleanup yang menjaga referensi legacy/soft-deleted. |
+| Transaksi cuti | 13 jalur memakai lock pegawai sebelum keputusan kuota/status dan memuat ulang request; submission/approval paralel menjaga reservasi, debit dan idempotence. |
+| Master jenis cuti | Native catalog lock PostgreSQL menyatukan create request dengan empat mutator master agar rename tidak membuat cuti hilang dari accounting. |
+| Realtime | Topic personal/admin terikat token Sanctum yang masih valid; callback dan recipient dispatch memeriksa bearer, owner, expiration serta akun aktif. Kedua consumer frontend memakai namespace dan cleanup yang sama. |
+| Notifikasi admin | Policy role/module/permission dipakai bersama agar admin yang membership-nya dicabut tidak menerima private notice baru setelah login ulang. |
+| Form login | Native `method="post"` menjaga password tidak masuk document URL saat JavaScript tidak tersedia. Pengujian tidak mengklaim login fallback tanpa JS sudah berfungsi. |
+
+Regresi dua tab juga diselesaikan: refresh profil membersihkan cache tanpa membatalkan request valid sesi yang sama; dashboard mempertahankan nilai permissions seperti login/me. Perubahan kredensial, identitas atau otoritas tetap membatalkan respons lama. Ref callback hook diperbarui melalui native React effect. Prinsip **Ponytail** diterapkan dengan helper bersama dan fitur native, tanpa dependency aplikasi, service atau schema baru.
+
+## Hasil verifikasi akhir
+
+| Pemeriksaan | Hasil |
+|---|---|
+| PHPUnit keamanan terpadu | 78 tes, 868 assertions, lulus |
+| Regresi fitur terkait | 29 tes, 162 assertions, lulus |
+| API/cache asli dengan adapter terkendali | 8 kasus, lulus |
+| PostgreSQL asli, dua worker kernel HTTP | 5 invariant cuti + 1 rename master, lulus |
+| WebSocket/Reverb asli | 34 kasus, lulus |
+| Chromium + aplikasi asli, dua akun dan dua tab | 21 kasus, 0 gagal, 0 gap pada skenario yang diuji |
+| Native form tanpa JavaScript | Credential di POST body; password tidak masuk URL |
+| TypeScript, ESLint source frontend berubah dan PHP syntax | Lulus |
+| Validator findings dan coverage | 8 record dan 28 unit valid |
+| Dokumentasi metode | 13 tautan lokal dan sintaks 16 contoh command diperiksa; command tidak dijalankan ulang saat penulisan panduan |
+
+Tiga `BroadcastChannelAuthTest` berada pada kedua suite PHP di atas, sehingga angka kedua suite tidak dijumlahkan sebagai jumlah tes unik. Satu klaim activity metadata ditolak karena tidak membuktikan tambahan data rahasia di luar akses modul yang sah. Setiap confirmed record memperoleh final verifier tersendiri; replacement lengkap foto ditinjau verifier baru. Coverage critic final tidak menyisakan accepted missing unit atau reassignment.
+
+## Sandbox dan regresi yang dapat dipelihara
+
+- Runtime lokal: PHP 8.4.27, Node 22.23.4, Chromium 156 dan PostgreSQL 15. Eksekusi target memakai network-none, env dummy allowlist, source/toolchain/root read-only, writable scratch terbatas dan limit resource/time. Bukti dipromosikan observer setelah seluruh writer berhenti.
+- Regresi PHP: `PortalAuthSecurityTest.php`, `PortalPersonalSecurityTest.php`, `PortalUploadSecurityTest.php`, `PortalIdentityBoundaryTest.php` dan `BroadcastChannelAuthTest.php` di `backend/tests/Feature/`.
+- Regresi tambahan: `frontend/tests/cache-security.cjs`, dua fixture PostgreSQL di `backend/tests/Security/`, serta recipe image di `docker/security-sandbox/`.
+- Receipt, snapshot dan manifest audit historis disimpan di `C:/Users/USER/security-audit-skill/bksda-superapp/run-4/`. Arsip lokal tersebut bukan bagian dari Git; source terbaru harus dibandingkan dengan snapshot sebelum hasil replay diklaim berlaku.
+
+## Dokumentasi dan batas pengujian
+
+- [Laporan portal, lokasi perbaikan dan hasil sebelum/sesudah](security/portal-security-pentest-2026-10-31.md).
+- [Panduan lengkap uji keamanan dan pentest untuk AI](security/panduan-uji-keamanan-dan-pentest-portal.md): persiapan snapshot/sandbox, resep per area, command runner, pemeriksaan evidence, red/green, reviewer, error setup, syarat selesai dan prompt siap pakai.
+- Hunting 2FA baru tidak termasuk run-4; regresi otomatis lama tetap dipertahankan. Produksi/provider, TLS/proxy operasional, CMS, mobile dan keseluruhan infrastruktur berada di luar pass ini.
+- General/SMART diuji pada input teks manual, preview/print media, discard dan reopen akun B. Autofill Surat Tugas, upload laporan, dialog cetak OS dan PDF viewer belum diuji.
+- Fault injection atomicity storage baru mencakup foto. Atomicity kegagalan tulis scan belum diuji dan tetap dicatat sebagai batas reliability, tanpa klaim dampak lintas otoritas.
+- Frontend/backend realtime harus dirilis bersama karena namespace token berubah. Belum ada deployment dalam pekerjaan ini; frame yang sudah dipilih/in-flight tidak dijanjikan batal retroaktif.
+
+---
+
+# Progress - Phase 230: Penataan Hierarki 4 Unit Utama BKSDA Drive, Folder Resor Terisolasi per SKW, Folder Ruangan Balai, Sinkronisasi Mutasi Kepegawaian, & RBAC Admin Drive
+
+> Document updated: 2026-10-31
+> Branch: `production-server`
+> Status: SELESAI & TERVERIFIKASI (100% Selesai — Seluruh 6 Fase Implementasi tuntas dikerjakan dengan standar `/ponytail` dan `/security-audit`. 18 automated tests PHPUnit lulus dengan 88 assertions tanpa kegagalan, TypeScript check 0 error, dan setiap fase telah di-commit secara terpisah di repositori lokal tanpa di-push).
+> Dokumen Referensi:
+> - Requirements v2: [docs/hierarchical-drive-and-resor-rbac/requirements.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/requirements.md)
+> - Architecture Design v2: [docs/hierarchical-drive-and-resor-rbac/design.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/design.md)
+> - Task Breakdown v2: [docs/hierarchical-drive-and-resor-rbac/tasks.md](file:///e:/bksda-superapp/docs/hierarchical-drive-and-resor-rbac/tasks.md)
+
+---
+
+### Tabel Ringkasan Eksekusi & Commit Lokal per Fase
+
+| Fase | Deskripsi Implementasi & Fitur | Commit ID | Status Verifikasi |
+|---|---|---|---|
+| **Fase 1** | Skema database 4 unit utama BKSDA Drive, migrasi kolom hierarki & otorisasi (`is_restricted`, `folder_scope`, `resor_code`, `room_code`, `drive_folder_id`), konstanta resmi 14 resor & 8 ruangan Balai, serta seeder otomatis. | `d8833a5d` | `php artisan migrate`<br>`db:seed HierarchicalFolders`<br>(Units: 4, Folders: 27, Restricted: 14) |
+| **Fase 2** | Pengatur otorisasi RBAC folder terisolasi di `DriveAccess.php` (`WeakMap` memoization O(1)), Anti-IDOR direct URL download, Anti-Search Leak, Anti-Bulk ZIP Traversal bypass, pewarisan subfolder, query `shared_with_me` folder, dan endpoint `assign-manager`. | `7f379a85` | 8 Tests Passed (`DriveZipDownloadTest`, `DeReportingDriveIntegrationTest`) |
+| **Fase 3** | Submisi DeReporting otomatis membuat subfolder khusus `[YYYY-MM-DD] - [Judul] ([Pelapor]) #[ShortHash]`, penyimpanan berkas langsung ke subfolder, generator otomatis native `Ringkasan_Laporan.txt`, kolom `Link Folder Drive` di Export CSV, dan tombol navigasi folder di UI tanggapan. | `2734b711` | Integration Tests Passed 100% |
+| **Fase 4** | Integrasi dropdown dinamis "Resor Penempatan" pada form biodata pegawai (Create & Edit), validasi silang (pegawai Balai dilarang memilih resor; staf SKW wajib memilih resor wilayahnya), dan sinkronisasi dinamis mutasi seketika tanpa cron/queue. | `b1eb38b8` | Validasi Silang & Mass Assignment Terverifikasi |
+| **Fase 5** | Penambahan modul `drive` pada `EmployeeAccessSheet.tsx` (`access_modules`), badge gembok privasi (`Lock`) pada folder terisolasi di antarmuka Drive, serta dialog interaktif penunjukan Penanggung Jawab Resor bagi Superadmin/Admin Drive. | `3621903e` | `npx tsc --noEmit` 0 Errors |
+| **Fase 6** | Automated feature test suite komprehensif 10 skenario di `DriveHierarchicalResorRBACTest.php`, pembaruan dokumentasi progress & tasks, serta sinkronisasi knowledge graph AST via `graphify update .`. | `4d0c3552` | 18 PHPUnit Tests Passed (88 assertions, 0 errors)<br>`npx tsc --noEmit` 0 errors |
+
+---
+
+### Rincian Eksekusi 6 Fase (Standar 10/10)
+
+#### 1. Fase 1 — Skema Database Minimalis & Seeder Folder Hierarki Resmi
+- **Pembersihan Unit Kerja**: Mempruning unit kerja lama dengan ID > 4 sehingga hanya tersisa 4 unit resmi:
+  1. Balai BKSDA Samarinda (`id: 1`, `slug: balai-samarinda`, kuota 100 GB).
+  2. Seksi KSDA Wilayah I Berau (`id: 2`, `slug: skw-1-berau`, kuota 50 GB).
+  3. Seksi KSDA Wilayah II Tenggarong (`id: 3`, `slug: skw-2-tenggarong`, kuota 50 GB).
+  4. Seksi KSDA Wilayah III Balikpapan (`id: 4`, `slug: skw-3-balikpapan`, kuota 50 GB).
+- **Migrasi Kolom Baru (`2026_10_30_130000_restructure_drive_units_and_folder_rbac.php`)**:
+  - `drive_folders`: menambahkan `is_restricted` (boolean, default false), `folder_scope` (`'resor'|'ruangan'|'submission'|'umum'`), `resor_code` (varchar 32 index), dan `room_code` (varchar 32 index).
+  - `dr_form_responses`: menambahkan `drive_folder_id` (foreign key ke `drive_folders.id`).
+  - `drive_shares`: menambahkan `folder_id` (foreign key ke `drive_folders.id`) dan menjadikan `file_id` nullable untuk mendukung virtual folder sharing tanpa membuat tabel baru.
+- **Master Konstanta**:
+  - `backend/app/Constants/BksdaConstants.php`: mendaftarkan 14 resor (`resor_01` s.d. `resor_14`) dan 8 ruangan Balai (`ruang_balai_01` s.d. `ruang_balai_08`).
+  - `frontend/src/app/kepegawaian/_lib/employee-constants.ts`: mengekspor `RESOR_OPTIONS` dengan metadata kode, nama, dan seksi wilayah (`SKW_1`, `SKW_2`, `SKW_3`).
+- **Seeder Otomatis (`DriveHierarchicalFoldersSeeder.php`)**:
+  - Mengenerate 14 folder resor resmi terisolasi di bawah SKW I (4 resor), SKW II (5 resor), dan SKW III (5 resor) (`is_restricted = true`, `folder_scope = 'resor'`).
+  - Mengenerate 8 folder ruangan di bawah Balai BKSDA Samarinda (`is_restricted = false`, `folder_scope = 'ruangan'`).
+
+#### 2. Fase 2 — Otorisasi Anti-Celah Keamanan di `DriveAccess.php` & Backend Drive
+- **Pembersihan Celah IDOR (Insecure Direct Object References)**:
+  - Pada `DriveAccess::canReadFile()` dan `DriveAccess::canWriteFile()`, berkas yang berada di dalam folder terisolasi (`folder_id !== null && is_restricted = true`) wajib divalidasi berdasarkan izin folder induknya (`canReadFolder()` / `canWriteFolder()`), mencegah unduhan ilegal oleh pengguna yang sekadar menebak ID berkas.
+- **Anti-Search Leakage**:
+  - Pada `DriveController::index()`, saat mode pencarian (`search !== ''`) atau pemindaian folder aktif, hasil query `$folders` dan `$files` otomatis difilter dengan `DriveAccess::canReadFolder()` dan `DriveAccess::canReadFile()`. Folder dan berkas terisolasi tidak akan pernah bocor ke staf yang tidak berhak.
+- **Anti-Bulk ZIP Traversal Bypass (CWE-22 & RBAC Guard)**:
+  - Pada `DriveController::requestZipToken()`, signed URL HMAC-SHA256 menyertakan identitas pengguna peminta (`u = user_id`).
+  - Pada `DriveController::downloadFolderZip()`, keabsahan signature divalidasi dan method rekursif `addFolderToZipStream()` memeriksa `DriveAccess::canReadFolder($user, $sub)`. Subfolder terisolasi otomatis dilompati dari arsip ZIP jika pengguna peminta bukan staf resor yang bersangkutan.
+- **Pewarisan Hak Subfolder (Subfolder Inheritance)**:
+  - Pada `DriveController::createFolder()`, pembuatan subfolder di dalam folder terisolasi otomatis mewarisi atribut `is_restricted`, `folder_scope`, `resor_code`, dan `room_code` dari parent folder.
+- **Perbaikan Tab "Dibagikan kepada Saya"**:
+  - Mengganti `$folderQuery->whereRaw('1 = 0')` dengan query `drive_shares.folder_id` sehingga folder yang dibagikan secara eksplisit muncul di tab `filter=shared_with_me`.
+- **Endpoint Penunjukan Penanggung Jawab Folder**:
+  - `POST /api/drive/folders/{id}/assign-manager`: memungkinkan Superadmin atau Admin Drive menunjuk staf pengelola folder (menerima `user_id` atau `nip`), sekaligus mencatat record `manager` di `drive_shares`.
+- **Performa & Eliminasi N+1 Query**:
+  - Menggunakan PHP 8 stdlib `\WeakMap` untuk memoize profil pegawai (`getEmployee`) dan daftar unit kerja yang dapat diakses (`getUserUnitIds`) pada instance `$user`, tanpa mencemari model Eloquent attributes (zero-N+1, O(1) runtime).
+
+#### 3. Fase 3 — Pengorganisasian Subfolder Laporan DeReporting & Ringkasan Laporan
+- **Subfolder Otomatis per Tanggapan**:
+  - Pada `FormBuilderController::submitPublic()`, judul laporan dan nama pelapor diekstrak secara heuristik dari isian form, disanitasi dari karakter ilegal path traversal (`\ / : * ? " < > |`), dipotong maksimal 40 karakter, dan digabungkan dengan short hash 4 karakter dari UUID:
+    `[YYYY-MM-DD] - [Judul Laporan] ([Nama Pelapor]) #[ShortHash]`.
+  - Subfolder dibuat otomatis di bawah folder formulir terkait di Unit Balai Samarinda (`unit_id = 1`, `folder_scope = 'submission'`, `color = '#3B82F6'`).
+  - Seluruh berkas lampiran yang diunggah responden diarahkan ke `folder_id` subfolder tersebut.
+  - Foreign key `dr_form_responses.drive_folder_id` ditautkan ke ID subfolder.
+- **Ringkasan Formulir Native (`Ringkasan_Laporan.txt`)**:
+  - Disusun secara otomatis dari memori string PHP native (zero template engine overhead) memuat waktu submit WITA, ID respon, titik koordinat GPS beserta link Google Maps, seluruh isian pertanyaan dinamis, dan total berkas lampiran.
+  - Disimpan ke S3 RustFS di path `units/balai-samarinda/dereporting/{form->slug}/summary_{folder_id}_{response_id}.txt`.
+  - Dicatat sebagai `DriveFile` dengan `source_module = 'dereporting'` dan composite key unik `source_id = "{$response->id}:summary:txt"`.
+- **Export Rekapitulasi CSV Terintegrasi Drive**:
+  - Menambahkan kolom header `Link Folder Drive` pada `FormBuilderController::exportCsv()`.
+  - Setiap baris data memuat tautan langsung ke `/drive?space=1&folder_id={drive_folder_id}`.
+- **Virtual Sharing & Akses Cepat UI**:
+  - Endpoint `POST /api/dereporting/forms/responses/{id}/share` memungkinkan pembuat formulir atau admin membagikan subfolder tanggapan ke unit kerja SKW/Resor lain via `drive_shares`.
+  - Halaman `frontend/src/app/dereporting/forms/[id]/responses/page.tsx` dilengkapi kolom dan tombol pintasan *"Buka Folder"* yang langsung membuka subfolder laporan di antarmuka BKSDA Drive.
+
+#### 4. Fase 4 — Dropdown Resor Penempatan di Modul Kepegawaian & Auto-Sync Mutasi
+- **Dropdown Resor pada Form Pegawai**:
+  - Menambahkan dropdown "Resor Penempatan" pada form Create (`frontend/src/app/kepegawaian/employees/create/page.tsx`) dan form Edit Biodata (`frontend/src/app/kepegawaian/employees/[id]/page.tsx`).
+  - Opsi terfilter secara dinamis berdasarkan Satuan Kerja yang dipilih:
+    - SKW I Berau $\rightarrow$ Resor 01 s.d. Resor 04.
+    - SKW II Tenggarong $\rightarrow$ Resor 05 s.d. Resor 09.
+    - SKW III Balikpapan $\rightarrow$ Resor 10 s.d. Resor 14.
+    - Balai KSDA Samarinda $\rightarrow$ dropdown otomatis dinonaktifkan (disabled) dan dikosongkan.
+- **Validasi Silang Sisi Server (`EmployeeRequest.php`)**:
+  - Rule validasi ketat menolak penempatan resor apabila satuan kerja pegawai berada di Balai (HTTP 422).
+  - Menolak pemilihan kode resor yang tidak sesuai dengan wilayah SKW tempat pegawai bertugas.
+- **Mass Assignment & Sinkronisasi Mutasi Seketika**:
+  - Kolom `resor` didaftarkan ke `$fillable` pada model `Employee.php`.
+  - Berkat dynamic matching `(string)$employee->resor === (string)$folder->resor_code` pada `DriveAccess.php`, mutasi pegawai langsung mengeksekusi auto-revoke terhadap folder resor lama dan auto-grant terhadap folder resor baru secara instan tanpa perlu batch job atau antrean cron.
+
+#### 5. Fase 5 — Hak Akses Modul "Admin Drive" & Peningkatan UI Drive
+- **Modul BKSDA Drive pada Hak Akses Pegawai**:
+  - Pada `frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx`, modul `{ id: "drive", label: "BKSDA Drive", description: "Admin Penyimpanan Cloud & Manajemen Berkas" }` ditambahkan ke `AVAILABLE_MODULES`.
+  - Pegawai dengan hak akses `drive` otomatis diakui sebagai Admin Drive oleh `DriveAccess::isDriveAdmin()` dan berhak mengelola seluruh folder/unit.
+- **Indikator Visual Folder Terisolasi**:
+  - Pada `frontend/src/app/drive/_components/DriveFileList.tsx`, folder dengan `is_restricted = true` menampilkan badge ikon gembok (`Lock`) berwarna amber bertuliskan "Resor" atau "Terbatas".
+- **Modal Atur Penanggung Jawab Folder**:
+  - Menu aksi 3 titik pada folder terisolasi menyediakan opsi *"Atur Admin Resor"* bagi Superadmin dan Admin Drive.
+  - Dialog interaktif pada `frontend/src/app/drive/page.tsx` memuat daftar seluruh pegawai dan mengirimkan penugasan ke endpoint backend `/api/drive/folders/{id}/assign-manager`.
+
+#### 6. Fase 6 — Automated Test Suite (Self-Check PHPUnit) & Verifikasi E2E
+- **Test Suite 10 Skenario (`DriveHierarchicalResorRBACTest.php`)**:
+  1. `test_resor_staff_can_access_their_own_resor_folder_and_upload`: Staf Resor 01 berhak membaca dan menulis di folder Resor 01.
+  2. `test_non_resor_staff_or_seksi_staff_cannot_access_isolated_resor_folder`: Staf Seksi umum tanpa penugasan resor ditolak mengakses folder resor (HTTP 403).
+  3. `test_balai_staff_cannot_access_skw_resor_folders`: Pegawai Balai ditolak mengakses folder resor SKW.
+  4. `test_anti_idor_direct_file_url_download_forbidden_for_unauthorized_users`: Permintaan signed URL berkas terisolasi ditolak jika peminta bukan staf resor terkait.
+  5. `test_anti_search_leak_isolated_folders_and_files_hidden_from_search`: Pencarian di unit SKW tidak menampilkan folder/berkas resor yang tidak berhak diakses.
+  6. `test_anti_bulk_zip_traversal_skips_unauthorized_resor_subfolders`: Unduhan ZIP folder induk melompati subfolder resor terisolasi bagi staf non-resor.
+  7. `test_shared_with_me_includes_virtual_folder_shares`: Folder yang dibagikan via `drive_shares` muncul di filter `shared_with_me`.
+  8. `test_dereporting_submission_creates_dedicated_subfolder_and_summary_text`: Submisi form membuat subfolder khusus dan berkas `Ringkasan_Laporan.txt`.
+  9. `test_dereporting_csv_export_contains_direct_subfolder_drive_link`: Ekspor CSV tanggapan memuat kolom link subfolder Drive.
+  10. `test_kepegawaian_mutation_instantly_auto_revokes_and_auto_grants_resor_drive_access_with_cross_validation`: Mutasi penempatan staf seketika mencabut hak folder lama, memberikan hak folder baru, memvalidasi silang aturan Balai, dan memverifikasi akses modul Admin Drive.
+
+---
+
+### Hasil Pengujian & Verifikasi Menyeluruh
+
+```text
+PASS  Tests\Feature\DriveHierarchicalResorRBACTest
+✓ resor staff can access their own resor folder and upload
+✓ non resor staff or seksi staff cannot access isolated resor folder
+✓ balai staff cannot access skw resor folders
+✓ anti idor direct file url download forbidden for unauthorized users
+✓ anti search leak isolated folders and files hidden from search
+✓ anti bulk zip traversal skips unauthorized resor subfolders
+✓ shared with me includes virtual folder shares
+✓ dereporting submission creates dedicated subfolder and summary text
+✓ dereporting csv export contains direct subfolder drive link
+✓ kepegawaian mutation instantly auto revokes and auto grants resor drive access with cross validation
+
+PASS  Tests\Feature\DriveZipDownloadTest
+✓ zip token generates temporary signed url
+✓ download zip without valid signature is forbidden
+✓ download zip streams valid zip with anti zip slip
+✓ move file and folder with anti circular protection
+
+PASS  Tests\Feature\DeReportingDriveIntegrationTest
+✓ public submit saves files to drive disk and does not consume creator personal quota
+✓ public submit rejects more than max files
+✓ public submit rejects files larger than 10mb
+✓ public submit rejects malicious content mime type
+
+Tests:    18 passed (88 assertions)
+Duration: 4.72s
+```
+
+- **Frontend TypeScript Check**: `cd frontend && npx tsc --noEmit` $\rightarrow$ **0 Errors**.
+- **Knowledge Graph Check**: `graphify update .` $\rightarrow$ **10,542 nodes, 19,119 edges, 779 communities updated**.
+- **Working Tree**: `git status` $\rightarrow$ **Clean** (30 commits local ahead of origin, zero pushed).
+
+---
+
+# Progress - Phase 229: Peningkatan DeReporting Form Builder & BKSDA Drive (Integrasi Otomatis Drive, Multi-File Upload, ZIP Download, & Visual Analytics)
+
+> Document updated: 2026-10-30
+> Branch: `production-server`
+> Status: SELESAI & TERVERIFIKASI (100% Selesai — 5 Fase Implementasi selesai dikerjakan dengan standar /ponytail, /security-audit, dan UI/UX Pro Max. 12 automated tests PHPUnit lulus dengan 60 assertions tanpa error, TypeScript check 0 error, dan database migrasi diterapkan).
+> Dokumen Referensi:
+> - Requirements v2: [docs/dereporting-forms-and-drive-enhancements/requirements.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md)
+> - Architecture Design v2: [docs/dereporting-forms-and-drive-enhancements/design.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md)
+> - Task Breakdown v2: [docs/dereporting-forms-and-drive-enhancements/tasks.md](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md)
+
+### Ringkasan Eksekusi Fitur yang Selesai Dikerjakan (5 Fase Terverifikasi):
+
+1. **Fase 1 — Integrasi Otomatis Foto Form DeReporting ke BKSDA Drive & Shortcut UI**:
+   - **Database Migration**: `2026_10_30_120000_add_drive_and_schedule_to_dr_forms_table.php` menambahkan foreign key `drive_folder_id`, `closed_at`, dan `closed_message` pada tabel `dr_forms`.
+   - **S3 RustFS Storage**: Berkas/foto responden form otomatis tersimpan langsung ke disk S3 `drive` di path `units/balai-samarinda/dereporting/{form->slug}/...`.
+   - **Zero Personal Quota Consumption**: `DriveFile` dicatat dengan `unit_id = 1` (Balai Samarinda 100 GB quota) dan `source_id = "{$response->id}:{$fieldId}:{$index}"`. Kuota pribadi pembuat form (5 GB) tetap **0 byte terpakai**.
+   - **Otorisasi DriveAccess**: Pembuat formulir (`dr_forms.created_by`) diakui secara otomatis oleh `DriveAccess` (`canReadFile`, `canWriteFile`, `canReadFolder`, `canWriteFolder`) untuk membaca, mengunduh, pratinjau, dan membagikan berkas tanpa hambatan hak akses unit.
+   - **Pintasan UI Pro Max**: Tombol pintasan *"Buka Folder di BKSDA Drive"* di kartu formulir (`/dereporting/forms`) dan di header halaman tanggapan (`/dereporting/forms/[id]/responses`).
+
+2. **Fase 2 — Multi-File Upload & Notifikasi Real-Time (Portal & WebSocket)**:
+   - **Multi-File Form Builder**: Opsi konfigurasi `max_files` (1 s.d. 5 berkas) pada pertanyaan bertipe `file`.
+   - **Kompresi Canvas Sisi Klien**: Responden publik pada `/lapor/[slug]` dapat memilih hingga 5 foto sekaligus dengan kompresi otomatis via HTML5 Canvas ($\le 1600\text{px}$ JPEG quality 0.82) sebelum dikirim, menjaga total payload selalu aman di bawah batas 25 MB.
+   - **Validasi Keamanan Ketat (`/security-audit`)**: Pemeriksaan MIME *magic bytes* via PHP `finfo` pada backend dan pencegahan unggahan file executable/script berbahaya.
+   - **Notifikasi Real-Time WebSocket**: Integrasi `PortalNotificationService::notifyUser()` via Laravel Reverb / `PortalNotificationCreated` saat responden mengirim submisi baru, tanpa menguras kuota email Resend/Brevo.
+
+3. **Fase 3 — Fitur BKSDA Drive: Unduh Folder sebagai ZIP & Pindah Berkas/Folder (Move To)**:
+   - **Temporary Signed URL GET**: Endpoint `POST /api/drive/folders/{id}/zip-token` menghasilkan signed URL sementara dengan masa berlaku 15 menit.
+   - **Streaming On-the-fly (`ZipStream-PHP`)**: Endpoint `GET /api/drive/folders/{id}/download-zip` men-stream arsip ZIP langsung ke browser dengan proteksi anti zip-slip path traversal (CWE-22) dan zero memory footprint di server.
+   - **Fitur Pindah Berkas/Folder (Move To)**: Endpoint `POST /api/drive/files/{id}/move` dan `POST /api/drive/folders/{id}/move` dilengkapi validasi pencegahan circular parent loop (CWE-674), terintegrasi dengan komponen UI `DriveMoveDialog.tsx`.
+   - **Filter Kategori Toolbar Drive**: Chip filter cepat di BKSDA Drive untuk menyaring berkas berdasarkan tipe ("Semua", "Foto & Gambar", "Dokumen PDF", "Excel & Data", "Arsip / ZIP").
+
+4. **Fase 4 — Visualisasi Grafik Ringkasan Jawaban (Summary Visual Analytics)**:
+   - **Endpoint Agregasi**: `GET /api/dereporting/forms/{id}/summary` menghitung agregat statistik pilihan ganda, checkbox, dropdown, galeri thumbnail berkas, koordinat GPS, serta tren 30 hari.
+   - **Visual Analytics UI**: Tab *"Ringkasan"* di `/dereporting/forms/[id]/responses` menyajikan Pie Chart dan Bar Chart menggunakan `recharts`, galeri thumbnail responsif dengan unduhan berkas individual, dan kartu pratinjau koordinat GPS.
+
+5. **Fase 5 — Jadwal Penutupan Form Otomatis & Pertanyaan Koordinat GPS Lapangan**:
+   - **Jadwal Tutup Otomatis**: Form builder dan modal create form mendukung pemilihan tanggal/jam `closed_at` dan pesan penutupan resmi `closed_message`. Server-side guard pada `submitPublic()` menolak submisi form kedaluwarsa dengan HTTP 403 Forbidden.
+   - **Tipe Pertanyaan Koordinat GPS**: Tipe field `gps_location` dengan tombol satu-klik *"Ambil Lokasi Saya (GPS)"* via HTML5 Geolocation API, pin point koordinat, tautan Google Maps, serta badge persetujuan privasi (*consent*).
+
+### Verifikasi & Pengujian Otomatis (Passing 100%):
+- `backend/tests/Feature/DeReportingDriveIntegrationTest.php`: 4 test cases, 28 assertions — **PASSED**.
+- `backend/tests/Feature/DriveZipDownloadTest.php`: 4 test cases, 19 assertions — **PASSED**.
+- `backend/tests/Feature/DriveTest.php`: 4 test cases, 13 assertions — **PASSED**.
+- Total Test Suite: **12 tests, 60 assertions, 0 failures**.
+- Frontend TypeScript Check: `npx tsc --noEmit` — **0 compilation errors**.
+
+---
+
+# Progress - Phase 228: Implementasi Penuh Infrastruktur WebSocket Real-Time (Laravel Reverb), BKSDA Drive (RustFS), Sistem Email Failover (Resend + Brevo), Keamanan Akun 2FA TOTP, & Backup 3-2-1 Proxmox
+
+> Document updated: 2026-10-30
+> Branch: `production-server`
+> Status: SELESAI & TERVERIFIKASI (Fase 0A, 0B, 1A, 1B, 1C, 2, 3, dan 4 selesai 100% dengan 22 pengujian PHPUnit lulus, pengujian kirim email nyata via Resend & Brevo sukses, dan seluruh commit tersimpan di lokal).
+
+### Ringkasan Eksekusi Infrastruktur (Fase 0A s/d Fase 4)
+
+#### 1. Fase 0A — Backup 3-2-1 Proxmox & Uji Bencana (Disaster Recovery)
+- **Storage Proxmox**:
+  - Harddisk internal kedua `/dev/sdb` (2 TB) diformat ext4 dan didaftarkan sebagai Proxmox storage `local-backup-2tb` (1.86 TB free).
+  - Harddisk eksternal USB SSD `/dev/sdc` (2 TB) diformat ext4 dan didaftarkan sebagai storage `backup-usb-2tb` (1.86 TB free).
+- **Snapshot Otomatis VM 106**:
+  - Jadwal backup snapshot `vzdump` VM 106 harian pukul 02:30 WITA aktif di Proxmox Cluster Backup (`compress=zstd`, retensi: 7 harian, 4 mingguan, 6 bulanan). Uji snapshot perdana sukses (6.65 GB).
+  - Cron sinkronisasi snapshot ke USB SSD terpasang di `/etc/cron.d/bksda-backup-sync` (kecepatan transfer 840 MB/s).
+- **Internal Dump VM 106 & Uji Restore Nyata**:
+  - Script dump internal VM 106 `/srv/backup/run-daily-backup.sh` (dump PostgreSQL `pg_dump -Fc` + tar volume `backend-storage` + retensi 14 hari) terjadwal tiap 01:00 WITA.
+  - Uji bencana restore nyata terbukti berhasil 100%: dump di-restore ke database `bksda_restore_verify` dengan 152 baris `users` & `kpg_employees` cocok utuh.
+
+#### 2. Fase 0B — Fondasi Antrean, Cache, Monitoring, & Keamanan Storage
+- **Migrasi Database**: Tabel antrean dan cache (`jobs`, `failed_jobs`, `cache`, `cache_locks`, `job_batches`) diterapkan di PostgreSQL.
+- **Pemisahan Container Dokploy**: `docker-compose.dokploy.yml` memisahkan 4 container mandiri: `backend`, `queue`, `reverb`, dan `scheduler` dengan `CACHE_STORE=database` dan `QUEUE_CONNECTION=database`.
+- **Nginx Reverse Proxy & Frontend Echo**:
+  - Menambahkan proxy WebSocket `location /app` ke `http://reverb:8080` di `deploy/nginx-backend.conf`.
+  - Memasang `laravel-echo` + `pusher-js` di frontend serta menyuntikkan `ARG NEXT_PUBLIC_REVERB_APP_KEY`.
+- **Command Monitoring & Self-Check**:
+  - `php artisan app:monitor-health`: Memantau `queue:heartbeat` via `QueueHeartbeat`, socket Reverb 8080, `failed_jobs` 15 menit terakhir, dan disk > 80% dengan alert deduplikasi 1 jam ke super_admin.
+  - `php artisan app:self-check-foundation`: Memverifikasi koneksi DB, cache, dan eksekusi antrean.
+  - `php artisan storage:setup --audit`: Mengaudit bucket policy S3 RustFS — anonymous `GetObject` diizinkan, anonymous `ListBucket` ditolak (403 Forbidden).
+
+#### 3. Fase 1A — WebSocket Real-Time, Admin Live Inbox, & Optimasi Urutan
+- **Event Broadcasting**:
+  - `PortalNotificationCreated`: Broadcast notifikasi lonceng pegawai ke private channel `App.Models.User.{id}`.
+  - `AdminInboxChanged`: Broadcast pembaruan inbox admin ke private channel `admin.inbox.{module}`.
+- **Resolusi Delay Approval & Urutan Notifikasi**:
+  - Pada `AssignmentLetterController` (`approve`, `updateStatus`, `store`), `EmployeeLeaveRequestController` (`adminUpdateStatus`, `adminApprove`, `generateSuratIzin`), `LoanService`, dan `PortalNotificationService::notifyAdmins`: event `AdminInboxChanged` di-dispatch **segera setelah `DB::commit()` (< 15 ms)** mendahului loop pegawai, memastikan admin inbox live seketika.
+  - Membatasi client timeout Reverb menjadi 1 detik di `config/broadcasting.php` (*fail-fast* non-blocking) untuk mencegah pembekuan single-thread PHP built-in server lokal yang sebelumnya menyebabkan timeout 10 detik pada `/login`.
+
+#### 4. Fase 1B — Email Transaksional, Lupa Password, & Failover Mailer
+- **Konfigurasi DNS Cloudflare (100% Terverifikasi)**:
+  - SPF: `v=spf1 include:amazonses.com include:spf.brevo.com ~all` (menggabungkan Resend dan Brevo dalam 1 baris resmi).
+  - DKIM: CNAME `rsend.notif` & `send.notif`, TXT `resend._domainkey.notif` (Status: **Verified** hijau di Resend).
+  - DKIM Brevo: CNAME `brevo1._domainkey.notif` & `brevo2._domainkey.notif`, TXT `brevo-code`.
+  - DMARC: TXT `_dmarc.notif` (`v=DMARC1; p=none; rua=mailto:admin@bksdakaltim.web.id`).
+- **Failover Mailer**:
+  - Mailer Utama: Resend SMTP (`smtp.resend.com:465` SSL) — kuota gratis 3.000 email/bulan.
+  - Mailer Cadangan: Brevo SMTP (`smtp-relay.brevo.com:587` TLS) — kuota gratis 300 email/hari.
+  - Pengujian nyata berhasil 100%: email uji coba berhasil dikirim via Resend, Brevo, dan failover otomatis ke `delivered@resend.dev` dan tercatat di tabel `email_logs`.
+- **Fitur Pengguna & Webhook**:
+  - Ganti email pegawai (`PUT /api/me/email`), kirim ulang verifikasi email, lupa password (`forgot-password` & `reset-password`), security alert, serta verifikasi signature webhook Svix Resend HMAC-SHA256 (`/api/webhooks/resend`).
+
+#### 5. Fase 1C — Keamanan Akun & 2FA TOTP RFC 6238
+- **Middleware Keamanan**: `EnsureAccountSecure` mencegat akun dengan `must_change_password=true` (HTTP 423 Locked) dengan allowlist route ganti password.
+- **Engine TOTP Pure PHP**: Engine RFC 6238 mandiri tanpa dependency eksternal, mendukung window validasi waktu, verifikasi replay attack, dan 8 *recovery codes* sekali pakai (dihash sha256).
+- **Dua Langkah Login & Reset Admin**: Challenge sementara 5 menit di cache database, modal setup QR code di frontend, reset password admin (mode password acak / link reset), dan super admin reset 2FA.
+
+#### 6. Fase 2, 3, & 4 — BKSDA Drive MVP, Berbagi Berkas, & Auto-Archive
+- **Dual-Endpoint S3 Signer**: Disk internal `drive` (`http://rustfs:9000`) dan signer publik `drive_signer` (`https://storage.bksdakaltim.web.id`).
+- **Pipeline Upload Kuat**:
+  - `initUpload`: Validasi kuota (default 5 GB user, 50-100 GB unit kerja) dan disk soft cap.
+  - Presigned PUT langsung untuk berkas $\le$ 80 MB.
+  - S3 Multipart Upload dipotong per 25 MB untuk berkas $>$ 80 MB (menembus batas 100 MB Cloudflare Free Tier).
+  - `completeUpload`: Validasi keaslian format berkas via PHP `finfo` magic bytes.
+- **Berbagi Berkas (Fase 3)**:
+  - Berbagi internal ke unit/pegawai (Editor / Viewer).
+  - Berbagi publik via URL acak `/drive/s/[token]` dengan password opsional, batas waktu, counter unduhan, dan proteksi brute-force `throttle:10,1`.
+- **Auto-Archive Dokumen Resmi (Fase 4)**:
+  - Job `ArchiveOfficialDocument`: Stream copy dokumen terbit (Surat Tugas, SK/Izin Cuti, Dokumen BMN) ke folder arsip Drive dengan pelacakan idempoten `(source_module, source_id)`.
+  - Artisan command `drive:backfill-archive` untuk mengarsipkan dokumen lama.
+- **Pemeliharaan Terjadwal**:
+  - `drive:cleanup-uploads`: Membersihkan sesi upload multipart yang ditinggal/kedaluwarsa (per jam).
+  - `drive:purge-trash`: Menghapus permanen berkas dan folder sampah lebih dari 30 hari dari database dan S3 (harian 02:00 WITA).
+
+#### 7. Hasil Pengujian Sistem (Test Suite)
+- Seluruh 23 tes fitur PHPUnit lulus 100% tanpa kegagalan (120 assertions):
+  - `BroadcastChannelAuthTest`: 3 tes (auth channel user & admin, dispatch event `AdminInboxChanged` saat approve & update ST).
+  - `EmailSecurityTest`: 6 tes (guard deliverable email, proteksi anti-enumeration, validasi email update, verifikasi webhook Svix, proteksi cooldown 60 detik lintas profil dan kirim ulang verifikasi).
+  - `TwoFactorTest`: 6 tes (TOTP login 2 langkah, penolakan replay code, pemakaian recovery code, 423 lock saat `must_change_password`).
+  - `DriveTest`: 4 tes (URL signer, matriks akses peran unit kerja, reservasi kuota, deteksi MIME palsu).
+  - `DriveShareTest`: 2 tes (internal share, public link dengan password & throttle).
+  - `AutoArchiveTest`: 2 tes (arsip lintas disk local-ke-S3, idempotensi eksekusi ganda).
+
+#### 8. Sinkronisasi Cooldown Verifikasi Email 60 Detik & Feedback Edit Kontak Profil
+- **Masalah Teridentifikasi**: Saat pengguna mengganti alamat email melalui ikon pensil di atas foto profil (`PortalProfileSidebar.tsx`), sistem backend mengirimkan email verifikasi pertama. Namun karena cooldown tidak dibagikan dan tidak dipasang di route kirim ulang (`/email/verification-notification`), banner "Email Anda Belum Terverifikasi" langsung mengizinkan klik "Kirim Ulang Tautan Verifikasi", sehingga dua email verifikasi terkirim sekaligus ke Gmail pengguna dalam hitungan detik.
+- **Penyelesaian Backend (`AuthController.php`)**:
+  - `updateProfile`: Saat alamat email diubah, wajib memvalidasi kata sandi saat ini (`current_password`), menolak domain `.local`, mengirimkan *security alert* ke email lama jika sebelumnya terverifikasi, memasang cooldown 60 detik di Cache (`email_verify_cooldown:{$userId}`), mengirimkan email verifikasi secara asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta mengembalikan `email_changed: true` dan `cooldown_seconds: 60`.
+  - `resendVerificationEmail`: Menggunakan `Cache::add` atomik (*check-and-set* dalam satu operasi tanpa *race condition*). Jika cooldown masih aktif, tolak permintaan dengan status HTTP 429 Too Many Requests beserta sisa waktu `retry_after`.
+  - `dashboard`: Mengembalikan `email_cooldown_remaining` di dalam objek `data.user` agar sinkronisasi state tetap akurat bahkan setelah refresh halaman tanpa perlu dependensi tambahan.
+- **Penyelesaian Frontend (Mengikuti Prinsip /ponytail — Zero Overengineering)**:
+  - Menyederhanakan frontend dengan menghapus abstraksi berlebih `email-cooldown.ts` (penurunan ~90 baris kode). `EmailConnectDialog.tsx` cukup mengonsumsi prop `initialCooldown` bawaan dari data dashboard server dan menjalankan timer hitung mundur native.
+  - `PortalProfileSidebar.tsx`: Menambahkan kolom konfirmasi kata sandi secara kondisional hanya ketika pengguna mengubah alamat email (tidak diperlukan jika hanya mengubah nomor telepon/WA). Menampilkan pesan toast sukses bahwa tautan verifikasi telah dikirim ke email baru.
+  - `EmailConnectDialog.tsx`: Banner "Email Anda Belum Terverifikasi" menampilkan tombol dinonaktifkan dengan hitung mundur `Tunggu (Xs)` saat cooldown aktif, disertai tombol alternatif `Ganti Email` jika pengguna salah mengetik email. Tombol di dalam modal dialog juga terkunci dengan `Tautan Telah Dikirim (Tunggu Xs)`.
+  - Pengujian fitur `test_verification_cooldown_enforced_across_profile_and_resend` di `EmailSecurityTest.php` memverifikasi validasi kata sandi ganti email, penolakan `.local`, dan pembatasan cooldown atomik (lulus 100%).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Sistem Email Transaksional Selektif via Resend & Cloudflare Email Routing)**:
+  - Server VM 106 (`192.168.100.203`) berjalan di balik **Cloudflare Tunnel (`cloudflared`)** dan seluruh pegawai menggunakan `@gmail.com`.
+  - Agar email tidak masuk Spam dan hemat kuota gratis **Resend** (100 email/hari, 3.000/bulan), pengiriman email difokuskan secara selektif hanya untuk **(1) Reset Password**, **(2) Pengajuan Baru ke Admin** (1 email ringkasan per ST/Cuti/BMN), dan **(3) Dokumen Final Terbit ke Pegawai** (ST Terbit / SK Cuti TTE), lengkap dengan *toggle* per jenis event dan penghitung kuota harian di Pengaturan Admin.
+- **Kebutuhan 2 (WebSocket Real-Time via `Laravel Reverb`)**:
+  - Notifikasi progres/revisi rutin dan lonceng notifikasi di Portal Pegawai (`/portal`) maupun Header Admin membutuhkan push *real-time* (< 100 ms), auto-refresh angka *badge* & tabel Inbox Admin saat ada pengajuan baru, serta indikator *Presence* di ST Builder saat 2 Admin membuka surat yang sama.
+- **Kebutuhan 3 (BKSDA Drive Mirip Google Drive di Atas `RustFS` S3)**:
+  - Memanfaatkan sisa kapasitas **455 GB (97% lega)** dan `rustfs` yang sudah berjalan di VM 106 untuk membangun **BKSDA Drive** dengan 3 ruang utama: **Drive Saya** (kuota default 5 GB/pegawai), **Drive Bersama per Seksi/Bidang**, dan **Arsip Resmi Sistem (*Auto-Archive* ST, Cuti, & BMN)**, dilengkapi *Presigned URL upload/download*, *inline preview*, *Share Link* ber-password/kedaluwarsa, dan *Trash 30 hari*.
+
+---
+
+## 2. Dokumen Spesifikasi yang Dibuat (Diperbarui ke v2.0 — 10/10 Spec)
+- [`docs/websocket-drive-mail-infrastructure/requirements.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/requirements.md):
+  - Memuat hasil audit nyata terhadap Proxmox `192.168.100.11` (8 Core, 64 GB RAM, `/dev/sda` `local-lvm` sisa 1,65 TB kosong + `/dev/sdb` 2 TB Enterprise HDD 100% kosong untuk backup + `/dev/sdc` 2 TB Kingston USB SSD) dan database (`152 user @bksda.local`).
+  - Memuat spesifikasi **4 Alur Keamanan Password & 2FA** (Reset Admin + `must_change_password`, Ubah Mandiri + *Security Alert*, Lupa Password bawaan `Password::sendResetLink()`, serta **2FA TOTP Authenticator** + *Recovery Codes*), **Laravel Notifications (`via()`)**, **Failover Mailer (`resend` $\rightarrow$ `smtp` Gmail)**, *sending subdomain* `notif.bksdakaltim.web.id`, DMARC bertahap, webhook bounce Resend, serta arsitektur **100% Domain-Agnostic** (siap beralih dari `bksdakaltim.web.id` ke `bksdakaltim.id`).
+- [`docs/websocket-drive-mail-infrastructure/design.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/design.md):
+  - Memisahkan container Docker (`backend`, `queue`, `reverb`, `scheduler`), mengisolasi channel WebSocket Admin per modul (`admin.inbox.{module}` sesuai `$user->access_modules` di `User.php`), merancang **Dual-Endpoint S3 Signer (`drive` vs `drive_signer`)**, **S3 Multipart Upload (> 80 MB dipotong per 25 MB untuk menembus batas 100 MB Cloudflare Free Tier)**, validasi *magic bytes* (`finfo`), dan **Backup 3-2-1 otomatis ke `/dev/sdb` (2 TB)**.
+- [`docs/websocket-drive-mail-infrastructure/tasks.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/tasks.md):
+  - *Checklist* tahapan implementasi **Fase 0 s/d Fase 4** lengkap dengan *Acceptance Criteria*, *1 Runnable Self-Check*, dan *Rollback Plan* di setiap fase.
+
+### Dokumen Spesifikasi Baru: Peningkatan DeReporting & BKSDA Drive
+- [`docs/dereporting-forms-and-drive-enhancements/requirements.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/requirements.md):
+  - Kebutuhan integrasi otomatis berkas form ke BKSDA Drive (alokasi kuota Balai, bebas kuota pribadi pegawai), multi-file upload (1-10 berkas), notifikasi email tanggapan, grafik visual analytics, unduh folder ZIP, pindah berkas/folder, transfer kepemilikan, filter chips, dan input GPS koordinat.
+- [`docs/dereporting-forms-and-drive-enhancements/design.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/design.md):
+  - Arsitektur end-to-end, skema migrasi tabel `dr_forms`, struktur JSON `fields` & `answers`, background job `ArchiveFormResponseFilesJob`, streaming ZIP service on-the-fly, dan kontrak API baru.
+- [`docs/dereporting-forms-and-drive-enhancements/tasks.md`](file:///e:/bksda-superapp/docs/dereporting-forms-and-drive-enhancements/tasks.md):
+  - Rencana kerja 6 fase terstruktur dilengkapi acceptance criteria dan runnable self-check di setiap fase.
+
+---
+
+# Progress - Phase 227: Auto-Sinkronisasi Template ST dari Sumber Dana (FOLU Dinamis), Redesign Konsiderans 2 Card Mandiri, Perbaikan Placeholder `{paket}`, & Sanitasi Butir Tambahan Untuk
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: SELESAI (Implementasi pencocokan dinamis Sumber Dana ke Master Template ST termasuk FOLU Net Sink 2030, pemisahan Konsiderans menjadi 2 card penuh untuk Menimbang & Dasar Hukum di Settings & Builder dengan auto-resize textarea + chip placeholder, perbaikan placeholder `{paket}` dan parser Jenis Tugas ST lama, serta penyaringan otomatis kalimat Laporan/Biaya dari Butir Tambahan Untuk).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Auto-Select Template ST dari Sumber Dana Secara Dinamis)**:
+  - Saat pegawai atau admin memilih Sumber Dana **FOLU (`folu_nc23` / `folu`)** atau Sumber Dana baru di masa depan, sistem harus otomatis memilih **Template ST** pasangannya (contoh: **Template FOLU Net Sink 2030**) tanpa hardcode statis, melainkan membaca relasi `configuration.sumber_dana` pada Master Template ST.
+- **Kebutuhan 2 (Redesign Konsiderans `Menimbang` & `Dasar Hukum` Lebih Lega)**:
+  - Di Pengaturan Template ST (`/kepegawaian/settings`) dan ST Builder (`/kepegawaian/surat-tugas/builder/[id]`), bagian **Menimbang** dan **Dasar Hukum** sebelumnya tergabung dalam 1 card sempit (2 kolom berdampingan di Settings), sehingga teks regulasi panjang sulit dibaca dan diedit.
+  - Perlu dipisah menjadi **2 Card Mandiri Lebar Penuh (1 Kolom Penuh)** lengkap dengan auto-resize `<textarea>` (3–8 baris), header bar per poin, dan tombol chip placeholder klik-langsung.
+- **Kebutuhan 3 (Perbaikan Bug Placeholder `{paket}`, Jenis Tugas `"Samarinda"`, & Duplikasi Laporan di Butir 2)**:
+  - Skema pola di database untuk *Pengawasan / Pemeriksaan Pekerjaan* menggunakan `untuk {kegiatan} dalam rangka {paket}`, sehingga `{paket}` sebelumnya belum tergantikan pada `buildKegiatanDiktumText`.
+  - Pada surat lama (`task_type_id: null`), grup regex `match[1]` (Kota Asal, mis. `"Samarinda"`) tidak sengaja dipakai sebagai nama Jenis Tugas sehingga merusak kalimat Butir 1 menjadi `Menugaskan Staf...`.
+  - Pada surat lama dengan `template_snapshot.configuration.untuk` yang masih menyimpan kalimat `"Membuat laporan tertulis..."`, kalimat tersebut muncul ganda di **Butir Tambahan Untuk (Butir 2)** dan di **Butir Terakhir (Laporan)**.
+  - Pada Master Template **FOLU Net Sink 2030**, 4 poin Dasar regulasi FOLU sebelumnya salah terdeteksi sebagai *"Otomatis Sinkron Sumber Dana (Paling Bawah)"* karena pencocokan kata kunci `folu`.
+
+---
+
+## 2. Perubahan yang Dilakukan
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts):
+  - Menambahkan `isFoluSumberDana` dan `findMatchingTemplateForSumberDana` (pencocokan dinamis 3 lapis: `configuration.sumber_dana` $\rightarrow$ kecocokan `code`/`name` template $\rightarrow$ fallback FOLU/Default).
+  - Memperbaiki `isFundingDasarText` agar hanya mencocokkan `dasar_text` dari Template Biaya yang benar-benar terisi (tidak menandai 4 poin Dasar regulasi Master Template FOLU sebagai dasar biaya).
+- [`backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) & [`backend/database/seeders/StTemplateSeeder.php`](file:///e:/bksda-superapp/backend/database/seeders/StTemplateSeeder.php):
+  - Memperbarui `resolveTemplate` di backend agar saat surat diajukan dari `/surat-tugas` dengan Sumber Dana tertentu (`folu_nc23` dsb.), backend otomatis menautkan `template_id`, `menimbang`, `dasar`, `tembusan`, dan `template_snapshot` dari Master Template ST pasangannya.
+  - Memperbarui `StTemplateSeeder.php` dengan format cetak miring (`*...*`) pada istilah asing di Template FOLU dan membersihkan duplikasi kalimat laporan dari `configuration.untuk`.
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts) & [`TaskTypesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/TaskTypesTab.tsx):
+  - Mendukung skema `{kegiatan}` + `{paket}` maupun `{untuk}` + `{kegiatan}` di `buildKegiatanDiktumText`, membersihkan sisa token mentah `{paket}`, dan menambahkan chip `+ {paket}` di Pengaturan Jenis Tugas.
+  - Memperkuat deteksi `isLuarWilayah` dan `normalizeTaskTypeName` untuk surat tugas lama.
+- [`frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/EditableItemListSection.tsx):
+  - Merombak tampilan tiap butir menjadi kartu lebar penuh dengan header bar (`Poin a` / `Poin 1` + badge lapis urutan + tombol **Miringkan** + tombol **Hapus**), `<textarea>` auto-resize (3–8 baris), serta dukungan `placeholderChips` yang menyisipkan variabel langsung ke posisi kursor.
+- [`frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx) & [`SuratTugasForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx):
+  - Memisahkan Konsiderans menjadi 2 card mandiri lebar penuh (**Menimbang** dan **Dasar Hukum**) baik di Pengaturan Template ST (7 pil navigasi cepat) maupun di ST Builder.
+  - Memperbaiki parser `else if (match)` di `SuratTugasForm.tsx` agar menetapkan `Perjalanan Dinas Luar Wilayah` (bukan `match[1]` Kota Asal).
+  - Menyaring `snapshotConfig.untuk` dan `config.untuk` melalui `extractTemplateUntukItems` / `isGeneratedLaporanItem` agar kalimat laporan tertulis murni dikendalikan oleh toggle **Kewajiban Membuat Laporan Tertulis (Butir Terakhir)**.
+
+---
+
+## 3. Validasi & Pengujian
+- [x] **Ponytail Runnable Self-Check**: `npx --prefix frontend tsx` (`ALL ASSERTIONS PASSED` untuk `buildKegiatanDiktumText`, `normalizeTaskTypeName`, `isFundingDasarText`, dan `buildOrderedAdditionalUntukItems`).
+- [x] **PHP Syntax Check**: `php -l` pada `AssignmentLetterController.php` dan `StTemplateSeeder.php` (`No syntax errors detected`).
+- [x] **Next.js Production Build**: `npm --prefix frontend run build` (`Compiled successfully`, TypeScript 0 error, 83/83 halaman terkompilasi).
+- [x] **Knowledge Graph AST Update**: `graphify update .` selesai diperbarui.
+
+---
+
+# Progress - Phase 226: Penyatuan Alur & Urutan Otomatis Menimbang, Dasar & Untuk di Builder, Form Publik & Pengaturan Template ST
+
+> Document updated: 2026-10-29
+> Branch: `production-server`
+> Status: SELESAI (Implementasi urutan 3 lapis bagian Dasar, penyatuan kartu bagian Untuk di Builder dengan dukungan Butir 1 Terstruktur & Tulis Manual + waktu otomatis, penurunan otomatis posisi Biaya di bawah Butir Tambahan Untuk, toggle Laporan di urutan paling akhir, serta panduan placeholder & preset cepat di seluruh tab Pengaturan).
+
+---
+
+## 1. Masalah & Kebutuhan
+- **Kebutuhan 1 (Urutan 3 Lapis Bagian `Dasar`)**:
+  - Butir **Template ST** harus selalu berada di paling atas (`1..k`).
+  - Jika Admin menambahkan butir `Dasar` secara manual di **Builder**, butir tersebut wajib selalu berada **di bawah Template ST dan di atas Template Biaya** (`manual-dasar-*`).
+  - Butir `Dasar` dari **Template Biaya & Sumber Dana** wajib selalu berada di **paling bawah / terakhir** (`funding-dasar`).
+- **Kebutuhan 2 (Struktur Bagian `Untuk` & Mode Tulis Manual)**:
+  - **Butir 1 (Selalu Nomor 1)**:
+    - *Mode Terstruktur*: Menggabungkan pola **Jenis Tugas** (`contoh_format` termasuk placeholder `{untuk}` sebelum `dalam rangka`) + lokasi + nama kegiatan + durasi waktu, serta terkoneksi otomatis dari `/kepegawaian/settings` ke `/surat-tugas` dan Builder.
+    - *Mode Tulis Manual*: Jika dipilih `Mode Input Butir 1 Bawaan = Tulis Manual` pada Template ST (seperti PLH atau template baru), maka **Default Uraian Tugas** langsung menjadi kalimat utama Butir 1 dan **tetap ditambahkan rentang waktu otomatis** di ujung kalimat (`, selama X (...) hari terhitung mulai tanggal ... sampai dengan ...;`).
+  - **Butir 2 dst. (Butir Tambahan Untuk)**:
+    - `Default Butir Tambahan (Untuk)` pada Template ST menimpa seluruh butir tambahan sebelumnya ketika template dipilih.
+    - Jika tidak ada butir tambahan, **Biaya** berada tepat di bawah Butir 1 (**Butir 2**).
+    - Jika ada butir tambahan (dari Template ST atau ditambah manual di Builder), butir tambahan tersebut menjadi **Nomor 2, 3, dst.** dan **Biaya otomatis turun ke bawahnya**.
+  - **Butir Terakhir (Kewajiban Laporan)**:
+    - Klausul membuat laporan tertulis selalu berada di urutan **paling terakhir** dan memiliki toggle di Pengaturan maupun di Builder.
+- **Kebutuhan 3 (Kemudahan Pembuatan Template & Panduan Placeholder)**:
+  - Menyediakan fitur salin cepat dari template yang sudah ada, preset kalimat cepat, tombol sisipkan placeholder (`{tahun}`, `{wilayah}`, `{pejabat}`, `{asal}`, `{tujuan}`, `{untuk}`, `{kegiatan}`, `{tempat}`, `{kota}`), dan panduan posisi otomatis di ketiga tab `/kepegawaian/settings`.
+
+---
+
+## 2. Perubahan yang Dilakukan
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/untuk-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/untuk-helpers.ts):
+  - Memperbarui `buildOrderedAdditionalUntukItems` agar urutan setelah Butir 1 selalu: `[1. Butir Tambahan Untuk (2..k)] -> [2. Biaya (turun ke bawah tambahan)] -> [3. Laporan Tertulis (selalu terakhir)]`.
+  - Menambahkan `extractCustomUntukItems` dan `isGeneratedLaporanItem` agar saat surat disimpan dan dibuka kembali di Builder, butir tambahan manual tidak tercampur dengan kalimat Biaya atau Laporan otomatis.
+- [`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts), [`frontend/src/app/surat-tugas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/page.tsx), & [`frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx):
+  - Mendukung pola dinamis `contoh_format` dari Master Jenis Tugas (`{asal}`, `{tujuan}`, `{untuk}`, `{kegiatan}`, `{tempat}`, `{kota}`) sehingga Jenis Tugas baru di `/kepegawaian/settings` langsung memunculkan field yang sesuai di `/surat-tugas` dan Builder.
+- [`frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx):
+  - Menambahkan helper `orderDasarLayers` untuk menjaga urutan 3 lapis `Dasar` (`Template ST` $\rightarrow$ `Manual Builder` $\rightarrow$ `Template Biaya`) beserta badge warna per lapis.
+  - Menyusun kartu terpadu **"Untuk (Diktum Penugasan, Biaya & Laporan)"** di Builder yang menampilkan:
+    1. **Blok 1 — Butir 1 (Selalu Nomor 1)**: Switcher *Terstruktur* vs *Tulis Manual*, input dinamis, tombol `*Miringkan (*I*)`, chip placeholder (`{wilayah}`, `{pejabat}`, `{tahun}`), dan kotak Pratinjau Kalimat Butir 1.
+    2. **Blok 2 — Butir Tambahan Untuk (Nomor 2 dst.)**: Editor daftar butir tambahan yang otomatis menggeser Biaya ke bawahnya.
+    3. **Blok 3 — Pembebanan Biaya & Sumber Dana**: Menampilkan nomor urut dinamis (`Otomatis Butir N`) dan pratinjau kalimat biaya.
+    4. **Blok 4 — Kewajiban Membuat Laporan Tertulis**: Toggle laporan yang selalu menempati butir paling akhir.
+- [`frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx), [`TaskTypesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/TaskTypesTab.tsx), & [`ExpenseTemplatesTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/ExpenseTemplatesTab.tsx):
+  - Menambahkan fitur **"Salin Isian Awal dari Template yang Sudah Ada"** saat membuat Template ST baru.
+  - Memperbaiki live preview `STBuilderPreview` di Pengaturan agar `Mode Input Butir 1 = Tulis Manual` langsung menggunakan `Default Uraian Tugas` + durasi waktu otomatis.
+  - Menambahkan preset cepat, tombol chip placeholder klik-langsung, dan kotak panduan penggunaan di ketiga tab pengaturan.
+- [`backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php):
+  - Menambahkan sanitasi `strip_tags()` pada `template_snapshot.configuration.untuk` dan `custom_nomor_naskah` di trust boundary.
+
+---
+
 # Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan
 
 > Document updated: 2026-10-29
@@ -8857,3 +9477,19 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Ponytail (`/ponytail`)**:
      - Memperbaiki pemanggilan endpoint `/api/kepegawaian/leave-types` (prefix `/api` ganda) menjadi `/kepegawaian/leave-types` di `LeaveTypesTab.tsx`.
      - Mengekstrak fungsi duplikat `templateCodeFromName` dan `errorMessage` ke `st-templates/_components/utils.ts`.
+
+7. **BMN Surat Kuasa Kendaraan (`/bmn/loans`) — Perbaikan Simpan Payload (`79b02679`)**:
+   - Memasukkan `employee_id` secara eksplisit pada payload simpan surat kuasa kendaraan di `backend/app/Http/Controllers/Api/PowerOfAttorneyController.php` dan form frontend guna mencegah HTTP 422 Unprocessable Content.
+
+8. **Surat Masuk Cetak Batch 2-Up, Sifat Surat Tunggal, & Penerusan Balai (`/surat/masuk`) — Commit `1c539f05`, `e813b925`**:
+   - **Cetak Batch 2-Up Sisi Kiri-Kanan**: Memungkinkan seleksi multi-surat pada tabel `/surat/masuk` untuk dicetak berdampingan 2 lembar disposisi per halaman fisik (Letter/Folio Landscape `330mm x 215mm`). Jika ganjil, lembar terakhir hanya mencetak sisi kiri dan sisi kanan dikosongkan bersih agar kertas dapat digunakan kembali.
+   - **Pencegahan Halaman Berlebih**: Isolasi cetak via `createPortal` dan pembatasan kontainer tinggi `213mm` dengan `page-break-before: always` antar lembar, menjamin tepat 1 lembar kertas per 2 nomor agenda tanpa halaman kedua kosong.
+   - **Preservasi Format Fisik Template Disposisi**: Mempertahankan 9 poin template fisik (`1. Ka Sub Bag TU` s.d. `9. PPK FOLU NC 2030`) pada hasil cetak agar pimpinan dapat mencentang dan mendisposisikan secara manual di atas kertas.
+   - **Sifat Surat Tunggal (Single-Select)**: Popover sifat surat interaktif dengan radio/single-select instan (`Biasa`, `Penting`, `Sangat Penting`, `Rahasia`, `Segera`, `Kilat`).
+   - **Diteruskan Ke (Ruang & Pegawai Balai)**: Selector interaktif Diteruskan Ke yang memuat lokasi khusus Balai dari pengaturan BMN dan pegawai khusus Balai KSDA Kaltim, defaulting ke status belum diisi (`+ Pilih Penerus`) sebelum ada arahan pimpinan.
+
+9. **BMN Kandidat Lelang (`/bmn/auction-candidates`) — Penyelarasan Aturan Kelayakan Dokumen Aset (`AuctionAssetDocumentReadinessService.php`)**:
+   - **Alat Angkutan Bermotor ber-No Polisi**: Hanya aset dengan `jenis_bmn` mengandung `ANGKUTAN BERMOTOR` dan memiliki nomor polisi valid (bukan tanda strip `-` atau kosong) yang dievaluasi dokumen lengkap kendaraan (BPKB, STNK, No Rangka, No Mesin, Foto fisik, dan Verifikasi BMN).
+   - **Aset Selain Jenis Tersebut (Non-Kendaraan Ber-Nopol)**: Aset non-kendaraan (Tanah, Bangunan, Mesin/Peralatan TIK & Non-TIK, Peralatan Kantor, Alat Besar) maupun angkutan tanpa nopol hanya mensyaratkan **Foto Fisik** (`jumlah_foto > 0` atau berkas foto fisik) dan **Verifikasi BMN** (`verified_at`). Jika foto dan verifikasi terpenuhi, status dokumen dinyatakan `Ready` (Oke) tanpa menagih BPKB/STNK/mesin/rangka.
+
+

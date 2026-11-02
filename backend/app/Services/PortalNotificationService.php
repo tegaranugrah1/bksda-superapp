@@ -117,4 +117,37 @@ class PortalNotificationService
         }
         return $count;
     }
+
+    /**
+     * Send notification to all admins who have permission for a module,
+     * and broadcast AdminInboxChanged to the module's private WebSocket channel.
+     */
+    public function notifyAdmins(
+        string $module,
+        string $title,
+        string $message,
+        string $type = 'system',
+        ?string $actionTab = null,
+        ?string $referenceId = null,
+        ?array $data = null
+    ): int {
+        // Broadcast to current token-scoped admin channels before creating personal notices.
+        try {
+            event(new \App\Events\AdminInboxChanged($module, 'inbox_updated', $referenceId));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast AdminInboxChanged notifyAdmins failed: '.$e->getMessage());
+        }
+
+        $count = 0;
+        $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
+        foreach ($admins as $admin) {
+            if ($admin->canAccessAdminInbox($module)) {
+                if ($this->notifyUser($admin->id, $title, $message, $type, $actionTab, $referenceId, $data)) {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
+    }
 }

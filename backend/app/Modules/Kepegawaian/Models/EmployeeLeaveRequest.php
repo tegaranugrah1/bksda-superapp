@@ -2,10 +2,12 @@
 
 namespace App\Modules\Kepegawaian\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeLeaveRequest extends Model
 {
@@ -66,5 +68,23 @@ class EmployeeLeaveRequest extends Model
     public function suratKeluar(): BelongsTo
     {
         return $this->belongsTo(\App\Modules\Surat\Models\SuratKeluar::class, 'surat_keluar_id');
+    }
+
+    public function isAnnual(): bool
+    {
+        return (bool) LeaveType::withTrashed()->matchingNameOrCode((string) $this->jenis_cuti)
+            ->first()?->potong_kuota_tahunan;
+    }
+
+    public function scopeAnnual(Builder $query): Builder
+    {
+        // Legacy rows may contain a master code; inactive/deleted types still account for past leave.
+        $types = LeaveType::withTrashed()->where('potong_kuota_tahunan', true);
+        $column = DB::raw('LOWER(TRIM('.$this->qualifyColumn('jenis_cuti').'))');
+
+        return $query->where(function (Builder $annual) use ($types, $column) {
+            $annual->whereIn($column, (clone $types)->selectRaw('LOWER(TRIM(nama))'))
+                ->orWhereIn($column, (clone $types)->whereNotNull('kode')->selectRaw('LOWER(TRIM(kode))'));
+        });
     }
 }

@@ -186,7 +186,7 @@ export default function STBuilderPreview({
   customNomorNaskah = "",
   sertakanLaporan = true,
 }: PreviewProps) {
-  const isFolu = sumberDana === "folu";
+  const isFolu = Boolean(sumberDana && sumberDana.toLowerCase().includes("folu"));
   const activeDateFormat = dateFormatStyle || (isFolu ? "tabular" : "inline");
   const activeTembusanPosition = tembusanPosition || (isFolu ? "bottom" : "beside");
   const activeTembusanLabel = tembusanLabel || (isFolu ? "Tembusan Kepada :" : "Tembusan:");
