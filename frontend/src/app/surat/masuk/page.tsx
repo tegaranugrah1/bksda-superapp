@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import type { SuratMasuk } from "../_lib/surat-types";
 import { ExportSuratMasukModal } from "./_components/ExportSuratMasukModal";
+import { BatchPrintDisposisiModal } from "./_components/BatchPrintDisposisiModal";
+import { DiteruskanCellPopover } from "./_components/DiteruskanCellPopover";
+import { SifatCellPopover } from "./_components/SifatCellPopover";
 
 function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
@@ -52,6 +55,8 @@ export default function SuratMasukListPage() {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBatchPrintModalOpen, setIsBatchPrintModalOpen] = useState(false);
 
   // Pagination states
   const [page, setPage] = useState(1);
@@ -93,6 +98,7 @@ export default function SuratMasukListPage() {
             lampiran: d.lampiran || "",
             catatan: d.catatan || "",
             sifat_json: d.sifat_json || ["Penting"],
+            disposisi: d.disposisi || undefined,
           }))
         : [];
 
@@ -237,6 +243,51 @@ export default function SuratMasukListPage() {
   const startRecord = totalCount === 0 ? 0 : isAll ? 1 : (safePage - 1) * pageSize + 1;
   const endRecord = isAll ? totalCount : Math.min(safePage * pageSize, totalCount);
 
+  const toggleSelectItem = (item: SuratMasuk) => {
+    const key = String(item.id || item.no_agenda);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const allKeys = paginatedList.map((s) => String(s.id || s.no_agenda));
+    const areAllSelected = allKeys.length > 0 && allKeys.every((k) => selectedIds.has(k));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (areAllSelected) {
+        allKeys.forEach((k) => next.delete(k));
+      } else {
+        allKeys.forEach((k) => next.add(k));
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const handleItemUpdated = (updatedItem: SuratMasuk) => {
+    setSuratList((prev) =>
+      prev.map((s) =>
+        s.id === updatedItem.id || (s.no_agenda && s.no_agenda === updatedItem.no_agenda)
+          ? updatedItem
+          : s
+      )
+    );
+  };
+
+  const selectedSuratItems = useMemo(() => {
+    return suratList.filter((s) => selectedIds.has(String(s.id || s.no_agenda)));
+  }, [suratList, selectedIds]);
+
   return (
     <div className="space-y-3.5 px-5 py-4 md:px-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -315,17 +366,39 @@ export default function SuratMasukListPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10.5px]">
                 <tr>
+                  <th className="py-2.5 px-3.5 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        paginatedList.length > 0 &&
+                        paginatedList.every((s) => selectedIds.has(String(s.id || s.no_agenda)))
+                      }
+                      onChange={toggleSelectAll}
+                      aria-label="Pilih semua surat di halaman ini"
+                      className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                    />
+                  </th>
                   <th className="py-2.5 px-3.5">No Agenda</th>
                   <th className="py-2.5 px-3.5">Nomor & Tanggal Surat</th>
                   <th className="py-2.5 px-3.5">Asal Surat / Pengirim</th>
                   <th className="py-2.5 px-3.5">Isi Ringkas / Perihal</th>
                   <th className="py-2.5 px-3.5">Sifat</th>
+                  <th className="py-2.5 px-3.5">Diteruskan Ke</th>
                   <th className="py-2.5 px-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {paginatedList.map((item) => (
-                  <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                  <tr key={item.id} className={`hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors ${selectedIds.has(String(item.id || item.no_agenda)) ? "bg-emerald-50/30 dark:bg-emerald-950/20" : ""}`}>
+                    <td className="py-3 px-3.5 text-center align-middle">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(String(item.id || item.no_agenda))}
+                        onChange={() => toggleSelectItem(item)}
+                        aria-label={`Pilih surat agenda ${item.no_agenda}`}
+                        className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                      />
+                    </td>
                     <td className="py-3 px-3.5 align-middle font-bold text-emerald-600 whitespace-nowrap">
                       <div className="flex items-center gap-1.5 text-[13px]">
                         <FileText className="h-3.5 w-3.5 shrink-0" />
@@ -362,16 +435,11 @@ export default function SuratMasukListPage() {
                     </td>
 
                     <td className="py-3 px-3.5 align-middle whitespace-nowrap">
-                      <div className="flex flex-wrap gap-1">
-                        {(item.sifat_json || ["Penting"]).map((sifat) => (
-                          <span
-                            key={sifat}
-                            className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
-                          >
-                            {sifat}
-                          </span>
-                        ))}
-                      </div>
+                      <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
+                    </td>
+
+                    <td className="py-3 px-3.5 align-middle">
+                      <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
                     </td>
 
                     <td className="py-3 px-3.5 align-middle text-right whitespace-nowrap">
@@ -480,6 +548,49 @@ export default function SuratMasukListPage() {
         onClose={() => setIsExportModalOpen(false)}
         currentSearch={search}
         totalCurrentItems={filtered.length}
+      />
+
+      {/* Floating Batch Selection Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 text-white shadow-2xl backdrop-blur-md border border-zinc-700 animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+              {selectedIds.size}
+            </span>
+            <span className="text-xs font-semibold">
+              Surat Terpilih ({Math.ceil(selectedIds.size / 2)} Lembar Kertas)
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-zinc-700" />
+
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setIsBatchPrintModalOpen(true)}
+            className="h-8 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-xs gap-1.5"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            Cetak 2-Up ({selectedIds.size} Surat)
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClearSelection}
+            className="h-8 px-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl"
+          >
+            Batal
+          </Button>
+        </div>
+      )}
+
+      {/* Batch 2-Up Print Preview Modal */}
+      <BatchPrintDisposisiModal
+        isOpen={isBatchPrintModalOpen}
+        onClose={() => setIsBatchPrintModalOpen(false)}
+        selectedSurat={selectedSuratItems}
       />
     </div>
   );

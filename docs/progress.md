@@ -1,3 +1,21 @@
+# Progress — Cetak Ulang Batch 2-Up & Disposisi Penerusan Ruang/Pegawai Balai (02 November 2026)
+
+> Status: **IMPLEMENTASI SELESAI (Fitur Cetak 2-Up Batch, Kolom Sifat Single-Select Interaktif, dan Diteruskan Ke Ruang/Pegawai Balai Selesai Diimplementasikan; Menunggu Instruksi Pengguna untuk Menjalankan Test)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Analisis Akar (`docs/surat/cetak-2up-batch-dan-penerusan-disposisi-plan.md`).  
+
+## Status Fitur Modul Surat Masuk (`/surat/masuk`)
+
+| Komponen / Fitur | Status & Rencana | Keterangan & Cakupan |
+|---|---|---|
+| **Wawancara Arsitektur `/grill-me`** | **SELESAI (100% Selaras)** | Resolusi seluruh keputusan: checkbox multi-pilih di tabel, cetak batch kelipatan lembar, ekor ganjil 1-Up Kiri (kanan kosong), modal pratinjau in-page tanpa reload, sifat single-select, dan pemisahan template cetak vs penerusan digital pasca-disposisi. |
+| **Penerusan Ruang & Pegawai Balai** | **SELESAI DIIMPLEMENTASIKAN** | Kolom 'Diteruskan Ke' di samping 'Sifat' dengan Popover: default kosong `[]`, memuat Ruangan Balai dari `bmn_locations` (`/api/bmn/locations`) dan Pegawai Balai dari `kpg_employees` (`/api/kepegawaian/employees/select`). Disimpan via `PUT /api/surat-masuk/{id}`. |
+| **Sifat Surat Single-Select (Arahan Pimpinan)** | **SELESAI DIIMPLEMENTASIKAN** | Kolom 'Sifat' interaktif (`SifatCellPopover.tsx`) dan selector di dalam popover penerusan (`DiteruskanCellPopover.tsx`). Dibatasi tepat 1 pilihan (Single-Select: `Biasa`, `Penting`, `Sangat Penting`, `Rahasia`, `Segera`, `Kilat`). |
+| **Cetak Batch 2-Up Multi-Sheet** | **SELESAI DIIMPLEMENTASIKAN** | Komponen `BatchPrintDisposisiModal.tsx` mengemas pasangan surat ke lembar landscape (330mm x 215mm) dengan `break-after: page` dan ekor ganjil sisi kanan kosong memanfaatkan `LembarDisposisiSheet.tsx` (Ponytail). |
+| **Pengujian E2E Playwright Browser** | **STANDBY (Menunggu Konfirmasi User)** | Menunggu aba-aba pengguna ("oke baru test") untuk mengeksekusi suite uji browser Chromium `frontend/tests/surat-masuk-2up-diteruskan.playwright.cjs`. |
+
+---
+
 # Progress — Pengujian Komprehensif Alur Surat Tugas, Approval & Portal Notification (02 November 2026)
 
 > Status: **SEMUA PENGUJIAN AKAR JEROAN & BROWSER E2E SELESAI & TERVERIFIKASI LOKAL (100% Lulus, 7/7 Backend Invariants Green / 30 Assertions, 6/6 Playwright E2E Browser Chromium Green / 9 Assertions, Total 105 Backend Tests Green, 28 Playwright Suites Green)**.  
