@@ -291,6 +291,15 @@ class MealAllowanceController extends Controller
      */
     public function exportExcel(Request $request): StreamedResponse|JsonResponse
     {
+        $request->validate([
+            'batch_id' => 'nullable|integer',
+            'periode_bulan' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+            'penandatangan_nama' => 'nullable|string|max:255',
+            'penandatangan_nip' => 'nullable|string|max:50',
+            'penandatangan_jabatan' => 'nullable|string|max:255',
+            'items' => 'nullable|array',
+        ]);
+
         $items = [];
         $periode = $request->input('periode_bulan');
         $signatory = [

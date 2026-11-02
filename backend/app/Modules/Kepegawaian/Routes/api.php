@@ -123,12 +123,14 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::post('/leave-requests/{id}/generate-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'generateSuratIzin']);
 
         // --- HITUNG UANG MAKAN & REKONSILIASI PRESENSI SIKADIR ---
-        Route::post('/uang-makan/reconcile', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'reconcile']);
+        Route::post('/uang-makan/reconcile', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'reconcile'])
+            ->middleware('throttle:60,1');
         Route::post('/uang-makan/batches', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeBatch']);
         Route::get('/uang-makan/batches', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'indexBatches']);
         Route::get('/uang-makan/batches/{id}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'showBatch']);
         Route::delete('/uang-makan/batches/{id}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyBatch']);
-        Route::post('/uang-makan/export-excel', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'exportExcel']);
+        Route::post('/uang-makan/export-excel', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'exportExcel'])
+            ->middleware('throttle:60,1');
     });
 
     // --- MANAJEMEN HAK AKSES (IAM) ---

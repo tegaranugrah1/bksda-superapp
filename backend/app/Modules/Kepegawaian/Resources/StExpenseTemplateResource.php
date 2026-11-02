@@ -19,8 +19,8 @@ class StExpenseTemplateResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'is_default' => (bool) $this->is_default,
             'sort_order' => (int) ($this->sort_order ?? 0),
-            'created_by' => $this->created_by,
-            'updated_by' => $this->updated_by,
+            'created_by' => $request->user() ? $this->created_by : null,
+            'updated_by' => $request->user() ? $this->updated_by : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

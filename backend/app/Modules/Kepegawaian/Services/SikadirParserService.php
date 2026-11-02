@@ -71,7 +71,9 @@ class SikadirParserService
             return [];
         }
 
-        for ($i = 0; $i < $zip->numFiles; $i++) {
+        // ponytail: limit entries & stream length to prevent zip bomb / memory exhaustion
+        $maxFiles = min($zip->numFiles, 200);
+        for ($i = 0; $i < $maxFiles; $i++) {
             $filename = $zip->getNameIndex($i);
 
             // ponytail/security-audit: Abaikan folder sistem macOS dan file tersembunyi
@@ -87,7 +89,7 @@ class SikadirParserService
                 continue;
             }
 
-            $content = stream_get_contents($stream);
+            $content = stream_get_contents($stream, 5 * 1024 * 1024);
             fclose($stream);
 
             $parsed = $this->parseHtmlContent($content, basename($filename));

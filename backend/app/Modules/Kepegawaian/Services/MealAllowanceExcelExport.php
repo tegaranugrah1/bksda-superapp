@@ -117,7 +117,7 @@ class MealAllowanceExcelExport
         foreach ($items as $idx => $item) {
             $no = $idx + 1;
             $sheet1->setCellValue("A{$row}", $no);
-            $sheet1->setCellValue("B{$row}", strtoupper($item['nama_lengkap']));
+            $sheet1->setCellValue("B{$row}", $this->safeCell(strtoupper((string) ($item['nama_lengkap'] ?? ''))));
 
             $dailyMatrix = $item['daily_matrix'] ?? [];
 
@@ -133,7 +133,7 @@ class MealAllowanceExcelExport
                     // Shading abu-abu akhir pekan / libur
                     $sheet1->getStyle("{$colLetter}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2E8F0');
                 } else {
-                    $sheet1->setCellValue("{$colLetter}{$row}", $status);
+                    $sheet1->setCellValue("{$colLetter}{$row}", $this->safeCell($status));
                 }
             }
 
@@ -181,9 +181,9 @@ class MealAllowanceExcelExport
         // Tanda Tangan Tunggal Kasubbag TU di Kanan Bawah
         $sigCol = $hadirCol;
         $sheet1->setCellValue("{$sigCol}{$legendStartRow}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 1), $kasubbagJabatan . ',');
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 5), $kasubbagNama);
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 6), "NIP. {$kasubbagNip}");
+        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 1), $this->safeCell($kasubbagJabatan) . ',');
+        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 5), $this->safeCell($kasubbagNama));
+        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 6), $this->safeCell("NIP. {$kasubbagNip}"));
 
         $sheet1->getStyle("{$sigCol}" . ($legendStartRow + 5))->getFont()->setBold(true)->setUnderline(true);
         $sheet1->getStyle("{$sigCol}{$legendStartRow}:{$sigCol}" . ($legendStartRow + 6))->getFont()->setSize(9);
@@ -244,14 +244,15 @@ class MealAllowanceExcelExport
         $nomRow = 6;
         foreach ($items as $idx => $item) {
             $sheet2->setCellValue("A{$nomRow}", $idx + 1);
-            $sheet2->setCellValue("B{$nomRow}", $item['nama_lengkap']);
-            $sheet2->setCellValueExplicit("C{$nomRow}", $item['nip'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $sheet2->setCellValue("D{$nomRow}", $item['golongan']);
-            $sheet2->setCellValue("E{$nomRow}", $item['jml_hadir']);
-            $sheet2->setCellValue("F{$nomRow}", $item['tarif_harian']);
+            $sheet2->setCellValue("B{$nomRow}", $this->safeCell((string) ($item['nama_lengkap'] ?? '')));
+            $sheet2->setCellValueExplicit("C{$nomRow}", (string) ($item['nip'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet2->setCellValue("D{$nomRow}", $this->safeCell((string) ($item['golongan'] ?? '')));
+            $sheet2->setCellValue("E{$nomRow}", (int) ($item['jml_hadir'] ?? 0));
+            $sheet2->setCellValue("F{$nomRow}", (float) ($item['tarif_harian'] ?? 0));
             $sheet2->setCellValue("G{$nomRow}", "=E{$nomRow}*F{$nomRow}");
-            $sheet2->setCellValue("H{$nomRow}", $item['persen_pph21'] . '%');
-            $sheet2->setCellValue("I{$nomRow}", "=G{$nomRow}*({$item['persen_pph21']}/100)");
+            $pphRate = max(0, (float) ($item['persen_pph21'] ?? 0));
+            $sheet2->setCellValue("H{$nomRow}", $pphRate . '%');
+            $sheet2->setCellValue("I{$nomRow}", "=G{$nomRow}*({$pphRate}/100)");
             $sheet2->setCellValue("J{$nomRow}", "=G{$nomRow}-I{$nomRow}");
             $sheet2->setCellValue("K{$nomRow}", ($idx + 1) . '. ..............');
 
@@ -290,9 +291,9 @@ class MealAllowanceExcelExport
         // Tanda Tangan di Sheet 2
         $sigRow2 = $nomRow + 3;
         $sheet2->setCellValue("I{$sigRow2}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
-        $sheet2->setCellValue("I" . ($sigRow2 + 1), $kasubbagJabatan . ',');
-        $sheet2->setCellValue("I" . ($sigRow2 + 5), $kasubbagNama);
-        $sheet2->setCellValue("I" . ($sigRow2 + 6), "NIP. {$kasubbagNip}");
+        $sheet2->setCellValue("I" . ($sigRow2 + 1), $this->safeCell($kasubbagJabatan) . ',');
+        $sheet2->setCellValue("I" . ($sigRow2 + 5), $this->safeCell($kasubbagNama));
+        $sheet2->setCellValue("I" . ($sigRow2 + 6), $this->safeCell("NIP. {$kasubbagNip}"));
 
         $sheet2->getStyle("I" . ($sigRow2 + 5))->getFont()->setBold(true)->setUnderline(true);
         $sheet2->getStyle("I{$sigRow2}:I" . ($sigRow2 + 6))->getFont()->setSize(9);
@@ -301,6 +302,16 @@ class MealAllowanceExcelExport
         $spreadsheet->setActiveSheetIndex(0);
 
         return $spreadsheet;
+    }
+
+    private function safeCell(?string $value): string
+    {
+        if ($value === null || $value === '' || $value === '-') {
+            return $value ?? '-';
+        }
+
+        $trimmed = ltrim($value);
+        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$value}" : $value;
     }
 
     protected function namaBulanIndo(int $m): string

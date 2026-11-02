@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 echo "Running Leave Scan Security & Authorization Self-Check...\n";
 
 Storage::fake('local');
+Storage::fake('drive');
 
 $adminUser = User::where('role', 'super_admin')->first() ?: User::first();
 $controller = app(EmployeeLeaveRequestController::class);
@@ -61,6 +62,9 @@ try {
     Auth::login($adminUser);
 
     $approveRes = $controller->adminApprove($reqApprove, $leaveReqA->id);
+    if ($approveRes->getStatusCode() !== 200) {
+        echo "Error: " . $approveRes->getStatusCode() . " - " . $approveRes->getContent() . "\n";
+    }
     assert($approveRes->getStatusCode() === 200, "Approval should return 200");
 
     $leaveReqA->refresh();

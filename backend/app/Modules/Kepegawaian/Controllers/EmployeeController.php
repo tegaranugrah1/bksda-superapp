@@ -487,6 +487,11 @@ class EmployeeController extends Controller
      */
     public function resetPassword(Request $request, $id): JsonResponse
     {
+        $validated = $request->validate([
+            'password' => 'nullable|string|min:8',
+            'mode' => 'nullable|string|in:send_link,generate',
+        ]);
+
         $employee = Employee::findOrFail($id);
 
         $nip = trim((string) $employee->nip);
