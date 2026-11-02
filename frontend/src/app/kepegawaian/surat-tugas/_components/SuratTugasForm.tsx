@@ -395,16 +395,20 @@ export function SuratTugasForm({
       });
       return res.data.data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const searchResults = allEmployees
-    .filter(
-      (emp: Employee) =>
-        (emp.nama_lengkap?.toLowerCase() || emp.name?.toLowerCase() || "").includes(
-          searchQuery.toLowerCase()
-        ) || (emp.nip?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-    )
-    .slice(0, 50);
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return allEmployees
+      .filter(
+        (emp: Employee) =>
+          (emp.nama_lengkap?.toLowerCase() || emp.name?.toLowerCase() || "").includes(q) ||
+          (emp.nip?.toLowerCase() || "").includes(q)
+      )
+      .slice(0, 50);
+  }, [allEmployees, searchQuery]);
 
   // Auto-select pegawai PLH jika dibuat langsung dari ST Induk (nama_plh)
   useEffect(() => {
@@ -2673,6 +2677,7 @@ export function SuratTugasForm({
                       <button
                         key={emp.id}
                         type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
                           if (!selectedEmployees.some((e: Employee) => e.id === emp.id)) {
                             setSelectedEmployees((prev) => [

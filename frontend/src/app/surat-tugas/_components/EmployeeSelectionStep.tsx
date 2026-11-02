@@ -105,7 +105,7 @@ export function EmployeeSelectionStep({
         <label htmlFor="personnel-search" className="block text-xs font-bold text-slate-600 mb-2">
           Cari Personel
         </label>
-        <p id="personnel-search-hint" className="text-xs text-slate-500 mb-2">Masukkan minimal 2 karakter nama atau NIP.</p>
+        <p id="personnel-search-hint" className="text-xs text-slate-500 mb-2">Ketik nama atau NIP pegawai...</p>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400" />
@@ -114,7 +114,7 @@ export function EmployeeSelectionStep({
             type="text"
             id="personnel-search"
             aria-describedby="personnel-search-hint"
-            aria-expanded={showDropdown && searchResults.length > 0 && searchQuery.length >= 2}
+            aria-expanded={showDropdown && searchResults.length > 0 && searchQuery.trim().length >= 1}
             aria-controls="personnel-search-results"
             onKeyDown={(event) => {
               if (event.key === "ArrowDown" && showDropdown) {
@@ -128,9 +128,12 @@ export function EmployeeSelectionStep({
             className="block w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700 shadow-sm"
             placeholder="Nama atau NIP"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowDropdown(true);
+            }}
             onFocus={() => {
-              if (searchResults.length > 0) setShowDropdown(true);
+              if (searchResults.length > 0 || searchQuery.trim().length > 0) setShowDropdown(true);
             }}
           />
           {isSearching && (
@@ -143,10 +146,10 @@ export function EmployeeSelectionStep({
           )}
         </div>
 
-        {!isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
+        {!isSearching && searchQuery.trim().length >= 1 && searchResults.length === 0 && (
           <p role="status" className="mt-2 text-sm text-slate-600">Personel tidak ditemukan. Coba nama atau NIP lain.</p>
         )}
-        {showDropdown && searchResults.length > 0 && searchQuery.length >= 2 && (
+        {showDropdown && searchResults.length > 0 && searchQuery.trim().length >= 1 && (
           <div className="absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden max-h-60 overflow-y-auto">
             <ul id="personnel-search-results" aria-label="Hasil pencarian personel" className="py-2">
               {searchResults.map((emp: Employee) => {
@@ -157,14 +160,15 @@ export function EmployeeSelectionStep({
                   <li key={emp.id}>
                     <button
                       type="button"
+                      onMouseDown={(e) => e.preventDefault()}
                       className={cn(
                         "w-full text-left px-4 py-3 hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600 flex items-center justify-between transition-colors cursor-pointer",
                         isSelected && "bg-slate-50/80"
                       )}
                       aria-pressed={isSelected}
                       onClick={() => {
-                        dropdownRef.current?.querySelector("input")?.focus();
                         toggleEmployee(emp);
+                        dropdownRef.current?.querySelector("input")?.focus();
                       }}
                     >
                       <div className="flex flex-col overflow-hidden">
