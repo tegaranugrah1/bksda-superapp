@@ -104,7 +104,7 @@ export function AssignmentLetterHistory({ employeeId }: { employeeId: string }) 
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Riwayat Penugasan</h3>
         {canWrite && (
-          <Link href={`/kepegawaian/surat-tugas/create?employee_id=${employeeId}`}>
+          <Link href={`/surat-tugas?employee_id=${employeeId}`}>
             <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
               <Plus className="w-4 h-4" />
               Buat Surat Tugas

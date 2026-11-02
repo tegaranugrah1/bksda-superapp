@@ -95,6 +95,26 @@ class LoanService
                 ]);
 
                 $createdLoans[] = $record->load(['asset', 'borrower']);
+
+                try {
+                    event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $record->id));
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
+
+                try {
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $data['borrower_employee_id'],
+                        'Peminjaman Aset BMN',
+                        "Aset {$asset->nama_barang}".($asset->kode_barang ? " ({$asset->kode_barang})" : '').' telah dicatat dipinjamkan kepada Anda.',
+                        'bmn',
+                        'pinjaman',
+                        (string) $record->id,
+                        ['asset_id' => $asset->id, 'loan_id' => $record->id]
+                    );
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
             }
 
             return $createdLoans;
@@ -125,6 +145,26 @@ class LoanService
             ]);
 
             $asset->update(['employee_id' => $employeeId]);
+
+            try {
+                event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $loan->id));
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
+
+            try {
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $employeeId,
+                    'Peminjaman Aset BMN',
+                    "Aset {$asset->nama_barang} telah dicatat dipinjamkan kepada Anda.",
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    ['asset_id' => $asset->id, 'loan_id' => $loan->id]
+                );
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
 
             return $loan;
         });
@@ -195,6 +235,20 @@ class LoanService
                 'new_value' => "Dikembalikan (Kondisi: {$conditionText})",
                 'alasan_perubahan' => 'Pengembalian aset dari peminjaman',
             ]);
+
+            try {
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $loan->employee_id,
+                    'Pengembalian Aset BMN',
+                    "Pengembalian aset {$asset->nama_barang} telah berhasil dicatat.",
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    ['asset_id' => $asset->id, 'loan_id' => $loan->id]
+                );
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
 
             return $loan;
         });

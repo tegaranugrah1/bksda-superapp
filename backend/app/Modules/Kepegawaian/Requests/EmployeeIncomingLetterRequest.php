@@ -8,7 +8,22 @@ class EmployeeIncomingLetterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $fields = ['no_agenda', 'no_surat_masuk', 'asal_surat', 'perihal', 'catatan', 'no_surat_balasan'];
+        $clean = [];
+        foreach ($fields as $field) {
+            if ($this->has($field)) {
+                $val = trim((string) $this->input($field));
+                $clean[$field] = $val !== '' ? strip_tags($val) : null;
+            }
+        }
+        if (!empty($clean)) {
+            $this->merge($clean);
+        }
     }
 
     public function rules(): array

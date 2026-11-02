@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
+  AlertCircle,
   Check,
   CheckCircle,
   Copy,
@@ -9,10 +10,12 @@ import {
   Pencil,
   Plus,
   Save,
-  ToggleLeft,
   Trash2,
   X,
-  Sparkles,
+  FileText,
+  Banknote,
+  Search,
+  SlidersHorizontal,
   Upload,
   Image as ImageIcon,
   RotateCcw,
@@ -20,19 +23,26 @@ import {
   ZoomOut,
   Italic,
 } from "lucide-react";
-import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useRole } from "@/hooks/useRole";
+import { toggleItalicInTextarea } from "@/lib/letter-utils";
 import { EditableItemListSection } from "../../../surat-tugas/_components/EditableItemListSection";
 import STBuilderPreview from "../../../surat-tugas/_components/STBuilderPreview";
 import {
   resolveKopImageUrl,
   isFundingDasarText,
+  isGeneratedLaporanItem,
+  isGeneratedBiayaItem,
+  buildKegiatanDiktumText,
+  buildBiayaTextFor,
+  normalizeTaskTypeName,
   type DasarItem,
   type Employee,
   type StTemplate,
   type StExpenseTemplate,
 } from "../../../surat-tugas/_lib";
+import { templateCodeFromName, errorMessage } from "./utils";
 
 type TemplateKind = StTemplate["type"];
 
@@ -46,23 +56,17 @@ const TEMPLATE_TYPES: Array<{ value: TemplateKind; label: string }> = [
 
 const DEFAULT_NOMOR_SURAT_FORMAT = "/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}";
 
-function templateCodeFromName(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-  if (isAxiosError<{ message?: string }>(error)) {
-    return error.response?.data?.message || fallback;
-  }
-  return fallback;
-}
-
 export function StTemplatesTab() {
+  const { canWrite } = useRole();
   const [templates, setTemplates] = useState<StTemplate[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [expenseTemplates, setExpenseTemplates] = useState<StExpenseTemplate[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [templateStatusFilter, setTemplateStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [deleteTarget, setDeleteTarget] = useState<StTemplate | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isTemplateSubmitting, setIsTemplateSubmitting] = useState(false);
   const [editTemplateId, setEditTemplateId] = useState<number | null>(null);
   const [templateName, setTemplateName] = useState("");
@@ -78,9 +82,43 @@ export function StTemplatesTab() {
   const [nomorSuratFormat, setNomorSuratFormat] = useState(DEFAULT_NOMOR_SURAT_FORMAT);
   const [nomorFormatMode, setNomorFormatMode] = useState<"default" | "manual">("default");
   const [nomorNumberingType, setNomorNumberingType] = useState<"st_pattern" | "naskah_auto">("st_pattern");
-  const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>(
-    "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )"
-  );
+  const [defaultJenisTugas, setDefaultJenisTugas] = useState<string>("Perjalanan Dinas Luar Wilayah");
+  const [defaultSertakanLaporan, setDefaultSertakanLaporan] = useState<boolean>(true);
+  const [availableTaskTypes, setAvailableTaskTypes] = useState<
+    Array<{
+      id: number;
+      nama: string;
+      kode: string;
+      mode_lokasi: string;
+      aturan_durasi: string;
+      default_sertakan_laporan: boolean;
+      contoh_format?: string | null;
+      keterangan?: string | null;
+    }>
+  >([]);
+
+  useEffect(() => {
+    api.get("/kepegawaian/st-task-types/public")
+      .then((res) => {
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          setAvailableTaskTypes(res.data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const activeTaskType = useMemo(() => {
+    return availableTaskTypes.find((t) => t.nama === defaultJenisTugas) || null;
+  }, [availableTaskTypes, defaultJenisTugas]);
+
+  const handleDefaultJenisTugasChange = (val: string) => {
+    const normalized = normalizeTaskTypeName(val);
+    setDefaultJenisTugas(normalized);
+    const matched = availableTaskTypes.find((t) => t.nama === normalized);
+    if (matched && typeof matched.default_sertakan_laporan === "boolean") {
+      setDefaultSertakanLaporan(matched.default_sertakan_laporan);
+    }
+  };
   const [defaultModeKegiatan, setDefaultModeKegiatan] = useState<"structured" | "manual">("structured");
   const [defaultKegiatan, setDefaultKegiatan] = useState<string>("");
   const [untukItems, setUntukItems] = useState<DasarItem[]>([]);
@@ -103,43 +141,19 @@ export function StTemplatesTab() {
   const [activeCard, setActiveCard] = useState<number>(1);
   const isClickingPillRef = useRef(false);
   const headerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const defaultKegiatanRef = useRef<HTMLTextAreaElement | null>(null);
 
   const currentYear = new Date().getFullYear().toString();
 
   const applyItalicToHeader = () => {
-    const textarea = headerTextareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = headerTitle;
+    if (headerTextareaRef.current) {
+      toggleItalicInTextarea(headerTextareaRef.current, headerTitle, setHeaderTitle);
+    }
+  };
 
-    if (start !== end) {
-      const selected = text.slice(start, end);
-      if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
-        const unwrapped = selected.slice(1, -1);
-        const nextText = text.slice(0, start) + unwrapped + text.slice(end);
-        setHeaderTitle(nextText);
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start, start + unwrapped.length);
-        }, 0);
-      } else {
-        const wrapped = `*${selected}*`;
-        const nextText = text.slice(0, start) + wrapped + text.slice(end);
-        setHeaderTitle(nextText);
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(start, start + wrapped.length);
-        }, 0);
-      }
-    } else {
-      const placeholder = "*teks miring*";
-      const nextText = text.slice(0, start) + placeholder + text.slice(end);
-      setHeaderTitle(nextText);
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
-      }, 0);
+  const applyItalicToDefaultKegiatan = () => {
+    if (defaultKegiatanRef.current) {
+      toggleItalicInTextarea(defaultKegiatanRef.current, defaultKegiatan, setDefaultKegiatan);
     }
   };
 
@@ -181,18 +195,18 @@ export function StTemplatesTab() {
     void fetchExpenseTemplates();
   }, [fetchTemplates, fetchEmployees, fetchExpenseTemplates]);
 
-  // Auto-scrollspy for the 6 template form cards based on dominant visible area
+  // Auto-scrollspy for the 7 template form cards based on dominant visible area
   useEffect(() => {
     if (!isTemplateFormOpen) return;
 
-    const cardIds = [1, 2, 3, 4, 5, 6];
+    const cardIds = [1, 2, 3, 4, 5, 6, 7];
 
     const updateActiveCard = () => {
       if (isClickingPillRef.current) return;
 
       const main = document.querySelector("main");
       if (main && main.scrollHeight - main.scrollTop - main.clientHeight < 50) {
-        setActiveCard(6);
+        setActiveCard(7);
         return;
       }
 
@@ -295,7 +309,8 @@ export function StTemplatesTab() {
     setNomorSuratFormat(DEFAULT_NOMOR_SURAT_FORMAT);
     setNomorFormatMode("default");
     setNomorNumberingType("st_pattern");
-    setDefaultJenisTugas("Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )");
+    setDefaultJenisTugas("Perjalanan Dinas Luar Wilayah");
+    setDefaultSertakanLaporan(true);
     setDefaultModeKegiatan("structured");
     setDefaultKegiatan("");
     setUntukItems([]);
@@ -315,18 +330,18 @@ export function StTemplatesTab() {
     setIsTemplateFormOpen(false);
   };
 
-  const handleEditTemplate = (template: StTemplate) => {
-    setActiveCard(1);
-    setEditTemplateId(template.id);
-    setTemplateName(template.name);
-    setTemplateCode(template.code || templateCodeFromName(template.name));
-    setTemplateDescription(template.description || "");
+  const applyTemplatePreset = (template: StTemplate, keepIdentity = false) => {
+    if (!keepIdentity) {
+      setTemplateName(template.name);
+      setTemplateCode(template.code || templateCodeFromName(template.name));
+      setTemplateDescription(template.description || "");
+      setTemplateIsActive(template.is_active);
+      setTemplateIsDefault(template.is_default);
+    }
     setTemplateType(template.type);
     setMenimbangItems(template.menimbang || []);
     setDasarItems(template.dasar || []);
     setSignerId(template.default_signer_employee_id ? String(template.default_signer_employee_id) : "");
-    setTemplateIsActive(template.is_active);
-    setTemplateIsDefault(template.is_default);
 
     const config = template.configuration || {};
     setTemplateConfiguration(config);
@@ -345,9 +360,15 @@ export function StTemplatesTab() {
 
     const existingJenisTugas =
       typeof config.default_jenis_tugas === "string"
-        ? config.default_jenis_tugas
-        : "Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )";
+        ? normalizeTaskTypeName(config.default_jenis_tugas)
+        : "Perjalanan Dinas Luar Wilayah";
     setDefaultJenisTugas(existingJenisTugas);
+
+    const existingSertakanLaporan =
+      typeof config.default_sertakan_laporan === "boolean"
+        ? config.default_sertakan_laporan
+        : true;
+    setDefaultSertakanLaporan(existingSertakanLaporan);
 
     const existingMode = config.default_mode_kegiatan === "manual" ? "manual" : "structured";
     setDefaultModeKegiatan(existingMode);
@@ -356,7 +377,15 @@ export function StTemplatesTab() {
       typeof config.default_kegiatan === "string" ? config.default_kegiatan : "";
     setDefaultKegiatan(existingKegiatan);
 
-    const existingUntuk = Array.isArray(config.untuk) ? config.untuk : [];
+    const existingUntuk = Array.isArray(config.untuk)
+      ? config.untuk.filter((item) => {
+          const text = (item?.text || "").trim();
+          if (!text) return false;
+          if (isGeneratedLaporanItem(text)) return false;
+          if (isGeneratedBiayaItem(text, expenseTemplates)) return false;
+          return true;
+        })
+      : [];
     setUntukItems(existingUntuk);
 
     setHeaderTitle(
@@ -383,7 +412,12 @@ export function StTemplatesTab() {
     const existingKop = typeof config.kop_image_url === "string" ? config.kop_image_url : null;
     setKopImageUrl(existingKop);
     setKopMode(existingKop ? "custom" : "default");
+  };
 
+  const handleEditTemplate = (template: StTemplate) => {
+    setActiveCard(1);
+    setEditTemplateId(template.id);
+    applyTemplatePreset(template, false);
     setIsTemplateFormOpen(true);
   };
 
@@ -458,6 +492,8 @@ export function StTemplatesTab() {
         tembusan_items: tembusanItems.filter((t) => t.trim()),
         sumber_dana: defaultSumberDana.trim() || null,
         default_jenis_tugas: defaultJenisTugas,
+        default_task_type_id: activeTaskType?.id || null,
+        default_sertakan_laporan: defaultSertakanLaporan,
         default_mode_kegiatan: defaultModeKegiatan,
         default_kegiatan: defaultKegiatan.trim() || null,
         untuk: untukItems.filter((i) => i.text.trim()),
@@ -520,38 +556,132 @@ export function StTemplatesTab() {
     }
   };
 
-  const handleDeleteTemplate = async (template: StTemplate) => {
-    if (template.is_system) {
+  const handleDeleteTemplate = async () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.is_system) {
       toast.error("Template sistem tidak dapat dihapus. Nonaktifkan jika tidak digunakan.");
+      setDeleteTarget(null);
       return;
     }
-    if (!window.confirm(`Hapus template ${template.name}?`)) return;
 
     try {
-      await api.delete(`/kepegawaian/st-templates/${template.id}`);
+      setIsDeleting(true);
+      await api.delete(`/kepegawaian/st-templates/${deleteTarget.id}`);
       toast.success("Template berhasil dihapus");
+      setDeleteTarget(null);
       await fetchTemplates();
     } catch (error: unknown) {
       toast.error(errorMessage(error, "Gagal menghapus template"));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
+  const filteredTemplates = useMemo(() => {
+    return templates.filter((item) => {
+      const q = templateSearch.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        item.name.toLowerCase().includes(q) ||
+        (item.code || "").toLowerCase().includes(q) ||
+        (item.description || "").toLowerCase().includes(q);
+      const matchStatus =
+        templateStatusFilter === "all" ||
+        (templateStatusFilter === "active" && item.is_active) ||
+        (templateStatusFilter === "inactive" && !item.is_active);
+      return matchSearch && matchStatus;
+    });
+  }, [templates, templateSearch, templateStatusFilter]);
+
   return (
     <div className="space-y-6">
-      {/* Top Action Bar when list view is shown */}
+      {/* Top Banner & Search Bar when list view is shown */}
       {!isTemplateFormOpen && (
-        <div className="flex justify-end">
-          <button
-            onClick={() => {
-              resetTemplateForm();
-              setActiveCard(1);
-              setIsTemplateFormOpen(true);
-            }}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 transition cursor-pointer"
-          >
-            <Plus className="h-4 w-4" /> Buat Template ST
-          </button>
-        </div>
+        <>
+          <div className="p-4 rounded-2xl bg-linear-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200 dark:border-blue-900/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                  Master Template Surat Tugas (ST)
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
+                  Atur susunan kop surat, format penomoran, konsiderans (Menimbang &amp; Dasar), klausul penugasan, pejabat penandatangan, dan tembusan.
+                </p>
+              </div>
+            </div>
+            {canWrite && (
+              <button
+                type="button"
+                onClick={() => {
+                  resetTemplateForm();
+                  setActiveCard(1);
+                  setIsTemplateFormOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" /> Buat Template ST
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={templateSearch}
+                onChange={(e) => setTemplateSearch(e.target.value)}
+                placeholder="Cari nama template, kode, deskripsi..."
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Status:
+              </span>
+              <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setTemplateStatusFilter("all")}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    templateStatusFilter === "all"
+                      ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  Semua ({templates.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateStatusFilter("active")}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    templateStatusFilter === "active"
+                      ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  Aktif ({templates.filter((t) => t.is_active).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateStatusFilter("inactive")}
+                  className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    templateStatusFilter === "inactive"
+                      ? "bg-white dark:bg-zinc-800 text-rose-600 dark:text-rose-400 shadow-xs"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  Nonaktif ({templates.filter((t) => !t.is_active).length})
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {isTemplateFormOpen ? (
@@ -613,10 +743,11 @@ export function StTemplatesTab() {
                 {[
                   { id: 1, label: "1. Identitas" },
                   { id: 2, label: "2. Kepala & Nomor" },
-                  { id: 3, label: "3. Konsiderans" },
-                  { id: 4, label: "4. Diktum & Biaya" },
-                  { id: 5, label: "5. Kaki Surat & TTD" },
-                  { id: 6, label: "6. Tembusan" },
+                  { id: 3, label: "3. Menimbang" },
+                  { id: 4, label: "4. Dasar Hukum" },
+                  { id: 5, label: "5. Diktum & Biaya" },
+                  { id: 6, label: "6. Kaki Surat & TTD" },
+                  { id: 7, label: "7. Tembusan" },
                 ].map((pill) => (
                   <button
                     key={pill.id}
@@ -654,6 +785,37 @@ export function StTemplatesTab() {
                   </p>
                 </div>
               </div>
+
+              {!editTemplateId && templates.length > 0 && (
+                <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                      Buat Cepat: Salin Isian Awal dari Template yang Sudah Ada
+                    </p>
+                    <p className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                      Menyalin otomatis Menimbang, Dasar, Untuk, Kop, dan Tembusan agar Anda tinggal mengubah bagian yang berbeda saja.
+                    </p>
+                  </div>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const found = templates.find((t) => String(t.id) === e.target.value);
+                      if (found) {
+                        applyTemplatePreset(found, true);
+                        toast.success(`Isian awal disalin dari template "${found.name}"`);
+                      }
+                    }}
+                    className="rounded-xl border border-blue-300 bg-white px-3 py-2 text-xs font-semibold text-blue-900 outline-none focus:border-blue-500 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-200 cursor-pointer shrink-0"
+                  >
+                    <option value="">-- Pilih Template untuk Disalin --</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        Salin dari: {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1049,7 +1211,7 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 3. KARTU KONSIDERANS (MENIMBANG & DASAR) */}
+            {/* 3. KARTU KONSIDERANS — MENIMBANG (PERTIMBANGAN PENUGASAN) */}
             {/* ========================================================================= */}
             <div
               id="card-template-3"
@@ -1061,55 +1223,62 @@ export function StTemplatesTab() {
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                    Konsiderans (Menimbang &amp; Dasar)
+                    Konsiderans — Menimbang (Pertimbangan Penugasan)
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-                    Landasan pertimbangan (huruf a, b...) dan dasar regulasi/DIPA (angka 1, 2...).
+                    Landasan pertimbangan penugasan (huruf a, b, c...) yang selalu diambil dari Template ST ini.
                   </p>
                 </div>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
-                  <EditableItemListSection
-                    title="Default Menimbang"
-                    items={menimbangItems}
-                    onChange={setMenimbangItems}
-                    marker="letter"
-                  />
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
-                  <EditableItemListSection
-                    title="Default Dasar"
-                    items={dasarItems}
-                    onChange={setDasarItems}
-                    onAddItem={handleAddDasarItem}
-                    marker="number"
-                    getItemBadge={(item) => {
-                      if (isFundingDasarText(item.text, expenseTemplates)) {
-                        return (
-                          <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
-                            <Sparkles className="w-3 h-3 text-amber-500" />
-                            <span>Otomatis Sinkron Sumber Dana</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                    description={
-                      <p className="text-[11px] text-slate-400">
-                        Butir dasar anggaran (DIPA/PKS/FOLU) ditandai dengan badge dan akan otomatis
-                        digantikan oleh <em>dasar</em> dari Template Sumber Dana yang dipilih saat surat
-                        tugas dibuat (atau otomatis hilang jika DL 1 / Tanpa Biaya).
-                      </p>
-                    }
-                  />
-                </div>
+              <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-[11px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+                <p>
+                  <b className="text-blue-950 dark:text-blue-200">Cara Penggunaan Menimbang:</b> Gunakan{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                    {"{nama kegiatan}"}
+                  </code>{" "}
+                  agar otomatis terisi dengan nama kegiatan surat di Builder, serta{" "}
+                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                    *kata miring*
+                  </code>{" "}
+                  (atau blok teks + <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-[10px]">Ctrl+I</kbd>) untuk istilah asing seperti <i>*Project Management Unit*</i>.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+                <EditableItemListSection
+                  title="Daftar Poin Menimbang (Huruf a, b, dst.)"
+                  items={menimbangItems}
+                  onChange={setMenimbangItems}
+                  marker="letter"
+                  placeholderChips={[
+                    {
+                      token: "{nama kegiatan}",
+                      desc: "Otomatis diganti dengan Nama Kegiatan & Lokasi dari surat",
+                    },
+                    {
+                      token: "{tahun}",
+                      desc: `Tahun Anggaran berjalan (${currentYear})`,
+                    },
+                    {
+                      token: "{pejabat}",
+                      desc: "Khusus PLH: Jabatan pejabat struktural yang digantikan",
+                    },
+                    {
+                      token: "{wilayah}",
+                      desc: "Khusus PLH: Wilayah Seksi (contoh: Wilayah I Berau)",
+                    },
+                    {
+                      token: "{kegiatan_kasi}",
+                      desc: "Khusus PLH: Kegiatan pejabat yang digantikan",
+                    },
+                  ]}
+                />
               </div>
             </div>
 
             {/* ========================================================================= */}
-            {/* 4. KARTU DIKTUM PENUGASAN (UNTUK & BIAYA) */}
+            {/* 4. KARTU KONSIDERANS — DASAR HUKUM & ANGGARAN */}
             {/* ========================================================================= */}
             <div
               id="card-template-4"
@@ -1118,6 +1287,93 @@ export function StTemplatesTab() {
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
                   4
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                    Konsiderans — Dasar Hukum &amp; Regulasi
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    Landasan hukum/regulasi (angka 1, 2, 3...) yang selalu ditempatkan di urutan paling atas bagian Dasar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-xs space-y-1.5">
+                <p className="font-bold text-blue-950 dark:text-blue-200">
+                  Aturan 3 Lapis Urutan Otomatis Bagian Dasar di ST Builder:
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-blue-200/70 dark:border-blue-800/60">
+                    <b className="text-blue-700 dark:text-blue-300 block">1. Paling Atas (1..k)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Semua butir Dasar dari <b>Template ST</b> ini.
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-emerald-200/70 dark:border-emerald-800/60">
+                    <b className="text-emerald-700 dark:text-emerald-300 block">2. Tengah (Opsional)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Butir Dasar yang ditambah manual di <b>ST Builder</b>.
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-amber-200/70 dark:border-amber-800/60">
+                    <b className="text-amber-700 dark:text-amber-300 block">3. Paling Bawah (Terakhir)</b>
+                    <span className="text-slate-600 dark:text-zinc-400">
+                      Dasar DIPA/PKS dari <b>Template Biaya &amp; Sumber Dana</b> (jika ada).
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+                <EditableItemListSection
+                  title="Daftar Poin Dasar (Angka 1, 2, dst. — Paling Atas)"
+                  items={dasarItems}
+                  onChange={setDasarItems}
+                  onAddItem={handleAddDasarItem}
+                  marker="number"
+                  placeholderChips={[
+                    {
+                      token: "{tahun}",
+                      desc: `Tahun Anggaran berjalan (${currentYear})`,
+                    },
+                    {
+                      token: "{nomor_induk}",
+                      desc: "Khusus PLH: Nomor Surat Tugas Induk",
+                    },
+                    {
+                      token: "{tanggal_induk}",
+                      desc: "Khusus PLH: Tanggal Surat Tugas Induk",
+                    },
+                  ]}
+                  getItemBadge={(item) => {
+                    if (isFundingDasarText(item.text, expenseTemplates)) {
+                      return (
+                        <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
+                          <Banknote className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          <span>Otomatis Sinkron Sumber Dana (Paling Bawah)</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md w-fit">
+                        <span>1. Bawaan Template ST (Paling Atas)</span>
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* 5. KARTU DIKTUM PENUGASAN (UNTUK & BIAYA) */}
+            {/* ========================================================================= */}
+            <div
+              id="card-template-5"
+              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+            >
+              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+                  5
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -1134,16 +1390,33 @@ export function StTemplatesTab() {
                   Default Jenis Tugas
                   <select
                     value={defaultJenisTugas}
-                    onChange={(event) => setDefaultJenisTugas(event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
+                    onChange={(event) => handleDefaultJenisTugasChange(event.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
                   >
-                    <option value="Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )">
-                      Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
-                    </option>
-                    <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                      Melaksanakan Kegiatan ( 1 Hari )
-                    </option>
-                    <option value="Menugaskan Staf">Menugaskan Staf</option>
+                    {availableTaskTypes.length > 0 ? (
+                      availableTaskTypes.map((tt) => (
+                        <option key={tt.id} value={tt.nama}>
+                          {tt.nama}
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Perjalanan Dinas Luar Wilayah">
+                          Perjalanan Dinas Luar Wilayah
+                        </option>
+                        <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                          Perjalanan Dinas Dalam Kawasan / Wilayah
+                        </option>
+                        <option value="Melaksanakan Kegiatan (1 Hari)">
+                          Melaksanakan Kegiatan (1 Hari)
+                        </option>
+                        <option value="Menugaskan Staf">Menugaskan Staf</option>
+                      </>
+                    )}
+                    {availableTaskTypes.length > 0 &&
+                      !availableTaskTypes.some((tt) => tt.nama === defaultJenisTugas) && (
+                        <option value={defaultJenisTugas}>{defaultJenisTugas}</option>
+                      )}
                   </select>
                 </label>
                 <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
@@ -1153,48 +1426,115 @@ export function StTemplatesTab() {
                     onChange={(event) =>
                       setDefaultModeKegiatan(event.target.value as "structured" | "manual")
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
                   >
-                    <option value="structured">Detail Terstruktur (Dari, Ke, Dalam Rangka)</option>
-                    <option value="manual">Tulis Manual (Uraian Tugas Bebas)</option>
+                    <option value="structured">
+                      Detail Terstruktur (Otomatis Gabungan Jenis Tugas + Lokasi + Waktu)
+                    </option>
+                    <option value="manual">
+                      Tulis Manual (Default Uraian Tugas Jadi Utama + Waktu Otomatis)
+                    </option>
                   </select>
                 </label>
               </div>
 
-              <div className="space-y-1">
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
-                  Default Uraian Tugas / Pola Butir 1 (Opsional)
-                  <span className="block text-xs font-normal text-slate-400">
-                    Teks awal tugas pokok pada formulir penugasan. Untuk template PLH, mendukung
-                    placeholder {"{wilayah}"} (contoh: Wilayah I Berau).
-                  </span>
-                  <textarea
-                    value={defaultKegiatan}
-                    onChange={(event) => setDefaultKegiatan(event.target.value)}
-                    rows={2}
-                    placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white text-sm"
-                  />
-                </label>
-                <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">Sisipkan placeholder:</span>
+              {/* Info Ringkas Jenis Tugas Terpilih */}
+              {activeTaskType && defaultModeKegiatan === "structured" && (
+                <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 rounded-xl border border-blue-200/60 dark:border-blue-900/40 text-xs space-y-1.5 animate-in fade-in duration-200">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-blue-950 dark:text-blue-100">{activeTaskType.nama}</span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 uppercase tracking-wider">
+                      {activeTaskType.mode_lokasi === "dalam_kawasan"
+                        ? "Dalam Kawasan"
+                        : activeTaskType.mode_lokasi === "tempat_saja"
+                        ? "Tempat Saja (Pada / Di)"
+                        : "Luar Wilayah (Dari / Ke)"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-200/70 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+                      {activeTaskType.aturan_durasi === "wajib_1_hari" ? "Wajib 1 Hari" : "Durasi Fleksibel"}
+                    </span>
+                  </div>
+                  {activeTaskType.contoh_format && (
+                    <div className="text-[11px] text-blue-800/80 dark:text-blue-300/80 font-mono bg-white/70 dark:bg-zinc-900/50 p-2 rounded-lg border border-blue-100 dark:border-zinc-800">
+                      <span className="font-sans font-bold text-slate-500 dark:text-zinc-400 mr-1">Pola Diktum:</span>
+                      {activeTaskType.contoh_format}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {defaultModeKegiatan === "manual" && (
+                <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/70 dark:border-amber-900/40 text-xs space-y-1 animate-in fade-in duration-200">
+                  <p className="font-bold text-amber-900 dark:text-amber-200">
+                    Mode Tulis Manual Aktif (Seperti PLH / Penugasan Khusus):
+                  </p>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <b>Default Uraian Tugas</b> di bawah akan selalu menjadi kalimat utama <b>Butir 1</b> di Builder (tanpa dibungkus awalan Perjalanan Dinas), dan sistem <b>tetap otomatis menambahkan rentang waktu</b> di akhir kalimat:{" "}
+                    <i>&quot;, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September {currentYear};&quot;</i>.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+                    Default Uraian Tugas / Pola Butir 1 {defaultModeKegiatan === "manual" ? "(Kalimat Utama Butir 1)" : "(Opsional)"}
+                  </label>
                   <button
                     type="button"
-                    onClick={() =>
-                      setDefaultKegiatan((prev) => (prev ? `${prev} {wilayah}` : "{wilayah}"))
-                    }
-                    className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
-                    title="Klik untuk menyisipkan {wilayah} (otomatis terisi nama seksi wilayah)"
+                    onClick={applyItalicToDefaultKegiatan}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 font-serif text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
+                    title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
                   >
-                    + {"{wilayah}"}
+                    <Italic className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    <span className="italic font-bold">Miringkan (*I*)</span>
                   </button>
+                </div>
+                <span className="block text-xs font-normal text-slate-400">
+                  {defaultModeKegiatan === "manual"
+                    ? "Tulis kalimat utama penugasan (tanpa tanggal). Tanggal & lama hari akan ditempel otomatis di ujung kalimat saat surat dibuat."
+                    : "Teks awal maksud/kegiatan pada formulir penugasan. Mendukung huruf miring (*kata*) dan placeholder di bawah."}
+                </span>
+                <textarea
+                  ref={defaultKegiatanRef}
+                  value={defaultKegiatan}
+                  onChange={(event) => setDefaultKegiatan(event.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                      e.preventDefault();
+                      applyItalicToDefaultKegiatan();
+                    }
+                  }}
+                  rows={2}
+                  placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white text-sm"
+                />
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+                  <span className="text-[11px] text-slate-400 font-medium">Sisipkan placeholder:</span>
+                  {[
+                    { tag: "{wilayah}", desc: "Nama Wilayah / Seksi (contoh: Wilayah I Berau)" },
+                    { tag: "{pejabat}", desc: "Jabatan Pejabat yang Digantikan" },
+                    { tag: "{tahun}", desc: "Tahun Anggaran" },
+                  ].map((chip) => (
+                    <button
+                      key={chip.tag}
+                      type="button"
+                      onClick={() =>
+                        setDefaultKegiatan((prev) => (prev ? `${prev} ${chip.tag}` : chip.tag))
+                      }
+                      className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                      title={`Klik untuk menyisipkan ${chip.tag} (${chip.desc})`}
+                    >
+                      + {chip.tag}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Default Butir Tambahan Untuk */}
               <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
                 <EditableItemListSection
-                  title="Default Butir Tambahan (Untuk)"
+                  title="Default Butir Tambahan (Untuk — Mulai Nomor 2 dst.)"
                   items={untukItems}
                   onChange={setUntukItems}
                   marker="number"
@@ -1202,17 +1542,32 @@ export function StTemplatesTab() {
                   description={
                     <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1">
                       <p>
-                        Klausul penugasan tambahan mulai <strong>butir ke-2</strong> (contoh: kewajiban
-                        konsultasi atau laporan tertulis).
+                        Klausul penugasan tambahan mulai <strong>Butir ke-2</strong>. Saat template ini dipilih di Builder, daftar di sini akan <strong>menimpa seluruh butir tambahan Untuk sebelumnya</strong>.
                       </p>
                       <p className="text-[11px] text-slate-400">
-                        * Catatan: Butir <strong>nomor 1</strong> selalu otomatis berupa uraian tugas &amp;
-                        durasi dinas dari form pembuatan surat, dan butir <strong>terakhir</strong> adalah
-                        pembebanan biaya dari Template Sumber Dana (otomatis ditiadakan jika DL 1 /
-                        Tanpa Biaya).
+                        * Urutan Otomatis Bagian Untuk: <strong>1. Tugas Utama &amp; Waktu</strong> → <strong>2..k. Butir Tambahan (Untuk)</strong> → <strong>Biaya (Otomatis turun ke bawah Butir Tambahan)</strong> → <strong>Laporan Tertulis (Selalu Terakhir)</strong>.
                       </p>
                     </div>
                   }
+                />
+              </div>
+
+              {/* Toggle Kewajiban Membuat Laporan Tertulis Bawaan */}
+              <div className="p-3 bg-slate-100/70 dark:bg-zinc-800/60 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
+                <div>
+                  <label htmlFor="chk_template_laporan" className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer">
+                    Kewajiban Membuat Laporan Tertulis Bawaan
+                  </label>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Menyertakan klausul laporan (paling lambat 7 hari kerja) otomatis di baris paling akhir pada bagian Untuk.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="chk_template_laporan"
+                  checked={defaultSertakanLaporan}
+                  onChange={(e) => setDefaultSertakanLaporan(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
               </div>
 
@@ -1232,7 +1587,7 @@ export function StTemplatesTab() {
                     ))}
                   </select>
                   <span className="block text-xs font-normal text-slate-400">
-                    Jika dipilih, sumber dana ini otomatis terpilih saat template ST ini digunakan.
+                    Terhubung 2 arah: sumber dana ini otomatis terpilih saat template ST digunakan, dan pengajuan dari <code>/surat-tugas</code> atau Builder dengan sumber dana ini otomatis memilih template ST ini.
                   </span>
                 </label>
 
@@ -1270,15 +1625,15 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 5. KARTU KAKI SURAT & PENGESAHAN (TANDA TANGAN) */}
+            {/* 6. KARTU KAKI SURAT & PENGESAHAN (TANDA TANGAN) */}
             {/* ========================================================================= */}
             <div
-              id="card-template-5"
+              id="card-template-6"
               className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
             >
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
-                  5
+                  6
                 </span>
                 <div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -1434,16 +1789,16 @@ export function StTemplatesTab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* 6. KARTU TEMBUSAN */}
+            {/* 7. KARTU TEMBUSAN */}
             {/* ========================================================================= */}
             <div
-              id="card-template-6"
+              id="card-template-7"
               className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
             >
               <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
                 <div className="flex items-center gap-2.5">
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
-                    6
+                    7
                   </span>
                   <div>
                     <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Tembusan</h3>
@@ -1583,7 +1938,7 @@ export function StTemplatesTab() {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
                     Live Preview (Lembar A4)
                   </span>
@@ -1752,13 +2107,60 @@ export function StTemplatesTab() {
                           "emp-sample-1": "Samarinda",
                           "emp-sample-2": "Balikpapan",
                         }}
-                        buildUntukText={() =>
-                          defaultKegiatan.trim() ||
-                          "Melaksanakan koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi."
-                        }
-                        buildBiayaText={() =>
-                          templateBiayaText ? templateBiayaText.replace(/{tahun}/g, currentYear) : ""
-                        }
+                        sertakanLaporan={defaultSertakanLaporan}
+                        buildUntukText={() => {
+                          const currentModeLokasi = activeTaskType?.mode_lokasi || (
+                            defaultJenisTugas.toLowerCase().includes("dalam kawasan") ? "dalam_kawasan" :
+                            defaultJenisTugas.toLowerCase().includes("perjalanan dinas") || defaultJenisTugas.toLowerCase().includes("luar wilayah") ? "luar_wilayah" :
+                            "tempat_saja"
+                          );
+                          const sampleKegiatan = defaultKegiatan.trim() || "koordinasi dan verifikasi teknis lapangan perlindungan kawasan konservasi";
+
+                          if (templateType === "plh" || defaultModeKegiatan === "manual") {
+                            const manualBase = (
+                              defaultKegiatan.trim() ||
+                              "Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah Wilayah I Berau"
+                            )
+                              .replace(/\{wilayah\}/gi, "Wilayah I Berau")
+                              .replace(/\{pejabat\}/gi, "Kepala Seksi Konservasi Sumber Daya Alam Wilayah Wilayah I Berau")
+                              .replace(/\{tahun\}/gi, currentYear)
+                              .trim()
+                              .replace(/[;,.]+$/, "");
+                            if (activeTaskType?.aturan_durasi === "wajib_1_hari") {
+                              return `${manualBase}, selama 1 (satu) hari pada tanggal 15 September ${currentYear};`;
+                            }
+                            return `${manualBase}, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
+                          }
+
+                          const diktum = buildKegiatanDiktumText({
+                            modeLokasi: currentModeLokasi,
+                            jenisTugas: defaultJenisTugas,
+                            kotaAsal: "Samarinda",
+                            kotaTujuan: currentModeLokasi === "dalam_kawasan" ? "Kabupaten Paser" : "Kabupaten Kutai Barat",
+                            tempatSpesifik: currentModeLokasi === "dalam_kawasan" ? "Cagar Alam Teluk Adang" : "Suaka Badak Kelian",
+                            namaKegiatanText: sampleKegiatan,
+                            untukKegiatanText: "Pemeriksaan Pekerjaan",
+                            contohFormat: activeTaskType?.contoh_format,
+                          });
+
+                          if (activeTaskType?.aturan_durasi === "wajib_1_hari" || defaultJenisTugas.includes("1 Hari")) {
+                            return `${diktum}, selama 1 (satu) hari pada tanggal 15 September ${currentYear};`;
+                          }
+
+                          return `${diktum}, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September ${currentYear};`;
+                        }}
+                        buildBiayaText={() => {
+                          if (templateBiayaText && templateBiayaText.trim()) {
+                            return templateBiayaText.replace(/{tahun}/g, currentYear);
+                          }
+                          return buildBiayaTextFor(
+                            defaultSumberDana || "dipa",
+                            "",
+                            currentYear,
+                            templateType,
+                            expenseTemplates
+                          );
+                        }}
                         kotaSurat="Samarinda"
                         tanggalSurat={`28 September ${currentYear}`}
                         kepalaBalai={{
@@ -1791,126 +2193,206 @@ export function StTemplatesTab() {
           </div>
         </div>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          {isLoadingTemplates ? (
-            <div className="flex justify-center p-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            </div>
-          ) : templates.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">Belum ada template Surat Tugas.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-zinc-800/60 dark:text-zinc-400">
+        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 dark:bg-zinc-900/50 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
+                <tr>
+                  <th className="py-3.5 px-4 w-12 text-center">No</th>
+                  <th className="py-3.5 px-4 min-w-[260px]">Template Surat Tugas</th>
+                  <th className="py-3.5 px-4 min-w-[160px]">Tipe Format</th>
+                  <th className="py-3.5 px-4 min-w-[190px]">Penandatangan Default</th>
+                  <th className="py-3.5 px-4 w-28 text-center">Status</th>
+                  {canWrite && <th className="py-3.5 px-4 w-32 text-center">Aksi</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                {isLoadingTemplates ? (
                   <tr>
-                    <th className="px-5 py-4">Template</th>
-                    <th className="px-5 py-4">Tipe</th>
-                    <th className="px-5 py-4">Penandatangan</th>
-                    <th className="px-5 py-4">Status</th>
-                    <th className="px-5 py-4 text-right">Aksi</th>
+                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-slate-400">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                      Memuat daftar template Surat Tugas...
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                  {templates.map((template) => (
+                ) : filteredTemplates.length === 0 ? (
+                  <tr>
+                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-slate-400">
+                      <AlertCircle className="w-8 h-8 text-slate-300 dark:text-zinc-700 mx-auto mb-2" />
+                      {templateSearch || templateStatusFilter !== "all"
+                        ? "Tidak ada template Surat Tugas yang sesuai kriteria pencarian."
+                        : "Belum ada template Surat Tugas."}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTemplates.map((template, index) => (
                     <tr
                       key={template.id}
-                      className="text-slate-600 dark:text-zinc-300 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30"
+                      className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/40 transition-colors"
                     >
-                      <td className="px-5 py-4">
-                        <div className="font-semibold text-zinc-900 dark:text-white">
-                          {template.name}
+                      <td className="py-3.5 px-4 text-center font-mono text-slate-400">
+                        {index + 1}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+                            {template.name}
+                          </span>
+                          {template.code && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 font-mono text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                              {template.code}
+                            </span>
+                          )}
+                          {template.is_default && (
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-200 dark:border-indigo-800">
+                              Default
+                            </span>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            v{template.version} · {template.is_system ? "Sistem" : "Custom"}
+                          </span>
                         </div>
-                        <div className="text-xs text-slate-400">
-                          {template.code || "tanpa-kode"} · v{template.version}{" "}
-                          {template.is_system ? "· Sistem" : "· Custom"}
-                        </div>
-                        <div className="mt-1 max-w-2xl text-xs text-slate-500 line-clamp-2">
-                          {template.description || "Tidak ada deskripsi"}
+                        <div className="mt-1 max-w-2xl text-xs text-slate-500 dark:text-zinc-400 line-clamp-2">
+                          {template.description || "—"}
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-xs">
+
+                      <td className="py-3.5 px-4">
                         {template.type === "beda_hari" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/60">
-                            Beda Hari • Ada Lampiran
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                            Beda Hari • Lampiran
                           </span>
                         ) : (
-                          <span className="uppercase font-mono text-xs text-slate-600 dark:text-zinc-400">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 uppercase font-mono">
                             {template.type}
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-xs">
-                        <div className="font-medium text-slate-700 dark:text-zinc-200">
+
+                      <td className="py-3.5 px-4">
+                        <div className="font-medium text-zinc-800 dark:text-zinc-200">
                           {template.default_signer_name || "Default manual"}
                         </div>
-                        <div className="text-slate-400">{template.default_signer_nip || ""}</div>
+                        {template.default_signer_nip && (
+                          <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+                            NIP. {template.default_signer_nip}
+                          </div>
+                        )}
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          <span
-                            className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                              template.is_active
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                                : "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400"
-                            }`}
-                          >
-                            {template.is_active ? "Aktif" : "Nonaktif"}
-                          </span>
-                          {template.is_default && (
-                            <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                              Default
-                            </span>
+
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          type="button"
+                          disabled={!canWrite}
+                          onClick={() => canWrite && void handleToggleTemplateActive(template)}
+                          title={canWrite ? "Klik untuk ubah status aktif/nonaktif" : undefined}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                            canWrite ? "cursor-pointer" : "cursor-default"
+                          } ${
+                            template.is_active
+                              ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
+                              : "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200"
+                          }`}
+                        >
+                          {template.is_active ? (
+                            <>
+                              <Check className="w-3 h-3" /> Aktif
+                            </>
+                          ) : (
+                            <>
+                              <X className="w-3 h-3" /> Nonaktif
+                            </>
                           )}
-                        </div>
+                        </button>
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-1">
-                          <button
-                            title="Edit"
-                            onClick={() => handleEditTemplate(template)}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-zinc-800 cursor-pointer"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            title="Jadikan default"
-                            onClick={() => void handleSetDefaultTemplate(template.id)}
-                            disabled={template.is_default || !template.is_active}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-30 dark:hover:bg-zinc-800 cursor-pointer"
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            title="Aktif/nonaktif"
-                            onClick={() => void handleToggleTemplateActive(template)}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-zinc-800 cursor-pointer"
-                          >
-                            <ToggleLeft className="h-4 w-4" />
-                          </button>
-                          <button
-                            title="Duplikasi"
-                            onClick={() => void handleDuplicateTemplate(template.id)}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-zinc-800 cursor-pointer"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                          <button
-                            title="Hapus"
-                            onClick={() => void handleDeleteTemplate(template)}
-                            disabled={template.is_system}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-30 dark:hover:bg-zinc-800 cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+
+                      {canWrite && (
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              title="Edit Template"
+                              onClick={() => handleEditTemplate(template)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Jadikan Default"
+                              onClick={() => void handleSetDefaultTemplate(template.id)}
+                              disabled={template.is_default || !template.is_active}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-30 transition-colors cursor-pointer"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Duplikasi Template"
+                              onClick={() => void handleDuplicateTemplate(template.id)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              title="Hapus Template"
+                              onClick={() => setDeleteTarget(template)}
+                              disabled={template.is_system}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-30 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                  Hapus Template Surat Tugas?
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  Template <strong>{deleteTarget.name}</strong> akan dihapus. Surat tugas yang sudah pernah dibuat dengan template ini tetap aman.
+                </p>
+              </div>
             </div>
-          )}
-        </section>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteTemplate()}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Ya, Hapus Template
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

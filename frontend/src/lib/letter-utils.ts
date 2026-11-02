@@ -1,3 +1,5 @@
+import React from "react";
+
 /**
  * Format tanggal ke format surat Indonesia.
  * formatDateIndonesian("2024-03-15") → "15 Maret 2024"
@@ -118,7 +120,10 @@ export function daysBetween(start: string, end: string): number {
  */
 export function formatNIP(nip: string | null | undefined): string {
     if (!nip) return '...';
-    if (nip.startsWith('MMP-')) return '-';
+    const trimmed = nip.trim();
+    if (!trimmed || trimmed === '-' || trimmed.toUpperCase().startsWith('MMP-') || trimmed.toUpperCase() === 'MMP') {
+        return '-';
+    }
     const cleaned = nip.replace(/\s/g, '');
     if (cleaned.length !== 18) return cleaned;
     return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
@@ -199,4 +204,67 @@ export function isGeneratedFoluMenimbangText(text: string | null | undefined): b
         text?.startsWith('bahwa dalam upaya menjaga kelestarian keanekaragaman hayati') &&
         text.includes('perlu dilakukan kegiatan pengamanan dan perlindungan')
     );
+}
+
+/**
+ * Render teks dengan konversi markdown *teks miring* ke elemen React italic (<em ...>).
+ * Aman dari XSS karena teks murni dipecah dan dimasukkan ke text node React.
+ */
+export function renderFormattedItalic(text?: string | null): React.ReactNode {
+    if (!text) return null;
+    const parts = String(text).split(/(\*(?!\s)[^*\r\n]+?(?<!\s)\*)/g);
+    if (parts.length === 1) return text;
+    return parts.map((part, i) => {
+        if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+            return React.createElement(
+                "em",
+                { key: i, className: "italic", style: { fontStyle: "italic" } },
+                part.slice(1, -1)
+            );
+        }
+        return part;
+    });
+}
+
+/**
+ * Toggle atau sisipkan pembungkus asteriks (*teks*) pada elemen HTMLTextAreaElement.
+ * Memanggil callback onUpdate dengan teks baru dan mempertahankan/mengatur seleksi cursor.
+ */
+export function toggleItalicInTextarea(
+    textarea: HTMLTextAreaElement,
+    currentValue: string,
+    onUpdate: (newValue: string) => void
+) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = currentValue || "";
+
+    if (start !== end) {
+        const selected = text.slice(start, end);
+        if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
+            const unwrapped = selected.slice(1, -1);
+            const nextText = text.slice(0, start) + unwrapped + text.slice(end);
+            onUpdate(nextText);
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start, start + unwrapped.length);
+            }, 0);
+        } else {
+            const wrapped = `*${selected}*`;
+            const nextText = text.slice(0, start) + wrapped + text.slice(end);
+            onUpdate(nextText);
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start, start + wrapped.length);
+            }, 0);
+        }
+    } else {
+        const placeholder = "*teks miring*";
+        const nextText = text.slice(0, start) + placeholder + text.slice(end);
+        onUpdate(nextText);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
+        }, 0);
+    }
 }

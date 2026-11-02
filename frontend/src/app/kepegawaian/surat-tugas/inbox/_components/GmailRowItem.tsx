@@ -6,6 +6,7 @@ import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
   getStatusLabel,
+  needsBuilderCompletion,
   getResolvedTempatTujuan,
   extractDalamRangka,
   formatAssignmentDateRange,
@@ -23,6 +24,7 @@ interface GmailRowItemProps {
   onQuickEdit?: (letter: AssignmentLetter) => void;
   onQuickDelete?: (id: string) => void;
   onQuickRestore?: (id: string) => void;
+  onQuickForceDelete?: (id: string) => void;
   isTrashView: boolean;
   isActive: boolean;
 }
@@ -37,10 +39,12 @@ export function GmailRowItem({
   onQuickEdit,
   onQuickDelete,
   onQuickRestore,
+  onQuickForceDelete,
   isTrashView,
   isActive,
 }: GmailRowItemProps) {
   const isPending = letter.status === "pending" || letter.status === "draft";
+  const needsCompletion = needsBuilderCompletion(letter);
   const employees = letter.employees || [];
   const primaryName = employees[0]?.nama_lengkap || "Tanpa Personel";
   const extraCount = employees.length > 1 ? employees.length - 1 : 0;
@@ -216,20 +220,21 @@ export function GmailRowItem({
                 onQuickApprove(letter);
               }}
               className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded text-emerald-600 dark:text-emerald-400 transition-colors"
-              title="Setujui & Terbitkan Surat Tugas"
+              title={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
+              aria-label={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
             </button>
           )}
 
-          {onQuickDownload && (
+          {onQuickDownload && Boolean(letter.file_surat_path) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onQuickDownload(letter);
               }}
               className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 transition-colors"
-              title="Unduh PDF"
+              title="Unduh Dokumen Dasar"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
@@ -266,7 +271,32 @@ export function GmailRowItem({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onQuickDelete(letter.id);
+                  onQuickDelete?.(letter.id);
+                }}
+                className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 transition-colors"
+                title="Pindahkan ke sampah"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )
+          )}
+          {isTrashView && onQuickForceDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickForceDelete(letter.id);
+              }}
+              className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+              title="Hapus permanen"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {false && onQuickDelete && ((
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onQuickDelete?.(letter.id);
                 }}
                 className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 transition-colors"
                 title="Pindahkan ke sampah"

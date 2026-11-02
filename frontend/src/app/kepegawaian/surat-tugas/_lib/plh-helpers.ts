@@ -7,7 +7,93 @@ import {
   PLH_KEGIATAN_KASI_PLACEHOLDER,
   PLH_NOMOR_INDUK_PLACEHOLDERS,
   PLH_TANGGAL_INDUK_PLACEHOLDERS,
+  PLH_PEJABAT_PLACEHOLDERS,
+  PLH_KEGIATAN_PEJABAT_PLACEHOLDERS,
+  PLH_KASUBBAG_TU_TITLE,
 } from "./constants";
+
+export type PlhTargetRole =
+  | "kasubbag_tu"
+  | "seksi_1"
+  | "seksi_2"
+  | "seksi_3"
+  | "custom";
+
+export interface PlhTargetOption {
+  id: PlhTargetRole;
+  label: string;
+  shortLabel: string;
+  pejabatTitle: string;
+  defaultLocation: string;
+  wilayah: string;
+}
+
+export const PLH_TARGET_OPTIONS: PlhTargetOption[] = [
+  {
+    id: "kasubbag_tu",
+    label: "Kepala Subbagian Tata Usaha",
+    shortLabel: "Kasubbag TU",
+    pejabatTitle: PLH_KASUBBAG_TU_TITLE,
+    defaultLocation: "Samarinda",
+    wilayah: "Balai Samarinda",
+  },
+  {
+    id: "seksi_1",
+    label: "Kepala Seksi KSDA Wilayah I (Berau)",
+    shortLabel: "Kasi Wilayah I",
+    pejabatTitle: "Kepala Seksi Konservasi Sumber Daya Alam Wilayah I",
+    defaultLocation: "Wilayah I Berau",
+    wilayah: "I",
+  },
+  {
+    id: "seksi_2",
+    label: "Kepala Seksi KSDA Wilayah II (Tenggarong)",
+    shortLabel: "Kasi Wilayah II",
+    pejabatTitle: "Kepala Seksi Konservasi Sumber Daya Alam Wilayah II",
+    defaultLocation: "Wilayah II Tenggarong",
+    wilayah: "II",
+  },
+  {
+    id: "seksi_3",
+    label: "Kepala Seksi KSDA Wilayah III (Balikpapan)",
+    shortLabel: "Kasi Wilayah III",
+    pejabatTitle: "Kepala Seksi Konservasi Sumber Daya Alam Wilayah III",
+    defaultLocation: "Wilayah III Balikpapan",
+    wilayah: "III",
+  },
+];
+
+export function isKasubbagTuPosition(text?: string | null): boolean {
+  const s = (text || "").toLowerCase();
+  return (
+    s.includes("kepala subbagian tata usaha") ||
+    s.includes("subbagian tata usaha") ||
+    s.includes("kasubag tu") ||
+    s.includes("kasubbag tu") ||
+    s.includes("kepala subbagian tu")
+  );
+}
+
+export function detectPlhTargetRole(positionOrDept?: string | null): PlhTargetRole {
+  const s = (positionOrDept || "").toLowerCase();
+  if (isKasubbagTuPosition(s)) {
+    return "kasubbag_tu";
+  }
+  if (s.includes("wilayah i ") || s.includes("wilayah 1") || s.includes("berau")) {
+    return "seksi_1";
+  }
+  if (s.includes("wilayah ii ") || s.includes("wilayah 2") || s.includes("tenggarong")) {
+    return "seksi_2";
+  }
+  if (s.includes("wilayah iii ") || s.includes("wilayah 3") || s.includes("balikpapan")) {
+    return "seksi_3";
+  }
+  return "seksi_1";
+}
+
+export function getPlhTargetOption(role: PlhTargetRole): PlhTargetOption {
+  return PLH_TARGET_OPTIONS.find((opt) => opt.id === role) || PLH_TARGET_OPTIONS[0];
+}
 
 /**
  * Extract nama wilayah dari field `position` pegawai.
@@ -15,6 +101,9 @@ import {
  */
 export function extractPlhWilayahFromPosition(position?: string | null) {
   const text = (position || "").trim();
+  if (isKasubbagTuPosition(text)) {
+    return "Balai Samarinda";
+  }
   const match = text.match(/Seksi\s+(?:Konservasi\s+Sumber\s+Daya\s+Alam|KSDA)?\s*Wilayah\s+([^()]+)/i);
   if (match?.[1]?.trim()) {
     return match[1].trim();
@@ -24,7 +113,7 @@ export function extractPlhWilayahFromPosition(position?: string | null) {
 }
 
 /**
- * Bersihkan teks kegiatan Kepala Seksi dari suffix "selama X (kata) hari terhitung..."
+ * Bersihkan teks kegiatan Kepala Seksi / Kasubbag TU dari suffix "selama X (kata) hari terhitung..."
  * yang biasanya di-append oleh `buildUntukText`.
  */
 export function cleanPlhKegiatanKasi(text?: string | null) {
@@ -36,26 +125,22 @@ export function cleanPlhKegiatanKasi(text?: string | null) {
 }
 
 /**
- * Format dan sanitasi teks kegiatan Kepala Seksi untuk dimasukkan ke dalam kalimat template Menimbang.
- *
- * Logika:
- * 1. Jika kalimat template sebelum placeholder sudah memiliki kata "melaksanakan" (misal: "akan melaksanakan {kegiatan...}"):
- *    - Hapus kata 'Melaksanakan' / 'melaksanakan' di awal teks kegiatan agar tidak dobel.
- *    - Contoh: "Melaksanakan Perjalanan Dinas..." -> "Perjalanan Dinas..."
- *      Hasil kalimat: "... akan melaksanakan Perjalanan Dinas..."
- * 2. Jika kalimat template TIDAK memiliki kata "melaksanakan" sebelum placeholder (misal: "akan {kegiatan...}"):
- *    - Jika teks kegiatan diawali kata 'Melaksanakan', ubah huruf kapital 'M' menjadi huruf kecil 'm'.
- *    - Contoh: "Melaksanakan Perjalanan Dinas..." -> "melaksanakan Perjalanan Dinas..."
- *      Hasil kalimat: "... akan melaksanakan Perjalanan Dinas..."
- * 3. Jika teks kegiatan TIDAK diawali kata 'melaksanakan' sama sekali:
- *    - Jika diawali huruf kapital dan kata sebelumnya kata sambung seperti 'akan', jadikan huruf pertama lowercase.
+ * Format dan sanitasi teks kegiatan Pejabat untuk dimasukkan ke dalam kalimat template Menimbang.
  */
 export function formatPlhKegiatanForTemplate(templateSentence: string, kegiatan: string): string {
   const cleanKegiatan = cleanPlhKegiatanKasi(kegiatan);
   if (!cleanKegiatan) return "...";
 
-  const beforePlaceholder = templateSentence.split(PLH_KEGIATAN_KASI_PLACEHOLDER)[0] || "";
-  const hasMelaksanakanBefore = /\bmelaksanakan\s*$/i.test(beforePlaceholder.trim()) ||
+  let beforePlaceholder = "";
+  for (const ph of PLH_KEGIATAN_PEJABAT_PLACEHOLDERS) {
+    if (templateSentence.includes(ph)) {
+      beforePlaceholder = templateSentence.split(ph)[0] || "";
+      break;
+    }
+  }
+
+  const hasMelaksanakanBefore =
+    /\bmelaksanakan\s*$/i.test(beforePlaceholder.trim()) ||
     /\bmelaksanakan\b/i.test(beforePlaceholder.slice(-25));
 
   const startsWithMelaksanakan = /^melaksanakan\b/i.test(cleanKegiatan);
@@ -78,6 +163,8 @@ export function formatPlhKegiatanForTemplate(templateSentence: string, kegiatan:
 }
 
 export interface PlhPlaceholderContext {
+  targetRole?: PlhTargetRole;
+  pejabatTitle?: string | null;
   wilayah?: string | null;
   kegiatanKasi?: string | null;
   nomorInduk?: string | null;
@@ -85,21 +172,56 @@ export interface PlhPlaceholderContext {
 }
 
 /**
- * Ganti semua jenis placeholder PLH di teks ({wilayah}, {kegiatan Kepala Seksi}, {nomor surat induk}, {tanggal surat induk}).
+ * Ganti semua jenis placeholder PLH di teks ({pejabat_struktural}, {wilayah}, {kegiatan pejabat}, {nomor surat induk}, {tanggal surat induk}).
  */
 export function replacePlhAllPlaceholders(text: string, context: PlhPlaceholderContext): string {
   if (!text) return "";
   let result = text;
 
+  const isKasubbag =
+    context.targetRole === "kasubbag_tu" ||
+    isKasubbagTuPosition(context.pejabatTitle) ||
+    isKasubbagTuPosition(context.wilayah);
+
+  const activePejabatTitle =
+    context.pejabatTitle?.trim() ||
+    (isKasubbag
+      ? PLH_KASUBBAG_TU_TITLE
+      : `Kepala Seksi Konservasi Sumber Daya Alam Wilayah ${context.wilayah?.trim() || "..."}`);
+
+  // 1. Placeholder Pejabat Struktural Dinamis
+  for (const ph of PLH_PEJABAT_PLACEHOLDERS) {
+    if (result.includes(ph)) {
+      result = result.split(ph).join(activePejabatTitle);
+    }
+  }
+
+  // 2. Konversi klausul struktural (Kasubbag TU vs Seksi Wilayah)
+  if (isKasubbag) {
+    result = result
+      .replace(/Kepala\s+Seksi\s+(?:Konservasi\s+Sumber\s+Daya\s+Alam|KSDA)\s+Wilayah\s+(?:\{wilayah\}|I{1,3}|[1-3])(?:\s+(?:Berau|Tenggarong|Balikpapan|Samarinda))?/gi, PLH_KASUBBAG_TU_TITLE)
+      .replace(/Kepala\s+Seksi\s+Konservasi\s+Sumber\s+Daya\s+Alam\s+Wilayah\s+\{wilayah\}/gi, PLH_KASUBBAG_TU_TITLE)
+      .replace(/Kepala\s+Seksi\s+KSDA\s+Wilayah\s+\{wilayah\}/gi, PLH_KASUBBAG_TU_TITLE);
+  } else {
+    result = result
+      .replace(/Kepala\s+Subbagian\s+Tata\s+Usaha(?:\s+Balai\s+Konservasi\s+Sumber\s+Daya\s+Alam\s+Kalimantan\s+Timur)?/gi, activePejabatTitle)
+      .replace(/Kepala\s+Seksi\s+(?:Konservasi\s+Sumber\s+Daya\s+Alam|KSDA)\s+Wilayah\s+(?:\{wilayah\}|I{1,3}|[1-3])(?:\s+(?:Berau|Tenggarong|Balikpapan|Samarinda))?/gi, activePejabatTitle);
+  }
+
+  // 3. Placeholder Wilayah
   if (result.includes(PLH_WILAYAH_PLACEHOLDER)) {
     result = result.split(PLH_WILAYAH_PLACEHOLDER).join(context.wilayah?.trim() || "...");
   }
 
-  if (result.includes(PLH_KEGIATAN_KASI_PLACEHOLDER)) {
-    const formattedKegiatan = formatPlhKegiatanForTemplate(result, context.kegiatanKasi || "");
-    result = result.split(PLH_KEGIATAN_KASI_PLACEHOLDER).join(formattedKegiatan);
+  // 4. Placeholder Kegiatan Pejabat
+  const formattedKegiatan = formatPlhKegiatanForTemplate(result, context.kegiatanKasi || "");
+  for (const ph of PLH_KEGIATAN_PEJABAT_PLACEHOLDERS) {
+    if (result.includes(ph)) {
+      result = result.split(ph).join(formattedKegiatan);
+    }
   }
 
+  // 5. Placeholder Nomor & Tanggal Induk
   for (const ph of PLH_NOMOR_INDUK_PLACEHOLDERS) {
     if (result.includes(ph)) {
       result = result.split(ph).join(context.nomorInduk?.trim() || "...");
@@ -117,7 +239,6 @@ export function replacePlhAllPlaceholders(text: string, context: PlhPlaceholderC
 
 /**
  * Normalisasi data pegawai dari API ke shape Employee yang konsisten.
- * Kadang API balikin `name` instead of `nama_lengkap`, atau `position` instead of `jabatan`.
  */
 export function normalizeEmployeeForSelection(employee: Employee): Employee {
   return {
@@ -126,4 +247,3 @@ export function normalizeEmployeeForSelection(employee: Employee): Employee {
     jabatan: employee.jabatan || employee.position || "",
   };
 }
-

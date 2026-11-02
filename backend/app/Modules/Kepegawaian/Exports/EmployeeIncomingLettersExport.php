@@ -18,40 +18,11 @@ class EmployeeIncomingLettersExport implements FromCollection, WithHeadings, Wit
 
     public function collection()
     {
-        $query = EmployeeIncomingLetter::query()->with('attachments');
-
-        if (! empty($this->filters['search'])) {
-            $search = addcslashes(trim((string) $this->filters['search']), '%_');
-            $query->where(function ($builder) use ($search) {
-                $builder->where('no_agenda', 'like', "%{$search}%")
-                    ->orWhere('no_surat_masuk', 'like', "%{$search}%")
-                    ->orWhere('no_surat_balasan', 'like', "%{$search}%")
-                    ->orWhere('asal_surat', 'like', "%{$search}%")
-                    ->orWhere('perihal', 'like', "%{$search}%")
-                    ->orWhereHas('attachments', fn ($attachments) => $attachments->where('original_name', 'like', "%{$search}%"));
-            });
-        }
-
-        if (! empty($this->filters['kategori'])) {
-            $query->where('kategori', $this->filters['kategori']);
-        }
-        if (! empty($this->filters['status_balasan'])) {
-            if ($this->filters['status_balasan'] === 'replied') {
-                $query->whereNotNull('no_surat_balasan')->where('no_surat_balasan', '!=', '');
-            } elseif ($this->filters['status_balasan'] === 'pending') {
-                $query->where(function ($builder) {
-                    $builder->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
-                });
-            }
-        }
-        if (! empty($this->filters['start_date'])) {
-            $query->whereDate('tanggal_diterima', '>=', $this->filters['start_date']);
-        }
-        if (! empty($this->filters['end_date'])) {
-            $query->whereDate('tanggal_diterima', '<=', $this->filters['end_date']);
-        }
-
-        return $query->orderBy('id')->get();
+        return EmployeeIncomingLetter::query()
+            ->with('attachments')
+            ->filter($this->filters)
+            ->orderBy('id')
+            ->get();
     }
 
     public function headings(): array

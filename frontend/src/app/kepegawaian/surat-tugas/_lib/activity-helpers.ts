@@ -1,5 +1,5 @@
 /**
- * Helpers untuk activity prefix dan single-day activity detection.
+ * Helpers untuk activity prefix, location mode, dan single-day activity detection.
  */
 import { SUMBER_DANA_OPTIONS } from "./constants";
 import type { StExpenseTemplate } from "./types";
@@ -9,7 +9,61 @@ import type { StExpenseTemplate } from "./types";
  * (mis. "Melaksanakan Kegiatan" di lokasi tertentu, bukan perjalanan dinas).
  */
 export function isSingleDayActivityPrefix(prefix: string) {
-  return prefix.includes("Melaksanakan Kegiatan");
+  return prefix.includes("Melaksanakan Kegiatan") || prefix.includes("kegiatan_1_hari");
+}
+
+export function isDalamKawasanTask(jenisOrCode: string) {
+  if (!jenisOrCode) return false;
+  const s = jenisOrCode.toLowerCase();
+  return s === "dalam_kawasan" || s.includes("dalam kawasan");
+}
+
+export function isJenisKegiatanTask(jenisOrCode?: string | null, contohFormat?: string | null): boolean {
+  if (contohFormat && /\{(untuk|jenis_kegiatan|paket)\}/i.test(contohFormat)) {
+    return true;
+  }
+  if (!jenisOrCode) return false;
+  const s = jenisOrCode.toLowerCase();
+  return (
+    s === "jenis_kegiatan" ||
+    s.includes("pengawasan / pemeriksaan") ||
+    s.includes("pengawasan pekerjaan") ||
+    s.includes("pemeriksaan pekerjaan")
+  );
+}
+
+/**
+ * Normalisasi nama jenis tugas agar seragam antara master setting, template, dan builder.
+ */
+export function normalizeTaskTypeName(name?: string | null): string {
+  if (!name) return "Perjalanan Dinas Luar Wilayah";
+  const trimmed = name.trim();
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.includes("pengawasan") ||
+    lower.includes("pemeriksaan pekerjaan") ||
+    lower === "jenis_kegiatan"
+  ) {
+    return "Pengawasan / Pemeriksaan Pekerjaan";
+  }
+  if (
+    lower.includes("luar wilayah") ||
+    lower.includes("lebih dari 1 hari") ||
+    lower === "melaksanakan perjalanan dinas" ||
+    lower === "perjalanan_dinas"
+  ) {
+    return "Perjalanan Dinas Luar Wilayah";
+  }
+  if (lower.includes("dalam kawasan")) {
+    return "Perjalanan Dinas Dalam Kawasan / Wilayah";
+  }
+  if (lower.includes("melaksanakan kegiatan") || lower.includes("kegiatan_1_hari")) {
+    return "Melaksanakan Kegiatan (1 Hari)";
+  }
+  if (lower.includes("menugaskan staf")) {
+    return "Menugaskan Staf";
+  }
+  return trimmed;
 }
 
 export function cleanMelaksanakanKegiatanPrefix(text: string): string {
@@ -22,6 +76,18 @@ export function cleanMelaksanakanKegiatanPrefix(text: string): string {
     trimmed = trimmed.replace(pdPattern, "").trim();
   }
 
+  // Recursively remove nested "Melaksanakan Perjalanan Dinas dari ... ke ... untuk "
+  const pdUntukPattern = /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+.*?\s+ke\s+.*?\s+untuk\s+/i;
+  while (pdUntukPattern.test(trimmed)) {
+    trimmed = trimmed.replace(pdUntukPattern, "").trim();
+  }
+
+  // Recursively remove nested "Melaksanakan perjalanan dinas di ... dalam rangka "
+  const pdKawasanPattern = /^Melaksanakan\s+perjalanan\s+dinas\s+di\s+.*?\s+dalam\s+rangka\s+/i;
+  while (pdKawasanPattern.test(trimmed)) {
+    trimmed = trimmed.replace(pdKawasanPattern, "").trim();
+  }
+
   // Recursively remove nested "Melaksanakan Kegiatan ... [pada/di] ..."
   const mkPattern = /^Melaksanakan\s+Kegiatan\s+/i;
   while (mkPattern.test(trimmed)) {
@@ -29,7 +95,7 @@ export function cleanMelaksanakanKegiatanPrefix(text: string): string {
   }
 
   // Recursively remove nested "Menugaskan Staf untuk "
-  const msPattern = /^Menugaskan\s+Staf\s+untuk\s+/i;
+  const msPattern = /^Menugaskan\s+Staf\s*(?:untuk\s+)?/i;
   while (msPattern.test(trimmed)) {
     trimmed = trimmed.replace(msPattern, "").trim();
   }
@@ -45,6 +111,188 @@ export function cleanRepeatingLocations(text: string): string {
   return text.replace(/(\s+(?:di|pada)\s+[^,;]+?)(?:\1)+/gi, "$1");
 }
 
+export interface BuildKegiatanDiktumParams {
+  modeLokasi?: "luar_wilayah" | "dalam_kawasan" | "tempat_saja" | string;
+  jenisTugas?: string;
+  kotaAsal?: string;
+  kotaTujuan?: string;
+  tempatSpesifik?: string;
+  namaKegiatanText?: string;
+  untukKegiatanText?: string;
+  contohFormat?: string | null;
+}
+
+/**
+ * Single source of truth untuk membangun kalimat penugasan diktum utama ("Untuk" Poin 1).
+ * Mendukung pola kustom dari Master Jenis Tugas (`contohFormat`) maupun formula bawaan.
+ */
+export function buildKegiatanDiktumText({
+  modeLokasi,
+  jenisTugas = "",
+  kotaAsal = "",
+  kotaTujuan = "",
+  tempatSpesifik = "",
+  namaKegiatanText = "",
+  untukKegiatanText = "",
+  contohFormat = null,
+}: BuildKegiatanDiktumParams): string {
+  let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
+
+  // Strip custom static prefix from contohFormat if present in cleanNama
+  if (contohFormat && contohFormat.includes("{kegiatan}")) {
+    const prefixBeforeKegiatan = contohFormat.split("{kegiatan}")[0]?.trim();
+    if (
+      prefixBeforeKegiatan &&
+      !prefixBeforeKegiatan.includes("{") &&
+      cleanNama.toLowerCase().startsWith(prefixBeforeKegiatan.toLowerCase())
+    ) {
+      cleanNama = cleanNama.slice(prefixBeforeKegiatan.length).trim();
+    }
+  }
+
+  // Strip trailing kotaTujuan or tempatSpesifik if already appended to cleanNama to prevent duplication
+  for (let i = 0; i < 2; i++) {
+    if (kotaTujuan && kotaTujuan.trim()) {
+      const escapedK = kotaTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      cleanNama = cleanNama.replace(new RegExp(`\\s+di\\s+${escapedK}$`, "i"), "").trim();
+    }
+    if (tempatSpesifik && tempatSpesifik.trim()) {
+      const escapedT = tempatSpesifik.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      cleanNama = cleanNama.replace(new RegExp(`\\s+(?:pada|di)\\s+${escapedT}$`, "i"), "").trim();
+    }
+  }
+
+  const isJenisKegiatan = isJenisKegiatanTask(jenisTugas, contohFormat);
+
+  // Bersihkan sisa placeholder mentah (misal "{paket}" dari draft lama)
+  if (/^\{(paket|kegiatan|untuk|jenis_kegiatan)\}$/i.test(cleanNama.trim())) {
+    cleanNama = "";
+  }
+  const cleanUntuk = /^\{(paket|kegiatan|untuk|jenis_kegiatan)\}$/i.test((untukKegiatanText || "").trim())
+    ? ""
+    : (untukKegiatanText || "").trim();
+
+  // Jika Master Jenis Tugas memiliki contohFormat kustom yang menggunakan placeholder:
+  if (
+    contohFormat &&
+    contohFormat.trim() &&
+    /\{(asal|tujuan|kota|tempat|kegiatan|untuk|jenis_kegiatan|paket)\}/i.test(contohFormat)
+  ) {
+    const asal = kotaAsal.trim() || "...";
+    const tujuan = kotaTujuan.trim() || "...";
+    const kota = (kotaTujuan || kotaAsal || "").trim() || "...";
+    let untukVal = cleanUntuk;
+    let kegiatanVal = cleanNama || "...";
+
+    if (isJenisKegiatan && !untukVal && cleanNama) {
+      const match = cleanNama.match(/^(?:untuk\s+)?(.*?)\s+dalam\s+rangka\s+(.*)$/i);
+      if (match) {
+        untukVal = match[1].trim();
+        kegiatanVal = match[2].trim() || "...";
+      } else {
+        untukVal = "Pengawasan Pekerjaan Konstruksi";
+      }
+    }
+
+    const hasPaketPlaceholder = /\{paket\}/i.test(contohFormat);
+    let built = contohFormat.trim().replace(/[;,.]$/, "");
+    built = built
+      .replace(/\{asal\}/gi, asal)
+      .replace(/\{tujuan\}/gi, tujuan)
+      .replace(/\{kota\}/gi, kota);
+
+    if (hasPaketPlaceholder) {
+      // Skema DB: "untuk {kegiatan} dalam rangka {paket}" -> {kegiatan}/{untuk} = untukVal, {paket} = kegiatanVal
+      built = built
+        .replace(/\{(untuk|jenis_kegiatan|kegiatan)\}/gi, untukVal || "Pengawasan Pekerjaan Konstruksi")
+        .replace(/\{paket\}/gi, kegiatanVal);
+    } else {
+      // Skema umum: "untuk {untuk} dalam rangka {kegiatan}" -> {untuk} = untukVal, {kegiatan} = kegiatanVal
+      built = built
+        .replace(/\{(untuk|jenis_kegiatan)\}/gi, untukVal || "Pengawasan Pekerjaan Konstruksi")
+        .replace(/\{kegiatan\}/gi, kegiatanVal);
+    }
+
+    if (tempatSpesifik.trim()) {
+      built = built.replace(/\{tempat\}/gi, tempatSpesifik.trim());
+    } else {
+      built = built.replace(/(?:\s+(?:di|pada))?\s*\{tempat\}/gi, "");
+    }
+
+    return cleanRepeatingLocations(built.replace(/\s+/g, " ").trim());
+  }
+
+  const isDalamKawasan = !isJenisKegiatan && (modeLokasi === "dalam_kawasan" || isDalamKawasanTask(jenisTugas));
+  const isMelaksanakanKegiatan =
+    !isJenisKegiatan &&
+    !isDalamKawasan &&
+    (jenisTugas.toLowerCase().includes("melaksanakan kegiatan") ||
+      jenisTugas.toLowerCase().includes("kegiatan_1_hari"));
+  const isMenugaskanStafExplicit =
+    !isJenisKegiatan &&
+    !isDalamKawasan &&
+    !isMelaksanakanKegiatan &&
+    jenisTugas.toLowerCase().includes("menugaskan staf");
+  const isLuarWilayah =
+    !isJenisKegiatan &&
+    !isDalamKawasan &&
+    !isMelaksanakanKegiatan &&
+    !isMenugaskanStafExplicit &&
+    (modeLokasi === "luar_wilayah" ||
+      jenisTugas.toLowerCase().includes("perjalanan dinas") ||
+      jenisTugas.toLowerCase().includes("luar wilayah") ||
+      (Boolean(kotaAsal.trim()) && Boolean(kotaTujuan.trim())));
+
+  if (isJenisKegiatan) {
+    // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {kegiatan} dalam rangka {paket} di {tempat}
+    const asal = kotaAsal.trim() || "...";
+    const tujuan = kotaTujuan.trim() || "...";
+    let kegiatan = (untukKegiatanText || "").trim();
+    let paket = cleanNama;
+
+    if (!kegiatan) {
+      const match = cleanNama.match(/^(?:untuk\s+)?(.*?)\s+dalam\s+rangka\s+(.*)$/i);
+      if (match) {
+        kegiatan = match[1].trim();
+        paket = match[2].trim();
+      } else {
+        kegiatan = "Pengawasan Pekerjaan Konstruksi";
+      }
+    }
+
+    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    const paketStr = paket ? ` dalam rangka ${paket}` : "";
+    return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan} untuk ${kegiatan}${paketStr}${spesifik}`;
+  }
+
+  if (isDalamKawasan) {
+    // Formula: Melaksanakan perjalanan dinas di {kota/kabupaten} dalam rangka {kegiatan} di {kawasan/tempat spesifik}
+    const kota = (kotaTujuan || kotaAsal || "").trim() || "...";
+    const kegiatan = cleanNama || "...";
+    const kawasan = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    return `Melaksanakan perjalanan dinas di ${kota} dalam rangka ${kegiatan}${kawasan}`;
+  }
+
+  if (isLuarWilayah) {
+    // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} dalam rangka {kegiatan} di {tempat}
+    const asal = kotaAsal.trim() || "...";
+    const tujuan = kotaTujuan.trim() || "...";
+    const rangka = cleanNama ? ` dalam rangka ${cleanNama}` : "";
+    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan}${rangka}${spesifik}`;
+  }
+
+  if (isMelaksanakanKegiatan) {
+    const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
+    const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
+    return `Melaksanakan Kegiatan ${cleanNama || "..."}${tempat}${kota}`;
+  }
+
+  // Default / Menugaskan Staf
+  const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
+  const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
+  return `Menugaskan Staf untuk ${cleanNama || "..."}${tempat}${kota}`;
+}
 
 /**
  * Tentukan apakah ST harus dirender sebagai kegiatan single-day:

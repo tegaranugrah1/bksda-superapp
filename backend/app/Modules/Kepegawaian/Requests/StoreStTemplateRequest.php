@@ -10,7 +10,7 @@ class StoreStTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === 'super_admin';
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
     }
 
     public function rules(): array
@@ -28,6 +28,15 @@ class StoreStTemplateRequest extends FormRequest
             'dasar.*.text' => ['required', 'string', 'max:5000'],
             'default_signer_employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
             'configuration' => ['nullable', 'array', 'max:50'],
+            'configuration.header_title' => ['nullable', 'string', 'max:1000'],
+            'configuration.nomor_surat_format' => ['nullable', 'string', 'max:255'],
+            'configuration.penutup_text' => ['nullable', 'string', 'max:2000'],
+            'configuration.signer_title' => ['nullable', 'string', 'max:255'],
+            'configuration.signer_authority_mandate' => ['nullable', 'string', 'max:1000'],
+            'configuration.tembusan_label' => ['nullable', 'string', 'max:255'],
+            'configuration.tembusan_items' => ['nullable', 'array', 'max:50'],
+            'configuration.tembusan_items.*' => ['nullable', 'string', 'max:500'],
+            'configuration.kop_image_url' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['sometimes', 'boolean'],
             'is_default' => ['sometimes', 'boolean'],
         ];

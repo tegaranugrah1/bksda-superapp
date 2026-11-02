@@ -67,37 +67,8 @@ class AssetController extends Controller
             });
         }
 
-        if ($request->filled('employee_id')) {
-            $employeeId = $request->employee_id;
-            $employee = \App\Modules\Kepegawaian\Models\Employee::find($employeeId);
-            $query->where(function($q) use ($employeeId, $employee) {
-                $q->where('employee_id', $employeeId);
-                if ($employee && $employee->nama_lengkap) {
-                    $fullName = trim($employee->nama_lengkap);
-                    $fullNameLower = addcslashes(mb_strtolower($fullName), '%_');
-                    
-                    // Search full name
-                    $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $fullNameLower . '%'])
-                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $fullNameLower . '%']);
-                    
-                    // Search name before comma (titles)
-                    if (str_contains($fullName, ',')) {
-                        $nameParts = explode(',', $fullName);
-                        $baseName = addcslashes(mb_strtolower(trim($nameParts[0])), '%_');
-                        if (strlen($baseName) > 2) {
-                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $baseName . '%'])
-                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $baseName . '%']);
-                        }
-                    }
-                    
-                    // Search first two words for better fuzzy match
-                    $words = explode(' ', $fullNameLower);
-                    if (count($words) >= 2) {
-                        $twoWords = addcslashes($words[0] . ' ' . $words[1], '%_');
-                        $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $twoWords . '%']);
-                    }
-                }
-            });
+        if ($request->query->has('employee_id')) {
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->filled('borrower_id')) {

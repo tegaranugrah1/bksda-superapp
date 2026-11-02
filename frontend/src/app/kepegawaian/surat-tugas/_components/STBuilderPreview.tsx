@@ -6,8 +6,10 @@ import {
   formatNIP,
   formatNipLabel,
   indexToLetter,
+  renderFormattedItalic,
 } from "@/lib/letter-utils";
 import { resolveKopImageUrl } from "../_lib";
+import { buildOrderedAdditionalUntukItems } from "../_lib/untuk-helpers";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
 
 function HalamanDivider({ 
@@ -145,6 +147,7 @@ interface PreviewProps {
   kopImageUrl?: string | null;
   nomorNumberingType?: "st_pattern" | "naskah_auto";
   customNomorNaskah?: string;
+  sertakanLaporan?: boolean;
 }
 
 export default function STBuilderPreview({
@@ -181,8 +184,9 @@ export default function STBuilderPreview({
   kopImageUrl = null,
   nomorNumberingType = "st_pattern",
   customNomorNaskah = "",
+  sertakanLaporan = true,
 }: PreviewProps) {
-  const isFolu = sumberDana === "folu";
+  const isFolu = Boolean(sumberDana && sumberDana.toLowerCase().includes("folu"));
   const activeDateFormat = dateFormatStyle || (isFolu ? "tabular" : "inline");
   const activeTembusanPosition = tembusanPosition || (isFolu ? "bottom" : "beside");
   const activeTembusanLabel = tembusanLabel || (isFolu ? "Tembusan Kepada :" : "Tembusan:");
@@ -210,17 +214,14 @@ export default function STBuilderPreview({
     color: "#94a3b8",
     fontSize: "9pt",
   };
-  const fallbackUntukItems = [
-    isPlhTemplate
-      ? "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai."
-      : isBmnTemplate
-      ? "Membuat laporan tertulis paling lambat 7 (tujuh) hari setelah selesainya kegiatan tersebut."
-      : "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.",
-    buildBiayaText?.() || "",
-  ];
-  const additionalUntukItems = untukItems
-    ? untukItems.map((item) => item.text)
-    : fallbackUntukItems;
+  const additionalUntukItems = React.useMemo(() => {
+    return buildOrderedAdditionalUntukItems({
+      templateType,
+      biayaText: buildBiayaText?.() || "",
+      customTemplateItems: untukItems,
+      sertakanLaporan,
+    }).map((item) => item.text);
+  }, [templateType, buildBiayaText, untukItems, sertakanLaporan]);
 
   const { isMultiPage, page1SpacerMm } = React.useMemo(() => {
     // Estimasi tinggi isi surat (dalam mm)
@@ -314,7 +315,7 @@ export default function STBuilderPreview({
                             <tr key={m.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
                               <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>
-                                {(m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                                {renderFormattedItalic((m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
                               </td>
                             </tr>
                           ))}
@@ -338,7 +339,7 @@ export default function STBuilderPreview({
                             <tr key={d.id}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
                               <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                                {(d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString())}
+                                {renderFormattedItalic((d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
                               </td>
                             </tr>
                           ))}
@@ -391,7 +392,7 @@ export default function STBuilderPreview({
                                           <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
                                           <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                         </tr>
-                                        {Boolean(emp.nip && emp.nip.trim() && emp.nip !== "-" && !emp.nip.startsWith("MMP-") && !emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
+                                        {Boolean(!emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
                                           <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                                             <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
                                             <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
@@ -434,7 +435,7 @@ export default function STBuilderPreview({
                             .map((item, idx) => (
                             <tr key={idx} className="untuk-entry" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
                               <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{item}</td>
+                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{renderFormattedItalic(item)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -447,7 +448,7 @@ export default function STBuilderPreview({
               {/* === PENUTUP + TTD + TEMBUSAN — keep together so TTD never breaks alone === */}
               <div data-break-candidate="penutup-ttd" className="penutup-ttd-group print:break-inside-avoid break-inside-avoid" style={{ display: 'block', breakInside: "avoid", pageBreakInside: "avoid" }}>
                 <p className="penutup-surat" style={{ margin: "16px 0 0", textAlign: isFolu || activePenutup.length > 80 ? "justify" : "left" }}>
-                  {activePenutup}
+                  {renderFormattedItalic(activePenutup)}
                 </p>
 
                 {/* === TANDA TANGAN + TEMBUSAN === */}

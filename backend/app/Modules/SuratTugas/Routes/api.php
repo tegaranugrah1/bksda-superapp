@@ -7,10 +7,16 @@ Route::get('/verify/{id}', [AssignmentLetterController::class, 'verify'])
     ->middleware('throttle:60,1')
     ->name('surat-tugas.verify');
 
-// Portal & Mobile: pegawai bisa membuat surat tugas dan melihat surat tugas milik sendiri
+Route::post('/check-conflicts', [AssignmentLetterController::class, 'checkConflicts'])
+    ->middleware('throttle:60,1')
+    ->name('surat-tugas.check-conflicts');
+
+// Public & Portal submission: pengajuan surat tugas dapat dibuat tanpa login (status forced pending)
+Route::post('/submit', [AssignmentLetterController::class, 'store'])
+    ->middleware('throttle:15,1');
+
+// Portal & Mobile (requires login)
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/submit', [AssignmentLetterController::class, 'store'])
-        ->middleware('throttle:15,1');
     Route::get('/my', [AssignmentLetterController::class, 'myLetters'])
         ->middleware('throttle:120,1');
     Route::get('/my/{id}', [AssignmentLetterController::class, 'myShow'])
@@ -30,6 +36,7 @@ Route::middleware(['auth:sanctum', 'module.access:surat_tugas,kepegawaian'])->gr
     Route::get('/status-counts', [AssignmentLetterController::class, 'statusCounts']);
     Route::post('/bulk-trash', [AssignmentLetterController::class, 'bulkTrash']);
     Route::post('/bulk-restore', [AssignmentLetterController::class, 'bulkRestore']);
+    Route::post('/bulk-force-delete', [AssignmentLetterController::class, 'bulkForceDestroy'])->middleware('role:super_admin,admin');
     Route::get('/utils/next-number', [AssignmentLetterController::class, 'getNextNumber']);
     Route::get('/{id}', [AssignmentLetterController::class, 'show']);
     Route::put('/{id}', [AssignmentLetterController::class, 'update']);

@@ -43,11 +43,11 @@ class StExpenseTemplateService
     {
         return DB::transaction(function () use ($data, $userId): StExpenseTemplate {
             $template = new StExpenseTemplate();
-            $template->name = $data['name'];
+            $template->name = strip_tags(trim((string) $data['name']));
             $template->code = !empty($data['code']) ? $data['code'] : $this->generateUniqueCode($data['name']);
             $template->category = strtolower($data['category'] ?? 'other');
-            $template->biaya_text = $data['biaya_text'] ?? null;
-            $template->dasar_text = $data['dasar_text'] ?? null;
+            $template->biaya_text = isset($data['biaya_text']) ? strip_tags(trim((string) $data['biaya_text'])) : null;
+            $template->dasar_text = isset($data['dasar_text']) ? strip_tags(trim((string) $data['dasar_text'])) : null;
             $template->is_active = $data['is_active'] ?? true;
             $template->is_default = $data['is_default'] ?? false;
             $template->sort_order = $data['sort_order'] ?? 0;
@@ -66,11 +66,11 @@ class StExpenseTemplateService
     public function update(StExpenseTemplate $template, array $data, int $userId): StExpenseTemplate
     {
         return DB::transaction(function () use ($template, $data, $userId): StExpenseTemplate {
-            if (isset($data['name'])) $template->name = $data['name'];
+            if (isset($data['name'])) $template->name = strip_tags(trim((string) $data['name']));
             if (!empty($data['code'])) $template->code = $data['code'];
             if (isset($data['category'])) $template->category = strtolower($data['category']);
-            if (array_key_exists('biaya_text', $data)) $template->biaya_text = $data['biaya_text'] ?: null;
-            if (array_key_exists('dasar_text', $data)) $template->dasar_text = $data['dasar_text'] ?: null;
+            if (array_key_exists('biaya_text', $data)) $template->biaya_text = $data['biaya_text'] ? strip_tags(trim((string) $data['biaya_text'])) : null;
+            if (array_key_exists('dasar_text', $data)) $template->dasar_text = $data['dasar_text'] ? strip_tags(trim((string) $data['dasar_text'])) : null;
             if (isset($data['is_active'])) $template->is_active = (bool) $data['is_active'];
             if (isset($data['is_default'])) $template->is_default = (bool) $data['is_default'];
             if (isset($data['sort_order'])) $template->sort_order = (int) $data['sort_order'];

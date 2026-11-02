@@ -5,6 +5,7 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeLeave;
+use App\Modules\Kepegawaian\Models\LeaveType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -19,72 +20,75 @@ class EmployeeLeaveController extends Controller
      */
     public function show(Request $request, int $employeeId): JsonResponse
     {
-        $employee = Employee::findOrFail($employeeId);
-        $rawYear = (int) $request->input('year', date('Y'));
-        $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
+        return DB::transaction(function () use ($request, $employeeId) {
+            $employee = Employee::lockForLeaveUpdate($employeeId);
+            abort_if($employee->trashed(), 404);
+            $rawYear = (int) $request->input('year', date('Y'));
+            $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
 
-        $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-            ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
-            ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
-            ->whereYear('tanggal_mulai', $year)
-            ->sum('jumlah_hari');
-
-        $leave = EmployeeLeave::where('employee_id', $employeeId)
-            ->where('year', $year)
-            ->first();
-
-        if ($leave) {
-            $hasOnlineRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-                ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
+            $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
+                ->annual()
                 ->whereYear('tanggal_mulai', $year)
-                ->exists();
-            if ($hasOnlineRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
-                $leave->update(['cuti_terpakai_n0' => $approvedDays]);
-                $leave->refresh();
+                ->sum('jumlah_hari');
+
+            $leave = EmployeeLeave::where('employee_id', $employeeId)
+                ->where('year', $year)
+                ->first();
+
+            if ($leave) {
+                $hasOnlineRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                    ->annual()
+                    ->whereYear('tanggal_mulai', $year)
+                    ->exists();
+                if ($hasOnlineRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
+                    $leave->update(['cuti_terpakai_n0' => $approvedDays]);
+                    $leave->refresh();
+                }
+            } else {
+                // Check previous year record if any to prefill defaults
+                $prevLeave = EmployeeLeave::where('employee_id', $employeeId)
+                    ->where('year', $year - 1)
+                    ->first();
+
+                $prev2Leave = EmployeeLeave::where('employee_id', $employeeId)
+                    ->where('year', $year - 2)
+                    ->first();
+
+                $isCpns2025 = $employee->is_cpns2025;
+                $defaultHakN = ($isCpns2025 && $year === 2025) ? 0 : 12;
+                $defaultSisaN1 = ($isCpns2025 && $year === 2026)
+                    ? 0
+                    : ($prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0);
+
+                // Create in-memory draft if not saved in DB yet
+                $leave = new EmployeeLeave([
+                    'employee_id' => $employeeId,
+                    'year' => $year,
+                    'hak_cuti_n' => $defaultHakN,
+                    'sisa_cuti_n1' => $defaultSisaN1,
+                    'cuti_terpakai_n1' => $prevLeave ? (int) $prevLeave->cuti_terpakai_n0 : 0,
+                    'sisa_cuti_n2' => $prev2Leave ? max(0, $prev2Leave->sisa_cuti_tersedia) : 0,
+                    'cuti_terpakai_n2' => $prev2Leave ? (int) $prev2Leave->cuti_terpakai_n0 : 0,
+                    'cuti_terpakai_n0' => $approvedDays,
+                    'catatan' => null,
+                ]);
             }
-        } else {
-            // Check previous year record if any to prefill defaults
-            $prevLeave = EmployeeLeave::where('employee_id', $employeeId)
-                ->where('year', $year - 1)
-                ->first();
 
-            $prev2Leave = EmployeeLeave::where('employee_id', $employeeId)
-                ->where('year', $year - 2)
-                ->first();
+            $requests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                ->orderBy('tanggal_mulai', 'desc')
+                ->get();
 
-            $isCpns2025 = $employee->is_cpns2025;
-            $defaultHakN = ($isCpns2025 && $year === 2025) ? 0 : 12;
-            $defaultSisaN1 = ($isCpns2025 && $year === 2026)
-                ? 0
-                : ($prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0);
-
-            // Create in-memory draft if not saved in DB yet
-            $leave = new EmployeeLeave([
-                'employee_id' => $employeeId,
-                'year' => $year,
-                'hak_cuti_n' => $defaultHakN,
-                'sisa_cuti_n1' => $defaultSisaN1,
-                'cuti_terpakai_n1' => $prevLeave ? (int) $prevLeave->cuti_terpakai_n0 : 0,
-                'sisa_cuti_n2' => $prev2Leave ? max(0, $prev2Leave->sisa_cuti_tersedia) : 0,
-                'cuti_terpakai_n2' => $prev2Leave ? (int) $prev2Leave->cuti_terpakai_n0 : 0,
-                'cuti_terpakai_n0' => $approvedDays,
-                'catatan' => null,
+            return response()->json([
+                'data' => $leave,
+                'requests' => $requests,
+                'employee' => [
+                    'id' => $employee->id,
+                    'nip' => $employee->nip,
+                    'nama_lengkap' => $employee->nama_lengkap,
+                ],
             ]);
-        }
-
-        $requests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-            ->orderBy('tanggal_mulai', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $leave,
-            'requests' => $requests,
-            'employee' => [
-                'id' => $employee->id,
-                'nip' => $employee->nip,
-                'nama_lengkap' => $employee->nama_lengkap,
-            ],
-        ]);
+        });
     }
 
     /**
@@ -109,6 +113,7 @@ class EmployeeLeaveController extends Controller
 
         DB::beginTransaction();
         try {
+            Employee::lockForLeaveUpdate($employeeId);
             $leave = EmployeeLeave::updateOrCreate(
                 [
                     'employee_id' => $employeeId,
@@ -132,6 +137,9 @@ class EmployeeLeaveController extends Controller
                 'message' => 'Data Cuti Pegawai berhasil diperbarui.',
                 'data' => $leave->fresh(),
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -169,6 +177,8 @@ class EmployeeLeaveController extends Controller
 
         DB::beginTransaction();
         try {
+            $employee = Employee::lockForLeaveUpdate($employeeId);
+            $validated['jenis_cuti'] = LeaveType::forEmployee($validated['jenis_cuti'], $employee)->nama;
             $scanFormulirPath = null;
             $scanFormulirNama = null;
             $scanSuratIzinPath = null;
@@ -217,7 +227,7 @@ class EmployeeLeaveController extends Controller
             $year = (int) date('Y', strtotime($validated['tanggal_mulai']));
             $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
                 ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
-                ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
+                ->annual()
                 ->whereYear('tanggal_mulai', $year)
                 ->sum('jumlah_hari');
 
@@ -245,6 +255,9 @@ class EmployeeLeaveController extends Controller
                 'message' => 'Surat izin penetapan cuti berhasil dicatat!',
                 'data' => $leaveReq,
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -279,12 +292,15 @@ class EmployeeLeaveController extends Controller
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
 
-        $status = strtoupper($validated['status'] ?? $leaveReq->status);
-        $oldYear = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
         $newYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
 
         DB::beginTransaction();
         try {
+            $employee = Employee::lockForLeaveUpdate($employeeId);
+            $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->lockForUpdate()->findOrFail($requestId);
+            $status = strtoupper($validated['status'] ?? $leaveReq->status);
+            $validated['jenis_cuti'] = LeaveType::forEmployee($validated['jenis_cuti'], $employee)->nama;
+            $oldYear = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
             $updatePayload = [
                 'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
@@ -340,7 +356,7 @@ class EmployeeLeaveController extends Controller
             foreach ($yearsToSync as $y) {
                 $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
                     ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
-                    ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
+                    ->annual()
                     ->whereYear('tanggal_mulai', $y)
                     ->sum('jumlah_hari');
 
@@ -356,6 +372,9 @@ class EmployeeLeaveController extends Controller
                 'message' => 'Penetapan cuti berhasil diperbarui!',
                 'data' => $leaveReq->fresh(),
             ]);
+        } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
@@ -371,15 +390,17 @@ class EmployeeLeaveController extends Controller
     public function destroyRecord(Request $request, int $employeeId, int $requestId): JsonResponse
     {
         $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->findOrFail($requestId);
-        $year = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
 
         DB::beginTransaction();
         try {
+            Employee::lockForLeaveUpdate($employeeId);
+            $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->lockForUpdate()->findOrFail($requestId);
+            $year = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
             $leaveReq->delete();
 
             $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
                 ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
-                ->whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])
+                ->annual()
                 ->whereYear('tanggal_mulai', $year)
                 ->sum('jumlah_hari');
 
@@ -393,6 +414,9 @@ class EmployeeLeaveController extends Controller
             return response()->json([
                 'message' => 'Penetapan cuti berhasil dihapus.',
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([

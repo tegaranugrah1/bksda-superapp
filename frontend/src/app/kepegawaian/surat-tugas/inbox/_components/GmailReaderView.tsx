@@ -27,12 +27,13 @@ import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
   getStatusLabel,
+  needsBuilderCompletion,
   getResolvedTempatTujuan,
   extractDalamRangka,
   cleanMaksudTujuan,
   formatFormalSumberDana,
 } from "../_lib/status-helpers";
-import { formatDateIndonesian, formatDateRangeIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatDateRangeIndonesian, formatNIP } from "@/lib/letter-utils";
 
 interface GmailReaderViewProps {
   letter: AssignmentLetter;
@@ -45,8 +46,10 @@ interface GmailReaderViewProps {
   onReject?: (letter: AssignmentLetter) => void;
   onEdit?: (letter: AssignmentLetter) => void;
   onDownload?: (letter: AssignmentLetter) => void;
+  onViewDoc?: (letter: AssignmentLetter) => void;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onForceDelete?: (id: string) => void;
   onCreatePlh?: (letter: AssignmentLetter) => void;
   existingPlh?: AssignmentLetter | null;
   onOpenExistingPlh?: (letter: AssignmentLetter) => void;
@@ -66,8 +69,10 @@ export function GmailReaderView({
   onReject,
   onEdit,
   onDownload,
+  onViewDoc,
   onDelete,
   onRestore,
+  onForceDelete,
   onCreatePlh,
   existingPlh,
   onOpenExistingPlh,
@@ -77,6 +82,7 @@ export function GmailReaderView({
 }: GmailReaderViewProps) {
   const router = useRouter();
   const employees = letter.employees || [];
+  const needsCompletion = needsBuilderCompletion(letter);
   const tujuan = getResolvedTempatTujuan(letter);
   const mainTitle = extractDalamRangka(letter.maksud_tujuan);
   const cleanedContext = cleanMaksudTujuan(letter.maksud_tujuan);
@@ -145,10 +151,10 @@ export function GmailReaderView({
               disabled={updatingStatus}
               onClick={() => onApprove(letter)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
-              title="Setujui & Terbitkan Surat Tugas"
+              title={needsCompletion ? "Lengkapi Surat Tugas di Builder sebelum diterbitkan" : "Setujui & Terbitkan Surat Tugas"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Setujui & Terbitkan</span>
+              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              <span>{needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan"}</span>
             </button>
           )}
 
@@ -218,7 +224,28 @@ export function GmailReaderView({
           ) : (
             onDelete && (
               <button
-                onClick={() => onDelete(letter.id)}
+                onClick={() => onDelete?.(letter.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
+                title="Pindahkan ke sampah"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Pindahkan ke Sampah</span>
+              </button>
+            )
+          )}
+          {isTrashView && onForceDelete && (
+            <button
+              onClick={() => onForceDelete(letter.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              title="Hapus permanen dari arsip"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Hapus Permanen</span>
+            </button>
+          )}
+          {false && onDelete && ((
+              <button
+                onClick={() => onDelete?.(letter.id)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
                 title="Pindahkan ke sampah"
               >
@@ -352,7 +379,7 @@ export function GmailReaderView({
                     <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-zinc-100">
                       {emp.nama_lengkap}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{emp.nip}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{formatNIP(emp.nip)}</td>
                     <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">
                       {emp.jabatan || "-"} {emp.satuan_kerja ? `(${emp.satuan_kerja})` : ""}
                     </td>
@@ -514,15 +541,28 @@ export function GmailReaderView({
             </div>
 
             {letter.file_surat_path ? (
-              onDownload && (
-                <button
-                  onClick={() => onDownload(letter)}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>UNDUH PDF</span>
-                </button>
-              )
+              <div className="grid grid-cols-2 gap-2">
+                {onViewDoc && (
+                  <button
+                    onClick={() => onViewDoc(letter)}
+                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-100 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200/80 dark:border-zinc-700 active:scale-95"
+                    title="Lihat Pratinjau Dokumen Dasar"
+                  >
+                    <Eye className="w-4 h-4 text-blue-500" />
+                    <span>LIHAT DOKUMEN</span>
+                  </button>
+                )}
+                {onDownload && (
+                  <button
+                    onClick={() => onDownload(letter)}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title="Unduh Berkas Dokumen Dasar"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>UNDUH</span>
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="py-3 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center">
                 <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">
@@ -560,7 +600,7 @@ export function GmailReaderView({
                   )}
                   {onDelete && (
                     <button
-                      onClick={() => onDelete(letter.id)}
+                      onClick={() => onDelete?.(letter.id)}
                       className="h-10 w-full rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-black text-[10px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />

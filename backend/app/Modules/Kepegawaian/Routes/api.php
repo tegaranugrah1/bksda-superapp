@@ -7,12 +7,16 @@ use Illuminate\Support\Facades\Route;
 
 // Semua route di bawah ini otomatis memiliki prefix /api/kepegawaian/
 
-// Protected routes for internal employee selection, templates, & master cuti (requires login)
+// Public routes for Surat Tugas form (personnel select, templates, task types)
+Route::get('/employees/select', [EmployeeController::class, 'select'])
+    ->middleware('throttle:120,1');
+Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
+    ->middleware('throttle:120,1');
+Route::get('/st-task-types/public', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'publicList'])
+    ->middleware('throttle:120,1');
+
+// Protected routes for master cuti (requires login)
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/employees/select', [EmployeeController::class, 'select'])
-        ->middleware('throttle:120,1');
-    Route::get('/st-expense-templates/public', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index'])
-        ->middleware('throttle:120,1');
     Route::get('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'index'])
         ->middleware('throttle:240,1,leave_types');
     Route::get('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'show'])
@@ -45,7 +49,7 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     // --- TEMPLATE SURAT TUGAS ---
     Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
     Route::get('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'show']);
-    Route::middleware('role:super_admin')->group(function () {
+    Route::middleware('role:super_admin,admin')->group(function () {
         Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
         Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
         Route::post('/st-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'setDefault']);
@@ -75,6 +79,14 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::delete('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'destroy']);
     });
 
+    // --- MASTER JENIS TUGAS ST (SETTINGS & ADMIN MUTATIONS) ---
+    Route::get('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'index']);
+    Route::middleware('role:super_admin,admin')->group(function () {
+        Route::post('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'store']);
+        Route::put('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'update']);
+        Route::delete('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'destroy']);
+    });
+
     // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
     Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
 
@@ -84,6 +96,9 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
         Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
+        Route::delete('/employees/{employee}/2fa', [EmployeeController::class, 'reset2Fa']);
+        Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore']);
+        Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDestroy']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
 
         // --- MANAJEMEN CUTI PEGAWAI WRITE (PERBKN 24/2017 & 7/2021) ---

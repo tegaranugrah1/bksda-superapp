@@ -14,26 +14,50 @@ interface ScanViewerModalProps {
   onClose: () => void;
 }
 
+function base64ToBlobUrl(base64DataUrl: string): string {
+  try {
+    const parts = base64DataUrl.split(",");
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
+    const byteCharacters = atob(parts[1]);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mime });
+    return URL.createObjectURL(blob);
+  } catch {
+    return base64DataUrl;
+  }
+}
+
 export function ScanViewerModal({
   isOpen,
-  title = "Pratinjau Berkas Cuti Resmi (Scan)",
+  title = "Pratinjau Berkas Dokumen",
   scanUrl,
   fileName,
   onClose,
 }: ScanViewerModalProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [resolvedFileName, setResolvedFileName] = useState<string | null>(fileName || null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPdf, setIsPdf] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !scanUrl) {
       setDataUrl(null);
+      setBlobUrl(null);
+      setResolvedFileName(fileName || null);
       setIsLoading(false);
       return;
     }
 
     let active = true;
+    let localBlobUrl: string | null = null;
     setIsLoading(true);
+    setResolvedFileName(fileName || null);
 
     // Minta data pratinjau JSON dengan data_url base64 (identik dengan Surat Masuk)
     // Pendekatan ini mencegah download ganda dan tidak memicu hook interceptor downloader (IDM)
@@ -41,20 +65,33 @@ export function ScanViewerModal({
       .get(scanUrl, { params: { preview: 1 } })
       .then((res) => {
         if (!active) return;
-        const resDataUrl = res.data?.data_url;
-        const mimeType = String(res.data?.mime_type || "application/pdf");
-        const lowerName = (fileName || "").toLowerCase();
+        const resDataUrl = res.data?.data_url || res.data?.data?.data_url;
+        const serverFileName = res.data?.file_name || res.data?.data?.file_name;
+        if (serverFileName) {
+          setResolvedFileName(serverFileName);
+        }
+        const mimeType = String(
+          res.data?.mime_type || res.data?.data?.mime_type || "application/pdf"
+        );
+        const effectiveName = (serverFileName || fileName || "").toLowerCase();
         const detectedIsPdf =
           mimeType.includes("pdf") ||
-          (!mimeType.includes("image") && !lowerName.match(/\.(jpe?g|png|webp)$/i));
+          (!mimeType.includes("image") && !effectiveName.match(/\.(jpe?g|png|webp)$/i));
 
         setIsPdf(detectedIsPdf);
         setDataUrl(resDataUrl);
+
+        if (resDataUrl && typeof resDataUrl === "string" && resDataUrl.startsWith("data:")) {
+          localBlobUrl = base64ToBlobUrl(resDataUrl);
+          setBlobUrl(localBlobUrl);
+        } else {
+          setBlobUrl(resDataUrl || null);
+        }
       })
       .catch((err) => {
         if (!active) return;
         const message =
-          err?.response?.data?.message || "Berkas scan cuti belum diunggah atau tidak ditemukan.";
+          err?.response?.data?.message || "Berkas dokumen belum diunggah atau tidak ditemukan.";
         toast.error(message);
         onClose();
       })
@@ -64,24 +101,35 @@ export function ScanViewerModal({
 
     return () => {
       active = false;
+      if (localBlobUrl && localBlobUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(localBlobUrl);
+      }
     };
-  }, [isOpen, scanUrl]);
+  }, [isOpen, scanUrl, fileName, onClose]);
 
   if (!isOpen) return null;
 
+  const currentDisplayName = resolvedFileName || fileName;
+
   const handleDownload = () => {
-    if (!dataUrl) return;
+    const targetUrl = blobUrl || dataUrl;
+    if (!targetUrl) return;
     const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = fileName || "Berkas_Cuti_Resmi.pdf";
+    a.href = targetUrl;
+    a.download = currentDisplayName || "Dokumen_Resmi.pdf";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
   const handleOpenExternal = () => {
+    if (blobUrl) {
+      window.open(blobUrl, "_blank", "noopener");
+      return;
+    }
     if (!scanUrl) return;
-    const streamUrl = `/api${scanUrl.replace(/^\/api/, "")}`;
+    const separator = scanUrl.includes("?") ? "&" : "?";
+    const streamUrl = `/api${scanUrl.replace(/^\/api/, "")}${separator}stream=1`;
     window.open(streamUrl, "_blank", "noopener");
   };
 
@@ -101,12 +149,16 @@ export function ScanViewerModal({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-100">{title}</h3>
-              {fileName && <p className="text-[11px] text-slate-400 font-mono truncate max-w-md">{fileName}</p>}
+              {currentDisplayName && (
+                <p className="text-[11px] text-slate-400 font-mono truncate max-w-md">
+                  {currentDisplayName}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {dataUrl && (
+            {(blobUrl || dataUrl) && (
               <>
                 <Button
                   type="button"
@@ -124,7 +176,7 @@ export function ScanViewerModal({
                   size="sm"
                   onClick={handleDownload}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-1.5 rounded-xl font-bold shadow-xs cursor-pointer"
-                  title="Unduh Berkas Scan"
+                  title="Unduh Berkas"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Unduh
@@ -148,25 +200,25 @@ export function ScanViewerModal({
           {isLoading ? (
             <div className="text-center py-16 space-y-3">
               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
-              <p className="text-xs font-semibold text-slate-500">Memuat berkas scan resmi...</p>
+              <p className="text-xs font-semibold text-slate-500">Memuat berkas pratinjau resmi...</p>
             </div>
-          ) : dataUrl ? (
+          ) : blobUrl || dataUrl ? (
             isPdf ? (
               <iframe
-                src={dataUrl}
+                src={blobUrl || dataUrl || undefined}
                 title={title}
                 className="w-full h-[72vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white shadow-xs"
               />
             ) : (
               <img
-                src={dataUrl}
+                src={blobUrl || dataUrl || undefined}
                 alt={title}
                 className="max-h-[72vh] max-w-full mx-auto object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800"
               />
             )
           ) : (
             <div className="text-center py-12 text-slate-400 text-xs">
-              Berkas scan tidak tersedia.
+              Berkas dokumen tidak tersedia.
             </div>
           )}
         </div>

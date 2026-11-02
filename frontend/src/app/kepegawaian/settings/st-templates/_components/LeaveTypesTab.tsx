@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { useRole } from "@/hooks/useRole";
+import { errorMessage } from "./utils";
 
 export interface LeaveType {
   id: number;
@@ -34,6 +36,7 @@ export interface LeaveType {
 }
 
 export function LeaveTypesTab() {
+  const { canWrite } = useRole();
   const [items, setItems] = useState<LeaveType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -43,6 +46,8 @@ export function LeaveTypesTab() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingItem, setEditingItem] = useState<LeaveType | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<LeaveType | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form Fields
   const [nama, setNama] = useState("");
@@ -57,11 +62,10 @@ export function LeaveTypesTab() {
   const fetchLeaveTypes = async () => {
     setIsLoading(true);
     try {
-      const res = await api.get("/api/kepegawaian/leave-types?all=1");
+      const res = await api.get("/kepegawaian/leave-types?all=1");
       setItems(res.data?.data || []);
     } catch (err: unknown) {
-      console.error("Gagal mengambil data jenis cuti:", err);
-      toast.error("Gagal memuat daftar master jenis cuti");
+      toast.error(errorMessage(err, "Gagal memuat daftar master jenis cuti"));
     } finally {
       setIsLoading(false);
     }
@@ -123,25 +127,25 @@ export function LeaveTypesTab() {
 
     try {
       if (editingItem) {
-        await api.put(`/api/kepegawaian/leave-types/${editingItem.id}`, payload);
+        await api.put(`/kepegawaian/leave-types/${editingItem.id}`, payload);
         toast.success("Jenis cuti berhasil diperbarui");
       } else {
-        await api.post("/api/kepegawaian/leave-types", payload);
+        await api.post("/kepegawaian/leave-types", payload);
         toast.success("Jenis cuti berhasil ditambahkan");
       }
       closeModal();
-      fetchLeaveTypes();
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Gagal menyimpan jenis cuti";
-      toast.error(msg);
+      void fetchLeaveTypes();
+    } catch (err: unknown) {
+      toast.error(errorMessage(err, "Gagal menyimpan jenis cuti"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleToggleActive = async (item: LeaveType) => {
+    if (!canWrite) return;
     try {
-      await api.patch(`/api/kepegawaian/leave-types/${item.id}/toggle-active`);
+      await api.patch(`/kepegawaian/leave-types/${item.id}/toggle-active`);
       setItems((prev) =>
         prev.map((it) => (it.id === item.id ? { ...it, is_active: !it.is_active } : it))
       );
@@ -150,26 +154,24 @@ export function LeaveTypesTab() {
           ? `Jenis cuti "${item.nama}" dinonaktifkan`
           : `Jenis cuti "${item.nama}" diaktifkan`
       );
-    } catch (err) {
-      toast.error("Gagal mengubah status jenis cuti");
+    } catch (err: unknown) {
+      toast.error(errorMessage(err, "Gagal mengubah status jenis cuti"));
     }
   };
 
-  const handleDelete = async (item: LeaveType) => {
-    if (
-      !confirm(
-        `Apakah Anda yakin ingin menghapus jenis cuti "${item.nama}"? Data riwayat cuti yang sudah ada tetap aman tersimpan.`
-      )
-    ) {
-      return;
-    }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await api.delete(`/api/kepegawaian/leave-types/${item.id}`);
+      setIsDeleting(true);
+      await api.delete(`/kepegawaian/leave-types/${deleteTarget.id}`);
       toast.success("Jenis cuti berhasil dihapus");
-      setItems((prev) => prev.filter((it) => it.id !== item.id));
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal menghapus jenis cuti");
+      setItems((prev) => prev.filter((it) => it.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err: unknown) {
+      toast.error(errorMessage(err, "Gagal menghapus jenis cuti"));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -207,14 +209,16 @@ export function LeaveTypesTab() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Jenis Cuti
-        </button>
+        {canWrite && (
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Jenis Cuti
+          </button>
+        )}
       </div>
 
       {/* Filter and Search Bar */}
@@ -286,20 +290,20 @@ export function LeaveTypesTab() {
                 <th className="py-3.5 px-4 min-w-[130px]">Batas Maksimal</th>
                 <th className="py-3.5 px-4 min-w-[220px]">Ketentuan / Catatan</th>
                 <th className="py-3.5 px-4 w-28 text-center">Status</th>
-                <th className="py-3.5 px-4 w-24 text-center">Aksi</th>
+                {canWrite && <th className="py-3.5 px-4 w-24 text-center">Aksi</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
                     Memuat data jenis cuti...
                   </td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-slate-400">
                     <AlertCircle className="w-8 h-8 text-slate-300 dark:text-zinc-700 mx-auto mb-2" />
                     Tidak ada jenis cuti yang sesuai kriteria pencarian.
                   </td>
@@ -372,8 +376,11 @@ export function LeaveTypesTab() {
                     <td className="py-3.5 px-4 text-center">
                       <button
                         type="button"
-                        onClick={() => handleToggleActive(item)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all ${
+                        disabled={!canWrite}
+                        onClick={() => void handleToggleActive(item)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                          canWrite ? "cursor-pointer" : "cursor-default"
+                        } ${
                           item.is_active
                             ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
                             : "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200"
@@ -391,26 +398,28 @@ export function LeaveTypesTab() {
                       </button>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(item)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                          title="Edit Jenis Cuti"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                          title="Hapus Jenis Cuti"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {canWrite && (
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(item)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                            title="Edit Jenis Cuti"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(item)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Hapus Jenis Cuti"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -418,6 +427,46 @@ export function LeaveTypesTab() {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                  Hapus Jenis Surat Cuti?
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  Jenis cuti <strong>{deleteTarget.nama}</strong> akan dihapus. Data riwayat cuti pegawai yang sudah ada tetap aman tersimpan.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Add / Edit */}
       {isModalOpen && (

@@ -16,8 +16,6 @@ use App\Modules\Kepegawaian\Exports\EmployeeIncomingLettersExport;
 
 class EmployeeIncomingLetterController extends Controller
 {
-    private const CATEGORIES = ['Mahasiswa', 'Instansi', 'Internal', 'Masyarakat', 'Lainnya'];
-
     private function disk(): string
     {
         return (string) config('filesystems.default');
@@ -33,44 +31,20 @@ class EmployeeIncomingLetterController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = EmployeeIncomingLetter::query()
+        $filters = $request->only(['search', 'kategori', 'status_balasan', 'start_date', 'end_date']);
+
+        $items = EmployeeIncomingLetter::query()
             ->with('attachments:id,incoming_letter_id,type,original_name,mime_type,size,note,created_at')
+            ->filter($filters)
             ->latest('tanggal_diterima')
-            ->latest('id');
+            ->latest('id')
+            ->paginate(min(max((int) $request->input('per_page', 20), 1), 100));
 
-        if ($request->filled('search')) {
-            $search = addcslashes(trim((string) $request->input('search')), '%_');
-            $query->where(function ($builder) use ($search) {
-                $builder->where('no_agenda', 'like', "%{$search}%")
-                    ->orWhere('no_surat_masuk', 'like', "%{$search}%")
-                    ->orWhere('no_surat_balasan', 'like', "%{$search}%")
-                    ->orWhere('asal_surat', 'like', "%{$search}%")
-                    ->orWhere('perihal', 'like', "%{$search}%")
-                    ->orWhereHas('attachments', fn ($attachments) => $attachments->where('original_name', 'like', "%{$search}%"));
-            });
-        }
-
-        if ($request->filled('kategori') && in_array($request->input('kategori'), self::CATEGORIES, true)) {
-            $query->where('kategori', $request->input('kategori'));
-        }
-
-        if ($request->input('status_balasan') === 'replied') {
-            $query->whereNotNull('no_surat_balasan')->where('no_surat_balasan', '!=', '');
-        } elseif ($request->input('status_balasan') === 'pending') {
-            $query->where(function ($builder) {
-                $builder->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
-            });
-        }
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal_diterima', '>=', $request->input('start_date'));
-        }
-
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal_diterima', '<=', $request->input('end_date'));
-        }
-
-        $items = $query->paginate(min(max((int) $request->input('per_page', 20), 1), 100));
+        $totalAll = EmployeeIncomingLetter::count();
+        $repliedCount = EmployeeIncomingLetter::query()->filter(['status_balasan' => 'replied'])->count();
+        $thisMonthCount = EmployeeIncomingLetter::whereYear('tanggal_diterima', now()->year)
+            ->whereMonth('tanggal_diterima', now()->month)
+            ->count();
 
         return response()->json([
             'data' => $items->getCollection()
@@ -81,6 +55,12 @@ class EmployeeIncomingLetterController extends Controller
                 'last_page' => $items->lastPage(),
                 'per_page' => $items->perPage(),
                 'total' => $items->total(),
+                'summary_counts' => [
+                    'all' => $totalAll,
+                    'replied' => $repliedCount,
+                    'pending' => max(0, $totalAll - $repliedCount),
+                    'this_month' => $thisMonthCount,
+                ],
             ],
         ]);
     }
@@ -192,12 +172,21 @@ class EmployeeIncomingLetterController extends Controller
 
         try {
             $saved = DB::transaction(function () use ($request, $letter, $validated, $creating, &$storedPaths, &$removedPaths) {
-                $letter->fill(collect($validated)->except([
+                $fields = collect($validated)->except([
                     'attachments',
                     'attachment_types',
                     'attachment_notes',
                     'delete_attachment_ids',
-                ])->all());
+                ])->all();
+
+                foreach (['no_agenda', 'no_surat_masuk', 'asal_surat', 'perihal', 'catatan', 'no_surat_balasan'] as $textKey) {
+                    if (array_key_exists($textKey, $fields)) {
+                        $cleaned = $fields[$textKey] !== null ? strip_tags(trim((string) $fields[$textKey])) : null;
+                        $fields[$textKey] = $cleaned !== '' ? $cleaned : null;
+                    }
+                }
+
+                $letter->fill($fields);
                 if ($creating) {
                     $letter->created_by = $request->user()?->id;
                 }
@@ -215,13 +204,14 @@ class EmployeeIncomingLetterController extends Controller
                     $path = $file->storeAs($directory, Str::uuid().'.'.$extension, $diskName);
                     $storedPaths[] = $path;
 
+                    $rawNote = isset($notes[$index]) ? strip_tags(trim((string) $notes[$index])) : null;
                     $letter->attachments()->create([
                         'type' => $type,
                         'original_name' => basename(str_replace('\\', '/', $file->getClientOriginalName())),
                         'storage_path' => $path,
                         'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
                         'size' => $file->getSize() ?: 0,
-                        'note' => $notes[$index] ?? null,
+                        'note' => $rawNote !== '' ? $rawNote : null,
                     ]);
                 }
 

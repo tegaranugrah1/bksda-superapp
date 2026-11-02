@@ -9,7 +9,7 @@ class UpdateStExpenseTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
     }
 
     public function rules(): array

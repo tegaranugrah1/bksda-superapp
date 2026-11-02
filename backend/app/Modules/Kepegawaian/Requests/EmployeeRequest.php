@@ -2,49 +2,133 @@
 
 namespace App\Modules\Kepegawaian\Requests;
 
+use App\Models\User;
+use App\Modules\Kepegawaian\Models\Employee;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EmployeeRequest extends FormRequest
 {
-    /**
-     * Tentukan siapa yang boleh melakukan request ini.
-     * Secara bawaan izinkan saja, karena Auth diurus oleh Middleware (Issue 12/13).
-     */
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
     }
 
-    /**
-     * Rule 1.4, 4.1, & 4.2: Validasi ketat untuk teks dan ukuran file (Max 10 MB)
-     */
+    protected function prepareForValidation(): void
+    {
+        $jenis = strtoupper(trim((string) $this->input('jenis_pegawai', '')));
+        $nipInput = trim((string) $this->input('nip', ''));
+
+        if ($this->has('nama_lengkap')) {
+            $this->merge(['nama_lengkap' => strip_tags(trim((string) $this->input('nama_lengkap')))]);
+        }
+        if ($this->has('jabatan')) {
+            $this->merge(['jabatan' => strip_tags(trim((string) $this->input('jabatan'))) ?: null]);
+        }
+        if ($this->has('satuan_kerja')) {
+            $this->merge(['satuan_kerja' => strip_tags(trim((string) $this->input('satuan_kerja'))) ?: null]);
+        }
+        if ($this->has('resor')) {
+            $this->merge(['resor' => strip_tags(trim((string) $this->input('resor'))) ?: null]);
+        }
+        if ($this->has('pangkat_golongan')) {
+            $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
+        }
+
+        if ($jenis === 'MMP') {
+            $employeeId = $this->route('employee');
+            $finalNip = $nipInput;
+
+            if ($finalNip === '' || ! str_starts_with(strtoupper($finalNip), 'MMP-')) {
+                $existing = $employeeId ? Employee::find($employeeId) : null;
+                $finalNip = ($existing && str_starts_with(strtoupper((string) $existing->nip), 'MMP-'))
+                    ? $existing->nip
+                    : Employee::generateNextMmpCode();
+            }
+
+            $this->merge([
+                'nip' => $finalNip,
+                'pangkat_golongan' => null,
+            ]);
+        } elseif ($nipInput !== '') {
+            $this->merge(['nip' => $nipInput]);
+        }
+    }
+
     public function rules(): array
     {
-        // Deteksi apakah ini operasi Update (PUT/PATCH) atau Create (POST)
-        $employeeId = $this->route('employee') ?? 'NULL';
+        $employeeId = $this->route('employee');
+        $existingEmployee = $employeeId ? Employee::withTrashed()->find($employeeId) : null;
+        $oldNip = $existingEmployee ? trim((string) $existingEmployee->nip) : null;
 
         return [
-            // NIP harus unique. Jika sedang Update, abaikan NIP miliknya sendiri
-            'nip' => 'required|string|max:50|unique:kpg_employees,nip,' . $employeeId,
-            'nama_lengkap' => 'required|string|max:255',
-            'jabatan' => 'nullable|string|max:255',
-            'pangkat_golongan' => 'nullable|string|max:255',
-            'satuan_kerja' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'jenis_pegawai' => ['nullable', 'string', Rule::in(['PNS', 'PPPK', 'MMP'])],
+            'nip' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('kpg_employees', 'nip')->ignore($employeeId),
+                function (string $attribute, mixed $value, \Closure $fail) use ($oldNip) {
+                    $clean = trim((string) $value);
+                    if ($clean === '' || $clean === $oldNip) {
+                        return;
+                    }
+                    if (User::where('username', $clean)->exists()) {
+                        $fail('NIP / kode tersebut sudah digunakan oleh akun pengguna lain di sistem.');
+                    }
+                },
+            ],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'jabatan' => ['nullable', 'string', 'max:255'],
+            'pangkat_golongan' => ['nullable', 'string', 'max:255'],
+            'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'resor' => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $resorVal = trim((string) $value);
+                    if ($resorVal === '') {
+                        return;
+                    }
 
-            // Aturan File (MIME + ekstensi strict) - Hanya gambar
+                    $validResors = array_keys(\App\Constants\BksdaConstants::RESORS);
+                    if (! in_array($resorVal, $validResors, true)) {
+                        $fail('Kode resor penempatan tidak valid.');
+                        return;
+                    }
+
+                    $satker = strtolower((string) $this->input('satuan_kerja', ''));
+
+                    // Cross-validation: Balai tidak boleh ditempatkan di resor wilayah
+                    if (str_contains($satker, 'balai') || str_contains($satker, 'samarinda')) {
+                        $fail('Pegawai kantor Balai tidak dapat ditempatkan di resor wilayah.');
+                        return;
+                    }
+
+                    $resorMeta = \App\Constants\BksdaConstants::RESORS[$resorVal] ?? null;
+                    if (! $resorMeta) return;
+
+                    $expectedSkw = (int) ($resorMeta['skw'] ?? 0);
+                    if ($expectedSkw === 1 && ! (str_contains($satker, 'wilayah i') || str_contains($satker, 'skw i') || str_contains($satker, 'berau'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
+                    } elseif ($expectedSkw === 2 && ! (str_contains($satker, 'wilayah ii') || str_contains($satker, 'skw ii') || str_contains($satker, 'tenggarong'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
+                    } elseif ($expectedSkw === 3 && ! (str_contains($satker, 'wilayah iii') || str_contains($satker, 'skw iii') || str_contains($satker, 'balikpapan'))) {
+                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                    }
+                },
+            ],
+            'is_active' => ['boolean'],
             'foto' => UploadValidationRules::image(required: false, maxKilobytes: 10240),
         ];
     }
 
-    /**
-     * Kustomisasi pesan error ke Bahasa Indonesia agar Frontend mudah menampilkannya.
-     */
     public function messages(): array
     {
         return [
-            'nip.unique' => 'NIP tersebut sudah terdaftar di sistem.',
+            'nip.unique' => 'NIP / NIPPPK tersebut sudah terdaftar di sistem.',
             'foto.mimes' => 'Format foto harus berupa JPG, PNG, atau WEBP.',
             'foto.max' => 'Ukuran foto tidak boleh lebih dari 10 MB.',
         ];

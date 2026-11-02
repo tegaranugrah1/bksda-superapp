@@ -12,7 +12,7 @@ const menuItems = [
   { name: "Daftar Pegawai", href: "/kepegawaian", icon: Users },
   { name: "Tambah Pegawai", href: "/kepegawaian/employees/create", icon: Plus, indent: true },
   { name: "Inbox Surat Tugas", href: "/kepegawaian/surat-tugas/inbox", icon: Inbox },
-  { name: "Buat Surat Tugas", href: "/kepegawaian/surat-tugas/create", icon: FileText, indent: true },
+  { name: "Buat Surat Tugas", href: "/surat-tugas", icon: FileText, indent: true },
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
@@ -58,7 +58,7 @@ export function Sidebar() {
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
               // Cek apakah url saat ini sedang membuka menu tersebut
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = pathname === item.href || (item.href !== "/kepegawaian" && pathname.startsWith(item.href + '/'));
               const Icon = item.icon;
 
               return (

@@ -3,9 +3,11 @@
 namespace App\Modules\Kepegawaian\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\Kepegawaian\Models\LeaveType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class LeaveTypeController extends Controller
@@ -83,27 +85,30 @@ class LeaveTypeController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->whereNull('deleted_at')],
-            'kode' => ['nullable', 'string', 'max:30'],
-            'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
-            'potong_kuota_tahunan' => ['required', 'boolean'],
-            'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'keterangan' => ['nullable', 'string', 'max:1000'],
-            'is_active' => ['nullable', 'boolean'],
-            'urutan' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $item = DB::transaction(function () use ($request) {
+            LeaveType::lockCatalog(true);
+            $validated = $request->validate([
+                'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->whereNull('deleted_at')],
+                'kode' => ['nullable', 'string', 'max:30'],
+                'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
+                'potong_kuota_tahunan' => ['required', 'boolean'],
+                'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
+                'keterangan' => ['nullable', 'string', 'max:1000'],
+                'is_active' => ['nullable', 'boolean'],
+                'urutan' => ['nullable', 'integer', 'min:0'],
+            ]);
 
-        $item = LeaveType::create([
-            'nama' => $this->cleanString($validated['nama']),
-            'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
-            'hitung_hari' => $validated['hitung_hari'],
-            'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
-            'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
-            'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
-            'is_active' => $validated['is_active'] ?? true,
-            'urutan' => $validated['urutan'] ?? 0,
-        ]);
+            return LeaveType::create([
+                'nama' => $this->cleanString($validated['nama']),
+                'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
+                'hitung_hari' => $validated['hitung_hari'],
+                'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
+                'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
+                'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
+                'is_active' => $validated['is_active'] ?? true,
+                'urutan' => $validated['urutan'] ?? 0,
+            ]);
+        });
 
         return response()->json([
             'message' => 'Jenis cuti berhasil ditambahkan',
@@ -116,29 +121,46 @@ class LeaveTypeController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $item = LeaveType::findOrFail($id);
+        $item = DB::transaction(function () use ($request, $id) {
+            LeaveType::lockCatalog(true);
+            $item = LeaveType::lockForUpdate()->findOrFail($id);
 
-        $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->ignore($item->id)->whereNull('deleted_at')],
-            'kode' => ['nullable', 'string', 'max:30'],
-            'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
-            'potong_kuota_tahunan' => ['required', 'boolean'],
-            'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'keterangan' => ['nullable', 'string', 'max:1000'],
-            'is_active' => ['nullable', 'boolean'],
-            'urutan' => ['nullable', 'integer', 'min:0'],
-        ]);
+            $validated = $request->validate([
+                'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->ignore($item->id)->whereNull('deleted_at')],
+                'kode' => ['nullable', 'string', 'max:30'],
+                'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
+                'potong_kuota_tahunan' => ['required', 'boolean'],
+                'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
+                'keterangan' => ['nullable', 'string', 'max:1000'],
+                'is_active' => ['nullable', 'boolean'],
+                'urutan' => ['nullable', 'integer', 'min:0'],
+            ]);
 
-        $item->update([
-            'nama' => $this->cleanString($validated['nama']),
-            'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
-            'hitung_hari' => $validated['hitung_hari'],
-            'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
-            'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
-            'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
-            'is_active' => $validated['is_active'] ?? $item->is_active,
-            'urutan' => $validated['urutan'] ?? $item->urutan,
-        ]);
+            $aliases = [mb_strtolower(trim($item->nama))];
+            if ($item->kode !== null && trim($item->kode) !== '') {
+                $aliases[] = mb_strtolower(trim($item->kode));
+            }
+
+            $item->update([
+                'nama' => $this->cleanString($validated['nama']),
+                'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
+                'hitung_hari' => $validated['hitung_hari'],
+                'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
+                'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
+                'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
+                'is_active' => $validated['is_active'] ?? $item->is_active,
+                'urutan' => $validated['urutan'] ?? $item->urutan,
+            ]);
+
+            if ($item->wasChanged(['nama', 'kode'])) {
+                // Keep historical names/codes attached to the renamed master, including archived rows.
+                EmployeeLeaveRequest::withTrashed()
+                    ->whereIn(DB::raw('LOWER(TRIM(jenis_cuti))'), $aliases)
+                    ->update(['jenis_cuti' => $item->nama]);
+            }
+
+            return $item;
+        });
 
         return response()->json([
             'message' => 'Jenis cuti berhasil diperbarui',
@@ -151,9 +173,14 @@ class LeaveTypeController extends Controller
      */
     public function toggleActive(int $id): JsonResponse
     {
-        $item = LeaveType::findOrFail($id);
-        $item->is_active = !$item->is_active;
-        $item->save();
+        $item = DB::transaction(function () use ($id) {
+            LeaveType::lockCatalog(true);
+            $item = LeaveType::lockForUpdate()->findOrFail($id);
+            $item->is_active = !$item->is_active;
+            $item->save();
+
+            return $item;
+        });
 
         return response()->json([
             'message' => 'Status jenis cuti berhasil diubah',
@@ -166,8 +193,11 @@ class LeaveTypeController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $item = LeaveType::findOrFail($id);
-        $item->delete();
+        DB::transaction(function () use ($id) {
+            LeaveType::lockCatalog(true);
+            $item = LeaveType::lockForUpdate()->findOrFail($id);
+            $item->delete();
+        });
 
         return response()->json([
             'message' => 'Jenis cuti berhasil dihapus',

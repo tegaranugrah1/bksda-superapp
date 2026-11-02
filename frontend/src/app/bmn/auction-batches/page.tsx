@@ -123,19 +123,29 @@ export default function BmnAuctionBatchesListPage() {
 
   return (
     <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Paket Lelang BMN
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Daftar paket dokumen lelang BMN yang sedang diproses maupun yang telah terealisasi.
-          </p>
+      {/* Enterprise Header Card */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/50 shadow-xs">
+            <Layers className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                Paket Lelang BMN
+              </h1>
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Lelang & Penghapusan
+              </span>
+            </div>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Daftar paket dokumen lelang BMN yang sedang diproses maupun yang telah terealisasi.
+            </p>
+          </div>
         </div>
         {canCreate && (
           <Link href="/bmn/auction-candidates">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200">
+            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center justify-center gap-2 rounded-xl transition duration-200 min-h-[40px] shadow-sm">
               <Plus className="h-4 w-4" />
               Buat Paket Baru
             </Button>
@@ -216,12 +226,18 @@ export default function BmnAuctionBatchesListPage() {
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
               {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="p-16 text-center">
-                    <Loader2 className="mx-auto mb-2.5 h-7 w-7 animate-spin text-emerald-600" />
-                    <p className="text-sm text-zinc-400 font-medium">Memuat daftar paket lelang...</p>
-                  </td>
-                </tr>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-5 py-4"><div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" /></td>
+                    <td className="px-5 py-4"><div className="h-4 w-40 bg-zinc-200 dark:bg-zinc-800 rounded" /></td>
+                    <td className="px-5 py-4"><div className="h-5 w-20 bg-zinc-200 dark:bg-zinc-800 rounded-md" /></td>
+                    <td className="px-5 py-4 text-center"><div className="h-4 w-8 bg-zinc-200 dark:bg-zinc-800 rounded mx-auto" /></td>
+                    <td className="px-5 py-4 text-right"><div className="h-4 w-28 bg-zinc-200 dark:bg-zinc-800 rounded ml-auto" /></td>
+                    <td className="px-5 py-4"><div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" /></td>
+                    <td className="px-5 py-4"><div className="h-4 w-24 bg-zinc-200 dark:bg-zinc-800 rounded" /></td>
+                    <td className="px-5 py-4 text-center"><div className="h-8 w-16 bg-zinc-200 dark:bg-zinc-800 rounded-lg mx-auto" /></td>
+                  </tr>
+                ))
               ) : batches.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-16 text-center">
@@ -300,9 +316,9 @@ export default function BmnAuctionBatchesListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg text-xs font-semibold flex items-center gap-1"
+                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[36px] px-2.5"
                           >
-                            <Eye className="h-3.5 w-3.5" />
+                            <Eye className="h-4 w-4" />
                             Lihat
                           </Button>
                         </Link>
@@ -312,13 +328,13 @@ export default function BmnAuctionBatchesListPage() {
                             size="sm"
                             disabled={deletingId === batch.id}
                             onClick={() => handleDelete(batch)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-xs font-semibold flex items-center gap-1"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[36px] px-2.5"
                             title="Hapus paket lelang"
                           >
                             {deletingId === batch.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin text-red-600" />
+                              <Loader2 className="h-4 w-4 animate-spin text-red-600" />
                             ) : (
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="h-4 w-4" />
                             )}
                             Hapus
                           </Button>

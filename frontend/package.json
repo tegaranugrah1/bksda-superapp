@@ -6,7 +6,10 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:security-cache": "node tests/cache-security.cjs",
+    "test:security-playwright": "node tests/surat-tugas-security.playwright.cjs",
+    "test:surat-tugas-flow": "node tests/surat-tugas-flow.playwright.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -21,11 +24,13 @@
     "dayjs": "^1.11.20",
     "dompurify": "^3.4.2",
     "framer-motion": "^12.38.0",
+    "laravel-echo": "^2.6.3",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "lucide-react": "^1.14.0",
     "next": "^16.4.2",
     "next-themes": "^0.4.6",
+    "pusher-js": "^8.6.0",
     "radix-ui": "^1.4.3",
     "react": "latest",
     "react-dom": "latest",
@@ -50,6 +55,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "latest",
+    "playwright": "^1.64.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

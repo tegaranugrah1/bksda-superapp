@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -59,9 +61,32 @@ class Employee extends Model
         'jabatan',
         'pangkat_golongan',
         'satuan_kerja',
+        'resor',
         'is_active',
         'foto_profil',
     ];
+
+    public static function lockForLeaveUpdate(int $employeeId): self
+    {
+        LeaveType::lockCatalog();
+
+        return static::withTrashed()->lockForUpdate()->findOrFail($employeeId);
+    }
+
+    public function replaceProfilePhoto(UploadedFile $file): string
+    {
+        $oldPath = $this->foto_profil;
+        $path = $file->store('employees/emp-'.$this->getKey().'/foto-profil');
+        abort_if($path === false, 500, 'Foto profil gagal disimpan.');
+
+        $this->update(['foto_profil' => $path]);
+        if ($oldPath && ! str_starts_with($oldPath, 'http')
+            && ! static::withTrashed()->where('foto_profil', $oldPath)->exists()) {
+            Storage::delete($oldPath);
+        }
+
+        return $path;
+    }
 
     // Konversi otomatis string 0/1 dari database menjadi boolean true/false di PHP
     protected $casts = [
@@ -72,9 +97,61 @@ class Employee extends Model
         'is_seksi',
         'seksi_wilayah',
         'is_pppk',
+        'is_mmp',
+        'jenis_pegawai',
         'nip_label',
         'is_cpns2025',
+        'foto_url',
     ];
+
+    public function getFotoUrlAttribute(): ?string
+    {
+        return $this->foto_profil ? Storage::url($this->foto_profil) : null;
+    }
+
+    /**
+     * Accessor: Cek apakah personil merupakan Masyarakat Mitra Polhut (MMP)
+     */
+    public function getIsMmpAttribute(): bool
+    {
+        $nip = strtoupper(trim((string) $this->nip));
+        return str_starts_with($nip, 'MMP-');
+    }
+
+    /**
+     * Accessor: Kategori jenis pegawai ('PNS', 'PPPK', atau 'MMP')
+     */
+    public function getJenisPegawaiAttribute(): string
+    {
+        if ($this->is_mmp) {
+            return 'MMP';
+        }
+
+        return $this->is_pppk ? 'PPPK' : 'PNS';
+    }
+
+    /**
+     * Generate kode unik MMP-xxx berikutnya secara sekuensial
+     */
+    public static function generateNextMmpCode(): string
+    {
+        $existingCodes = static::withTrashed()
+            ->withoutGlobalScopes()
+            ->where('nip', 'LIKE', 'MMP-%')
+            ->pluck('nip');
+
+        $maxNumber = 0;
+        foreach ($existingCodes as $code) {
+            if (preg_match('/^MMP-(\d+)$/i', trim((string) $code), $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        return sprintf('MMP-%03d', $maxNumber + 1);
+    }
 
     /**
      * Accessor: Cek apakah pegawai berstatus PPPK (P3K)
@@ -82,7 +159,7 @@ class Employee extends Model
      */
     public function getIsPppkAttribute(): bool
     {
-        if (empty($this->nip)) {
+        if (empty($this->nip) || $this->is_mmp) {
             return false;
         }
 
@@ -93,7 +170,29 @@ class Employee extends Model
 
         $gol = strtolower($this->pangkat_golongan ?? '');
         $jab = strtolower($this->jabatan ?? '');
-        return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k');
+        return str_contains($gol, 'pppk') || str_contains($jab, 'pppk') || str_contains($gol, 'p3k') || str_starts_with($gol, 'golongan ');
+    }
+
+    /**
+     * Scope filter berdasarkan kategori jenis pegawai (PNS, PPPK, MMP)
+     */
+    public function scopeOfJenis($query, string $jenis)
+    {
+        $jenis = strtoupper(trim($jenis));
+        $mmpSql = "UPPER(TRIM(COALESCE(nip, ''))) LIKE 'MMP-%'";
+        $pppkSql = "(NOT ({$mmpSql}) AND (SUBSTR(REPLACE(COALESCE(nip, ''), ' ', ''), 13, 2) = '21' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE '%pppk%' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE '%p3k%' OR LOWER(COALESCE(pangkat_golongan, '')) LIKE 'golongan %' OR LOWER(COALESCE(jabatan, '')) LIKE '%pppk%'))";
+
+        if ($jenis === 'MMP') {
+            return $query->whereRaw($mmpSql);
+        }
+        if ($jenis === 'PPPK' || $jenis === 'P3K') {
+            return $query->whereRaw($pppkSql);
+        }
+        if ($jenis === 'PNS') {
+            return $query->whereRaw("NOT ({$mmpSql}) AND NOT {$pppkSql}");
+        }
+
+        return $query;
     }
 
     /**

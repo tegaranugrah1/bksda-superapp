@@ -310,7 +310,11 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
     if (formData1.lampiran) fd.append("lampiran", formData1.lampiran);
     if (formData1.catatan) fd.append("catatan", formData1.catatan);
 
-    diteruskanList1.forEach((d) => fd.append("disposisi[diteruskan_json][]", d));
+    // Disposisi recipients are left empty on initial entry until physical direction from pimpinan
+    const actualRecipients = (initialData?.disposisi?.diteruskan_json || []).filter(
+      (d) => !/^\d+\.\s+/.test(d)
+    );
+    actualRecipients.forEach((d) => fd.append("disposisi[diteruskan_json][]", d));
     if (catatanDisposisi1) fd.append("disposisi[catatan]", catatanDisposisi1);
 
     const newItem: SuratMasuk = {
@@ -327,7 +331,11 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       asal_surat: formData1.asal_surat || "",
       lampiran: formData1.lampiran || "",
       catatan: catatanDisposisi1 || formData1.catatan || "",
-      sifat_json: ["Penting"],
+      sifat_json: initialData?.sifat_json || ["Penting"],
+      disposisi: {
+        diteruskan_json: actualRecipients,
+        catatan: catatanDisposisi1 || "",
+      },
     };
 
     let newItem2: SuratMasuk | null = null;
