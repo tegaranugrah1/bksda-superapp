@@ -7,88 +7,126 @@ use App\Modules\Bmn\Models\Asset;
 class AuctionAssetDocumentReadinessService
 {
     /**
-     * Detect if the asset is a vehicle or general asset.
-     *
-     * @param Asset $asset
-     * @return string
+     * Check if a field has a valid, non-empty, non-dash value.
+     */
+    private function hasValidField(?string $value): bool
+    {
+        $clean = trim((string) $value);
+        return $clean !== '' && $clean !== '-';
+    }
+
+    /**
+     * Check if an asset has at least one physical photo available.
+     */
+    private function hasPhoto(Asset $asset): bool
+    {
+        if ((int) $asset->jumlah_foto > 0) {
+            return true;
+        }
+
+        $photoFields = [
+            $asset->foto_geotag_path,
+            $asset->foto_geotag_url,
+            $asset->foto_depan_path,
+            $asset->foto_belakang_path,
+            $asset->foto_kiri_path,
+            $asset->foto_kanan_path,
+            $asset->foto_lokasi_path,
+            $asset->foto_url,
+        ];
+
+        foreach ($photoFields as $path) {
+            if ($this->hasValidField($path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Detect if the asset is a motor vehicle with a valid police number,
+     * or a general asset.
      */
     public function detectAssetType(Asset $asset): string
     {
-        if (!empty($asset->no_polisi) ||
-            !empty($asset->no_rangka) ||
-            !empty($asset->no_mesin) ||
-            !empty($asset->no_stnk) ||
-            !empty($asset->no_bpkp)
-        ) {
-            return 'vehicle';
+        $hasNopol = $this->hasValidField($asset->no_polisi);
+        if (!$hasNopol) {
+            return 'general';
         }
 
-        $terms = ['kendaraan', 'alat angkutan', 'roda dua', 'roda empat', 'motor', 'mobil', 'bus', 'truk', 'sepeda motor', 'angkot', 'ambulance'];
-        $fields = [$asset->jenis_bmn, $asset->nama_barang, $asset->merk, $asset->tipe, $asset->merk_tipe];
-        foreach ($fields as $field) {
-            if (empty($field)) {
-                continue;
-            }
-            foreach ($terms as $term) {
-                if (stripos($field, $term) !== false) {
-                    return 'vehicle';
-                }
-            }
-        }
+        $jenis = (string) $asset->jenis_bmn;
+        $isAngkutanBermotor = stripos($jenis, 'ANGKUTAN BERMOTOR') !== false
+            || stripos($jenis, 'KENDARAAN') !== false
+            || stripos((string) $asset->nama_barang, 'Sepeda Motor') !== false
+            || stripos((string) $asset->nama_barang, 'Mobil') !== false;
 
-        return 'general';
+        return $isAngkutanBermotor ? 'vehicle' : 'general';
     }
 
     /**
      * Evaluate the document readiness of an asset.
-     *
-     * @param Asset $asset
-     * @return array
      */
     public function evaluate(Asset $asset): array
     {
         $type = $this->detectAssetType($asset);
-
-        if ($type !== 'vehicle') {
-            return [
-                'asset_type' => 'general',
-                'requires_document_review' => false,
-                'warnings' => [],
-                'items' => [],
-            ];
-        }
-
         $warnings = [];
-        $items = [
-            'bpkb' => 'ok',
-            'stnk' => 'ok',
-            'no_polisi' => 'ok',
-            'no_rangka' => 'ok',
-            'no_mesin' => 'ok',
-        ];
 
-        if (empty($asset->no_bpkp)) {
-            $warnings[] = 'Nomor BPKB belum tersedia di master aset.';
-            $items['bpkb'] = 'warning';
-        }
+        $hasPhoto = $this->hasPhoto($asset);
+        $isVerified = !empty($asset->verified_at);
 
-        if (empty($asset->no_polisi)) {
-            $warnings[] = 'Nomor Polisi belum tersedia di master aset.';
-            $items['no_polisi'] = 'warning';
-        }
+        if ($type === 'vehicle') {
+            // Vehicle with police number requires full docs, photo, and BMN verification
+            $hasBpkb = $this->hasValidField($asset->no_bpkp);
+            $hasStnk = $this->hasValidField($asset->no_stnk);
+            $hasRangka = $this->hasValidField($asset->no_rangka);
+            $hasMesin = $this->hasValidField($asset->no_mesin);
 
-        if (empty($asset->no_rangka)) {
-            $warnings[] = 'Nomor Rangka belum tersedia di master aset.';
-            $items['no_rangka'] = 'warning';
-        }
+            $items = [
+                'bpkb' => $hasBpkb ? 'ok' : 'warning',
+                'stnk' => $hasStnk ? 'ok' : 'warning',
+                'no_polisi' => 'ok',
+                'no_rangka' => $hasRangka ? 'ok' : 'warning',
+                'no_mesin' => $hasMesin ? 'ok' : 'warning',
+                'foto' => $hasPhoto ? 'ok' : 'warning',
+                'verifikasi' => $isVerified ? 'ok' : 'warning',
+            ];
 
-        if (empty($asset->no_mesin)) {
-            $warnings[] = 'Nomor Mesin belum tersedia di master aset.';
-            $items['no_mesin'] = 'warning';
+            if (!$hasBpkb) {
+                $warnings[] = 'Nomor BPKB belum tersedia di master aset.';
+            }
+            if (!$hasStnk) {
+                $warnings[] = 'Nomor STNK belum tersedia di master aset.';
+            }
+            if (!$hasRangka) {
+                $warnings[] = 'Nomor Rangka belum tersedia di master aset.';
+            }
+            if (!$hasMesin) {
+                $warnings[] = 'Nomor Mesin belum tersedia di master aset.';
+            }
+            if (!$hasPhoto) {
+                $warnings[] = 'Foto fisik aset belum tersedia/diunggah.';
+            }
+            if (!$isVerified) {
+                $warnings[] = 'Aset belum diverifikasi oleh Petugas BMN.';
+            }
+        } else {
+            // General asset: Only photo and BMN verification required
+            $items = [
+                'foto' => $hasPhoto ? 'ok' : 'warning',
+                'verifikasi' => $isVerified ? 'ok' : 'warning',
+            ];
+
+            if (!$hasPhoto) {
+                $warnings[] = 'Foto fisik aset belum tersedia/diunggah.';
+            }
+            if (!$isVerified) {
+                $warnings[] = 'Aset belum diverifikasi oleh Petugas BMN.';
+            }
         }
 
         return [
-            'asset_type' => 'vehicle',
+            'asset_type' => $type,
             'requires_document_review' => count($warnings) > 0,
             'warnings' => $warnings,
             'items' => $items,
