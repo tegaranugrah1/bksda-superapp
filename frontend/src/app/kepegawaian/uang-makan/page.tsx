@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import {
   UtensilsCrossed,
   UploadCloud,
@@ -30,6 +31,8 @@ import {
   RotateCcw,
   Edit3,
   Lock,
+  Settings,
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +58,9 @@ export interface ReconciledEmployeeItem {
   nama: string;
   jabatan: string;
   golongan: string;
+  nama_bank?: string;
+  nomor_rekening?: string;
+  telepon?: string;
   tarif: number;
   pph_rate: number;
   daily_matrix: Record<string, string>;
@@ -95,16 +101,38 @@ export default function UangMakanPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("09");
   const [selectedYear, setSelectedYear] = useState<string>("2026");
   const [filterGroup, setFilterGroup] = useState<"all" | "pns" | "pppk">("all");
+  const [filterCategory, setFilterCategory] = useState<"all" | "PNS_BRI" | "PNS_MNDRI" | "PPPK_MNDRI" | "PPPK_BRI">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [onlyOverrides, setOnlyOverrides] = useState(false);
 
   // Reconciled Data State
   const [items, setItems] = useState<ReconciledEmployeeItem[]>([]);
   const [daysInMonth, setDaysInMonth] = useState<number>(30);
-  const [holidays, setHolidays] = useState<string[]>([]);
+  const [holidays, setHolidays] = useState<Record<string, { day: number; date: string; name: string; is_cuti_bersama?: boolean }> | any>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Modal Peringatan Beda Periode Bulan saat Upload Bareng
+  const [mismatchedModal, setMismatchedModal] = useState<{
+    open: boolean;
+    message: string;
+    groups: Array<{
+      periode: string;
+      label: string;
+      files: Array<{
+        filename: string;
+        nama: string;
+        nip: string;
+        periode: string;
+        label: string;
+      }>;
+    }>;
+  }>({
+    open: false,
+    message: "",
+    groups: [],
+  });
 
   // Admin Cell Editing Modal State
   const [editingModal, setEditingModal] = useState<{
@@ -113,6 +141,71 @@ export default function UangMakanPage() {
     currentCode: string;
     reason: string;
   } | null>(null);
+
+  // Helper identifikasi libur nasional & cuti bersama
+  const getHolidayInfo = (day: number) => {
+    if (!holidays) return null;
+    if (Array.isArray(holidays)) {
+      return (holidays as Array<{ day: number; date: string; name: string; is_cuti_bersama?: boolean }>).find(
+        (h) => h.day === day || h.date?.endsWith(`-${String(day).padStart(2, "0")}`)
+      ) || null;
+    }
+    const map = holidays as Record<string, { day: number; date: string; name: string; is_cuti_bersama?: boolean }>;
+    return map[day] || map[String(day)] || null;
+  };
+
+  // Sinkronisasi kalender hari kerja, akhir pekan, libur nasional, dan cuti bersama
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCalendar = async () => {
+      try {
+        const res = await api.get(`/kepegawaian/uang-makan/calendar?year=${selectedYear}&month=${selectedMonth}`);
+        if (res.data?.success && isMounted) {
+          setDaysInMonth(res.data.data.days_in_month || 30);
+          setHolidays(res.data.data.holidays || {});
+        }
+      } catch {
+        if (isMounted) {
+          const d = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
+          setDaysInMonth(d);
+        }
+      }
+    };
+    fetchCalendar();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedMonth, selectedYear]);
+
+  // Breakdown 4 Kategori Sheet Standar BKSDA Kaltim (PNS/PPPK x Mandiri/BRI)
+  const sheetCategoryStats = useMemo(() => {
+    const stats = {
+      PNS_BRI: { count: 0, netto: 0 },
+      PNS_MNDRI: { count: 0, netto: 0 },
+      PPPK_MNDRI: { count: 0, netto: 0 },
+      PPPK_BRI: { count: 0, netto: 0 },
+    };
+
+    items.forEach((it) => {
+      const isPppk = it.golongan.toLowerCase().includes("pppk");
+      const isMandiri = (it.nama_bank || "").toLowerCase().includes("mandiri");
+      if (!isPppk && !isMandiri) {
+        stats.PNS_BRI.count++;
+        stats.PNS_BRI.netto += it.total_netto;
+      } else if (!isPppk && isMandiri) {
+        stats.PNS_MNDRI.count++;
+        stats.PNS_MNDRI.netto += it.total_netto;
+      } else if (isPppk && isMandiri) {
+        stats.PPPK_MNDRI.count++;
+        stats.PPPK_MNDRI.netto += it.total_netto;
+      } else {
+        stats.PPPK_BRI.count++;
+        stats.PPPK_BRI.netto += it.total_netto;
+      }
+    });
+
+    return stats;
+  }, [items]);
 
   // Saved Batches State
   const [savedBatches, setSavedBatches] = useState<SavedBatchSummary[]>([]);
@@ -320,14 +413,55 @@ export default function UangMakanPage() {
         const normalized = (data.items || []).map(normalizeEmployeeItem);
         setItems(normalized);
         setDaysInMonth(data.days_in_month || 30);
-        setHolidays(data.holidays || []);
-        toast.success(`Berhasil merekonsiliasi presensi untuk ${normalized.length} pegawai!`);
+        setHolidays(data.holidays || {});
+
+        // Otomatis sesuaikan bulan & tahun jika terdeteksi dari berkas SIKADIR
+        if (data.detected_month && data.detected_year) {
+          const newMonth = String(data.detected_month).padStart(2, "0");
+          const newYear = String(data.detected_year);
+          setSelectedMonth(newMonth);
+          setSelectedYear(newYear);
+          toast.success(`Periode otomatis disesuaikan ke ${data.detected_period_label || `${newMonth}/${newYear}`}`);
+        } else {
+          toast.success(`Berhasil merekonsiliasi presensi untuk ${normalized.length} pegawai!`);
+        }
+
         setActiveTab("matrix");
       } else {
         toast.error(res.data?.message || "Gagal memproses file presensi");
       }
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
+      const e = err as {
+        response?: {
+          status?: number;
+          data?: {
+            message?: string;
+            error_code?: string;
+            groups?: Array<{
+              periode: string;
+              label: string;
+              files: Array<{
+                filename: string;
+                nama: string;
+                nip: string;
+                periode: string;
+                label: string;
+              }>;
+            }>;
+          };
+        };
+      };
+
+      if (e.response?.data?.error_code === "MISMATCHED_PERIODS") {
+        setMismatchedModal({
+          open: true,
+          message: e.response.data.message || "Ditemukan berkas dengan periode bulan yang berbeda.",
+          groups: e.response.data.groups || [],
+        });
+        toast.error("Upload dibatalkan: Berkas memiliki periode bulan berbeda!");
+        return;
+      }
+
       toast.error(e.response?.data?.message || "Terjadi kesalahan saat memproses file di server");
     } finally {
       setIsProcessing(false);
@@ -404,6 +538,7 @@ export default function UangMakanPage() {
     setEditingModal(null);
     setSearchQuery("");
     setFilterGroup("all");
+    setFilterCategory("all");
     setOnlyOverrides(false);
     setActiveTab("upload");
     toast.info("Data pratinjau telah dikosongkan. Silakan unggah berkas baru.");
@@ -960,14 +1095,45 @@ export default function UangMakanPage() {
                   {/* Day Columns 1..N */}
                   {Array.from({ length: daysInMonth }, (_, i) => {
                     const day = i + 1;
+                    const dateObj = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, day);
+                    const dayOfWeek = dateObj.getDay(); // 0 = Minggu, 6 = Sabtu
+                    const holidayInfo = getHolidayInfo(day);
+                    const isHoliday = !!holidayInfo;
+                    const dayNames = ["Mg", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"];
+                    const dayName = dayNames[dayOfWeek] || "";
+
+                    let headerBg = "hover:bg-blue-100 dark:hover:bg-zinc-700 bg-white dark:bg-zinc-900";
+                    let textClass = "text-slate-700 dark:text-zinc-200";
+                    let tooltip = `Tanggal ${day}: Hari Kerja. Klik untuk toggle libur.`;
+
+                    if (isHoliday) {
+                      headerBg = "bg-rose-100/90 dark:bg-rose-950/70 hover:bg-rose-200 border-rose-300 dark:border-rose-900";
+                      textClass = "text-rose-700 dark:text-rose-300 font-extrabold";
+                      tooltip = `Tanggal ${day}: ${holidayInfo.name} (${holidayInfo.is_cuti_bersama ? "Cuti Bersama" : "Hari Libur Nasional"})`;
+                    } else if (dayOfWeek === 0) {
+                      headerBg = "bg-red-50 dark:bg-red-950/50 hover:bg-red-100 border-red-200 dark:border-red-900";
+                      textClass = "text-red-600 dark:text-red-400 font-bold";
+                      tooltip = `Tanggal ${day}: Hari Minggu (Akhir Pekan)`;
+                    } else if (dayOfWeek === 6) {
+                      headerBg = "bg-slate-100 dark:bg-zinc-800/80 hover:bg-slate-200 border-slate-300 dark:border-zinc-700";
+                      textClass = "text-slate-500 dark:text-zinc-400 font-semibold";
+                      tooltip = `Tanggal ${day}: Hari Sabtu (Akhir Pekan)`;
+                    }
+
                     return (
                       <th
                         key={day}
                         onClick={() => handleToggleColumnHoliday(day)}
-                        title={`Klik untuk toggle Hari Libur (-) / Hari Kerja (H) untuk seluruh pegawai`}
-                        className="p-1 border border-slate-200 dark:border-zinc-700 w-8 hover:bg-blue-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
+                        title={tooltip}
+                        className={`p-1 border border-slate-200 dark:border-zinc-700 w-8 cursor-pointer transition-colors ${headerBg}`}
                       >
-                        <div className="text-[10px]">{day}</div>
+                        <div className={`text-[8px] uppercase font-semibold leading-tight ${dayOfWeek === 0 || isHoliday ? "text-rose-600 dark:text-rose-400" : "text-slate-400"}`}>
+                          {dayName}
+                        </div>
+                        <div className={`text-[10px] leading-tight font-bold ${textClass}`}>{day}</div>
+                        {isHoliday && (
+                          <span className="block w-1.5 h-1.5 rounded-full bg-rose-500 mx-auto mt-0.5" />
+                        )}
                       </th>
                     );
                   })}
@@ -1012,6 +1178,10 @@ export default function UangMakanPage() {
                       const day = i + 1;
                       const rawVal = emp.daily_matrix[day] || "-";
                       const cleanVal = rawVal.replace("*", "");
+                      const dateObj = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, day);
+                      const dayOfWeek = dateObj.getDay();
+                      const holidayInfo = getHolidayInfo(day);
+                      const isHoliday = !!holidayInfo;
 
                       // Determine cell styling
                       let cellStyle = "text-slate-400 bg-slate-100/50 dark:bg-zinc-800/30";
@@ -1021,6 +1191,21 @@ export default function UangMakanPage() {
                       else if (cleanVal === "S") cellStyle = "text-purple-700 dark:text-purple-300 font-semibold bg-purple-50/70";
                       else if (cleanVal === "I") cellStyle = "text-cyan-700 dark:text-cyan-300 font-semibold bg-cyan-50/70";
                       else if (cleanVal === "TK") cellStyle = "text-rose-700 dark:text-rose-300 font-bold bg-rose-100/80";
+                      else if (cleanVal === "-") {
+                        if (isHoliday || dayOfWeek === 0) {
+                          cellStyle = "text-rose-400 bg-rose-50/30 dark:bg-rose-950/20";
+                        } else if (dayOfWeek === 6) {
+                          cellStyle = "text-slate-400 bg-slate-100/60 dark:bg-zinc-800/40";
+                        }
+                      }
+
+                      const dayTooltip = isHoliday
+                        ? `Tgl ${day}: ${holidayInfo.name}`
+                        : dayOfWeek === 0
+                        ? `Tgl ${day}: Hari Minggu (Akhir Pekan)`
+                        : dayOfWeek === 6
+                        ? `Tgl ${day}: Hari Sabtu (Akhir Pekan)`
+                        : `Tgl ${day}: ${rawVal}`;
 
                       return (
                         <td
@@ -1029,7 +1214,7 @@ export default function UangMakanPage() {
                           className={`p-1 border border-slate-200 dark:border-zinc-800 text-[11px] ${
                             isAdmin ? "cursor-pointer hover:ring-2 hover:ring-blue-500 hover:z-20" : "cursor-default"
                           } transition-all ${cellStyle}`}
-                          title={`Tgl ${day}: ${rawVal} ${isAdmin ? "(Klik untuk koreksi status admin)" : ""}`}
+                          title={`${dayTooltip} ${isAdmin ? "(Klik untuk koreksi status admin)" : ""}`}
                         >
                           <span>{rawVal}</span>
                         </td>
@@ -1065,6 +1250,18 @@ export default function UangMakanPage() {
             <div>
               <span>Klik angka tanggal di baris header tabel untuk toggle Hari Libur Nasional / Cuti Bersama.</span>
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-slate-600 dark:text-zinc-400 border-t border-slate-100 dark:border-zinc-800">
+            <span className="font-semibold text-slate-700 dark:text-zinc-300">Legenda Presensi:</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-emerald-100 border border-emerald-300 text-[9px] font-bold text-emerald-800 flex items-center justify-center">H</span> Hadir (Uang Makan)</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-[9px] font-bold text-amber-800 flex items-center justify-center">PD</span> Perjalanan Dinas</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-blue-100 border border-blue-300 text-[9px] font-bold text-blue-800 flex items-center justify-center">CT</span> Cuti Sah</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-purple-100 border border-purple-300 text-[9px] font-bold text-purple-800 flex items-center justify-center">S</span> Sakit</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-cyan-100 border border-cyan-300 text-[9px] font-bold text-cyan-800 flex items-center justify-center">I</span> Izin</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-800 flex items-center justify-center">TK</span> Alpa</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-red-100 border border-red-300 text-[9px] font-bold text-red-700 flex items-center justify-center">Mg</span> Libur Nasional / Cuti Bersama SKB / Minggu</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-slate-200 border border-slate-300 text-[9px] font-bold text-slate-600 flex items-center justify-center">Sb</span> Sabtu</span>
           </div>
         </div>
       )}
@@ -1143,7 +1340,7 @@ export default function UangMakanPage() {
               </tbody>
               <tfoot className="bg-slate-100 dark:bg-zinc-800 font-bold text-slate-900 dark:text-white">
                 <tr>
-                  <td colSpan={5} className="p-3 text-center uppercase tracking-wider">
+                  <td colSpan={6} className="p-3 text-center uppercase tracking-wider">
                     Total Keseluruhan ({filteredItems.length} Pegawai)
                   </td>
                   <td className="p-3 text-right font-mono">
@@ -1330,6 +1527,85 @@ export default function UangMakanPage() {
                 className="text-xs h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
               >
                 Terapkan Perubahan
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Peringatan Beda Periode Bulan saat Upload Bareng */}
+      {mismatchedModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-rose-200 dark:border-rose-900/50 space-y-5 animate-in fade-in-50 zoom-in-95">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Peringatan: Berkas Memiliki Periode Bulan Berbeda!
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  {mismatchedModal.message}
+                </p>
+              </div>
+              <button
+                onClick={() => setMismatchedModal({ open: false, message: "", groups: [] })}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+              <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                Rincian berkas berdasarkan periode bulan terdeteksi:
+              </p>
+              {mismatchedModal.groups.map((group, gIdx) => (
+                <div
+                  key={gIdx}
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-800/40 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        {group.label} ({group.periode})
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-bold">
+                      {group.files.length} Berkas
+                    </Badge>
+                  </div>
+
+                  <div className="divide-y divide-slate-200/60 dark:divide-zinc-700/60">
+                    {group.files.map((f, fIdx) => (
+                      <div key={fIdx} className="py-1.5 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                            {f.filename}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500 dark:text-zinc-400">
+                          {f.nama} ({f.nip})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+              💡 <b>Solusi:</b> Silakan pisahkan berkas berdasarkan bulannya masing-masing. Unggah berkas presensi untuk satu periode bulan sekaligus agar perhitungan uang makan, pemotongan PPh 21, dan kalender hari kerja terhitung tepat.
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end">
+              <Button
+                onClick={() => setMismatchedModal({ open: false, message: "", groups: [] })}
+                className="text-xs h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 font-bold"
+              >
+                Mengerti, Saya Akan Periksa Ulang
               </Button>
             </div>
           </div>

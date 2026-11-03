@@ -208,8 +208,9 @@ class AttendanceReconcilerService
             'tahun_angkatan' => $tahunAngkatan,
             'satuan_kerja' => $employee?->satuan_kerja ?: ($parsedEmployeeData['unit_kerja'] ?? 'Kantor Balai KSDA Kalimantan Timur'),
             'golongan' => $tariffInfo['golongan_label'],
-            'nama_bank' => 'BRI',
-            'nomor_rekening' => null,
+            'nama_bank' => $employee?->nama_bank ?: 'BRI',
+            'nomor_rekening' => $employee?->nomor_rekening,
+            'telepon' => $employee?->telepon,
 
             // Tarif & Pajak
             'tarif_harian' => $tarifHarian,

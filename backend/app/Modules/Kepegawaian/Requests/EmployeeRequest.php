@@ -38,6 +38,21 @@ class EmployeeRequest extends FormRequest
         if ($this->has('masa_kerja')) {
             $this->merge(['masa_kerja' => strip_tags(trim((string) $this->input('masa_kerja'))) ?: null]);
         }
+        if ($this->has('nama_bank')) {
+            $this->merge(['nama_bank' => strip_tags(trim((string) $this->input('nama_bank'))) ?: null]);
+        }
+        if ($this->has('nomor_rekening')) {
+            $r = strip_tags(trim((string) $this->input('nomor_rekening')));
+            $this->merge(['nomor_rekening' => ($r === '' || $r === '-') ? null : $r]);
+        }
+        if ($this->has('telepon')) {
+            $t = strip_tags(trim((string) $this->input('telepon')));
+            $this->merge(['telepon' => ($t === '' || $t === '-') ? null : $t]);
+        }
+        if ($this->has('email')) {
+            $e = strtolower(strip_tags(trim((string) $this->input('email'))));
+            $this->merge(['email' => ($e === '' || $e === '-') ? null : $e]);
+        }
 
         if ($jenis === 'MMP') {
             $employeeId = $this->route('employee');
@@ -87,6 +102,10 @@ class EmployeeRequest extends FormRequest
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
             'masa_kerja' => ['nullable', 'string', 'max:100'],
+            'nama_bank' => ['nullable', 'string', 'max:50'],
+            'nomor_rekening' => ['nullable', 'string', 'max:50'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:100'],
             'resor' => [
                 'nullable',
                 'string',

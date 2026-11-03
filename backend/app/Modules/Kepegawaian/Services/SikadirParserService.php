@@ -168,6 +168,11 @@ class SikadirParserService
 
         // 3. Ekstraksi Periode Bulan & Tahun
         $bulanText = $meta['BULAN'] ?? '';
+        if (!$bulanText && preg_match('/<td>\s*BULAN\s*<\/td>\s*<td[^>]*>([^<]+)<\/td>/i', $content, $m)) {
+            $bulanText = trim($m[1]);
+        } elseif (!$bulanText && preg_match('/BULAN\s*:\s*([^\r\n<]+)/i', $content, $m)) {
+            $bulanText = trim($m[1]);
+        }
         $periodeBulan = $this->parseBulanToYm($bulanText);
 
         // 4. Ekstraksi Baris Absensi Harian dari Tabel (baik class wbo maupun generic)
@@ -236,6 +241,24 @@ class SikadirParserService
             }
         }
 
+        // Fallback deteksi periode bulan dari baris tanggal absensi harian (format dd/mm/yyyy)
+        if (!$periodeBulan && !empty($dailyRecords)) {
+            $monthNames = [
+                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember',
+            ];
+            foreach ($dailyRecords as $rec) {
+                if (!empty($rec['date_dmy']) && preg_match('/^\d{2}\/(\d{2})\/(\d{4})$/', $rec['date_dmy'], $dm)) {
+                    $periodeBulan = "{$dm[2]}-{$dm[1]}";
+                    if (!$bulanText) {
+                        $bulanText = ($monthNames[$dm[1]] ?? $dm[1]) . " " . $dm[2];
+                    }
+                    break;
+                }
+            }
+        }
+
         return [
             'filename' => $filename,
             'raw_nip' => $nip,
@@ -256,12 +279,21 @@ class SikadirParserService
     /**
      * Konversi teks bulan 'September 2026' menjadi '2026-09'.
      */
-    public function parseBulanToYm(string $text): string
+    public function parseBulanToYm(string $text): ?string
     {
         $bulanMap = [
-            'januari' => '01', 'februari' => '02', 'maret' => '03', 'april' => '04',
-            'mei' => '05', 'juni' => '06', 'juli' => '07', 'agustus' => '08',
-            'september' => '09', 'oktober' => '10', 'november' => '11', 'desember' => '12',
+            'januari' => '01', 'january' => '01',
+            'februari' => '02', 'february' => '02',
+            'maret' => '03', 'march' => '03',
+            'april' => '04',
+            'mei' => '05', 'may' => '05',
+            'juni' => '06', 'june' => '06',
+            'juli' => '07', 'july' => '07',
+            'agustus' => '08', 'august' => '08',
+            'september' => '09',
+            'oktober' => '10', 'october' => '10',
+            'november' => '11',
+            'desember' => '12', 'december' => '12',
         ];
 
         $lower = strtolower(trim($text));
@@ -271,6 +303,6 @@ class SikadirParserService
             }
         }
 
-        return Carbon::now()->format('Y-m');
+        return null;
     }
 }

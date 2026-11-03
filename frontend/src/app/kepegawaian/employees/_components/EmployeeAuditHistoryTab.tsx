@@ -38,6 +38,10 @@ const FIELD_LABELS: Record<string, string> = {
   satuan_kerja: "Unit Kerja",
   resor: "Resor Penempatan",
   masa_kerja: "Masa Kerja",
+  nama_bank: "Bank Penyalur Uang Makan",
+  nomor_rekening: "Nomor Rekening Bank",
+  telepon: "Nomor WhatsApp / HP",
+  email: "Alamat Email",
   is_active: "Status Keaktifan",
 };
 

@@ -9520,3 +9520,31 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
      - Menyiapkan spesifikasi lengkap di [`docs/kepegawaian/uang-makan/`](docs/kepegawaian/uang-makan/) (`requirements.md`, `design.md`, `tasks.md`).
      - Mendaftarkan tab navigasi baru `"Hitung Uang Makan"` di sidebar modul Kepegawaian (`frontend/src/app/kepegawaian/layout.tsx`) di bawah grup Layanan & Persuratan dengan ikon `UtensilsCrossed`.
      - Menyiapkan halaman scaffold awal di [`frontend/src/app/kepegawaian/uang-makan/page.tsx`](frontend/src/app/kepegawaian/uang-makan/page.tsx) dan memvalidasi kompilasi build Next.js (`npm run build` sukses 87/87 static pages tanpa error).
+
+
+12. **Modul Kepegawaian & Pengaturan Uang Makan – Manajemen Modular Bank Penyalur, Sinkronisasi Roster Resmi 113 Pegawai, Sanitasi Kontak, dan Pembersihan UI/UX (3 November 2026)**:
+   - **Penyelarasan Roster Resmi Alokasi Bank Pegawai (113 ASN)**:
+     - Dijalankan via migrasi idempotent `2026_11_03_190000_sync_employee_bank_allocations.php` dengan pencocokan nama berbasis normalisasi fonetik/gelar akademik tanpa bentrok.
+     - Terpetakan 100% presisi: **53 PNS BRI**, **39 PNS Mandiri**, **4 PPPK Mandiri**, dan **17 PPPK BRI**.
+     - Rekapitulasi distribusi bank aktif di sistem: **Bank Mandiri 43 pegawai**, **Bank BRI 109 pegawai** (Total: **152 pegawai aktif**).
+   - **Sistem Modular Bank Penyalur Terdaftar (`kpg_registered_banks`)**:
+     - Dibuat tabel database `kpg_registered_banks` via migrasi `2026_11_03_170000_create_kpg_registered_banks_table.php` (default: BRI & Mandiri).
+     - REST API di `MealAllowanceController.php`:
+       - `GET /api/kepegawaian/settings/registered-banks` (dilengkapi agregasi jumlah pegawai aktif per bank).
+       - `POST /api/kepegawaian/settings/registered-banks` (registrasi opsi bank baru seperti BSI, Bankaltimtara, BNI, BCA, dll).
+       - `DELETE /api/kepegawaian/settings/registered-banks/{bank}` (dengan validasi blokir jika ada >= 1 pegawai aktif yang terikat).
+     - Penamaan section pengaturan disederhanakan menjadi **Alokasi Rekening Bank Pegawai** (menghilangkan suffix "(Mandiri/BRI)").
+     - Dropdown pilihan bank pada formulir detail & edit pegawai di `/kepegawaian/employees/[id]` tersinkronisasi dinamis dari pengaturan, dilengkapi tautan langsung `+ Daftarkan bank baru di Pengaturan`.
+   - **Pemberian Halaman (Pagination) Dinamis pada Tabel Alokasi Bank**:
+     - Ditambahkan kontrol pagination fleksibel pada tabel alokasi bank di `/kepegawaian/settings` (`MealAllowanceHolidaysTab.tsx`).
+     - Pilihan baris: `10 baris` (default), `20 baris`, `50 baris`, dan `Semua ({total}) baris`.
+     - Kontrol navigasi lengkap: Halaman Pertama (`<<`), Sebelumnya (`<`), *Page Pills* interaktif dengan *active state* biru, Berikutnya (`>`), dan Terakhir (`>>`).
+     - Fitur seleksi cerdas: *Select all on current page* dan pintasan *Pilih Semua {total} Pegawai Terfilter* pada floating batch action bar.
+   - **Sanitasi Placeholder Karakter Dash (`-`) pada Kolom Kontak**:
+     - Dibuat migrasi `2026_11_03_180000_clean_placeholder_dashes_in_kpg_employees.php` yang membersihkan 92 baris bernilai `"-"` pada kolom `telepon`, `nomor_rekening`, dan `email` menjadi `null`.
+     - Frontend helper `cleanFieldValue()`: Saat tombol edit ditekan, form input nomor WhatsApp/HP dan nomor rekening langsung bersih/kosong tanpa perlu menghapus karakter `-` secara manual, memunculkan placeholder asli (`Misal: 081234567890`).
+     - Tampilan biodata saat belum diisi kini menggunakan teks muted `Belum diatur` (bukan karakter `-` mandiri).
+   - **Pembersihan Elemen AI-Slop & Redesain Visual Enterprise**:
+     - Dihapus garis dekoratif multi-color gradient di atas foto profil pada cockpit card pegawai di `/kepegawaian/employees/[id]`.
+     - Avatar wrapper diubah menjadi flat netral enterprise (`bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700`).
+     - Kartu statistik uang makan diubah dari gradient multi-color menjadi clean flat card monokrom yang konsisten dengan desain sistem SuperApp BKSDA.

@@ -20,6 +20,19 @@ import {
   Calendar,
   History,
   RotateCcw,
+  Phone,
+  Mail,
+  CreditCard,
+  Copy,
+  Check,
+  ExternalLink,
+  UtensilsCrossed,
+  Award,
+  Receipt,
+  MessageCircle,
+  Building,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
@@ -27,6 +40,8 @@ import { AssignmentLetterHistory } from "../_components/AssignmentLetterHistory"
 import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
 import { EmployeeAuditHistoryTab } from "../_components/EmployeeAuditHistoryTab";
+import { EmployeeMealAllowanceTab } from "../_components/EmployeeMealAllowanceTab";
+import { getBankTheme } from "../../_lib/bank-themes";
 import {
   calculateMasaKerja,
   isMmpEmployee,
@@ -36,7 +51,7 @@ import {
   isAutoMmpJabatan,
 } from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
@@ -51,13 +66,50 @@ import {
 } from "../../_lib/employee-constants";
 import type { Employee } from "../../_lib";
 
+function cleanFieldValue(val?: string | null): string {
+  if (!val) return "";
+  const trimmed = String(val).trim();
+  return trimmed === "-" ? "" : trimmed;
+}
+
+function formatRupiah(amount: number | string | null | undefined): string {
+  const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
+  if (isNaN(num)) return "Rp 0";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+}
+
+function getWaLink(phone?: string | null): string | null {
+  const clean = cleanFieldValue(phone);
+  if (!clean) return null;
+  const digits = clean.replace(/[^0-9]/g, "");
+  if (!digits) return null;
+  const international = digits.startsWith("0")
+    ? "62" + digits.slice(1)
+    : digits.startsWith("62")
+    ? digits
+    : "62" + digits;
+  return `https://wa.me/${international}`;
+}
+
 export default function EmployeeDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"history" | "biodata" | "leave" | "audit">("history");
+
+  // Tab utama default: Biodata Lengkap
+  const [activeTab, setActiveTab] = useState<
+    "biodata" | "history" | "leave" | "meal_allowance" | "audit"
+  >("biodata");
+
   const { canManageAccess, canWrite, isAdmin } = useRole();
+
+  // Copy feedback state
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Biodata edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -70,6 +122,10 @@ export default function EmployeeDetailPage() {
     satuan_kerja: "",
     resor: "",
     masa_kerja: "",
+    telepon: "",
+    email: "",
+    nama_bank: "BRI",
+    nomor_rekening: "",
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
@@ -103,21 +159,89 @@ export default function EmployeeDetailPage() {
     enabled: !!id,
   });
 
+  // Query Assignment Letters count for metric card
+  const { data: assignmentsData } = useQuery({
+    queryKey: ["employee-assignments", id],
+    queryFn: async () => {
+      const { data } = await api.get<{ meta: { total: number } }>(
+        `/kepegawaian/employees/${id}/assignment-letters?per_page=1`
+      );
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Query Latest Meal Allowance for metric card
+  const { data: allowancesData } = useQuery({
+    queryKey: ["employee-meal-allowances", id, 1],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get<{
+          data: Array<{ uang_makan_netto: number | string; batch?: { periode_bulan: string; nama_batch: string } }>;
+          meta: { total: number };
+        }>(`/kepegawaian/employees/${id}/meal-allowances?per_page=1`);
+        return data;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!id,
+  });
+
+  // Query Bank Terdaftar yang tersinkronisasi dari Pengaturan
+  const { data: registeredBanksData } = useQuery({
+    queryKey: ["registered-banks"],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get<{
+          success: boolean;
+          data: Array<{ id: number; nama_bank: string; count: number }>;
+        }>("/kepegawaian/settings/registered-banks");
+        return data.data;
+      } catch {
+        return [
+          { id: 1, nama_bank: "BRI", count: 0 },
+          { id: 2, nama_bank: "Mandiri", count: 0 },
+        ];
+      }
+    },
+  });
+
+  const availableBanks = useMemo(() => {
+    const list = registeredBanksData?.map((b) => b.nama_bank) || ["BRI", "Mandiri"];
+    if (editForm.nama_bank && !list.some((b) => b.toUpperCase() === editForm.nama_bank.toUpperCase())) {
+      return [...list, editForm.nama_bank];
+    }
+    return list;
+  }, [registeredBanksData, editForm.nama_bank]);
+
+  const handleCopy = (text: string, fieldKey: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldKey);
+    toast.success("Berhasil disalin ke clipboard!");
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
   const startEditing = () => {
     if (!employee) return;
     const detected = detectEmployeeType(employee);
     setEditJenis(detected);
     setEditForm({
-      nip: detected === "MMP" ? "" : employee.nip || "",
-      nama_lengkap: employee.nama_lengkap || "",
-      jabatan: employee.jabatan || "",
-      pangkat_golongan: detected === "MMP" ? "" : employee.pangkat_golongan || "",
-      satuan_kerja: employee.satuan_kerja || "",
-      resor: employee.resor || "",
-      masa_kerja: employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap),
+      nip: detected === "MMP" ? "" : cleanFieldValue(employee.nip),
+      nama_lengkap: cleanFieldValue(employee.nama_lengkap),
+      jabatan: cleanFieldValue(employee.jabatan),
+      pangkat_golongan: detected === "MMP" ? "" : cleanFieldValue(employee.pangkat_golongan),
+      satuan_kerja: cleanFieldValue(employee.satuan_kerja),
+      resor: cleanFieldValue(employee.resor),
+      masa_kerja: cleanFieldValue(employee.masa_kerja) || calculateMasaKerja(employee.nip, employee.nama_lengkap),
+      telepon: cleanFieldValue(employee.telepon),
+      email: cleanFieldValue(employee.email),
+      nama_bank: employee.nama_bank || "BRI",
+      nomor_rekening: cleanFieldValue(employee.nomor_rekening),
       is_active: employee.is_active,
     });
     setIsEditing(true);
+    setActiveTab("biodata");
   };
 
   const cancelEditing = () => {
@@ -172,7 +296,12 @@ export default function EmployeeDetailPage() {
   };
 
   const handleEditSatkerChange = (val: string) => {
-    const isBalai = val.toLowerCase().includes("balai") || (val.toLowerCase().includes("samarinda") && !val.toLowerCase().includes("wilayah ii") && !val.toLowerCase().includes("skw ii") && !val.toLowerCase().includes("resor 05"));
+    const isBalai =
+      val.toLowerCase().includes("balai") ||
+      (val.toLowerCase().includes("samarinda") &&
+        !val.toLowerCase().includes("wilayah ii") &&
+        !val.toLowerCase().includes("skw ii") &&
+        !val.toLowerCase().includes("resor 05"));
     setEditForm((prev) => ({
       ...prev,
       satuan_kerja: val,
@@ -204,6 +333,10 @@ export default function EmployeeDetailPage() {
         satuan_kerja: editForm.satuan_kerja || null,
         resor: editForm.resor || null,
         masa_kerja: editJenis === "MMP" ? null : (editForm.masa_kerja || null),
+        telepon: editForm.telepon || null,
+        email: editForm.email || null,
+        nama_bank: editForm.nama_bank || null,
+        nomor_rekening: editForm.nomor_rekening || null,
         is_active: editForm.is_active,
       });
       toast.success("Biodata berhasil diperbarui.");
@@ -242,130 +375,133 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="h-8 w-32 bg-slate-200 rounded-lg" />
-        <div className="h-48 bg-slate-100 rounded-2xl" />
+      <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+        <div className="h-8 w-36 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4 h-96 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+          <div className="lg:col-span-8 space-y-6">
+            <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <div className="h-80 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (isError || !employee) {
     return (
-      <div className="p-6 md:p-10 py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <User className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-        <h2 className="text-lg font-bold text-slate-700">Pegawai tidak ditemukan</h2>
-        <Button variant="link" onClick={() => router.push("/kepegawaian")}>
-          Kembali ke daftar
+      <div className="p-6 md:p-10 py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-4">
+          <User className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Pegawai Tidak Ditemukan</h2>
+        <p className="text-xs text-slate-500 mt-1 mb-6">
+          Data pegawai yang Anda cari mungkin telah dinonaktifkan atau dihapus dari sistem.
+        </p>
+        <Button variant="default" className="rounded-xl" onClick={() => router.push("/kepegawaian/employees")}>
+          Kembali ke Daftar Pegawai
         </Button>
       </div>
     );
   }
 
   const empCategory = detectEmployeeType(employee);
-  const editPangkatOptions =
-    editJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
+  const editPangkatOptions = editJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
+  const bankTheme = getBankTheme(employee.nama_bank || "BRI");
+  const validTelepon = cleanFieldValue(employee.telepon);
+  const validEmail = cleanFieldValue(employee.email);
+  const validRekening = cleanFieldValue(employee.nomor_rekening);
+  const waLink = getWaLink(validTelepon);
+  const latestAllowance = allowancesData?.data?.[0];
 
   return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Back + Actions */}
-        <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+      {/* Top Breadcrumb & Quick Actions Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <Link
             href="/kepegawaian/employees"
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 transition-all shadow-2xs"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Kembali
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Kembali ke Daftar Pegawai</span>
           </Link>
-          <div className="flex items-center gap-2">
-            {canWrite && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-xl gap-2"
-                onClick={() => setResetDialogOpen(true)}
-              >
-                <KeyRound className="w-4 h-4 text-amber-500" />
-                Reset Password
-              </Button>
-            )}
-            {canManageAccess && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-xl gap-2"
-                onClick={() => setAccessSheetOpen(true)}
-              >
-                <Shield className="w-4 h-4 text-blue-500" />
-                Kelola Akses
-              </Button>
-            )}
-          </div>
+          <span className="text-slate-300 dark:text-slate-700">/</span>
+          <span className="text-xs font-medium text-slate-500 truncate max-w-[200px] sm:max-w-xs">
+            {employee.nama_lengkap}
+          </span>
         </div>
 
-        {/* Reset Password Dialog */}
-        {resetDialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
-              <h3 className="text-base font-bold text-slate-900">Reset Password</h3>
-              <p className="text-sm text-slate-600">
-                Masukkan password baru untuk{" "}
-                <span className="font-semibold">{employee.nama_lengkap}</span>.
-              </p>
-              <input
-                type="password"
-                value={resetPassword}
-                onChange={(event) => setResetPassword(event.target.value)}
-                placeholder="Minimal 8 karakter"
-                minLength={8}
-                autoComplete="new-password"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
-              />
-              <div className="flex items-center gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={() => setResetDialogOpen(false)}
-                  disabled={resetting}
-                >
-                  Batal
-                </Button>
-                <Button
-                  size="sm"
-                  className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white"
-                  onClick={handleResetPassword}
-                  disabled={resetting}
-                >
-                  {resetting ? "Mereset..." : "Ya, Reset"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              onClick={() => setResetDialogOpen(true)}
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+              <span>Reset Password</span>
+            </Button>
+          )}
+          {canManageAccess && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              onClick={() => setAccessSheetOpen(true)}
+            >
+              <Shield className="w-3.5 h-3.5 text-blue-500" />
+              <span>Kelola Akses (IAM)</span>
+            </Button>
+          )}
+        </div>
+      </div>
 
-        {/* Profile Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-6 py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              {/* Avatar */}
-              <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center relative group">
-                {employee.foto_url ? (
-                  <Image
-                    src={employee.foto_url}
-                    alt={employee.nama_lengkap}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-2xl font-bold text-slate-400">
-                    {employee.nama_lengkap.charAt(0)}
-                  </span>
-                )}
+      {/* Main 2-Column Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ======================================================== */}
+        {/* LEFT COLUMN: STICKY PROFILE COCKPIT (col-span-4)         */}
+        {/* ======================================================== */}
+        <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
+          {/* Cockpit Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+
+            {/* Profile Avatar & Primary Badges */}
+            <div className="flex flex-col items-center text-center pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="relative group mb-4">
+                <div className="w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                  {employee.foto_url ? (
+                    <Image
+                      src={employee.foto_url}
+                      alt={employee.nama_lengkap}
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl font-black text-slate-400">
+                      {employee.nama_lengkap.charAt(0)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Status Dot */}
+                <span
+                  className={cn(
+                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-xs",
+                    employee.is_active ? "bg-emerald-500" : "bg-rose-500"
+                  )}
+                  title={employee.is_active ? "Status: Pegawai Aktif" : "Status: Non-Aktif"}
+                >
+                  <span className="w-2 h-2 rounded-full bg-white" />
+                </span>
+
+                {/* Upload Photo Overlay (for admins) */}
                 {canManageAccess && (
-                  <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
-                    <User className="w-5 h-5 text-white" />
+                  <label className="absolute inset-0 bg-black/60 rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-[10px] font-semibold">
+                    <User className="w-6 h-6 mb-1" />
+                    <span>Ubah Foto</span>
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -391,214 +527,743 @@ export default function EmployeeDetailPage() {
                   </label>
                 )}
               </div>
-              {/* Name + Status */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-bold text-slate-900 truncate">
-                    {employee.nama_lengkap}
-                  </h1>
-                  <span
-                    className={cn(
-                      "inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full",
-                      empCategory === "MMP"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : empCategory === "PPPK"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-blue-100 text-blue-800"
-                    )}
-                  >
-                    {empCategory === "PPPK" ? "PPPK (P3K)" : empCategory}
-                  </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
-                      employee.is_active ? "bg-blue-50 text-blue-700" : "bg-red-50 text-red-600"
-                    )}
-                  >
-                    <BadgeCheck className="w-3 h-3" />
-                    {employee.is_active ? "Aktif" : "Non-Aktif"}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500 font-mono mt-0.5">
+
+              {/* Name & Category Badges */}
+              <h1 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                {employee.nama_lengkap}
+              </h1>
+
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
+                <span
+                  className={cn(
+                    "inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider",
+                    empCategory === "MMP"
+                      ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      : empCategory === "PPPK"
+                      ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                      : "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                  )}
+                >
+                  {empCategory === "PPPK" ? "PPPK (P3K)" : empCategory}
+                </span>
+
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full",
+                    employee.is_active
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                  )}
+                >
+                  <BadgeCheck className="w-3 h-3" />
+                  {employee.is_active ? "Aktif Bertugas" : "Non-Aktif"}
+                </span>
+              </div>
+
+              {/* NIP with 1-click Copy */}
+              <div className="mt-2.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-100 dark:border-slate-800">
+                <span>
                   {empCategory === "MMP"
-                    ? "Masyarakat Mitra Polhut • Tanpa NIP (-)"
+                    ? "MMP • Tanpa NIP"
                     : `${formatNipLabel(employee, true)} ${employee.nip}`}
-                </p>
+                </span>
+                {empCategory !== "MMP" && employee.nip && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(employee.nip, "nip")}
+                    className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-0.5 rounded cursor-pointer"
+                    title="Salin NIP"
+                  >
+                    {copiedField === "nip" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-              <InfoCard
-                icon={<Briefcase className="w-4 h-4 text-blue-500" />}
-                label="Jabatan"
-                value={employee.jabatan || "-"}
-              />
-              <InfoCard
-                icon={<Building2 className="w-4 h-4 text-violet-500" />}
-                label="Unit Kerja"
-                value={employee.satuan_kerja || "-"}
-              />
-              <InfoCard
-                icon={<Hash className="w-4 h-4 text-amber-500" />}
-                label="Pangkat/Gol"
-                value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
-              />
-              <InfoCard
-                icon={<Calendar className="w-4 h-4 text-emerald-500" />}
-                label={`Sisa Cuti (${currentYear})`}
-                value={
-                  leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "12 Hari Kerja"
-                }
-              />
+            {/* Quick Details List */}
+            <div className="py-4 space-y-3 text-xs border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-start gap-2.5">
+                <Briefcase className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Jabatan</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {employee.jabatan || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Building2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Kerja</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {employee.satuan_kerja || "-"}
+                  </p>
+                  {employee.resor && (
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Resor: {RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Hash className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pangkat & Golongan</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {/* Sub-Card 1: Kontak & Komunikasi (WhatsApp + Email) */}
+            <div className="pt-4 pb-3 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                  Kontak & Komunikasi
+                </span>
+              </div>
+
+              {/* Baris WhatsApp / Telepon */}
+              {validTelepon ? (
+                <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 flex items-center justify-between">
+                  <div className="min-w-0 flex-1 mr-2">
+                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white truncate">
+                      {validTelepon}
+                    </p>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
+                      WhatsApp / HP Resmi
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(employee.telepon!, "telepon")}
+                      className="p-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
+                      title="Salin Nomor HP"
+                    >
+                      {copiedField === "telepon" ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    {waLink && (
+                      <a
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+                        title="Buka Chat WhatsApp Web"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Chat</span>
+                        <ExternalLink className="w-2.5 h-2.5 opacity-80" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs">
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>WhatsApp belum diatur</span>
+                  </div>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      + Tambah
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Baris Email Pegawai */}
+              {validEmail ? (
+                <div className="p-3 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between">
+                  <div className="min-w-0 flex-1 mr-2">
+                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white truncate">
+                      {validEmail}
+                    </p>
+                    <p className="text-[10px] text-blue-700 dark:text-blue-400">
+                      Email Akun Resmi
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(employee.email!, "email")}
+                      className="p-1.5 rounded-lg border border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors cursor-pointer"
+                      title="Salin Alamat Email"
+                    >
+                      {copiedField === "email" ? (
+                        <Check className="w-3.5 h-3.5 text-blue-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    <a
+                      href={`mailto:${validEmail}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+                      title="Kirim Email"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Kirim</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>Email belum diatur</span>
+                  </div>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      + Tambah
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Sub-Card 2: Rekening Bank Penyalur Uang Makan */}
+            <div className="pt-2 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
+                  Rekening Uang Makan
+                </span>
+                {validRekening && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(validRekening, "rekening")}
+                    className="text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
+                    title="Salin Nomor Rekening"
+                  >
+                    {copiedField === "rekening" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <div
+                className={cn(
+                  "p-3 rounded-2xl border transition-all",
+                  bankTheme.border,
+                  "bg-slate-50/60 dark:bg-slate-800/40"
+                )}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-lg text-[10px] font-black border",
+                      bankTheme.bgBadge
+                    )}
+                  >
+                    {employee.nama_bank || "BRI"}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {employee.nama_bank ? "Penyalur Terdaftar" : "Default"}
+                  </span>
+                </div>
+
+                {validRekening ? (
+                  <div>
+                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white tracking-wider">
+                      {validRekening}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      a.n {employee.nama_lengkap}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-slate-400">No. Rekening belum diinput</p>
+                    {canWrite && (
+                      <button
+                        type="button"
+                        onClick={startEditing}
+                        className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        + Tambah
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Action Button */}
+            {canWrite && !isEditing && (
+              <div className="pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full rounded-2xl gap-2 font-bold text-xs h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  onClick={startEditing}
+                >
+                  <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Edit Data Pegawai</span>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div>
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit mb-4">
-            <button
-              onClick={() => setActiveTab("history")}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-                activeTab === "history" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-              )}
-            >
-              <FileText className="w-4 h-4" /> Riwayat Penugasan
-            </button>
-            <button
+        {/* ======================================================== */}
+        {/* RIGHT COLUMN: METRIC BANNERS & DYNAMIC TABS (col-span-8) */}
+        {/* ======================================================== */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Top 4 Metric Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            {/* Metric 1: Masa Kerja */}
+            <div
               onClick={() => setActiveTab("biodata")}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-                activeTab === "biodata" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-              )}
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
             >
-              <User className="w-4 h-4" /> Biodata
-            </button>
-            <button
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Masa Kerja</span>
+                <div className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Award className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+                {empCategory === "MMP"
+                  ? "-"
+                  : employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap)}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Pengabdian Resmi</p>
+            </div>
+
+            {/* Metric 2: Riwayat Penugasan */}
+            <div
+              onClick={() => setActiveTab("history")}
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Penugasan</span>
+                <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <FileText className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-black text-slate-900 dark:text-white">
+                {assignmentsData?.meta?.total ?? 0}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Total Surat Tugas</p>
+            </div>
+
+            {/* Metric 3: Sisa Cuti PNS */}
+            <div
               onClick={() => setActiveTab("leave")}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all",
-                activeTab === "leave" ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-50"
-              )}
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
             >
-              <Calendar className="w-4 h-4" /> Cuti Pegawai (PNS)
-              <span
-                className={cn(
-                  "px-2 py-0.5 rounded-full text-[10px] font-bold ml-1 transition-colors",
-                  activeTab === "leave" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
-                )}
-              >
-                {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
-              </span>
-            </button>
-            {isAdmin && (
-              <button
-                onClick={() => setActiveTab("audit")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer",
-                  activeTab === "audit" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 hover:bg-slate-50"
-                )}
-              >
-                <History className="w-4 h-4" /> Riwayat Perubahan
-              </button>
-            )}
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Cuti</span>
+                <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Calendar className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-xl font-black text-slate-900 dark:text-white">
+                {leaveBalance?.sisa_cuti_tersedia ?? 12}{" "}
+                <span className="text-xs font-semibold text-slate-400">Hari</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Tahun {currentYear}</p>
+            </div>
+
+            {/* Metric 4: Uang Makan Terakhir */}
+            <div
+              onClick={() => setActiveTab("meal_allowance")}
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Uang Makan</span>
+                <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Receipt className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="text-base font-black text-emerald-600 dark:text-emerald-400 truncate">
+                {latestAllowance ? formatRupiah(latestAllowance.uang_makan_netto) : "Rp 0"}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+                {latestAllowance?.batch?.periode_bulan || "Bulan berjalan"}
+              </p>
+            </div>
           </div>
 
-          {activeTab === "history" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <AssignmentLetterHistory employeeId={employee.id} />
-            </div>
-          )}
+          {/* Dynamic Tabs Navigation Bar (WRAP 2-TINGKAT, TANPA SCROLL HORIZONTAL) */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* Tab 1: Biodata Lengkap (UTAMA - DEFAULT AKTIF) */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("biodata")}
+                className={cn(
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  activeTab === "biodata"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Biodata Lengkap</span>
+              </button>
 
-          {activeTab === "leave" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <EmployeeLeaveTab employeeId={employee.id} />
-            </div>
-          )}
+              {/* Tab 2: Riwayat Penugasan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("history")}
+                className={cn(
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  activeTab === "history"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Riwayat Penugasan</span>
+                {assignmentsData?.meta && (
+                  <span
+                    className={cn(
+                      "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                      activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600"
+                    )}
+                  >
+                    {assignmentsData.meta.total}
+                  </span>
+                )}
+              </button>
 
+              {/* Tab 3: Cuti Pegawai (PNS) */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("leave")}
+                className={cn(
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  activeTab === "leave"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Cuti Pegawai (PNS)</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                    activeTab === "leave"
+                      ? "bg-white/20 text-white"
+                      : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                  )}
+                >
+                  {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
+                </span>
+              </button>
+
+              {/* Tab 4: Presensi & Uang Makan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("meal_allowance")}
+                className={cn(
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  activeTab === "meal_allowance"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                <UtensilsCrossed className="w-3.5 h-3.5" />
+                <span>Presensi & Uang Makan</span>
+                {allowancesData?.meta?.total !== undefined && allowancesData.meta.total > 0 && (
+                  <span
+                    className={cn(
+                      "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                      activeTab === "meal_allowance" ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                    )}
+                  >
+                    {allowancesData.meta.total} Batch
+                  </span>
+                )}
+              </button>
+
+              {/* Tab 5: Riwayat Perubahan (Admin Only) */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("audit")}
+                  className={cn(
+                    "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    activeTab === "audit"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  )}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Riwayat Perubahan</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* TAB 1: BIODATA LENGKAP (DEFAULT AKTIF) */}
           {activeTab === "biodata" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-slate-900">Identitas Kepegawaian</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-600" />
+                    Identitas & Data Lengkap Pegawai
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Informasi profil resmi, unit kerja penempatan, kontak WhatsApp & Email, serta rekening bank uang makan
+                  </p>
+                </div>
+
                 {canWrite && !isEditing && (
-                  <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={startEditing}>
-                    <Pencil className="w-3.5 h-3.5" />
-                    Edit
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl gap-1.5 text-xs font-bold cursor-pointer"
+                    onClick={startEditing}
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Edit Biodata</span>
                   </Button>
                 )}
+
                 {isEditing && (
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-xl gap-2"
+                      className="rounded-xl gap-1.5 text-xs cursor-pointer"
                       onClick={cancelEditing}
                       disabled={saving}
                     >
                       <X className="w-3.5 h-3.5" />
-                      Batal
+                      <span>Batal</span>
                     </Button>
                     <Button
                       size="sm"
-                      className="rounded-xl gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      className="rounded-xl gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer"
                       onClick={handleSave}
                       disabled={saving}
                     >
                       <Save className="w-3.5 h-3.5" />
-                      {saving ? "Menyimpan..." : "Simpan"}
+                      <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
                     </Button>
                   </div>
                 )}
               </div>
 
               {!isEditing ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <BioItem
-                    label="Kategori Pegawai"
-                    value={
-                      empCategory === "MMP"
-                        ? "MMP (Masyarakat Mitra Polhut)"
-                        : empCategory === "PPPK"
-                        ? "PPPK (P3K)"
-                        : "PNS"
-                    }
-                  />
-                  <BioItem
-                    label={empCategory === "PPPK" ? "NIPPPK" : "NIP"}
-                    value={empCategory === "MMP" ? "- (Tanpa NIP)" : employee.nip}
-                  />
-                  <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
-                  <BioItem label="Jabatan" value={employee.jabatan || "-"} />
-                  <BioItem
-                    label="Pangkat / Golongan"
-                    value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
-                  />
-                  <BioItem label="Unit Kerja" value={employee.satuan_kerja || "-"} />
-                  <BioItem
-                    label="Resor Penempatan"
-                    value={
-                      RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
-                      employee.resor ||
-                      "-"
-                    }
-                  />
-                  <BioItem
-                    label="Masa Kerja"
-                    value={
-                      empCategory === "MMP"
-                        ? "-"
-                        : (employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap))
-                    }
-                  />
-                  <BioItem
-                    label="Status"
-                    value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"}
-                  />
+                <div className="space-y-6">
+                  {/* Bagian 1: Data Kepegawaian Utama */}
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+                      Data Kepegawaian & Penempatan
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                      <BioItem
+                        label="Kategori Pegawai"
+                        value={
+                          empCategory === "MMP"
+                            ? "MMP (Masyarakat Mitra Polhut)"
+                            : empCategory === "PPPK"
+                            ? "PPPK (P3K)"
+                            : "PNS (Pegawai Negeri Sipil)"
+                        }
+                      />
+                      <BioItem
+                        label={empCategory === "PPPK" ? "NIPPPK" : "NIP"}
+                        value={empCategory === "MMP" ? "- (Tanpa NIP)" : employee.nip}
+                      />
+                      <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
+                      <BioItem label="Jabatan Resmi" value={employee.jabatan || "-"} />
+                      <BioItem
+                        label="Pangkat / Golongan"
+                        value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
+                      />
+                      <BioItem label="Satuan / Unit Kerja" value={employee.satuan_kerja || "-"} />
+                      <BioItem
+                        label="Resor Lapangan"
+                        value={
+                          RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
+                          employee.resor ||
+                          "Kantor Balai / Seksi Wilayah"
+                        }
+                      />
+                      <BioItem
+                        label="Masa Kerja"
+                        value={
+                          empCategory === "MMP"
+                            ? "-"
+                            : (employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap))
+                        }
+                      />
+                      <BioItem
+                        label="Status Keaktifan"
+                        value={employee.is_active ? "Aktif Bertugas" : "Non-Aktif"}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bagian 2: Kontak & Komunikasi */}
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                      Kontak WhatsApp & Email
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Nomor WhatsApp / HP
+                          </p>
+                          <p className={cn("text-sm mt-0.5", validTelepon ? "font-mono font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-400")}>
+                            {validTelepon || "Belum diatur"}
+                          </p>
+                        </div>
+                        {validTelepon && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(employee.telepon!, "bio-tel")}
+                              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                              title="Salin Nomor HP"
+                            >
+                              {copiedField === "bio-tel" ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            {waLink && (
+                              <a
+                                href={waLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                title="Chat WhatsApp"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Alamat Email Resmi
+                          </p>
+                          <p className={cn("text-sm mt-0.5", validEmail ? "font-mono font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-400")}>
+                            {validEmail || "Belum diatur"}
+                          </p>
+                        </div>
+                        {validEmail && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(employee.email!, "bio-mail")}
+                              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                              title="Salin Alamat Email"
+                            >
+                              {copiedField === "bio-mail" ? (
+                                <Check className="w-3.5 h-3.5 text-blue-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            <a
+                              href={`mailto:${employee.email}`}
+                              className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                              title="Kirim Email"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bagian 3: Finansial & Rekening Uang Makan */}
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
+                      Rekening Bank Penyalur Uang Makan
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Bank Penyalur
+                          </p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "px-2.5 py-0.5 rounded-lg text-xs font-black border",
+                                bankTheme.bgBadge
+                              )}
+                            >
+                              {employee.nama_bank || "BRI"}
+                            </span>
+                            <span className="text-[11px] text-slate-500">
+                              (Pemisahan nominatif otomatis)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Nomor Rekening Bank
+                          </p>
+                          <p className={cn("text-sm mt-0.5", validRekening ? "font-mono font-bold text-slate-800 dark:text-slate-200 tracking-wider" : "font-medium text-slate-400")}>
+                            {validRekening || "Belum diatur"}
+                          </p>
+                        </div>
+                        {validRekening && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(employee.nomor_rekening!, "bio-rek")}
+                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                            title="Salin Nomor Rekening"
+                          >
+                            {copiedField === "bio-rek" ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                /* FORM EDIT BIODATA LENGKAP */
+                <div className="space-y-6">
+                  {/* Pemilihan Kategori Pegawai */}
                   <BioField label="Kategori / Jenis Pegawai">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                       {JENIS_PEGAWAI_OPTIONS.map((opt) => {
@@ -609,17 +1274,17 @@ export default function EmployeeDetailPage() {
                             type="button"
                             onClick={() => handleEditJenisChange(opt.value)}
                             className={cn(
-                              "flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer",
+                              "flex flex-col items-start p-3 rounded-2xl border text-left transition-all cursor-pointer",
                               isSelected
-                                ? "bg-blue-50 border-blue-600 ring-2 ring-blue-500/20"
-                                : "bg-slate-50 border-slate-200 hover:border-slate-300"
+                                ? "bg-blue-50 dark:bg-blue-950/40 border-blue-600 ring-2 ring-blue-500/20"
+                                : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                             )}
                           >
                             <div className="flex items-center justify-between w-full mb-0.5">
                               <span
                                 className={cn(
                                   "text-xs font-bold",
-                                  isSelected ? "text-blue-700" : "text-slate-900"
+                                  isSelected ? "text-blue-700 dark:text-blue-400" : "text-slate-900 dark:text-white"
                                 )}
                               >
                                 {opt.label}
@@ -627,7 +1292,7 @@ export default function EmployeeDetailPage() {
                               <span
                                 className={cn(
                                   "w-2 h-2 rounded-full",
-                                  isSelected ? "bg-blue-600" : "bg-slate-300"
+                                  isSelected ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
                                 )}
                               />
                             </div>
@@ -638,6 +1303,7 @@ export default function EmployeeDetailPage() {
                     </div>
                   </BioField>
 
+                  {/* Input Grid Field Biodata */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {editJenis !== "MMP" && (
                       <BioField label={editJenis === "PPPK" ? "NIPPPK" : "NIP"}>
@@ -650,7 +1316,7 @@ export default function EmployeeDetailPage() {
                               ? "19930425 202421 2 053..."
                               : "19800101 200501 1 001..."
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white font-mono"
                         />
                       </BioField>
                     )}
@@ -663,7 +1329,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, nama_lengkap: e.target.value })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
                         />
                       </BioField>
                     </div>
@@ -674,7 +1340,7 @@ export default function EmployeeDetailPage() {
                           type="text"
                           value={editForm.jabatan}
                           onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
                         />
                       </BioField>
                     </div>
@@ -691,7 +1357,7 @@ export default function EmployeeDetailPage() {
                             onChange={(e) =>
                               setEditForm({ ...editForm, pangkat_golongan: e.target.value })
                             }
-                            className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                           >
                             <option value="">
                               {editJenis === "PPPK"
@@ -714,7 +1380,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.satuan_kerja}
                           onChange={(e) => handleEditSatkerChange(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                         >
                           <option value="">Pilih Unit Kerja</option>
                           {UNIT_KERJA_OPTIONS.map((opt) => (
@@ -729,13 +1395,36 @@ export default function EmployeeDetailPage() {
 
                     {(() => {
                       const satker = (editForm.satuan_kerja || "").toLowerCase();
-                      const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
+                      const isBalai =
+                        satker.includes("balai") ||
+                        (satker.includes("samarinda") &&
+                          !satker.includes("wilayah ii") &&
+                          !satker.includes("skw ii") &&
+                          !satker.includes("resor 05"));
                       let availableResors = RESOR_OPTIONS;
-                      if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan") || satker.includes("seksi 3") || satker.includes("seksi iii")) {
+                      if (
+                        satker.includes("wilayah iii") ||
+                        satker.includes("skw iii") ||
+                        satker.includes("balikpapan") ||
+                        satker.includes("seksi 3") ||
+                        satker.includes("seksi iii")
+                      ) {
                         availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
-                      } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong") || satker.includes("seksi 2") || satker.includes("seksi ii")) {
+                      } else if (
+                        satker.includes("wilayah ii") ||
+                        satker.includes("skw ii") ||
+                        satker.includes("tenggarong") ||
+                        satker.includes("seksi 2") ||
+                        satker.includes("seksi ii")
+                      ) {
                         availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-                      } else if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau") || satker.includes("seksi 1") || satker.includes("seksi i")) {
+                      } else if (
+                        satker.includes("wilayah i") ||
+                        satker.includes("skw i") ||
+                        satker.includes("berau") ||
+                        satker.includes("seksi 1") ||
+                        satker.includes("seksi i")
+                      ) {
                         availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
                       }
 
@@ -749,8 +1438,8 @@ export default function EmployeeDetailPage() {
                               className={cn(
                                 "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
                                 isBalai
-                                  ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
-                                  : "bg-slate-50 border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-slate-200 dark:border-slate-700"
+                                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 dark:text-white"
                               )}
                             >
                               {isBalai ? (
@@ -781,7 +1470,7 @@ export default function EmployeeDetailPage() {
                               value={editForm.masa_kerja}
                               onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
                               placeholder="Contoh: 4 Tahun 5 Bulan"
-                              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-semibold outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-semibold text-slate-900 dark:text-white outline-none transition-all"
                             />
                             <Button
                               type="button"
@@ -796,24 +1485,105 @@ export default function EmployeeDetailPage() {
                               title="Hitung ulang otomatis berdasarkan NIP & Gelar"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Reset ke Otomatis</span>
+                              <span>Reset Otomatis</span>
                             </Button>
                           </div>
                           <p className="text-[11px] text-slate-400">
-                            Default terisi otomatis dari NIP & gelar. Admin dapat menyesuaikan jika terdapat penyesuaian masa kerja (PMK).
+                            Terisi otomatis dari NIP & gelar. Admin dapat menyesuaikan jika terdapat penyesuaian masa kerja (PMK).
                           </p>
                         </div>
                       </BioField>
                     )}
 
-                    <BioField label="Status">
+                    {/* FIELD: Nomor WhatsApp / HP */}
+                    <BioField label="Nomor WhatsApp / HP">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={editForm.telepon}
+                          onChange={(e) => setEditForm({ ...editForm, telepon: e.target.value })}
+                          placeholder="Misal: 081234567890"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                        />
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Format nomor HP lokal diawali 08 (misal: 081234567890).
+                      </p>
+                    </BioField>
+
+                    {/* FIELD: Alamat Email Resmi */}
+                    <BioField label="Alamat Email Resmi">
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={editForm.email}
+                          onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                          placeholder="Misal: nama@kemenlhk.go.id atau @bksda.local"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                        />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 pointer-events-none" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Email login dan notifikasi persuratan resmi pegawai.
+                      </p>
+                    </BioField>
+
+                    {/* FIELD: Bank Penyalur Uang Makan (Tersinkronisasi dari Pengaturan) */}
+                    <BioField label="Bank Penyalur Uang Makan">
+                      <div className="relative">
+                        <select
+                          value={editForm.nama_bank}
+                          onChange={(e) => setEditForm({ ...editForm, nama_bank: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                        >
+                          {availableBanks.map((b) => (
+                            <option key={b} value={b}>
+                              Bank {b}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400 mt-1.5">
+                        <span>Pilihan bank tersinkronisasi otomatis dari Pengaturan.</span>
+                        <Link
+                          href="/kepegawaian/settings?tab=uang_makan&sub=banks"
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 w-fit"
+                          target="_blank"
+                        >
+                          <span>+ Daftarkan bank baru di Pengaturan</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    </BioField>
+
+                    {/* FIELD: Nomor Rekening Bank */}
+                    <BioField label="Nomor Rekening Bank">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={editForm.nomor_rekening}
+                          onChange={(e) => setEditForm({ ...editForm, nomor_rekening: e.target.value })}
+                          placeholder="Nomor rekening tanpa spasi / tanda hubung"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                        />
+                        <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500 pointer-events-none" />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Nomor rekening buku tabungan atas nama pegawai yang bersangkutan.
+                      </p>
+                    </BioField>
+
+                    <BioField label="Status Keaktifan">
                       <div className="relative">
                         <select
                           value={editForm.is_active ? "active" : "inactive"}
                           onChange={(e) =>
                             setEditForm({ ...editForm, is_active: e.target.value === "active" })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                         >
                           <option value="active">Aktif Bertugas</option>
                           <option value="inactive">Non-Aktif</option>
@@ -827,40 +1597,94 @@ export default function EmployeeDetailPage() {
             </div>
           )}
 
+          {/* TAB 2: RIWAYAT PENUGASAN */}
+          {activeTab === "history" && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+              <AssignmentLetterHistory employeeId={String(employee.id)} />
+            </div>
+          )}
+
+          {/* TAB 3: CUTI PEGAWAI */}
+          {activeTab === "leave" && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+              <EmployeeLeaveTab employeeId={employee.id} />
+            </div>
+          )}
+
+          {/* TAB 4: PRESENSI & UANG MAKAN */}
+          {activeTab === "meal_allowance" && (
+            <EmployeeMealAllowanceTab employee={employee} />
+          )}
+
+          {/* TAB 5: RIWAYAT PERUBAHAN (ADMIN ONLY) */}
           {activeTab === "audit" && isAdmin && (
-            <EmployeeAuditHistoryTab employeeId={employee.id} />
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+              <EmployeeAuditHistoryTab employeeId={employee.id} />
+            </div>
           )}
         </div>
-
-        {canManageAccess && (
-          <EmployeeAccessSheet
-            employee={employee}
-            open={accessSheetOpen}
-            onOpenChange={setAccessSheetOpen}
-          />
-        )}
       </div>
-    </div>
-  );
-}
 
-function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-      <div className="shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-        <p className="text-xs font-semibold text-slate-700 truncate">{value}</p>
-      </div>
+      {/* Reset Password Dialog */}
+      {resetDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Reset Password</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Masukkan password baru untuk akun pegawai{" "}
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {employee.nama_lengkap}
+              </span>.
+            </p>
+            <input
+              type="password"
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              placeholder="Minimal 8 karakter"
+              minLength={8}
+              autoComplete="new-password"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-amber-500 text-slate-900 dark:text-white"
+            />
+            <div className="flex items-center gap-2 justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-xs cursor-pointer"
+                onClick={() => setResetDialogOpen(false)}
+                disabled={resetting}
+              >
+                Batal
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold cursor-pointer"
+                onClick={handleResetPassword}
+                disabled={resetting}
+              >
+                {resetting ? "Mereset..." : "Ya, Reset Password"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IAM Access Sheet Modal */}
+      {canManageAccess && (
+        <EmployeeAccessSheet
+          employee={employee}
+          open={accessSheetOpen}
+          onOpenChange={setAccessSheetOpen}
+        />
+      )}
     </div>
   );
 }
 
 function BioItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
       <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-      <p className="text-sm font-semibold text-slate-800">{value}</p>
+      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{value}</p>
     </div>
   );
 }
@@ -868,7 +1692,7 @@ function BioItem({ label, value }: { label: string; value: string }) {
 function BioField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</p>
       {children}
     </div>
   );

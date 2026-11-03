@@ -24,40 +24,139 @@ class MealAllowanceExcelExport
     public function generate(array $items, string $periodeBulan, array $signatory = []): Spreadsheet
     {
         $spreadsheet = new Spreadsheet();
-
         $carbonPeriod = Carbon::createFromFormat('Y-m', $periodeBulan)->startOfMonth();
+
+        // Helper normalisasi kode bank untuk judul sheet (maks 31 karakter Excel)
+        $bankCodeHelper = function (string $bank): string {
+            $b = strtoupper(trim($bank));
+            if (str_contains($b, 'MANDIRI') || $b === 'MNDRI') return 'MNDRI';
+            if (str_contains($b, 'BRI')) return 'BRI';
+            if (str_contains($b, 'BSI')) return 'BSI';
+            if (str_contains($b, 'BNI')) return 'BNI';
+            if (str_contains($b, 'BCA')) return 'BCA';
+            if (str_contains($b, 'KALTIM') || str_contains($b, 'BPD')) return 'KALTIM';
+            return preg_replace('/[^A-Z0-9]/', '', $b) ?: 'LAIN';
+        };
+
+        // 1. Inisialisasi 4 kategori standar BKSDA Kaltim (PNS/PPPK x BRI/Mandiri)
+        $groups = [
+            'PNS_BRI' => [
+                'title' => 'PNS_BRI',
+                'items' => [],
+            ],
+            'PNS_MNDRI' => [
+                'title' => 'PNS_MNDRI',
+                'items' => [],
+            ],
+            'PPPK_MNDRI' => [
+                'title' => 'PPPK_MNDRI',
+                'items' => [],
+            ],
+            'PPPK_BRI' => [
+                'title' => 'PPPK_BRI',
+                'items' => [],
+            ],
+        ];
+
+        // Wadah nominatif per bank (Mandiri & BRI default selalu tersedia)
+        $nominatifBanks = [
+            'MANDIRI' => [
+                'title' => 'BANK MANDIRI',
+                'sheet_title' => 'Nominatif Mandiri',
+                'items' => [],
+            ],
+            'BRI' => [
+                'title' => 'BANK BRI',
+                'sheet_title' => 'Nominatif BRI',
+                'items' => [],
+            ],
+        ];
+
+        foreach ($items as $item) {
+            $gol = strtoupper((string) ($item['golongan'] ?? ''));
+            $isPppk = str_contains($gol, 'PPPK');
+            $rawBank = trim((string) ($item['nama_bank'] ?? 'BRI'));
+            $code = $bankCodeHelper($rawBank);
+            $typePrefix = $isPppk ? 'PPPK' : 'PNS';
+            $groupKey = "{$typePrefix}_{$code}";
+
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = [
+                    'title' => substr($groupKey, 0, 31),
+                    'items' => [],
+                ];
+            }
+            $groups[$groupKey]['items'][] = $item;
+
+            // Kumpulkan ke daftar nominatif bank terkait
+            $nomKey = $code === 'MNDRI' ? 'MANDIRI' : $code;
+            if (!isset($nominatifBanks[$nomKey])) {
+                $nominatifBanks[$nomKey] = [
+                    'title' => 'BANK ' . strtoupper($rawBank),
+                    'sheet_title' => substr('Nominatif ' . strtoupper($rawBank), 0, 31),
+                    'items' => [],
+                ];
+            }
+            $nominatifBanks[$nomKey]['items'][] = $item;
+        }
+
+        // 2. Buat Sheet Matriks Presensi
+        $sheetIdx = 0;
+        foreach ($groups as $key => $grp) {
+            $sheet = $sheetIdx === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $sheet->setTitle($grp['title']);
+            $this->buildMatriksSheet($sheet, $grp['title'], $grp['items'], $carbonPeriod, $signatory);
+            $sheetIdx++;
+        }
+
+        // 3. Buat Sheet Nominatif per Bank
+        foreach ($nominatifBanks as $bankKey => $nom) {
+            $sheetNom = $spreadsheet->createSheet();
+            $sheetNom->setTitle($nom['sheet_title']);
+            $this->buildNominatifSheet($sheetNom, $nom['title'], $nom['items'], $carbonPeriod, $signatory);
+        }
+
+        // Kembalikan kursor ke sheet pertama
+        $spreadsheet->setActiveSheetIndex(0);
+
+        return $spreadsheet;
+    }
+
+    /**
+     * Bangun satu sheet Matriks Presensi lengkap dengan format resmi BKSDA.
+     */
+    protected function buildMatriksSheet($sheet, string $groupTitle, array $items, Carbon $carbonPeriod, array $signatory): void
+    {
         $daysInMonth = $carbonPeriod->daysInMonth;
         $namaBulanUpper = strtoupper($this->namaBulanIndo($carbonPeriod->month));
         $tahun = $carbonPeriod->year;
+        $bulan = $carbonPeriod->month;
 
         $kasubbagNama = $signatory['nama'] ?? 'Dheny Mardiono, S.Hut., M.Sc.';
         $kasubbagNip = $signatory['nip'] ?? '19750314 199903 1 004';
         $kasubbagJabatan = $signatory['jabatan'] ?? 'Kepala Subbagian Tata Usaha';
 
-        // ==========================================
-        // SHEET 1: MATRIKS PRESENSI
-        // ==========================================
-        $sheet1 = $spreadsheet->getActiveSheet();
-        $sheet1->setTitle('Matriks Presensi');
+        $kepalaBalaiNama = $signatory['kepala_balai_nama'] ?? 'M. Ari Wibawanto, S.Hut., M.Sc.';
+        $kepalaBalaiNip = $signatory['kepala_balai_nip'] ?? '19740514 199903 1 001';
 
         // Page setup landscape auto-fit 1 page wide
-        $sheet1->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
-        $sheet1->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_LETTER);
-        $sheet1->getPageSetup()->setFitToPage(true);
-        $sheet1->getPageSetup()->setFitToWidth(1);
-        $sheet1->getPageSetup()->setFitToHeight(0);
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_LETTER);
+        $sheet->getPageSetup()->setFitToPage(true);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0);
 
         // Header Judul Baris 1-3
-        $sheet1->setCellValue('A1', 'REKAPITULASI ABSEN BALAI KSDA KALIMANTAN TIMUR');
-        $sheet1->setCellValue('A3', "BULAN  : {$namaBulanUpper}  {$tahun}");
-        $sheet1->getStyle('A1')->getFont()->setBold(true)->setSize(11);
-        $sheet1->getStyle('A3')->getFont()->setBold(true)->setSize(10);
+        $sheet->setCellValue('A1', 'REKAPITULASI ABSEN BALAI KSDA KALIMANTAN TIMUR');
+        $sheet->setCellValue('A3', "BULAN  : {$namaBulanUpper}  {$tahun}");
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(11);
+        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(10);
 
         // Header Tabel Baris 4-5
-        $sheet1->setCellValue('A4', 'No');
-        $sheet1->mergeCells('A4:A5');
-        $sheet1->setCellValue('B4', 'Nama');
-        $sheet1->mergeCells('B4:B5');
+        $sheet->setCellValue('A4', 'No');
+        $sheet->mergeCells('A4:A5');
+        $sheet->setCellValue('B4', 'Nama');
+        $sheet->mergeCells('B4:B5');
 
         // Kolom Tanggal 1..DaysInMonth
         $startColIdx = 3; // Kolom C
@@ -65,13 +164,21 @@ class MealAllowanceExcelExport
         $startColLetter = Coordinate::stringFromColumnIndex($startColIdx);
         $endColLetter = Coordinate::stringFromColumnIndex($endColIdx);
 
-        $sheet1->setCellValue("{$startColLetter}4", 'Tanggal');
-        $sheet1->mergeCells("{$startColLetter}4:{$endColLetter}4");
+        $sheet->setCellValue("{$startColLetter}4", 'Tanggal');
+        $sheet->mergeCells("{$startColLetter}4:{$endColLetter}4");
 
         for ($d = 1; $d <= $daysInMonth; $d++) {
             $colLetter = Coordinate::stringFromColumnIndex(2 + $d);
-            $sheet1->setCellValue("{$colLetter}5", $d);
-            $sheet1->getColumnDimension($colLetter)->setWidth(3.2);
+            $sheet->setCellValue("{$colLetter}5", $d);
+            $sheet->getColumnDimension($colLetter)->setWidth(3.2);
+
+            $currDate = Carbon::createFromDate($tahun, $bulan, $d);
+            $isWeekend = HolidayCalendarHelper::isWeekend($currDate);
+            $isHoliday = HolidayCalendarHelper::isHoliday($currDate);
+            if ($isWeekend || $isHoliday) {
+                $color = ($currDate->isSunday() || $isHoliday) ? 'FFFEE2E2' : 'FFE2E8F0';
+                $sheet->getStyle("{$colLetter}5")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
+            }
         }
 
         // Kolom Rekapitulasi setelah tanggal
@@ -83,41 +190,42 @@ class MealAllowanceExcelExport
         $pdCol = Coordinate::stringFromColumnIndex($endColIdx + 6);
         $ctCol = Coordinate::stringFromColumnIndex($endColIdx + 7);
 
-        $sheet1->setCellValue("{$jmlHariCol}4", 'JML HARI');
-        $sheet1->mergeCells("{$jmlHariCol}4:{$jmlHariCol}5");
+        $sheet->setCellValue("{$jmlHariCol}4", 'JML HARI');
+        $sheet->mergeCells("{$jmlHariCol}4:{$jmlHariCol}5");
 
-        $sheet1->setCellValue("{$hadirCol}4", 'Jumlah');
-        $sheet1->mergeCells("{$hadirCol}4:{$ctCol}4");
+        $sheet->setCellValue("{$hadirCol}4", 'Jumlah');
+        $sheet->mergeCells("{$hadirCol}4:{$ctCol}4");
 
-        $sheet1->setCellValue("{$hadirCol}5", 'Hadir');
-        $sheet1->setCellValue("{$alpaCol}5", 'Alpa');
-        $sheet1->setCellValue("{$ijinCol}5", 'Ijin');
-        $sheet1->setCellValue("{$sakitCol}5", 'Sakit');
-        $sheet1->setCellValue("{$pdCol}5", 'PD');
-        $sheet1->setCellValue("{$ctCol}5", 'CT');
+        $sheet->setCellValue("{$hadirCol}5", 'Hadir');
+        $sheet->setCellValue("{$alpaCol}5", 'Alpa');
+        $sheet->setCellValue("{$ijinCol}5", 'Ijin');
+        $sheet->setCellValue("{$sakitCol}5", 'Sakit');
+        $sheet->setCellValue("{$pdCol}5", 'PD');
+        $sheet->setCellValue("{$ctCol}5", 'CT');
 
         // Lebar kolom A, B, dan ringkasan
-        $sheet1->getColumnDimension('A')->setWidth(4.5);
-        $sheet1->getColumnDimension('B')->setWidth(28);
-        $sheet1->getColumnDimension($jmlHariCol)->setWidth(6.5);
+        $sheet->getColumnDimension('A')->setWidth(4.5);
+        $sheet->getColumnDimension('B')->setWidth(28);
+        $sheet->getColumnDimension($jmlHariCol)->setWidth(6.5);
         foreach ([$hadirCol, $alpaCol, $ijinCol, $sakitCol, $pdCol, $ctCol] as $c) {
-            $sheet1->getColumnDimension($c)->setWidth(5.5);
+            $sheet->getColumnDimension($c)->setWidth(5.5);
         }
 
         // Style Header 4-5
         $headerRange = "A4:{$ctCol}5";
-        $sheet1->getStyle($headerRange)->getFont()->setBold(true)->setSize(9);
-        $sheet1->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet1->getStyle($headerRange)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setSize(9);
+        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle($headerRange)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         // Data Rows Baris 6+
         $row = 6;
-        $totalWorkingDaysInMonth = 0;
+        $rowStartCol = Coordinate::stringFromColumnIndex(3);
+        $rowEndCol = Coordinate::stringFromColumnIndex(2 + $daysInMonth);
 
         foreach ($items as $idx => $item) {
             $no = $idx + 1;
-            $sheet1->setCellValue("A{$row}", $no);
-            $sheet1->setCellValue("B{$row}", $this->safeCell(strtoupper((string) ($item['nama_lengkap'] ?? ''))));
+            $sheet->setCellValue("A{$row}", $no);
+            $sheet->setCellValue("B{$row}", $this->safeCell(strtoupper((string) ($item['nama_lengkap'] ?? ''))));
 
             $dailyMatrix = $item['daily_matrix'] ?? [];
 
@@ -128,82 +236,109 @@ class MealAllowanceExcelExport
                 $isHoliday = is_array($dayData) ? ($dayData['is_holiday'] ?? false) : false;
                 $isWeekend = is_array($dayData) ? ($dayData['is_weekend'] ?? false) : false;
 
+                $currDate = Carbon::createFromDate($tahun, $bulan, $d);
+                $isWeekend = $isWeekend || HolidayCalendarHelper::isWeekend($currDate);
+                $isHoliday = $isHoliday || HolidayCalendarHelper::isHoliday($currDate);
+
                 if ($isWeekend || $isHoliday || $status === '-') {
-                    $sheet1->setCellValue("{$colLetter}{$row}", '');
-                    // Shading abu-abu akhir pekan / libur
-                    $sheet1->getStyle("{$colLetter}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2E8F0');
+                    $sheet->setCellValue("{$colLetter}{$row}", '');
+                    $color = ($currDate->isSunday() || $isHoliday) ? 'FFFEE2E2' : 'FFE2E8F0';
+                    $sheet->getStyle("{$colLetter}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
                 } else {
-                    $sheet1->setCellValue("{$colLetter}{$row}", $this->safeCell($status));
+                    $sheet->setCellValue("{$colLetter}{$row}", $this->safeCell($status));
                 }
             }
 
-            // Formula Excel Dinamis (COUNTIF)
-            $rowStartCol = Coordinate::stringFromColumnIndex(3);
-            $rowEndCol = Coordinate::stringFromColumnIndex(2 + $daysInMonth);
+            // Formula Excel Dinamis (COUNTIF) identik BKSDA
             $rangeDinas = "{$rowStartCol}{$row}:{$rowEndCol}{$row}";
 
-            $sheet1->setCellValue("{$jmlHariCol}{$row}", $item['jml_hari_kerja'] ?? 22);
-            $sheet1->setCellValue("{$hadirCol}{$row}", "=COUNTIF({$rangeDinas},\"H\")");
-            $sheet1->setCellValue("{$alpaCol}{$row}", "=COUNTIF({$rangeDinas},\"TK\")+COUNTIF({$rangeDinas},\"A\")");
-            $sheet1->setCellValue("{$ijinCol}{$row}", "=COUNTIF({$rangeDinas},\"I\")");
-            $sheet1->setCellValue("{$sakitCol}{$row}", "=COUNTIF({$rangeDinas},\"S\")");
-            $sheet1->setCellValue("{$pdCol}{$row}", "=COUNTIF({$rangeDinas},\"PD\")");
-            $sheet1->setCellValue("{$ctCol}{$row}", "=COUNTIF({$rangeDinas},\"CT\")");
+            $sheet->setCellValue("{$jmlHariCol}{$row}", $item['jml_hari_kerja'] ?? 22);
+            $sheet->setCellValue("{$hadirCol}{$row}", "=COUNTIF({$rangeDinas},\"H\")");
+            $sheet->setCellValue("{$alpaCol}{$row}", "=COUNTIF({$rangeDinas},\"A\")");
+            $sheet->setCellValue("{$ijinCol}{$row}", "=COUNTIF({$rangeDinas},\"I\")");
+            $sheet->setCellValue("{$sakitCol}{$row}", "=COUNTIF({$rangeDinas},\"S\")");
+            $sheet->setCellValue("{$pdCol}{$row}", "=COUNTIF({$rangeDinas},\"PD\")");
+            $sheet->setCellValue("{$ctCol}{$row}", "=COUNTIF({$rangeDinas},\"CT\")");
 
             // Format baris data
-            $sheet1->getStyle("A{$row}:{$ctCol}{$row}")->getFont()->setSize(9);
-            $sheet1->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet1->getStyle("C{$row}:{$ctCol}{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet1->getStyle("A{$row}:{$ctCol}{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("A{$row}:{$ctCol}{$row}")->getFont()->setSize(9);
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("C{$row}:{$ctCol}{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$row}:{$ctCol}{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             $row++;
         }
 
-        // Legenda & Blok Tanda Tangan Kasubbag TU
+        // Jika tidak ada pegawai dalam kategori ini, beri 1 baris kosong rapi
+        if (empty($items)) {
+            $sheet->setCellValue("A{$row}", '-');
+            $sheet->setCellValue("B{$row}", 'Tidak ada pegawai pada kategori ini');
+            $sheet->mergeCells("B{$row}:{$ctCol}{$row}");
+            $sheet->getStyle("A{$row}:{$ctCol}{$row}")->getFont()->setSize(9)->setItalic(true);
+            $sheet->getStyle("A{$row}:{$ctCol}{$row}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+        }
+
+        // Legenda & Blok Tanda Tangan Ganda BKSDA (Kiri: Kepala Balai, Kanan: Kasubbag TU)
         $legendStartRow = $row + 2;
-        $sheet1->setCellValue("A{$legendStartRow}", 'Keterangan');
-        $sheet1->setCellValue("A" . ($legendStartRow + 1), 'H');
-        $sheet1->setCellValue("B" . ($legendStartRow + 1), '= Hadir');
-        $sheet1->setCellValue("A" . ($legendStartRow + 2), 'TK');
-        $sheet1->setCellValue("B" . ($legendStartRow + 2), '= Tanpa Keterangan / Alpa');
-        $sheet1->setCellValue("A" . ($legendStartRow + 3), 'CT');
-        $sheet1->setCellValue("B" . ($legendStartRow + 3), '= Cuti');
-        $sheet1->setCellValue("A" . ($legendStartRow + 4), 'I');
-        $sheet1->setCellValue("B" . ($legendStartRow + 4), '= Ijin');
-        $sheet1->setCellValue("A" . ($legendStartRow + 5), 'PD');
-        $sheet1->setCellValue("B" . ($legendStartRow + 5), '= Perjalanan Dinas');
-        $sheet1->setCellValue("A" . ($legendStartRow + 6), 'S');
-        $sheet1->setCellValue("B" . ($legendStartRow + 6), '= Sakit');
+        $sheet->setCellValue("A{$legendStartRow}", 'Keterangan');
+        $sheet->setCellValue("A" . ($legendStartRow + 1), 'H');
+        $sheet->setCellValue("B" . ($legendStartRow + 1), '= Hadir');
+        $sheet->setCellValue("A" . ($legendStartRow + 2), 'TK');
+        $sheet->setCellValue("B" . ($legendStartRow + 2), '= Tanpa Keterangan / Alpa');
+        $sheet->setCellValue("A" . ($legendStartRow + 3), 'CT');
+        $sheet->setCellValue("B" . ($legendStartRow + 3), '= Cuti');
+        $sheet->setCellValue("A" . ($legendStartRow + 4), 'I');
+        $sheet->setCellValue("B" . ($legendStartRow + 4), '= Ijin');
+        $sheet->setCellValue("A" . ($legendStartRow + 5), 'PD');
+        $sheet->setCellValue("B" . ($legendStartRow + 5), '= Perjalanan Dinas');
+        $sheet->setCellValue("A" . ($legendStartRow + 6), 'S');
+        $sheet->setCellValue("B" . ($legendStartRow + 6), '= Sakit');
 
-        $sheet1->getStyle("A{$legendStartRow}:B" . ($legendStartRow + 6))->getFont()->setSize(8.5);
-        $sheet1->getStyle("A{$legendStartRow}")->getFont()->setBold(true);
+        $sheet->getStyle("A{$legendStartRow}:B" . ($legendStartRow + 6))->getFont()->setSize(8.5);
+        $sheet->getStyle("A{$legendStartRow}")->getFont()->setBold(true);
 
-        // Tanda Tangan Tunggal Kasubbag TU di Kanan Bawah
+        // Tanda Tangan KIRI: Mengetahui Kepala Balai
+        $sheet->setCellValue("C{$legendStartRow}", "Mengetahui :");
+        $sheet->setCellValue("C" . ($legendStartRow + 1), 'Kepala Balai,');
+        $sheet->setCellValue("C" . ($legendStartRow + 5), $this->safeCell($kepalaBalaiNama));
+        $sheet->setCellValue("C" . ($legendStartRow + 6), $this->safeCell("NIP. {$kepalaBalaiNip}"));
+        $sheet->getStyle("C" . ($legendStartRow + 5))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("C{$legendStartRow}:C" . ($legendStartRow + 6))->getFont()->setSize(9);
+
+        // Tanda Tangan KANAN: Kasubbag TU
         $sigCol = $hadirCol;
-        $sheet1->setCellValue("{$sigCol}{$legendStartRow}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 1), $this->safeCell($kasubbagJabatan) . ',');
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 5), $this->safeCell($kasubbagNama));
-        $sheet1->setCellValue("{$sigCol}" . ($legendStartRow + 6), $this->safeCell("NIP. {$kasubbagNip}"));
+        $sheet->setCellValue("{$sigCol}{$legendStartRow}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
+        $sheet->setCellValue("{$sigCol}" . ($legendStartRow + 1), $this->safeCell($kasubbagJabatan) . ',');
+        $sheet->setCellValue("{$sigCol}" . ($legendStartRow + 5), $this->safeCell($kasubbagNama));
+        $sheet->setCellValue("{$sigCol}" . ($legendStartRow + 6), $this->safeCell("NIP. {$kasubbagNip}"));
 
-        $sheet1->getStyle("{$sigCol}" . ($legendStartRow + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet1->getStyle("{$sigCol}{$legendStartRow}:{$sigCol}" . ($legendStartRow + 6))->getFont()->setSize(9);
+        $sheet->getStyle("{$sigCol}" . ($legendStartRow + 5))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("{$sigCol}{$legendStartRow}:{$sigCol}" . ($legendStartRow + 6))->getFont()->setSize(9);
+    }
 
-        // ==========================================
-        // SHEET 2: DAFTAR NOMINATIF PEMBAYARAN UANG MAKAN
-        // ==========================================
-        $sheet2 = $spreadsheet->createSheet();
-        $sheet2->setTitle('Nominatif Uang Makan');
+    /**
+     * Bangun satu sheet Daftar Nominatif Pembayaran per Bank.
+     */
+    protected function buildNominatifSheet($sheet, string $bankTitle, array $items, Carbon $carbonPeriod, array $signatory): void
+    {
+        $namaBulanUpper = strtoupper($this->namaBulanIndo($carbonPeriod->month));
+        $tahun = $carbonPeriod->year;
 
-        $sheet2->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
-        $sheet2->getPageSetup()->setFitToPage(true);
-        $sheet2->getPageSetup()->setFitToWidth(1);
-        $sheet2->getPageSetup()->setFitToHeight(0);
+        $kasubbagNama = $signatory['nama'] ?? 'Dheny Mardiono, S.Hut., M.Sc.';
+        $kasubbagNip = $signatory['nip'] ?? '19750314 199903 1 004';
+        $kasubbagJabatan = $signatory['jabatan'] ?? 'Kepala Subbagian Tata Usaha';
 
-        // Judul Sheet 2
-        $sheet2->setCellValue('A1', 'DAFTAR NOMINATIF PEMBAYARAN UANG MAKAN PEGAWAI');
-        $sheet2->setCellValue('A2', 'BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR');
-        $sheet2->setCellValue('A3', "PERIODE : {$namaBulanUpper} {$tahun}");
-        $sheet2->getStyle('A1:A3')->getFont()->setBold(true)->setSize(11);
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setFitToPage(true);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0);
+
+        // Judul Sheet Nominatif
+        $sheet->setCellValue('A1', 'DAFTAR NOMINATIF PEMBAYARAN UANG MAKAN PEGAWAI (' . $bankTitle . ')');
+        $sheet->setCellValue('A2', 'BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR');
+        $sheet->setCellValue('A3', "PERIODE : {$namaBulanUpper} {$tahun}");
+        $sheet->getStyle('A1:A3')->getFont()->setBold(true)->setSize(11);
 
         // Header Tabel Nominatif Baris 5
         $nomHeaders = [
@@ -221,87 +356,82 @@ class MealAllowanceExcelExport
         ];
 
         foreach ($nomHeaders as $cell => $text) {
-            $sheet2->setCellValue($cell, $text);
+            $sheet->setCellValue($cell, $text);
         }
 
-        $sheet2->getColumnDimension('A')->setWidth(5);
-        $sheet2->getColumnDimension('B')->setWidth(28);
-        $sheet2->getColumnDimension('C')->setWidth(22);
-        $sheet2->getColumnDimension('D')->setWidth(18);
-        $sheet2->getColumnDimension('E')->setWidth(10);
-        $sheet2->getColumnDimension('F')->setWidth(14);
-        $sheet2->getColumnDimension('G')->setWidth(18);
-        $sheet2->getColumnDimension('H')->setWidth(12);
-        $sheet2->getColumnDimension('I')->setWidth(18);
-        $sheet2->getColumnDimension('J')->setWidth(22);
-        $sheet2->getColumnDimension('K')->setWidth(18);
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(28);
+        $sheet->getColumnDimension('C')->setWidth(22);
+        $sheet->getColumnDimension('D')->setWidth(18);
+        $sheet->getColumnDimension('E')->setWidth(10);
+        $sheet->getColumnDimension('F')->setWidth(14);
+        $sheet->getColumnDimension('G')->setWidth(18);
+        $sheet->getColumnDimension('H')->setWidth(12);
+        $sheet->getColumnDimension('I')->setWidth(18);
+        $sheet->getColumnDimension('J')->setWidth(22);
+        $sheet->getColumnDimension('K')->setWidth(18);
 
-        $sheet2->getStyle('A5:K5')->getFont()->setBold(true)->setSize(9);
-        $sheet2->getStyle('A5:K5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet2->getStyle('A5:K5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet2->getStyle('A5:K5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF1F5F9');
+        $sheet->getStyle('A5:K5')->getFont()->setBold(true)->setSize(9);
+        $sheet->getStyle('A5:K5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A5:K5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A5:K5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF1F5F9');
 
         $nomRow = 6;
         foreach ($items as $idx => $item) {
-            $sheet2->setCellValue("A{$nomRow}", $idx + 1);
-            $sheet2->setCellValue("B{$nomRow}", $this->safeCell((string) ($item['nama_lengkap'] ?? '')));
-            $sheet2->setCellValueExplicit("C{$nomRow}", (string) ($item['nip'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $sheet2->setCellValue("D{$nomRow}", $this->safeCell((string) ($item['golongan'] ?? '')));
-            $sheet2->setCellValue("E{$nomRow}", (int) ($item['jml_hadir'] ?? 0));
-            $sheet2->setCellValue("F{$nomRow}", (float) ($item['tarif_harian'] ?? 0));
-            $sheet2->setCellValue("G{$nomRow}", "=E{$nomRow}*F{$nomRow}");
+            $sheet->setCellValue("A{$nomRow}", $idx + 1);
+            $sheet->setCellValue("B{$nomRow}", $this->safeCell((string) ($item['nama_lengkap'] ?? '')));
+            $sheet->setCellValueExplicit("C{$nomRow}", (string) ($item['nip'] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("D{$nomRow}", $this->safeCell((string) ($item['golongan'] ?? '')));
+            $sheet->setCellValue("E{$nomRow}", (int) ($item['jml_hadir'] ?? 0));
+            $sheet->setCellValue("F{$nomRow}", (float) ($item['tarif_harian'] ?? 0));
+            $sheet->setCellValue("G{$nomRow}", "=E{$nomRow}*F{$nomRow}");
             $pphRate = max(0, (float) ($item['persen_pph21'] ?? 0));
-            $sheet2->setCellValue("H{$nomRow}", $pphRate . '%');
-            $sheet2->setCellValue("I{$nomRow}", "=G{$nomRow}*({$pphRate}/100)");
-            $sheet2->setCellValue("J{$nomRow}", "=G{$nomRow}-I{$nomRow}");
-            $sheet2->setCellValue("K{$nomRow}", ($idx + 1) . '. ..............');
+            $sheet2H = $pphRate . '%';
+            $sheet->setCellValue("H{$nomRow}", $sheet2H);
+            $sheet->setCellValue("I{$nomRow}", "=G{$nomRow}*({$pphRate}/100)");
+            $sheet->setCellValue("J{$nomRow}", "=G{$nomRow}-I{$nomRow}");
+            $sheet->setCellValue("K{$nomRow}", ($idx + 1) . '. ..............');
 
-            // Format angka
-            $sheet2->getStyle("A{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet2->getStyle("C{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet2->getStyle("D{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet2->getStyle("E{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet2->getStyle("H{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("C{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("H{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-            $sheet2->getStyle("F{$nomRow}:G{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
-            $sheet2->getStyle("I{$nomRow}:J{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
-            $sheet2->getStyle("A{$nomRow}:K{$nomRow}")->getFont()->setSize(9);
-            $sheet2->getStyle("A{$nomRow}:K{$nomRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle("F{$nomRow}:G{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("I{$nomRow}:J{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("A{$nomRow}:K{$nomRow}")->getFont()->setSize(9);
+            $sheet->getStyle("A{$nomRow}:K{$nomRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
             $nomRow++;
         }
 
         // Baris Total
-        $sheet2->setCellValue("A{$nomRow}", 'TOTAL');
-        $sheet2->mergeCells("A{$nomRow}:D{$nomRow}");
+        $sheet->setCellValue("A{$nomRow}", 'TOTAL');
+        $sheet->mergeCells("A{$nomRow}:D{$nomRow}");
         $startDataRow = 6;
-        $endDataRow = $nomRow - 1;
-        $sheet2->setCellValue("E{$nomRow}", "=SUM(E{$startDataRow}:E{$endDataRow})");
-        $sheet2->setCellValue("G{$nomRow}", "=SUM(G{$startDataRow}:G{$endDataRow})");
-        $sheet2->setCellValue("I{$nomRow}", "=SUM(I{$startDataRow}:I{$endDataRow})");
-        $sheet2->setCellValue("J{$nomRow}", "=SUM(J{$startDataRow}:J{$endDataRow})");
+        $endDataRow = max(6, $nomRow - 1);
+        $sheet->setCellValue("E{$nomRow}", "=SUM(E{$startDataRow}:E{$endDataRow})");
+        $sheet->setCellValue("G{$nomRow}", "=SUM(G{$startDataRow}:G{$endDataRow})");
+        $sheet->setCellValue("I{$nomRow}", "=SUM(I{$startDataRow}:I{$endDataRow})");
+        $sheet->setCellValue("J{$nomRow}", "=SUM(J{$startDataRow}:J{$endDataRow})");
 
-        $sheet2->getStyle("A{$nomRow}:K{$nomRow}")->getFont()->setBold(true)->setSize(9);
-        $sheet2->getStyle("A{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet2->getStyle("E{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet2->getStyle("G{$nomRow}:J{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
-        $sheet2->getStyle("A{$nomRow}:K{$nomRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet2->getStyle("A{$nomRow}:K{$nomRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF1F5F9');
+        $sheet->getStyle("A{$nomRow}:K{$nomRow}")->getFont()->setBold(true)->setSize(9);
+        $sheet->getStyle("A{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("E{$nomRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("G{$nomRow}:J{$nomRow}")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle("A{$nomRow}:K{$nomRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A{$nomRow}:K{$nomRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF1F5F9');
 
-        // Tanda Tangan di Sheet 2
+        // Tanda Tangan di Sheet Nominatif
         $sigRow2 = $nomRow + 3;
-        $sheet2->setCellValue("I{$sigRow2}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
-        $sheet2->setCellValue("I" . ($sigRow2 + 1), $this->safeCell($kasubbagJabatan) . ',');
-        $sheet2->setCellValue("I" . ($sigRow2 + 5), $this->safeCell($kasubbagNama));
-        $sheet2->setCellValue("I" . ($sigRow2 + 6), $this->safeCell("NIP. {$kasubbagNip}"));
+        $sheet->setCellValue("I{$sigRow2}", "Samarinda,    {$this->namaBulanIndo($carbonPeriod->month)} {$tahun}");
+        $sheet->setCellValue("I" . ($sigRow2 + 1), $this->safeCell($kasubbagJabatan) . ',');
+        $sheet->setCellValue("I" . ($sigRow2 + 5), $this->safeCell($kasubbagNama));
+        $sheet->setCellValue("I" . ($sigRow2 + 6), $this->safeCell("NIP. {$kasubbagNip}"));
 
-        $sheet2->getStyle("I" . ($sigRow2 + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet2->getStyle("I{$sigRow2}:I" . ($sigRow2 + 6))->getFont()->setSize(9);
-
-        // Kembalikan ke active sheet 1
-        $spreadsheet->setActiveSheetIndex(0);
-
-        return $spreadsheet;
+        $sheet->getStyle("I" . ($sigRow2 + 5))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle("I{$sigRow2}:I" . ($sigRow2 + 6))->getFont()->setSize(9);
     }
 
     private function safeCell(?string $value): string
