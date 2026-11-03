@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeHistory;
+use App\Modules\Kepegawaian\Models\MealAllowanceItem;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
@@ -196,10 +197,11 @@ class EmployeeController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $employee = Employee::findOrFail($id);
+        $employee = Employee::with('user')->findOrFail($id);
 
         $data = $employee->toArray();
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
+        $data['email'] = $employee->email ?? $employee->user?->email ?? null;
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
@@ -226,7 +228,7 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
-        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'is_active'];
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
         $oldValues = [];
         foreach ($trackedFields as $field) {
             $oldValues[$field] = $employee->$field;
@@ -239,6 +241,12 @@ class EmployeeController extends Controller
 
         $employee->update($validated);
         $newNip = trim((string) $employee->nip);
+
+        // Sinkronisasi email ke akun User jika ada
+        if ($targetUser && !empty($employee->email)) {
+            $targetUser->email = $employee->email;
+            $targetUser->save();
+        }
 
         // Catat riwayat audit jika ada field biodata yang berubah
         $changes = [];
@@ -589,6 +597,37 @@ class EmployeeController extends Controller
                 'last_page' => $letters->lastPage(),
                 'per_page' => $letters->perPage(),
                 'total' => $letters->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * GET /api/kepegawaian/employees/{id}/meal-allowances
+     * Mengambil riwayat penerimaan uang makan khusus untuk pegawai ini
+     */
+    public function mealAllowances(Request $request, string $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
+
+        $items = MealAllowanceItem::with('batch')
+            ->where(function ($q) use ($employee) {
+                $q->where('employee_id', $employee->id);
+                if (!empty($employee->nip)) {
+                    $q->orWhere('nip', $employee->nip);
+                }
+            })
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        return response()->json([
+            'message' => 'Riwayat uang makan berhasil diambil.',
+            'data' => $items->items(),
+            'meta' => [
+                'current_page' => $items->currentPage(),
+                'last_page' => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
             ],
         ]);
     }

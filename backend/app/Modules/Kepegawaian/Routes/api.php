@@ -45,6 +45,8 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::get('/employees/{employee}/assignment-letters', [EmployeeController::class, 'assignmentLetters']);
+    Route::get('/employees/{employee}/meal-allowances', [EmployeeController::class, 'mealAllowances']);
+    Route::get('/settings/registered-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getRegisteredBanks']);
 
     // --- TEMPLATE SURAT TUGAS ---
     Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
@@ -123,6 +125,14 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::post('/leave-requests/{id}/generate-surat-izin', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveRequestController::class, 'generateSuratIzin']);
 
         // --- HITUNG UANG MAKAN & REKONSILIASI PRESENSI SIKADIR ---
+        Route::get('/uang-makan/calendar', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getCalendar']);
+        Route::get('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getHolidaySettings']);
+        Route::post('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeHolidaySetting']);
+        Route::delete('/settings/holidays/{id}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyHolidaySetting']);
+        Route::get('/settings/employee-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getEmployeeBanks']);
+        Route::put('/settings/employee-banks/batch', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'batchUpdateEmployeeBanks']);
+        Route::post('/settings/registered-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeRegisteredBank']);
+        Route::delete('/settings/registered-banks/{bank}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyRegisteredBank']);
         Route::post('/uang-makan/reconcile', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'reconcile'])
             ->middleware('throttle:60,1');
         Route::post('/uang-makan/batches', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeBatch']);

@@ -205,10 +205,10 @@ export default function STBuilderPreview({
   const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
   const signaturePlaceholderStyle: React.CSSProperties = {
     margin: "14px 0 0",
-    height: "105px",
+    height: "125px",
     display: "flex",
-    alignItems: "flex-start",
-    paddingTop: "34px",
+    alignItems: "center",
+    paddingTop: "0",
     paddingLeft: "1.35cm",
     boxSizing: "border-box",
     color: "#94a3b8",
@@ -296,7 +296,7 @@ export default function STBuilderPreview({
               <p style={{ textAlign: "center", fontSize: "11pt", margin: "0 0 16px" }}>
                 Nomor : {nomorNumberingType === "naskah_auto"
                   ? (customNomorNaskah || "${nomor_naskah}")
-                  : `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`}
+                  : `ST.${stNumber?.trim() || "\u00A0\u00A0\u00A0\u00A0"}/${stCode || "\u00A0\u00A0\u00A0\u00A0"}/${currentMonth}/${currentYear}`}
               </p>
 
               {/* === KEPALA BALAI / HEADER MODULAR === */}

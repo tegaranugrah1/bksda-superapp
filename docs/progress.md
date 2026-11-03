@@ -1,3 +1,23 @@
+# Progress — Pengujian Komprehensif & Audit Akar Jeroan: Alokasi Bank, Sanitasi Kontak, & Rekonsiliasi Uang Makan (03 November 2026)
+
+> Status: **AUDIT AKAR SELESAI & DOKUMEN PERENCANAAN TERBIT (Audit Jeroan Menemukan 9 Celah Akar Termasuk Bug Kritis Data-Loss Uang Makan & 15 Kasus Uji Akar Baru; Menunggu Evaluasi Pengguna Sebelum Eksekusi Perbaikan & Test Suite)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Lembar Uji ([`test-plan.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/test-plan.md)), Spesifikasi Teknis ([`design.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/design.md)), dan Analisis Keamanan ([`security.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/security.md)).  
+
+## Status Temuan Audit Jeroan & Kesiapan Pengujian
+
+| Pilar / Sektor | Status & Bukti | Keterangan & Rincian Akar Jeroan |
+|---|---|---|
+| **Akar Kritis 1: Data-Loss Uang Makan (`uang-makan/page.tsx`)** | **TERCATAT (R1 🔴)** | `normalizeEmployeeItem()` menghapus `nama_bank` dan `nomor_rekening` dari return object. Dampak: Kartu stat Mandiri selalu 0, simpan batch & export Excel fallback ke BRI untuk 100% pegawai. Kasus uji akar: TC-ROOT-01 s.d. TC-ROOT-04. |
+| **Akar Kritis 2: Salah Klasifikasi 33 Tenaga Lapangan/MMP** | **TERCATAT (R2 🔴)** | `MealAllowanceController::getEmployeeBanks` & `getRegisteredBanks` mengabaikan helper `Employee::scopeOfJenis` dan mengklasifikasikan 33 MMP sebagai `PNS`, mendistorsi hitungan BRI dari 76 ASN menjadi 109. Kasus uji akar: TC-ROOT-05 & 06. |
+| **Akar Kritis 3: Bypass Audit Trail & Sanitasi Simbol Strip** | **TERCATAT (R3 🔴)** | `batchUpdateEmployeeBanks` menggunakan raw `whereIn()->update()`, membypass pencatatan `kpg_employee_histories` dan membiarkan input `"-"` masuk kembali ke basis data tanpa sanitasi `EmployeeRequest`. Kasus uji akar: TC-ROOT-07 s.d. 09. |
+| **Akar Pengaman 4: Validasi Master Bank & Input Bebas** | **TERCATAT (R4 & R5 🟠)** | Tidak adanya validasi `Rule::exists('kpg_registered_banks')` pada endpoint update bank pegawai serta adanya input bebas (*free-text*) di modal frontend memungkinkan bank tak terdaftar tersimpan. Kasus uji akar: TC-ROOT-10 & 11. |
+| **Akar Keamanan 5: XSS Sanitization vs Validation** | **TERCATAT (R6 🟠)** | `storeRegisteredBank` hanya menggunakan `strip_tags()`, menerima `<script>alert(1)</script>` menjadi bank `alert(1)` (HTTP 201). Seharusnya divalidasi ketat dengan regex alfanumerik (HTTP 422). Kasus uji akar: TC-ROOT-12. |
+| **Akar Performa & Query: Wildcard SQL & Case Sensitivity** | **TERCATAT (R7 & R8 🟡)** | Pencarian menggunakan operator `like` mentah tanpa escaping wildcard dan rentan case-sensitivity di PostgreSQL. Deteksi PPPK di Excel export belum membaca satu sumber kebenaran. Kasus uji akar: TC-ROOT-13 & 14. |
+| **Kesiapan Suite Pengujian (Security, BE, FE, E2E)** | **REVISI v1.1 SIAP (Skor 9/10)** | Total 36 Kasus Uji: 6 Security (TC-SEC-01..06), 6 Backend (TC-BE-01..06), 4 Frontend (TC-FE-01..04), 5 E2E Playwright (TC-E2E-01..05), dan 15 Root Invariants (TC-ROOT-01..15). |
+
+---
+
 # Progress — Cetak Ulang Batch 2-Up & Disposisi Penerusan Ruang/Pegawai Balai (02 November 2026)
 
 > Status: **IMPLEMENTASI SELESAI (Fitur Cetak 2-Up Batch, Kolom Sifat Single-Select Interaktif, dan Diteruskan Ke Ruang/Pegawai Balai Selesai Diimplementasikan; Menunggu Instruksi Pengguna untuk Menjalankan Test)**.  
@@ -9520,3 +9540,59 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
      - Menyiapkan spesifikasi lengkap di [`docs/kepegawaian/uang-makan/`](docs/kepegawaian/uang-makan/) (`requirements.md`, `design.md`, `tasks.md`).
      - Mendaftarkan tab navigasi baru `"Hitung Uang Makan"` di sidebar modul Kepegawaian (`frontend/src/app/kepegawaian/layout.tsx`) di bawah grup Layanan & Persuratan dengan ikon `UtensilsCrossed`.
      - Menyiapkan halaman scaffold awal di [`frontend/src/app/kepegawaian/uang-makan/page.tsx`](frontend/src/app/kepegawaian/uang-makan/page.tsx) dan memvalidasi kompilasi build Next.js (`npm run build` sukses 87/87 static pages tanpa error).
+
+
+12. **Integrasi WhatsApp Hermes AI – Modul Surat Tugas: Alur Usulan Natural, Pengecekan Bentrok, Pemilihan Ketua Tim, & Persetujuan Admin via WhatsApp (3 November 2026 - Sesi Pagi)**:
+   - **Latar Belakang & Ruang Lingkup**:
+     - Mengembangkan asisten WhatsApp cerdas berbasis AI (**Hermes**) di VM 108 (`192.168.100.205`) yang terhubung langsung ke backend Laravel 11 dan database PostgreSQL BKSDA SuperApp via reverse tunnel SSH (`5435`).
+     - Dokumentasi lengkap tersimpan di [`docs/hermes-agent/progress-surat-tugas.md`](docs/hermes-agent/progress-surat-tugas.md).
+   - **Siklus Hidup Surat Tugas Otomatis via WhatsApp**:
+     1. *Intake Usulan Natural*: Pegawai mengajukan penugasan dengan bahasa santai / natural tanpa format kaku.
+     2. *Fuzzy Matching & Disambiguasi*: Mengenali nama panggilan akrab (*Pak Nuryani*, *Pak Bowo*, *Mba Anna*, *Pak Dayat*, *Resqi*) dan melakukan disambiguasi jika ada kemiripan nama (*Didimus* vs *Didi Susanto*).
+     3. *Delegasi Pengusulan Rekan Kerja*: Pengusul dapat membuatkan ST untuk rekan kerjanya tanpa pengusul sendiri ikut bertugas.
+     4. *Pengecekan Bentrok Jadwal Otomatis*: Memeriksa penugasan aktif dan cuti yang disetujui melalui `AssignmentLetterConflictService`.
+     5. *Pemilihan Ketua Tim*: Jika personil >= 2 orang, asisten secara proaktif mengonfirmasi siapa Ketua Tim sebelum draf diterbitkan.
+     6. *Normalisasi Sumber Dana & PKS Mitra*: Otomatis memetakan DIPA, FOLU, DL1, dan mitra kerjasama terdaftar (*KJA, COP, MJA, BOSF, Tjiwi Kimia, CAN, ALeRT*), maupun mitra luar lainnya.
+     7. *Penerbitan Draf Sementara*: Menyimpan usulan sebagai draf `ST.DRAFT/XXXXXXXX`.
+     8. *Notifikasi Transparan ke Admin*: Mengirim notifikasi WhatsApp ke Admin Tegar berisi rincian penugasan, jenis ST resmi, dan bunyi lengkap diktum **"Untuk :"**.
+     9. *Persetujuan & Penomoran Resmi Instan*: Admin membalas pesan WhatsApp (misal: *"Nomor 244 KSA.08.09"* atau *"244 KSA.08.09"*), sistem otomatis menerbitkan nomor resmi `ST.[NOMOR]/K.18/TU/[KLASIFIKASI]/B/[BULAN]/[TAHUN]`, memperbarui status menjadi `approved`, memancarkan event `AdminInboxChanged`, dan mengabari pemohon.
+   - **Komponen Teknis yang Diselesaikan**:
+     - Artisan CLI command: `php artisan hermes:st {check-conflict|create-draft|approve-draft|list-employees}` di [`HermesSuratTugasCommand.php`](backend/app/Console/Commands/HermesSuratTugasCommand.php).
+     - Gateway WhatsApp & Web Assistant (`hermes-agent`): Live QR Web Viewer (`/qr`), endpoint polling `/api/qr-live`, dan filter adapter WhatsApp untuk membuang log refleksi internal bot.
+     - Konfigurasi Otak Hermes (VM 108): `~/.hermes/SOUL.md`, `~/.hermes/skills/bksda-superapp-ops/SKILL.md`, `~/.hermes/memories/security_guardrails.md`, dan `~/.hermes/memories/MEMORY.md`.
+   - **Hasil Uji Kasus Nyata (Terverifikasi End-to-End)**:
+     - *Uji Kasus 1 (Usulan Mandiri)*: Mbak Anisa (Inventarisasi Pesut Teluk Adang ke Kab. Paser, 4-8 Nov 2026) -> Draf `ST.DRAFT/D068BFD0` -> Disetujui Admin Tegar via WA menjadi **`ST.244/K.18/TU/KSA.08.09/B/11/2026`** (`approved`).
+     - *Uji Kasus 2 (Delegasi Rekan Kerja)*: Usulan Pelatihan Drone Balai KSDA oleh Anisa untuk personil Puji Mulyanto (Ketua Tim), Afrizal Maula Alfarisi, dan Didi Susanto (DL1, 5 Nov 2026) -> Draf `ST.DRAFT/2A749EFA` berhasil terbit tanpa memicu bentrok jadwal Anisa.
+
+
+13. **Modul Kepegawaian & Pengaturan Uang Makan – Manajemen Modular Bank Penyalur, Sinkronisasi Roster Resmi 113 Pegawai, Sanitasi Kontak, dan Pembersihan UI/UX (3 November 2026 - Sesi Sore)**:
+   - **Penyelarasan Roster Resmi Alokasi Bank Pegawai (113 ASN)**:
+     - Dijalankan via migrasi idempotent `2026_11_03_190000_sync_employee_bank_allocations.php` dengan pencocokan nama berbasis normalisasi fonetik/gelar akademik tanpa bentrok.
+     - Terpetakan 100% presisi: **53 PNS BRI**, **39 PNS Mandiri**, **4 PPPK Mandiri**, dan **17 PPPK BRI**.
+     - Rekapitulasi distribusi bank aktif di sistem: **Bank Mandiri 43 pegawai**, **Bank BRI 109 pegawai** (Total: **152 pegawai aktif**).
+   - **Sistem Modular Bank Penyalur Terdaftar (`kpg_registered_banks`)**:
+     - Dibuat tabel database `kpg_registered_banks` via migrasi `2026_11_03_170000_create_kpg_registered_banks_table.php` (default: BRI & Mandiri).
+     - REST API di `MealAllowanceController.php`:
+       - `GET /api/kepegawaian/settings/registered-banks` (dilengkapi agregasi jumlah pegawai aktif per bank).
+       - `POST /api/kepegawaian/settings/registered-banks` (registrasi opsi bank baru seperti BSI, Bankaltimtara, BNI, BCA, dll).
+       - `DELETE /api/kepegawaian/settings/registered-banks/{bank}` (dengan validasi blokir jika ada >= 1 pegawai aktif yang terikat).
+     - Penamaan section pengaturan disederhanakan menjadi **Alokasi Rekening Bank Pegawai** (menghilangkan suffix "(Mandiri/BRI)").
+     - Dropdown pilihan bank pada formulir detail & edit pegawai di `/kepegawaian/employees/[id]` tersinkronisasi dinamis dari pengaturan, dilengkapi tautan langsung `+ Daftarkan bank baru di Pengaturan`.
+   - **Pemberian Halaman (Pagination) Dinamis pada Tabel Alokasi Bank**:
+     - Ditambahkan kontrol pagination fleksibel pada tabel alokasi bank di `/kepegawaian/settings` (`MealAllowanceHolidaysTab.tsx`).
+     - Pilihan baris: `10 baris` (default), `20 baris`, `50 baris`, dan `Semua ({total}) baris`.
+     - Kontrol navigasi lengkap: Halaman Pertama (`<<`), Sebelumnya (`<`), *Page Pills* interaktif dengan *active state* biru, Berikutnya (`>`), dan Terakhir (`>>`).
+     - Fitur seleksi cerdas: *Select all on current page* dan pintasan *Pilih Semua {total} Pegawai Terfilter* pada floating batch action bar.
+   - **Sanitasi Placeholder Karakter Dash (`-`) pada Kolom Kontak**:
+     - Dibuat migrasi `2026_11_03_180000_clean_placeholder_dashes_in_kpg_employees.php` yang membersihkan 92 baris bernilai `"-"` pada kolom `telepon`, `nomor_rekening`, dan `email` menjadi `null`.
+     - Frontend helper `cleanFieldValue()`: Saat tombol edit ditekan, form input nomor WhatsApp/HP dan nomor rekening langsung bersih/kosong tanpa perlu menghapus karakter `-` secara manual, memunculkan placeholder asli (`Misal: 081234567890`).
+     - Tampilan biodata saat belum diisi kini menggunakan teks muted `Belum diatur` (bukan karakter `-` mandiri).
+   - **Pembersihan Elemen AI-Slop & Redesain Visual Enterprise**:
+     - Dihapus garis dekoratif multi-color gradient di atas foto profil pada cockpit card pegawai di `/kepegawaian/employees/[id]`.
+     - Avatar wrapper diubah menjadi flat netral enterprise (`bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700`).
+     - Kartu statistik uang makan diubah dari gradient multi-color menjadi clean flat card monokrom yang konsisten dengan desain sistem SuperApp BKSDA.
+   - **Dokumentasi Arsitektur & Rencana Pengujian 10/10 ([`docs/kepegawaian/alokasi-bank-dan-biodata/`](docs/kepegawaian/alokasi-bank-dan-biodata/))**:
+     - Menyusun spesifikasi kebutuhan bisnis & fungsional di `requirements.md`.
+     - Menyusun desain teknis, diagram komponen, skema basis data, dan plafon in-memory pagination di `design.md`.
+     - Menyusun panduan keamanan, otorisasi RBAC, sanitasi input XSS/SQLi, dan audit trail di `security.md`.
+     - Menyusun rencana pengujian 4 dimensi (Security, Backend PHPUnit, Frontend Type-Check, dan E2E Playwright) di `test-plan.md` dengan kriteria capaian skor 10/10.
