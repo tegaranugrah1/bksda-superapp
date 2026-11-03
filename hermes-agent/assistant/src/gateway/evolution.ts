@@ -5,7 +5,7 @@ export class EvolutionGateway {
   private instanceName: string;
 
   constructor() {
-    const baseURL = process.env.EVOLUTION_API_URL || 'http://evolution-api:8080';
+    const baseURL = process.env.EVOLUTION_API_URL || 'http://localhost:8080';
     const apiKey = process.env.EVOLUTION_API_KEY || 'bksda_hermes_secret_api_key_2026';
     this.instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'bksda-assistant';
 
@@ -29,7 +29,6 @@ export class EvolutionGateway {
         presence: 'composing',
         delay: durationMs,
       });
-      // Berikan jeda lokal agar ritme percakapan terasa natural
       await new Promise((resolve) => setTimeout(resolve, Math.min(durationMs, 2500)));
     } catch (e: any) {
       // Ignore presence error to not block actual message delivery
@@ -71,6 +70,29 @@ export class EvolutionGateway {
       return res.data?.instance?.state || 'unknown';
     } catch (err: any) {
       return 'disconnected';
+    }
+  }
+
+  /**
+   * Mengambil data QR code terkini atau status koneksi langsung.
+   */
+  async getLiveQrCode(): Promise<{ state: string; base64?: string; pairingCode?: string }> {
+    try {
+      const stateRes = await this.api.get(`/instance/connectionState/${this.instanceName}`);
+      const state = stateRes.data?.instance?.state || 'close';
+      if (state === 'open') {
+        return { state: 'open' };
+      }
+
+      const connectRes = await this.api.get(`/instance/connect/${this.instanceName}`);
+      return {
+        state: 'connecting',
+        base64: connectRes.data?.base64,
+        pairingCode: connectRes.data?.pairingCode,
+      };
+    } catch (err: any) {
+      console.error('[EvolutionGateway] getLiveQrCode error:', err.response?.data || err.message);
+      return { state: 'error' };
     }
   }
 }
