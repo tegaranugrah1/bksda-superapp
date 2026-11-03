@@ -334,19 +334,6 @@ export async function exportSuratTugasPdf(
   const { jsPDF } = await import("jspdf");
   const html2canvas = (await import("html2canvas-pro")).default;
 
-  const canvas = await html2canvas(previewDoc, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: "#ffffff",
-    logging: false,
-    windowWidth: previewDoc.scrollWidth,
-    ignoreElements: (element) =>
-      element.classList.contains("print:hidden") ||
-      element.classList.contains("halaman-divider") ||
-      element.classList.contains("page-break-indicator"),
-  });
-
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -356,24 +343,47 @@ export async function exportSuratTugasPdf(
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const imgWidth = pageWidth;
-  const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-  const imgData = canvas.toDataURL("image/jpeg", 0.96);
+  const lampiranWrapper = previewDoc.querySelector(".st-lampiran-page-wrapper") as HTMLElement | null;
+  const mainTable = previewDoc.querySelector("table") as HTMLElement | null;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  const canvasOptions = {
+    scale: 2,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: "#ffffff",
+    logging: false,
+    windowWidth: previewDoc.scrollWidth,
+    ignoreElements: (element: Element) =>
+      element.classList.contains("print:hidden") ||
+      element.classList.contains("halaman-divider") ||
+      element.classList.contains("page-break-indicator"),
+  };
 
-  // Halaman pertama
-  pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-  heightLeft -= pageHeight;
+  try {
+    if (lampiranWrapper) {
+      lampiranWrapper.style.display = "none";
+    }
 
-  // Halaman lanjutan jika naskah / lampiran memiliki multi-halaman
-  while (heightLeft > 0) {
-    position -= pageHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-    heightLeft -= pageHeight;
+    // 1. Capture Halaman 1 (Naskah Surat Tugas) - tepat 1 halaman A4 penuh
+    const canvas1 = await html2canvas(previewDoc, canvasOptions);
+    const imgData1 = canvas1.toDataURL("image/jpeg", 0.96);
+    pdf.addImage(imgData1, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+
+    // 2. Capture Halaman 2 (Lampiran jika aktif) - tepat 1 halaman A4 penuh
+    if (lampiranWrapper) {
+      lampiranWrapper.style.display = "";
+      if (mainTable) mainTable.style.display = "none";
+
+      const canvas2 = await html2canvas(previewDoc, canvasOptions);
+      const imgData2 = canvas2.toDataURL("image/jpeg", 0.96);
+      pdf.addPage();
+      pdf.addImage(imgData2, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+    }
+  } finally {
+    // Pastikan styling tampilan selalu dikembalikan utuh ke kondisi semula
+    if (lampiranWrapper) lampiranWrapper.style.display = "";
+    if (mainTable) mainTable.style.display = "";
   }
 
   const filename = buildSuratTugasFilename(stNumber, namaKegiatan, "pdf");
