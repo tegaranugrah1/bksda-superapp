@@ -16,6 +16,7 @@ import {
   Printer,
   Sparkles,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -70,6 +71,7 @@ export default function SuratKeluarListPage() {
   const {
     data: suratList = [],
     isLoading,
+    isFetching,
     refetch,
   } = useQuery<SuratKeluar[]>({
     queryKey: ["surat-keluar", search],
@@ -84,6 +86,10 @@ export default function SuratKeluarListPage() {
         return [];
       }
     },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   const filteredList = suratList.filter((item) => {
@@ -156,7 +162,7 @@ export default function SuratKeluarListPage() {
   };
 
   return (
-    <div className="space-y-4 px-5 py-4 md:px-6">
+    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="space-y-0.5">
@@ -227,8 +233,27 @@ export default function SuratKeluarListPage() {
           </select>
         </div>
 
-        <div className="text-xs font-semibold text-zinc-500">
-          Menampilkan <span className="text-zinc-900 font-bold dark:text-zinc-50">{filteredList.length}</span> Surat Keluar
+        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+          {isFetching && (
+            <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Menyinkronkan...
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Segarkan data surat keluar"
+            className="h-8 w-8 p-0 text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-emerald-600" : ""}`} />
+          </Button>
+          <span>
+            Menampilkan <span className="text-zinc-900 font-bold dark:text-zinc-50">{filteredList.length}</span> Surat Keluar
+          </span>
         </div>
       </div>
 

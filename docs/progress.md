@@ -1,3 +1,23 @@
+# Progress — Pengujian Komprehensif & Audit Akar Jeroan: Alokasi Bank, Sanitasi Kontak, & Rekonsiliasi Uang Makan (03 November 2026)
+
+> Status: **AUDIT AKAR SELESAI & DOKUMEN PERENCANAAN TERBIT (Audit Jeroan Menemukan 9 Celah Akar Termasuk Bug Kritis Data-Loss Uang Makan & 15 Kasus Uji Akar Baru; Menunggu Evaluasi Pengguna Sebelum Eksekusi Perbaikan & Test Suite)**.  
+> Branch: `codex/portal-security-pentest` (Strictly Local Commits, Zero Remote Push)  
+> Referensi: Dokumen Perencanaan & Lembar Uji ([`test-plan.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/test-plan.md)), Spesifikasi Teknis ([`design.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/design.md)), dan Analisis Keamanan ([`security.md`](file:///e:/bksda-superapp/docs/kepegawaian/alokasi-bank-dan-biodata/security.md)).  
+
+## Status Temuan Audit Jeroan & Kesiapan Pengujian
+
+| Pilar / Sektor | Status & Bukti | Keterangan & Rincian Akar Jeroan |
+|---|---|---|
+| **Akar Kritis 1: Data-Loss Uang Makan (`uang-makan/page.tsx`)** | **TERCATAT (R1 🔴)** | `normalizeEmployeeItem()` menghapus `nama_bank` dan `nomor_rekening` dari return object. Dampak: Kartu stat Mandiri selalu 0, simpan batch & export Excel fallback ke BRI untuk 100% pegawai. Kasus uji akar: TC-ROOT-01 s.d. TC-ROOT-04. |
+| **Akar Kritis 2: Salah Klasifikasi 33 Tenaga Lapangan/MMP** | **TERCATAT (R2 🔴)** | `MealAllowanceController::getEmployeeBanks` & `getRegisteredBanks` mengabaikan helper `Employee::scopeOfJenis` dan mengklasifikasikan 33 MMP sebagai `PNS`, mendistorsi hitungan BRI dari 76 ASN menjadi 109. Kasus uji akar: TC-ROOT-05 & 06. |
+| **Akar Kritis 3: Bypass Audit Trail & Sanitasi Simbol Strip** | **TERCATAT (R3 🔴)** | `batchUpdateEmployeeBanks` menggunakan raw `whereIn()->update()`, membypass pencatatan `kpg_employee_histories` dan membiarkan input `"-"` masuk kembali ke basis data tanpa sanitasi `EmployeeRequest`. Kasus uji akar: TC-ROOT-07 s.d. 09. |
+| **Akar Pengaman 4: Validasi Master Bank & Input Bebas** | **TERCATAT (R4 & R5 🟠)** | Tidak adanya validasi `Rule::exists('kpg_registered_banks')` pada endpoint update bank pegawai serta adanya input bebas (*free-text*) di modal frontend memungkinkan bank tak terdaftar tersimpan. Kasus uji akar: TC-ROOT-10 & 11. |
+| **Akar Keamanan 5: XSS Sanitization vs Validation** | **TERCATAT (R6 🟠)** | `storeRegisteredBank` hanya menggunakan `strip_tags()`, menerima `<script>alert(1)</script>` menjadi bank `alert(1)` (HTTP 201). Seharusnya divalidasi ketat dengan regex alfanumerik (HTTP 422). Kasus uji akar: TC-ROOT-12. |
+| **Akar Performa & Query: Wildcard SQL & Case Sensitivity** | **TERCATAT (R7 & R8 🟡)** | Pencarian menggunakan operator `like` mentah tanpa escaping wildcard dan rentan case-sensitivity di PostgreSQL. Deteksi PPPK di Excel export belum membaca satu sumber kebenaran. Kasus uji akar: TC-ROOT-13 & 14. |
+| **Kesiapan Suite Pengujian (Security, BE, FE, E2E)** | **REVISI v1.1 SIAP (Skor 9/10)** | Total 36 Kasus Uji: 6 Security (TC-SEC-01..06), 6 Backend (TC-BE-01..06), 4 Frontend (TC-FE-01..04), 5 E2E Playwright (TC-E2E-01..05), dan 15 Root Invariants (TC-ROOT-01..15). |
+
+---
+
 # Progress — Cetak Ulang Batch 2-Up & Disposisi Penerusan Ruang/Pegawai Balai (02 November 2026)
 
 > Status: **IMPLEMENTASI SELESAI (Fitur Cetak 2-Up Batch, Kolom Sifat Single-Select Interaktif, dan Diteruskan Ke Ruang/Pegawai Balai Selesai Diimplementasikan; Menunggu Instruksi Pengguna untuk Menjalankan Test)**.  
@@ -72,7 +92,7 @@
 
 | Fase | Status | Keterangan & Bukti |
 |---|---|---|
-| **Fase 1: Modernisasi Layout & Sidebar** | **SELESAI (Commit `272acba4`)** | 4 grup navigasi logis, collapsible rail `w-72` $\leftrightarrow$ `w-20` dengan native tooltip, aksen vertikal emerald 4px, penghapusan FAB kanan-bawah yang menabrak pagination, user footer terpadu, Zinc dark palette. |
+| **Fase 1: Modernisasi Layout & Sidebar** | **SELESAI (Commit `272acba4`)** | 4 grup navigasi logis, collapsible rail `w-72` $\rightarrow$\leftrightarrow$\rightarrow$ `w-20` dengan native tooltip, aksen vertikal emerald 4px, penghapusan FAB kanan-bawah yang menabrak pagination, user footer terpadu, Zinc dark palette. |
 | **Fase 2: Standarisasi Header, Tabel, Touch Targets & React Query** | **SELESAI (Commit `483cf500`)** | Enterprise Header Card seragam berbingkai `rounded-2xl` dengan badge tema di 5 submodul (`assets`, `loans`, `maintenances`, `disposal`, `auction-batches`); migrasi total `loans/page.tsx` ke `@tanstack/react-query` mengeliminasi 60+ baris boilerplate; 5-row pulsing skeleton loader menggantikan single spinner; standardisasi touch target minimum 36-44px; sinkronisasi 8 filter URL `searchParams`. |
 | **Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)** | **SELESAI (Commit `0332687a`)** | Wizard Tambah Aset Dark Mode Zinc 5-step responsif; penyaringan aset peminjam (larangan pinjam kondisi Rusak Berat / status tidak aktif) & surface backend error messages; responsivitas ringkasan review import batch `grid-cols-2 md:grid-cols-4` + Zinc styling; eliminasi polling zombie 3 detik pada detail aset + mobile breadcrumbs + sticky mobile edit actions; mobile dropdown switcher & stacked cards taksiran lelang di layar kecil. |
 | **Fase 4: Pengerasan Keamanan Backend & Regression Tests** | **SELESAI (Commit `97adee1d`)** | Elevasi hak akses ekspor BMN di `api.php` (`bmn.asset.export\|bmn.asset.update`); dukungan pipe permission di `CheckPermission.php`; pengetatan validasi unggah berkas import review batas 10MB (`max:10240`) dan ekstensi strictly `xlsx,xls`; perbaikan hak akses `bmn.document.generate` di halaman laporan; preservasi 100% isolasi format cetak A4 dinas; automated regression test suite `BmnLayoutAndSecurityRegressionTest.php` (8/8 lulus, 15 assertions) + full BMN suite (70/70 lulus, 243 assertions). |
@@ -237,18 +257,18 @@ Tiga `BroadcastChannelAuthTest` berada pada kedua suite PHP di atas, sehingga an
 - **Pembersihan Celah IDOR (Insecure Direct Object References)**:
   - Pada `DriveAccess::canReadFile()` dan `DriveAccess::canWriteFile()`, berkas yang berada di dalam folder terisolasi (`folder_id !== null && is_restricted = true`) wajib divalidasi berdasarkan izin folder induknya (`canReadFolder()` / `canWriteFolder()`), mencegah unduhan ilegal oleh pengguna yang sekadar menebak ID berkas.
 - **Anti-Search Leakage**:
-  - Pada `DriveController::index()`, saat mode pencarian (`search !== ''`) atau pemindaian folder aktif, hasil query `$folders` dan `$files` otomatis difilter dengan `DriveAccess::canReadFolder()` dan `DriveAccess::canReadFile()`. Folder dan berkas terisolasi tidak akan pernah bocor ke staf yang tidak berhak.
+  - Pada `DriveController::index()`, saat mode pencarian (`search !== ''`) atau pemindaian folder aktif, hasil query `$\rightarrow$folders` dan `$\rightarrow$files` otomatis difilter dengan `DriveAccess::canReadFolder()` dan `DriveAccess::canReadFile()`. Folder dan berkas terisolasi tidak akan pernah bocor ke staf yang tidak berhak.
 - **Anti-Bulk ZIP Traversal Bypass (CWE-22 & RBAC Guard)**:
   - Pada `DriveController::requestZipToken()`, signed URL HMAC-SHA256 menyertakan identitas pengguna peminta (`u = user_id`).
-  - Pada `DriveController::downloadFolderZip()`, keabsahan signature divalidasi dan method rekursif `addFolderToZipStream()` memeriksa `DriveAccess::canReadFolder($user, $sub)`. Subfolder terisolasi otomatis dilompati dari arsip ZIP jika pengguna peminta bukan staf resor yang bersangkutan.
+  - Pada `DriveController::downloadFolderZip()`, keabsahan signature divalidasi dan method rekursif `addFolderToZipStream()` memeriksa `DriveAccess::canReadFolder($\rightarrow$user, $\rightarrow$sub)`. Subfolder terisolasi otomatis dilompati dari arsip ZIP jika pengguna peminta bukan staf resor yang bersangkutan.
 - **Pewarisan Hak Subfolder (Subfolder Inheritance)**:
   - Pada `DriveController::createFolder()`, pembuatan subfolder di dalam folder terisolasi otomatis mewarisi atribut `is_restricted`, `folder_scope`, `resor_code`, dan `room_code` dari parent folder.
 - **Perbaikan Tab "Dibagikan kepada Saya"**:
-  - Mengganti `$folderQuery->whereRaw('1 = 0')` dengan query `drive_shares.folder_id` sehingga folder yang dibagikan secara eksplisit muncul di tab `filter=shared_with_me`.
+  - Mengganti `$\rightarrow$folderQuery->whereRaw('1 = 0')` dengan query `drive_shares.folder_id` sehingga folder yang dibagikan secara eksplisit muncul di tab `filter=shared_with_me`.
 - **Endpoint Penunjukan Penanggung Jawab Folder**:
   - `POST /api/drive/folders/{id}/assign-manager`: memungkinkan Superadmin atau Admin Drive menunjuk staf pengelola folder (menerima `user_id` atau `nip`), sekaligus mencatat record `manager` di `drive_shares`.
 - **Performa & Eliminasi N+1 Query**:
-  - Menggunakan PHP 8 stdlib `\WeakMap` untuk memoize profil pegawai (`getEmployee`) dan daftar unit kerja yang dapat diakses (`getUserUnitIds`) pada instance `$user`, tanpa mencemari model Eloquent attributes (zero-N+1, O(1) runtime).
+  - Menggunakan PHP 8 stdlib `\WeakMap` untuk memoize profil pegawai (`getEmployee`) dan daftar unit kerja yang dapat diakses (`getUserUnitIds`) pada instance `$\rightarrow$user`, tanpa mencemari model Eloquent attributes (zero-N+1, O(1) runtime).
 
 #### 3. Fase 3 — Pengorganisasian Subfolder Laporan DeReporting & Ringkasan Laporan
 - **Subfolder Otomatis per Tanggapan**:
@@ -260,7 +280,7 @@ Tiga `BroadcastChannelAuthTest` berada pada kedua suite PHP di atas, sehingga an
 - **Ringkasan Formulir Native (`Ringkasan_Laporan.txt`)**:
   - Disusun secara otomatis dari memori string PHP native (zero template engine overhead) memuat waktu submit WITA, ID respon, titik koordinat GPS beserta link Google Maps, seluruh isian pertanyaan dinamis, dan total berkas lampiran.
   - Disimpan ke S3 RustFS di path `units/balai-samarinda/dereporting/{form->slug}/summary_{folder_id}_{response_id}.txt`.
-  - Dicatat sebagai `DriveFile` dengan `source_module = 'dereporting'` dan composite key unik `source_id = "{$response->id}:summary:txt"`.
+  - Dicatat sebagai `DriveFile` dengan `source_module = 'dereporting'` dan composite key unik `source_id = "{$\rightarrow$response->id}:summary:txt"`.
 - **Export Rekapitulasi CSV Terintegrasi Drive**:
   - Menambahkan kolom header `Link Folder Drive` pada `FormBuilderController::exportCsv()`.
   - Setiap baris data memuat tautan langsung ke `/drive?space=1&folder_id={drive_folder_id}`.
@@ -272,16 +292,16 @@ Tiga `BroadcastChannelAuthTest` berada pada kedua suite PHP di atas, sehingga an
 - **Dropdown Resor pada Form Pegawai**:
   - Menambahkan dropdown "Resor Penempatan" pada form Create (`frontend/src/app/kepegawaian/employees/create/page.tsx`) dan form Edit Biodata (`frontend/src/app/kepegawaian/employees/[id]/page.tsx`).
   - Opsi terfilter secara dinamis berdasarkan Satuan Kerja yang dipilih:
-    - SKW I Berau $\rightarrow$ Resor 01 s.d. Resor 04.
-    - SKW II Tenggarong $\rightarrow$ Resor 05 s.d. Resor 09.
-    - SKW III Balikpapan $\rightarrow$ Resor 10 s.d. Resor 14.
-    - Balai KSDA Samarinda $\rightarrow$ dropdown otomatis dinonaktifkan (disabled) dan dikosongkan.
+    - SKW I Berau $\rightarrow$\rightarrow$\rightarrow$ Resor 01 s.d. Resor 04.
+    - SKW II Tenggarong $\rightarrow$\rightarrow$\rightarrow$ Resor 05 s.d. Resor 09.
+    - SKW III Balikpapan $\rightarrow$\rightarrow$\rightarrow$ Resor 10 s.d. Resor 14.
+    - Balai KSDA Samarinda $\rightarrow$\rightarrow$\rightarrow$ dropdown otomatis dinonaktifkan (disabled) dan dikosongkan.
 - **Validasi Silang Sisi Server (`EmployeeRequest.php`)**:
   - Rule validasi ketat menolak penempatan resor apabila satuan kerja pegawai berada di Balai (HTTP 422).
   - Menolak pemilihan kode resor yang tidak sesuai dengan wilayah SKW tempat pegawai bertugas.
 - **Mass Assignment & Sinkronisasi Mutasi Seketika**:
-  - Kolom `resor` didaftarkan ke `$fillable` pada model `Employee.php`.
-  - Berkat dynamic matching `(string)$employee->resor === (string)$folder->resor_code` pada `DriveAccess.php`, mutasi pegawai langsung mengeksekusi auto-revoke terhadap folder resor lama dan auto-grant terhadap folder resor baru secara instan tanpa perlu batch job atau antrean cron.
+  - Kolom `resor` didaftarkan ke `$\rightarrow$fillable` pada model `Employee.php`.
+  - Berkat dynamic matching `(string)$\rightarrow$employee->resor === (string)$\rightarrow$folder->resor_code` pada `DriveAccess.php`, mutasi pegawai langsung mengeksekusi auto-revoke terhadap folder resor lama dan auto-grant terhadap folder resor baru secara instan tanpa perlu batch job atau antrean cron.
 
 #### 5. Fase 5 — Hak Akses Modul "Admin Drive" & Peningkatan UI Drive
 - **Modul BKSDA Drive pada Hak Akses Pegawai**:
@@ -339,9 +359,9 @@ Tests:    18 passed (88 assertions)
 Duration: 4.72s
 ```
 
-- **Frontend TypeScript Check**: `cd frontend && npx tsc --noEmit` $\rightarrow$ **0 Errors**.
-- **Knowledge Graph Check**: `graphify update .` $\rightarrow$ **10,542 nodes, 19,119 edges, 779 communities updated**.
-- **Working Tree**: `git status` $\rightarrow$ **Clean** (30 commits local ahead of origin, zero pushed).
+- **Frontend TypeScript Check**: `cd frontend && npx tsc --noEmit` $\rightarrow$\rightarrow$\rightarrow$ **0 Errors**.
+- **Knowledge Graph Check**: `graphify update .` $\rightarrow$\rightarrow$\rightarrow$ **10,542 nodes, 19,119 edges, 779 communities updated**.
+- **Working Tree**: `git status` $\rightarrow$\rightarrow$\rightarrow$ **Clean** (30 commits local ahead of origin, zero pushed).
 
 ---
 
@@ -360,13 +380,13 @@ Duration: 4.72s
 1. **Fase 1 — Integrasi Otomatis Foto Form DeReporting ke BKSDA Drive & Shortcut UI**:
    - **Database Migration**: `2026_10_30_120000_add_drive_and_schedule_to_dr_forms_table.php` menambahkan foreign key `drive_folder_id`, `closed_at`, dan `closed_message` pada tabel `dr_forms`.
    - **S3 RustFS Storage**: Berkas/foto responden form otomatis tersimpan langsung ke disk S3 `drive` di path `units/balai-samarinda/dereporting/{form->slug}/...`.
-   - **Zero Personal Quota Consumption**: `DriveFile` dicatat dengan `unit_id = 1` (Balai Samarinda 100 GB quota) dan `source_id = "{$response->id}:{$fieldId}:{$index}"`. Kuota pribadi pembuat form (5 GB) tetap **0 byte terpakai**.
+   - **Zero Personal Quota Consumption**: `DriveFile` dicatat dengan `unit_id = 1` (Balai Samarinda 100 GB quota) dan `source_id = "{$\rightarrow$response->id}:{$\rightarrow$fieldId}:{$\rightarrow$index}"`. Kuota pribadi pembuat form (5 GB) tetap **0 byte terpakai**.
    - **Otorisasi DriveAccess**: Pembuat formulir (`dr_forms.created_by`) diakui secara otomatis oleh `DriveAccess` (`canReadFile`, `canWriteFile`, `canReadFolder`, `canWriteFolder`) untuk membaca, mengunduh, pratinjau, dan membagikan berkas tanpa hambatan hak akses unit.
    - **Pintasan UI Pro Max**: Tombol pintasan *"Buka Folder di BKSDA Drive"* di kartu formulir (`/dereporting/forms`) dan di header halaman tanggapan (`/dereporting/forms/[id]/responses`).
 
 2. **Fase 2 — Multi-File Upload & Notifikasi Real-Time (Portal & WebSocket)**:
    - **Multi-File Form Builder**: Opsi konfigurasi `max_files` (1 s.d. 5 berkas) pada pertanyaan bertipe `file`.
-   - **Kompresi Canvas Sisi Klien**: Responden publik pada `/lapor/[slug]` dapat memilih hingga 5 foto sekaligus dengan kompresi otomatis via HTML5 Canvas ($\le 1600\text{px}$ JPEG quality 0.82) sebelum dikirim, menjaga total payload selalu aman di bawah batas 25 MB.
+   - **Kompresi Canvas Sisi Klien**: Responden publik pada `/lapor/[slug]` dapat memilih hingga 5 foto sekaligus dengan kompresi otomatis via HTML5 Canvas ($\rightarrow$\le 1600\text{px}$\rightarrow$ JPEG quality 0.82) sebelum dikirim, menjaga total payload selalu aman di bawah batas 25 MB.
    - **Validasi Keamanan Ketat (`/security-audit`)**: Pemeriksaan MIME *magic bytes* via PHP `finfo` pada backend dan pencegahan unggahan file executable/script berbahaya.
    - **Notifikasi Real-Time WebSocket**: Integrasi `PortalNotificationService::notifyUser()` via Laravel Reverb / `PortalNotificationCreated` saat responden mengirim submisi baru, tanpa menguras kuota email Resend/Brevo.
 
@@ -453,8 +473,8 @@ Duration: 4.72s
 - **Dual-Endpoint S3 Signer**: Disk internal `drive` (`http://rustfs:9000`) dan signer publik `drive_signer` (`https://storage.bksdakaltim.web.id`).
 - **Pipeline Upload Kuat**:
   - `initUpload`: Validasi kuota (default 5 GB user, 50-100 GB unit kerja) dan disk soft cap.
-  - Presigned PUT langsung untuk berkas $\le$ 80 MB.
-  - S3 Multipart Upload dipotong per 25 MB untuk berkas $>$ 80 MB (menembus batas 100 MB Cloudflare Free Tier).
+  - Presigned PUT langsung untuk berkas $\rightarrow$\le$\rightarrow$ 80 MB.
+  - S3 Multipart Upload dipotong per 25 MB untuk berkas $\rightarrow$>$\rightarrow$ 80 MB (menembus batas 100 MB Cloudflare Free Tier).
   - `completeUpload`: Validasi keaslian format berkas via PHP `finfo` magic bytes.
 - **Berbagi Berkas (Fase 3)**:
   - Berbagi internal ke unit/pegawai (Editor / Viewer).
@@ -478,7 +498,7 @@ Duration: 4.72s
 #### 8. Sinkronisasi Cooldown Verifikasi Email 60 Detik & Feedback Edit Kontak Profil
 - **Masalah Teridentifikasi**: Saat pengguna mengganti alamat email melalui ikon pensil di atas foto profil (`PortalProfileSidebar.tsx`), sistem backend mengirimkan email verifikasi pertama. Namun karena cooldown tidak dibagikan dan tidak dipasang di route kirim ulang (`/email/verification-notification`), banner "Email Anda Belum Terverifikasi" langsung mengizinkan klik "Kirim Ulang Tautan Verifikasi", sehingga dua email verifikasi terkirim sekaligus ke Gmail pengguna dalam hitungan detik.
 - **Penyelesaian Backend (`AuthController.php`)**:
-  - `updateProfile`: Saat alamat email diubah, wajib memvalidasi kata sandi saat ini (`current_password`), menolak domain `.local`, mengirimkan *security alert* ke email lama jika sebelumnya terverifikasi, memasang cooldown 60 detik di Cache (`email_verify_cooldown:{$userId}`), mengirimkan email verifikasi secara asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta mengembalikan `email_changed: true` dan `cooldown_seconds: 60`.
+  - `updateProfile`: Saat alamat email diubah, wajib memvalidasi kata sandi saat ini (`current_password`), menolak domain `.local`, mengirimkan *security alert* ke email lama jika sebelumnya terverifikasi, memasang cooldown 60 detik di Cache (`email_verify_cooldown:{$\rightarrow$userId}`), mengirimkan email verifikasi secara asinkron via `dispatch(...)->afterResponse()` agar respon HTTP tetap instan (< 30ms), serta mengembalikan `email_changed: true` dan `cooldown_seconds: 60`.
   - `resendVerificationEmail`: Menggunakan `Cache::add` atomik (*check-and-set* dalam satu operasi tanpa *race condition*). Jika cooldown masih aktif, tolak permintaan dengan status HTTP 429 Too Many Requests beserta sisa waktu `retry_after`.
   - `dashboard`: Mengembalikan `email_cooldown_remaining` di dalam objek `data.user` agar sinkronisasi state tetap akurat bahkan setelah refresh halaman tanpa perlu dependensi tambahan.
 - **Penyelesaian Frontend (Mengikuti Prinsip /ponytail — Zero Overengineering)**:
@@ -503,9 +523,9 @@ Duration: 4.72s
 ## 2. Dokumen Spesifikasi yang Dibuat (Diperbarui ke v2.0 — 10/10 Spec)
 - [`docs/websocket-drive-mail-infrastructure/requirements.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/requirements.md):
   - Memuat hasil audit nyata terhadap Proxmox `192.168.100.11` (8 Core, 64 GB RAM, `/dev/sda` `local-lvm` sisa 1,65 TB kosong + `/dev/sdb` 2 TB Enterprise HDD 100% kosong untuk backup + `/dev/sdc` 2 TB Kingston USB SSD) dan database (`152 user @bksda.local`).
-  - Memuat spesifikasi **4 Alur Keamanan Password & 2FA** (Reset Admin + `must_change_password`, Ubah Mandiri + *Security Alert*, Lupa Password bawaan `Password::sendResetLink()`, serta **2FA TOTP Authenticator** + *Recovery Codes*), **Laravel Notifications (`via()`)**, **Failover Mailer (`resend` $\rightarrow$ `smtp` Gmail)**, *sending subdomain* `notif.bksdakaltim.web.id`, DMARC bertahap, webhook bounce Resend, serta arsitektur **100% Domain-Agnostic** (siap beralih dari `bksdakaltim.web.id` ke `bksdakaltim.id`).
+  - Memuat spesifikasi **4 Alur Keamanan Password & 2FA** (Reset Admin + `must_change_password`, Ubah Mandiri + *Security Alert*, Lupa Password bawaan `Password::sendResetLink()`, serta **2FA TOTP Authenticator** + *Recovery Codes*), **Laravel Notifications (`via()`)**, **Failover Mailer (`resend` $\rightarrow$\rightarrow$\rightarrow$ `smtp` Gmail)**, *sending subdomain* `notif.bksdakaltim.web.id`, DMARC bertahap, webhook bounce Resend, serta arsitektur **100% Domain-Agnostic** (siap beralih dari `bksdakaltim.web.id` ke `bksdakaltim.id`).
 - [`docs/websocket-drive-mail-infrastructure/design.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/design.md):
-  - Memisahkan container Docker (`backend`, `queue`, `reverb`, `scheduler`), mengisolasi channel WebSocket Admin per modul (`admin.inbox.{module}` sesuai `$user->access_modules` di `User.php`), merancang **Dual-Endpoint S3 Signer (`drive` vs `drive_signer`)**, **S3 Multipart Upload (> 80 MB dipotong per 25 MB untuk menembus batas 100 MB Cloudflare Free Tier)**, validasi *magic bytes* (`finfo`), dan **Backup 3-2-1 otomatis ke `/dev/sdb` (2 TB)**.
+  - Memisahkan container Docker (`backend`, `queue`, `reverb`, `scheduler`), mengisolasi channel WebSocket Admin per modul (`admin.inbox.{module}` sesuai `$\rightarrow$user->access_modules` di `User.php`), merancang **Dual-Endpoint S3 Signer (`drive` vs `drive_signer`)**, **S3 Multipart Upload (> 80 MB dipotong per 25 MB untuk menembus batas 100 MB Cloudflare Free Tier)**, validasi *magic bytes* (`finfo`), dan **Backup 3-2-1 otomatis ke `/dev/sdb` (2 TB)**.
 - [`docs/websocket-drive-mail-infrastructure/tasks.md`](file:///e:/bksda-superapp/docs/websocket-drive-mail-infrastructure/tasks.md):
   - *Checklist* tahapan implementasi **Fase 0 s/d Fase 4** lengkap dengan *Acceptance Criteria*, *1 Runnable Self-Check*, dan *Rollback Plan* di setiap fase.
 
@@ -543,7 +563,7 @@ Duration: 4.72s
 
 ## 2. Perubahan yang Dilakukan
 - [`frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/sumber-dana.ts):
-  - Menambahkan `isFoluSumberDana` dan `findMatchingTemplateForSumberDana` (pencocokan dinamis 3 lapis: `configuration.sumber_dana` $\rightarrow$ kecocokan `code`/`name` template $\rightarrow$ fallback FOLU/Default).
+  - Menambahkan `isFoluSumberDana` dan `findMatchingTemplateForSumberDana` (pencocokan dinamis 3 lapis: `configuration.sumber_dana` $\rightarrow$\rightarrow$\rightarrow$ kecocokan `code`/`name` template $\rightarrow$\rightarrow$\rightarrow$ fallback FOLU/Default).
   - Memperbaiki `isFundingDasarText` agar hanya mencocokkan `dasar_text` dari Template Biaya yang benar-benar terisi (tidak menandai 4 poin Dasar regulasi Master Template FOLU sebagai dasar biaya).
 - [`backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php) & [`backend/database/seeders/StTemplateSeeder.php`](file:///e:/bksda-superapp/backend/database/seeders/StTemplateSeeder.php):
   - Memperbarui `resolveTemplate` di backend agar saat surat diajukan dari `/surat-tugas` dengan Sumber Dana tertentu (`folu_nc23` dsb.), backend otomatis menautkan `template_id`, `menimbang`, `dasar`, `tembusan`, dan `template_snapshot` dari Master Template ST pasangannya.
@@ -603,7 +623,7 @@ Duration: 4.72s
 - [`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts), [`frontend/src/app/surat-tugas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/page.tsx), & [`frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx):
   - Mendukung pola dinamis `contoh_format` dari Master Jenis Tugas (`{asal}`, `{tujuan}`, `{untuk}`, `{kegiatan}`, `{tempat}`, `{kota}`) sehingga Jenis Tugas baru di `/kepegawaian/settings` langsung memunculkan field yang sesuai di `/surat-tugas` dan Builder.
 - [`frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx):
-  - Menambahkan helper `orderDasarLayers` untuk menjaga urutan 3 lapis `Dasar` (`Template ST` $\rightarrow$ `Manual Builder` $\rightarrow$ `Template Biaya`) beserta badge warna per lapis.
+  - Menambahkan helper `orderDasarLayers` untuk menjaga urutan 3 lapis `Dasar` (`Template ST` $\rightarrow$\rightarrow$\rightarrow$ `Manual Builder` $\rightarrow$\rightarrow$\rightarrow$ `Template Biaya`) beserta badge warna per lapis.
   - Menyusun kartu terpadu **"Untuk (Diktum Penugasan, Biaya & Laporan)"** di Builder yang menampilkan:
     1. **Blok 1 — Butir 1 (Selalu Nomor 1)**: Switcher *Terstruktur* vs *Tulis Manual*, input dinamis, tombol `*Miringkan (*I*)`, chip placeholder (`{wilayah}`, `{pejabat}`, `{tahun}`), dan kotak Pratinjau Kalimat Butir 1.
     2. **Blok 2 — Butir Tambahan Untuk (Nomor 2 dst.)**: Editor daftar butir tambahan yang otomatis menggeser Biaya ke bawahnya.
@@ -682,7 +702,7 @@ Duration: 4.72s
 - **Security Audit & Ponytail Refactoring**:
   - [`AssignmentLetterRequest.php`](file:///E:/bksda-superapp/backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php): Sanitasi rekursif `strip_tags()` pada `prepareForValidation` untuk seluruh item array `menimbang`, `dasar`, dan `tembusan`.
   - [`AssignmentLetterController.php`](file:///E:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php): Memaksa nilai status pengajuan publik tanpa login selalu `'pending'`, mencegah unauthenticated client membuat status `'draft'` yang tidak bertuan.
-  - [`SuratTugasLetterPreview.tsx`](file:///E:/bksda-superapp/frontend/src/components/SuratTugasLetterPreview.tsx): Sanitasi `${cleanDocTitle}` pada tag `<title>` popup window cetak untuk mencegah HTML breakout.
+  - [`SuratTugasLetterPreview.tsx`](file:///E:/bksda-superapp/frontend/src/components/SuratTugasLetterPreview.tsx): Sanitasi `$\rightarrow${cleanDocTitle}` pada tag `<title>` popup window cetak untuk mencegah HTML breakout.
   - [`StTemplatesTab.tsx`](file:///E:/bksda-superapp/frontend/src/app/kepegawaian/settings/st-templates/_components/StTemplatesTab.tsx): Menghapus 33 baris fungsi duplikat `applyItalicToHeader` dan mereuse `toggleItalicInTextarea` dari `letter-utils`.
 
 ---
@@ -719,7 +739,7 @@ Duration: 4.72s
     - Seeding 4 jenis tugas baku: *Perjalanan Dinas Luar Wilayah*, *Perjalanan Dinas Dalam Kawasan / Wilayah*, *Melaksanakan Kegiatan (1 Hari)*, dan *Menugaskan Staf*.
   - Controller `StTaskTypeController.php` & Model `StTaskType.php`:
     - Endpoint `GET /api/kepegawaian/st-task-types/public` dengan rate-limiting 120/menit untuk form publik dan ST builder.
-    - Endpoint CRUD admin `GET/POST/PUT/DELETE /api/kepegawaian/st-task-types` dengan validasi peran `role:super_admin,admin` dan wildcard search escaping `addcslashes($search, '%_')`.
+    - Endpoint CRUD admin `GET/POST/PUT/DELETE /api/kepegawaian/st-task-types` dengan validasi peran `role:super_admin,admin` dan wildcard search escaping `addcslashes($\rightarrow$search, '%_')`.
   - Integrasi `AssignmentLetterRequest.php` & `AssignmentLetterController.php`:
     - Menerima dan memvalidasi `task_type_id` dan `sertakan_laporan` pada `store`, `update`, dan relasi `taskType` pada `show`.
 - **Shared Helpers (`frontend/src/app/kepegawaian/surat-tugas/_lib/`)**:
@@ -769,13 +789,13 @@ Duration: 4.72s
 ## 2. Perubahan yang Dilakukan
 - **`frontend/src/app/bmn/reports/page.tsx`**:
   - Menambahkan *dynamic key* pada perenderan komponen tab laporan:
-    `key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}`
+    `key={`$\rightarrow${editingDocument?.isDuplicate ? "dup" : "edit"}_$\rightarrow${editingDocument?.id || "new"}`}`
     Ini menjamin React meremount komponen tab secara bersih saat pengguna memilih dokumen baru atau membatalkan edit.
 - **`frontend/src/app/bmn/reports/_tabs/`**:
   - Di `HandoverAgreementTab.tsx`, `UsageAgreementTab.tsx`, `PowerOfAttorneyTab.tsx`, dan `CoveringLetterTab.tsx`:
     1. Mengubah inisialisasi `useState` form agar membaca langsung dari prop `editingDocument.item` secara sinkron pada frame pertama render.
     2. Menambahkan `applyDataToForm()` helper untuk mempopulasikan nilai nomor, tanggal, pihak pertama, pihak kedua, dan item aset.
-    3. Mengintegrasikan fallback `useQuery` (`@tanstack/react-query`) untuk mengambil detail dokumen dari API backend (`/api/bmn/.../${editingDocument.id}`) jika data riwayat belum menyertakan snapshot relasi lengkap.
+    3. Mengintegrasikan fallback `useQuery` (`@tanstack/react-query`) untuk mengambil detail dokumen dari API backend (`/api/bmn/.../$\rightarrow${editingDocument.id}`) jika data riwayat belum menyertakan snapshot relasi lengkap.
 - **Sinkronisasi Live EC2 ➔ VM 100 Proxmox (`192.168.100.151`)**:
   - Melakukan data dump 17 tabel BMN dengan `session_replication_role = 'replica'` dari PostgreSQL container AWS EC2 dan merestore ke VM 100 dengan `CASCADE`.
   - Mentransfer volume storage RustFS foto BMN (`/data/bksda/bmn` dan `/data/bksda/bmn-photos`, ~54 MB, 68 foto) ke VM 100 dan memperbaiki izin berkas dengan `chown -R rustfs:rustfs /data/bksda` sehingga upload dan view foto di VM 100 berfungsi normal (HTTP 200).
@@ -901,12 +921,12 @@ Duration: 4.72s
 ## 1. Masalah & Analisis Root Cause
 - **Masalah**: Pengguna lain / pegawai non-superadmin yang baru diberi akses modul surat hanya melihat 1 dokumen teratas di `/surat/masuk`, data lama tidak tampil.
 - **Penyebab**:
-  1. Pada `SuratMasukController.php` & `SuratKeluarController.php`, query string `per_page=all` di-cast langsung dengan `(int) $request->input('per_page')`. Di PHP, `(int) "all"` bernilai `0`, lalu `min(max(1, 0), 100)` menghasilkan nilai `1`. Akibatnya Laravel mengeksekusi `$query->paginate(1)` (hanya mengembalikan 1 data).
+  1. Pada `SuratMasukController.php` & `SuratKeluarController.php`, query string `per_page=all` di-cast langsung dengan `(int) $\rightarrow$request->input('per_page')`. Di PHP, `(int) "all"` bernilai `0`, lalu `min(max(1, 0), 100)` menghasilkan nilai `1`. Akibatnya Laravel mengeksekusi `$\rightarrow$query->paginate(1)` (hanya mengembalikan 1 data).
   2. Ketergantungan pada `localStorage` menyebabkan browser awal pembuat surat melihat dokumen dari cache lokal, sementara browser/akun baru hanya menerima 1 data dari API.
 
 ## 2. Perubahan yang Dilakukan
 - **Backend (`SuratMasukController.php` & `SuratKeluarController.php`)**:
-  - Menambahkan penanganan eksplisit untuk parameter `per_page === 'all'` agar mengembalikan seluruh data menggunakan `$query->get()` beserta metadata yang konsisten.
+  - Menambahkan penanganan eksplisit untuk parameter `per_page === 'all'` agar mengembalikan seluruh data menggunakan `$\rightarrow$query->get()` beserta metadata yang konsisten.
 - **Frontend (`frontend/src/app/surat/masuk/page.tsx` & `frontend/src/app/surat/page.tsx`)**:
   - Menghapus auto-post rekursif ke endpoint dan menjadikan database backend sebagai *single source of truth*.
   - Menyinkronkan pemuatan data agar seluruh arsip surat masuk dan keluar tampil lengkap untuk seluruh pengguna yang memiliki hak akses.
@@ -1365,7 +1385,7 @@ Duration: 4.72s
 - **Mobile (`InboxSuratTugasScreen.tsx`)**:
   - Menambahkan tombol hijau interaktif **`[ 📥 UNDUH / LIHAT LAMPIRAN PDF ]`** ketika data surat tugas memiliki berkas `file_surat_path`.
   - Mengintegrasikan `downloadAssignmentFile` dengan `expo-sharing` untuk membuka/mengunduh PDF.
-  - Penamaan file unduhan disamakan dengan format Web: `${dasarSurat}-${namaPersonel}-${dateTag}.pdf`.
+  - Penamaan file unduhan disamakan dengan format Web: `$\rightarrow${dasarSurat}-$\rightarrow${namaPersonel}-$\rightarrow${dateTag}.pdf`.
 
 ---
 
@@ -2597,7 +2617,7 @@ Duration: 4.72s
 ### Implementasi
 - **Backend (Laravel)**:
   - Memperbarui [sanctum.php](file:///e:/bksda-superapp/backend/config/sanctum.php) untuk secara dinamis mendaftarkan IP host pemanggil (`HTTP_HOST` / LAN IP e.g. `192.168.100.176`) ke dalam *Sanctum Stateful Domains*.
-  - Memperbarui [cors.php](file:///e:/bksda-superapp/backend/config/cors.php) dengan pola regex `allowed_origins_patterns` (`#^https?://.*$#`) untuk mendukung CORS credentials dari IP jaringan lokal.
+  - Memperbarui [cors.php](file:///e:/bksda-superapp/backend/config/cors.php) dengan pola regex `allowed_origins_patterns` (`#^https?://.*$\rightarrow$#`) untuk mendukung CORS credentials dari IP jaringan lokal.
 - **Frontend (Next.js)**:
   - Memperbarui halaman login [page.tsx](file:///e:/bksda-superapp/frontend/src/app/(auth)/login/page.tsx) untuk mengambil CSRF cookie `/sanctum/csrf-cookie` secara dinamis dari `window.location.hostname`, memecahkan error `419 CSRF Token Mismatch` dan `ERR_CONNECTION_REFUSED` pada perangkat LAN.
   - Memperbarui [LembarDisposisi2UpPrint.tsx](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx) dengan mengoptimalkan tinggi cetak vertikal (`204mm` dengan padding `3.5mm`) agar border bawah, kotak Catatan, dan tanda tangan (Ka Sub Bag TU & Kepala Balai) tidak terpotong oleh batas margin fisik printer.
@@ -2628,7 +2648,7 @@ Duration: 4.72s
 ### Implementasi
 - **Backend (Laravel)**:
   - Membuat migrasi `2026_07_23_100000_create_surat_tables.php` untuk tabel `dr_surat_masuk`, `dr_surat_keluar`, dan `dr_surat_disposisi`.
-  - Membuat Model [SuratMasuk.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratMasuk.php), [SuratKeluar.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratKeluar.php), dan [SuratDisposisi.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratDisposisi.php) dengan `$fillable`, `SoftDeletes`, dan type casting.
+  - Membuat Model [SuratMasuk.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratMasuk.php), [SuratKeluar.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratKeluar.php), dan [SuratDisposisi.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Models/SuratDisposisi.php) dengan `$\rightarrow$fillable`, `SoftDeletes`, dan type casting.
   - Memperbarui [SuratMasukController.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/Controllers/SuratMasukController.php) menggunakan `updateOrCreate` pada `no_agenda` untuk mencegah simpan ganda/duplikasi data di database MySQL.
   - Memperbarui [SuratServiceProvider.php](file:///e:/bksda-superapp/backend/app/Modules/Surat/SuratServiceProvider.php) dengan dual prefix route `/api` & `/api/surat` untuk mendukung seluruh format endpoint.
 - **Frontend (Next.js)**:
@@ -4200,7 +4220,7 @@ Duration: 4.72s
   - Memperbarui [nginx.conf](file:///e:/bksda-superapp/deploy/nginx.conf) untuk memblokir (`return 403`) request HTTP eksternal langsung ke subdirektori `/storage/private/bmn-documents/`.
 - **Backend**:
   - Memperbarui [AssetPhotoController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetPhotoController.php) untuk mengarahkan upload BPKB/STNK (`bpkb_1` s.d `bpkb_4` dan `stnk_1` s.d `stnk_2`) ke folder `private/bmn-documents/`.
-  - Menambahkan metode `view(string $assetId, string $type)` di `AssetPhotoController` untuk mengambil file dari storage (baik di local private path maupun bucket S3/RustFS) dan menampilkannya inline dengan header `Content-Type` yang tepat.
+  - Menambahkan metode `view(string $\rightarrow$assetId, string $\rightarrow$type)` di `AssetPhotoController` untuk mengambil file dari storage (baik di local private path maupun bucket S3/RustFS) dan menampilkannya inline dengan header `Content-Type` yang tepat.
   - Memperbarui [api.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Routes/api.php) untuk mendaftarkan endpoint `/assets/{asset}/photo/{type}/view` terproteksi dengan middleware `permission:bmn.view`.
   - Memperbarui [AssetResource.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Resources/AssetResource.php) agar field BPKB/STNK URL menggunakan relative path `/api/bmn/assets/{id}/photo/{type}/view` sehingga cookies session terkirim otomatis pada pemuatan gambar `<img>` lintas domain/rewrite local dev.
 
@@ -4227,7 +4247,7 @@ Duration: 4.72s
 
 ### Implementasi
 - **Backend**:
-  - Memperbarui [AuditLogMiddleware.php](file:///e:/bksda-superapp/backend/app/Http/Middleware/AuditLogMiddleware.php) untuk menambahkan metode penentu aksi `determineAction(Request $request, Response $response)`.
+  - Memperbarui [AuditLogMiddleware.php](file:///e:/bksda-superapp/backend/app/Http/Middleware/AuditLogMiddleware.php) untuk menambahkan metode penentu aksi `determineAction(Request $\rightarrow$request, Response $\rightarrow$response)`.
   - Metode ini memindai rute request, metode HTTP, dan kode response status untuk melabeli aktivitas penting secara otomatis (User Login Success/Failure, BMN Bulk actions, Access updates, Soft deletes, dll.).
   - Menyimpan label aksi ini sebagai properti `_action` di dalam kolom database `payload` (JSON) yang terintegrasi, menjaga integritas skema database tanpa memerlukan migrasi tabel baru.
 
@@ -4364,9 +4384,9 @@ Duration: 4.72s
 
 ### Implementasi
 - **Backend**:
-  - Mendaftarkan stateful API middleware (`$middleware->statefulApi()`) di `bootstrap/app.php` agar Laravel mengenali session dan CSRF cookie untuk SPA.
+  - Mendaftarkan stateful API middleware (`$\rightarrow$middleware->statefulApi()`) di `bootstrap/app.php` agar Laravel mengenali session dan CSRF cookie untuk SPA.
   - Memperbarui konfigurasi CORS di `config/cors.php` untuk mengizinkan rute `/sanctum/csrf-cookie`.
-  - Memperbarui `AuthController@login` untuk mengautentikasi pengguna secara session-based menggunakan `Auth::guard('web')->login($user, true)` untuk memicu cookie HttpOnly session, sementara tetap mengembalikan fallback token untuk kecocokan API terproteksi.
+  - Memperbarui `AuthController@login` untuk mengautentikasi pengguna secara session-based menggunakan `Auth::guard('web')->login($\rightarrow$user, true)` untuk memicu cookie HttpOnly session, sementara tetap mengembalikan fallback token untuk kecocokan API terproteksi.
   - Memperbarui `AuthController@logout` untuk membatalkan (invalidate) session, meregenerasi CSRF token, dan menghapus session cookie di samping token API.
 - **Frontend**:
   - Memperbarui halaman login ([page.tsx](file:///e:/bksda-superapp/frontend/src/app/(auth)/login/page.tsx)) agar melakukan fetch CSRF cookie dari `/sanctum/csrf-cookie` terlebih dahulu sebelum melakukan submit request login.
@@ -5185,7 +5205,7 @@ Audit dulu (read-only), lapor temuan dengan severity, lalu fix tanpa mengubah st
    - `app/(publik)/kawasan/[slug]/page.tsx`
    
    Bonus finding: homepage (`app/page.tsx`) sebelumnya pakai `sanitizeHtml` lokal yang **lemah** (cuma regex strip `<script>`, tidak blok `onerror=`/`javascript:`) → diganti pakai versi DOMPurify dari `@/lib/utils`.
-3. **Kredensial fallback hardcoded dihapus** — `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY` jadi `${VAR:?required}` agar gagal jelas saat secret hilang. `RUSTFS_USER` tetap default (bukan secret, & tidak ada di server `.env.prod`) supaya deploy tidak putus.
+3. **Kredensial fallback hardcoded dihapus** — `DB_PASSWORD`/`RUSTFS_PASSWORD`/`APP_KEY` jadi `$\rightarrow${VAR:?required}` agar gagal jelas saat secret hilang. `RUSTFS_USER` tetap default (bukan secret, & tidak ada di server `.env.prod`) supaya deploy tidak putus.
 
 ### MODERATE yang diperbaiki
 4. **Dependencies**: Next.js 16.2.4 → **16.2.6** (middleware/proxy bypass, CSP-nonce XSS, cache poisoning, image DoS, SSRF) + `qs` DoS + `brace-expansion` via `npm audit fix` (non-breaking). Sisa `quill`/`react-quill-new` (admin CMS, XSS pada fitur export yang tidak dipakai, output sudah disanitasi) dibiarkan — fix-nya breaking downgrade → accepted risk.
@@ -5661,7 +5681,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 - [x] **Seven asset edge case**: BA Pemeriksaan lampiran with 7+ assets now forces at least 1 asset onto the final TTD page, so the signature block does not fall alone.
 - [x] **Tall row handling**: final-page pagination estimates row height from long asset names/brand/type text; if 6 assets are too tall, fewer assets are kept on the TTD page.
 - [x] **Continuation page safety**: continuation page capacity reduced to 12 assets so browser print does not push a single overflow row onto its own page.
-- [x] **No `${ttd_pengirim}` placeholder**: BA Pemeriksaan lampiran signature block only renders Pelaksana Kegiatan/pemeriksa and Kepala Balai text.
+- [x] **No `$\rightarrow${ttd_pengirim}` placeholder**: BA Pemeriksaan lampiran signature block only renders Pelaksana Kegiatan/pemeriksa and Kepala Balai text.
 - [x] **Landscape TTD layout**: final page uses a wider landscape grid with pemeriksa names in two columns and Kepala Balai on the right.
 - [x] **Lampiran details**: `Lampiran` meta text is editable, stays on one full-width line, and defaults to `PEMERIKSAAN BARANG MILIK NEGARA BERUPA ALAT ANGKUTAN BERMOTOR`.
 - [x] **Table details**: column-number row `1` through `11` appears only on continuation pages; `Nilai Buku` always renders centered `-`.
@@ -5767,7 +5787,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 - [x] **Recipient block**: changed to `Kepada Yth, / Kantor KPKNL Samarinda / di / Samarinda`.
 - [x] **Body paragraph**: changed to reference wording and removed Kabupaten Berau, nilai perolehan, and nilai taksiran wording from page 1.
 - [x] **Default location**: Permohonan KPKNL now defaults to `Samarinda`; Nota Dinas keeps `Kota Samarinda dan Kabupaten Berau`.
-- [x] **Signature label**: added `Kepala Balai,` above `${ttd_pengirim}` on KPKNL page 1.
+- [x] **Signature label**: added `Kepala Balai,` above `$\rightarrow${ttd_pengirim}` on KPKNL page 1.
 - [x] **Builder cleanup**: removed unused total nilai taksiran control/state from the Permohonan KPKNL builder panel.
 - [x] **Lampiran pagination**: Nota Dinas and Permohonan KPKNL now use shared manual landscape pagination with explicit page breaks.
 - [x] **Column numbering**: lampiran table now has column-number row `1` through `11` above the regular header.
@@ -5808,7 +5828,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 - [x] **PR Created/Merged**: PR #373 merged ke `main` (merge commit `abecc91`).
 - [x] **Branch Cleanup**: remote branch `issue/372-nota-dinas-kpknl` deleted after merge.
 - [x] **Nota Dinas KSDAE** (`ND.270/K.18/TU/KAP.06.01/B/MM/YYYY`):
-  - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal, tanpa garis horizontal di bawah Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` + nama tidak bold + NIP) + Tembusan (conditional numbering: 1 item tanpa nomor, 2+ dengan nomor)
+  - Halaman 1 portrait: KOP + title "NOTA DINAS" + Nomor (tanpa underline) + meta grid (Yth/Dari/Perihal/Lampiran/Tanggal, tanpa garis horizontal di bawah Tanggal) + 2 body paragraphs (indent 2.5em) + TTD (tanpa label "Kepala Balai,", hanya `$\rightarrow${ttd_pengirim}` + nama tidak bold + NIP) + Tembusan (conditional numbering: 1 item tanpa nomor, 2+ dengan nomor)
   - Halaman 2 landscape: lampiran tabel 10 kolom (No, Kode Barang, NUP, Nama Barang, Merk/Type, No Polisi, Tahun Perolehan, Nilai Perolehan, Nilai Taksiran, Kondisi, Keterangan)
 - [x] **Surat Permohonan KPKNL** (`S.331/K.18/TU/KAP.06.01/B/MM/YYYY`):
   - Halaman 1 portrait: KOP + meta grid (Nomor/Sifat/Lampiran/Perihal + Tanggal) + Yth block (Kepala KPKNL Samarinda) + 2 body paragraphs (indent 2.5em) + TTD + Tembusan
@@ -5821,7 +5841,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
   - Nilai perolehan + nilai taksiran dengan terbilang lowercase + suffix `,-`
   - Lokasi inline editable di dalam paragraph pertama
 - [x] **Tembusan conditional numbering**: jika 1 item → tanpa nomor, jika 2+ → numbered list `1.`, `2.`, dst.
-- [x] **TTD format**: tanpa label "Kepala Balai,", hanya `${ttd_pengirim}` placeholder + nama (tidak bold) + NIP.
+- [x] **TTD format**: tanpa label "Kepala Balai,", hanya `$\rightarrow${ttd_pengirim}` placeholder + nama (tidak bold) + NIP.
 - [x] **Lampiran landscape**:
   - Tabel 10 kolom dengan column widths optimized (Kode Barang 10%, Keterangan 13%)
   - `whiteSpace: nowrap` untuk Kode Barang, Tahun Perolehan, Nilai Perolehan/Taksiran cells agar tidak pecah baris
@@ -5848,7 +5868,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 1. ✅ Judul "NOTA DINAS" dan "Nomor : ..." TIDAK pakai garis bawah
 2. ✅ TIDAK ada garis horizontal di bawah baris Tanggal
 3. ✅ Tembusan: jika hanya 1 item → tampil tanpa nomor, jika 2+ → pakai numbered list
-4. ✅ TTD: TIDAK ada label "Kepala Balai,", hanya `${ttd_pengirim}` placeholder + nama (tidak bold) + NIP
+4. ✅ TTD: TIDAK ada label "Kepala Balai,", hanya `$\rightarrow${ttd_pengirim}` placeholder + nama (tidak bold) + NIP
 5. ✅ Tembusan title "Tembusan :" tidak bold
 6. ✅ Body paragraph indent 2.5em (masuk ke dalam) untuk "Dalam rangka..." dan "Demikian..."
 7. ✅ Lampiran landscape: Kode Barang tidak boleh pecah baris (nowrap), Keterangan harus cukup lebar (13%)
@@ -5967,7 +5987,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 - [x] **PR Created/Merged**: PR #367 merged ke `main` (merge commit `560f752`).
 - [x] **Branch Cleanup**: remote branch `issue/364-st-template-bmn` deleted after merge.
 - [x] **Backend migration**: `add_template_type_to_st_assignment_letters_table.php` — kolom `template_type` (nullable string max:50) `after('kode_surat')`.
-- [x] **Backend Model**: `AssignmentLetter` `$fillable` ditambah `template_type`.
+- [x] **Backend Model**: `AssignmentLetter` `$\rightarrow$fillable` ditambah `template_type`.
 - [x] **Backend Request**: validation rule `template_type` nullable|string|max:50.
 - [x] **Backend Controller**: `store()` dan `update()` simpan `template_type`.
 - [x] **Frontend templateType state** independent dari sumberDana (builder + create).
@@ -6172,7 +6192,7 @@ Tujuan utama **DRY (Don't Repeat Yourself)**, bukan sekadar menurunkan line coun
 - [x] **PR Created/Merged**: PR #359 merged ke `main` (merge commit `bed9cce`).
 - [x] **Branch Cleanup**: remote branch `issue/358-add-no-mesin` deleted after merge.
 - [x] **Migration**: `2026_05_22_163000_add_no_mesin_to_bmn_assets_table.php` — kolom `no_mesin` nullable string, posisi `after('no_stnk')`.
-- [x] **Backend Model**: `Asset` `$fillable` ditambah `no_mesin`.
+- [x] **Backend Model**: `Asset` `$\rightarrow$fillable` ditambah `no_mesin`.
 - [x] **Backend Resource**: `AssetResource` expose `no_mesin` di response API.
 - [x] **Backend Validation**: `UpdateAssetRequest` rule `['sometimes', 'nullable', 'string']`.
 - [x] **Frontend Detail Asset**: `bmn/assets/[id]/page.tsx` tambah `EditableRow` + `DetailRow` untuk "No Mesin" — conditional render hanya untuk `ALAT ANGKUTAN BERMOTOR` + `no_polisi` valid (mirror pattern `no_rangka`).
@@ -6405,11 +6425,11 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 - [x] **Issue Created**: Issue #346.
 - [x] **PR Created/Merged**: PR #347 merged ke `main` (merge commit `fa24541`).
 - [x] **Branch Cleanup**: `issue/346-ba-ttd-spacing` deleted after merge.
-- [x] **BA Halaman 1**: `Kepala Balai,` → 2rem spacing → `${ttd_pengirim}` → 2rem spacing → `M. ARI WIBAWANTO`.
+- [x] **BA Halaman 1**: `Kepala Balai,` → 2rem spacing → `$\rightarrow${ttd_pengirim}` → 2rem spacing → `M. ARI WIBAWANTO`.
 - [x] **BA Lampiran**: Sama, jarak `mt-8` (2rem) di atas dan bawah placeholder.
 - [x] **SK Halaman 2**: Spasi atas + bawah placeholder ditambah 2rem.
 - [x] **SK Lampiran**: Spasi atas + bawah placeholder ditambah 2rem.
-- [x] **Posisi horizontal**: Tidak berubah, `${ttd_pengirim}` tetap di tengah dengan padding-left 1.35cm.
+- [x] **Posisi horizontal**: Tidak berubah, `$\rightarrow${ttd_pengirim}` tetap di tengah dengan padding-left 1.35cm.
 - [x] **Print + screen consistent**: Tambah `margin-top: 2rem; margin-bottom: 2rem` di JSX (Tailwind `mt-8`), `handlePrintBa`/`handlePrintSk` print CSS, `@media print` block, dan screen CSS (`.sk-print-root`).
 
 ### Key Files:
@@ -6445,7 +6465,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 - [x] **Measured row pagination**: Lampiran BA memakai tinggi row aktual agar stabil untuk nama barang panjang-pendek.
 - [x] **Sequential sections**: `I. Sebelum` diselesaikan dulu sampai habis, baru lanjut `II. Sesudah`.
 - [x] **Continuation header**: Halaman lanjutan tidak mengulang label `I. Sebelum` / `II. Sesudah`; diganti baris nomor kolom `1 2 3 ...`.
-- [x] **Signature safe area**: Halaman terakhir menghitung tinggi blok TTD agar `${ttd_pengirim}`, nama, dan NIP tidak terpotong.
+- [x] **Signature safe area**: Halaman terakhir menghitung tinggi blok TTD agar `$\rightarrow${ttd_pengirim}`, nama, dan NIP tidak terpotong.
 
 ### Pending / Known Issues:
 - [ ] **Deploy ke SSH production**: Ditunda sampai user siap deploy batch BMN terbaru.
@@ -6551,7 +6571,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 - [x] **Candidate Filtering**: Page loads BMN assets in `Rusak Berat` condition, with search, pagination, select all on page, and bulk selection.
 - [x] **BA Koreksi Document**: Added preview/print for `BERITA ACARA KOREKSI PERUBAHAN KONDISI BARANG MILIK NEGARA`.
 - [x] **Official Header**: Document uses `frontend/public/header-terbaru.png`.
-- [x] **Print Layout Tuning**: Tuned A4 page 1 body, signature, `${ttd_pengirim}`, page 2 lampiran metadata, asset tables, and two-page print/save-PDF output.
+- [x] **Print Layout Tuning**: Tuned A4 page 1 body, signature, `$\rightarrow${ttd_pengirim}`, page 2 lampiran metadata, asset tables, and two-page print/save-PDF output.
 - [x] **ST Builder Font Follow-up**: NIP and tembusan text now inherit the main ST Builder font size for both FOLU and non-FOLU layouts.
 - [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and production route checks passed.
 
@@ -6589,7 +6609,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 ### Completed:
 - [x] **Issue Created**: Issue #332 tracks ST Builder print/PDF alignment for Srikandi TTE and non-FOLU tembusan numbering.
 - [x] **PR Created/Merged**: PR #333 merged to `main` (`c67aca5`).
-- [x] **TTE Placeholder Alignment**: Adjusted `${ttd_pengirim}` placement for FOLU and non-FOLU layouts so Srikandi TTE/QR lands in the signature area without covering the Kepala Balai name/NIP.
+- [x] **TTE Placeholder Alignment**: Adjusted `$\rightarrow${ttd_pengirim}` placement for FOLU and non-FOLU layouts so Srikandi TTE/QR lands in the signature area without covering the Kepala Balai name/NIP.
 - [x] **Signature Spacing**: Increased placeholder height to reserve enough vertical space for large TTE overlays.
 - [x] **Non-FOLU Tembusan Rule**: Single tembusan recipient now renders without numbering; two or more recipients remain numbered. FOLU tembusan remains numbered.
 - [x] **Production Deploy**: EC2 pulled `main`, rebuilt/recreated `frontend`, and `https://bksdakaltim.net/login` returned HTTP 200.
@@ -6616,7 +6636,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 
 ### Completed:
 - [x] **Database Migration**: Added `no_rangka` column to `bmn_assets` table.
-- [x] **Backend Updates**: Added `no_rangka` to `Asset` model `$fillable`, `AssetResource.php`, and validation rules in `UpdateAssetRequest.php`.
+- [x] **Backend Updates**: Added `no_rangka` to `Asset` model `$\rightarrow$fillable`, `AssetResource.php`, and validation rules in `UpdateAssetRequest.php`.
 - [x] **Frontend UI**: Updated `page.tsx` to conditionally render the "No Rangka" field below "No STNK" only when `jenis_bmn` is `ALAT ANGKUTAN BERMOTOR` and `no_polisi` exists.
 
 ### Key Files:
@@ -6632,7 +6652,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 
 ### Completed:
 - [x] **Database Migration**: Added 6 new columns to `bmn_assets` for 4 BPKB photos and 2 STNK photos.
-- [x] **Backend Updates**: Updated `Asset` model `$fillable` and `forceDeleted` events. Modified `AssetResource` and `AssetPhotoController` to handle file uploads/deletions and ZIP downloads for the new document types.
+- [x] **Backend Updates**: Updated `Asset` model `$\rightarrow$fillable` and `forceDeleted` events. Modified `AssetResource` and `AssetPhotoController` to handle file uploads/deletions and ZIP downloads for the new document types.
 - [x] **Frontend UI**: Refactored `PhotoGallery.tsx` and updated `page.tsx` to conditionally render a "Dokumen Kendaraan" section for `ALAT ANGKUTAN BERMOTOR` with a valid `no_polisi`.
 - [x] **UI Improvement**: Relocated the "No BPKB" field from the Dokumen tab to the Identitas BMN (Kendaraan & Sertifikat) tab for better grouping.
 
@@ -6678,7 +6698,7 @@ Saat halaman SK terpotong (misal Mengingat 8 di halaman 1, Mengingat 9 di halama
 - [x] **PR Created/Merged**: PR #328 merged to `main`.
 - [x] **Root Cause Identified**: `bulkForceDelete` used a query builder delete, bypassing Eloquent model events. Consequently, physical photo files remained in RustFS (S3) after permanent deletion.
 - [x] **Model Event Added**: Implemented `booted` method in `Asset.php` with a `forceDeleted` event listener to delete all 5 photo paths from storage.
-- [x] **Controller Fix**: Updated `bulkForceDelete` in `AssetController.php` to fetch models and iterate with `$asset->forceDelete()` so that events are triggered.
+- [x] **Controller Fix**: Updated `bulkForceDelete` in `AssetController.php` to fetch models and iterate with `$\rightarrow$asset->forceDelete()` so that events are triggered.
 
 ### Key Files:
 - `backend/app/Modules/Bmn/Models/Asset.php`
@@ -8941,7 +8961,7 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 ### Completed (Selesai)
 - [x] Verified the `GET /api/bmn/assets` endpoint in [AssetController.php](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php) index action.
 - [x] Confirmed the action supports query filters for `search`, `employee_id`, `borrower_id`, `kondisi`, `jenis_bmn`, and `lokasi_ruang`.
-- [x] Confirmed pagination is enforced using `AssetResource::collection($query->paginate($perPage))`, resolving `per_page` parameter limits up to `mobileMax = 100` when the `mobile=true` flag is sent or when the `X-Client: mobile` header is present.
+- [x] Confirmed pagination is enforced using `AssetResource::collection($\rightarrow$query->paginate($\rightarrow$perPage))`, resolving `per_page` parameter limits up to `mobileMax = 100` when the `mobile=true` flag is sent or when the `X-Client: mobile` header is present.
 - [x] Checked off completed task 33 inside [.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md](file:///e:/bksda-superapp/.kiro/specs/mobile-app-bmn-kepegawaian/tasks.md).
 
 ### Next Steps
@@ -9153,7 +9173,7 @@ frontend/src/app/kepegawaian/                         ← MOVED from /portal/kep
 
 ### Completed (Selesai)
 - [x] **Submission Endpoint & Payload Fix**: Fixed mobile `BuatSuratTugasScreen.tsx` submission payload from `employee_ids` array to `employees: [{ id: number }]` object list, and fixed endpoint path from non-existent `/surat-tugas/public-submit` / `/kepegawaian/surat-tugas` to `/surat-tugas/submit` (with fallback to `/surat-tugas`).
-- [x] **Backend Auth Support for Public Submit**: Updated `created_by` calculation in `AssignmentLetterController.php` `store()` method to resolve Sanctum user (`auth('sanctum')->user() ?: $request->user()`), associating logged-in mobile employee user IDs with submitted tasks even via `/submit`.
+- [x] **Backend Auth Support for Public Submit**: Updated `created_by` calculation in `AssignmentLetterController.php` `store()` method to resolve Sanctum user (`auth('sanctum')->user() ?: $\rightarrow$request->user()`), associating logged-in mobile employee user IDs with submitted tasks even via `/submit`.
 - [x] **Inbox Surat Tugas Data Sync**: Updated `InboxSuratTugasScreen.tsx` endpoint from non-existent `/kepegawaian/surat-tugas` (404) to `/surat-tugas?mobile=true`. Mapped fields gracefully (`tanggal_surat`, `maksud_tujuan`, `sumber_dana`, `personel_summary` / `employees`), ensuring all submitted tasks automatically sync and appear in Admin / SuperAdmin Inbox.
 - [x] **Custom Notification & Navigation Flow**:
   - Replaced native `Alert.alert` with custom modern glassmorphism `NotificationModal`.
@@ -9322,16 +9342,16 @@ Saat user melakukan logout di `/portal`, proses logout hanya membersihkan penyim
 ## [2026-08-24] Phase 223 — Resolved CSRF Token Mismatch on API & Production Auth
 
 ### Problem Description
-Di environment production (`bksdakaltim.net`), saat user melakukan logout atau login ulang, request POST API menghasilkan error `419 CSRF token mismatch`. Hal ini disebabkan oleh Sanctum `statefulApi` yang menerapkan validasi CSRF web session ke seluruh endpoint `/api/*`, sementara frontend SPA menggunakan otentikasi Bearer Token Sanctum. Selain itu, terdapat hardcoded URL `http://${hostname}:8000/sanctum/csrf-cookie` pada halaman login yang gagal diakses pada protokol HTTPS production.
+Di environment production (`bksdakaltim.net`), saat user melakukan logout atau login ulang, request POST API menghasilkan error `419 CSRF token mismatch`. Hal ini disebabkan oleh Sanctum `statefulApi` yang menerapkan validasi CSRF web session ke seluruh endpoint `/api/*`, sementara frontend SPA menggunakan otentikasi Bearer Token Sanctum. Selain itu, terdapat hardcoded URL `http://$\rightarrow${hostname}:8000/sanctum/csrf-cookie` pada halaman login yang gagal diakses pada protokol HTTPS production.
 
 ### Completed (Selesai)
 - [x] **Backend CSRF Validation Exemption (`backend/bootstrap/app.php`)**:
-  - Menambahkan `$middleware->validateCsrfTokens(except: ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'])` agar seluruh request REST API otentikasi Bearer Token tidak diblokir oleh CSRF middleware web session.
+  - Menambahkan `$\rightarrow$middleware->validateCsrfTokens(except: ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'])` agar seluruh request REST API otentikasi Bearer Token tidak diblokir oleh CSRF middleware web session.
 - [x] **Backend CORS Production Configuration (`backend/config/cors.php`)**:
   - Menambahkan default allowed origins untuk `https://bksdakaltim.net`, `https://www.bksdakaltim.net`, dan `https://api.bksdakaltim.net`.
   - Menambahkan `allowed_origins_patterns => ['*bksdakaltim.net*']` untuk mendukung fleksibilitas subdomain di production.
 - [x] **Frontend Login CSRF Handshake Cleanup (`frontend/src/app/(auth)/login/page.tsx`)**:
-  - Menghapus pemanggilan hardcoded port `8000` (`http://${hostname}:8000/sanctum/csrf-cookie`) yang memicu mixed-content error di HTTPS production.
+  - Menghapus pemanggilan hardcoded port `8000` (`http://$\rightarrow${hostname}:8000/sanctum/csrf-cookie`) yang memicu mixed-content error di HTTPS production.
 
 ### Validation
 - [x] `php artisan about` berjalan sukses dengan konfigurasi middleware dan route valid.
@@ -9360,7 +9380,7 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
   - Mengonfigurasi akun administrator Dokploy (`tegaranugrah1@gmail.com`) dan project Dokploy `bksda-superapp`.
 - [x] **Branch Khusus `production-server` & Konfigurasi Compose**:
   - Dibuat dan dipush branch `production-server` pada repositori GitHub `tegaranugrah1/bksda-superapp`.
-  - Mengonfigurasi `docker-compose.dokploy.yml` dengan safe fallback default (`${VAR:-default}`) untuk seluruh environment kritis (`APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD`, `APP_URL`, `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS`, `CORS_ALLOWED_ORIGINS`, `AWS_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_STORAGE_URL`).
+  - Mengonfigurasi `docker-compose.dokploy.yml` dengan safe fallback default (`$\rightarrow${VAR:-default}`) untuk seluruh environment kritis (`APP_KEY`, `DB_PASSWORD`, `RUSTFS_PASSWORD`, `APP_URL`, `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS`, `CORS_ALLOWED_ORIGINS`, `AWS_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_STORAGE_URL`).
   - Memperbarui `frontend/next.config.ts` Content-Security-Policy `connect-src` dan `images.remotePatterns` untuk mengizinkan `*.bksdakaltim.web.id` di samping `*.bksdakaltim.net`.
   - Berhasil men-deploy compose project Dokploy (`bksdasuperapp-bksdasuperapp-einhoc`) dengan 5 kontainer aktif dan sehat: `frontend`, `backend`, `nginx-backend`, `db` (PostgreSQL 16), dan `rustfs`.
 - [x] **Migrasi Data Live EC2 ke VM 106 (Database & Storage)**:
@@ -9492,4 +9512,106 @@ Di environment production (`bksdakaltim.net`), saat user melakukan logout atau l
    - **Alat Angkutan Bermotor ber-No Polisi**: Hanya aset dengan `jenis_bmn` mengandung `ANGKUTAN BERMOTOR` dan memiliki nomor polisi valid (bukan tanda strip `-` atau kosong) yang dievaluasi dokumen lengkap kendaraan (BPKB, STNK, No Rangka, No Mesin, Foto fisik, dan Verifikasi BMN).
    - **Aset Selain Jenis Tersebut (Non-Kendaraan Ber-Nopol)**: Aset non-kendaraan (Tanah, Bangunan, Mesin/Peralatan TIK & Non-TIK, Peralatan Kantor, Alat Besar) maupun angkutan tanpa nopol hanya mensyaratkan **Foto Fisik** (`jumlah_foto > 0` atau berkas foto fisik) dan **Verifikasi BMN** (`verified_at`). Jika foto dan verifikasi terpenuhi, status dokumen dinyatakan `Ready` (Oke) tanpa menagih BPKB/STNK/mesin/rangka.
 
+10. **Inisialisasi Dokumen Spesifikasi Modernisasi UI/UX, Arsitektur Jeroan & Pengerasan Keamanan Modul Persuratan (`SURAT-MODERNIZATION-2026`)**:
+   - Menyusun dokumen kebutuhan teknis (`docs/surat-modernization/requirements.md`), desain arsitektur (`docs/surat-modernization/design.md`), dan daftar tugas pelaksanaan bertahap 5 fase (`docs/surat-modernization/tasks.md`).
+   - Menyelaraskan seluruh arsitektur modul Persuratan mengacu pada standar emas Modul Kepegawaian dan Modul BMN:
+     1. Penataan sidebar hierarkis 4 kategori semantik, mode collapsible desktop rail (`w-72` $\rightarrow$\leftrightarrow$\rightarrow$ `w-20`), dan penghapusan floating action button (FAB) mobile.
+     2. Eliminasi penuh anti-pattern `localStorage` (`bksda_saved_surat_masuk`) dan migrasi ke `@tanstack/react-query` v5 dengan server-side pagination & URL searchParams sync.
+     3. Desain komponen standar enterprise: Header Card Zinc, Skeleton Loader, Responsive Stacked Cards di layar ponsel, dan Sticky Action Bar pada formulir registrasi.
+     4. Pengerasan keamanan backend: Granular RBAC (`surat.view`, `surat.create`, `surat.update`, `surat.delete`, `surat.export`), validasi ketat upload pindaian surat (max 10MB, strictly PDF/JPG/PNG), serta test suite regresi otomatis.
 
+
+
+
+11. **Fitur Hitung Uang Makan & Rekonsiliasi Presensi SIKADIR (`/kepegawaian/uang-makan`) - Finalisasi Perencanaan 10/10 Tingkat Akar Implementasi (2 November 2026)**:
+   - **Latar Belakang & Kebutuhan Utama**:
+     - Membangun fitur otomatisasi perhitungan uang makan bulanan pegawai berbasis ekspor SIKADIR Kemenhut (`.xls`, `.xlsx`, `.zip`) dengan rekonsiliasi silang terhadap modul **Surat Tugas** (`st_assignment_letters` & pivot `st_assignment_letter_employees`) guna mengeliminasi temuan audit duplikasi pembayaran Uang Harian SPPD + Uang Makan (Zero-Finding BPK/Itjen).
+   - **7 Pilar Implementasi Tingkat Akar (Root-Level Execution)**:
+     1. *Anomali Format Pangkat/Golongan Database*: Menangani variasi nilai riil di `kpg_employees.pangkat_golongan` (PNS romawi `(IV/a)`, `(III/c)`, PPPK romawi murni `(V)`, `(IX)`, dan string kosong `''`). Disediakan `AdaptiveTariffResolver` dengan fallback cerdas ke atribut SIKADIR `KELAS JABATAN : 5` $\rightarrow$
+ightarrow$\rightarrow$ PPPK Gol V (Rp 35.000 / PPh 0%).
+     2. *Normalisasi NIP Eksklusif*: Pencocokan data presensi dengan database pegawai menggunakan angka murni NIP (`preg_replace('/[^0-9]/', '', $\rightarrow$nip)`), kebal terhadap perbedaan ejaan nama antara SIKADIR (`Achmad Syafey N`) dengan dokumen resmi kantor (`ACHMAD SYAFEY`).
+     3. *Rentang Tanggal Multi-Hari Surat Tugas*: Komparasi Surat Tugas menggunakan query rentang tanggal (`DATE BETWEEN tanggal_mulai AND tanggal_selesai`) memeriksa tanggal perorangan di pivot `st_assignment_letter_employees` sebelum fallback ke tanggal global surat. Status `approved`/`terbit` auto-override `H` $\rightarrow$
+ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advisory badge.
+     4. *Sanitasi File ZIP & Graceful Error*: Parser ZIP otomatis membersihkan berkas sistem macOS (`__MACOSX/`, `.DS_Store`). Jika ada 1 file korup dari 50 file, sistem tidak crash, melainkan tetap memproses 49 file valid dan melaporkan berkas yang bermasalah.
+     5. *Benchmark Native DOMXPath Engine (2.36 ms)*: Menggantikan PhpSpreadsheet Html reader yang lambat (>800ms) dan memicu 255KB warning deprecation PHP 8.2 dengan native PHP `DOMXPath` (header `<?xml encoding="utf-8" ?>`), dilengkapi validasi *Golden Checksum* header SIKADIR (`Uang Makan : 11; Jumlah Kehadiran : 11`).
+     6. *Human-in-the-Loop Sticky Matrix Table*: UI matriks 31 hari dilengkapi *CSS Sticky Columns* (kolom No & Nama terkunci di kiri, kolom Total & Netto terkunci di kanan), *One-Click Inline Cell Edit* untuk koreksi perorangan, tombol *Set Libur 1 Kolom*, serta rekalkulasi reaktif real-time nominal Bruto, PPh 21, dan Netto tanpa reload halaman. Seluruh perubahan dicatat di kolom JSONB `override_logs`.
+     7. *Penandatangan Tunggal Kasubbag TU & Print Setup Auto-Fit*: Pembuktian inspeksi bahwa teks Kepala Balai pada template asli disembunyikan dengan font `#FFFFFF` (putih), sehingga dokumen resmi hanya disahkan oleh **Kepala Subbagian Tata Usaha (Dheny Mardiono, S.Hut., M.Sc.)**. Ekspor Excel 2-sheet diatur dengan Page Setup Landscape, `fitToWidth = 1`, `fitToHeight = 0`, dan lebar kolom tanggal proporsional (width: 3.5).
+   - **Progress Implementasi**:
+     - Menyiapkan spesifikasi lengkap di [`docs/kepegawaian/uang-makan/`](docs/kepegawaian/uang-makan/) (`requirements.md`, `design.md`, `tasks.md`).
+     - Mendaftarkan tab navigasi baru `"Hitung Uang Makan"` di sidebar modul Kepegawaian (`frontend/src/app/kepegawaian/layout.tsx`) di bawah grup Layanan & Persuratan dengan ikon `UtensilsCrossed`.
+     - Menyiapkan halaman scaffold awal di [`frontend/src/app/kepegawaian/uang-makan/page.tsx`](frontend/src/app/kepegawaian/uang-makan/page.tsx) dan memvalidasi kompilasi build Next.js (`npm run build` sukses 87/87 static pages tanpa error).
+
+
+12. **Integrasi WhatsApp Hermes AI – Modul Surat Tugas: Alur Usulan Natural, Pengecekan Bentrok, Pemilihan Ketua Tim, & Persetujuan Admin via WhatsApp (3 November 2026 - Sesi Pagi)**:
+   - **Latar Belakang & Ruang Lingkup**:
+     - Mengembangkan asisten WhatsApp cerdas berbasis AI (**Hermes**) di VM 108 (`192.168.100.205`) yang terhubung langsung ke backend Laravel 11 dan database PostgreSQL BKSDA SuperApp via reverse tunnel SSH (`5435`).
+     - Dokumentasi lengkap tersimpan di [`docs/hermes-agent/progress-surat-tugas.md`](docs/hermes-agent/progress-surat-tugas.md).
+   - **Siklus Hidup Surat Tugas Otomatis via WhatsApp**:
+     1. *Intake Usulan Natural*: Pegawai mengajukan penugasan dengan bahasa santai / natural tanpa format kaku.
+     2. *Fuzzy Matching & Disambiguasi*: Mengenali nama panggilan akrab (*Pak Nuryani*, *Pak Bowo*, *Mba Anna*, *Pak Dayat*, *Resqi*) dan melakukan disambiguasi jika ada kemiripan nama (*Didimus* vs *Didi Susanto*).
+     3. *Delegasi Pengusulan Rekan Kerja*: Pengusul dapat membuatkan ST untuk rekan kerjanya tanpa pengusul sendiri ikut bertugas.
+     4. *Pengecekan Bentrok Jadwal Otomatis*: Memeriksa penugasan aktif dan cuti yang disetujui melalui `AssignmentLetterConflictService`.
+     5. *Pemilihan Ketua Tim*: Jika personil >= 2 orang, asisten secara proaktif mengonfirmasi siapa Ketua Tim sebelum draf diterbitkan.
+     6. *Normalisasi Sumber Dana & PKS Mitra*: Otomatis memetakan DIPA, FOLU, DL1, dan mitra kerjasama terdaftar (*KJA, COP, MJA, BOSF, Tjiwi Kimia, CAN, ALeRT*), maupun mitra luar lainnya.
+     7. *Penerbitan Draf Sementara*: Menyimpan usulan sebagai draf `ST.DRAFT/XXXXXXXX`.
+     8. *Notifikasi Transparan ke Admin*: Mengirim notifikasi WhatsApp ke Admin Tegar berisi rincian penugasan, jenis ST resmi, dan bunyi lengkap diktum **"Untuk :"**.
+     9. *Persetujuan & Penomoran Resmi Instan*: Admin membalas pesan WhatsApp (misal: *"Nomor 244 KSA.08.09"* atau *"244 KSA.08.09"*), sistem otomatis menerbitkan nomor resmi `ST.[NOMOR]/K.18/TU/[KLASIFIKASI]/B/[BULAN]/[TAHUN]`, memperbarui status menjadi `approved`, memancarkan event `AdminInboxChanged`, dan mengabari pemohon.
+   - **Komponen Teknis yang Diselesaikan**:
+     - Artisan CLI command: `php artisan hermes:st {check-conflict|create-draft|approve-draft|list-employees}` di [`HermesSuratTugasCommand.php`](backend/app/Console/Commands/HermesSuratTugasCommand.php).
+     - Gateway WhatsApp & Web Assistant (`hermes-agent`): Live QR Web Viewer (`/qr`), endpoint polling `/api/qr-live`, dan filter adapter WhatsApp untuk membuang log refleksi internal bot.
+     - Konfigurasi Otak Hermes (VM 108): `~/.hermes/SOUL.md`, `~/.hermes/skills/bksda-superapp-ops/SKILL.md`, `~/.hermes/memories/security_guardrails.md`, dan `~/.hermes/memories/MEMORY.md`.
+   - **Hasil Uji Kasus Nyata (Terverifikasi End-to-End)**:
+     - *Uji Kasus 1 (Usulan Mandiri)*: Mbak Anisa (Inventarisasi Pesut Teluk Adang ke Kab. Paser, 4-8 Nov 2026) -> Draf `ST.DRAFT/D068BFD0` -> Disetujui Admin Tegar via WA menjadi **`ST.244/K.18/TU/KSA.08.09/B/11/2026`** (`approved`).
+     - *Uji Kasus 2 (Delegasi Rekan Kerja)*: Usulan Pelatihan Drone Balai KSDA oleh Anisa untuk personil Puji Mulyanto (Ketua Tim), Afrizal Maula Alfarisi, dan Didi Susanto (DL1, 5 Nov 2026) -> Draf `ST.DRAFT/2A749EFA` berhasil terbit tanpa memicu bentrok jadwal Anisa.
+
+
+13. **Modul Kepegawaian & Pengaturan Uang Makan – Manajemen Modular Bank Penyalur, Sinkronisasi Roster Resmi 113 Pegawai, Sanitasi Kontak, dan Pembersihan UI/UX (3 November 2026 - Sesi Sore)**:
+   - **Penyelarasan Roster Resmi Alokasi Bank Pegawai (113 ASN)**:
+     - Dijalankan via migrasi idempotent `2026_11_03_190000_sync_employee_bank_allocations.php` dengan pencocokan nama berbasis normalisasi fonetik/gelar akademik tanpa bentrok.
+     - Terpetakan 100% presisi: **53 PNS BRI**, **39 PNS Mandiri**, **4 PPPK Mandiri**, dan **17 PPPK BRI**.
+     - Rekapitulasi distribusi bank aktif di sistem: **Bank Mandiri 43 pegawai**, **Bank BRI 109 pegawai** (Total: **152 pegawai aktif**).
+   - **Sistem Modular Bank Penyalur Terdaftar (`kpg_registered_banks`)**:
+     - Dibuat tabel database `kpg_registered_banks` via migrasi `2026_11_03_170000_create_kpg_registered_banks_table.php` (default: BRI & Mandiri).
+     - REST API di `MealAllowanceController.php`:
+       - `GET /api/kepegawaian/settings/registered-banks` (dilengkapi agregasi jumlah pegawai aktif per bank).
+       - `POST /api/kepegawaian/settings/registered-banks` (registrasi opsi bank baru seperti BSI, Bankaltimtara, BNI, BCA, dll).
+       - `DELETE /api/kepegawaian/settings/registered-banks/{bank}` (dengan validasi blokir jika ada >= 1 pegawai aktif yang terikat).
+     - Penamaan section pengaturan disederhanakan menjadi **Alokasi Rekening Bank Pegawai** (menghilangkan suffix "(Mandiri/BRI)").
+     - Dropdown pilihan bank pada formulir detail & edit pegawai di `/kepegawaian/employees/[id]` tersinkronisasi dinamis dari pengaturan, dilengkapi tautan langsung `+ Daftarkan bank baru di Pengaturan`.
+   - **Pemberian Halaman (Pagination) Dinamis pada Tabel Alokasi Bank**:
+     - Ditambahkan kontrol pagination fleksibel pada tabel alokasi bank di `/kepegawaian/settings` (`MealAllowanceHolidaysTab.tsx`).
+     - Pilihan baris: `10 baris` (default), `20 baris`, `50 baris`, dan `Semua ({total}) baris`.
+     - Kontrol navigasi lengkap: Halaman Pertama (`<<`), Sebelumnya (`<`), *Page Pills* interaktif dengan *active state* biru, Berikutnya (`>`), dan Terakhir (`>>`).
+     - Fitur seleksi cerdas: *Select all on current page* dan pintasan *Pilih Semua {total} Pegawai Terfilter* pada floating batch action bar.
+   - **Sanitasi Placeholder Karakter Dash (`-`) pada Kolom Kontak**:
+     - Dibuat migrasi `2026_11_03_180000_clean_placeholder_dashes_in_kpg_employees.php` yang membersihkan 92 baris bernilai `"-"` pada kolom `telepon`, `nomor_rekening`, dan `email` menjadi `null`.
+     - Frontend helper `cleanFieldValue()`: Saat tombol edit ditekan, form input nomor WhatsApp/HP dan nomor rekening langsung bersih/kosong tanpa perlu menghapus karakter `-` secara manual, memunculkan placeholder asli (`Misal: 081234567890`).
+     - Tampilan biodata saat belum diisi kini menggunakan teks muted `Belum diatur` (bukan karakter `-` mandiri).
+   - **Pembersihan Elemen AI-Slop & Redesain Visual Enterprise**:
+     - Dihapus garis dekoratif multi-color gradient di atas foto profil pada cockpit card pegawai di `/kepegawaian/employees/[id]`.
+     - Avatar wrapper diubah menjadi flat netral enterprise (`bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700`).
+     - Kartu statistik uang makan diubah dari gradient multi-color menjadi clean flat card monokrom yang konsisten dengan desain sistem SuperApp BKSDA.
+   - **Dokumentasi Arsitektur & Rencana Pengujian 10/10 ([`docs/kepegawaian/alokasi-bank-dan-biodata/`](docs/kepegawaian/alokasi-bank-dan-biodata/))**:
+     - Menyusun spesifikasi kebutuhan bisnis & fungsional di `requirements.md`.
+     - Menyusun desain teknis, diagram komponen, skema basis data, dan plafon in-memory pagination di `design.md`.
+     - Menyusun panduan keamanan, otorisasi RBAC, sanitasi input XSS/SQLi, dan audit trail di `security.md`.
+     - Menyusun rencana pengujian 4 dimensi (Security, Backend PHPUnit, Frontend Type-Check, dan E2E Playwright) di `test-plan.md` dengan kriteria capaian skor 10/10.
+
+
+14. **Detail Pegawai Full-Screen 2-Column Cockpit & Security Audit Modul Kepegawaian (/ponytail & /security-audit) (3 November 2026 - Sesi Malam)**:
+   - **Modernisasi Layout Fluid Full-Screen 2-Column Cockpit**:
+     - Melepas batas sempit `max-w-7xl` menjadi fluid edge-to-edge (`w-full px-4 sm:px-6 lg:px-8 2xl:px-12`).
+     - Mempertahankan Profile Cockpit Card kiri yang sticky (`xl:col-span-3`) dan Workspace kanan yang ekspansif (`xl:col-span-9`).
+     - Tab Navigasi aktif menggunakan aksen BKSDA Emerald (`#059669`) dan Bento Grid Biodata adaptif multi-kolom (`xl:grid-cols-3 2xl:grid-cols-4`).
+     - Pengujian Playwright Chromium (`frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 test suites PASS (22 DOM assertions 100% hijau).
+   - **Security Audit & Penguatan Pertahanan Berlapis (Defense-in-Depth)**:
+     - Form Pengajuan Surat Tugas publik tetap aktif bagi tamu eksternal, dengan NIP pegawai disamarkan otomatis untuk unauthenticated guest (`1975********1004`) guna mencegah pemanenan basis data 18-digit NIP aparatur sipil.
+     - Data Minimization pada `EmployeeController::show`: membersihkan objek relasi internal `user` (`unset($data['user'])`) untuk mencegah kebocoran pohon izin IAM kepada penampil profil biasa.
+     - Jejak Audit Forensik (`EmployeeHistory`): mencatat tindakan administratif kritis mencakup `RESET_PASSWORD`, `RESET_2FA`, serta `CREATE_IAM_ACCOUNT` dan `UPDATE_IAM_ACCESS`.
+     - UI Jejak Audit (`EmployeeAuditHistoryTab.tsx`): menampilkan catatan administratif dan label peran IAM secara transparan.
+     - Middleware `CheckModuleAccess.php`: menambahkan syarat filter `$request->isMethod('GET')` pada pengecualian Kepegawaian.
+   - **Hasil Pengujian**:
+     - `php backend/tests/portal_security_check.php`: 200+ invariant keamanan lulus (100% PASS).
+     - `php backend/tests/self_check_public_surat_tugas.php`: 100% PASS.
+     - `cd frontend; npx tsc --noEmit`: 0 error.
+     - `graphify update .`: 11.837 nodes, 21.684 edges, 851 communities ter-update.

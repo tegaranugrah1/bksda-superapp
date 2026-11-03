@@ -553,7 +553,7 @@ function GenerateSuratDinasContent() {
   const activeTabMeta = ALL_TEMPLATES.find((t) => t.id === activeTemplate) || ALL_TEMPLATES[0];
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 lg:p-6 space-y-6">
+    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
       {/* Top Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-3">

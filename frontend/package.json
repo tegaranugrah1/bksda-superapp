@@ -24,6 +24,8 @@
     "dayjs": "^1.11.20",
     "dompurify": "^3.4.2",
     "framer-motion": "^12.38.0",
+    "html2canvas-pro": "^2.6.0",
+    "jspdf": "^4.2.1",
     "laravel-echo": "^2.6.3",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

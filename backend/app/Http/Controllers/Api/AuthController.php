@@ -177,7 +177,12 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         // Login keeps one bearer; revoke it even when Sanctum selected a cookie session.
-        $request->user()->tokens()->delete();
+        $token = $request->user()?->currentAccessToken();
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        } else {
+            $request->user()?->tokens()->delete();
+        }
 
         // Logout dari guard session dan invalidate session cookie
         \Illuminate\Support\Facades\Auth::guard('web')->logout();
@@ -277,6 +282,9 @@ class AuthController extends Controller
                 $user->email = $cleanEmail;
                 $user->email_verified_at = null;
                 $user->saveOrFail();
+                if ($employee) {
+                    $employee->update(['email' => $cleanEmail]);
+                }
                 $emailChanged = true;
 
                 // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda

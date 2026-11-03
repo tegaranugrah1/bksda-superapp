@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -50,14 +50,17 @@ export default function SuratTugasForm() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const searchResults = allEmployees
-    .filter((emp: Employee) => {
-      const name = emp.name || (emp as any).nama_lengkap || "";
-      const nip = emp.nip || "";
-      const q = searchQuery.toLowerCase();
-      return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
-    })
-    .slice(0, 50);
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return allEmployees
+      .filter((emp: Employee) => {
+        const name = emp.name || (emp as any).nama_lengkap || "";
+        const nip = emp.nip || "";
+        return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+      })
+      .slice(0, 50);
+  }, [allEmployees, searchQuery]);
 
   const [formData, setFormData] = useState<SuratTugasFormData>({
     nama_kegiatan: "",
@@ -82,14 +85,17 @@ export default function SuratTugasForm() {
   const [showPlhDropdown, setShowPlhDropdown] = useState(false);
   const plhDropdownRef = useRef<HTMLDivElement>(null);
 
-  const plhSearchResults = allEmployees
-    .filter((emp: Employee) => {
-      const name = emp.name || (emp as any).nama_lengkap || "";
-      const nip = emp.nip || "";
-      const q = plhSearchQuery.toLowerCase();
-      return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
-    })
-    .slice(0, 50);
+  const plhSearchResults = useMemo(() => {
+    if (!plhSearchQuery.trim()) return [];
+    const q = plhSearchQuery.toLowerCase().trim();
+    return allEmployees
+      .filter((emp: Employee) => {
+        const name = emp.name || (emp as any).nama_lengkap || "";
+        const nip = emp.nip || "";
+        return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+      })
+      .slice(0, 50);
+  }, [allEmployees, plhSearchQuery]);
   const [tandaSetuju, setTandaSetuju] = useState<"sudah" | "belum" | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

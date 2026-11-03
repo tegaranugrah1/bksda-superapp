@@ -564,6 +564,10 @@ class AssignmentLetterController extends Controller
                             ['status' => $cleanStatus, 'nomor_surat' => $surat->nomor_surat]
                         );
                     }
+
+                    if ($isApproved) {
+                        \App\Modules\Agent\Jobs\DispatchSuratTugasWebhook::dispatch($surat);
+                    }
                 } catch (\Throwable $e) {
                     Log::warning('Gagal mengirim portal notification pada store SuratTugas: '.$e->getMessage());
                 }
@@ -1216,6 +1220,10 @@ class AssignmentLetterController extends Controller
                             (string) $surat->id,
                             ['status' => $surat->status, 'nomor_surat' => $surat->nomor_surat]
                         );
+                    }
+
+                    if ($isApproved) {
+                        \App\Modules\Agent\Jobs\DispatchSuratTugasWebhook::dispatch($surat);
                     }
                 } catch (\Throwable $e) {
                     Log::warning('Gagal mengirim portal notification pada approve SuratTugas: '.$e->getMessage());

@@ -83,3 +83,4 @@ service-account.json
 backups/
 .audit/
 graphify-out/cache/
+scratch/

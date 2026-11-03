@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -32,83 +33,26 @@ function formatDateForInput(dateStr?: string | null): string {
 
 export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: LembarDisposisiFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [internalSubmitting, setInternalSubmitting] = useState(false);
   const loading = isSubmitting || internalSubmitting;
 
-  // Track last saved agenda number (Persisted in localStorage & recalculated dynamically)
-  const [lastAgendaNo, setLastAgendaNo] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const savedList = localStorage.getItem("bksda_saved_surat_masuk");
-      if (savedList) {
-        try {
-          const list: SuratMasuk[] = JSON.parse(savedList);
-          if (list.length === 0) {
-            localStorage.removeItem("bksda_last_no_agenda");
-            return "";
-          }
-          let maxNo = 0;
-          list.forEach((item) => {
-            const num = Number(item.no_agenda);
-            if (!isNaN(num) && num > maxNo) {
-              maxNo = num;
-            }
-          });
-          if (maxNo > 0) {
-            return String(maxNo);
-          }
-        } catch (e) {}
-      }
-      return localStorage.getItem("bksda_last_no_agenda") || "";
-    }
-    return "";
-  });
-
-  // Main form values (Starts at "1000" if system empty, or auto-incremented from highest agenda number)
-  const [formData1, setFormData1] = useState<SuratMasuk>(() => {
-    let agendaNo = initialData?.no_agenda || "";
-
-    if (!initialData?.id && !agendaNo) {
-      let maxNo = 0;
-      if (typeof window !== "undefined") {
-        const savedList = localStorage.getItem("bksda_saved_surat_masuk");
-        if (savedList) {
-          try {
-            const list: SuratMasuk[] = JSON.parse(savedList);
-            list.forEach((item) => {
-              const num = Number(item.no_agenda);
-              if (!isNaN(num) && num > maxNo) {
-                maxNo = num;
-              }
-            });
-          } catch (e) {}
-        }
-      }
-
-      if (maxNo > 0) {
-        agendaNo = String(maxNo + 1);
-      } else {
-        agendaNo = "1000";
-      }
-    } else if (!agendaNo) {
-      agendaNo = "1000";
-    }
-
-    return {
-      id: initialData?.id,
-      no_agenda: agendaNo,
-      tanggal_agenda: formatDateForInput(initialData?.tanggal_agenda),
-      indeks: initialData?.indeks || "",
-      kode: initialData?.kode || "",
-      no_surat: initialData?.no_surat || "",
-      referensi: initialData?.referensi || "",
-      tanggal_penyelesaian: formatDateForInput(initialData?.tanggal_penyelesaian),
-      tanggal_surat: formatDateForInput(initialData?.tanggal_surat),
-      isi_ringkas: initialData?.isi_ringkas || "",
-      asal_surat: initialData?.asal_surat || "",
-      lampiran: initialData?.lampiran || "",
-      catatan: initialData?.catatan || "",
-    };
-  });
+  // Main form values
+  const [formData1, setFormData1] = useState<SuratMasuk>(() => ({
+    id: initialData?.id,
+    no_agenda: initialData?.no_agenda || "",
+    tanggal_agenda: formatDateForInput(initialData?.tanggal_agenda),
+    indeks: initialData?.indeks || "",
+    kode: initialData?.kode || "",
+    no_surat: initialData?.no_surat || "",
+    referensi: initialData?.referensi || "",
+    tanggal_penyelesaian: formatDateForInput(initialData?.tanggal_penyelesaian),
+    tanggal_surat: formatDateForInput(initialData?.tanggal_surat),
+    isi_ringkas: initialData?.isi_ringkas || "",
+    asal_surat: initialData?.asal_surat || "",
+    lampiran: initialData?.lampiran || "",
+    catatan: initialData?.catatan || "",
+  }));
 
   // Dynamic Diteruskan Options List (Load custom default from localStorage if available)
   const [diteruskanList1, setDiteruskanList1] = useState<string[]>(() => {
@@ -263,8 +207,6 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       const current1 = formData1.no_agenda;
       const nextAgendaVal = current1 && !isNaN(Number(current1))
         ? String(Number(current1) + 1)
-        : lastAgendaNo && !isNaN(Number(lastAgendaNo))
-        ? String(Number(lastAgendaNo) + 1)
         : "1001";
 
       setFormData2((prev: SuratMasuk) => ({
@@ -359,58 +301,14 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
     }
 
     try {
-      if (typeof window !== "undefined") {
-        // Save or update items in local list
-        const existing = localStorage.getItem("bksda_saved_surat_masuk");
-        let list: SuratMasuk[] = [];
-        if (existing) {
-          try {
-            list = JSON.parse(existing);
-          } catch (e) {}
-        }
-
-        // Save or update Form 1
-        const index1 = list.findIndex(
-          (item) => String(item.id) === String(newItem.id) || String(item.no_agenda) === String(newItem.no_agenda)
-        );
-        if (index1 !== -1) {
-          list[index1] = newItem;
-        } else {
-          list.unshift(newItem);
-        }
-
-        // Save or update Form 2 if active
-        if (newItem2) {
-          const index2 = list.findIndex(
-            (item) => String(item.id) === String(newItem2!.id) || String(item.no_agenda) === String(newItem2!.no_agenda)
-          );
-          if (index2 !== -1) {
-            list[index2] = newItem2;
-          } else {
-            list.unshift(newItem2);
-          }
-        }
-
-        // Calculate highest numerical agenda number in system
-        let maxAgendaNum = 0;
-        list.forEach((item) => {
-          const n = Number(item.no_agenda);
-          if (!isNaN(n) && n > maxAgendaNum) {
-            maxAgendaNum = n;
-          }
-        });
-
-        const highestAgendaStr = maxAgendaNum > 0 ? String(maxAgendaNum) : formData1.no_agenda;
-        localStorage.setItem("bksda_last_no_agenda", highestAgendaStr);
-        setLastAgendaNo(highestAgendaStr);
-
-        localStorage.setItem("bksda_saved_surat_masuk", JSON.stringify(list));
-      }
-
       if (onSave) {
         await onSave(fd);
+      } else if (initialData?.id) {
+        // Mode Edit: Kirim request update
+        await api.post(`/surat-masuk/${initialData.id}?_method=PUT`, fd);
       } else {
-        await api.post("/api/surat-masuk", fd);
+        // Mode Create: Kirim request simpan baru
+        await api.post("/surat-masuk", fd);
         if (newItem2) {
           try {
             const fd2 = new FormData();
@@ -421,10 +319,19 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             if (newItem2.isi_ringkas) fd2.append("isi_ringkas", newItem2.isi_ringkas);
             if (newItem2.asal_surat) fd2.append("asal_surat", newItem2.asal_surat);
             if (newItem2.lampiran) fd2.append("lampiran", newItem2.lampiran);
-            await api.post("/api/surat-masuk", fd2);
+            await api.post("/surat-masuk", fd2);
           } catch (e) {}
         }
       }
+
+      // Invalidate cache immediately so agenda list and counters update without manual refresh
+      queryClient.invalidateQueries({ queryKey: ["surat-masuk"] });
+      queryClient.invalidateQueries({ queryKey: ["surat-masuk-next-agenda"] });
+      queryClient.invalidateQueries({ queryKey: ["surat-hub-summary"] });
+      if (initialData?.id) {
+        queryClient.invalidateQueries({ queryKey: ["surat-masuk-detail", String(initialData.id)] });
+      }
+
       toast.success(
         isTwoUpMode && newItem2
           ? `2 Surat Masuk (Agenda ${newItem.no_agenda} & ${newItem2.no_agenda}) berhasil disimpan!`
@@ -432,8 +339,12 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       );
       // Stay on page so user can review saved state & print
     } catch (err: any) {
-      toast.success("Surat Masuk & Lembar Disposisi berhasil disimpan!");
-      // Stay on page so user can review saved state & print
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Gagal menyimpan Surat Masuk.";
+      toast.error(errorMsg);
     } finally {
       setInternalSubmitting(false);
     }
@@ -543,12 +454,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-zinc-700">No Agenda (Atas) *</label>
-                {lastAgendaNo && (
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                    (No Agenda Sebelumnya: {lastAgendaNo})
-                  </span>
-                )}
+                <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">No Agenda (Atas) *</label>
               </div>
               <Input
                 type="text"

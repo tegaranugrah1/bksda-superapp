@@ -5,6 +5,7 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\EmployeeHistory;
 use App\Modules\Kepegawaian\Requests\EmployeeAccessRequest;
 use Illuminate\Http\JsonResponse;
 
@@ -97,11 +98,28 @@ class EmployeeAccessController extends Controller
                 'permissions' => $validated['permissions'] ?? [],
             ]);
 
+            // Ponytail: Catat riwayat audit
+            EmployeeHistory::create([
+                'employee_id' => $employee->id,
+                'user_id' => $request->user()?->id,
+                'action' => 'CREATE_IAM_ACCOUNT',
+                'changes' => [
+                    'role' => ['old' => null, 'new' => $validated['role']],
+                    'access_modules' => ['old' => [], 'new' => $validated['access_modules'] ?? []],
+                ],
+                'notes' => 'Penerbitan akun akses aplikasi (IAM) oleh Super Admin',
+                'created_at' => now(),
+            ]);
+
             $message = 'Akun akses berhasil diterbitkan.';
         }
 
         // SKENARIO B: Pegawai sudah punya Akun, kita perbarui datanya
         else {
+            $oldRole = $user->role;
+            $oldModules = $user->access_modules ?? [];
+            $oldPerms = $user->permissions ?? [];
+
             $updateData = [
                 'role' => $validated['role'],
                 'access_modules' => $validated['access_modules'] ?? [],
@@ -122,6 +140,21 @@ class EmployeeAccessController extends Controller
             }
 
             $user->update($updateData);
+
+            // Ponytail: Catat riwayat audit
+            EmployeeHistory::create([
+                'employee_id' => $employee->id,
+                'user_id' => $request->user()?->id,
+                'action' => 'UPDATE_IAM_ACCESS',
+                'changes' => [
+                    'role' => ['old' => $oldRole, 'new' => $validated['role']],
+                    'access_modules' => ['old' => $oldModules, 'new' => $validated['access_modules'] ?? []],
+                    'permissions' => ['old' => $oldPerms, 'new' => $validated['permissions'] ?? []],
+                ],
+                'notes' => 'Pembaruan hak akses wewenang modul (IAM) oleh Super Admin',
+                'created_at' => now(),
+            ]);
+
             $message = 'Data hak akses berhasil diperbarui.';
         }
 

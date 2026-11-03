@@ -5,6 +5,8 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\EmployeeHistory;
+use App\Modules\Kepegawaian\Models\MealAllowanceItem;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
@@ -195,10 +197,12 @@ class EmployeeController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $employee = Employee::findOrFail($id);
+        $employee = Employee::with('user')->findOrFail($id);
 
         $data = $employee->toArray();
+        unset($data['user']);
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
+        $data['email'] = $employee->email ?? $employee->user?->email ?? null;
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
@@ -225,6 +229,12 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $oldValues = [];
+        foreach ($trackedFields as $field) {
+            $oldValues[$field] = $employee->$field;
+        }
+
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
             $employee->replaceProfilePhoto($request->file('foto'));
@@ -232,6 +242,35 @@ class EmployeeController extends Controller
 
         $employee->update($validated);
         $newNip = trim((string) $employee->nip);
+
+        // Sinkronisasi email ke akun User jika ada
+        if ($targetUser && !empty($employee->email)) {
+            $targetUser->email = $employee->email;
+            $targetUser->save();
+        }
+
+        // Catat riwayat audit jika ada field biodata yang berubah
+        $changes = [];
+        foreach ($trackedFields as $field) {
+            $newVal = $employee->$field;
+            $oldVal = $oldValues[$field];
+            if ($oldVal != $newVal) {
+                $changes[$field] = [
+                    'old' => $oldVal,
+                    'new' => $newVal,
+                ];
+            }
+        }
+
+        if (! empty($changes)) {
+            EmployeeHistory::create([
+                'employee_id' => $employee->id,
+                'user_id' => $currentUser?->id,
+                'action' => 'UPDATE_BIODATA',
+                'changes' => $changes,
+                'created_at' => now(),
+            ]);
+        }
 
         if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
             User::where('username', $oldNip)->update([
@@ -243,6 +282,25 @@ class EmployeeController extends Controller
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
             'data' => $employee,
+        ]);
+    }
+
+    /**
+     * Ambil riwayat perubahan biodata pegawai untuk Tab Riwayat Perubahan.
+     * GET /api/kepegawaian/employees/{id}/histories
+     */
+    public function histories(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $histories = EmployeeHistory::where('employee_id', $employee->id)
+            ->with(['user:id,name,username'])
+            ->latest('created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $histories,
         ]);
     }
 
@@ -411,14 +469,24 @@ class EmployeeController extends Controller
             ->limit($limit)
             ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja']);
 
+        $isAuth = $request->user() !== null;
+
         return response()->json([
-            'data' => $employees->map(function ($emp) {
+            'data' => $employees->map(function ($emp) use ($isAuth) {
+                $cleanNip = trim((string) $emp->nip);
+                $maskedNip = $cleanNip !== ''
+                    ? (strlen($cleanNip) > 8
+                        ? substr($cleanNip, 0, 4) . str_repeat('*', max(4, strlen($cleanNip) - 8)) . substr($cleanNip, -4)
+                        : '****')
+                    : '-';
+                $displayNip = $isAuth ? $cleanNip : $maskedNip;
+
                 return [
                     'id' => $emp->id,
                     'name' => $emp->nama_lengkap,
                     'nama_lengkap' => $emp->nama_lengkap,
                     'nama' => $emp->nama_lengkap,
-                    'nip' => $emp->nip,
+                    'nip' => $displayNip,
                     'pangkat_golongan' => $emp->pangkat_golongan,
                     'rank' => $emp->pangkat_golongan,
                     'department' => $emp->satuan_kerja,
@@ -438,6 +506,11 @@ class EmployeeController extends Controller
      */
     public function resetPassword(Request $request, $id): JsonResponse
     {
+        $validated = $request->validate([
+            'password' => 'nullable|string|min:8',
+            'mode' => 'nullable|string|in:send_link,generate',
+        ]);
+
         $employee = Employee::findOrFail($id);
 
         $nip = trim((string) $employee->nip);
@@ -478,6 +551,16 @@ class EmployeeController extends Controller
         // Revoke active sessions / bearer tokens upon password reset
         $user->tokens()->delete();
 
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_PASSWORD',
+            'changes' => [],
+            'notes' => 'Reset kata sandi pegawai oleh ' . ($currentUser?->name ?? 'Admin') . ($request->input('mode') === 'send_link' ? ' (kirim link email)' : ' (generate password sementara)'),
+            'created_at' => now(),
+        ]);
+
         return response()->json([
             'message' => 'Password berhasil direset. Pegawai wajib menggantinya saat login berikutnya.',
             'temporary_password' => $temporaryPassword,
@@ -509,6 +592,16 @@ class EmployeeController extends Controller
             'two_factor_confirmed_at' => null,
         ]);
 
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_2FA',
+            'changes' => [],
+            'notes' => 'Reset Autentikasi 2 Langkah (2FA) pegawai oleh Super Admin (' . ($currentUser?->name ?? 'Super Admin') . ')',
+            'created_at' => now(),
+        ]);
+
         return response()->json([
             'message' => 'Autentikasi 2 Langkah (2FA) untuk ' . ($employee->nama_lengkap ?? $user->name) . ' berhasil direset.',
         ]);
@@ -535,6 +628,37 @@ class EmployeeController extends Controller
                 'last_page' => $letters->lastPage(),
                 'per_page' => $letters->perPage(),
                 'total' => $letters->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * GET /api/kepegawaian/employees/{id}/meal-allowances
+     * Mengambil riwayat penerimaan uang makan khusus untuk pegawai ini
+     */
+    public function mealAllowances(Request $request, string $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
+
+        $items = MealAllowanceItem::with('batch')
+            ->where(function ($q) use ($employee) {
+                $q->where('employee_id', $employee->id);
+                if (!empty($employee->nip)) {
+                    $q->orWhere('nip', $employee->nip);
+                }
+            })
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        return response()->json([
+            'message' => 'Riwayat uang makan berhasil diambil.',
+            'data' => $items->items(),
+            'meta' => [
+                'current_page' => $items->currentPage(),
+                'last_page' => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
             ],
         ]);
     }

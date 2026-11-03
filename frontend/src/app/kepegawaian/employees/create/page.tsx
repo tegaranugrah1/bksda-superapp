@@ -504,12 +504,12 @@ export default function EmployeeCreatePage() {
               const satker = (formData.satuan_kerja || "").toLowerCase();
               const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
               let availableResors = RESOR_OPTIONS;
-              if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
-              } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-              } else if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan")) {
+              if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan") || satker.includes("seksi 3") || satker.includes("seksi iii")) {
                 availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
+              } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong") || satker.includes("seksi 2") || satker.includes("seksi ii")) {
+                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
+              } else if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau") || satker.includes("seksi 1") || satker.includes("seksi i")) {
+                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
               }
 
               return (

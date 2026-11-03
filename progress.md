@@ -1,5 +1,83 @@
 # Progress Development - BKSDA SuperApp
 
+## Status Update: 2 November 2026
+
+### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB) - SELESAI PENUH (33/33 Tasks 100%)
+- **Fase 1: Provisioning VM 108 Proxmox (`192.168.100.205`) Selesai**:
+  - VM 108 (`hermes-agent-dev`) di-provisioning otomatis pada host Proxmox VE fisik kantor (`192.168.100.11`) menggunakan Cloud-Init Ubuntu Server 24.04 LTS: 16 GB RAM, 4 vCPU, 100 GB NVMe disk (`local-lvm`), static IP `192.168.100.205/24`, Gateway `192.168.100.1`, DNS `192.168.100.1` & `8.8.8.8`.
+  - Akses SSH tanpa password terkonfigurasi dengan RSA key injection (`~/.ssh/authorized_keys`), UFW firewall aktif (port 22 & 8080).
+  - Toolchain pengembang terpasang lengkap: Docker Engine 29.9.2, Docker Compose v5.6.1, Node.js v20.20.2, npm 10.8.2, PHP 8.4.27 CLI (ekstensi: curl, mbstring, xml, zip, pgsql, sqlite3, bcmath, gd), Composer v2.11.1, dan GitHub CLI (`gh`).
+  - Direktori persistensi host: `/opt/hermes/data/{evolution_instances,evolution_store,redis,logs,postgres}` (chmod 775).
+- **Fase 2: Backend Modul Agent BKSDA SuperApp (VM 106) Selesai**:
+  - Migrasi `2026_11_02_210000_add_telepon_to_kpg_employees_table.php` sukses dijalankan, 97 nomor telepon pegawai berhasil di-backfill dari data cuti historis.
+  - `AgentServiceProvider` didaftarkan di `backend/bootstrap/providers.php` dengan routing prefix `/api/agent/v1`.
+  - Middleware `RestrictAgentClientIp`: membatasi akses khusus IP `192.168.100.205` dan `127.0.0.1` serta verifikasi header `X-Agent-Internal-Key`.
+  - `PhoneSanitizerService`: normalisasi E.164, stripping karakter non-digit, pencocokan fleksibel PostgreSQL regex.
+  - `AgentAuthController`: endpoint `/auth/verify-phone` dan `/auth/link-phone`.
+  - `AgentLeaveController`: endpoint saldo cuti `/employees/{nip}/leaves` (aturan PerBKN 24/2017) dan pengajuan cuti mandiri `/leaves/request` dengan penguncian pesimistik `Employee::lockForLeaveUpdate()` dan perlindungan idempoten `idempotency_key`.
+  - `AgentSuratTugasController` & `DispatchSuratTugasWebhook`: otomatis mengirimkan payload ke WhatsApp saat Surat Tugas diterbitkan.
+  - Pengujian Backend `AgentModuleTest.php`: 9 tests, 24 assertions, **100% PASS**. Kepegawaian security suite (4 tests, 20 assertions): **100% PASS**.
+- **Fase 3: Deployment WhatsApp Gateway (Evolution API v2) Selesai**:
+  - Konfigurasi `docker-compose.yml` di `/opt/hermes/gateway/` menggunakan stack `evoapicloud/evolution-api:v2.3.7`, `postgres:16-alpine`, dan `redis:7.2-alpine`.
+  - Instance WhatsApp `bksda-assistant` diinisialisasi via Baileys engine, QR code live berhasil digenerate dan disimpan ke artefak visual (`whatsapp_qr.png`).
+  - Zero-Drop Reboot test teruji: sesi dan volume host `/opt/hermes/data/` bertahan utuh tanpa reset QR saat container di-restart.
+- **Fase 4: Core Assistant Service & Integrasi Gemini AI Pro Selesai**:
+  - Service Express/TypeScript di `/opt/hermes/assistant/` terkompilasi bersih tanpa error TypeScript.
+  - Berjalan sebagai service background Linux `hermes-assistant.service` (systemd auto-restart).
+  - System prompt NLU kontekstual BKSDA Kaltim (istilah Balai, SKW, Resor, Polhut, Cuti, PerBKN, DIPA).
+  - Redis Debounce Buffer 2.0 detik untuk menggabungkan pesan terpisah yang dikirim cepat oleh pegawai.
+  - Redis Mutex Lock (`lock:assistant:{phone}`) untuk mitigasi race-condition concurrency.
+  - State Machine percakapan: alur konfirmasi dua tahap (`AWAITING_LEAVE_CONFIRMATION` -> `YA` / `BATAL`).
+  - Fallback non-teks: panduan ramah saat pegawai mengirim Voice Note audio atau foto berkas.
+  - Circuit Breaker dengan 2x retry exponential backoff dan fallback otomatis ke rule-based regex saat kuota LLM habis atau API key offline.
+- **Fase 5: Coding Sandbox Pipeline & Gemini CLI Selesai**:
+  - Workspace `/opt/hermes/coding-sandbox/workspace/bksda-superapp` di-clone dari repository resmi.
+  - Dependensi Composer (PHP 8.4) dan npm (Next.js) terpasang di VM 108.
+  - Production build Next.js 16 (Turbopack) sukses menghasilkan 86 static pages tanpa error.
+  - Gemini CLI executable `/usr/local/bin/gemini` terpasang di VM 108 dengan mode dual-engine.
+  - Skrip pipeline `/opt/hermes/coding-sandbox/run-agent-task.sh` menjamin runnable checks wajib (PHPUnit test + Next.js build 100% hijau) sebelum membuka GitHub Pull Request.
+  - Isolasi air-gap terverifikasi: service asisten WA tidak memiliki child process/shell exec, sehingga aman dari bahaya WhatsApp prompt injection.
+- **Fase 6: Pengujian Integrasi End-to-End & Security Pentest Selesai (100% Lulus)**:
+  - Security Pentest: penyaringan nomor HP tidak dikenal berhasil mengarahkan ke alur penautan NIP mandiri; pembatalan pengajuan cuti ("batal") tidak memutasi database.
+  - Edge-cases: Voice note, image, dan burst double message teruji lulus.
+  - Stress Test RAM 16 GB: Penggunaan memori saat kompilasi Next.js hanya ~931 MB dari total 16 GB (bebas >14 GB, CPU Load <1.7).
+  - Webhook Surat Tugas teruji memproses payload dan menyiapkan pengiriman notifikasi berkala dengan delay 1.5 detik per staf (anti-ban).
+
+### 2. Audit Keamanan Menyeluruh Modul Kepegawaian & Push ke Production Server
+- **Audit 6 Bidang Permukaan Serangan (Attack Surface)**:
+  - Formula Injection: Ditutup pada generator Excel uang makan (MealAllowanceExcelExport.php) via helper safeCell() dan casting numerik ketat rate PPh21.
+  - Zip Bomb & Memory Exhaustion: Dibatasi maksimal 200 berkas dan 5 MB stream buffer per file pada SikadirParserService.php.
+  - Celah Lintas Tahun Kalender Cuti: Validasi PerBKN 24/2017 dipasang pada storeRecord() dan updateRecord() di EmployeeLeaveController.php.
+  - Rate Limiting: Middleware 	hrottle:60,1 dipasang pada endpoint komputasi berat /uang-makan/reconcile dan /uang-makan/export-excel.
+  - Password Policy: Validasi panjang minimum 8 karakter dipasang pada esetPassword() di EmployeeController.php.
+  - Data Masking: ID user internal created_by dan updated_by disembunyikan untuk request publik di StExpenseTemplateResource.php.
+- **Verifikasi & Deployment**:
+  - Suite pengujian baru: ackend/tests/Feature/KepegawaianSecurityAuditTest.php (4 tests, 20 assertions, 100% lulus).
+  - Total pengujian Kepegawaian: 24 tests, 104 assertions lulus.
+  - Script otorisasi berkas scan cuti: LeaveScanSecurityTest.php lulus.
+  - Frontend production build Next.js: 87 halaman terkompilasi bersih dalam 4.3 detik.
+  - Commit `fed93dbb` berhasil di-merge (Fast-Forward) dan di-push ke remote branch `production-server`.
+
+### 3. Fitur Hitung & Rekonsiliasi Uang Makan Pegawai (SIKADIR vs Surat Tugas)
+- **Engine Rekonsiliasi 10/10 Presisi Tinggi**:
+  - SikadirParserService.php: Ekstraksi berkas HTML/XLS SIKADIR via DOMXPath (2.36 ms latency), Golden Checksum validation, dan ZIP sanitizer.
+  - AdaptiveTariffResolver.php: Resolusi tarif SBM (PNS & PPPK Golongan I-IV/I-XVII) dan potongan PPh 21 dengan fallback kelas jabatan.
+  - HolidayCalendarHelper.php: Deteksi otomatis hari libur nasional & cuti bersama SKB 3 Menteri 2025-2027.
+  - AttendanceReconcilerService.php: Komparasi tanggal multi-hari terhadap Surat Tugas resmi; auto-override Hadir (H) menjadi PD* dengan logging audit.
+  - MealAllowanceExcelExport.php: Generator berkas resmi Excel 2-Sheet (Sheet Matriks Presensi + Sheet Daftar Nominatif) dengan tanda tangan tunggal Kasubbag TU.
+- **Frontend Antarmuka UI/UX Pro Max Full Screen (/kepegawaian/uang-makan)**:
+  - Interactive Matrix Grid dengan CSS sticky columns (No, NIP/Nama, Golongan) dan horizontal scroll 31 hari.
+  - Inline Popover Editing per sel tanggal (H, PD, CT, S, I, TK, -).
+  - One-click Header Toggle untuk menetapkan seluruh pegawai pada tanggal tertentu sebagai Hari Libur Nasional (-).
+  - Reaktivitas kalkulasi real-time (Hadir, PD, Bruto, Pajak, Netto).
+  - Filter bar lengkap, preview Sheet 2 Nominatif, dan tab Riwayat Batch tersimpan.
+- **Verifikasi Pengujian & Keamanan**:
+  - **Backend PHPUnit**: 7 methods, 37 assertions, 100% lulus (MealAllowanceSecurityAndReconciliationTest.php).
+  - **Frontend Playwright E2E**: 8 test suites, 100% lulus (kepegawaian-uang-makan.playwright.cjs).
+  - **Next.js Production Build**: 100% compile tanpa error TypeScript / ESLint.
+
+---
+
 ## Status Update: 31 Oktober 2026
 
 ### 1. Remediasi & Penuntasan Pentest Modul Surat Tugas (ST-01 s.d. ST-12)
@@ -218,3 +296,57 @@
 ### 5. Verifikasi & Pengujian
 - Kompilasi build Next.js (`npm run build`) lolos 100% tanpa error (73 halaman statis & dinamis).
 - Validasi API backend (GET/POST/PUT/DELETE) modul keuangan & portal normal.
+
+
+---
+
+### 6. Modernisasi UI/UX Detail Pegawai (Full-Screen 2-Column Cockpit & ui-ux-pro-max /ponytail) — Selesai ✅
+
+- **Prinsip Desain & Eksekusi Ponytail**:
+  1. **Full-Screen Fluid Layout**: Menghapus batas sempit `max-w-7xl` dan menggunakan lebar penuh fluida monitor (`w-full px-4 sm:px-6 lg:px-8 2xl:px-12`) agar tabel penugasan, cuti, dan uang makan bernapas lega tanpa terpotong.
+  2. **2-Column Responsive Full-Screen Split**:
+     - *Sidebar Kiri (lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6)*: Mempertahankan Profile Cockpit Card yang disukai pengguna (Foto avatar resolusi tinggi, nama lengkap + gelar, NIP 1-click copy, badge PNS/PPPK/MMP, rincian jabatan & satker, sub-card WhatsApp Chat & Email dinas, kartu alokasi rekening bank uang makan resmi, serta tombol Edit Data Pegawai).
+     - *Workspace Kanan (lg:col-span-8 xl:col-span-9 space-y-6)*: Membentang luas mengisi sisa layar dengan 4 Top Metric Summary Cards (Masa Kerja, Penugasan SPT, Sisa Cuti, Uang Makan Terakhir) serta Tab Navigation.
+  3. **Standar ui-ux-pro-max & BKSDA Emerald (#059669 / #0F172A)**:
+     - Tab navigation aktif menggunakan aksen hijau BKSDA Emerald (`bg-emerald-600 text-white shadow-xs`) dan border atas cockpit `border-t-4 border-t-emerald-600`.
+     - Target sentuh minimal 44x44px dan `cursor-pointer` pada seluruh tombol aksi.
+     - Tab Biodata adaptif multi-kolom (`xl:grid-cols-3 2xl:grid-cols-4`).
+     - Zero new dependencies (mempertahankan helper dan komponen yang sudah teruji).
+- **Checklist Implementasi & Hasil Pengujian**:
+  - [x] Refactor `frontend/src/app/kepegawaian/employees/[id]/page.tsx` ke arsitektur full-screen 2-column cockpit (`xl:col-span-3` dan `xl:col-span-9`).
+  - [x] Modernisasi Skeleton loading ke layout fluid full-screen 2-kolom.
+  - [x] Verifikasi kompilasi TypeScript (`npx tsc --noEmit`) lolos 100% tanpa error.
+  - [x] Verifikasi uji end-to-end Playwright Chromium (`frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 test suites PASS, 22 DOM assertions 100% hijau.
+  - [x] Verifikasi regresi alokasi bank (`frontend/tests/kepegawaian-bank-allocation.playwright.cjs`): 6/6 test suites PASS.
+  - [x] Sinkronisasi AST Knowledge Graph (`graphify update .`): 11.837 nodes, 21.680 edges, 845 communities ter-update.
+
+---
+
+### 7. Security Audit Modul Kepegawaian & Penguatan Pertahanan Berlapis (/security-audit & /ponytail) — Selesai ✅
+
+- **Ruang Lingkup Audit & Laporan Keamanan**:
+  - Audit menyeluruh berbasis kode sumber defensif mencakup seluruh controller, middleware, routes, dan komponen UI modul Kepegawaian.
+  - Laporan lengkap tercatat di artefak: [`kepegawaian-security-audit-report.md`](kepegawaian-security-audit-report.md).
+- **Penguatan Pertahanan Berlapis (Defense-in-Depth) yang Diterapkan**:
+  1. **Akses Pengajuan Surat Tugas Publik yang Aman & Masking NIP**:
+     - Mempertahankan form pengajuan Surat Tugas publik bagi tamu eksternal tanpa mengorbankan privasi data pegawai.
+     - NIP pegawai disamarkan otomatis untuk unauthenticated guest (`1975********1004`), mencegah *scraping / harvesting* direktori 18-digit NIP aparatur.
+     - Status submission tetap terkunci ketat pada `status = 'pending'` dan `created_by = null` dengan rate limiting ganda `throttle:15,1` dan `throttle:120,1`.
+  2. **Minimisasi Data pada Detail Pegawai (`EmployeeController::show`)**:
+     - Membuang relasi objek internal `user` (`unset($data['user'])`) sebelum respons dikembalikan ke client.
+     - Mencegah kebocoran pohon perizinan modul dan wewenang akun internal sistem kepada pembaca biasa.
+  3. **Jejak Audit Forensik Operasi Administratif Kritis (`EmployeeHistory`)**:
+     - Menambahkan pencatatan kronologis pada `kpg_employee_histories`:
+       - `RESET_PASSWORD`: Mencatat admin pengeksekusi dan mode reset (link email vs password sementara).
+       - `RESET_2FA`: Mencatat Super Admin pengeksekusi reset Autentikasi 2 Langkah.
+       - `CREATE_IAM_ACCOUNT` & `UPDATE_IAM_ACCESS`: Mencatat perubahan peran (*role*) dan modul akses.
+     - Komponen `EmployeeAuditHistoryTab.tsx` di frontend diperbarui untuk menampilkan catatan tindakan administratif dan diff peran IAM secara rapi.
+  4. **Pencegahan Bypass Mutasi HTTP di Middleware (`CheckModuleAccess.php`)**:
+     - Menambahkan filter pengaman eksplisit `$request->isMethod('GET')` pada pengecualian hak akses Kepegawaian.
+- **Hasil Pengujian & Verifikasi Kualitas 100% Hijau**:
+  - [x] `php backend/tests/portal_security_check.php`: 200+ invariant keamanan lulus (100% PASS).
+  - [x] `php backend/tests/self_check_public_surat_tugas.php`: Alur pengajuan ST tamu publik lulus (100% PASS).
+  - [x] `node frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`: 6/6 test suites PASS (22 DOM assertions).
+  - [x] `node frontend/tests/kepegawaian-bank-allocation.playwright.cjs`: 6/6 test suites PASS (12 DOM assertions).
+  - [x] TypeScript compiler (`cd frontend; npx tsc --noEmit`): 0 error.
+  - [x] Sinkronisasi Knowledge Graph (`graphify update .`): 11.837 nodes, 21.684 edges, 851 communities ter-update.

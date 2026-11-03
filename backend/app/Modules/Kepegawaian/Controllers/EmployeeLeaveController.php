@@ -175,6 +175,14 @@ class EmployeeLeaveController extends Controller
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
 
+        $startYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
+        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        if ($startYear !== $endYear) {
+            return response()->json([
+                'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan catat terpisah per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             $employee = Employee::lockForLeaveUpdate($employeeId);
@@ -293,6 +301,12 @@ class EmployeeLeaveController extends Controller
         ]);
 
         $newYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
+        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        if ($newYear !== $endYear) {
+            return response()->json([
+                'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
 
         DB::beginTransaction();
         try {
