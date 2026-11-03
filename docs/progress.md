@@ -15,6 +15,7 @@
 | **Manajemen Cuti (`/kepegawaian/cuti`)** | **SELESAI (100% Lulus)** | • Data Table Transition: `<AnimatePresence mode="wait">` + `<motion.div key={selectedStatus + selectedYear}>` saat mengganti filter.<br>• Filter Status Badges: `whileHover={{ y: -3 }}` dan pulsing beacon pada permohonan pending. |
 | **Daftar Pegawai (`/kepegawaian/employees`)** | **SELESAI (100% Lulus)** | • Table Transition: `<AnimatePresence mode="wait">` + `<motion.div key={jenisFilter + statusFilter + wilayahFilter}>` saat memilih kategori pegawai.<br>• Filter Category Cards: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}`. |
 | **Dashboard Kepegawaian (`/kepegawaian`)** | **SELESAI (100% Lulus)** | • Tactile Cards: `whileHover={{ y: -2/-3 }}` dan `whileTap={{ scale: 0.98 }}` pada 3 kartu kategori personil dan 4 bento service cards. |
+| **Pencegahan Kedipan Angka Nol (0 Flickering)** | **SELESAI (100% Mulus)** | • Aktivasi `placeholderData: keepPreviousData` (TanStack Query v5) pada Daftar Pegawai, Cuti, dan Surat Tugas.<br>• Persistensi Ref (`lastCountsRef` & `lastSummaryCountsRef`) menjamin angka tidak pernah drop ke 0 saat perpindahan tab / filter status. |
 | **Suite Pengujian Otomatis (`animate-ui-motion-check.cjs`)** | **30/30 PASS (100% HIJAU)** | Memverifikasi seluruh 30 invariant gerak pada dependensi, sliding pills, animate presence, panel transitions, dan tactile cards. |
 
 ---

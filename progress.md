@@ -409,3 +409,23 @@
 - **Verifikasi Kualitas**:
   - `animate-ui-motion-check.cjs`: Diperluas dari 15 checks menjadi **30 checks otomatis**, seluruhnya **PASS 100%**.
   - TypeScript Compiler: **0 error**.
+
+---
+
+### 10. Eliminasi Kedipan Angka Nol (0 Flickering Fix) saat Pindah Tab & Filter Kepegawaian (/ponytail) — Selesai ✅
+
+- **Akar Masalah (Root Cause)**:
+  - Pada TanStack Query v5, saat `queryKey` berubah (misalnya pengguna mengklik kartu "Pegawai PNS", "PPPK", "MMP", atau filter status cuti "Menunggu Persetujuan", "Disetujui", "Ditolak"), query baru berada dalam status *fetching* dan `data` bernilai `undefined` selama 100–300 milidetik.
+  - Nilai `counts` pada `employees/page.tsx` dan `summaryCounts` pada `cuti/page.tsx` sebelumnya mengandalkan fallback default `{ total: 0, pns: 0, pppk: 0, mmp: 0, trashed: 0 }`. Akibatnya, seluruh angka pada kartu metrik drop menjadi **0** sesaat sebelum melompat kembali ke angka asli.
+
+- **Solusi Defensif & Ringkas Sesuai Prinsip Ponytail**:
+  1. **Aktivasi `placeholderData: keepPreviousData` (TanStack Query)**:
+     - Diterapkan pada `employees/page.tsx`, `cuti/page.tsx`, dan `surat-tugas/inbox/page.tsx`.
+     - Query mempertahankan data sebelumnya selama proses request filter/tab baru berlangsung di latar belakang, mencegah status `data = undefined`.
+  2. **Persistensi State Ref (`useRef`) Anti-Zero Reset**:
+     - Memasang `lastCountsRef` pada Daftar Pegawai dan `lastSummaryCountsRef` / `lastTotalRecordsRef` pada Inbox Cuti.
+     - Angka ringkasan dan badge counter tidak akan pernah turun ke angka 0 saat pergantian filter, menghasilkan transisi yang 100% mulus (*seamless*).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **30/30 PASS (100% Hijau)**.

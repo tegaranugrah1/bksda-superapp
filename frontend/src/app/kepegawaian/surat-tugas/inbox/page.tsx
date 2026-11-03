@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { needsBuilderCompletion } from "./_lib/status-helpers";
@@ -134,6 +134,7 @@ export default function SuratTugasInbox() {
 
       return resp.data as { data: AssignmentLetter[]; meta: PaginationMeta };
     },
+    placeholderData: keepPreviousData,
     staleTime: 0,
     refetchInterval: 10000,
     refetchOnWindowFocus: true,

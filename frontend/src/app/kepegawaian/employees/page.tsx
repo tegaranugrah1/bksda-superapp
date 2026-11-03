@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Search,
   Plus,
@@ -192,16 +192,23 @@ export default function EmployeeListPage() {
       });
       return data;
     },
+    placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 
-  const counts = data?.meta?.counts ?? {
-    total: data?.meta?.total ?? 0,
+  const lastCountsRef = useRef<EmployeeCounts>({
+    total: 0,
     pns: 0,
     pppk: 0,
     mmp: 0,
     trashed: 0,
-  };
+  });
+
+  if (data?.meta?.counts) {
+    lastCountsRef.current = data.meta.counts;
+  }
+
+  const counts = data?.meta?.counts ?? lastCountsRef.current;
 
   const isTrashedView = canWrite && statusFilter === "trashed";
   const hasActiveFilter =

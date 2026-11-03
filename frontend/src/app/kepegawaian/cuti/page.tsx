@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -104,6 +104,8 @@ export default function InboxSuratCutiPage() {
       });
       return data;
     },
+    placeholderData: keepPreviousData,
+    staleTime: 10000,
   });
 
   // Real-time inbox update via WebSocket
@@ -111,17 +113,33 @@ export default function InboxSuratCutiPage() {
     queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 
+  const lastSummaryCountsRef = useRef({
+    all: 0,
+    PENGAJUAN: 0,
+    DISETUJUI: 0,
+    DITOLAK: 0,
+  });
+
+  const lastTotalRecordsRef = useRef(0);
+
+  if (responseData?.summary_counts) {
+    lastSummaryCountsRef.current = responseData.summary_counts;
+  }
+  if (responseData?.total !== undefined) {
+    lastTotalRecordsRef.current = responseData.total;
+  }
+
   const list: LeaveRequestItem[] = responseData?.data || (Array.isArray(responseData) ? responseData : []);
-  const totalRecords: number = responseData?.total ?? list.length;
+  const totalRecords: number = responseData?.total ?? (lastTotalRecordsRef.current || list.length);
   const lastPage: number = responseData?.last_page ?? 1;
   const fromRecord: number = responseData?.from ?? (list.length > 0 ? (page - 1) * perPage + 1 : 0);
   const toRecord: number = responseData?.to ?? (fromRecord + list.length - (list.length > 0 ? 1 : 0));
-  const summaryCounts = responseData?.summary_counts || {
+  const summaryCounts = responseData?.summary_counts ?? (lastSummaryCountsRef.current.all > 0 ? lastSummaryCountsRef.current : {
     all: totalRecords,
     DISETUJUI: list.filter((x) => (x.status || "").toUpperCase() === "DISETUJUI").length,
     PENGAJUAN: list.filter((x) => !x.status || (x.status || "").toUpperCase() === "PENGAJUAN").length,
     DITOLAK: list.filter((x) => (x.status || "").toUpperCase() === "DITOLAK").length,
-  };
+  });
 
   // Toggle Status (PENGAJUAN <-> DISETUJUI / DITOLAK)
   const toggleStatusMutation = useMutation({
