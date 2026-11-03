@@ -9522,7 +9522,30 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
      - Menyiapkan halaman scaffold awal di [`frontend/src/app/kepegawaian/uang-makan/page.tsx`](frontend/src/app/kepegawaian/uang-makan/page.tsx) dan memvalidasi kompilasi build Next.js (`npm run build` sukses 87/87 static pages tanpa error).
 
 
-12. **Modul Kepegawaian & Pengaturan Uang Makan – Manajemen Modular Bank Penyalur, Sinkronisasi Roster Resmi 113 Pegawai, Sanitasi Kontak, dan Pembersihan UI/UX (3 November 2026)**:
+12. **Integrasi WhatsApp Hermes AI – Modul Surat Tugas: Alur Usulan Natural, Pengecekan Bentrok, Pemilihan Ketua Tim, & Persetujuan Admin via WhatsApp (3 November 2026 - Sesi Pagi)**:
+   - **Latar Belakang & Ruang Lingkup**:
+     - Mengembangkan asisten WhatsApp cerdas berbasis AI (**Hermes**) di VM 108 (`192.168.100.205`) yang terhubung langsung ke backend Laravel 11 dan database PostgreSQL BKSDA SuperApp via reverse tunnel SSH (`5435`).
+     - Dokumentasi lengkap tersimpan di [`docs/hermes-agent/progress-surat-tugas.md`](docs/hermes-agent/progress-surat-tugas.md).
+   - **Siklus Hidup Surat Tugas Otomatis via WhatsApp**:
+     1. *Intake Usulan Natural*: Pegawai mengajukan penugasan dengan bahasa santai / natural tanpa format kaku.
+     2. *Fuzzy Matching & Disambiguasi*: Mengenali nama panggilan akrab (*Pak Nuryani*, *Pak Bowo*, *Mba Anna*, *Pak Dayat*, *Resqi*) dan melakukan disambiguasi jika ada kemiripan nama (*Didimus* vs *Didi Susanto*).
+     3. *Delegasi Pengusulan Rekan Kerja*: Pengusul dapat membuatkan ST untuk rekan kerjanya tanpa pengusul sendiri ikut bertugas.
+     4. *Pengecekan Bentrok Jadwal Otomatis*: Memeriksa penugasan aktif dan cuti yang disetujui melalui `AssignmentLetterConflictService`.
+     5. *Pemilihan Ketua Tim*: Jika personil >= 2 orang, asisten secara proaktif mengonfirmasi siapa Ketua Tim sebelum draf diterbitkan.
+     6. *Normalisasi Sumber Dana & PKS Mitra*: Otomatis memetakan DIPA, FOLU, DL1, dan mitra kerjasama terdaftar (*KJA, COP, MJA, BOSF, Tjiwi Kimia, CAN, ALeRT*), maupun mitra luar lainnya.
+     7. *Penerbitan Draf Sementara*: Menyimpan usulan sebagai draf `ST.DRAFT/XXXXXXXX`.
+     8. *Notifikasi Transparan ke Admin*: Mengirim notifikasi WhatsApp ke Admin Tegar berisi rincian penugasan, jenis ST resmi, dan bunyi lengkap diktum **"Untuk :"**.
+     9. *Persetujuan & Penomoran Resmi Instan*: Admin membalas pesan WhatsApp (misal: *"Nomor 244 KSA.08.09"* atau *"244 KSA.08.09"*), sistem otomatis menerbitkan nomor resmi `ST.[NOMOR]/K.18/TU/[KLASIFIKASI]/B/[BULAN]/[TAHUN]`, memperbarui status menjadi `approved`, memancarkan event `AdminInboxChanged`, dan mengabari pemohon.
+   - **Komponen Teknis yang Diselesaikan**:
+     - Artisan CLI command: `php artisan hermes:st {check-conflict|create-draft|approve-draft|list-employees}` di [`HermesSuratTugasCommand.php`](backend/app/Console/Commands/HermesSuratTugasCommand.php).
+     - Gateway WhatsApp & Web Assistant (`hermes-agent`): Live QR Web Viewer (`/qr`), endpoint polling `/api/qr-live`, dan filter adapter WhatsApp untuk membuang log refleksi internal bot.
+     - Konfigurasi Otak Hermes (VM 108): `~/.hermes/SOUL.md`, `~/.hermes/skills/bksda-superapp-ops/SKILL.md`, `~/.hermes/memories/security_guardrails.md`, dan `~/.hermes/memories/MEMORY.md`.
+   - **Hasil Uji Kasus Nyata (Terverifikasi End-to-End)**:
+     - *Uji Kasus 1 (Usulan Mandiri)*: Mbak Anisa (Inventarisasi Pesut Teluk Adang ke Kab. Paser, 4-8 Nov 2026) -> Draf `ST.DRAFT/D068BFD0` -> Disetujui Admin Tegar via WA menjadi **`ST.244/K.18/TU/KSA.08.09/B/11/2026`** (`approved`).
+     - *Uji Kasus 2 (Delegasi Rekan Kerja)*: Usulan Pelatihan Drone Balai KSDA oleh Anisa untuk personil Puji Mulyanto (Ketua Tim), Afrizal Maula Alfarisi, dan Didi Susanto (DL1, 5 Nov 2026) -> Draf `ST.DRAFT/2A749EFA` berhasil terbit tanpa memicu bentrok jadwal Anisa.
+
+
+13. **Modul Kepegawaian & Pengaturan Uang Makan – Manajemen Modular Bank Penyalur, Sinkronisasi Roster Resmi 113 Pegawai, Sanitasi Kontak, dan Pembersihan UI/UX (3 November 2026 - Sesi Sore)**:
    - **Penyelarasan Roster Resmi Alokasi Bank Pegawai (113 ASN)**:
      - Dijalankan via migrasi idempotent `2026_11_03_190000_sync_employee_bank_allocations.php` dengan pencocokan nama berbasis normalisasi fonetik/gelar akademik tanpa bentrok.
      - Terpetakan 100% presisi: **53 PNS BRI**, **39 PNS Mandiri**, **4 PPPK Mandiri**, dan **17 PPPK BRI**.
