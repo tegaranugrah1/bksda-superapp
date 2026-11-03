@@ -296,7 +296,7 @@ export default function STBuilderPreview({
               <p style={{ textAlign: "center", fontSize: "11pt", margin: "0 0 16px" }}>
                 Nomor : {nomorNumberingType === "naskah_auto"
                   ? (customNomorNaskah || "${nomor_naskah}")
-                  : `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`}
+                  : `ST.${stNumber?.trim() || "\u00A0\u00A0\u00A0\u00A0"}/${stCode || "\u00A0\u00A0\u00A0\u00A0"}/${currentMonth}/${currentYear}`}
               </p>
 
               {/* === KEPALA BALAI / HEADER MODULAR === */}

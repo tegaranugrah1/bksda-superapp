@@ -197,7 +197,7 @@ export async function exportSuratTugasWord(
     lampiranTtdTable.innerHTML = `
       <tr style="border: none;">
         <td style="width: 42%; vertical-align: top; border: none; padding: 0;">&nbsp;</td>
-        <td style="width: 58%; vertical-align: top; text-align: left; border: none; padding: 0 0 0 10pt;">
+        <td style="width: 58%; vertical-align: top; text-align: left; border: none; padding: 26pt 0 0 10pt;">
           ${lampiranTtd.outerHTML}
         </td>
       </tr>

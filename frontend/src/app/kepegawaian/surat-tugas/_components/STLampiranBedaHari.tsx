@@ -156,7 +156,7 @@ export default function STLampiranBedaHari({
   const fullNomor =
     nomorNumberingType === "naskah_auto"
       ? (customNomorNaskah || "${nomor_naskah}")
-      : `ST.${stNumber || "..."}/${stCode || "..."}/${currentMonth}/${currentYear}`;
+      : `ST.${stNumber?.trim() || "\u00A0\u00A0\u00A0\u00A0"}/${stCode || "\u00A0\u00A0\u00A0\u00A0"}/${currentMonth}/${currentYear}`;
   const tanggalText = tanggalSurat ? formatDateIndonesian(tanggalSurat) : "...";
 
   return (
@@ -291,7 +291,7 @@ export default function STLampiranBedaHari({
       <div
         className="lampiran-ttd"
         style={{
-          marginTop: "1.6rem",
+          marginTop: "2.2rem",
           marginLeft: "9.2cm",
           textAlign: "left",
         }}

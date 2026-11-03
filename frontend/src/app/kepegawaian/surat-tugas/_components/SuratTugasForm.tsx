@@ -3947,7 +3947,7 @@ export function SuratTugasForm({
             <span className="font-mono text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800/50">
               {nomorNumberingType === "naskah_auto"
                 ? customNomorNaskah || "${nomor_naskah}"
-                : `ST.${stNumber || "..."} / K.18/TU/${klasifikasi || "..."}/B`}
+                : `ST.${stNumber?.trim() || "\u00A0\u00A0\u00A0\u00A0"} / K.18/TU/${klasifikasi || "\u00A0\u00A0\u00A0\u00A0"}/B`}
             </span>
           </div>
           <div className="flex items-center gap-2">
