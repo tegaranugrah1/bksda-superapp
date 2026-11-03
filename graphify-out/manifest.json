@@ -1045,8 +1045,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php": {
-    "mtime": 1793694179.5530596,
-    "ast_hash": "f46c9b62c5db3a227c6d1b403999174d",
+    "mtime": 1793702602.5788817,
+    "ast_hash": "9f56ad5612081a78a97b0db1f3ab262f",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793618266.343113,
-    "ast_hash": "d6fd65ad911f1bb46ab30312d1a4d1a9",
+    "mtime": 1793701780.632508,
+    "ast_hash": "fddeabe76b303fcae3824e4a9493e3cd",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -7705,8 +7705,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php": {
-    "mtime": 1793693693.3277316,
-    "ast_hash": "545327fda1c49a84fda2d62e0f416cc2",
+    "mtime": 1793702580.367512,
+    "ast_hash": "04042818989551c9178cf1a8e213073b",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/MealAllowanceBatch.php": {
@@ -7735,8 +7735,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php": {
-    "mtime": 1793689735.048154,
-    "ast_hash": "4a3feb72d59e5453c1b22621bfcd5351",
+    "mtime": 1793702616.1844509,
+    "ast_hash": "8a097bc218f5c90f94c02056255c4022",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php": {
@@ -7770,13 +7770,13 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php": {
-    "mtime": 1793693720.85753,
-    "ast_hash": "81a2554e023ec3a93b1a5f2f775c7314",
+    "mtime": 1793702891.6471195,
+    "ast_hash": "699b8d2f36cf2b349f5866702eca91e3",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/uang-makan/page.tsx": {
-    "mtime": 1793689242.7542968,
-    "ast_hash": "9b91780c37fb72fb0b4d094e183ebdf3",
+    "mtime": 1793702407.3298473,
+    "ast_hash": "3bfe15eabb91b09bef92020933149de3",
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-uang-makan.playwright.cjs": {
@@ -7880,48 +7880,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/settings/_components/MealAllowanceHolidaysTab.tsx": {
-    "mtime": 1793695831.4448733,
-    "ast_hash": "2908218c18fe45574577b37e112c0e0b",
-    "semantic_hash": ""
-  },
-  "scratch/fix_interface.js": {
-    "mtime": 1793689238.2884154,
-    "ast_hash": "71567643b5d48c5d3063c513ae4b5123",
-    "semantic_hash": ""
-  },
-  "scratch/update_nominatif.js": {
-    "mtime": 1793689201.0997448,
-    "ast_hash": "8fcae2469d4256d961f141e4dc85f832",
-    "semantic_hash": ""
-  },
-  "scratch/update_uang_makan.js": {
-    "mtime": 1793689155.6658256,
-    "ast_hash": "baad87973459ef5f5804ee07b91855cb",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_detail.js": {
-    "mtime": 1793689913.8437128,
-    "ast_hash": "5ff4bc1ae6a6ba887db591cfc3d25c8f",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_types.js": {
-    "mtime": 1793689793.6636124,
-    "ast_hash": "ce55b62a67b1a47e8f7ee259c68fb673",
-    "semantic_hash": ""
-  },
-  "scratch/update_holidays_tab.js": {
-    "mtime": 1793689839.214234,
-    "ast_hash": "bbb358356bd45a7bfdbb34ee8d65419a",
-    "semantic_hash": ""
-  },
-  "scratch/update_modular_banks.js": {
-    "mtime": 1793691048.6334713,
-    "ast_hash": "f5f7e2f9029796a972eb3fe4a92f5c13",
-    "semantic_hash": ""
-  },
-  "scratch/add_delete_bank.js": {
-    "mtime": 1793691295.4521725,
-    "ast_hash": "1cd036d802258681ad7ea22c238a3773",
+    "mtime": 1793702672.9220915,
+    "ast_hash": "50a58140f73220525e0df65094014ecc",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_lib/bank-themes.ts": {
@@ -7934,54 +7894,9 @@
     "ast_hash": "3c066d9fed388668fb44159d8b7ddee2",
     "semantic_hash": ""
   },
-  "scratch/add_test.js": {
-    "mtime": 1793692126.5373638,
-    "ast_hash": "ad6b554acd735b4228d9c311c1f7f53f",
-    "semantic_hash": ""
-  },
-  "scratch/build_employee_page.js": {
-    "mtime": 1793693028.3662417,
-    "ast_hash": "ff34beaa4b088ea1b4ee171b157a2796",
-    "semantic_hash": ""
-  },
-  "scratch/update_audit_labels.js": {
-    "mtime": 1793691807.3443847,
-    "ast_hash": "9c927726a1b70f1fcc5405268256d210",
-    "semantic_hash": ""
-  },
   "backend/database/migrations/2026_11_03_160000_add_email_to_kpg_employees_table.php": {
     "mtime": 1793692777.8388126,
     "ast_hash": "37581b0a0c34a9f6624db1e525a5ec0e",
-    "semantic_hash": ""
-  },
-  "scratch/check_emp.php": {
-    "mtime": 1793692796.8637223,
-    "ast_hash": "ff7a28da5a663ed4cac4ec4f9c625762",
-    "semantic_hash": ""
-  },
-  "scratch/update_audit_email.js": {
-    "mtime": 1793692892.4606814,
-    "ast_hash": "7bfb777b7cb5cb93b7eb3296e9450c3e",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_controller.js": {
-    "mtime": 1793692862.4485965,
-    "ast_hash": "76639870eb0743b79084d1afe9ae8c01",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_model.js": {
-    "mtime": 1793692827.3897653,
-    "ast_hash": "4cee064403452db2cf3ff8f154f58966",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_request.js": {
-    "mtime": 1793692845.4415524,
-    "ast_hash": "39bef496be17845d3c1e72d93d397018",
-    "semantic_hash": ""
-  },
-  "scratch/update_types.js": {
-    "mtime": 1793692873.4203281,
-    "ast_hash": "376f3bab99adc10fbc1bebaa112c4907",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_03_170000_create_kpg_registered_banks_table.php": {
@@ -7989,69 +7904,9 @@
     "ast_hash": "24f635cd1eb5a088782b1992a953e067",
     "semantic_hash": ""
   },
-  "scratch/add_bank_test.js": {
-    "mtime": 1793693711.628978,
-    "ast_hash": "233a9bfad74f7f0c6035ec08833fd47f",
-    "semantic_hash": ""
-  },
-  "scratch/check_banks.php": {
-    "mtime": 1793693367.270862,
-    "ast_hash": "f08433123ca2a50a4cf4a86bab49c50e",
-    "semantic_hash": ""
-  },
-  "scratch/list_tables.php": {
-    "mtime": 1793693348.4695904,
-    "ast_hash": "bb00c08803ce7e542eed3ec7979e0a2c",
-    "semantic_hash": ""
-  },
-  "scratch/update_backend_banks.js": {
-    "mtime": 1793693683.756389,
-    "ast_hash": "9d25a181bfdec5155c6d2a593ae4667b",
-    "semantic_hash": ""
-  },
-  "scratch/update_employee_page_banks.js": {
-    "mtime": 1793693882.345445,
-    "ast_hash": "4a3ea9a44b18c99312615a786f59a429",
-    "semantic_hash": ""
-  },
-  "scratch/update_settings_tab.js": {
-    "mtime": 1793693850.6717257,
-    "ast_hash": "f64e24adc3dcf5fdad2ef638ad5c1448",
-    "semantic_hash": ""
-  },
   "backend/database/migrations/2026_11_03_180000_clean_placeholder_dashes_in_kpg_employees.php": {
     "mtime": 1793694154.2874374,
     "ast_hash": "469748651440d1b2a8776c718cedcd84",
-    "semantic_hash": ""
-  },
-  "scratch/check_dash_counts.php": {
-    "mtime": 1793694113.9914958,
-    "ast_hash": "d357c39f65789454e02263b56f30d0c9",
-    "semantic_hash": ""
-  },
-  "scratch/check_emp_63.php": {
-    "mtime": 1793694092.674543,
-    "ast_hash": "ae012972f801217db642cf5655505b7e",
-    "semantic_hash": ""
-  },
-  "scratch/clean_dash_phones.php": {
-    "mtime": 1793694141.7427032,
-    "ast_hash": "78d56afb306d9adcfd43e2b44256f669",
-    "semantic_hash": ""
-  },
-  "scratch/fix_dash_handling.js": {
-    "mtime": 1793694291.635275,
-    "ast_hash": "750e805ad3360f5568ce9bc06ef3ec9b",
-    "semantic_hash": ""
-  },
-  "scratch/update_request_dash.js": {
-    "mtime": 1793694174.9361763,
-    "ast_hash": "ff3bf0cb3c626ceaeeeccfe85ebf37de",
-    "semantic_hash": ""
-  },
-  "scratch/remove_ai_slop.js": {
-    "mtime": 1793694436.1563504,
-    "ast_hash": "06b06a7204c31229c6a249d28091d89e",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_03_190000_sync_employee_bank_allocations.php": {
@@ -8059,69 +7914,39 @@
     "ast_hash": "c488fd9d5523eca849f8df0c023f5ec0",
     "semantic_hash": ""
   },
-  "scratch/check_active_stats.php": {
-    "mtime": 1793694703.8506496,
-    "ast_hash": "e9f83c34d064f977bffcfc1f92f9c5a6",
+  "backend/tests/Feature/EmployeeBankAllocationSecurityTest.php": {
+    "mtime": 1793702850.6318014,
+    "ast_hash": "332594e89ee386804ea6d6f55d3cdd6f",
     "semantic_hash": ""
   },
-  "scratch/check_all_emps.php": {
-    "mtime": 1793694664.262663,
-    "ast_hash": "119431e2c7056280812e485ec212750d",
+  "frontend/tests/kepegawaian-bank-allocation.playwright.cjs": {
+    "mtime": 1793703057.80954,
+    "ast_hash": "a9e728a97e07cdc8272ceae5123cd7bd",
     "semantic_hash": ""
   },
-  "scratch/check_db_banks.php": {
-    "mtime": 1793695052.4554214,
-    "ast_hash": "b30c2cf77c2e8395c9cfa8c8b447f479",
+  "docs/hermes-agent/progress-surat-tugas.md": {
+    "mtime": 1793696339.4223351,
+    "ast_hash": "41e8a2e3c54454ecb61a29d1e93de80f",
     "semantic_hash": ""
   },
-  "scratch/check_other_employees.php": {
-    "mtime": 1793695064.7339032,
-    "ast_hash": "6ac8abd8c32f5acf6de24e213c88b073",
+  "docs/kepegawaian/alokasi-bank-dan-biodata/design.md": {
+    "mtime": 1793702063.1878004,
+    "ast_hash": "62ee966524e973db7e4fc75f9300824e",
     "semantic_hash": ""
   },
-  "scratch/check_registered_banks.php": {
-    "mtime": 1793695136.9723709,
-    "ast_hash": "8d69210895f8c68bc94510a5f56f4313",
+  "docs/kepegawaian/alokasi-bank-dan-biodata/requirements.md": {
+    "mtime": 1793702078.862378,
+    "ast_hash": "d49256c31c733b85d6e1538c83f5139f",
     "semantic_hash": ""
   },
-  "scratch/dump_emp_names.php": {
-    "mtime": 1793694716.5431747,
-    "ast_hash": "e37909e8ec220b4fc01684d35a97ba9c",
+  "docs/kepegawaian/alokasi-bank-dan-biodata/security.md": {
+    "mtime": 1793701654.6399887,
+    "ast_hash": "7fddfd80a050a1a347f88a2bd53e9622",
     "semantic_hash": ""
   },
-  "scratch/export_bank_ids.php": {
-    "mtime": 1793695034.8254366,
-    "ast_hash": "3a8285bfc10940ac7f21025b71c0d42a",
-    "semantic_hash": ""
-  },
-  "scratch/inspect_syafey_hasil.php": {
-    "mtime": 1793694627.8864477,
-    "ast_hash": "e5d32ea0e434045b4774b26a38047a56",
-    "semantic_hash": ""
-  },
-  "scratch/match_bank_data.php": {
-    "mtime": 1793695075.0838985,
-    "ast_hash": "453a30cb6bdda410d3c975d1ecf455d8",
-    "semantic_hash": ""
-  },
-  "scratch/search_syafey_xls.php": {
-    "mtime": 1793694671.0721073,
-    "ast_hash": "85d6b2359a8123ba093062a9db71c97c",
-    "semantic_hash": ""
-  },
-  "scratch/search_unmatched.php": {
-    "mtime": 1793694566.7923777,
-    "ast_hash": "0643cdb644ae1d35f389781bcf9a2b4b",
-    "semantic_hash": ""
-  },
-  "scratch/search_unmatched2.php": {
-    "mtime": 1793694579.4397602,
-    "ast_hash": "30893529da6065aa13099918f6b52ada",
-    "semantic_hash": ""
-  },
-  "scratch/all_emp_names.txt": {
-    "mtime": 1793694732.381454,
-    "ast_hash": "c39fb80158185e362da05d6a0e30dbb1",
+  "docs/kepegawaian/alokasi-bank-dan-biodata/test-plan.md": {
+    "mtime": 1793701627.7002234,
+    "ast_hash": "71fb0c32e43708106601c412d1382c8f",
     "semantic_hash": ""
   }
 }

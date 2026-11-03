@@ -4,6 +4,7 @@ namespace App\Modules\Kepegawaian\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\EmployeeHistory;
 use App\Modules\Kepegawaian\Models\Holiday;
 use App\Modules\Kepegawaian\Models\MealAllowanceBatch;
 use App\Modules\Kepegawaian\Models\MealAllowanceItem;
@@ -545,30 +546,32 @@ class MealAllowanceController extends Controller
         ])->where('is_active', true);
 
         if ($request->filled('search')) {
-            $s = trim($request->input('search'));
-            $query->where(function ($q) use ($s) {
-                $q->where('nama_lengkap', 'like', "%{$s}%")
-                  ->orWhere('nip', 'like', "%{$s}%");
+            $s = trim((string) $request->input('search'));
+            $escaped = addcslashes($s, '%_\\');
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($escaped, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$escaped}%")
+                  ->orWhere('nip', $likeOp, "%{$escaped}%");
             });
         }
 
         if ($request->filled('bank')) {
-            $query->where('nama_bank', $request->input('bank'));
+            $b = trim((string) $request->input('bank'));
+            if ($b !== 'all' && $b !== '') {
+                $query->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($b)]);
+            }
         }
 
         if ($request->filled('group')) {
-            $g = strtolower($request->input('group'));
-            if ($g === 'pns') {
-                $query->where('pangkat_golongan', 'not like', '%PPPK%');
-            } elseif ($g === 'pppk') {
-                $query->where('pangkat_golongan', 'like', '%PPPK%');
+            $g = strtoupper(trim((string) $request->input('group')));
+            if (in_array($g, ['PNS', 'PPPK', 'MMP'])) {
+                $query->ofJenis($g);
             }
         }
 
         $employees = $query->orderBy('nama_lengkap', 'asc')->get();
 
         $items = $employees->map(function ($emp) {
-            $isPppk = str_contains(strtoupper($emp->pangkat_golongan ?? ''), 'PPPK');
             return [
                 'id' => $emp->id,
                 'nip' => $emp->nip,
@@ -576,7 +579,7 @@ class MealAllowanceController extends Controller
                 'jabatan' => $emp->jabatan,
                 'golongan' => $emp->pangkat_golongan,
                 'satuan_kerja' => $emp->satuan_kerja,
-                'jenis_pegawai' => $isPppk ? 'PPPK' : 'PNS',
+                'jenis_pegawai' => $emp->jenis_pegawai,
                 'nama_bank' => $emp->nama_bank ?: 'BRI',
                 'nomor_rekening' => $emp->nomor_rekening ?: '',
                 'telepon' => $emp->telepon ?: '',
@@ -587,8 +590,8 @@ class MealAllowanceController extends Controller
             'success' => true,
             'data' => [
                 'total' => count($items),
-                'total_mandiri' => $items->where('nama_bank', 'Mandiri')->count(),
-                'total_bri' => $items->where('nama_bank', 'BRI')->count(),
+                'total_mandiri' => $items->filter(fn($it) => strcasecmp($it['nama_bank'], 'Mandiri') === 0)->count(),
+                'total_bri' => $items->filter(fn($it) => strcasecmp($it['nama_bank'], 'BRI') === 0)->count(),
                 'items' => $items->values(),
             ],
         ]);
@@ -602,8 +605,23 @@ class MealAllowanceController extends Controller
     {
         $validated = $request->validate([
             'employee_ids' => ['required', 'array', 'min:1'],
-            'employee_ids.*' => ['required', 'integer'],
-            'nama_bank' => ['nullable', 'string', 'max:50'],
+            'employee_ids.*' => ['required', 'integer', 'exists:kpg_employees,id'],
+            'nama_bank' => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $b = trim((string) $value);
+                    if ($b !== '') {
+                        $exists = DB::table('kpg_registered_banks')
+                            ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($b)])
+                            ->exists();
+                        if (!$exists) {
+                            $fail("Bank '{$value}' belum terdaftar di pengaturan master bank.");
+                        }
+                    }
+                },
+            ],
             'nomor_rekening' => ['nullable', 'string', 'max:50'],
             'telepon' => ['nullable', 'string', 'max:30'],
             'single_update' => ['nullable', 'boolean'],
@@ -613,15 +631,20 @@ class MealAllowanceController extends Controller
         $updateData = [];
 
         if (!empty($validated['nama_bank'])) {
-            $updateData['nama_bank'] = $validated['nama_bank'];
+            $canonicalBank = DB::table('kpg_registered_banks')
+                ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower(trim($validated['nama_bank']))])
+                ->value('nama_bank') ?: trim($validated['nama_bank']);
+            $updateData['nama_bank'] = $canonicalBank;
         }
 
         if (!empty($validated['single_update'])) {
             if (array_key_exists('nomor_rekening', $validated)) {
-                $updateData['nomor_rekening'] = $validated['nomor_rekening'];
+                $r = isset($validated['nomor_rekening']) ? trim(strip_tags((string) $validated['nomor_rekening'])) : null;
+                $updateData['nomor_rekening'] = ($r === '' || $r === '-') ? null : $r;
             }
             if (array_key_exists('telepon', $validated)) {
-                $updateData['telepon'] = $validated['telepon'];
+                $t = isset($validated['telepon']) ? trim(strip_tags((string) $validated['telepon'])) : null;
+                $updateData['telepon'] = ($t === '' || $t === '-') ? null : $t;
             }
         }
 
@@ -632,8 +655,33 @@ class MealAllowanceController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($ids, $updateData) {
-            Employee::whereIn('id', $ids)->update($updateData);
+        DB::transaction(function () use ($ids, $updateData, $request) {
+            $employees = Employee::whereIn('id', $ids)->get();
+            $userId = $request->user()?->id;
+
+            foreach ($employees as $emp) {
+                $changes = [];
+                foreach ($updateData as $col => $newVal) {
+                    if ($emp->{$col} !== $newVal) {
+                        $changes[$col] = [
+                            'old' => $emp->{$col},
+                            'new' => $newVal,
+                        ];
+                    }
+                }
+
+                if (!empty($changes)) {
+                    $emp->update($updateData);
+                    EmployeeHistory::create([
+                        'employee_id' => $emp->id,
+                        'user_id' => $userId,
+                        'action' => 'UPDATE_BANK_ALLOCATION',
+                        'changes' => $changes,
+                        'notes' => 'Pembaruan alokasi bank / rekening via Pengaturan',
+                        'created_at' => now(),
+                    ]);
+                }
+            }
         });
 
         return response()->json([
@@ -687,7 +735,9 @@ class MealAllowanceController extends Controller
     public function storeRegisteredBank(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nama_bank' => ['required', 'string', 'max:50'],
+            'nama_bank' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z0-9 .&\-]+$/'],
+        ], [
+            'nama_bank.regex' => 'Nama bank hanya boleh memuat huruf, angka, spasi, titik, ampersand (&), dan tanda hubung (-).',
         ]);
 
         $bankName = trim(strip_tags($validated['nama_bank']));

@@ -39,7 +39,15 @@ class EmployeeRequest extends FormRequest
             $this->merge(['masa_kerja' => strip_tags(trim((string) $this->input('masa_kerja'))) ?: null]);
         }
         if ($this->has('nama_bank')) {
-            $this->merge(['nama_bank' => strip_tags(trim((string) $this->input('nama_bank'))) ?: null]);
+            $rawBank = strip_tags(trim((string) $this->input('nama_bank')));
+            if ($rawBank === '' || $rawBank === '-') {
+                $this->merge(['nama_bank' => null]);
+            } else {
+                $canonical = \Illuminate\Support\Facades\DB::table('kpg_registered_banks')
+                    ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($rawBank)])
+                    ->value('nama_bank');
+                $this->merge(['nama_bank' => $canonical ?: $rawBank]);
+            }
         }
         if ($this->has('nomor_rekening')) {
             $r = strip_tags(trim((string) $this->input('nomor_rekening')));
@@ -102,7 +110,22 @@ class EmployeeRequest extends FormRequest
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
             'masa_kerja' => ['nullable', 'string', 'max:100'],
-            'nama_bank' => ['nullable', 'string', 'max:50'],
+            'nama_bank' => [
+                'nullable',
+                'string',
+                'max:50',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $bankVal = trim((string) $value);
+                    if ($bankVal !== '') {
+                        $exists = \Illuminate\Support\Facades\DB::table('kpg_registered_banks')
+                            ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($bankVal)])
+                            ->exists();
+                        if (!$exists) {
+                            $fail("Bank '{$value}' belum terdaftar di pengaturan master bank.");
+                        }
+                    }
+                },
+            ],
             'nomor_rekening' => ['nullable', 'string', 'max:50'],
             'telepon' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:100'],

@@ -74,7 +74,8 @@ class MealAllowanceExcelExport
 
         foreach ($items as $item) {
             $gol = strtoupper((string) ($item['golongan'] ?? ''));
-            $isPppk = str_contains($gol, 'PPPK');
+            $jenis = strtoupper((string) ($item['jenis_pegawai'] ?? ''));
+            $isPppk = ($jenis === 'PPPK') || str_contains($gol, 'PPPK') || str_contains($gol, 'P3K') || str_starts_with($gol, 'GOLONGAN ');
             $rawBank = trim((string) ($item['nama_bank'] ?? 'BRI'));
             $code = $bankCodeHelper($rawBank);
             $typePrefix = $isPppk ? 'PPPK' : 'PNS';

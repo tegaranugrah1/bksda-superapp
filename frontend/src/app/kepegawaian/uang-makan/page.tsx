@@ -58,6 +58,7 @@ export interface ReconciledEmployeeItem {
   nama: string;
   jabatan: string;
   golongan: string;
+  jenis_pegawai?: string;
   nama_bank?: string;
   nomor_rekening?: string;
   telepon?: string;
@@ -187,7 +188,9 @@ export default function UangMakanPage() {
     };
 
     items.forEach((it) => {
-      const isPppk = it.golongan.toLowerCase().includes("pppk");
+      const isPppk = it.jenis_pegawai
+        ? it.jenis_pegawai === "PPPK"
+        : (it.golongan || "").toLowerCase().includes("pppk");
       const isMandiri = (it.nama_bank || "").toLowerCase().includes("mandiri");
       if (!isPppk && !isMandiri) {
         stats.PNS_BRI.count++;
@@ -269,6 +272,10 @@ export default function UangMakanPage() {
       nama: it.nama_lengkap ?? it.nama ?? "",
       jabatan: it.jabatan ?? "",
       golongan: it.golongan ?? "",
+      jenis_pegawai: it.jenis_pegawai,
+      nama_bank: it.nama_bank || "BRI",
+      nomor_rekening: it.nomor_rekening || "",
+      telepon: it.telepon || "",
       tarif,
       pph_rate,
       daily_matrix: daily,

@@ -128,7 +128,7 @@ interface EmployeeBankItem {
   jabatan: string;
   golongan: string;
   satuan_kerja: string;
-  jenis_pegawai: "PNS" | "PPPK";
+  jenis_pegawai: "PNS" | "PPPK" | "MMP" | string;
   nama_bank: "BRI" | "Mandiri" | string;
   nomor_rekening: string;
   telepon: string;
@@ -335,7 +335,8 @@ export function MealAllowanceHolidaysTab() {
       const matchGroup =
         filterGroup === "all" ||
         (filterGroup === "PNS" && emp.jenis_pegawai === "PNS") ||
-        (filterGroup === "PPPK" && emp.jenis_pegawai === "PPPK");
+        (filterGroup === "PPPK" && emp.jenis_pegawai === "PPPK") ||
+        (filterGroup === "MMP" && emp.jenis_pegawai === "MMP");
 
       return matchSearch && matchBank && matchGroup;
     });
@@ -801,9 +802,10 @@ export function MealAllowanceHolidaysTab() {
                   onChange={(e) => setFilterGroup(e.target.value)}
                   className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-200"
                 >
-                  <option value="all">Semua Status (PNS &amp; PPPK)</option>
+                  <option value="all">Semua Status (PNS, PPPK &amp; MMP)</option>
                   <option value="PNS">Hanya PNS</option>
                   <option value="PPPK">Hanya PPPK</option>
+                  <option value="MMP">Hanya MMP (Tenaga Lapangan)</option>
                 </select>
 
                 <select
@@ -967,6 +969,8 @@ export function MealAllowanceHolidaysTab() {
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
                                   emp.jenis_pegawai === "PPPK"
                                     ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                                    : emp.jenis_pegawai === "MMP"
+                                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
                                     : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 }`}
                               >
@@ -1378,15 +1382,9 @@ export function MealAllowanceHolidaysTab() {
                     </button>
                   ))}
                 </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Atau ketik nama bank lain (misal: Bankaltimtara, BNI, BCA)..."
-                    value={editBank}
-                    onChange={(e) => setEditBank(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white font-semibold uppercase"
-                  />
-                </div>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-2">
+                  Pilih salah satu bank terdaftar di atas. Jika bank yang dituju belum ada, daftarkan terlebih dahulu di tab <strong>Kelola Opsi Bank</strong>.
+                </p>
               </div>
 
               <div>

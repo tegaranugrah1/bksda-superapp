@@ -465,7 +465,9 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
         $invalidResp->assertStatus(422);
         $invalidResp->assertJsonValidationErrors(['employee_ids']);
 
-        // 3. Admin batch update to BSI (Bank Syariah Indonesia) & Mandiri
+        // 3. Register BSI first, then admin batch update to BSI (Bank Syariah Indonesia) & Mandiri
+        $this->postJson('/api/kepegawaian/settings/registered-banks', ['nama_bank' => 'BSI'])->assertStatus(201);
+
         $bsiResp = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
             'employee_ids' => [$this->employeeSyafey->id],
             'nama_bank' => 'BSI',
