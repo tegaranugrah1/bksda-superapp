@@ -301,10 +301,10 @@ export default function STLampiranBedaHari({
           className="ttd-placeholder"
           style={{
             margin: "14px 0 0",
-            height: "105px",
+            height: "125px",
             display: "flex",
-            alignItems: "flex-start",
-            paddingTop: "34px",
+            alignItems: "center",
+            paddingTop: "0",
             paddingLeft: "1.35cm",
             boxSizing: "border-box",
             color: "#94a3b8",
