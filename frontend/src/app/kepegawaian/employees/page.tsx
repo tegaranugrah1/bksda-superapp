@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
 import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
 
@@ -523,8 +523,16 @@ export default function EmployeeListPage() {
         )}
       </div>
 
-      {/* 4. Table Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs">
+      {/* 4. Table Card with Motion Glide Transition */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${jenisFilter}-${statusFilter}-${wilayahFilter}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+          className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs"
+        >
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50/80 dark:bg-zinc-800/50 border-b border-slate-200/80 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
@@ -759,7 +767,8 @@ export default function EmployeeListPage() {
             </div>
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
 
       {canManageAccess && (
         <EmployeeAccessSheet

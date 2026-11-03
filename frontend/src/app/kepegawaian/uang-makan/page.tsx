@@ -42,7 +42,7 @@ import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Status options for daily attendance
 const STATUS_OPTIONS = [
@@ -903,8 +903,17 @@ export default function UangMakanPage() {
         )}
       </div>
 
-      {/* Tab 1: Upload & Reconciliation Drag-and-Drop */}
-      {activeTab === "upload" && (
+      {/* Tab Panels with Motion Glide Transition ala Detail Pegawai */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+        >
+          {/* Tab 1: Upload & Reconciliation Drag-and-Drop */}
+          {activeTab === "upload" && (
         <div className="space-y-6">
           <div
             onDragOver={(e) => {
@@ -1456,6 +1465,8 @@ export default function UangMakanPage() {
           )}
         </div>
       )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Modal Koreksi Presensi Khusus Admin & Super Admin */}
       {editingModal && (

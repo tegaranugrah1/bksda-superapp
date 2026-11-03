@@ -3,6 +3,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Settings, FileText, Banknote, Calendar, Briefcase, Coins } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { StTemplatesTab } from "./st-templates/_components/StTemplatesTab";
 import { ExpenseTemplatesTab } from "./st-templates/_components/ExpenseTemplatesTab";
 import { LeaveTypesTab } from "./st-templates/_components/LeaveTypesTab";
@@ -52,80 +54,59 @@ function KepegawaianSettingsContent() {
         </div>
       </div>
 
-      {/* Tabs Switcher */}
+      {/* Tabs Switcher with Sliding Indicator ala Detail Pegawai */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-1.5 shadow-2xs inline-flex flex-wrap gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab("st_templates")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-            activeTab === "st_templates"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
-          }`}
-        >
-          <FileText className="w-3.5 h-3.5" />
-          Template Surat Tugas
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("task_types")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-            activeTab === "task_types"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Briefcase className="w-3.5 h-3.5" />
-          Jenis Tugas ST
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("expense_templates")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-            activeTab === "expense_templates"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Banknote className="w-3.5 h-3.5" />
-          Template Biaya &amp; Sumber Dana
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("leave_types")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-            activeTab === "leave_types"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Calendar className="w-3.5 h-3.5" />
-          Jenis Surat Cuti
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("uang_makan")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-            activeTab === "uang_makan"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Coins className="w-3.5 h-3.5" />
-          Uang Makan &amp; Hari Libur
-        </button>
+        {[
+          { id: "st_templates", label: "Template Surat Tugas", icon: FileText },
+          { id: "task_types", label: "Jenis Tugas ST", icon: Briefcase },
+          { id: "expense_templates", label: "Template Biaya & Sumber Dana", icon: Banknote },
+          { id: "leave_types", label: "Jenis Surat Cuti", icon: Calendar },
+          { id: "uang_makan", label: "Uang Makan & Hari Libur", icon: Coins },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "relative px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer select-none",
+                isActive
+                  ? "text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800"
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="activeSettingsTabIndicator"
+                  className="absolute inset-0 bg-blue-600 rounded-xl shadow-xs"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <Icon className="w-3.5 h-3.5 relative z-10" />
+              <span className="relative z-10">{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tab Panels */}
-      {activeTab === "st_templates" && <StTemplatesTab />}
-      {activeTab === "task_types" && <TaskTypesTab />}
-      {activeTab === "expense_templates" && <ExpenseTemplatesTab />}
-      {activeTab === "leave_types" && <LeaveTypesTab />}
-      {activeTab === "uang_makan" && <MealAllowanceHolidaysTab />}
+      {/* Tab Panels with Motion Glide Transition ala Detail Pegawai */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+        >
+          {activeTab === "st_templates" && <StTemplatesTab />}
+          {activeTab === "task_types" && <TaskTypesTab />}
+          {activeTab === "expense_templates" && <ExpenseTemplatesTab />}
+          {activeTab === "leave_types" && <LeaveTypesTab />}
+          {activeTab === "uang_makan" && <MealAllowanceHolidaysTab />}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -469,8 +469,16 @@ export default function InboxSuratCutiPage() {
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+      {/* Data Table Container with Motion Glide Transition */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${selectedStatus}-${selectedYear}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs"
+        >
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">
             <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -899,7 +907,8 @@ export default function InboxSuratCutiPage() {
             </div>
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Modals Cuti */}
       <EditLeaveModal

@@ -1,16 +1,21 @@
-# Progress — Modernisasi Animate UI (Shadcn Motion Primitives) & Peta Jalan Seluruh Modul (03 November 2026)
+# Progress — Modernisasi Animate UI (Shadcn Motion Primitives) & Ekspansi Penuh Modul Kepegawaian (04 November 2026)
 
-> Status: **PILOT SELESAI & PETA JALAN INVENTARIS RESMI TERBIT (Pilot Detail Pegawai 100% Lulus, Panduan Desain & 7 Resep Gerak Standar Terbit, Inventaris 102 Halaman Selesai Dipetakan)**.  
+> Status: **SELESAI PENUH (Pilot Detail Pegawai, Uang Makan, Settings, Surat Tugas Inbox, Cuti, Daftar Pegawai, dan Dashboard Kepegawaian 100% Menggunakan Motion Primitives Berbasis Framer Motion & Shadcn UI)**.  
 > Branch: `codex/portal-security-pentest`  
 > Referensi: Panduan Desain ([`docs/animate-ui-motion-guidelines.md`](file:///e:/bksda-superapp/docs/animate-ui-motion-guidelines.md)) & Laporan Inventaris ([`animate-ui-roadmap-and-inventory.md`](file:///C:/Users/USER/.gemini/antigravity/brain/0d16b89b-13d8-4156-8565-5ffecddb9f93/animate-ui-roadmap-and-inventory.md)).
 
-## Status Modernisasi Animate UI per Modul
+## Status Modernisasi Animate UI Modul Kepegawaian
 
-| Pilar / Inisiatif | Status & Bukti | Cakupan & Hasil Pengujian |
+| Halaman / Komponen | Status & Bukti | Cakupan & Hasil Pengujian |
 |---|---|---|
-| **Pilot Detail Pegawai (`/kepegawaian/employees/[id]`)** | **SELESAI (100% Lulus)** | • Sliding Pill Tab Bar: `layoutId="activeTabIndicator"` dengan fisika pegas BKSDA Emerald.<br>• Tactile Elevation: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}` pada 4 kartu metrik utama.<br>• Smooth Tab Panel: `<AnimatePresence mode="wait">` + luncuran vertikal 8px.<br>• 1-Click Copy Micro-Bounce: Helper `CopyIcon` pada NIP, WA, Email, dan Bank.<br>• Pengujian: 15/15 Invariant Gerak Lulus (`animate-ui-motion-check.cjs`), 6/6 Playwright Suites Lulus. |
-| **Buku Panduan Standar Gerak (`docs/animate-ui-motion-guidelines.md`)** | **TERBIT RESMI** | Memuat 7 Resep Gerak Siap Pakai: Sliding Tabs, Tactile Cards, Smooth Panel, Copy Feedback, Live Pulse Badge, Modal/Drawer Entrance, dan Staggered Grid Inflow. Mematuhi prinsip `/ponytail` (Zero New Dependencies, 60 FPS, `prefers-reduced-motion`). |
-| **Audit & Peta Jalan Inventaris 102 Halaman** | **SELESAI DIMAPING** | Pemetaan 24 titik prioritas tinggi (P1: 14 halaman, P2: 8 halaman, P3: 2 halaman) mencakup seluruh modul: Kepegawaian, Persuratan, Keuangan, BMN, Inventory, De-Reporting, Portal Terpadu, Layanan Publik, dan Drive. |
+| **Pilot Detail Pegawai (`/kepegawaian/employees/[id]`)** | **SELESAI (100% Lulus)** | • Sliding Pill Tab Bar: `layoutId="activeTabIndicator"` dengan fisika pegas BKSDA Emerald.<br>• Tactile Elevation: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}` pada 4 kartu metrik utama.<br>• Smooth Tab Panel: `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>`.<br>• 1-Click Copy Micro-Bounce: Helper `CopyIcon` pada NIP, WA, Email, dan Bank. |
+| **Uang Makan Pegawai (`/kepegawaian/uang-makan`)** | **SELESAI (100% Lulus)** | • Sliding Tab Indicator: `layoutId="activeUangMakanTabIndicator"`.<br>• Smooth Panel Transition: `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` pada 4 tab (Upload, Matriks, Nominatif, Riwayat).<br>• Tactile Metric Cards: `whileHover={{ y: -3 }}` pada 4 kartu counter executive. |
+| **Setting Kepegawaian (`/kepegawaian/settings`)** | **SELESAI (100% Lulus)** | • Sliding Tab Indicator: `layoutId="activeSettingsTabIndicator"`.<br>• Smooth Panel Transition: `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` pada 5 tab master templates. |
+| **Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)** | **SELESAI (100% Lulus)** | • Status Tabs Indicator: `layoutId="activeGmailInboxTabIndicator"`.<br>• Table List Transition: `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>`.<br>• Reader View Entrance: `<motion.div>` vertikal slide-in saat membuka dokumen. |
+| **Manajemen Cuti (`/kepegawaian/cuti`)** | **SELESAI (100% Lulus)** | • Data Table Transition: `<AnimatePresence mode="wait">` + `<motion.div key={selectedStatus + selectedYear}>` saat mengganti filter.<br>• Filter Status Badges: `whileHover={{ y: -3 }}` dan pulsing beacon pada permohonan pending. |
+| **Daftar Pegawai (`/kepegawaian/employees`)** | **SELESAI (100% Lulus)** | • Table Transition: `<AnimatePresence mode="wait">` + `<motion.div key={jenisFilter + statusFilter + wilayahFilter}>` saat memilih kategori pegawai.<br>• Filter Category Cards: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}`. |
+| **Dashboard Kepegawaian (`/kepegawaian`)** | **SELESAI (100% Lulus)** | • Tactile Cards: `whileHover={{ y: -2/-3 }}` dan `whileTap={{ scale: 0.98 }}` pada 3 kartu kategori personil dan 4 bento service cards. |
+| **Suite Pengujian Otomatis (`animate-ui-motion-check.cjs`)** | **30/30 PASS (100% HIJAU)** | Memverifikasi seluruh 30 invariant gerak pada dependensi, sliding pills, animate presence, panel transitions, dan tactile cards. |
 
 ---
 

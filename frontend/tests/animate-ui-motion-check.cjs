@@ -70,6 +70,45 @@ check('CopyIcon terpasang untuk salin WhatsApp/Telepon', source.includes('<CopyI
 check('CopyIcon terpasang untuk salin Email', source.includes('<CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />'));
 check('CopyIcon terpasang untuk salin Rekening Bank', source.includes('<CopyIcon copied={copiedField === "rekening"} />'));
 
+// 7. Uang Makan Tab Panel Transitions Check
+console.log('\n[7] Memeriksa Tab Transitions Uang Makan (/kepegawaian/uang-makan)...');
+const uangMakanSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/uang-makan/page.tsx'), 'utf8');
+check('layoutId="activeUangMakanTabIndicator" terpasang', uangMakanSource.includes('layoutId="activeUangMakanTabIndicator"'));
+check('AnimatePresence mode="wait" membungkus tab panels uang makan', uangMakanSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div key={activeTab} transisi panel uang makan terpasang', uangMakanSource.includes('key={activeTab}'));
+
+// 8. Setting Kepegawaian Tab Panel Transitions Check
+console.log('\n[8] Memeriksa Tab Transitions Setting Kepegawaian (/kepegawaian/settings)...');
+const settingsSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/settings/page.tsx'), 'utf8');
+check('layoutId="activeSettingsTabIndicator" terpasang', settingsSource.includes('layoutId="activeSettingsTabIndicator"'));
+check('AnimatePresence mode="wait" membungkus tab panels settings', settingsSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div key={activeTab} transisi panel settings terpasang', settingsSource.includes('key={activeTab}'));
+
+// 9. Surat Tugas Inbox Transitions Check
+console.log('\n[9] Memeriksa Transitions Surat Tugas Inbox (/kepegawaian/surat-tugas/inbox)...');
+const inboxSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/surat-tugas/inbox/page.tsx'), 'utf8');
+check('AnimatePresence membungkus daftar surat tugas inbox', inboxSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div key={activeTab} transisi status list inbox terpasang', inboxSource.includes('key={activeTab}'));
+check('Full reader view menggunakan motion.div slide-in', inboxSource.includes('transition={{ duration: 0.18, ease: "easeOut" }}'));
+
+// 10. Cuti & Izin Table Transitions Check
+console.log('\n[10] Memeriksa Transitions Cuti (/kepegawaian/cuti)...');
+const cutiSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/cuti/page.tsx'), 'utf8');
+check('AnimatePresence membungkus tabel cuti', cutiSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div transisi tabel cuti terpasang', cutiSource.includes('key={`${selectedStatus}-${selectedYear}`}') || cutiSource.includes('key={`${selectedStatus}'));
+
+// 11. Daftar Pegawai Table Transitions Check
+console.log('\n[11] Memeriksa Transitions Daftar Pegawai (/kepegawaian/employees)...');
+const employeesSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/employees/page.tsx'), 'utf8');
+check('AnimatePresence membungkus tabel pegawai', employeesSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div transisi tabel pegawai terpasang', employeesSource.includes('key={`${jenisFilter}-${statusFilter}-${wilayahFilter}`}') || employeesSource.includes('key={`${jenisFilter}'));
+
+// 12. Dashboard Kepegawaian Tactile Motion Check
+console.log('\n[12] Memeriksa Dashboard Kepegawaian (/kepegawaian)...');
+const dashboardSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/page.tsx'), 'utf8');
+check('motion.div whileHover terpasang pada kartu kategori PNS/PPPK/MMP', dashboardSource.includes('whileHover={{ y: -2 }}'));
+check('motion.div whileHover terpasang pada 4 bento service cards', dashboardSource.includes('whileHover={{ y: -3 }}'));
+
 console.log('\n' + '='.repeat(80));
 console.log(`HASIL: Seluruh ${passCount}/${passCount} Motion Invariants BERHASIL (100% PASS)`);
 console.log('='.repeat(80));

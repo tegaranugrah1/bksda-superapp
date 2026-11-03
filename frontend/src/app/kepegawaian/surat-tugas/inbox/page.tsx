@@ -20,6 +20,7 @@ import type {
 } from "./_lib/types";
 
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { GmailInboxHeader } from "./_components/GmailInboxHeader";
 import { GmailStatusTabs } from "./_components/GmailStatusTabs";
 import { GmailToolbar } from "./_components/GmailToolbar";
@@ -634,7 +635,13 @@ export default function SuratTugasInbox() {
   // Render Full Reader View (when in full view mode & a letter is selected)
   if (!splitView && selectedLetter) {
     return (
-      <div className="p-6 space-y-6 animate-in fade-in duration-200">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="p-6 space-y-6"
+      >
         <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden h-[calc(100vh-140px)] min-h-175 flex flex-col">
           <GmailReaderView
             letter={selectedLetter}
@@ -660,7 +667,7 @@ export default function SuratTugasInbox() {
           />
         </div>
         {previewModalElement}
-      </div>
+      </motion.div>
     );
   }
 
@@ -747,57 +754,68 @@ export default function SuratTugasInbox() {
 
         {/* Content Area: Full Table vs Split Pane */}
         <div className="flex-1 flex min-h-0 overflow-hidden">
-          {/* Table / List View */}
+          {/* Table / List View with Motion Glide Transition */}
           <div
             className={`flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar ${
               splitView ? "max-w-105 lg:max-w-120 border-r border-slate-200 dark:border-zinc-800" : ""
             }`}
           >
-            {loading ? (
-              <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 animate-pulse p-2">
-                {[...Array(10)].map((_, i) => (
-                  <div key={i} className="h-11 bg-slate-50 dark:bg-zinc-800/40 rounded-lg my-1" />
-                ))}
-              </div>
-            ) : letters.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
-                <Inbox className="w-12 h-12 stroke-[1.2] opacity-20 mb-3" />
-                <p className="font-bold text-sm text-slate-600 dark:text-zinc-300">Tidak ada surat tugas</p>
-                <p className="text-xs text-slate-400 mt-1">
-                  {hasActiveFilters || debouncedSearch
-                    ? "Coba ubah kata kunci atau bersihkan filter penelusuran Anda."
-                    : "Belum ada dokumen yang sesuai dengan kategori ini."}
-                </p>
-                {(hasActiveFilters || debouncedSearch) && (
-                  <button
-                    onClick={handleResetFilters}
-                    className="mt-4 px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-zinc-300"
-                  >
-                    Reset Filter
-                  </button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+                className="flex-1 flex flex-col min-h-0"
+              >
+                {loading ? (
+                  <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 animate-pulse p-2">
+                    {[...Array(10)].map((_, i) => (
+                      <div key={i} className="h-11 bg-slate-50 dark:bg-zinc-800/40 rounded-lg my-1" />
+                    ))}
+                  </div>
+                ) : letters.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                    <Inbox className="w-12 h-12 stroke-[1.2] opacity-20 mb-3" />
+                    <p className="font-bold text-sm text-slate-600 dark:text-zinc-300">Tidak ada surat tugas</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {hasActiveFilters || debouncedSearch
+                        ? "Coba ubah kata kunci atau bersihkan filter penelusuran Anda."
+                        : "Belum ada dokumen yang sesuai dengan kategori ini."}
+                    </p>
+                    {(hasActiveFilters || debouncedSearch) && (
+                      <button
+                        onClick={handleResetFilters}
+                        className="mt-4 px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-zinc-300"
+                      >
+                        Reset Filter
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                    {letters.map((letter) => (
+                      <GmailRowItem
+                        key={letter.id}
+                        letter={letter}
+                        isSelected={selectedIds.includes(letter.id)}
+                        onToggleSelect={handleToggleSelect}
+                        onClick={(clicked) => setSelectedLetter(clicked)}
+                        onQuickDownload={handleDownload}
+                        onQuickApprove={handleApprove}
+                        onQuickEdit={handleEdit}
+                        onQuickDelete={handleDelete}
+                        onQuickRestore={handleRestore}
+                        onQuickForceDelete={canWrite ? handleForceDelete : undefined}
+                        isTrashView={isTrashView}
+                        isActive={splitView && selectedLetter?.id === letter.id}
+                      />
+                    ))}
+                  </div>
                 )}
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 dark:divide-zinc-800/60">
-                {letters.map((letter) => (
-                  <GmailRowItem
-                    key={letter.id}
-                    letter={letter}
-                    isSelected={selectedIds.includes(letter.id)}
-                    onToggleSelect={handleToggleSelect}
-                    onClick={(clicked) => setSelectedLetter(clicked)}
-                    onQuickDownload={handleDownload}
-                    onQuickApprove={handleApprove}
-                    onQuickEdit={handleEdit}
-                    onQuickDelete={handleDelete}
-                    onQuickRestore={handleRestore}
-                    onQuickForceDelete={canWrite ? handleForceDelete : undefined}
-                    isTrashView={isTrashView}
-                    isActive={splitView && selectedLetter?.id === letter.id}
-                  />
-                ))}
-              </div>
-            )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Right Pane (Only in Split-Pane Mode) */}

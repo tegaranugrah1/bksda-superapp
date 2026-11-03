@@ -376,7 +376,36 @@
   - Diterbitkan laporan audit & inventaris: [`animate-ui-roadmap-and-inventory.md`](animate-ui-roadmap-and-inventory.md) yang memetakan seluruh 102 halaman pada 8 modul utama (Kepegawaian, Persuratan, Keuangan, BMN, Inventory, De-Reporting, Portal/Publik, dan Drive).
 
 - **Hasil Pengujian & Verifikasi Kualitas 100% Hijau**:
-  - [x] Invariant Gerak Animate UI (`node frontend/tests/animate-ui-motion-check.cjs`): 15/15 checks PASS (100% HIJAU).
+  - [x] Invariant Gerak Animate UI (`node frontend/tests/animate-ui-motion-check.cjs`): 30/30 checks PASS (100% HIJAU) mencakup Detail Pegawai, Uang Makan, Settings, Surat Tugas Inbox, Cuti, Daftar Pegawai, dan Dashboard.
   - [x] Playwright End-to-End Test (`node frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 suites PASS (22 DOM assertions).
   - [x] Kompilasi TypeScript (`cd frontend; npx tsc --noEmit`): 0 error.
-  - [x] AST Knowledge Graph (`graphify update .`): 11.849 nodes, 21.699 edges, 854 communities ter-update.
+  - [x] AST Knowledge Graph (`graphify update .`): 11.866 nodes, 21.728 edges, 843 communities ter-update.
+
+---
+
+### 9. Ekspansi Motion Primitives Penuh ke Seluruh Modul Kepegawaian (/ponytail) — Selesai ✅
+
+- **Latar Belakang & Keluhan Pengguna**:
+  - Animasi pada halaman Detail Pegawai (`/kepegawaian/employees/[id]`) telah berjalan sangat mulus (sliding pill tab indicator dan tab panel yang dibuka memiliki transisi animasi halus saat berpindah antar tab).
+  - Namun, halaman-halaman lain di Modul Kepegawaian sebelumnya belum memiliki transisi panel saat berpindah tab/filter.
+
+- **Penyelarasan & Upgrade Gerak Menyeluruh per Halaman**:
+  1. **Uang Makan Pegawai (`/kepegawaian/uang-makan`)**:
+     - Memasang `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` (`opacity: 0 -> 1, y: 8 -> 0`, 160ms easeOut) pada seluruh 4 panel tab: *Upload Presensi*, *Pratinjau Matriks*, *Daftar Nominatif*, dan *Riwayat Batch*.
+     - Tab yang dibuka kini meluncur masuk secara halus dan konsisten dengan Detail Pegawai.
+  2. **Pengaturan Kepegawaian (`/kepegawaian/settings`)**:
+     - Mengganti tombol statis dengan sliding pill indicator (`layoutId="activeSettingsTabIndicator"`) berpegas natural.
+     - Membungkus ke-5 panel tab (*Template Surat Tugas*, *Jenis Tugas ST*, *Template Biaya*, *Jenis Surat Cuti*, dan *Uang Makan & Hari Libur*) dengan `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>`.
+  3. **Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)**:
+     - Membungkus daftar surat tugas dengan `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` saat berpindah status (*Semua*, *Draft*, *Menunggu Persetujuan*, *Disetujui*, *Ditolak*, *Sampah*).
+     - Menambahkan slide-in vertikal lembut pada Full Reader View saat dokumen surat tugas dibuka.
+  4. **Manajemen Cuti Pegawai (`/kepegawaian/cuti`)**:
+     - Membungkus tabel data permohonan cuti dengan `<AnimatePresence mode="wait">` + `<motion.div key={selectedStatus + selectedYear}>` sehingga transisi filter status maupun tahun berjalan mulus tanpa lompatan visual.
+  5. **Daftar Pegawai (`/kepegawaian/employees`)**:
+     - Membungkus tabel data pegawai dengan `<AnimatePresence mode="wait">` + `<motion.div key={jenisFilter + statusFilter + wilayahFilter}>` saat admin berganti kategori (Total, PNS, PPPK, MMP, Trashed).
+  6. **Dashboard Kepegawaian (`/kepegawaian`)**:
+     - Menambahkan elevasi taktil (`whileHover={{ y: -2/-3 }}`) dan respon klik (`whileTap={{ scale: 0.98 }}`) pada 3 kartu kategori personil (PNS, PPPK, MMP) serta 4 kartu bento layanan (Surat Tugas, Cuti, Surat Masuk, Keaktifan).
+
+- **Verifikasi Kualitas**:
+  - `animate-ui-motion-check.cjs`: Diperluas dari 15 checks menjadi **30 checks otomatis**, seluruhnya **PASS 100%**.
+  - TypeScript Compiler: **0 error**.
