@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { api, getApiSessionSnapshot } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
+import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
 import type { SuratTugasPreviewData } from "@/components/SuratTugasLetterPreview";
@@ -662,23 +663,29 @@ function PortalContent() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {moduleCards.map((mod) => (
-                        <Link
+                        <motion.div
                           key={mod.key}
-                          href={mod.href}
-                          className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all text-center flex flex-col items-center justify-center space-y-2"
+                          whileHover={{ y: -4 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{ duration: 0.15 }}
                         >
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", mod.bg, mod.color)}>
-                            {mod.icon}
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight">
-                              {mod.label}
-                            </p>
-                            <p className="text-[10px] text-slate-400 truncate max-w-25">
-                              {mod.desc}
-                            </p>
-                          </div>
-                        </Link>
+                          <Link
+                            href={mod.href}
+                            className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center flex flex-col items-center justify-center space-y-2 h-full"
+                          >
+                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", mod.bg, mod.color)}>
+                              {mod.icon}
+                            </div>
+                            <div className="space-y-0.5">
+                              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                                {mod.label}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate max-w-25">
+                                {mod.desc}
+                              </p>
+                            </div>
+                          </Link>
+                        </motion.div>
                       ))}
                     </div>
                   </div>

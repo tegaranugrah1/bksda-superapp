@@ -18,6 +18,7 @@ import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, Calen
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import { ReturnLoanModal } from "./_components/ReturnLoanModal";
 
@@ -212,19 +213,36 @@ export default function LoansPage() {
                 </div>
             </div>
 
-            {/* Filter */}
-            <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative w-full sm:w-48">
-                    <Select value={filterStatus} onValueChange={(val) => { setFilterStatus(val); setPage(1); }}>
-                        <SelectTrigger className="w-full bg-white dark:bg-zinc-900 h-10 border-slate-200/80 dark:border-zinc-800 rounded-xl px-4 shadow-2xs text-sm">
-                            <SelectValue placeholder="Status Peminjaman" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                            <SelectItem value="all">Semua Status</SelectItem>
-                            {STATUS_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
+            {/* Sliding Pill Status Filter */}
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl w-fit">
+                {[
+                    { value: "all", label: "Semua Status" },
+                    ...STATUS_OPTIONS,
+                ].map((opt) => {
+                    const isActive = filterStatus === opt.value;
+                    return (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => { setFilterStatus(opt.value); setPage(1); }}
+                            className={cn(
+                                "relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
+                                isActive
+                                    ? "text-white font-bold"
+                                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
+                            )}
+                        >
+                            {isActive && (
+                                <motion.span
+                                    layoutId="activeBmnLoansStatusTab"
+                                    className="absolute inset-0 bg-emerald-600 rounded-lg shadow-xs"
+                                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                                />
+                            )}
+                            <span className="relative z-10">{opt.label}</span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Table */}

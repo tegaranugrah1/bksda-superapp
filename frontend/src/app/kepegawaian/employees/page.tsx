@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
+import { motion } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
 import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
 
@@ -363,11 +364,14 @@ export default function EmployeeListPage() {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <button
+            <motion.button
               key={card.key}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={card.onClick}
-              className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
+              className={`text-left p-4 rounded-2xl border transition-colors cursor-pointer ${
                 card.active
                   ? card.activeClass
                   : `bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800/80 shadow-2xs ${card.hoverClass}`
@@ -397,7 +401,7 @@ export default function EmployeeListPage() {
               >
                 {card.subtitle}
               </p>
-            </button>
+            </motion.button>
           );
         })}
       </div>

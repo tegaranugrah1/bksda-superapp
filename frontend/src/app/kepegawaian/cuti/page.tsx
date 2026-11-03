@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -372,19 +373,30 @@ export default function InboxSuratCutiPage() {
           const Icon = card.icon;
           const isActive = selectedStatus === card.key;
           return (
-            <button
+            <motion.button
               key={card.key}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setSelectedStatus(card.key)}
               className={cn(
-                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer",
+                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer",
                 isActive
                   ? card.activeClass
                   : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
               )}
             >
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{card.label}</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  {card.key === "PENGAJUAN" && card.count > 0 && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                  )}
+                  {card.label}
+                </p>
                 <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
                   {card.count}
                 </p>
@@ -392,7 +404,7 @@ export default function InboxSuratCutiPage() {
               <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", card.iconClass)}>
                 <Icon className="w-4 h-4" />
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>

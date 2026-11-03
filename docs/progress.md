@@ -1,3 +1,19 @@
+# Progress — Modernisasi Animate UI (Shadcn Motion Primitives) & Peta Jalan Seluruh Modul (03 November 2026)
+
+> Status: **PILOT SELESAI & PETA JALAN INVENTARIS RESMI TERBIT (Pilot Detail Pegawai 100% Lulus, Panduan Desain & 7 Resep Gerak Standar Terbit, Inventaris 102 Halaman Selesai Dipetakan)**.  
+> Branch: `codex/portal-security-pentest`  
+> Referensi: Panduan Desain ([`docs/animate-ui-motion-guidelines.md`](file:///e:/bksda-superapp/docs/animate-ui-motion-guidelines.md)) & Laporan Inventaris ([`animate-ui-roadmap-and-inventory.md`](file:///C:/Users/USER/.gemini/antigravity/brain/0d16b89b-13d8-4156-8565-5ffecddb9f93/animate-ui-roadmap-and-inventory.md)).
+
+## Status Modernisasi Animate UI per Modul
+
+| Pilar / Inisiatif | Status & Bukti | Cakupan & Hasil Pengujian |
+|---|---|---|
+| **Pilot Detail Pegawai (`/kepegawaian/employees/[id]`)** | **SELESAI (100% Lulus)** | • Sliding Pill Tab Bar: `layoutId="activeTabIndicator"` dengan fisika pegas BKSDA Emerald.<br>• Tactile Elevation: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}` pada 4 kartu metrik utama.<br>• Smooth Tab Panel: `<AnimatePresence mode="wait">` + luncuran vertikal 8px.<br>• 1-Click Copy Micro-Bounce: Helper `CopyIcon` pada NIP, WA, Email, dan Bank.<br>• Pengujian: 15/15 Invariant Gerak Lulus (`animate-ui-motion-check.cjs`), 6/6 Playwright Suites Lulus. |
+| **Buku Panduan Standar Gerak (`docs/animate-ui-motion-guidelines.md`)** | **TERBIT RESMI** | Memuat 7 Resep Gerak Siap Pakai: Sliding Tabs, Tactile Cards, Smooth Panel, Copy Feedback, Live Pulse Badge, Modal/Drawer Entrance, dan Staggered Grid Inflow. Mematuhi prinsip `/ponytail` (Zero New Dependencies, 60 FPS, `prefers-reduced-motion`). |
+| **Audit & Peta Jalan Inventaris 102 Halaman** | **SELESAI DIMAPING** | Pemetaan 24 titik prioritas tinggi (P1: 14 halaman, P2: 8 halaman, P3: 2 halaman) mencakup seluruh modul: Kepegawaian, Persuratan, Keuangan, BMN, Inventory, De-Reporting, Portal Terpadu, Layanan Publik, dan Drive. |
+
+---
+
 # Progress — Pengujian Komprehensif & Audit Akar Jeroan: Alokasi Bank, Sanitasi Kontak, & Rekonsiliasi Uang Makan (03 November 2026)
 
 > Status: **AUDIT AKAR SELESAI & DOKUMEN PERENCANAAN TERBIT (Audit Jeroan Menemukan 9 Celah Akar Termasuk Bug Kritis Data-Loss Uang Makan & 15 Kasus Uji Akar Baru; Menunggu Evaluasi Pengguna Sebelum Eksekusi Perbaikan & Test Suite)**.  

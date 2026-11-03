@@ -52,6 +52,7 @@ import {
 } from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
@@ -93,6 +94,35 @@ function getWaLink(phone?: string | null): string | null {
     ? digits
     : "62" + digits;
   return `https://wa.me/${international}`;
+}
+
+function CopyIcon({ copied, checkClass = "text-emerald-600" }: { copied: boolean; checkClass?: string }) {
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {copied ? (
+        <motion.span
+          key="check"
+          initial={{ scale: 0.5, rotate: -15 }}
+          animate={{ scale: 1, rotate: 0 }}
+          exit={{ scale: 0.5 }}
+          transition={{ type: "spring", stiffness: 500, damping: 22 }}
+          className="inline-flex"
+        >
+          <Check className={cn("w-3.5 h-3.5", checkClass)} />
+        </motion.span>
+      ) : (
+        <motion.span
+          key="copy"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.8 }}
+          className="inline-flex"
+        >
+          <Copy className="w-3.5 h-3.5" />
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
 }
 
 export default function EmployeeDetailPage() {
@@ -575,11 +605,7 @@ export default function EmployeeDetailPage() {
                     className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-0.5 rounded cursor-pointer"
                     title="Salin NIP"
                   >
-                    {copiedField === "nip" ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
+                    <CopyIcon copied={copiedField === "nip"} />
                   </button>
                 )}
               </div>
@@ -650,11 +676,7 @@ export default function EmployeeDetailPage() {
                       className="p-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
                       title="Salin Nomor HP"
                     >
-                      {copiedField === "telepon" ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
+                      <CopyIcon copied={copiedField === "telepon"} />
                     </button>
                     {waLink && (
                       <a
@@ -707,11 +729,7 @@ export default function EmployeeDetailPage() {
                       className="p-1.5 rounded-lg border border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors cursor-pointer"
                       title="Salin Alamat Email"
                     >
-                      {copiedField === "email" ? (
-                        <Check className="w-3.5 h-3.5 text-blue-600" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
+                      <CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />
                     </button>
                     <a
                       href={`mailto:${validEmail}`}
@@ -756,11 +774,7 @@ export default function EmployeeDetailPage() {
                     className="text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
                     title="Salin Nomor Rekening"
                   >
-                    {copiedField === "rekening" ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
+                    <CopyIcon copied={copiedField === "rekening"} />
                   </button>
                 )}
               </div>
@@ -836,9 +850,12 @@ export default function EmployeeDetailPage() {
           {/* Top 4 Metric Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             {/* Metric 1: Masa Kerja */}
-            <div
+            <motion.div
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setActiveTab("biodata")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Masa Kerja</span>
@@ -852,12 +869,15 @@ export default function EmployeeDetailPage() {
                   : employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap)}
               </div>
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">Pengabdian Resmi</p>
-            </div>
+            </motion.div>
 
             {/* Metric 2: Riwayat Penugasan */}
-            <div
+            <motion.div
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setActiveTab("history")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Penugasan</span>
@@ -869,12 +889,15 @@ export default function EmployeeDetailPage() {
                 {assignmentsData?.meta?.total ?? 0}
               </div>
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">Total Surat Tugas</p>
-            </div>
+            </motion.div>
 
             {/* Metric 3: Sisa Cuti PNS */}
-            <div
+            <motion.div
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setActiveTab("leave")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Cuti</span>
@@ -887,12 +910,15 @@ export default function EmployeeDetailPage() {
                 <span className="text-xs font-semibold text-slate-400">Hari</span>
               </div>
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">Tahun {currentYear}</p>
-            </div>
+            </motion.div>
 
             {/* Metric 4: Uang Makan Terakhir */}
-            <div
+            <motion.div
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setActiveTab("meal_allowance")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-all shadow-2xs hover:shadow-sm group"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Uang Makan</span>
@@ -906,7 +932,7 @@ export default function EmployeeDetailPage() {
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">
                 {latestAllowance?.batch?.periode_bulan || "Bulan berjalan"}
               </p>
-            </div>
+            </motion.div>
           </div>
 
           {/* Dynamic Tabs Navigation Bar (WRAP 2-TINGKAT, TANPA SCROLL HORIZONTAL) */}
@@ -917,14 +943,21 @@ export default function EmployeeDetailPage() {
                 type="button"
                 onClick={() => setActiveTab("biodata")}
                 className={cn(
-                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "biodata"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "text-white"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
                 )}
               >
-                <User className="w-3.5 h-3.5" />
-                <span>Biodata Lengkap</span>
+                {activeTab === "biodata" && (
+                  <motion.span
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <User className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10">Biodata Lengkap</span>
               </button>
 
               {/* Tab 2: Riwayat Penugasan */}
@@ -932,18 +965,25 @@ export default function EmployeeDetailPage() {
                 type="button"
                 onClick={() => setActiveTab("history")}
                 className={cn(
-                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "history"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "text-white"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
                 )}
               >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Riwayat Penugasan</span>
+                {activeTab === "history" && (
+                  <motion.span
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <FileText className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10">Riwayat Penugasan</span>
                 {assignmentsData?.meta && (
                   <span
                     className={cn(
-                      "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                      "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
                       activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600"
                     )}
                   >
@@ -957,17 +997,24 @@ export default function EmployeeDetailPage() {
                 type="button"
                 onClick={() => setActiveTab("leave")}
                 className={cn(
-                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "leave"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "text-white"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
                 )}
               >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Cuti Pegawai (PNS)</span>
+                {activeTab === "leave" && (
+                  <motion.span
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <Calendar className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10">Cuti Pegawai (PNS)</span>
                 <span
                   className={cn(
-                    "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                    "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
                     activeTab === "leave"
                       ? "bg-white/20 text-white"
                       : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
@@ -982,18 +1029,25 @@ export default function EmployeeDetailPage() {
                 type="button"
                 onClick={() => setActiveTab("meal_allowance")}
                 className={cn(
-                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "meal_allowance"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "text-white"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
                 )}
               >
-                <UtensilsCrossed className="w-3.5 h-3.5" />
-                <span>Presensi & Uang Makan</span>
+                {activeTab === "meal_allowance" && (
+                  <motion.span
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <UtensilsCrossed className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10">Presensi & Uang Makan</span>
                 {allowancesData?.meta?.total !== undefined && allowancesData.meta.total > 0 && (
                   <span
                     className={cn(
-                      "px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                      "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
                       activeTab === "meal_allowance" ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
                     )}
                   >
@@ -1008,20 +1062,36 @@ export default function EmployeeDetailPage() {
                   type="button"
                   onClick={() => setActiveTab("audit")}
                   className={cn(
-                    "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                     activeTab === "audit"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      ? "text-white"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
                   )}
                 >
-                  <History className="w-3.5 h-3.5" />
-                  <span>Riwayat Perubahan</span>
+                  {activeTab === "audit" && (
+                    <motion.span
+                      layoutId="activeTabIndicator"
+                      className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
+                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    />
+                  )}
+                  <History className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10">Riwayat Perubahan</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* TAB 1: BIODATA LENGKAP (DEFAULT AKTIF) */}
+          {/* Tab Content Panels with Motion Glide Transition */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+            >
+              {/* TAB 1: BIODATA LENGKAP (DEFAULT AKTIF) */}
           {activeTab === "biodata" && (
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -1623,6 +1693,8 @@ export default function EmployeeDetailPage() {
               <EmployeeAuditHistoryTab employeeId={employee.id} />
             </div>
           )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 

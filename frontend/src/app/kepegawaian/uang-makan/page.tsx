@@ -41,6 +41,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 // Status options for daily attendance
 const STATUS_OPTIONS = [
@@ -760,7 +762,11 @@ export default function UangMakanPage() {
       {/* Metric Counters Banner (Visible when data exists) */}
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+          <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ duration: 0.15 }}
+            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          >
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Pegawai</p>
               <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">{totalEmployees} Orang</p>
@@ -768,9 +774,13 @@ export default function UangMakanPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+          <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ duration: 0.15 }}
+            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          >
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Hari Hadir</p>
               <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{totalHadirAll} Hari</p>
@@ -778,9 +788,13 @@ export default function UangMakanPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+          <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ duration: 0.15 }}
+            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          >
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Potongan PPh 21</p>
               <p className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">
@@ -790,9 +804,13 @@ export default function UangMakanPage() {
             <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <Coins className="w-5 h-5" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
+          <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ duration: 0.15 }}
+            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          >
             <div>
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Hak Bersih (Netto)</p>
               <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1">
@@ -802,62 +820,54 @@ export default function UangMakanPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Download className="w-5 h-5" />
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* Navigation Tabs Bar */}
+      {/* Navigation Tabs Bar with Sliding Indicator */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-800 pb-2">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab("upload")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "upload"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <UploadCloud className="w-4 h-4" />
-            Upload Presensi
-          </button>
-          <button
-            onClick={() => setActiveTab("matrix")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "matrix"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            Pratinjau Matriks (Sheet 1)
-            {items.length > 0 && (
-              <span className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-200">
-                {items.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("nominatif")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "nominatif"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            Daftar Nominatif (Sheet 2)
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "history"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <History className="w-4 h-4" />
-            Riwayat Batch Tersimpan
-          </button>
+          {[
+            { id: "upload", label: "Upload Presensi", icon: UploadCloud },
+            { id: "matrix", label: "Pratinjau Matriks (Sheet 1)", icon: FileSpreadsheet, count: items.length },
+            { id: "nominatif", label: "Daftar Nominatif (Sheet 2)", icon: Layers },
+            { id: "history", label: "Riwayat Batch Tersimpan", icon: History, count: savedBatches.length },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={cn(
+                  "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                  isActive
+                    ? "text-white"
+                    : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="activeUangMakanTabIndicator"
+                    className="absolute inset-0 bg-blue-600 rounded-xl shadow-xs"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <Icon className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span
+                    className={cn(
+                      "relative z-10 ml-1.5 px-2 py-0.5 rounded-full text-[10px]",
+                      isActive ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-zinc-700 text-slate-700 dark:text-zinc-300"
+                    )}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* Action buttons (Reset, Save & Export) */}

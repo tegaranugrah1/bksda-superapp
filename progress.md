@@ -350,3 +350,33 @@
   - [x] `node frontend/tests/kepegawaian-bank-allocation.playwright.cjs`: 6/6 test suites PASS (12 DOM assertions).
   - [x] TypeScript compiler (`cd frontend; npx tsc --noEmit`): 0 error.
   - [x] Sinkronisasi Knowledge Graph (`graphify update .`): 11.837 nodes, 21.684 edges, 851 communities ter-update.
+
+---
+
+### 8. Implementasi Animate UI (Shadcn Motion Primitives) & Peta Jalan Seluruh Modul (/ponytail) — Selesai ✅
+
+- **Tujuan & Prinsip Ponytail**:
+  - Menerapkan sentuhan animasi modern enterprise (*Animate UI* berbasis Shadcn motion primitives) tanpa menambah ketergantungan library baru (memanfaatkan `framer-motion: ^12.38.0` yang telah terpasang).
+  - Akselerasi perangkat keras 60 FPS (hanya memanipulasi `transform` dan `opacity`, tanpa jank atau layout reflow).
+  - Durasi ultra-responsif (120ms – 240ms) dengan fisika pegas (*spring physics*).
+
+- **Eksekusi Pilot pada Halaman Detail Pegawai (`/kepegawaian/employees/[id]`)**:
+  1. **Sliding Active Tab Indicator**:
+     - Menghadirkan indikator pil hijau zamrud (`bg-emerald-600 rounded-xl shadow-xs`) dengan `layoutId="activeTabIndicator"` yang meluncur mulus mengikuti tab yang aktif (Biodata, Riwayat Penugasan, Cuti, Presensi & Uang Makan, Riwayat Perubahan).
+     - Label dan ikon tab terlindungi dengan `relative z-10`.
+  2. **Elevasi Taktil pada Kartu Metrik (Top 4 Metrics)**:
+     - Efek melayang halus (`whileHover={{ y: -3 }}`) dan respon sentuhan (`whileTap={{ scale: 0.98 }}`) dengan durasi `0.15s` pada kartu Masa Kerja, Total SPT, Sisa Cuti, dan Uang Makan.
+  3. **Transisi Konten Panel Lembut**:
+     - Membungkus tab panel dengan `<AnimatePresence mode="wait">` dan `<motion.div key={activeTab}>` dengan efek luncur vertikal halus 8px (`duration: 0.16s`), mencegah pergantian halaman tersentak (*jumpy*).
+  4. **1-Click Copy Micro-Bounce Feedback**:
+     - Membuat helper ringkas 1-baris `CopyIcon` dengan animasi rotasi pop `initial={{ scale: 0.5, rotate: -15 }}` dan pegas lembut saat menyalin NIP, nomor telepon WhatsApp, email dinas, dan rekening bank.
+
+- **Dokumentasi Desain & Peta Jalan Lengkap Seluruh Modul**:
+  - Diterbitkan panduan resmi: [`docs/animate-ui-motion-guidelines.md`](docs/animate-ui-motion-guidelines.md) mencakup 7 resep standar gerak siap pakai.
+  - Diterbitkan laporan audit & inventaris: [`animate-ui-roadmap-and-inventory.md`](animate-ui-roadmap-and-inventory.md) yang memetakan seluruh 102 halaman pada 8 modul utama (Kepegawaian, Persuratan, Keuangan, BMN, Inventory, De-Reporting, Portal/Publik, dan Drive).
+
+- **Hasil Pengujian & Verifikasi Kualitas 100% Hijau**:
+  - [x] Invariant Gerak Animate UI (`node frontend/tests/animate-ui-motion-check.cjs`): 15/15 checks PASS (100% HIJAU).
+  - [x] Playwright End-to-End Test (`node frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 suites PASS (22 DOM assertions).
+  - [x] Kompilasi TypeScript (`cd frontend; npx tsc --noEmit`): 0 error.
+  - [x] AST Knowledge Graph (`graphify update .`): 11.849 nodes, 21.699 edges, 854 communities ter-update.
