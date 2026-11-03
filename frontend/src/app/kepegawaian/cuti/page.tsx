@@ -491,25 +491,25 @@ export default function InboxSuratCutiPage() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={`${selectedStatus}-${selectedYear}`}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.16, ease: "easeOut" }}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs"
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.14, ease: "easeOut" }}
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
         >
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-xs text-slate-400">
             <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Memuat riwayat surat cuti...
           </div>
         ) : list.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
+          <div className="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-3">
             <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Belum Ada Data Cuti</h3>
             <p className="text-xs text-slate-400">Tidak ada data cuti yang sesuai dengan filter pencarian ini.</p>
           </div>
         ) : (
-          <div>
+          <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>

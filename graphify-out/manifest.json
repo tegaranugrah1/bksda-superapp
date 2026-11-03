@@ -2335,8 +2335,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
-    "mtime": 1793747031.9437816,
-    "ast_hash": "677229f52c5a1226c041c247f817936e",
+    "mtime": 1793749253.8784654,
+    "ast_hash": "4de7243d7a79e09e4330597a5f0d2094",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
@@ -2350,8 +2350,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
-    "mtime": 1793618266.3485737,
-    "ast_hash": "424d8f566d3e5ea5730e8173042bb4c9",
+    "mtime": 1793749154.2051575,
+    "ast_hash": "338f36626dde887f673dde92b73e7b29",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793747125.6681652,
-    "ast_hash": "0f1a41b4fdaaf0e7c402156b5c423a2e",
+    "mtime": 1793749369.7784128,
+    "ast_hash": "590db6f49cf9e6b9ffc6bb15fe935cba",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5430,8 +5430,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1793747004.6432986,
-    "ast_hash": "bd9d5898ccdf17982d742db0f61260c8",
+    "mtime": 1793749204.4122171,
+    "ast_hash": "74240fe6cf61c0e7cdeb177680430663",
     "semantic_hash": ""
   },
   ".agents/AGENTS.md": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793747110.2270136,
-    "ast_hash": "1ce9cf270fa3bf50487afd8782b75508",
+    "mtime": 1793749307.137992,
+    "ast_hash": "731960e54ee4cc0e81bd8e5e5eb5dbbb",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {

@@ -242,7 +242,7 @@ export default function KepegawaianLayout({
           </div>
         </aside>
 
-        <main className="flex-1 h-full overflow-y-auto bg-slate-50/70 dark:bg-zinc-950">
+        <main className="flex-1 h-full overflow-y-auto bg-slate-50/70 dark:bg-zinc-950 [scrollbar-gutter:stable]">
           {children}
         </main>
       </div>

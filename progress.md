@@ -429,3 +429,28 @@
 - **Verifikasi Kualitas**:
   - TypeScript check: **0 error**.
   - Invariant gerak: **30/30 PASS (100% Hijau)**.
+
+---
+
+### 11. Eliminasi Scrollbar Layout Shift & Pergerakan Melompat saat Pindah dari/ke Data Terhapus (/ponytail) — Selesai ✅
+
+- **Akar Masalah (Root Cause)**:
+  1. **Scrollbar Jump (Horizontal 15px Shift)**: Pada "Data Terhapus", data bernilai 0 sehingga tinggi konten lebih pendek dari tinggi layar. Kontainer `<main>` sebelumnya menggunakan `overflow-y: auto` tanpa reservasi gutter. Saat beralih ke tab aktif yang memiliki 10 baris, scrollbar vertikal tiba-tiba muncul dan menggeser seluruh lebar halaman sebesar 15–17px ke kiri.
+  2. **Banner Vertical Displacement**: Banner rose peringatan `isTrashedView` diletakkan di luar kontainer tabel (di antara filter toolbar dan tabel), sehingga saat masuk/keluar tab Data Terhapus, tabel terdorong ke bawah 44px lalu tertarik kembali ke atas.
+  3. **Height Collapsing**: Tabel tanpa `min-height` menciut dari ~500px menjadi ~120px saat berpindah ke tab kosong, memicu lonjakan layout visual yang tersentak.
+
+- **Solusi Defensif & Ringkas Sesuai Prinsip Ponytail**:
+  1. **Reservasi Gutter Scrollbar Permanen (`scrollbar-gutter: stable`)**:
+     - Ditambahkan pada `html`, `body`, dan `main` di `globals.css` serta class utility `[scrollbar-gutter:stable]` pada `<main>` di `kepegawaian/layout.tsx`.
+     - Ruang scrollbar di sisi kanan layar selalu direservasi, sehingga lebar halaman tidak pernah bergeser 1 piksel pun saat data kosong maupun penuh.
+  2. **Enkapsulasi Banner Peringatan ke Dalam Kartu Tabel**:
+     - Banner `isTrashedView` dipindahkan ke dalam kartu tabel beranimasi (`motion.div`). Posisi dan jarak kartu tabel dari filter toolbar tetap statis sempurna.
+  3. **Ketinggian Kontainer Stabil (`min-h-[460px] flex flex-col justify-between`)**:
+     - Ditambahkan pada tabel Daftar Pegawai dan Inbox Cuti. Tampilan kosong di-center secara estetis dan kartu tidak pernah menciut.
+  4. **Penghalusan Kurva Animasi**:
+     - Durasi 140ms easeOut, `initial={{ opacity: 0, y: 4 }}` dan `exit={{ opacity: 0 }}` (menghapus tarikan y negatif yang menyentak).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **30/30 PASS (100% Hijau)**.
+  - Playwright E2E: **6/6 Suites PASS (22 DOM Assertions)**.
