@@ -43,10 +43,16 @@ const FIELD_LABELS: Record<string, string> = {
   telepon: "Nomor WhatsApp / HP",
   email: "Alamat Email",
   is_active: "Status Keaktifan",
+  role: "Peran / Tingkat Akses Akun",
+  access_modules: "Wewenang Modul",
+  permissions: "Izin Khusus",
 };
 
 function formatFieldValue(field: string, val: any): string {
   if (val === null || val === undefined || val === "") return "(Kosong)";
+  if (Array.isArray(val)) {
+    return val.length > 0 ? val.join(", ") : "(Tidak ada)";
+  }
   if (field === "is_active") {
     return val ? "Aktif" : "Non-Aktif";
   }
@@ -178,6 +184,14 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
                     <span>{formatDateTimeIndo(record.created_at)}</span>
                   </div>
                 </div>
+
+                {/* Catatan Tindakan / Administrative Notes */}
+                {record.notes && (
+                  <div className="mb-3 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800 text-xs text-slate-600 dark:text-zinc-400">
+                    <span className="font-bold text-slate-800 dark:text-zinc-200 mr-1.5">Keterangan:</span>
+                    <span>{record.notes}</span>
+                  </div>
+                )}
 
                 {/* Changed Fields Grid */}
                 <div className="space-y-2.5">

@@ -2340,8 +2340,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1793709764.1590044,
-    "ast_hash": "d249824f42ad063f4d6b011b291b3e56",
+    "mtime": 1793710549.6721694,
+    "ast_hash": "7f626856e5f6a41e4d048b293aab4555",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793709241.999803,
-    "ast_hash": "f0711ba1e2a1f589c31941f1e54ac04b",
+    "mtime": 1793710678.710131,
+    "ast_hash": "dd8c26ec9157f676d1ae2280e5888881",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7955,8 +7955,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs": {
-    "mtime": 1793709735.7945745,
-    "ast_hash": "695c98a34afd51496b8e8ee0bc062004",
+    "mtime": 1793710630.1519783,
+    "ast_hash": "9ec17b32abbb8b66645bada82a15ce1b",
     "semantic_hash": ""
   }
 }

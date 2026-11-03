@@ -191,22 +191,20 @@ assert($canDuplicateForm(isActive: false, formCreatorId: 5, userId: 12, role: 'a
 assert($canDuplicateForm(isActive: false, formCreatorId: 5, userId: 12, role: 'user') === false, 'Other user must NOT duplicate draft form');
 assert($canDuplicateForm(isActive: true, formCreatorId: 5, userId: 12, role: 'user') === true, 'Any user can duplicate active public template');
 
-// 20. Employee select endpoint protected by auth:sanctum and throttle
+// 20. Employee select endpoint protected by throttle (public for guest ST submission)
 $empSelect = $routes->first(fn($r) => str_contains($r->uri(), 'employees/select') && in_array('GET', $r->methods()));
 assert($empSelect !== null, 'GET employees/select route missing');
-assert(in_array('auth:sanctum', $empSelect->middleware()), 'GET employees/select missing auth:sanctum');
 assert(in_array('throttle:120,1', $empSelect->middleware()), 'GET employees/select missing throttle:120,1');
 
-// 21. ST Expense Templates public endpoint protected by auth:sanctum
+// 21. ST Expense Templates public endpoint protected by throttle
 $expenseSelect = $routes->first(fn($r) => str_contains($r->uri(), 'st-expense-templates/public') && in_array('GET', $r->methods()));
 assert($expenseSelect !== null, 'GET st-expense-templates/public route missing');
-assert(in_array('auth:sanctum', $expenseSelect->middleware()), 'GET st-expense-templates/public missing auth:sanctum');
 assert(in_array('throttle:120,1', $expenseSelect->middleware()), 'GET st-expense-templates/public missing throttle:120,1');
 
-// 22. Surat Tugas submit endpoint protected by auth:sanctum
+// 22. Surat Tugas submit endpoint protected by throttle (public guest submission)
 $stSubmit = $routes->first(fn($r) => str_ends_with($r->uri(), 'surat-tugas/submit') && in_array('POST', $r->methods()));
 assert($stSubmit !== null, 'POST surat-tugas/submit route missing');
-assert(in_array('auth:sanctum', $stSubmit->middleware()), 'POST surat-tugas/submit missing auth:sanctum');
+assert(in_array('throttle:15,1', $stSubmit->middleware()), 'POST surat-tugas/submit missing throttle:15,1');
 
 // 23. ST Verify status normalization
 $isValidSTStatus = fn(string $status) => in_array(strtolower($status), ['approved', 'completed', 'published', 'diterbitkan'], true);
@@ -618,7 +616,7 @@ assert(str_contains($formulirCutiPrintCode, '( .................................
 
 // 65. User Profile Email Null-Safety & Constraint Guard Invariant
 $authControllerCode = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/AuthController.php');
-assert(str_contains($authControllerCode, 'if ($cleanEmail !== null) {') && str_contains($authControllerCode, '$user->update([\'email\' => $cleanEmail]);'), 'AuthController updateProfile must guard user.email against null updates');
+assert(str_contains($authControllerCode, '$cleanEmail !== null') && str_contains($authControllerCode, '$user->email = $cleanEmail;'), 'AuthController updateProfile must guard user.email against null updates');
 
 // 66. Profile Form Trim & Surat Tugas URI Escaping Invariant
 $portalSidebarCode = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/PortalProfileSidebar.tsx');
@@ -820,7 +818,7 @@ assert(str_contains($stTemplateCode, '$file->extension() ?: \'png\'') && !str_co
 
 // 114. EmployeeLeaveController Database-Agnostic Leave Query Invariant
 $employeeLeaveCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php');
-assert(str_contains($employeeLeaveCode, "whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])"), 'EmployeeLeaveController must use lowercase whereRaw for database-agnostic leave matching');
+assert(str_contains($employeeLeaveCode, '->annual()'), 'EmployeeLeaveController must use scope annual() for database-agnostic leave matching');
 
 // 115. Employee Leave Request Store Transaction Invariant
 $empLeaveCtrlCode = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php');
@@ -878,7 +876,7 @@ assert(str_contains($empControllerCode, "\$oldNip !== '' && \$newNip !== '' && \
 // 129. Profile Email Deletion & Synchronization Invariant
 $authControllerCode = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/AuthController.php');
 $portalProfileCode = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/PortalProfileSidebar.tsx');
-assert(str_contains($authControllerCode, "\$cleanEmail = \$request->filled('email') ? trim(strtolower((string) \$request->input('email'))) : null;") && str_contains($authControllerCode, "\$employee->update(['email' => \$cleanEmail]);") && str_contains($authControllerCode, "\$user->update(['email' => \$cleanEmail]);"), 'AuthController updateProfile must clear email when passed as empty string and synchronize both employee and user');
+assert(str_contains($authControllerCode, "\$cleanEmail = \$request->filled('email') ? trim(strtolower((string) \$request->input('email'))) : null;") && str_contains($authControllerCode, "\$employee->update(['email' => \$cleanEmail]);") && str_contains($authControllerCode, "\$user->email = \$cleanEmail;"), 'AuthController updateProfile must clear email when passed as empty string and synchronize both employee and user');
 assert(str_contains($portalProfileCode, "email: cleanEmail,") && str_contains($portalProfileCode, "phone: cleanPhone,"), 'PortalProfileSidebar must pass cleanEmail directly to allow clearing email');
 
 // 130. Mobile Dashboard Approval Queue Scope Invariant
@@ -1076,7 +1074,7 @@ assert(str_contains($empAccessSheetCheck57, 'role: z.enum(["super_admin", "admin
 
 // 164. Kepegawaian Leave Balance Matching Invariant
 $empLeaveCtrlCheck57 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php');
-assert(str_contains($empLeaveCtrlCheck57, "whereRaw('LOWER(jenis_cuti) LIKE ?', ['%tahunan%'])"), 'EmployeeLeaveController must match jenis_cuti case-insensitively');
+assert(str_contains($empLeaveCtrlCheck57, '->annual()'), 'EmployeeLeaveController must match jenis_cuti via scope annual()');
 
 // 165. StExpenseTemplate Soft-Delete Uniqueness & Category Case Resilience Invariant
 $storeExpReqCheck58 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Requests/StoreStExpenseTemplateRequest.php');
@@ -1224,15 +1222,16 @@ assert(
 // 193. AuthController Employee Photo Filename Collision Guard Invariant
 $authCtrlCheck69 = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/AuthController.php');
 assert(
-    str_contains($authCtrlCheck69, "Str::slug((\$employee->nip ? \$employee->nip . '-' : '') . (\$employee->nama_lengkap ?: 'pegawai'))"),
-    'AuthController updatePhoto must prefix slug with NIP to prevent photo overwriting across employees'
+    str_contains($authCtrlCheck69, '$employee->replaceProfilePhoto($request->file(\'foto\'))'),
+    'AuthController updatePhoto must delegate to Employee::replaceProfilePhoto for collision-free isolated storage'
 );
 
 // 194. Assignment Letter Draft Storage ID Partition and Complete Numeric ID Guard Invariant
 $stCtrlCheck69 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
+$stModelCheck69 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Models/AssignmentLetter.php');
 assert(
-    str_contains($stCtrlCheck69, "date('Y-m').'-'.\$surat->id.'-'.Str::slug(substr(\$surat->maksud_tujuan ?: 'surat-tugas', 0, 40))"),
-    'AssignmentLetterController must partition draft attachment directory with surat id to prevent cross-submission collisions'
+    str_contains($stModelCheck69, '$file->store(\'surat-tugas/\'.$this->getKey(), \'local\')'),
+    'AssignmentLetter must partition attachment directory with surat id to prevent cross-submission collisions'
 );
 assert(
     substr_count($stCtrlCheck69, '! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)') >= 10,
@@ -1243,10 +1242,11 @@ assert(
 $userResCheck70 = file_get_contents(__DIR__ . '/../app/Http/Resources/UserResource.php');
 $mobDashCheck70 = file_get_contents(__DIR__ . '/../app/Http/Controllers/Api/MobileDashboardController.php');
 $leaveCtrlCheck70 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php');
+$empModelCheck70 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Models/Employee.php');
 assert(
-    str_contains($authCtrlCheck69, "!str_starts_with(\$employee->foto_profil, 'http')") &&
-    str_contains($authCtrlCheck69, "str_starts_with(\$employee->foto_profil, 'http') ? \$employee->foto_profil : \Illuminate\Support\Facades\Storage::url"),
-    'AuthController must safely handle external URLs in photo URL generation and deletion'
+    str_contains($empModelCheck70, "! str_starts_with(\$oldPath, 'http')") &&
+    str_contains($empModelCheck70, "return \$this->foto_profil ? Storage::url(\$this->foto_profil) : null;"),
+    'Employee model must safely handle external URLs in photo URL generation and deletion'
 );
 assert(
     str_contains($userResCheck70, "str_starts_with(\$employee->foto_profil, 'http') ? \$employee->foto_profil : \Illuminate\Support\Facades\Storage::url") &&
