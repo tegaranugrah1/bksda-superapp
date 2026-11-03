@@ -454,3 +454,28 @@
   - TypeScript check: **0 error**.
   - Invariant gerak: **30/30 PASS (100% Hijau)**.
   - Playwright E2E: **6/6 Suites PASS (22 DOM Assertions)**.
+
+---
+
+### 12. Modernisasi Animate UI Modul Arsip Surat Masuk Kepegawaian (`/kepegawaian/surat-masuk`) (/ponytail) — Selesai ✅
+
+- **Fitur Animasi & Motion Primitives yang Diimplementasikan**:
+  1. **Tactile Quick Filter Summary Cards**:
+     - 4 kartu status (Total Arsip, Menunggu Balasan, Sudah Dibalas, Arsip Bulan Ini) dikonversi menggunakan `<motion.button>` dengan `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}`.
+     - Pulsing beacon (radar ping amber) aktif otomatis pada kartu 'Menunggu Balasan' jika terdapat surat yang butuh balasan.
+     - Persistensi ref `lastSummaryCountsRef` & `displaySummaryCounts` memastikan angka ringkasan tidak pernah kedip ke 0 saat filter berubah.
+  2. **Data Table Glide Transition & Height Stability**:
+     - Tabel arsip dibungkus dengan `<AnimatePresence mode="wait">` + `<motion.div key={...}>` dengan ketinggian stabil `min-h-[460px] flex flex-col justify-between`.
+     - Cross-fade halus (140ms easeOut) saat mengganti filter kategori, status balasan, rentang tanggal, maupun halaman.
+     - Layout kosong (empty state) dan pemuatan terpusat sempurna tanpa sentakan pergeseran layout.
+  3. **Smooth Modals dengan Backdrop Blur & Spring Pop-Up**:
+     - 4 modal utama dibungkus `<AnimatePresence>`:
+       1. Modal Detail Surat (`detailItem`)
+       2. Modal Tambah / Edit Arsip (`formOpen` & `<motion.form>`)
+       3. Modal Pratinjau Lampiran PDF/Gambar (`preview`)
+       4. Modal Export Excel Rekapitulasi (`exportOpen`)
+     - Backdrop fade-in (`opacity: 0 -> 1`), Dialog container spring scale (`scale: 0.96 -> 1, y: 10 -> 0`).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **36/36 PASS (100% Hijau)**.

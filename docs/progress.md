@@ -17,7 +17,8 @@
 | **Dashboard Kepegawaian (`/kepegawaian`)** | **SELESAI (100% Lulus)** | • Tactile Cards: `whileHover={{ y: -2/-3 }}` dan `whileTap={{ scale: 0.98 }}` pada 3 kartu kategori personil dan 4 bento service cards. |
 | **Pencegahan Kedipan Angka Nol (0 Flickering)** | **SELESAI (100% Mulus)** | • Aktivasi `placeholderData: keepPreviousData` (TanStack Query v5) pada Daftar Pegawai, Cuti, dan Surat Tugas.<br>• Persistensi Ref (`lastCountsRef` & `lastSummaryCountsRef`) menjamin angka tidak pernah drop ke 0 saat perpindahan tab / filter status. |
 | **Stabilitas Scrollbar & Ketinggian Tab Kosong** | **SELESAI (100% Mulus)** | • Eliminasi pergeseran horizontal 15px dengan `scrollbar-gutter: stable` pada `main` dan `html`.<br>• Enkapsulasi banner `isTrashedView` ke dalam kartu tabel untuk mencegah layout jump vertikal 44px.<br>• `min-h-[460px]` menjaga ketinggian kontainer tetap konsisten saat berpindah dari/ke Data Terhapus. |
-| **Suite Pengujian Otomatis (`animate-ui-motion-check.cjs`)** | **30/30 PASS (100% HIJAU)** | Memverifikasi seluruh 30 invariant gerak pada dependensi, sliding pills, animate presence, panel transitions, dan tactile cards. |
+| **Arsip Surat Masuk (`/kepegawaian/surat-masuk`)** | **SELESAI (100% Lulus)** | • Tactile Summary Cards: `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}` pada 4 kartu filter status.<br>• Pulsing Beacon: Animasi ping pada badge 'Menunggu Balasan'.<br>• Data Table Transition: `<AnimatePresence mode="wait">` + `<motion.div>` transisi halus saat filter/halaman berubah.<br>• Smooth Modals: `<AnimatePresence>` + backdrop blur dan scale-spring pop-up pada Detail Surat, Form Tambah/Edit, Pratinjau Lampiran, dan Export Excel. |
+| **Suite Pengujian Otomatis (`animate-ui-motion-check.cjs`)** | **36/36 PASS (100% HIJAU)** | Memverifikasi seluruh 36 invariant gerak pada dependensi, sliding pills, animate presence, panel transitions, tactile cards, dan smooth modal pop-ups. |
 
 ---
 

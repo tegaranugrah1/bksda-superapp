@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   CheckCircle2,
@@ -152,6 +153,15 @@ export default function EmployeeIncomingLettersPage() {
     replied: 0,
     this_month: 0,
   });
+  const lastSummaryCountsRef = useRef(summaryCounts);
+  const isFirstLoadRef = useRef(true);
+
+  const displaySummaryCounts = {
+    all: summaryCounts.all || lastSummaryCountsRef.current.all,
+    pending: summaryCounts.pending || lastSummaryCountsRef.current.pending,
+    replied: summaryCounts.replied || lastSummaryCountsRef.current.replied,
+    this_month: summaryCounts.this_month || lastSummaryCountsRef.current.this_month,
+  };
 
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<IncomingLetter | null>(null);
@@ -201,11 +211,13 @@ export default function EmployeeIncomingLettersPage() {
       setTotal(response.data?.meta?.total || 0);
       if (response.data?.meta?.summary_counts) {
         setSummaryCounts(response.data.meta.summary_counts);
+        lastSummaryCountsRef.current = response.data.meta.summary_counts;
       }
     } catch {
       toast.error("Gagal memuat arsip surat.");
     } finally {
       setLoading(false);
+      isFirstLoadRef.current = false;
     }
   }, [debouncedSearch, endDate, kategori, page, perPage, startDate, statusBalasan]);
 
@@ -508,7 +520,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "all",
             label: "Total Arsip Surat",
-            count: summaryCounts.all || total,
+            count: displaySummaryCounts.all || total,
             icon: Inbox,
             isActive: !statusBalasan && !isThisMonthFilter,
             onClick: () => {
@@ -523,7 +535,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "pending",
             label: "Menunggu Balasan",
-            count: summaryCounts.pending,
+            count: displaySummaryCounts.pending,
             icon: Clock,
             isActive: statusBalasan === "pending",
             onClick: () => {
@@ -536,7 +548,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "replied",
             label: "Sudah Dibalas",
-            count: summaryCounts.replied,
+            count: displaySummaryCounts.replied,
             icon: CheckCircle2,
             isActive: statusBalasan === "replied",
             onClick: () => {
@@ -549,7 +561,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "this_month",
             label: "Arsip Bulan Ini",
-            count: summaryCounts.this_month,
+            count: displaySummaryCounts.this_month,
             icon: Calendar,
             isActive: isThisMonthFilter,
             onClick: () => {
@@ -568,9 +580,12 @@ export default function EmployeeIncomingLettersPage() {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <button
+            <motion.button
               key={card.key}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={card.onClick}
               className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                 card.isActive
@@ -579,7 +594,15 @@ export default function EmployeeIncomingLettersPage() {
               }`}
             >
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{card.label}</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  {card.key === "pending" && card.count > 0 && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                  )}
+                  {card.label}
+                </p>
                 <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
                   {card.count}
                 </p>
@@ -587,7 +610,7 @@ export default function EmployeeIncomingLettersPage() {
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.iconClass}`}>
                 <Icon className="w-4 h-4" />
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -707,30 +730,38 @@ export default function EmployeeIncomingLettersPage() {
       </div>
 
       {/* Tabel Arsip Surat */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="p-16 text-center text-xs text-zinc-500 space-y-2">
-              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <p>Memuat arsip surat masuk...</p>
-            </div>
-          ) : items.length === 0 ? (
-            <div className="p-16 text-center text-sm text-zinc-500 space-y-3">
-              <Inbox className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-700" />
-              <div className="font-semibold text-zinc-700 dark:text-zinc-300">Belum ada arsip surat masuk</div>
-              <p className="text-xs max-w-sm mx-auto text-zinc-400">
-                {hasActiveFilters
-                  ? "Tidak ditemukan surat yang cocok dengan filter aktif. Coba ubah kata kunci atau reset filter."
-                  : "Mulai pencatatan dengan menekan tombol Tambah Arsip di atas."}
-              </p>
-              {hasActiveFilters && (
-                <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-2 text-xs rounded-xl">
-                  Reset Filter
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${statusBalasan}-${kategori}-${page}-${isThisMonthFilter}-${debouncedSearch}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.14, ease: "easeOut" }}
+          className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900 min-h-[460px] flex flex-col justify-between"
+        >
+          <div className="overflow-x-auto flex-1 flex flex-col">
+            {loading && isFirstLoadRef.current ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-xs text-zinc-500 space-y-2">
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                <p>Memuat arsip surat masuk...</p>
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-sm text-zinc-500 space-y-3">
+                <Inbox className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-700" />
+                <div className="font-semibold text-zinc-700 dark:text-zinc-300">Belum ada arsip surat masuk</div>
+                <p className="text-xs max-w-sm mx-auto text-zinc-400">
+                  {hasActiveFilters
+                    ? "Tidak ditemukan surat yang cocok dengan filter aktif. Coba ubah kata kunci atau reset filter."
+                    : "Mulai pencatatan dengan menekan tombol Tambah Arsip di atas."}
+                </p>
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-2 text-xs rounded-xl">
+                    Reset Filter
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col justify-between">
               <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/50">
                   <tr>
@@ -946,17 +977,29 @@ export default function EmployeeIncomingLettersPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
+    </AnimatePresence>
 
       {/* MODAL POP-UP DETAIL SURAT (Tengah Layar) */}
-      {detailItem && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setDetailItem(null);
-          }}
-        >
-          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 flex flex-col max-h-[90vh]">
+      <AnimatePresence>
+        {detailItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setDetailItem(null);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 flex flex-col max-h-[90vh]"
+            >
             {/* Header Modal Detail */}
             <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
               <div className="flex items-center gap-3">
@@ -1151,25 +1194,35 @@ export default function EmployeeIncomingLettersPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
 
       {/* MODAL TAMBAH & EDIT ARSIP (Wide Side-by-Side Tanpa Scroll Layar) */}
-      {formOpen && canWrite && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setEditing(null);
-              setFormOpen(false);
-            }
-          }}
-        >
-          <form
-            onSubmit={handleSave}
-            className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+      <AnimatePresence>
+        {formOpen && canWrite && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-sm"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                setEditing(null);
+                setFormOpen(false);
+              }
+            }}
           >
+            <motion.form
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              onSubmit={handleSave}
+              className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+            >
             {/* Header Modal Form (Fixed Top) */}
             <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0">
               <div className="flex items-center gap-3">
@@ -1481,19 +1534,31 @@ export default function EmployeeIncomingLettersPage() {
                 </Button>
               </div>
             </div>
-          </form>
-        </div>
+          </motion.form>
+        </motion.div>
       )}
+    </AnimatePresence>
 
       {/* MODAL PRATINJAU LAMPIRAN */}
-      {preview && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closePreview();
-          }}
-        >
-          <div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-950">
+      <AnimatePresence>
+        {preview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) closePreview();
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-950"
+            >
             <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-bold" title={preview.attachment.original_name}>
@@ -1550,19 +1615,31 @@ export default function EmployeeIncomingLettersPage() {
                 Unduh Berkas
               </Button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
 
       {/* MODAL EXPORT EXCEL */}
-      {exportOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setExportOpen(false);
-          }}
-        >
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+      <AnimatePresence>
+        {exportOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setExportOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+            >
             <div className="flex items-center justify-between border-b border-zinc-100 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent px-6 py-4 dark:border-zinc-800">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
@@ -1731,9 +1808,10 @@ export default function EmployeeIncomingLettersPage() {
                 Download Excel (.xlsx)
               </Button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
     </div>
   );
 }

@@ -109,6 +109,16 @@ const dashboardSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegaw
 check('motion.div whileHover terpasang pada kartu kategori PNS/PPPK/MMP', dashboardSource.includes('whileHover={{ y: -2 }}'));
 check('motion.div whileHover terpasang pada 4 bento service cards', dashboardSource.includes('whileHover={{ y: -3 }}'));
 
+// 13. Surat Masuk Kepegawaian Motion Check
+console.log('\n[13] Memeriksa Surat Masuk Kepegawaian (/kepegawaian/surat-masuk)...');
+const suratMasukSource = fs.readFileSync(path.join(frontendRoot, 'src/app/kepegawaian/surat-masuk/page.tsx'), 'utf8');
+check('motion.button whileHover={{ y: -3 }} terpasang pada 4 kartu summary', suratMasukSource.includes('whileHover={{ y: -3 }}'));
+check('whileTap={{ scale: 0.98 }} terpasang pada kartu summary surat masuk', suratMasukSource.includes('whileTap={{ scale: 0.98 }}'));
+check('AnimatePresence membungkus tabel arsip surat', suratMasukSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('motion.div transisi tabel surat masuk terpasang', suratMasukSource.includes('statusBalasan') && suratMasukSource.includes('<AnimatePresence mode="wait" initial={false}>'));
+check('AnimatePresence membungkus modal pop-up detail surat', suratMasukSource.includes('{detailItem && (') && suratMasukSource.includes('<AnimatePresence>'));
+check('motion.form terpasang untuk animasi pop-up form tambah/edit arsip', suratMasukSource.includes('<motion.form'));
+
 console.log('\n' + '='.repeat(80));
 console.log(`HASIL: Seluruh ${passCount}/${passCount} Motion Invariants BERHASIL (100% PASS)`);
 console.log('='.repeat(80));
