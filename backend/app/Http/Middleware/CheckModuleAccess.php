@@ -45,8 +45,8 @@ class CheckModuleAccess
         }
 
         if (! $hasAccess) {
-            // Special exception for Kepegawaian module: Allow regular employees to see their own leave balance & details
-            if (in_array('kepegawaian', $moduleNames)) {
+            // Special exception for Kepegawaian module: Allow regular employees to see their own leave balance & details (GET only)
+            if (in_array('kepegawaian', $moduleNames) && $request->isMethod('GET')) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
                 $targetEmployeeId = $request->route('employee');
                 if ($employee && $targetEmployeeId) {

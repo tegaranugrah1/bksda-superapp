@@ -9596,3 +9596,22 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
      - Menyusun desain teknis, diagram komponen, skema basis data, dan plafon in-memory pagination di `design.md`.
      - Menyusun panduan keamanan, otorisasi RBAC, sanitasi input XSS/SQLi, dan audit trail di `security.md`.
      - Menyusun rencana pengujian 4 dimensi (Security, Backend PHPUnit, Frontend Type-Check, dan E2E Playwright) di `test-plan.md` dengan kriteria capaian skor 10/10.
+
+
+14. **Detail Pegawai Full-Screen 2-Column Cockpit & Security Audit Modul Kepegawaian (/ponytail & /security-audit) (3 November 2026 - Sesi Malam)**:
+   - **Modernisasi Layout Fluid Full-Screen 2-Column Cockpit**:
+     - Melepas batas sempit `max-w-7xl` menjadi fluid edge-to-edge (`w-full px-4 sm:px-6 lg:px-8 2xl:px-12`).
+     - Mempertahankan Profile Cockpit Card kiri yang sticky (`xl:col-span-3`) dan Workspace kanan yang ekspansif (`xl:col-span-9`).
+     - Tab Navigasi aktif menggunakan aksen BKSDA Emerald (`#059669`) dan Bento Grid Biodata adaptif multi-kolom (`xl:grid-cols-3 2xl:grid-cols-4`).
+     - Pengujian Playwright Chromium (`frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 test suites PASS (22 DOM assertions 100% hijau).
+   - **Security Audit & Penguatan Pertahanan Berlapis (Defense-in-Depth)**:
+     - Form Pengajuan Surat Tugas publik tetap aktif bagi tamu eksternal, dengan NIP pegawai disamarkan otomatis untuk unauthenticated guest (`1975********1004`) guna mencegah pemanenan basis data 18-digit NIP aparatur sipil.
+     - Data Minimization pada `EmployeeController::show`: membersihkan objek relasi internal `user` (`unset($data['user'])`) untuk mencegah kebocoran pohon izin IAM kepada penampil profil biasa.
+     - Jejak Audit Forensik (`EmployeeHistory`): mencatat tindakan administratif kritis mencakup `RESET_PASSWORD`, `RESET_2FA`, serta `CREATE_IAM_ACCOUNT` dan `UPDATE_IAM_ACCESS`.
+     - UI Jejak Audit (`EmployeeAuditHistoryTab.tsx`): menampilkan catatan administratif dan label peran IAM secara transparan.
+     - Middleware `CheckModuleAccess.php`: menambahkan syarat filter `$request->isMethod('GET')` pada pengecualian Kepegawaian.
+   - **Hasil Pengujian**:
+     - `php backend/tests/portal_security_check.php`: 200+ invariant keamanan lulus (100% PASS).
+     - `php backend/tests/self_check_public_surat_tugas.php`: 100% PASS.
+     - `cd frontend; npx tsc --noEmit`: 0 error.
+     - `graphify update .`: 11.837 nodes, 21.684 edges, 851 communities ter-update.

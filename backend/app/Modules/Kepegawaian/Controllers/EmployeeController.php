@@ -200,6 +200,7 @@ class EmployeeController extends Controller
         $employee = Employee::with('user')->findOrFail($id);
 
         $data = $employee->toArray();
+        unset($data['user']);
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
         $data['email'] = $employee->email ?? $employee->user?->email ?? null;
 
@@ -468,14 +469,24 @@ class EmployeeController extends Controller
             ->limit($limit)
             ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja']);
 
+        $isAuth = $request->user() !== null;
+
         return response()->json([
-            'data' => $employees->map(function ($emp) {
+            'data' => $employees->map(function ($emp) use ($isAuth) {
+                $cleanNip = trim((string) $emp->nip);
+                $maskedNip = $cleanNip !== ''
+                    ? (strlen($cleanNip) > 8
+                        ? substr($cleanNip, 0, 4) . str_repeat('*', max(4, strlen($cleanNip) - 8)) . substr($cleanNip, -4)
+                        : '****')
+                    : '-';
+                $displayNip = $isAuth ? $cleanNip : $maskedNip;
+
                 return [
                     'id' => $emp->id,
                     'name' => $emp->nama_lengkap,
                     'nama_lengkap' => $emp->nama_lengkap,
                     'nama' => $emp->nama_lengkap,
-                    'nip' => $emp->nip,
+                    'nip' => $displayNip,
                     'pangkat_golongan' => $emp->pangkat_golongan,
                     'rank' => $emp->pangkat_golongan,
                     'department' => $emp->satuan_kerja,
@@ -540,6 +551,16 @@ class EmployeeController extends Controller
         // Revoke active sessions / bearer tokens upon password reset
         $user->tokens()->delete();
 
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_PASSWORD',
+            'changes' => [],
+            'notes' => 'Reset kata sandi pegawai oleh ' . ($currentUser?->name ?? 'Admin') . ($request->input('mode') === 'send_link' ? ' (kirim link email)' : ' (generate password sementara)'),
+            'created_at' => now(),
+        ]);
+
         return response()->json([
             'message' => 'Password berhasil direset. Pegawai wajib menggantinya saat login berikutnya.',
             'temporary_password' => $temporaryPassword,
@@ -569,6 +590,16 @@ class EmployeeController extends Controller
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+        ]);
+
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_2FA',
+            'changes' => [],
+            'notes' => 'Reset Autentikasi 2 Langkah (2FA) pegawai oleh Super Admin (' . ($currentUser?->name ?? 'Super Admin') . ')',
+            'created_at' => now(),
         ]);
 
         return response()->json([

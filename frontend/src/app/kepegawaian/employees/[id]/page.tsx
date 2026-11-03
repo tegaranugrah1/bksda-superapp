@@ -375,13 +375,14 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
-        <div className="h-8 w-36 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 h-96 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
-          <div className="lg:col-span-8 space-y-6">
-            <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
-            <div className="h-80 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+      <div className="p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full min-h-screen">
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-4 xl:col-span-3 h-[600px] bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+          <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+            <div className="h-24 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <div className="h-[460px] bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
           </div>
         </div>
       </div>
@@ -415,19 +416,19 @@ export default function EmployeeDetailPage() {
   const latestAllowance = allowancesData?.data?.[0];
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full min-h-screen">
       {/* Top Breadcrumb & Quick Actions Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
             href="/kepegawaian/employees"
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 transition-all shadow-2xs"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all shadow-2xs cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Kembali ke Daftar Pegawai</span>
           </Link>
           <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className="text-xs font-medium text-slate-500 truncate max-w-[200px] sm:max-w-xs">
+          <span className="text-xs font-medium text-slate-500 truncate max-w-[200px] sm:max-w-md">
             {employee.nama_lengkap}
           </span>
         </div>
@@ -448,24 +449,24 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
               onClick={() => setAccessSheetOpen(true)}
             >
-              <Shield className="w-3.5 h-3.5 text-blue-500" />
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
               <span>Kelola Akses (IAM)</span>
             </Button>
           )}
         </div>
       </div>
 
-      {/* Main 2-Column Responsive Layout */}
+      {/* Main 2-Column Responsive Full-Screen Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ======================================================== */}
-        {/* LEFT COLUMN: STICKY PROFILE COCKPIT (col-span-4)         */}
+        {/* LEFT COLUMN: STICKY PROFILE COCKPIT (col-span-4 / col-span-3) */}
         {/* ======================================================== */}
-        <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
+        <div className="lg:col-span-4 xl:col-span-3 space-y-5 lg:sticky lg:top-6">
           {/* Cockpit Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-t-4 border-t-emerald-600 dark:border-t-emerald-500 rounded-3xl p-6 shadow-xs">
 
             {/* Profile Avatar & Primary Badges */}
             <div className="flex flex-col items-center text-center pb-5 border-b border-slate-100 dark:border-slate-800">
@@ -829,9 +830,9 @@ export default function EmployeeDetailPage() {
         </div>
 
         {/* ======================================================== */}
-        {/* RIGHT COLUMN: METRIC BANNERS & DYNAMIC TABS (col-span-8) */}
+        {/* RIGHT COLUMN: METRIC BANNERS & DYNAMIC TABS (col-span-8/9) */}
         {/* ======================================================== */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 xl:col-span-9 space-y-6">
           {/* Top 4 Metric Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             {/* Metric 1: Masa Kerja */}
@@ -918,7 +919,7 @@ export default function EmployeeDetailPage() {
                 className={cn(
                   "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   activeTab === "biodata"
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-emerald-600 text-white shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
@@ -933,7 +934,7 @@ export default function EmployeeDetailPage() {
                 className={cn(
                   "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   activeTab === "history"
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-emerald-600 text-white shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
@@ -958,7 +959,7 @@ export default function EmployeeDetailPage() {
                 className={cn(
                   "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   activeTab === "leave"
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-emerald-600 text-white shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
@@ -983,7 +984,7 @@ export default function EmployeeDetailPage() {
                 className={cn(
                   "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   activeTab === "meal_allowance"
-                    ? "bg-blue-600 text-white shadow-xs"
+                    ? "bg-emerald-600 text-white shadow-xs"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
@@ -1009,7 +1010,7 @@ export default function EmployeeDetailPage() {
                   className={cn(
                     "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                     activeTab === "audit"
-                      ? "bg-blue-600 text-white shadow-xs"
+                      ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                   )}
                 >
@@ -1026,7 +1027,7 @@ export default function EmployeeDetailPage() {
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <User className="w-4 h-4 text-blue-600" />
+                    <User className="w-4 h-4 text-emerald-600" />
                     Identitas & Data Lengkap Pegawai
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1038,10 +1039,10 @@ export default function EmployeeDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-xl gap-1.5 text-xs font-bold cursor-pointer"
+                    className="rounded-xl gap-1.5 text-xs font-bold hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400 cursor-pointer"
                     onClick={startEditing}
                   >
-                    <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                    <Pencil className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Edit Biodata</span>
                   </Button>
                 )}
@@ -1060,7 +1061,7 @@ export default function EmployeeDetailPage() {
                     </Button>
                     <Button
                       size="sm"
-                      className="rounded-xl gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer"
+                      className="rounded-xl gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer"
                       onClick={handleSave}
                       disabled={saving}
                     >
@@ -1076,10 +1077,10 @@ export default function EmployeeDetailPage() {
                   {/* Bagian 1: Data Kepegawaian Utama */}
                   <div>
                     <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+                      <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
                       Data Kepegawaian & Penempatan
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
                       <BioItem
                         label="Kategori Pegawai"
                         value={
@@ -1276,7 +1277,7 @@ export default function EmployeeDetailPage() {
                             className={cn(
                               "flex flex-col items-start p-3 rounded-2xl border text-left transition-all cursor-pointer",
                               isSelected
-                                ? "bg-blue-50 dark:bg-blue-950/40 border-blue-600 ring-2 ring-blue-500/20"
+                                ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20"
                                 : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                             )}
                           >
@@ -1284,7 +1285,7 @@ export default function EmployeeDetailPage() {
                               <span
                                 className={cn(
                                   "text-xs font-bold",
-                                  isSelected ? "text-blue-700 dark:text-blue-400" : "text-slate-900 dark:text-white"
+                                  isSelected ? "text-emerald-700 dark:text-emerald-400" : "text-slate-900 dark:text-white"
                                 )}
                               >
                                 {opt.label}
@@ -1292,7 +1293,7 @@ export default function EmployeeDetailPage() {
                               <span
                                 className={cn(
                                   "w-2 h-2 rounded-full",
-                                  isSelected ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
+                                  isSelected ? "bg-emerald-600" : "bg-slate-300 dark:bg-slate-600"
                                 )}
                               />
                             </div>
@@ -1304,7 +1305,7 @@ export default function EmployeeDetailPage() {
                   </BioField>
 
                   {/* Input Grid Field Biodata */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {editJenis !== "MMP" && (
                       <BioField label={editJenis === "PPPK" ? "NIPPPK" : "NIP"}>
                         <input
@@ -1316,7 +1317,7 @@ export default function EmployeeDetailPage() {
                               ? "19930425 202421 2 053..."
                               : "19800101 200501 1 001..."
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white font-mono"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white font-mono"
                         />
                       </BioField>
                     )}
@@ -1329,7 +1330,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, nama_lengkap: e.target.value })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
                         />
                       </BioField>
                     </div>
@@ -1340,7 +1341,7 @@ export default function EmployeeDetailPage() {
                           type="text"
                           value={editForm.jabatan}
                           onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
                         />
                       </BioField>
                     </div>
@@ -1357,7 +1358,7 @@ export default function EmployeeDetailPage() {
                             onChange={(e) =>
                               setEditForm({ ...editForm, pangkat_golongan: e.target.value })
                             }
-                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                           >
                             <option value="">
                               {editJenis === "PPPK"
@@ -1380,7 +1381,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.satuan_kerja}
                           onChange={(e) => handleEditSatkerChange(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                         >
                           <option value="">Pilih Unit Kerja</option>
                           {UNIT_KERJA_OPTIONS.map((opt) => (
@@ -1439,7 +1440,7 @@ export default function EmployeeDetailPage() {
                                 "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
                                 isBalai
                                   ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-slate-200 dark:border-slate-700"
-                                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 dark:text-white"
+                                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-white"
                               )}
                             >
                               {isBalai ? (
@@ -1470,7 +1471,7 @@ export default function EmployeeDetailPage() {
                               value={editForm.masa_kerja}
                               onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
                               placeholder="Contoh: 4 Tahun 5 Bulan"
-                              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-semibold text-slate-900 dark:text-white outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-semibold text-slate-900 dark:text-white outline-none transition-all"
                             />
                             <Button
                               type="button"
@@ -1503,7 +1504,7 @@ export default function EmployeeDetailPage() {
                           value={editForm.telepon}
                           onChange={(e) => setEditForm({ ...editForm, telepon: e.target.value })}
                           placeholder="Misal: 081234567890"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
                         />
                         <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none" />
                       </div>
@@ -1520,7 +1521,7 @@ export default function EmployeeDetailPage() {
                           value={editForm.email}
                           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                           placeholder="Misal: nama@kemenlhk.go.id atau @bksda.local"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
                         />
                         <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 pointer-events-none" />
                       </div>
@@ -1535,7 +1536,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.nama_bank}
                           onChange={(e) => setEditForm({ ...editForm, nama_bank: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                         >
                           {availableBanks.map((b) => (
                             <option key={b} value={b}>
@@ -1567,7 +1568,7 @@ export default function EmployeeDetailPage() {
                           value={editForm.nomor_rekening}
                           onChange={(e) => setEditForm({ ...editForm, nomor_rekening: e.target.value })}
                           placeholder="Nomor rekening tanpa spasi / tanda hubung"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
                         />
                         <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500 pointer-events-none" />
                       </div>
@@ -1583,7 +1584,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, is_active: e.target.value === "active" })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
                         >
                           <option value="active">Aktif Bertugas</option>
                           <option value="inactive">Non-Aktif</option>

@@ -296,3 +296,57 @@
 ### 5. Verifikasi & Pengujian
 - Kompilasi build Next.js (`npm run build`) lolos 100% tanpa error (73 halaman statis & dinamis).
 - Validasi API backend (GET/POST/PUT/DELETE) modul keuangan & portal normal.
+
+
+---
+
+### 6. Modernisasi UI/UX Detail Pegawai (Full-Screen 2-Column Cockpit & ui-ux-pro-max /ponytail) — Selesai ✅
+
+- **Prinsip Desain & Eksekusi Ponytail**:
+  1. **Full-Screen Fluid Layout**: Menghapus batas sempit `max-w-7xl` dan menggunakan lebar penuh fluida monitor (`w-full px-4 sm:px-6 lg:px-8 2xl:px-12`) agar tabel penugasan, cuti, dan uang makan bernapas lega tanpa terpotong.
+  2. **2-Column Responsive Full-Screen Split**:
+     - *Sidebar Kiri (lg:col-span-4 xl:col-span-3 lg:sticky lg:top-6)*: Mempertahankan Profile Cockpit Card yang disukai pengguna (Foto avatar resolusi tinggi, nama lengkap + gelar, NIP 1-click copy, badge PNS/PPPK/MMP, rincian jabatan & satker, sub-card WhatsApp Chat & Email dinas, kartu alokasi rekening bank uang makan resmi, serta tombol Edit Data Pegawai).
+     - *Workspace Kanan (lg:col-span-8 xl:col-span-9 space-y-6)*: Membentang luas mengisi sisa layar dengan 4 Top Metric Summary Cards (Masa Kerja, Penugasan SPT, Sisa Cuti, Uang Makan Terakhir) serta Tab Navigation.
+  3. **Standar ui-ux-pro-max & BKSDA Emerald (#059669 / #0F172A)**:
+     - Tab navigation aktif menggunakan aksen hijau BKSDA Emerald (`bg-emerald-600 text-white shadow-xs`) dan border atas cockpit `border-t-4 border-t-emerald-600`.
+     - Target sentuh minimal 44x44px dan `cursor-pointer` pada seluruh tombol aksi.
+     - Tab Biodata adaptif multi-kolom (`xl:grid-cols-3 2xl:grid-cols-4`).
+     - Zero new dependencies (mempertahankan helper dan komponen yang sudah teruji).
+- **Checklist Implementasi & Hasil Pengujian**:
+  - [x] Refactor `frontend/src/app/kepegawaian/employees/[id]/page.tsx` ke arsitektur full-screen 2-column cockpit (`xl:col-span-3` dan `xl:col-span-9`).
+  - [x] Modernisasi Skeleton loading ke layout fluid full-screen 2-kolom.
+  - [x] Verifikasi kompilasi TypeScript (`npx tsc --noEmit`) lolos 100% tanpa error.
+  - [x] Verifikasi uji end-to-end Playwright Chromium (`frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 test suites PASS, 22 DOM assertions 100% hijau.
+  - [x] Verifikasi regresi alokasi bank (`frontend/tests/kepegawaian-bank-allocation.playwright.cjs`): 6/6 test suites PASS.
+  - [x] Sinkronisasi AST Knowledge Graph (`graphify update .`): 11.837 nodes, 21.680 edges, 845 communities ter-update.
+
+---
+
+### 7. Security Audit Modul Kepegawaian & Penguatan Pertahanan Berlapis (/security-audit & /ponytail) — Selesai ✅
+
+- **Ruang Lingkup Audit & Laporan Keamanan**:
+  - Audit menyeluruh berbasis kode sumber defensif mencakup seluruh controller, middleware, routes, dan komponen UI modul Kepegawaian.
+  - Laporan lengkap tercatat di artefak: [`kepegawaian-security-audit-report.md`](kepegawaian-security-audit-report.md).
+- **Penguatan Pertahanan Berlapis (Defense-in-Depth) yang Diterapkan**:
+  1. **Akses Pengajuan Surat Tugas Publik yang Aman & Masking NIP**:
+     - Mempertahankan form pengajuan Surat Tugas publik bagi tamu eksternal tanpa mengorbankan privasi data pegawai.
+     - NIP pegawai disamarkan otomatis untuk unauthenticated guest (`1975********1004`), mencegah *scraping / harvesting* direktori 18-digit NIP aparatur.
+     - Status submission tetap terkunci ketat pada `status = 'pending'` dan `created_by = null` dengan rate limiting ganda `throttle:15,1` dan `throttle:120,1`.
+  2. **Minimisasi Data pada Detail Pegawai (`EmployeeController::show`)**:
+     - Membuang relasi objek internal `user` (`unset($data['user'])`) sebelum respons dikembalikan ke client.
+     - Mencegah kebocoran pohon perizinan modul dan wewenang akun internal sistem kepada pembaca biasa.
+  3. **Jejak Audit Forensik Operasi Administratif Kritis (`EmployeeHistory`)**:
+     - Menambahkan pencatatan kronologis pada `kpg_employee_histories`:
+       - `RESET_PASSWORD`: Mencatat admin pengeksekusi dan mode reset (link email vs password sementara).
+       - `RESET_2FA`: Mencatat Super Admin pengeksekusi reset Autentikasi 2 Langkah.
+       - `CREATE_IAM_ACCOUNT` & `UPDATE_IAM_ACCESS`: Mencatat perubahan peran (*role*) dan modul akses.
+     - Komponen `EmployeeAuditHistoryTab.tsx` di frontend diperbarui untuk menampilkan catatan tindakan administratif dan diff peran IAM secara rapi.
+  4. **Pencegahan Bypass Mutasi HTTP di Middleware (`CheckModuleAccess.php`)**:
+     - Menambahkan filter pengaman eksplisit `$request->isMethod('GET')` pada pengecualian hak akses Kepegawaian.
+- **Hasil Pengujian & Verifikasi Kualitas 100% Hijau**:
+  - [x] `php backend/tests/portal_security_check.php`: 200+ invariant keamanan lulus (100% PASS).
+  - [x] `php backend/tests/self_check_public_surat_tugas.php`: Alur pengajuan ST tamu publik lulus (100% PASS).
+  - [x] `node frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`: 6/6 test suites PASS (22 DOM assertions).
+  - [x] `node frontend/tests/kepegawaian-bank-allocation.playwright.cjs`: 6/6 test suites PASS (12 DOM assertions).
+  - [x] TypeScript compiler (`cd frontend; npx tsc --noEmit`): 0 error.
+  - [x] Sinkronisasi Knowledge Graph (`graphify update .`): 11.837 nodes, 21.684 edges, 851 communities ter-update.
