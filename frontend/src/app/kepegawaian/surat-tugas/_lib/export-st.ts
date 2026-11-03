@@ -183,15 +183,57 @@ export async function exportSuratTugasWord(
     ttdContainer.replaceWith(layoutTable);
   }
 
-  // 8. Bersihkan outer print table pembungkus surat-content
+  // Tata letak Tanda Tangan Lampiran menggunakan tabel 2 kolom agar konsisten dan sejajar dengan Halaman 1
+  const lampiranTtd = clone.querySelector(".lampiran-ttd") as HTMLElement | null;
+  if (lampiranTtd) {
+    const lampiranTtdTable = document.createElement("table");
+    lampiranTtdTable.setAttribute(
+      "style",
+      "width: 100%; border: none; border-collapse: collapse; margin-top: 14pt; table-layout: fixed; mso-table-lspace: 0; mso-table-rspace: 0;"
+    );
+    lampiranTtd.style.marginLeft = "0";
+    lampiranTtd.style.marginTop = "0";
+    lampiranTtd.style.textAlign = "left";
+    lampiranTtdTable.innerHTML = `
+      <tr style="border: none;">
+        <td style="width: 42%; vertical-align: top; border: none; padding: 0;">&nbsp;</td>
+        <td style="width: 58%; vertical-align: top; text-align: left; border: none; padding: 0 0 0 10pt;">
+          ${lampiranTtd.outerHTML}
+        </td>
+      </tr>
+    `;
+    lampiranTtd.replaceWith(lampiranTtdTable);
+  }
+
+  // 8. Tangani pemisahan halaman lampiran secara tepat untuk Word:
+  //    Gunakan <br clear="all" style="page-break-before: always; mso-break-type: section-break;" />
+  //    dan bersihkan style page-break / padding pada container agar Word tidak memecah
+  //    meta lampiran dan judul daftar pegawai ke halaman yang berbeda.
+  const lampiranWrapper = clone.querySelector(".st-lampiran-page-wrapper") as HTMLElement | null;
+  let lampiranHtml = "";
+  if (lampiranWrapper) {
+    lampiranWrapper.style.removeProperty("page-break-before");
+    lampiranWrapper.style.removeProperty("break-before");
+    lampiranWrapper.style.marginTop = "0";
+
+    const lampiranPage = lampiranWrapper.querySelector(".st-lampiran-page") as HTMLElement | null;
+    if (lampiranPage) {
+      lampiranPage.style.padding = "0";
+      lampiranPage.style.width = "100%";
+    }
+
+    lampiranHtml = `<br clear="all" style="page-break-before: always; mso-break-type: section-break;" />` + lampiranWrapper.outerHTML;
+    lampiranWrapper.remove();
+  }
+
+  // Bersihkan outer print table pembungkus surat-content
   const outerTable = clone.querySelector("table");
   const suratContent = clone.querySelector(".surat-content");
   let bodyContentHtml = "";
   if (outerTable && suratContent && outerTable.contains(suratContent)) {
-    const lampiranWrapper = clone.querySelector(".st-lampiran-page-wrapper");
-    bodyContentHtml = suratContent.innerHTML + (lampiranWrapper ? lampiranWrapper.outerHTML : "");
+    bodyContentHtml = suratContent.innerHTML + lampiranHtml;
   } else {
-    bodyContentHtml = clone.innerHTML;
+    bodyContentHtml = clone.innerHTML + lampiranHtml;
   }
 
   const filename = buildSuratTugasFilename(stNumber, namaKegiatan, "doc");
@@ -262,9 +304,11 @@ Content-Type: text/html; charset="utf-8"
       vertical-align: middle;
     }
     .st-lampiran-page-wrapper {
-      page-break-before: always;
-      mso-break-type: section-break;
-      margin-top: 1.5rem;
+      margin-top: 0;
+    }
+    .st-lampiran-page {
+      padding: 0 !important;
+      width: 100% !important;
     }
   </style>
 </head>
