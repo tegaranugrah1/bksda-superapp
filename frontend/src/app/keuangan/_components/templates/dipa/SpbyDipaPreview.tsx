@@ -13,6 +13,7 @@ import {
   DEFAULT_DIPA_KLASIFIKASI_MAK,
   computeDipaMak,
   DipaMakItem,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 export function SpbyDipaPreview({
@@ -29,12 +30,12 @@ export function SpbyDipaPreview({
   const primaryRecipient = recipients[0] || { name: "-", nip: "" };
   const primaryName = primaryRecipient.name;
   const isDkk = recipients.length > 1;
-  const kepadaText = `${primaryName}${isDkk ? ", Dkk" : ""}`;
+  const kepadaText = `${formatNameWithPreservedTitle(primaryName)}${isDkk ? ", Dkk" : ""}`;
   const uraian =
     dipaConfig?.uraianSptjb ||
-    buildDefaultSptjbUraian(travel, recipients.length, dipaConfig?.maksudTujuan || activity.name);
+    buildDefaultSptjbUraian(travel, recipients.length, dipaConfig?.maksudTujuan || activity.name, dipaConfig?.akun);
 
-  const bendahara = dipaConfig?.bendahara || pdo || { name: "SOERENDENG, SE", nik: "19790721 200701 2 001" };
+  const bendahara = dipaConfig?.bendahara || pdo || { name: "Soerendeng, S.E", nik: "19790721 200701 2 001" };
   const currentRomanMonth = getRomanMonth(new Date());
   const currentYear = new Date().getFullYear().toString();
   const spbyNo = dipaConfig?.spbyNo?.trim() || "";
@@ -47,11 +48,10 @@ export function SpbyDipaPreview({
   const autoMak = computeDipaMak(recipients, travel);
   const klasifikasiMak = dipaConfig?.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK;
   const makKode = dipaConfig?.kodeMak?.trim() ? dipaConfig.kodeMak.trim() : autoMak.kodeMak;
-  const makDesc = dipaConfig?.makDescription?.trim()
-    ? dipaConfig.makDescription.trim()
-    : dipaConfig?.kodeMak?.trim()
-    ? (autoMak.kodeMak === dipaConfig.kodeMak.trim() ? autoMak.description : "")
-    : autoMak.description;
+  const makDesc =
+    dipaConfig?.makDescription !== undefined
+      ? dipaConfig.makDescription.trim()
+      : "";
 
   const makItems: DipaMakItem[] =
     dipaConfig?.makItems && dipaConfig.makItems.length === 1
@@ -222,8 +222,8 @@ export function SpbyDipaPreview({
                     <span>{idx === 0 ? "Kode" : ""}</span>
                     <span>:</span>
                     <div>
-                      <span className="font-mono inline-block w-[160px]">{item.kodeMak}</span>
-                      <span>{item.description}</span>
+                      <span className="font-mono">{item.kodeMak}</span>
+                      {item.description ? <span className="ml-4">{item.description}</span> : null}
                     </div>
                   </div>
                 ))}
@@ -274,22 +274,22 @@ export function SpbyDipaPreview({
                   <td colSpan={3}></td>
                 </tr>
                 {/* Row 37 Excel: Nama Pejabat */}
-                <tr className="font-bold uppercase">
+                <tr className="font-bold">
                   <td className="w-1/3 align-top pr-2">
-                    <span className="underline">{bendahara.name}</span>
+                    <span className="underline">{formatNameWithPreservedTitle(bendahara.name || "Soerendeng, S.E")}</span>
                   </td>
                   <td className="w-1/3 align-top pr-2">
-                    <span className="underline">{primaryRecipient.name}</span>
+                    <span className="underline">{formatNameWithPreservedTitle(primaryRecipient.name)}</span>
                   </td>
                   <td className="w-1/3 align-top">
-                    <span className="underline">{ppk.name || "RUSMANTO, S.Hut"}</span>
+                    <span className="underline">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</span>
                   </td>
                 </tr>
                 {/* Row 38 Excel: NIP */}
                 <tr>
-                  <td className="w-1/3 align-top pr-2">NIP. {formatNip(bendahara.nik)}</td>
+                  <td className="w-1/3 align-top pr-2">NIP. {formatNip(bendahara.nik || "19790721 200701 2 001")}</td>
                   <td className="w-1/3 align-top pr-2">NIP. {formatNip(primaryRecipient.nip || primaryRecipient.id)}</td>
-                  <td className="w-1/3 align-top">NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</td>
+                  <td className="w-1/3 align-top">NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</td>
                 </tr>
               </tbody>
             </table>

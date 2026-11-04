@@ -71,6 +71,8 @@ export interface Step1RincianBiayaProps {
   kwitansiConfig: KwitansiConfig;
   setKwitansiConfig: React.Dispatch<React.SetStateAction<KwitansiConfig>>;
   pejabatMengetahuiList: MengetahuiOfficial[];
+  sptNumber?: string;
+  setSptNumber?: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export function Step1RincianBiaya({
@@ -108,6 +110,8 @@ export function Step1RincianBiaya({
   kwitansiConfig,
   setKwitansiConfig,
   pejabatMengetahuiList,
+  sptNumber,
+  setSptNumber,
 }: Step1RincianBiayaProps) {
   return (
     <section className="space-y-6">
@@ -183,6 +187,8 @@ export function Step1RincianBiaya({
             setSpdNumber={setSpdNumber}
             activity={activity}
             spjName={spjName}
+            sptNumber={sptNumber}
+            setSptNumber={setSptNumber}
           />
         ) : (
           <Step1FoluTabs

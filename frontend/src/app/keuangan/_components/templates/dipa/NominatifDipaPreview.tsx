@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import {
   Props,
   formatNumber,
@@ -8,6 +9,7 @@ import {
   formatFullDateIndonesia,
   formatIndoDateOptional,
   getDipaTransportBreakdown,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 export function NominatifDipaPreview({
@@ -19,18 +21,38 @@ export function NominatifDipaPreview({
   spdNumber,
   dipaConfig,
 }: Props) {
-  const bendahara = dipaConfig?.bendahara || pdo || { name: "SOERENDENG, SE", nik: "19790721 200701 2 001" };
+  const bendahara = dipaConfig?.bendahara || pdo || { name: "Soerendeng, S.E", nik: "19790721 200701 2 001" };
   const days = calculateDays(travel.startDate, travel.endDate);
   const startStr = formatFullDateIndonesia(travel.startDate);
   const endStr = formatFullDateIndonesia(travel.endDate);
   const tanggalNominatif = formatIndoDateOptional(dipaConfig?.nominatifDate);
+
+  const defaultNominatifMonth = useMemo(() => {
+    return dipaConfig?.nominatifSpdMonth || "07";
+  }, [dipaConfig?.nominatifSpdMonth]);
+
+  const defaultNominatifYear = useMemo(() => {
+    if (dipaConfig?.nominatifSpdYear) return dipaConfig.nominatifSpdYear;
+    if (travel?.startDate) {
+      const parts = travel.startDate.split("-");
+      if (parts.length >= 1 && parts[0]) {
+        return parts[0];
+      }
+    }
+    return "2026";
+  }, [dipaConfig?.nominatifSpdYear, travel?.startDate]);
+
+  const spdMonth = dipaConfig?.nominatifSpdMonth || defaultNominatifMonth;
+  const spdYear = dipaConfig?.nominatifSpdYear || defaultNominatifYear;
+  const defaultSuffix = `/K.18-TU/KEU/${spdMonth}/${spdYear}`;
+
   const spdNo = (dipaConfig?.nominatifSpdNo !== undefined ? dipaConfig.nominatifSpdNo : "")?.trim();
-  const spdSuffix = (dipaConfig?.nominatifSpdSuffix !== undefined ? dipaConfig.nominatifSpdSuffix : "")?.trim();
-  const nominatifSpd = (
-    dipaConfig?.nominatifSpd !== undefined
-      ? dipaConfig.nominatifSpd
-      : (spdNo || spdSuffix ? `${spdNo ? `${spdNo} ` : ""}${spdSuffix}` : "")
+  const spdSuffix = (
+    dipaConfig?.nominatifSpdSuffix !== undefined && dipaConfig.nominatifSpdSuffix !== ""
+      ? dipaConfig.nominatifSpdSuffix
+      : defaultSuffix
   )?.trim();
+  const manualSpd = dipaConfig?.nominatifSpd?.trim();
 
   const totals = recipients.reduce(
     (acc, r) => {
@@ -116,12 +138,26 @@ export function NominatifDipaPreview({
           <h1 className="text-[11pt] font-bold uppercase tracking-wider">
             DAFTAR NOMINATIF PERJALANAN DINAS
           </h1>
-          <div className="text-[11pt] mt-0.5 font-normal inline-flex items-center justify-center font-mono">
+          <div className="text-[11pt] mt-0.5 font-normal inline-flex items-center justify-center font-mono whitespace-pre">
             <span>Nomor SPD :&nbsp;</span>
-            {nominatifSpd ? (
-              <span>{nominatifSpd}</span>
+            {manualSpd ? (
+              manualSpd.trim().startsWith("/") ? (
+                <span>
+                  <span className="inline-block w-14 sm:w-16 text-center">&nbsp;</span>
+                  {manualSpd.trim()}
+                </span>
+              ) : (
+                <span>{manualSpd}</span>
+              )
+            ) : spdNo ? (
+              <span>
+                {spdNo} {spdSuffix}
+              </span>
             ) : (
-              <span className="inline-block w-36">&nbsp;</span>
+              <span>
+                <span className="inline-block w-14 sm:w-16 text-center">&nbsp;</span>
+                {spdSuffix}
+              </span>
             )}
           </div>
         </div>
@@ -143,7 +179,7 @@ export function NominatifDipaPreview({
               </tr>
               <tr className="bg-slate-50 text-center font-bold text-[7.5pt]">
                 <th className="border border-black p-1 w-16">Transport Udara</th>
-                <th className="border border-black p-1 w-20">Taksi bandara/ stasiun PP</th>
+                <th className="border border-black p-1 w-20">Taksi/Transport (PP)</th>
                 <th className="border border-black p-1 w-16">Jumlah</th>
                 <th className="border border-black p-1 w-20">Uang Harian</th>
                 <th className="border border-black p-1 w-20">Penginapan</th>
@@ -175,21 +211,24 @@ export function NominatifDipaPreview({
                 const penginapan = (r.dipa?.penginapanRate || 0) * (r.dipa?.penginapanNights || 0);
                 const rowTotal = r.amount || (uangHarian + transportSubtotal + penginapan);
 
+                const effectiveSt = (dipaConfig?.stNumber || sptNumber || "").trim();
+                const rowSt = ((r as any).sptNumber || (r as any).stNumber || "").trim();
+                const activeSt = rowSt || effectiveSt;
+                const formattedSt = activeSt
+                  ? (activeSt.startsWith("ST.") || activeSt.startsWith("ST ")
+                      ? activeSt
+                      : `ST. ${activeSt}`)
+                  : "ST. ........................................";
+
                 return (
                   <tr key={r.id || idx}>
                     <td className="border border-black p-1.5 text-center align-top">{idx + 1}</td>
                     <td className="border border-black p-1.5 align-top">
-                      <p className="font-bold uppercase">{r.name}</p>
+                      <p className="font-bold">{formatNameWithPreservedTitle(r.name)}</p>
                       <p className="text-[7.5pt] text-slate-700">NIP. {formatNip(r.nip || r.id)}</p>
-                      {sptNumber && (
-                        <p className="text-[7.5pt] text-slate-700">
-                          {sptNumber.trim().startsWith("ST.") || sptNumber.trim().startsWith("ST ")
-                            ? sptNumber.trim()
-                            : `ST. ${sptNumber.trim()}`}
-                        </p>
-                      )}
+                      <p className="text-[7.5pt] text-slate-700">{formattedSt}</p>
                     </td>
-                    <td className="border border-black p-1.5 align-top">{travel.destination}</td>
+                    <td className="border border-black p-1.5 align-top text-center">{travel.destination}</td>
                     <td className="border border-black p-1.5 align-top text-center text-[7.5pt]">
                       <p>{startStr}</p>
                       <p className="my-0.5">s/d</p>
@@ -201,9 +240,7 @@ export function NominatifDipaPreview({
                     <td className="border border-black p-1.5 text-right align-top font-mono font-semibold">{formatNumber(uangHarian)}</td>
                     <td className="border border-black p-1.5 text-right align-top font-mono">{penginapan > 0 ? formatNumber(penginapan) : "-"}</td>
                     <td className="border border-black p-1.5 text-right align-top font-mono font-bold">{formatNumber(rowTotal)}</td>
-                    <td className="border border-black p-1.5 align-middle text-left pl-2">
-                      <span className="text-[7pt] text-slate-400">{idx + 1}. ....................</span>
-                    </td>
+                    <td className="border border-black p-1.5"></td>
                   </tr>
                 );
               })}
@@ -226,18 +263,19 @@ export function NominatifDipaPreview({
 
         {/* Signatures */}
         <div className="mt-6 grid grid-cols-2 gap-8 text-[11pt]">
-          <div className="text-left">
+          <div className="text-left pl-12 sm:pl-16">
+            <p className="invisible select-none" aria-hidden="true">&nbsp;</p>
             <p className="font-semibold">Pejabat Pembuat Komitmen,</p>
             <div className="h-14" />
-            <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
-            <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
+            <p className="font-bold">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</p>
+            <p>NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</p>
           </div>
           <div className="text-left pl-24 sm:pl-32">
             <p>{dipaConfig?.cityDateText || "Samarinda,"} {tanggalNominatif || ""}</p>
             <p className="font-semibold">Bendahara Pengeluaran,</p>
             <div className="h-14" />
-            <p className="font-bold uppercase">{bendahara.name}</p>
-            <p>NIP. {formatNip(bendahara.nik)}</p>
+            <p className="font-bold">{formatNameWithPreservedTitle(bendahara.name || "Soerendeng, S.E")}</p>
+            <p>NIP. {formatNip(bendahara.nik || "19790721 200701 2 001")}</p>
           </div>
         </div>
       </div>

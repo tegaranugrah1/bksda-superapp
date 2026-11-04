@@ -7,6 +7,7 @@ import {
   calculateDays,
   formatFullDateIndonesia,
   formatIndoDateOptional,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 const angkaTerbilangMap: Record<number, string> = {
@@ -152,7 +153,7 @@ export function DpRilDipaPreview({
                 <div className="grid grid-cols-[90px_15px_1fr]">
                   <span>Nama</span>
                   <span>:</span>
-                  <span className="font-bold uppercase">{recipient.name}</span>
+                  <span className="font-bold">{formatNameWithPreservedTitle(recipient.name)}</span>
                 </div>
                 <div className="grid grid-cols-[90px_15px_1fr]">
                   <span>NIP</span>
@@ -253,15 +254,15 @@ export function DpRilDipaPreview({
                 <p>Mengetahui/Menyetujui :</p>
                 <p className="font-semibold">Pejabat Pembuat Komitmen,</p>
                 <div className="h-16" />
-                <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
-                <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
+                <p className="font-bold">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</p>
+                <p>NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</p>
               </div>
 
               <div className="text-left">
                 <p>{cityDateText} {tanggalDpRil || ""}</p>
                 <p className="font-semibold">Pelaksana SPD,</p>
                 <div className="h-16" />
-                <p className="font-bold uppercase">{recipient.name}</p>
+                <p className="font-bold">{formatNameWithPreservedTitle(recipient.name)}</p>
                 <p>NIP. {formatNip(recipient.nip || recipient.id)}</p>
               </div>
             </div>

@@ -64,6 +64,7 @@ import {
   cleanNip,
   computeDipaMak,
   DEFAULT_DIPA_KLASIFIKASI_MAK,
+  DEFAULT_DIPA_NO_SP_DIPA,
   extractActivityNameFromMaksud,
   extractOriginFromMaksud,
   formatFullDateIndonesia,
@@ -191,10 +192,11 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
   const [dipaConfig, setDipaConfig] = useState<DipaConfig>({
     kodeSatker: "143.04.16.693614",
     namaSatker: "Balai Konservasi Sumber Daya Alam Kalimantan Timur",
-    noSpDipa: "No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025",
+    noSpDipa: DEFAULT_DIPA_NO_SP_DIPA,
     klasifikasiMak: DEFAULT_DIPA_KLASIFIKASI_MAK,
     kodeMak: "",
     akun: "524111",
+    bendahara: OFFICIALS_DIPA[1],
     transportMode: "Kendaraan Dinas",
     stDate: "",
     spdDate: "",
@@ -311,9 +313,17 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
     setDefaultEvidenceSuffix(computedEvidenceSuffix);
 
     if (isDipa) {
+      const generatedUraian = buildDefaultSptjbUraian(
+        { origin, destination, startDate, endDate },
+        letter.employees?.length || 1,
+        letterMaksud || activityName,
+        dipaConfig.akun || "524111"
+      );
+
       setDipaConfig((prev) => ({
         ...prev,
         maksudTujuan: letterMaksud,
+        uraianSptjb: generatedUraian,
         stDate: formatFullDateIndonesia(startDate),
         spdDate: formatFullDateIndonesia(startDate),
         spbyDate: prev.spbyDate || "",
@@ -624,6 +634,18 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
     if (type === "DIPA") {
       setPpk(OFFICIALS_DIPA[0]);
       setPdo(OFFICIALS_DIPA[1]);
+      const currentAkun = dipaConfig.akun || "524111";
+      const generatedUraian = buildDefaultSptjbUraian(
+        travel,
+        recipients.length || 1,
+        dipaConfig.maksudTujuan || activity.name || spjName,
+        currentAkun
+      );
+      setDipaConfig((prev) => ({
+        ...prev,
+        bendahara: OFFICIALS_DIPA[1],
+        uraianSptjb: prev.uraianSptjb || generatedUraian,
+      }));
       setSelectedDocument("spby-dipa");
       setSpdNumber({ no: "", suffix: "/K.18-TU/KEU/01/2026" });
       setSpbNumber({ no: "", suffix: "/K.18-TU/KEU/01/2026" });
@@ -733,7 +755,7 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         tanggal_selesai: travel.endDate,
         pejabat_ppk: ppk,
         pejabat_pdo: pdo,
-        pejabat_verifikator: verifikator,
+        pejabat_verifikator: tipeAnggaran === "DIPA" ? null : verifikator,
         pejabat_kasubbag: OFFICIALS[3],
         recipients,
         total_anggaran: total,
@@ -741,8 +763,12 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
         status: statusToSave,
         dipa_config: tipeAnggaran === "DIPA" ? {
           ...dipaConfig,
+          bendahara: dipaConfig.bendahara || pdo,
           klasifikasiMak: dipaConfig.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK,
           kodeMak: dipaConfig.kodeMak?.trim() ? dipaConfig.kodeMak : computeDipaMak(recipients, travel).kodeMak,
+          uraianSptjb: dipaConfig.uraianSptjb?.trim()
+            ? dipaConfig.uraianSptjb
+            : buildDefaultSptjbUraian(travel, recipients.length, dipaConfig.maksudTujuan || activity.name, dipaConfig.akun || "524111"),
         } : undefined,
       };
 
@@ -791,7 +817,7 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
       tanggal_selesai: travel.endDate,
       pejabat_ppk: ppk,
       pejabat_pdo: pdo,
-      pejabat_verifikator: verifikator,
+      pejabat_verifikator: tipeAnggaran === "DIPA" ? null : verifikator,
       pejabat_kasubbag: OFFICIALS[3],
       recipients,
       total_anggaran: total,
@@ -803,12 +829,13 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
       kwitansiConfig,
       dipaConfig: {
         ...dipaConfig,
+        bendahara: dipaConfig.bendahara || pdo,
         klasifikasiMak: dipaConfig.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK,
         kodeMak: dipaConfig.kodeMak?.trim() ? dipaConfig.kodeMak : computeDipaMak(recipients, travel).kodeMak,
         maksudTujuan: formatMaksudSpd(dipaConfig.maksudTujuan || activity.name, travel),
         uraianSptjb: dipaConfig.uraianSptjb?.trim()
           ? dipaConfig.uraianSptjb
-          : buildDefaultSptjbUraian(travel, recipients.length, dipaConfig.maksudTujuan || activity.name),
+          : buildDefaultSptjbUraian(travel, recipients.length, dipaConfig.maksudTujuan || activity.name, dipaConfig.akun || "524111"),
       },
     };
 
@@ -908,11 +935,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
                 className="h-10 px-3.5 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all text-xs font-semibold flex items-center gap-2.5"
               >
                 <span
-                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${
-                    tipeAnggaran === "FOLU"
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${tipeAnggaran === "FOLU"
                       ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
                       : "bg-blue-500 shadow-sm shadow-blue-500/50"
-                  }`}
+                    }`}
                 />
                 <span className="text-slate-500 dark:text-slate-400 font-normal">Sumber Dana:</span>
                 <span className="font-bold text-slate-900 dark:text-white">
@@ -934,11 +960,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
                   <DropdownMenuItem
                     key={source.key}
                     onClick={() => handleSwitchTipeAnggaran(source.key)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                      isActive
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${isActive
                         ? "bg-slate-100 dark:bg-slate-800 font-bold text-slate-900 dark:text-white"
                         : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2.5">
                       <span className={`h-2 w-2 rounded-full ${source.dotColor}`} />
@@ -960,28 +985,25 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           {STEPS.map((label, index) => (
             <div key={label} className="flex flex-1 items-center gap-2">
               <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
-                  index < step
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${index < step
                     ? "bg-emerald-100 text-emerald-700"
                     : index === step
-                    ? "bg-amber-500 text-white shadow-lg shadow-amber-200"
-                    : "bg-slate-100 text-slate-400 dark:bg-slate-800"
-                }`}
+                      ? "bg-amber-500 text-white shadow-lg shadow-amber-200"
+                      : "bg-slate-100 text-slate-400 dark:bg-slate-800"
+                  }`}
               >
                 {index < step ? <Check className="h-4 w-4" /> : index + 1}
               </div>
               <span
-                className={`text-xs font-semibold ${
-                  index === step ? "text-slate-900 dark:text-white" : "text-slate-400"
-                }`}
+                className={`text-xs font-semibold ${index === step ? "text-slate-900 dark:text-white" : "text-slate-400"
+                  }`}
               >
                 {label}
               </span>
               {index < STEPS.length - 1 && (
                 <div
-                  className={`mx-2 h-px flex-1 ${
-                    index < step ? "bg-emerald-300" : "bg-slate-200 dark:bg-slate-700"
-                  }`}
+                  className={`mx-2 h-px flex-1 ${index < step ? "bg-emerald-300" : "bg-slate-200 dark:bg-slate-700"
+                    }`}
                 />
               )}
             </div>
@@ -1050,6 +1072,8 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           kwitansiConfig={kwitansiConfig}
           setKwitansiConfig={setKwitansiConfig}
           pejabatMengetahuiList={pejabatMengetahuiList}
+          sptNumber={sptNumber}
+          setSptNumber={setSptNumber}
         />
       )}
 
@@ -1113,11 +1137,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
           <div className="relative overflow-hidden pt-7 px-6 pb-2">
             {/* Ambient dynamic glow */}
             <div
-              className={`absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 blur-3xl pointer-events-none rounded-full transition-all ${
-                pendingSwitchType === "DIPA"
+              className={`absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 blur-3xl pointer-events-none rounded-full transition-all ${pendingSwitchType === "DIPA"
                   ? "bg-gradient-to-b from-blue-500/25 via-indigo-500/15 to-transparent"
                   : "bg-gradient-to-b from-emerald-500/25 via-teal-500/15 to-transparent"
-              }`}
+                }`}
             />
 
             {/* Interchange floating badge */}
@@ -1125,11 +1148,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
               <div className="flex items-center gap-2 rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-lg shadow-slate-200/60 backdrop-blur-md dark:border-slate-800 dark:bg-slate-800/95 dark:shadow-black/40">
                 {/* Format Asal */}
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${
-                    tipeAnggaran === "FOLU"
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${tipeAnggaran === "FOLU"
                       ? "border-emerald-200/80 bg-emerald-50 text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400"
                       : "border-blue-200/80 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-400"
-                  }`}
+                    }`}
                   title={tipeAnggaran === "FOLU" ? "FOLU Net Sink" : "DIPA Balai"}
                 >
                   {tipeAnggaran === "FOLU" ? (
@@ -1146,11 +1168,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
 
                 {/* Format Tujuan */}
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl font-bold text-white shadow-md transition-all ${
-                    pendingSwitchType === "DIPA"
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl font-bold text-white shadow-md transition-all ${pendingSwitchType === "DIPA"
                       ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/30"
                       : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30"
-                  }`}
+                    }`}
                   title={pendingSwitchType === "DIPA" ? "DIPA Balai KSDA" : "FOLU Net Sink 2030"}
                 >
                   {pendingSwitchType === "DIPA" ? (
@@ -1170,11 +1191,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
               <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
                 Beralih ke format pengisian{" "}
                 <span
-                  className={`font-semibold ${
-                    pendingSwitchType === "DIPA"
+                  className={`font-semibold ${pendingSwitchType === "DIPA"
                       ? "text-blue-600 dark:text-blue-400"
                       : "text-emerald-600 dark:text-emerald-400"
-                  }`}
+                    }`}
                 >
                   {pendingSwitchType === "DIPA"
                     ? "SPJ Dana DIPA Balai KSDA"
@@ -1203,23 +1223,20 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
 
               {/* Tujuan */}
               <div
-                className={`rounded-2xl border-2 p-3.5 text-left relative overflow-hidden transition-all ${
-                  pendingSwitchType === "DIPA"
+                className={`rounded-2xl border-2 p-3.5 text-left relative overflow-hidden transition-all ${pendingSwitchType === "DIPA"
                     ? "border-blue-500/50 bg-blue-50/70 dark:border-blue-500/40 dark:bg-blue-950/30"
                     : "border-emerald-500/50 bg-emerald-50/70 dark:border-emerald-500/40 dark:bg-emerald-950/30"
-                }`}
+                  }`}
               >
                 <div
-                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${
-                    pendingSwitchType === "DIPA"
+                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${pendingSwitchType === "DIPA"
                       ? "text-blue-600 dark:text-blue-400"
                       : "text-emerald-600 dark:text-emerald-400"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`h-1.5 w-1.5 rounded-full animate-pulse ${
-                      pendingSwitchType === "DIPA" ? "bg-blue-600" : "bg-emerald-600"
-                    }`}
+                    className={`h-1.5 w-1.5 rounded-full animate-pulse ${pendingSwitchType === "DIPA" ? "bg-blue-600" : "bg-emerald-600"
+                      }`}
                   />
                   Format Baru
                 </div>
@@ -1227,11 +1244,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
                   {pendingSwitchType === "DIPA" ? "DIPA Balai KSDA" : "FOLU Net Sink 2030"}
                 </div>
                 <div
-                  className={`text-[11px] font-medium mt-0.5 truncate ${
-                    pendingSwitchType === "DIPA"
+                  className={`text-[11px] font-medium mt-0.5 truncate ${pendingSwitchType === "DIPA"
                       ? "text-blue-700 dark:text-blue-300"
                       : "text-emerald-700 dark:text-emerald-300"
-                  }`}
+                    }`}
                 >
                   {pendingSwitchType === "DIPA" ? "SPBy DIPA & ST Balai" : "SPB FOLU & ST NC 2&3"}
                 </div>
@@ -1267,11 +1283,10 @@ export function SpjForm({ spjId }: { spjId?: string | number }) {
             <Button
               type="button"
               onClick={() => pendingSwitchType && executeSwitchBudget(pendingSwitchType)}
-              className={`h-10 px-5 rounded-xl font-bold text-xs text-white shadow-md transition-all active:scale-[0.98] flex items-center gap-2 ${
-                pendingSwitchType === "DIPA"
+              className={`h-10 px-5 rounded-xl font-bold text-xs text-white shadow-md transition-all active:scale-[0.98] flex items-center gap-2 ${pendingSwitchType === "DIPA"
                   ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/25"
                   : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25"
-              }`}
+                }`}
             >
               <span>Ya, Beralih ke {pendingSwitchType}</span>
               <ArrowRight className="h-3.5 w-3.5" />

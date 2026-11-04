@@ -123,10 +123,6 @@ export function Step2PreviewSpj({
     currentDateKey = "dpRilDate";
     activeDocTitle = "DP Ril (Daftar Pengeluaran Riil)";
     currentDateValue = dipaConfig?.dpRilDate || "";
-  } else if (isNominatif) {
-    currentDateKey = "nominatifDate";
-    activeDocTitle = "Nominatif PD";
-    currentDateValue = dipaConfig?.nominatifDate || "";
   }
 
   const updateCurrentDocDate = (val: string) => {
@@ -533,87 +529,55 @@ export function Step2PreviewSpj({
           )}
 
           {/* Form Pengisian Nomor SPD khusus saat Nominatif aktif */}
-          {isNominatif && (
-            <div className="pt-3 border-t border-amber-200/70 dark:border-slate-800 space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
-                    <FileSpreadsheet className="h-3.5 w-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                      Nomor SPD (Daftar Nominatif):
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      Format nomor SPD pada header lembar Nominatif. Kosongkan jika ingin diisi manual dengan pulpen.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {(dipaConfig?.nominatifSpd !== undefined
-                    ? dipaConfig.nominatifSpd
-                    : (dipaConfig?.nominatifSpdNo || dipaConfig?.nominatifSpdSuffix
-                        ? `${dipaConfig.nominatifSpdNo ? `${dipaConfig.nominatifSpdNo} ` : ""}${dipaConfig.nominatifSpdSuffix || ""}`.trim()
-                        : "")
-                  ) ? (
-                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 font-mono text-[11px]">
-                      {dipaConfig?.nominatifSpd !== undefined
-                        ? dipaConfig.nominatifSpd
-                        : `${dipaConfig?.nominatifSpdNo ? `${dipaConfig.nominatifSpdNo} ` : ""}${dipaConfig?.nominatifSpdSuffix || ""}`.trim()}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-400 bg-white dark:bg-slate-800 text-[11px]">
-                      Default: Kosong (Pulpen)
-                    </Badge>
-                  )}
-                </div>
-              </div>
+          {isNominatif && (() => {
+            const currentNominatifYear = dipaConfig?.nominatifSpdYear || (travel?.startDate ? travel.startDate.split("-")[0] : "2026") || "2026";
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 shrink-0">
-                    Nomor SPD:
+            return (
+              <div className="pt-3 border-t border-amber-200/70 dark:border-slate-800">
+                <div className="max-w-md">
+                  <label className="text-[10px] font-bold uppercase text-slate-500">
+                    Nomor SPD (Daftar Nominatif)
                   </label>
-                  <Input
-                    type="text"
-                    value={
-                      dipaConfig?.nominatifSpd !== undefined
-                        ? dipaConfig.nominatifSpd
-                        : (dipaConfig?.nominatifSpdNo || dipaConfig?.nominatifSpdSuffix
-                            ? `${dipaConfig.nominatifSpdNo ? `${dipaConfig.nominatifSpdNo} ` : ""}${dipaConfig.nominatifSpdSuffix || ""}`.trim()
-                            : "")
-                    }
-                    onChange={(e) =>
-                      setDipaConfig?.((prev) => ({
-                        ...prev,
-                        nominatifSpd: e.target.value,
-                      }))
-                    }
-                    placeholder="Kosong (manual pulpen) atau nomor SPD"
-                    className="h-9 w-64 sm:w-80 rounded-xl text-xs font-mono font-semibold bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
-                  />
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <Input
+                      value={
+                        dipaConfig?.nominatifSpd !== undefined
+                          ? dipaConfig.nominatifSpd
+                          : `/K.18-TU/KEU/07/${currentNominatifYear}`
+                      }
+                      onChange={(e) =>
+                        setDipaConfig?.((prev) => ({
+                          ...prev,
+                          nominatifSpd: e.target.value,
+                        }))
+                      }
+                      placeholder={`/K.18-TU/KEU/07/${currentNominatifYear}`}
+                      className="rounded-xl text-xs font-mono font-semibold bg-white dark:bg-slate-900"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentMonth2Digits = String(new Date().getMonth() + 1).padStart(2, "0");
+                        const currentYear = new Date().getFullYear().toString();
+                        setDipaConfig?.((prev) => ({
+                          ...prev,
+                          nominatifSpd: `/K.18-TU/KEU/${currentMonth2Digits}/${currentYear}`,
+                        }));
+                      }}
+                      className="h-9 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 px-2 shrink-0"
+                    >
+                      Bulan Berjalan
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    Default: /K.18-TU/KEU/07/{currentNominatifYear}
+                  </p>
                 </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setDipaConfig?.((prev) => ({
-                      ...prev,
-                      nominatifSpd: "",
-                      nominatifSpdNo: "",
-                      nominatifSpdSuffix: "",
-                    }))
-                  }
-                  className="h-9 rounded-xl text-xs text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 className="h-3.5 w-3.5 mr-1 text-slate-400" />
-                  Kosongkan (Manual Pulpen)
-                </Button>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Form Pengisian Nomor Lampiran SPD khusus saat RINBA aktif */}
           {isRinba && (

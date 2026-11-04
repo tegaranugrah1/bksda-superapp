@@ -290,9 +290,9 @@ export default function SpjDetailPage() {
           endDate: spj.tanggal_selesai || "2026-07-17",
         }}
         sptNumber={spj.nomor_spt || spj.nomor_spj}
-        ppk={spj.pejabat_ppk || { name: isDipa ? "RUSMANTO, S.Hut" : "Ahmad Hidayat, S.PKP., M.Ling", nik: isDipa ? "19810907 200012 1 004" : "19820301 200012 1 001", position: "Pejabat Pembuat Komitmen" }}
-        pdo={spj.pejabat_pdo || { name: isDipa ? "SOERENDENG, SE" : "Dilemma Ferti Hidayah, S.E.", nik: isDipa ? "19790721 200701 2 001" : "19870130 201012 2 005", position: isDipa ? "Bendahara Pengeluaran" : "Pemegang Dana Operasional" }}
-        verifikator={spj.pejabat_verifikator || { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053", position: "Verifikator Keuangan" }}
+        ppk={spj.pejabat_ppk || { name: isDipa ? "Rusmanto, S.Hut." : "Ahmad Hidayat, S.PKP., M.Ling", nik: isDipa ? "19780512 200501 1 008" : "19820301 200012 1 001", position: "Pejabat Pembuat Komitmen" }}
+        pdo={spj.pejabat_pdo || { name: isDipa ? "Soerendeng, S.E" : "Dilemma Ferti Hidayah, S.E.", nik: isDipa ? "19790721 200701 2 001" : "19870130 201012 2 005", position: isDipa ? "Bendahara Pengeluaran" : "Pemegang Dana Operasional" }}
+        verifikator={isDipa ? undefined : (spj.pejabat_verifikator || { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053", position: "Verifikator Keuangan" })}
         total={spj.total_anggaran}
         tipeAnggaran={spj.tipe_anggaran || "FOLU"}
       />

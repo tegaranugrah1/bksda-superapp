@@ -9,8 +9,10 @@ import {
   getRomanMonth,
   buildDefaultSptjbUraian,
   DEFAULT_DIPA_KLASIFIKASI_MAK,
+  DEFAULT_DIPA_NO_SP_DIPA,
   computeDipaMak,
   DipaMakItem,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 export function SptjbDipaPreview({
@@ -23,13 +25,12 @@ export function SptjbDipaPreview({
   dipaConfig,
 }: Props) {
   const primaryRecipient = recipients[0] || { name: "-", nip: "" };
-  const isDkk = recipients.length > 1;
-  const penerima = `${primaryRecipient.name}${isDkk ? ", Dkk" : ""}`;
+  const penerima = formatNameWithPreservedTitle(primaryRecipient.name);
   const uraian =
     dipaConfig?.uraianSptjb ||
-    buildDefaultSptjbUraian(travel, recipients.length, dipaConfig?.maksudTujuan || activity.name);
+    buildDefaultSptjbUraian(travel, recipients.length, dipaConfig?.maksudTujuan || activity.name, dipaConfig?.akun);
 
-  const bendahara = dipaConfig?.bendahara || pdo || { name: "SOERENDENG, SE", nik: "19790721 200701 2 001" };
+  const bendahara = dipaConfig?.bendahara || pdo || { name: "Soerendeng, S.E", nik: "19790721 200701 2 001" };
   const tanggalSptjb = formatIndoDateOptional(dipaConfig?.sptjbDate);
   const currentRomanMonth = getRomanMonth(new Date());
   const currentYear = new Date().getFullYear().toString();
@@ -42,11 +43,10 @@ export function SptjbDipaPreview({
   const autoMak = computeDipaMak(recipients, travel);
   const klasifikasiMak = dipaConfig?.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK;
   const makKode = dipaConfig?.kodeMak?.trim() ? dipaConfig.kodeMak.trim() : autoMak.kodeMak;
-  const makDesc = dipaConfig?.makDescription?.trim()
-    ? dipaConfig.makDescription.trim()
-    : dipaConfig?.kodeMak?.trim()
-    ? (autoMak.kodeMak === dipaConfig.kodeMak.trim() ? autoMak.description : "")
-    : autoMak.description;
+  const makDesc =
+    dipaConfig?.makDescription !== undefined
+      ? dipaConfig.makDescription.trim()
+      : "";
 
   const makItems: DipaMakItem[] =
     dipaConfig?.makItems && dipaConfig.makItems.length === 1
@@ -142,7 +142,7 @@ export function SptjbDipaPreview({
           <div className="grid grid-cols-[180px_10px_1fr]">
             <span>3. Tanggal dan Nomor DIPA</span>
             <span>:</span>
-            <span>{dipaConfig?.noSpDipa || "No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025"}</span>
+            <span>{dipaConfig?.noSpDipa || DEFAULT_DIPA_NO_SP_DIPA}</span>
           </div>
           <div className="grid grid-cols-[180px_10px_1fr]">
             <span>4. Klasifikasi Anggaran</span>
@@ -154,8 +154,8 @@ export function SptjbDipaPreview({
               <span></span>
               <span>:</span>
               <div>
-                <span className="font-mono inline-block w-[160px]">{item.kodeMak}</span>
-                <span>{item.description}</span>
+                <span className="font-mono">{item.kodeMak}</span>
+                {item.description ? <span className="ml-4">{item.description}</span> : null}
               </div>
             </div>
           ))}
@@ -237,8 +237,8 @@ export function SptjbDipaPreview({
               <p className="mb-1">{dipaConfig?.cityDateText || "Samarinda,"} {tanggalSptjb || ""}</p>
               <p className="font-semibold">Pejabat Pembuat Komitmen,</p>
               <div className="h-14" />
-              <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
-              <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
+              <p className="font-bold">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</p>
+              <p>NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</p>
             </div>
 
             {/* Right: Bendahara */}
@@ -246,8 +246,8 @@ export function SptjbDipaPreview({
               <p className="mb-1 opacity-0 select-none">&nbsp;</p>
               <p className="font-semibold">Bendahara Pengeluaran,</p>
               <div className="h-14" />
-              <p className="font-bold uppercase">{bendahara.name}</p>
-              <p>NIP. {formatNip(bendahara.nik)}</p>
+              <p className="font-bold">{formatNameWithPreservedTitle(bendahara.name || "Soerendeng, S.E")}</p>
+              <p>NIP. {formatNip(bendahara.nik || "19790721 200701 2 001")}</p>
             </div>
           </div>
         </div>

@@ -84,6 +84,17 @@ export function getSbmStandardRate(presetKey: string, rank?: string): number {
   return isGolongan4(rank) ? preset.gol4 : preset.gol123;
 }
 
+export function formatNameWithPreservedTitle(fullName?: string): string {
+  if (!fullName) return "";
+  const commaIdx = fullName.indexOf(",");
+  if (commaIdx === -1) {
+    return fullName.toUpperCase();
+  }
+  const namePart = fullName.slice(0, commaIdx).trim().toUpperCase();
+  const titlePart = fullName.slice(commaIdx + 1).trim();
+  return titlePart ? `${namePart}, ${titlePart}` : namePart;
+}
+
 export interface Recipient {
   id: string;
   name: string;
@@ -141,6 +152,7 @@ export interface DipaConfig {
   uraianSptjb?: string;
   cityDateText?: string;
   transportMode?: string;
+  stNumber?: string;
   stDate?: string;
   spdDate?: string;
   spbyKepada?: string;
@@ -162,6 +174,8 @@ export interface DipaConfig {
   nominatifSpd?: string;
   nominatifSpdNo?: string;
   nominatifSpdSuffix?: string;
+  nominatifSpdMonth?: string;
+  nominatifSpdYear?: string;
 }
 
 export interface Official {
@@ -195,10 +209,10 @@ export const SATUAN_KERJA = "Balai Konservasi Sumber Daya Alam Kalimantan Timur"
 export const compactDate = (value: string) =>
   value
     ? new Date(`${value}T00:00:00`).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
     : "-";
 
 export function formatPeriod(startDate?: string, endDate?: string): string {
@@ -624,10 +638,69 @@ export function formatSpbyNumber(dipaConfig?: DipaConfig, fallbackSpbNumber?: { 
   return `      /  ${month}  / ${year}`;
 }
 
+export const DIPA_AKUN_NAMES: Record<string, string> = {
+  "524111": "Belanja Perjalanan Dinas Biasa",
+  "524113": "Belanja Perjalanan Dinas Dalam Kota",
+  "524114": "Belanja Perjalanan Dinas Paket Meeting Dalam Kota",
+  "524119": "Belanja Perjalanan Dinas Paket Meeting Luar Kota",
+  "521211": "Belanja Bahan",
+  "521213": "Belanja Honor Output Kegiatan",
+  "521219": "Belanja Barang Non Operasional Lainnya",
+  "521252": "Belanja Peralatan dan Mesin - Ekstrakomptabel",
+  "521811": "Belanja Barang Persediaan Barang Konsumsi",
+  "522111": "Belanja Langganan Listrik",
+  "522112": "Belanja Langganan Telepon",
+  "522113": "Belanja Langganan Air",
+  "522119": "Belanja Langganan Daya dan Jasa Lainnya",
+  "522141": "Belanja Sewa",
+  "522151": "Belanja Jasa Profesi",
+  "523111": "Belanja Pemeliharaan Gedung dan Bangunan",
+  "523121": "Belanja Pemeliharaan Peralatan dan Mesin",
+  "523129": "Belanja Pemeliharaan Peralatan dan Mesin Lainnya",
+  "523133": "Belanja Pemeliharaan Jaringan",
+  "526312": "Belanja Barang untuk Bantuan Lainnya yang Memiliki Karakteristik Bantuan Pemerintah",
+  "532111": "Belanja Modal Peralatan dan Mesin",
+  "533111": "Belanja Modal Gedung dan Bangunan",
+  "533121": "Belanja Penambahan Nilai Gedung dan Bangunan",
+  "521111": "Belanja Keperluan Perkantoran",
+  "521114": "Belanja Pengiriman Surat Dinas Pos Pusat",
+  "521115": "Belanja Honor Operasional Satuan Kerja",
+  "521119": "Belanja Barang Operasional Lainnya",
+  "511111": "Belanja Gaji Pokok PNS",
+  "511119": "Belanja Pembulatan Gaji PNS",
+  "511121": "Belanja Tunj. Suami/Istri PNS",
+  "511122": "Belanja Tunj. Anak PNS",
+  "511123": "Belanja Tunj. Struktural PNS",
+  "511124": "Belanja Tunj. Fungsional PNS",
+  "511125": "Belanja Tunj. PPh PNS",
+  "511126": "Belanja Tunj. Beras PNS",
+  "511129": "Belanja Uang Makan PNS",
+  "511151": "Belanja Tunjangan Umum PNS",
+  "511611": "Belanja Gaji Pokok PPPK",
+  "511619": "Belanja Pembulatan Gaji PPPK",
+  "511621": "Belanja Tunjangan Suami/Istri PPPK",
+  "511622": "Belanja Tunjangan Anak PPPK",
+  "511624": "Belanja Tunjangan Fungsional PPPK",
+  "511625": "Belanja Tunjangan Beras PPPK",
+  "511628": "Belanja Uang Makan PPPK",
+  "511633": "Belanja Tunjangan Umum PPPK",
+  "512411": "Belanja Pegawai (Tunjangan Khusus/Kegiatan/Kinerja)",
+  "512414": "Belanja Pegawai Tunjangan Khusus/Kegiatan/Kinerja PPPK",
+};
+
+export function getDipaAkunName(akunKodeOrName?: string): string {
+  if (!akunKodeOrName) return "Belanja Perjalanan Dinas Biasa";
+  const trimmed = akunKodeOrName.trim();
+  if (trimmed.toLowerCase().startsWith("belanja")) return trimmed;
+  if (DIPA_AKUN_NAMES[trimmed]) return DIPA_AKUN_NAMES[trimmed];
+  return trimmed || "Belanja Perjalanan Dinas Biasa";
+}
+
 export function buildDefaultSptjbUraian(
   travel: { origin: string; destination: string; startDate: string; endDate: string },
   recipientCount: number,
-  activityName: string
+  activityName: string,
+  akunKodeOrName?: string
 ): string {
   const days = calculateDays(travel.startDate, travel.endDate);
   const daysWords = terbilangNumber(days);
@@ -635,8 +708,9 @@ export function buildDefaultSptjbUraian(
   const startStr = formatFullDateIndonesia(travel.startDate);
   const endStr = formatFullDateIndonesia(travel.endDate);
   const maksud = cleanMaksudForUraian(activityName);
+  const akunName = getDipaAkunName(akunKodeOrName || "524111");
 
-  return `Belanja Perjalanan Dinas Biasa, Perjalanan Dinas dari ${travel.origin} ke ${travel.destination} sebanyak ${recipientCount} (${countWords}) orang tugas (OT) dalam rangka ${maksud} selama ${days} (${daysWords}) hari terhitung mulai tanggal ${startStr} sampai dengan ${endStr}.`;
+  return `${akunName}, Perjalanan Dinas dari ${travel.origin} ke ${travel.destination} sebanyak ${recipientCount} (${countWords}) orang tugas (OT) dalam rangka ${maksud} selama ${days} (${daysWords}) hari terhitung mulai tanggal ${startStr} sampai dengan ${endStr}.`;
 }
 
 export interface RecipientRow {
@@ -720,10 +794,8 @@ export const OFFICIALS: Official[] = [
 ];
 
 export const OFFICIALS_DIPA: Official[] = [
-  { name: "RUSMANTO, S.Hut", nik: "19810907 200012 1 004", position: "Pejabat Pembuat Komitmen" },
-  { name: "SOERENDENG, SE", nik: "19790721 200701 2 001", position: "Bendahara Pengeluaran" },
-  { name: "Sukma Mawarni, S.E.", nik: "19930425 202421 2 053", position: "Verifikator Keuangan" },
-  { name: "Rusmanto, S.Hut.", nik: "19780512 200501 1 008", position: "Kepala Subbagian Tata Usaha" },
+  { name: "Rusmanto, S.Hut.", nik: "19780512 200501 1 008", position: "Pejabat Pembuat Komitmen" },
+  { name: "Soerendeng, S.E", nik: "19790721 200701 2 001", position: "Bendahara Pengeluaran" },
 ];
 
 export function formatRupiahInput(value: number): string {
@@ -838,15 +910,15 @@ export function buildDefaultRinba(
 
   const transportItems: TransportItem[] = isTegar
     ? [
-        { id: `t-1-${Date.now()}-1`, label: `Transportasi ${origin} ke ${destination}`, amount: 200000 },
-        { id: `t-2-${Date.now()}-2`, label: `Transportasi ${destination} ke ${origin}`, amount: 510000 },
-      ]
+      { id: `t-1-${Date.now()}-1`, label: `Transportasi ${origin} ke ${destination}`, amount: 200000 },
+      { id: `t-2-${Date.now()}-2`, label: `Transportasi ${destination} ke ${origin}`, amount: 510000 },
+    ]
     : [
-        { id: `t-1-${Date.now()}-1`, label: `Transportasi ${origin} ke ${destination}`, amount: 200000 },
-        { id: `t-2-${Date.now()}-2`, label: `Transportasi ${destination} ke ${origin}`, amount: 510000 },
-        { id: `t-3-${Date.now()}-3`, label: "Transportasi Melak ke SM Kelian", amount: 1000000 },
-        { id: `t-4-${Date.now()}-4`, label: "Transportasi SM Kelian ke Melak", amount: 1000000 },
-      ];
+      { id: `t-1-${Date.now()}-1`, label: `Transportasi ${origin} ke ${destination}`, amount: 200000 },
+      { id: `t-2-${Date.now()}-2`, label: `Transportasi ${destination} ke ${origin}`, amount: 510000 },
+      { id: `t-3-${Date.now()}-3`, label: "Transportasi Melak ke SM Kelian", amount: 1000000 },
+      { id: `t-4-${Date.now()}-4`, label: "Transportasi SM Kelian ke Melak", amount: 1000000 },
+    ];
 
   return {
     operasionalDays: days,
@@ -975,6 +1047,7 @@ export function formatMaksudSpd(raw?: string, travel?: { origin: string; destina
 
 export const DEFAULT_DIPA_KLASIFIKASI_MAK = "7273.REA.003.524111";
 export const DEFAULT_DIPA_KODE_MAK = "051.E.770.771.772";
+export const DEFAULT_DIPA_NO_SP_DIPA = "No. SP DIPA- 143.04.2.693614/2026 Tanggal 11 September 2026";
 
 export interface DipaMakItem {
   kodeMak: string;
@@ -1120,4 +1193,3 @@ export function computeDipaMakList(
 ): DipaMakItem[] {
   return computeDipaMak(recipients, travel).items;
 }
-

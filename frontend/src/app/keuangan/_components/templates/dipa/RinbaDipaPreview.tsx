@@ -9,6 +9,7 @@ import {
   formatFullDateIndonesia,
   formatIndoDateOptional,
   getDipaTransportBreakdown,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 export function RinbaDipaPreview({
@@ -20,7 +21,7 @@ export function RinbaDipaPreview({
   spdNumber,
   dipaConfig,
 }: Props) {
-  const bendahara = dipaConfig?.bendahara || pdo || { name: "SOERENDENG, SE", nik: "19790721 200701 2 001" };
+  const bendahara = dipaConfig?.bendahara || pdo || { name: "Soerendeng, S.E", nik: "19790721 200701 2 001" };
   const tanggalSpd = dipaConfig?.spdDate ? formatIndoDateOptional(dipaConfig.spdDate) : formatFullDateIndonesia(travel.startDate);
   const tanggalRinba = formatIndoDateOptional(dipaConfig?.rinbaDate);
   const spdNo = (dipaConfig?.rinbaSpdNo !== undefined ? dipaConfig.rinbaSpdNo : spdNumber?.no)?.trim() || "";
@@ -290,8 +291,8 @@ export function RinbaDipaPreview({
                   <div className="h-4" />
                   <p className="font-semibold">Bendahara Pengeluaran,</p>
                   <div className="h-14" />
-                  <p className="font-bold uppercase">{bendahara.name}</p>
-                  <p>NIP. {formatNip(bendahara.nik)}</p>
+                  <p className="font-bold">{formatNameWithPreservedTitle(bendahara.name || "Soerendeng, S.E")}</p>
+                  <p>NIP. {formatNip(bendahara.nik || "19790721 200701 2 001")}</p>
                 </div>
 
                 <div className="text-left">
@@ -303,7 +304,7 @@ export function RinbaDipaPreview({
                   <div className="h-4" />
                   <p className="font-semibold">Yang menerima,</p>
                   <div className="h-14" />
-                  <p className="font-bold uppercase">{recipient.name}</p>
+                  <p className="font-bold">{formatNameWithPreservedTitle(recipient.name)}</p>
                   <p>NIP. {formatNip(recipient.nip || recipient.id)}</p>
                 </div>
               </div>
@@ -344,8 +345,8 @@ export function RinbaDipaPreview({
                 <div className="w-64 text-left">
                   <p>Pejabat Pembuat Komitmen,</p>
                   <div className="h-14" />
-                  <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
-                  <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
+                  <p className="font-bold">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</p>
+                  <p>NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</p>
                 </div>
               </div>
             </div>

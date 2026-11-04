@@ -8,6 +8,7 @@ import {
   formatFullDateIndonesia,
   formatIndoDateOptional,
   formatMaksudSpd,
+  formatNameWithPreservedTitle,
 } from "../shared";
 
 export function SpdDepanDipaPreview({
@@ -142,8 +143,8 @@ export function SpdDepanDipaPreview({
                     <span className="whitespace-nowrap">Nama pegawai yang melaksanakan perjalanan dinas</span><br />
                     NIP.
                   </td>
-                  <td className="border border-black p-1 align-top font-bold uppercase">
-                    {recipient.name}<br />
+                  <td className="border border-black p-1 align-top font-bold">
+                    {formatNameWithPreservedTitle(recipient.name)}<br />
                     <span className="font-normal font-mono text-[8pt]">{formatNip(recipient.nip || recipient.id)}</span>
                   </td>
                 </tr>
@@ -264,8 +265,8 @@ export function SpdDepanDipaPreview({
               <div className="mt-3">
                 <p className="font-semibold">Pejabat Pembuat Komitmen,</p>
                 <div className="h-14" />
-                <p className="font-bold uppercase">{ppk.name || "RUSMANTO, S.Hut"}</p>
-                <p>NIP. {formatNip(ppk.nik || "19810907 200012 1 004")}</p>
+                <p className="font-bold">{formatNameWithPreservedTitle(ppk.name || "Rusmanto, S.Hut.")}</p>
+                <p>NIP. {formatNip(ppk.nik || "19780512 200501 1 008")}</p>
               </div>
             </div>
           </div>

@@ -3,10 +3,13 @@
 import React, { useState, useMemo } from "react";
 import {
   Car,
+  Check,
   ChevronDown,
   ChevronUp,
   Copy,
   CreditCard,
+  Eye,
+  EyeOff,
   FileCheck2,
   FileSpreadsheet,
   FileText,
@@ -14,35 +17,55 @@ import {
   Plane,
   Plus,
   ReceiptText,
+  Search,
   Sparkles,
   Table2,
   Trash2,
+  UserPlus,
   UserRound,
   Users,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FinanceEmployee, formatRupiah } from "@/app/keuangan/_components/finance-data";
+import { DocumentTemplates } from "@/app/keuangan/_components/DocumentTemplates";
+import { DipaBudgetSelectorModal } from "../DipaBudgetSelectorModal";
+import { DipaCascadingBudgetSelector } from "../DipaCascadingBudgetSelector";
 import {
   DipaConfig,
+  DipaDetails,
   DipaTransportItem,
   Official,
+  Recipient,
   RecipientRow,
   TransportItem,
   buildDefaultDipa,
   buildDefaultSptjbUraian,
+  buildUraianForEmployee,
   calculateDays,
   calculateDipaTotal,
   computeDipaMak,
   DEFAULT_DIPA_KLASIFIKASI_MAK,
   DEFAULT_DIPA_KODE_MAK,
+  DEFAULT_DIPA_NO_SP_DIPA,
   formatNip,
   formatRupiahInput,
   parseRupiahInput,
   getDipaTransportBreakdown,
+  getRecipientBankInfo,
+  isSameEmployee,
   SBM_HOTEL_PRESETS,
   isGolongan4,
   getSbmStandardRate,
@@ -76,6 +99,9 @@ export interface Step1DipaTabsProps {
   setSpdNumber: React.Dispatch<React.SetStateAction<{ no: string; suffix: string }>>;
   activity: { awpCode: string; name: string };
   spjName: string;
+  sptNumber?: string;
+  setSptNumber?: React.Dispatch<React.SetStateAction<string>>;
+  total?: number;
 }
 
 export function Step1DipaTabs({
@@ -101,13 +127,91 @@ export function Step1DipaTabs({
   setSpdNumber,
   activity,
   spjName,
+  sptNumber,
+  setSptNumber,
+  total,
 }: Step1DipaTabsProps) {
+  // Live preview toggle & zoom states
+  const [showLivePreview, setShowLivePreview] = useState(true);
+  const [previewZoom, setPreviewZoom] = useState<number>(100);
+  const [isBudgetSelectorOpen, setIsBudgetSelectorOpen] = useState(false);
+
+  // Month & Year defaults for Nominatif SPD Number
+  const defaultNominatifMonth = useMemo(() => {
+    return dipaConfig.nominatifSpdMonth || "07";
+  }, [dipaConfig.nominatifSpdMonth]);
+
+  const defaultNominatifYear = useMemo(() => {
+    if (dipaConfig.nominatifSpdYear) return dipaConfig.nominatifSpdYear;
+    if (travel?.startDate) {
+      const parts = travel.startDate.split("-");
+      if (parts.length >= 1 && parts[0]) {
+        return parts[0];
+      }
+    }
+    return "2026";
+  }, [dipaConfig.nominatifSpdYear, travel?.startDate]);
+
+  const currentNominatifMonth = dipaConfig.nominatifSpdMonth || defaultNominatifMonth;
+  const currentNominatifYear = dipaConfig.nominatifSpdYear || defaultNominatifYear;
+  const currentNominatifNo = dipaConfig.nominatifSpdNo || "";
+
   // Local states for batch applicator
   const [batchUangHarianRate, setBatchUangHarianRate] = useState(360000);
   const [batchUangHarianDays, setBatchUangHarianDays] = useState(3);
   const [batchTransportUdara, setBatchTransportUdara] = useState(0);
   const [batchTaksiPp, setBatchTaksiPp] = useState(0);
   const [expandedTransportRecipientId, setExpandedTransportRecipientId] = useState<string | null>(null);
+
+  // Add recipient dialog states
+  const [isAddRecipientOpen, setIsAddRecipientOpen] = useState(false);
+  const [addRecipientMode, setAddRecipientMode] = useState<"search" | "manual">("search");
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState("");
+  const [manualName, setManualName] = useState("");
+  const [manualNip, setManualNip] = useState("");
+  const [manualRank, setManualRank] = useState("");
+  const [manualPosition, setManualPosition] = useState("");
+
+  // Map recipients to Recipient type for DocumentTemplates (identical to Step 3)
+  const previewRecipients: Recipient[] = useMemo(() => {
+    return recipients.map((r) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      evidence: r.evidenceNo ? `${r.evidenceNo}${r.evidenceSuffix}` : `          ${r.evidenceSuffix}`,
+      amount: r.amount,
+      rinba: r.rinba,
+      dipa: r.dipa,
+      bankName: r.bankName,
+      accountNo: r.accountNo,
+      accountHolder: r.accountHolder,
+      nip: r.nip,
+      rank: r.rank,
+      position: r.position,
+      satuanKerja: r.satuanKerja,
+      mengetahui: r.mengetahui,
+    }));
+  }, [recipients]);
+
+  // Determine current active document key and title for preview
+  const currentTabDoc = useMemo(() => {
+    switch (activeDipaTab) {
+      case "nominatif":
+        return { key: "nominatif-dipa", label: "Daftar Nominatif Perjalanan Dinas" };
+      case "sptb":
+        return { key: "sptjb-dipa", label: "SPTJB DIPA (Surat Pernyataan Tanggung Jawab Belanja)" };
+      case "rinba":
+        return { key: "rinba-dipa", label: "RINBA DIPA (Rincian Biaya Perjalanan Dinas)" };
+      case "dpril":
+        return { key: "dp-ril-dipa", label: "Daftar Pengeluaran Riil (DP Ril) DIPA" };
+      case "spby":
+        return { key: "spby-dipa", label: "SPBy DIPA (Surat Perintah Bayar)" };
+      case "spd":
+        return { key: "spd-dipa", label: "SPD Depan DIPA (Surat Perjalanan Dinas)" };
+      default:
+        return { key: "nominatif-dipa", label: "Daftar Nominatif" };
+    }
+  }, [activeDipaTab]);
 
   const dipaTotals = useMemo(() => {
     let transportUdara = 0;
@@ -150,6 +254,21 @@ export function Step1DipaTabs({
 
   const autoMak = useMemo(() => computeDipaMak(recipients, travel), [recipients, travel]);
   const effectiveKodeMak = dipaConfig.kodeMak?.trim() ? dipaConfig.kodeMak : autoMak.kodeMak;
+
+  const handleSelectBudgetEntry = (selected: {
+    klasifikasiMak: string;
+    kodeMak: string;
+    makDescription: string;
+    subkomponenNama: string;
+  }) => {
+    setDipaConfig((prev) => ({
+      ...prev,
+      klasifikasiMak: selected.klasifikasiMak,
+      kodeMak: selected.kodeMak,
+      makDescription: selected.makDescription,
+    }));
+    toast.success(`Klasifikasi DIPA ${selected.klasifikasiMak} (${selected.kodeMak}) berhasil dipilih!`);
+  };
 
   const updateRecipient = (id: string, patch: Partial<RecipientRow>) => {
     setRecipients((prev) =>
@@ -443,6 +562,113 @@ export function Step1DipaTabs({
     toast.success("Personil berhasil dihapus dari daftar.");
   };
 
+  const filteredEmployees = useMemo(() => {
+    const q = employeeSearchQuery.trim().toLowerCase();
+    if (!q) return allEmployees.slice(0, 30);
+    const cleanQ = q.replace(/[^a-z0-9]/g, "");
+    return allEmployees.filter((emp) => {
+      const matchName = emp.name ? emp.name.toLowerCase().includes(q) : false;
+      const matchNip = emp.nip ? emp.nip.replace(/[^0-9]/g, "").includes(cleanQ) : false;
+      const matchRank = emp.rank ? emp.rank.toLowerCase().includes(q) : false;
+      const matchPos = emp.position ? emp.position.toLowerCase().includes(q) : false;
+      return matchName || matchNip || matchRank || matchPos;
+    });
+  }, [allEmployees, employeeSearchQuery]);
+
+  const handleAddEmployee = (emp: {
+    name: string;
+    nip?: string;
+    rank?: string;
+    position?: string;
+    satuanKerja?: string;
+    id?: string | number;
+  }) => {
+    const isAlreadyAdded = recipients.some((r) => isSameEmployee(r, emp));
+    if (isAlreadyAdded) {
+      toast.error(`Personil "${emp.name}" sudah ada dalam daftar.`);
+      return;
+    }
+
+    const sampleRecipient = recipients[0];
+    const sampleDipa = sampleRecipient?.dipa;
+
+    const uhRate = sampleDipa?.uangHarianRate ?? (batchUangHarianRate || 360000);
+    const uhDays = sampleDipa?.uangHarianDays ?? (batchUangHarianDays || calculateDays(travel.startDate, travel.endDate));
+    const nights = sampleDipa?.penginapanNights ?? Math.max(1, calculateDays(travel.startDate, travel.endDate) - 1);
+    const dpRilEnabled = sampleDipa?.dpRilEnabled !== false;
+    const dpRilProvince = sampleDipa?.dpRilProvince || travel.destination || "Provinsi Kalimantan Timur";
+
+    let stdRate = sampleDipa?.dpRilHotelStandardRate;
+    let penginapanRate = sampleDipa?.penginapanRate ?? 0;
+    if (dpRilEnabled) {
+      const detectedPreset = SBM_HOTEL_PRESETS.find((p) => p.provinceName === dpRilProvince) || SBM_HOTEL_PRESETS[0];
+      const std = getSbmStandardRate(detectedPreset.key, emp.rank);
+      stdRate = std;
+      penginapanRate = Math.round(0.3 * std);
+    }
+
+    const baseDipa = buildDefaultDipa(travel.startDate, travel.endDate);
+    const newDipa: DipaDetails = {
+      ...baseDipa,
+      uangHarianRate: uhRate,
+      uangHarianDays: uhDays,
+      penginapanNights: nights,
+      penginapanRate: penginapanRate,
+      dpRilEnabled: dpRilEnabled,
+      dpRilProvince: dpRilProvince,
+      dpRilHotelStandardRate: stdRate,
+      transportUdara: sampleDipa?.transportUdara ?? 0,
+      taksiPp: sampleDipa?.taksiPp ?? 0,
+    };
+
+    const bankInfo = getRecipientBankInfo(emp.name);
+    const newRow: RecipientRow = {
+      id: `emp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: emp.name,
+      type: "pegawai",
+      description: buildUraianForEmployee(
+        emp.name,
+        travel.origin,
+        travel.destination,
+        travel.startDate,
+        travel.endDate,
+        spjName
+      ),
+      evidenceNo: "",
+      evidenceSuffix: defaultEvidenceSuffix,
+      amount: calculateDipaTotal(newDipa),
+      dipa: newDipa,
+      bankName: bankInfo.bank,
+      accountNo: bankInfo.accountNo,
+      accountHolder: bankInfo.holderName,
+      nip: emp.nip,
+      rank: emp.rank,
+      position: emp.position,
+      satuanKerja: emp.satuanKerja,
+    };
+
+    setRecipients((prev) => [...prev, newRow]);
+    toast.success(`Personil "${emp.name}" berhasil ditambahkan.`);
+  };
+
+  const handleAddManualRecipient = () => {
+    if (!manualName.trim()) {
+      toast.error("Nama personil wajib diisi.");
+      return;
+    }
+    handleAddEmployee({
+      name: manualName.trim(),
+      nip: manualNip.trim() || undefined,
+      rank: manualRank.trim() || undefined,
+      position: manualPosition.trim() || undefined,
+    });
+    setManualName("");
+    setManualNip("");
+    setManualRank("");
+    setManualPosition("");
+    setIsAddRecipientOpen(false);
+  };
+
   const applyBatchUangHarianRate = () => {
     setRecipients((prev) =>
       prev.map((r) => {
@@ -554,12 +780,61 @@ export function Step1DipaTabs({
               5 Form Dokumen DIPA (Sheet Tab)
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap">
             <span className="text-slate-500">Total Biaya DIPA:</span>
             <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
               {formatRupiah(dipaTotals.grandTotal)}
             </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setShowLivePreview((prev) => !prev)}
+              className="h-7 gap-1 rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-medium shadow-2xs ml-auto sm:ml-0"
+            >
+              {showLivePreview ? (
+                <>
+                  <EyeOff className="h-3 w-3 text-slate-400" />
+                  <span>Tutup Preview</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3 w-3 text-emerald-600" />
+                  <span>Buka Live Preview</span>
+                </>
+              )}
+            </Button>
           </div>
+        </div>
+
+        {/* QUICK DIPA CLASSIFICATION BANNER */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-slate-950 rounded-xl mb-2.5 border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Klasifikasi Anggaran DIPA:
+            </span>
+            <Badge
+              variant="outline"
+              className="font-mono text-[11px] font-bold bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
+            >
+              {dipaConfig.klasifikasiMak || DEFAULT_DIPA_KLASIFIKASI_MAK}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="font-mono text-[11px] font-bold bg-blue-50 text-blue-900 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300"
+            >
+              MAK: {effectiveKodeMak}
+            </Badge>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setIsBudgetSelectorOpen(true)}
+            className="h-7 text-xs font-bold rounded-lg bg-amber-600 hover:bg-amber-500 text-white gap-1.5 shadow-xs"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Pilih dari Laporan FA Detail</span>
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -578,11 +853,10 @@ export function Step1DipaTabs({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveDipaTab(tab.key)}
-                className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all ${
-                  isActive
+                className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all ${isActive
                     ? "border-emerald-500 bg-white text-emerald-950 shadow-md ring-2 ring-emerald-500/20 dark:border-emerald-500 dark:bg-slate-800 dark:text-emerald-100"
                     : "border-transparent bg-slate-200/50 text-slate-600 hover:border-slate-300 hover:bg-white dark:bg-slate-800/40 dark:text-slate-400 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2 font-bold text-xs">
@@ -591,11 +865,10 @@ export function Step1DipaTabs({
                   </div>
                   <Badge
                     variant="outline"
-                    className={`text-[9px] px-1.5 py-0 font-semibold ${
-                      isActive
+                    className={`text-[9px] px-1.5 py-0 font-semibold ${isActive
                         ? "border-emerald-400 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
                         : "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700"
-                    }`}
+                      }`}
                   >
                     {tab.badge}
                   </Badge>
@@ -610,6 +883,51 @@ export function Step1DipaTabs({
       {/* TAB 1: NOMINATIF PD */}
       {activeDipaTab === "nominatif" && (
         <div className="space-y-6">
+          {/* Form Header Dokumen: Nomor SPD Nominatif */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="max-w-md">
+              <label className="text-[10px] font-bold uppercase text-slate-500">
+                Nomor SPD
+              </label>
+              <div className="mt-1 flex items-center gap-1.5">
+                <Input
+                  value={
+                    dipaConfig.nominatifSpd !== undefined
+                      ? dipaConfig.nominatifSpd
+                      : `/K.18-TU/KEU/07/${currentNominatifYear}`
+                  }
+                  onChange={(e) =>
+                    setDipaConfig((prev) => ({
+                      ...prev,
+                      nominatifSpd: e.target.value,
+                    }))
+                  }
+                  placeholder={`/K.18-TU/KEU/07/${currentNominatifYear}`}
+                  className="rounded-xl text-xs font-mono font-semibold bg-white dark:bg-slate-900"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const currentMonth2Digits = String(new Date().getMonth() + 1).padStart(2, "0");
+                    const currentYear = new Date().getFullYear().toString();
+                    setDipaConfig((prev) => ({
+                      ...prev,
+                      nominatifSpd: `/K.18-TU/KEU/${currentMonth2Digits}/${currentYear}`,
+                    }));
+                  }}
+                  className="h-9 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 px-2 shrink-0"
+                >
+                  Bulan Berjalan
+                </Button>
+              </div>
+              <p className="mt-1 text-[10px] text-slate-400">
+                Default: /K.18-TU/KEU/07/{currentNominatifYear}
+              </p>
+            </div>
+          </div>
+
           {/* Batch Quick Applicator Card */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center gap-2 mb-3">
@@ -713,81 +1031,6 @@ export function Step1DipaTabs({
             </div>
           </div>
 
-          {/* Form Header Dokumen: Nomor SPD & Tanggal TTD Nominatif */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              {/* Nomor SPD */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Nomor SPD:
-                </span>
-                <Input
-                  value={
-                    dipaConfig.nominatifSpd !== undefined
-                      ? dipaConfig.nominatifSpd
-                      : (dipaConfig.nominatifSpdNo || dipaConfig.nominatifSpdSuffix
-                          ? `${dipaConfig.nominatifSpdNo ? `${dipaConfig.nominatifSpdNo} ` : ""}${dipaConfig.nominatifSpdSuffix || ""}`.trim()
-                          : "")
-                  }
-                  onChange={(e) => setDipaConfig((prev) => ({ ...prev, nominatifSpd: e.target.value }))}
-                  placeholder="Kosong (manual pulpen) atau nomor SPD"
-                  className="h-8 w-64 sm:w-80 rounded-lg font-mono text-xs font-semibold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-                />
-                {Boolean(
-                  dipaConfig.nominatifSpd !== undefined
-                    ? dipaConfig.nominatifSpd
-                    : (dipaConfig.nominatifSpdNo || dipaConfig.nominatifSpdSuffix)
-                ) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setDipaConfig((prev) => ({
-                        ...prev,
-                        nominatifSpd: "",
-                        nominatifSpdNo: "",
-                        nominatifSpdSuffix: "",
-                      }))
-                    }
-                    className="h-8 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-2"
-                  >
-                    Kosongkan
-                  </Button>
-                )}
-              </div>
-
-              {/* Tanggal TTD Nominatif */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Tanggal TTD Nominatif:
-                </span>
-                <Input
-                  type="date"
-                  value={toIsoDateString(dipaConfig.nominatifDate)}
-                  onChange={(e) => setDipaConfig((prev) => ({ ...prev, nominatifDate: e.target.value }))}
-                  className="h-8 w-40 rounded-lg text-xs font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-                />
-                {dipaConfig.nominatifDate ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDipaConfig((prev) => ({ ...prev, nominatifDate: "" }))}
-                    className="h-8 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-2"
-                  >
-                    Kosongkan
-                  </Button>
-                ) : (
-                  <span className="text-[11px] text-slate-400 italic">Default: Kosong (Pulpen)</span>
-                )}
-              </div>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400 border-t border-slate-100 pt-2 dark:border-slate-800">
-              * Khusus lembar Daftar Nominatif: jika nomor SPD dan tanggal kosong, lembar cetak otomatis diberi spasi untuk diisi manual dengan pulpen.
-            </p>
-          </div>
-
           {/* Table of Personnel & Costs */}
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -819,6 +1062,19 @@ export function Step1DipaTabs({
                 <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                   {recipients.length} Pelaksana
                 </Badge>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setEmployeeSearchQuery("");
+                    setAddRecipientMode("search");
+                    setIsAddRecipientOpen(true);
+                  }}
+                  className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium gap-1.5 rounded-lg shadow-xs"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Tambah Personil
+                </Button>
               </div>
             </div>
 
@@ -864,11 +1120,10 @@ export function Step1DipaTabs({
                             <button
                               type="button"
                               onClick={() => setExpandedTransportRecipientId(isExpanded ? null : recipient.id)}
-                              className={`mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border transition ${
-                                isExpanded
+                              className={`mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border transition ${isExpanded
                                   ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
                                   : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                              }`}
+                                }`}
                             >
                               <Car className="h-3 w-3" />
                               <span>Rincian Transport ({breakdown.items.length})</span>
@@ -1209,7 +1464,7 @@ export function Step1DipaTabs({
             <div className="p-4 border-t border-slate-200 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-800/40">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
-                  <span className="text-[10px] font-bold uppercase text-slate-500">Total Transport (077)</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-500">Total Transport</span>
                   <p className="mt-1 font-mono font-bold text-sm text-slate-900 dark:text-slate-100">
                     {formatRupiah(dipaTotals.transportTotal)}
                   </p>
@@ -1278,21 +1533,14 @@ export function Step1DipaTabs({
                 <SearchableOfficialSelect
                   label="Bendahara Pengeluaran"
                   value={pdo}
-                  onChange={setPdo}
+                  onChange={(val) => {
+                    setPdo(val);
+                    setDipaConfig((prev) => ({ ...prev, bendahara: val }));
+                  }}
                   employees={allEmployees}
                   defaultRoleLabel="Bendahara Pengeluaran"
                 />
                 <p className="mt-1 text-xs text-slate-500">NIK / NIP: {formatNip(pdo.nik)}</p>
-              </div>
-              <div>
-                <SearchableOfficialSelect
-                  label="Verifikator Keuangan"
-                  value={verifikator}
-                  onChange={setVerifikator}
-                  employees={allEmployees}
-                  defaultRoleLabel="Verifikator Keuangan"
-                />
-                <p className="mt-1 text-xs text-slate-500">NIK / NIP: {formatNip(verifikator.nik)}</p>
               </div>
             </div>
           </div>
@@ -1348,76 +1596,23 @@ export function Step1DipaTabs({
               <Input
                 value={dipaConfig.noSpDipa || ""}
                 onChange={(e) => setDipaConfig((prev) => ({ ...prev, noSpDipa: e.target.value }))}
-                placeholder="No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025"
+                placeholder={DEFAULT_DIPA_NO_SP_DIPA}
                 className="mt-1 rounded-xl text-xs font-mono font-medium"
               />
             </div>
 
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                4. Klasifikasi Anggaran (MAK)
-              </label>
-              <Input
-                value={dipaConfig.klasifikasiMak || ""}
-                onChange={(e) => setDipaConfig((prev) => ({ ...prev, klasifikasiMak: e.target.value }))}
-                placeholder={DEFAULT_DIPA_KLASIFIKASI_MAK}
-                className="mt-1 rounded-xl font-mono text-xs font-semibold"
+            <div className="sm:col-span-2 lg:col-span-4">
+              <DipaCascadingBudgetSelector
+                dipaConfig={dipaConfig}
+                setDipaConfig={setDipaConfig}
+                effectiveKodeMak={effectiveKodeMak}
+                travel={travel}
+                recipientCount={recipients.length || 1}
+                activityName={dipaConfig.maksudTujuan || activity.name || spjName}
               />
             </div>
 
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Subkomponen / Item MAK
-              </label>
-              <Input
-                value={dipaConfig.kodeMak || ""}
-                onChange={(e) => setDipaConfig((prev) => ({ ...prev, kodeMak: e.target.value }))}
-                placeholder={effectiveKodeMak}
-                className="mt-1 rounded-xl font-mono text-xs font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Tempat SPTJB
-              </label>
-              <Input
-                value={dipaConfig.cityDateText || "Samarinda,"}
-                onChange={(e) => setDipaConfig((prev) => ({ ...prev, cityDateText: e.target.value }))}
-                placeholder="Samarinda,"
-                className="mt-1 rounded-xl text-xs font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Tanggal SPTJB
-              </label>
-              <div className="mt-1 flex items-center gap-1.5">
-                <Input
-                  type="date"
-                  value={toIsoDateString(dipaConfig.sptjbDate)}
-                  onChange={(e) => setDipaConfig((prev) => ({ ...prev, sptjbDate: e.target.value }))}
-                  className="rounded-xl text-xs font-medium bg-white dark:bg-slate-900"
-                />
-                {dipaConfig.sptjbDate && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDipaConfig((prev) => ({ ...prev, sptjbDate: "" }))}
-                    className="h-9 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-2 shrink-0"
-                  >
-                    Kosongkan
-                  </Button>
-                )}
-              </div>
-              <p className="mt-1 text-[10px] text-slate-400">
-                Default: Kosong (dapat diisi saat pencairan)
-              </p>
-            </div>
-
-            <div>
+            <div className="sm:col-span-2">
               <label className="text-[10px] font-bold uppercase text-slate-500">
                 Nomor Bukti SPTJB
               </label>
@@ -1464,7 +1659,8 @@ export function Step1DipaTabs({
                   const generated = buildDefaultSptjbUraian(
                     travel,
                     recipients.length || 1,
-                    activity.name || spjName
+                    dipaConfig.maksudTujuan || activity.name || spjName,
+                    dipaConfig.akun || "524111"
                   );
                   setDipaConfig((prev) => ({ ...prev, uraianSptjb: generated }));
                   toast.success("Uraian SPTJB direset ke template otomatis!");
@@ -1480,7 +1676,8 @@ export function Step1DipaTabs({
                 buildDefaultSptjbUraian(
                   travel,
                   recipients.length || 1,
-                  activity.name || spjName
+                  dipaConfig.maksudTujuan || activity.name || spjName,
+                  dipaConfig.akun || "524111"
                 )
               }
               onChange={(e) => setDipaConfig((prev) => ({ ...prev, uraianSptjb: e.target.value }))}
@@ -1850,11 +2047,10 @@ export function Step1DipaTabs({
                             dpRilProvince: dipa.dpRilProvince || travel.destination || "Provinsi Kalimantan Timur",
                           });
                         }}
-                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${
-                          dipa.dpRilEnabled !== false && (dipa.penginapanRate || 0) > 0
+                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${dipa.dpRilEnabled !== false && (dipa.penginapanRate || 0) > 0
                             ? "bg-emerald-600 text-white border-emerald-600 font-bold"
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
-                        }`}
+                          }`}
                       >
                         ✓ DP Ril (30% SBM)
                       </button>
@@ -1869,11 +2065,10 @@ export function Step1DipaTabs({
                             penginapanRate: dipa.penginapanRate || 500000,
                           });
                         }}
-                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${
-                          dipa.dpRilEnabled === false && (dipa.penginapanRate || 0) > 0
+                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${dipa.dpRilEnabled === false && (dipa.penginapanRate || 0) > 0
                             ? "bg-sky-600 text-white border-sky-600 font-bold"
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
-                        }`}
+                          }`}
                       >
                         Hotel Riil (100% Kuitansi)
                       </button>
@@ -1886,11 +2081,10 @@ export function Step1DipaTabs({
                             penginapanNights: 0,
                           });
                         }}
-                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${
-                          (dipa.penginapanRate || 0) === 0 || (dipa.penginapanNights || 0) === 0
+                        className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors ${(dipa.penginapanRate || 0) === 0 || (dipa.penginapanNights || 0) === 0
                             ? "bg-slate-200 text-slate-800 border-slate-300 font-bold dark:bg-slate-700 dark:text-white"
                             : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700"
-                        }`}
+                          }`}
                       >
                         Tanpa Penginapan (Rp 0)
                       </button>
@@ -1918,11 +2112,10 @@ export function Step1DipaTabs({
                                     dpRilProvince: preset.provinceName,
                                   });
                                 }}
-                                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
-                                  isSelected
+                                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${isSelected
                                     ? "bg-emerald-600 text-white border-emerald-600 font-bold"
                                     : "bg-white hover:bg-emerald-50 text-slate-700 border-emerald-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700"
-                                }`}
+                                  }`}
                               >
                                 {preset.label.split(" ")[0]} ({formatRupiah(std)})
                               </button>
@@ -2252,11 +2445,10 @@ export function Step1DipaTabs({
               return (
                 <div
                   key={recipient.id || idx}
-                  className={`rounded-2xl border p-5 transition-all shadow-sm ${
-                    isEnabled
+                  className={`rounded-2xl border p-5 transition-all shadow-sm ${isEnabled
                       ? "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                       : "border-slate-200/60 bg-slate-50/70 opacity-75 dark:border-slate-800/60 dark:bg-slate-900/40"
-                  }`}
+                    }`}
                 >
                   {/* Recipient Header & Toggle */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
@@ -2350,11 +2542,10 @@ export function Step1DipaTabs({
                                     dpRilProvince: preset.provinceName,
                                   });
                                 }}
-                                className={`text-[9.5px] px-2 py-0.5 rounded border transition-colors ${
-                                  isSelected
+                                className={`text-[9.5px] px-2 py-0.5 rounded border transition-colors ${isSelected
                                     ? "bg-emerald-600 text-white border-emerald-600 font-bold"
                                     : "bg-white hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700"
-                                }`}
+                                  }`}
                               >
                                 {preset.label.split(" ")[0]} ({formatRupiah(std)})
                               </button>
@@ -2590,27 +2781,14 @@ export function Step1DipaTabs({
               />
             </div>
 
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Klasifikasi Anggaran / MAK
-              </label>
-              <Input
-                value={dipaConfig.klasifikasiMak || ""}
-                onChange={(e) => setDipaConfig((prev) => ({ ...prev, klasifikasiMak: e.target.value }))}
-                placeholder={DEFAULT_DIPA_KLASIFIKASI_MAK}
-                className="mt-1 rounded-xl font-mono text-xs font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Kode MAK
-              </label>
-              <Input
-                value={dipaConfig.kodeMak || ""}
-                onChange={(e) => setDipaConfig((prev) => ({ ...prev, kodeMak: e.target.value }))}
-                placeholder={effectiveKodeMak}
-                className="mt-1 rounded-xl font-mono text-xs font-semibold"
+            <div className="sm:col-span-2 lg:col-span-4">
+              <DipaCascadingBudgetSelector
+                dipaConfig={dipaConfig}
+                setDipaConfig={setDipaConfig}
+                effectiveKodeMak={effectiveKodeMak}
+                travel={travel}
+                recipientCount={recipients.length || 1}
+                activityName={dipaConfig.maksudTujuan || activity.name || spjName}
               />
             </div>
 
@@ -2894,6 +3072,309 @@ export function Step1DipaTabs({
           </div>
         </div>
       )}
+
+      {/* LIVE PREVIEW DOKUMEN DIPA (PERSIS SEPERTI TAHAP 3) */}
+      <div className="mt-8 space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <FileSpreadsheet className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Live Preview: {currentTabDoc.label}
+                </span>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-mono border-emerald-600/30 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40"
+                >
+                  <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Auto-Sync
+                </Badge>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Pratinjau otomatis terbarui saat Anda mengisi atau mengedit form di atas (tampilan persis seperti di Tahap 3).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            {/* Zoom Controls */}
+            {showLivePreview && (
+              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-800 dark:bg-slate-800/60">
+                <button
+                  type="button"
+                  title="Perkecil Zoom"
+                  onClick={() => setPreviewZoom((z) => Math.max(40, z - 10))}
+                  className="rounded p-1 text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900"
+                >
+                  <ZoomOut className="h-3.5 w-3.5" />
+                </button>
+                <span className="px-1.5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 min-w-[40px] text-center">
+                  {previewZoom}%
+                </span>
+                <button
+                  type="button"
+                  title="Perbesar Zoom"
+                  onClick={() => setPreviewZoom((z) => Math.min(150, z + 10))}
+                  className="rounded p-1 text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900"
+                >
+                  <ZoomIn className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  title="Reset 100%"
+                  onClick={() => setPreviewZoom(100)}
+                  className="rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900"
+                >
+                  100%
+                </button>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowLivePreview((prev) => !prev)}
+              className="h-8 rounded-lg text-xs"
+            >
+              {showLivePreview ? (
+                <>
+                  <ChevronUp className="h-3.5 w-3.5 mr-1" />
+                  Sembunyikan Preview
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-3.5 w-3.5 mr-1" />
+                  Tampilkan Preview
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {showLivePreview && (
+          <div className="w-full overflow-x-auto rounded-2xl border border-slate-200/90 bg-slate-100/90 p-4 sm:p-8 dark:border-slate-800 dark:bg-slate-950/80 shadow-inner flex justify-center">
+            <div
+              style={{ zoom: previewZoom !== 100 ? `${previewZoom}%` : undefined }}
+              className="shrink-0 bg-white shadow-xl ring-1 ring-slate-300 dark:ring-slate-800 rounded-xs transition-all duration-150 origin-top"
+            >
+              <DocumentTemplates
+                selectedDocument={currentTabDoc.key}
+                recipients={previewRecipients}
+                activity={{
+                  awpCode: activity.awpCode,
+                  name: activity.name.trim() || spjName.trim(),
+                }}
+                travel={travel}
+                sptNumber={dipaConfig.stNumber || sptNumber || ""}
+                ppk={ppk}
+                pdo={pdo}
+                verifikator={verifikator}
+                total={total || dipaTotals.grandTotal}
+                spbNumber={spbNumber}
+                spdNumber={spdNumber}
+                tipeAnggaran="DIPA"
+                dipaConfig={dipaConfig}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Dialog: Tambah Personil */}
+      <Dialog open={isAddRecipientOpen} onOpenChange={setIsAddRecipientOpen}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-100">
+              <UserPlus className="h-5 w-5 text-emerald-600" />
+              Tambah Personil Pelaksana SPJ
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Pilih dari database master pegawai BKSDA atau input data personil baru.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Toggle Tab Search / Manual */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setAddRecipientMode("search")}
+              className={`flex-1 py-1.5 px-3 rounded-md transition ${
+                addRecipientMode === "search"
+                  ? "bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+              }`}
+            >
+              Pilih dari Master Pegawai
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddRecipientMode("manual")}
+              className={`flex-1 py-1.5 px-3 rounded-md transition ${
+                addRecipientMode === "manual"
+                  ? "bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+              }`}
+            >
+              Input Personil Baru / Manual
+            </button>
+          </div>
+
+          {addRecipientMode === "search" ? (
+            <div className="space-y-3 pt-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  value={employeeSearchQuery}
+                  onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                  placeholder="Ketik nama, NIP, atau jabatan pegawai..."
+                  className="pl-9 h-9 text-xs"
+                  autoFocus
+                />
+              </div>
+
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 border rounded-lg">
+                {filteredEmployees.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">
+                    Tidak ditemukan pegawai yang cocok dengan pencarian &quot;{employeeSearchQuery}&quot;.
+                  </div>
+                ) : (
+                  filteredEmployees.map((emp) => {
+                    const alreadyInList = recipients.some((r) => isSameEmployee(r, emp));
+                    return (
+                      <div
+                        key={emp.id || emp.nip || emp.name}
+                        className="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition text-xs"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                            {emp.name}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 font-mono">
+                            {emp.nip && <span>NIP. {emp.nip}</span>}
+                            {emp.rank && <span>• {emp.rank}</span>}
+                            {emp.position && <span className="font-sans">• {emp.position}</span>}
+                          </div>
+                        </div>
+
+                        <div>
+                          {alreadyInList ? (
+                            <Badge variant="secondary" className="text-[10px] text-slate-500 bg-slate-100 border border-slate-200 gap-1">
+                              <Check className="h-3 w-3 text-emerald-600" />
+                              Sudah Ada
+                            </Badge>
+                          ) : (
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => handleAddEmployee(emp)}
+                              className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 rounded-md px-2.5"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              Tambah
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="text-[11px] text-slate-400 flex items-center justify-between px-1">
+                <span>Menampilkan {filteredEmployees.length} dari {allEmployees.length} pegawai.</span>
+                <span>Klik <b>Tambah</b> untuk memasukkan ke SPJ.</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Nama Lengkap beserta Gelar <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  placeholder="Contoh: Budi Santoso, S.Hut."
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  NIP (Nomor Induk Pegawai)
+                </label>
+                <Input
+                  value={manualNip}
+                  onChange={(e) => setManualNip(e.target.value)}
+                  placeholder="Contoh: 19850101 201001 1 001 (opsional)"
+                  className="h-9 text-xs font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Pangkat / Golongan
+                  </label>
+                  <Input
+                    value={manualRank}
+                    onChange={(e) => setManualRank(e.target.value)}
+                    placeholder="Contoh: Penata Muda (III/a)"
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Jabatan
+                  </label>
+                  <Input
+                    value={manualPosition}
+                    onChange={(e) => setManualPosition(e.target.value)}
+                    placeholder="Contoh: Polisi Kehutanan Ahli Pertama"
+                    className="h-9 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddRecipientOpen(false)}
+                  className="h-8 text-xs"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAddManualRecipient}
+                  className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Tambah Personil Manual
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DIPA BUDGET SELECTOR MODAL (FA DETAIL 2026) */}
+      <DipaBudgetSelectorModal
+        open={isBudgetSelectorOpen}
+        onOpenChange={setIsBudgetSelectorOpen}
+        currentKlasifikasi={dipaConfig.klasifikasiMak}
+        currentKodeMak={effectiveKodeMak}
+        hasUangHarian={autoMak.hasUangHarian}
+        hasPenginapan={autoMak.hasPenginapan}
+        hasTransport={autoMak.hasTransport}
+        onSelect={handleSelectBudgetEntry}
+      />
     </div>
   );
 }

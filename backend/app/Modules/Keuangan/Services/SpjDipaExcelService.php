@@ -77,7 +77,7 @@ class SpjDipaExcelService
         if (!$ws) return;
 
         // Nomor SPT
-        $sptNumber = $data['nomor_spt'] ?? $data['sptNumber'] ?? '';
+        $sptNumber = $data['dipaConfig']['stNumber'] ?? $data['nomor_spt'] ?? $data['sptNumber'] ?? '';
         if ($sptNumber) {
             $ws->setCellValue('G2', $sptNumber);
         }
@@ -90,7 +90,7 @@ class SpjDipaExcelService
             $ws->setCellValue('D' . $row, ($i + 1) . '.');
             $ws->setCellValue('E' . $row, 'Nama');
             $ws->setCellValue('F' . $row, ':');
-            $ws->setCellValue('G' . $row, $p['name'] ?? '');
+            $ws->setCellValue('G' . $row, $this->formatNameWithPreservedTitle($p['name'] ?? ''));
 
             $ws->setCellValue('E' . ($row + 1), 'NIP.');
             $ws->setCellValue('F' . ($row + 1), ':');
@@ -122,21 +122,32 @@ class SpjDipaExcelService
         $startDate = $data['tanggal_mulai'] ?? $data['travel']['startDate'] ?? date('Y-m-d');
         $endDate = $data['tanggal_selesai'] ?? $data['travel']['endDate'] ?? $startDate;
 
-        // Nomor SPD (Single input without SPD. prefix)
+        // Nomor SPD (Daftar Nominatif)
         $nominatifSpd = trim($dipaConfig['nominatifSpd'] ?? '');
-        if ($nominatifSpd === '') {
-            $spdNo = trim($dipaConfig['nominatifSpdNo'] ?? '');
-            $spdSuffix = trim($dipaConfig['nominatifSpdSuffix'] ?? '');
-            if ($spdNo !== '' || $spdSuffix !== '') {
-                $nominatifSpd = trim(($spdNo !== '' ? "{$spdNo} " : '') . $spdSuffix);
-            }
+        $spdNo = trim($dipaConfig['nominatifSpdNo'] ?? '');
+        $month = trim($dipaConfig['nominatifSpdMonth'] ?? '');
+        if (!$month) $month = '07';
+
+        $year = trim($dipaConfig['nominatifSpdYear'] ?? '');
+        if (!$year && !empty($startDate)) {
+            $year = date('Y', strtotime($startDate));
+        }
+        if (!$year) $year = '2026';
+
+        $spdSuffix = trim($dipaConfig['nominatifSpdSuffix'] ?? '');
+        if ($spdSuffix === '' || !str_contains($spdSuffix, '/K.18-TU/KEU/')) {
+            $spdSuffix = "/K.18-TU/KEU/{$month}/{$year}";
         }
 
-        if ($nominatifSpd !== '') {
-            $ws->setCellValue('E2', "Nomor SPD : {$nominatifSpd}");
+        if ($spdNo !== '') {
+            $nominatifSpd = "{$spdNo} {$spdSuffix}";
+        } elseif ($nominatifSpd !== '' && !str_contains($nominatifSpd, '/K.18-TU/KEU/')) {
+            // keep custom manual text if present
         } else {
-            $ws->setCellValue('E2', "Nomor SPD :          ");
+            $nominatifSpd = "              {$spdSuffix}";
         }
+
+        $ws->setCellValue('E2', "Nomor SPD : {$nominatifSpd}");
 
         // Fill recipient rows
         $totalTransport = 0;
@@ -193,7 +204,9 @@ class SpjDipaExcelService
 
             // Row 1
             $ws->setCellValue('A' . $row, $i + 1);
-            $ws->setCellValue('B' . $row, $p['name'] ?? '');
+            $rawName = $p['name'] ?? '';
+            $formattedRecipientName = $this->formatNameWithPreservedTitle($rawName);
+            $ws->setCellValue('B' . $row, $formattedRecipientName);
             $ws->setCellValue('D' . $row, $destination);
             $ws->setCellValue('E' . $row, $this->formatIndoDate($startDate));
 
@@ -219,10 +232,13 @@ class SpjDipaExcelService
             $this->setCellText($ws, 'C' . ($row + 1), $this->cleanNip($p['nip'] ?? $p['id'] ?? ''));
 
             // Row 3: ST & Tanggal selesai
-            $sptNumber = $data['nomor_spt'] ?? $data['sptNumber'] ?? '';
+            $sptNumber = $p['sptNumber'] ?? $data['dipaConfig']['stNumber'] ?? $data['nomor_spt'] ?? $data['sptNumber'] ?? '';
             $formattedSpt = $sptNumber;
             if ($formattedSpt && !str_starts_with(trim($formattedSpt), 'ST.') && !str_starts_with(trim($formattedSpt), 'ST ')) {
                 $formattedSpt = 'ST. ' . trim($formattedSpt);
+            }
+            if (!$formattedSpt) {
+                $formattedSpt = 'ST.                          ';
             }
             $ws->setCellValue('B' . ($row + 2), $formattedSpt);
             $ws->setCellValue('E' . ($row + 2), $this->formatIndoDate($endDate));
@@ -292,19 +308,19 @@ class SpjDipaExcelService
         // Single clean signature block
         $sigDate = !empty($dipaConfig['nominatifDate']) ? $this->formatIndoDate($dipaConfig['nominatifDate']) : '';
         $ppk = $data['pejabat_ppk'] ?? [];
-        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'SOERENDENG, SE', 'nik' => '19790721 200701 2 001'];
+        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'Soerendeng, S.E', 'nik' => '19790721 200701 2 001'];
 
         $sigRow = $totalRowIdx + 4;
         $ws->setCellValue('K' . ($sigRow - 1), 'Samarinda, ' . $sigDate);
         $ws->setCellValue('C' . $sigRow, 'Pejabat Pembuat Komitmen,');
         $ws->setCellValue('K' . $sigRow, 'Bendahara Pengeluaran,');
 
-        $ws->setCellValue('C' . ($sigRow + 4), $ppk['name'] ?? 'RUSMANTO, S.Hut');
+        $ws->setCellValue('C' . ($sigRow + 4), $this->formatNameWithPreservedTitle($ppk['name'] ?? 'Rusmanto, S.Hut.'));
         $ws->getStyle('C' . ($sigRow + 4))->getFont()->setBold(true)->setUnderline(true);
-        $cleanPpkNip = $this->cleanNip($ppk['nik'] ?? '19810907 200012 1 004');
+        $cleanPpkNip = $this->cleanNip($ppk['nik'] ?? '19780512 200501 1 008');
         $ws->setCellValue('C' . ($sigRow + 5), 'NIP. ' . $cleanPpkNip);
 
-        $ws->setCellValue('K' . ($sigRow + 4), $bendahara['name'] ?? 'SOERENDENG, SE');
+        $ws->setCellValue('K' . ($sigRow + 4), $this->formatNameWithPreservedTitle($bendahara['name'] ?? 'Soerendeng, S.E'));
         $ws->getStyle('K' . ($sigRow + 4))->getFont()->setBold(true)->setUnderline(true);
         $cleanBendaharaNip = $this->cleanNip($bendahara['nik'] ?? '19790721 200701 2 001');
         $ws->setCellValue('K' . ($sigRow + 5), 'NIP. ' . $cleanBendaharaNip);
@@ -318,7 +334,7 @@ class SpjDipaExcelService
         $dipaConfig = $data['dipaConfig'] ?? [];
         $kodeSatker = $dipaConfig['kodeSatker'] ?? '143.04.16.693614';
         $namaSatker = $dipaConfig['namaSatker'] ?? 'Balai Konservasi Sumber Daya Alam Kalimantan Timur';
-        $noSpDipa = $dipaConfig['noSpDipa'] ?? 'No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025';
+        $noSpDipa = $dipaConfig['noSpDipa'] ?? 'No. SP DIPA- 143.04.2.693614/2026 Tanggal 11 September 2026';
         $klasifikasiMak = $dipaConfig['klasifikasiMak'] ?? '7273.REA.003.524111';
         $makItems = $dipaConfig['makItems'] ?? [];
         $kodeMak = !empty($dipaConfig['kodeMak'])
@@ -348,9 +364,9 @@ class SpjDipaExcelService
             $ws->setCellValue('D7', null);
         }
 
-        // Penerima: Ketua + Dkk
+        // Penerima: Ketua (tanpa Dkk)
         $primary = $pegawaiList[0] ?? ['name' => '-'];
-        $penerima = ($primary['name'] ?? '-') . (count($pegawaiList) > 1 ? ', Dkk' : '');
+        $penerima = $primary['name'] ?? '-';
         $ws->setCellValue('B12', $penerima);
 
         // Uraian SPTB
@@ -377,13 +393,13 @@ class SpjDipaExcelService
         // Signatures
         $sigDate = !empty($dipaConfig['sptjbDate']) ? $this->formatIndoDate($dipaConfig['sptjbDate']) : '';
         $ppk = $data['pejabat_ppk'] ?? [];
-        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'SOERENDENG, SE', 'nik' => '19790721 200701 2 001'];
+        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'Soerendeng, S.E', 'nik' => '19790721 200701 2 001'];
 
         $ws->setCellValue('B22', 'Samarinda, ' . $sigDate);
-        $ws->setCellValue('B27', $ppk['name'] ?? 'RUSMANTO, S.Hut');
-        $ws->setCellValue('B28', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19810907 200012 1 004'));
+        $ws->setCellValue('B27', $this->formatNameWithPreservedTitle($ppk['name'] ?? 'Rusmanto, S.Hut.'));
+        $ws->setCellValue('B28', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19780512 200501 1 008'));
 
-        $ws->setCellValue('F27', $bendahara['name'] ?? 'SOERENDENG, SE');
+        $ws->setCellValue('F27', $this->formatNameWithPreservedTitle($bendahara['name'] ?? 'Soerendeng, S.E'));
         $ws->setCellValue('F28', 'NIP. ' . $this->cleanNip($bendahara['nik'] ?? '19790721 200701 2 001'));
 
         // Clear leftover template values & apply clean thin borders to table
@@ -449,7 +465,7 @@ class SpjDipaExcelService
 
         // Signatures
         $ppk = $data['pejabat_ppk'] ?? [];
-        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'SOERENDENG, SE', 'nik' => '19790721 200701 2 001'];
+        $bendahara = $dipaConfig['bendahara'] ?? $data['pejabat_pdo'] ?? ['name' => 'Soerendeng, S.E', 'nik' => '19790721 200701 2 001'];
         $city = !empty($dipaConfig['cityDateText']) ? rtrim($dipaConfig['cityDateText'], " ,") . ',' : 'Samarinda,';
         $ws->setCellValue('J29', $city);
         if (!empty($sigDate)) {
@@ -461,14 +477,14 @@ class SpjDipaExcelService
             $ws->setCellValue('G30', '');
             $ws->setCellValue('J30', '');
         }
-        $ws->setCellValue('A37', $bendahara['name'] ?? 'SOERENDENG, SE');
+        $ws->setCellValue('A37', $this->formatNameWithPreservedTitle($bendahara['name'] ?? 'Soerendeng, S.E'));
         $ws->setCellValue('A38', 'NIP. ' . $this->cleanNip($bendahara['nik'] ?? '19790721 200701 2 001'));
 
-        $ws->setCellValue('G37', $primary['name'] ?? '');
+        $ws->setCellValue('G37', $this->formatNameWithPreservedTitle($primary['name'] ?? ''));
         $ws->setCellValue('H38', 'NIP. ' . $this->cleanNip($primary['nip'] ?? $primary['id'] ?? ''));
 
-        $ws->setCellValue('J37', $ppk['name'] ?? 'RUSMANTO, S.Hut');
-        $ws->setCellValue('J38', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19810907 200012 1 004'));
+        $ws->setCellValue('J37', $this->formatNameWithPreservedTitle($ppk['name'] ?? 'Rusmanto, S.Hut.'));
+        $ws->setCellValue('J38', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19780512 200501 1 008'));
 
         // 4 Box Borders matching Web Preview
         $boxes = ['A1:L7', 'A8:L13', 'A14:L27', 'A28:L38'];
@@ -636,7 +652,7 @@ class SpjDipaExcelService
             $ws->getStyle("{$colLetter}21:{$colLetterPlus8}21")->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
 
             // Signatures
-            $ws->setCellValue($colLetterPlus7 . '34', $p['name'] ?? '');
+            $ws->setCellValue($colLetterPlus7 . '34', $this->formatNameWithPreservedTitle($p['name'] ?? ''));
             $colNip = Coordinate::stringFromColumnIndex($baseCol + 8);
             $this->setCellText($ws, $colNip . '35', $this->cleanNip($p['nip'] ?? $p['id'] ?? ''));
 
@@ -754,11 +770,11 @@ class SpjDipaExcelService
             $colSigPpk = Coordinate::stringFromColumnIndex($baseCol + 2);
 
             $ws->setCellValue($colSigDate . '28', 'Samarinda, ' . $dpRilDate);
-            $ws->setCellValue($colSigPpk . '34', $ppk['name'] ?? 'RUSMANTO, S.Hut');
-            $cleanPpkNip = $this->cleanNip($ppk['nik'] ?? '19810907 200012 1 004');
+            $ws->setCellValue($colSigPpk . '34', $this->formatNameWithPreservedTitle($ppk['name'] ?? 'Rusmanto, S.Hut.'));
+            $cleanPpkNip = $this->cleanNip($ppk['nik'] ?? '19780512 200501 1 008');
             $ws->setCellValue($colSigPpk . '35', 'NIP. ' . $cleanPpkNip);
 
-            $ws->setCellValue($colSigDate . '34', $p['name'] ?? '');
+            $ws->setCellValue($colSigDate . '34', $this->formatNameWithPreservedTitle($p['name'] ?? ''));
             $this->setCellText($ws, $colAmount . '35', $this->cleanNip($p['nip'] ?? $p['id'] ?? ''));
         }
     }
@@ -803,7 +819,7 @@ class SpjDipaExcelService
             }
 
             // Butir 2: Nama & NIP
-            $ws->setCellValue($cE . '13', $p['name'] ?? '');
+            $ws->setCellValue($cE . '13', $this->formatNameWithPreservedTitle($p['name'] ?? ''));
             $this->setCellText($ws, $cE . '14', $this->cleanNip($p['nip'] ?? $p['id'] ?? ''));
 
             // Butir 3: Pangkat & Jabatan
@@ -839,8 +855,8 @@ class SpjDipaExcelService
             $ws->setCellValue($cF . '41', 'Pejabat Pembuat Komitmen,');
             $ws->setCellValue($cE . '44', null);
             $ws->setCellValue($cE . '45', null);
-            $ws->setCellValue($cF . '45', $ppk['name'] ?? 'RUSMANTO, S.Hut');
-            $ws->setCellValue($cF . '46', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19810907 200012 1 004'));
+            $ws->setCellValue($cF . '45', $this->formatNameWithPreservedTitle($ppk['name'] ?? 'Rusmanto, S.Hut.'));
+            $ws->setCellValue($cF . '46', 'NIP. ' . $this->cleanNip($ppk['nik'] ?? '19780512 200501 1 008'));
 
             // Complete Table Borders (Rows 12 to 36)
             // Vertical column dividers
@@ -1124,6 +1140,20 @@ class SpjDipaExcelService
         if ($n < 20) return $this->terbilangWord($n - 10) . ' Belas';
         if ($n < 100) return $this->terbilangWord((int)($n / 10)) . ' Puluh' . ($n % 10 !== 0 ? ' ' . $this->terbilangWord($n % 10) : '');
         return (string) $n;
+    }
+
+    protected function formatNameWithPreservedTitle(?string $fullName): string
+    {
+        if (empty($fullName)) {
+            return '';
+        }
+        if (str_contains($fullName, ',')) {
+            $parts = explode(',', $fullName, 2);
+            $namePart = strtoupper(trim($parts[0]));
+            $titlePart = trim($parts[1]);
+            return $titlePart !== '' ? "{$namePart}, {$titlePart}" : $namePart;
+        }
+        return strtoupper(trim($fullName));
     }
 
     protected function buildDefaultSptjbUraian(array $data, int $recipientCount): string

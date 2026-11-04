@@ -50,7 +50,7 @@ class KeuanganSpjDipaExcelTest extends TestCase
             'dipaConfig' => [
                 'kodeSatker' => '143.04.16.693614',
                 'namaSatker' => 'Balai Konservasi Sumber Daya Alam Kalimantan Timur',
-                'noSpDipa' => 'No. SP DIPA- 143.04.2.693614/2025 Tanggal 23 Desember 2025',
+                'noSpDipa' => 'No. SP DIPA- 143.04.2.693614/2026 Tanggal 11 September 2026',
                 'klasifikasiMak' => '7273.REA.003.524111',
                 'kodeMak' => '051.E.770.771.772',
                 'makDescription' => 'Uang Harian, Penginapan, Transportasi',
@@ -138,7 +138,7 @@ class KeuanganSpjDipaExcelTest extends TestCase
 
         // Verify SPTB
         $wsSptb = $spreadsheet->getSheetByName('SPTB');
-        $this->assertEquals('M. ARI WIBAWANTO, S.Hut., M.Sc., Dkk', $wsSptb->getCell('B12')->getValue());
+        $this->assertEquals('M. ARI WIBAWANTO, S.Hut., M.Sc.', $wsSptb->getCell('B12')->getValue());
 
         // Verify DP Ril
         $wsDpRil = $spreadsheet->getSheetByName('DP Ril');
