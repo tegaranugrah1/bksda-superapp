@@ -498,3 +498,46 @@
      - **Tabel Kredensial Awal**: Super Admin NIP (`198001012005011001`), Super Admin Username (`superadmin`), Admin Persuratan (`magang`), pgAdmin, dan RustFS Console.
      - **Troubleshooting FAQ**: Solusi untuk error PDO driver, connection refused, symlink storage, dan CORS frontend.
      - **Status VM 108 Hermes**: Memperbarui status VM Hermes Agent (`192.168.100.205`) menjadi aktif 🟢.
+
+
+---
+
+### 14. Redesain & Penyelarasan Penuh Mobile Portal & Modul Kepegawaian BKSDA SuperApp — Selesai ✅
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  1. Penyelarasan menyeluruh antara antarmuka FigCraft (`docs/bksda-superapp-mobile-portal.figcraft`) dan implementasi kode React Native (`mobile/src/features/dashboard/PortalDashboardScreen.tsx`).
+  2. Implementasi arsitektur **5-Item Unified Bottom Navigation Bar**:
+     - **Nav 1 (Beranda)**: MODUL AKSES SYSTEM (Grid 4x2 seimbang dengan 8 Modul Terotorisasi: Kepegawaian, Keuangan, BMN, Persediaan, DeReporting, CMS, Persuratan, dan BKSDA Drive [BARU]), Salam Eksekutif Soft, 2 Metrik Cepat (Pangkat/Golongan & Sisa Cuti), Kartu Tugas Dinas Berjalan (Sedang Dinas dengan rincian Visum/SPD di-hide karena modul keuangan dikerjakan tim lain), dan Strip Helpdesk TU.
+     - **Nav 2 (Surat Tugas)**: Layar tersendiri untuk daftar riwayat Surat Tugas Saya dengan filter segmented (Semua, Berjalan, Selesai), tombol Pratinjau Mata (Eye Preview Modal), dan prompt pembuatan SPT baru.
+     - **Nav 3 (Center Elevated FAB +)**: Tombol aksi cepat di tengah bawah yang memunculkan Bottom Sheet Modal dengan 2 pilihan: `+ Buat Surat Tugas (SPT) Baru` (menuju ST Builder) dan `+ Pengajuan Cuti Online` (menuju Formulir Cuti BKN).
+     - **Nav 4 (Layanan Terpadu ASN)**: 4 kartu layanan kedinasan mandiri: Pinjaman BMN Aktif, Aset Saya, Riwayat Pengajuan Cuti, dan Kalkulator Dinas (SBM).
+     - **Nav 5 (Profil Pegawai ASN)**: Profil identitas ASN 360, NIP, Golongan, Jabatan, Unit Kerja, Metrik Cuti/Aset, Pengaturan Akun, dan Logout resmi.
+  3. Mengadopsi prinsip **Zero Clutter**: Menghilangkan seluruh tampilan rekening uang makan di mobile (sesuai arahan pengguna), namun tetap mempertahankan riwayat perubahan audit (*audit change history with diffs*).
+  4. Menerapkan tema warna **Soft Executive Government Modern**: Menghilangkan warna kontras yang terlalu tajam, menggantinya dengan palet `#F8FAFC`, `#064E3B`, `#059669`, `#ECFDF5`, dan border lembut `#E2E8F0`.
+
+- **Hasil Desain FigCraft (`docs/bksda-superapp-mobile-portal.figcraft`)**:
+  - **Halaman 1 (`01. Portal & Bottom Navigation`)**: 7 layar lengkap (`01. Portal Beranda`, `02. List Surat Tugas ASN`, `03. Modal Center FAB`, `04. Layanan Terpadu ASN`, `05. Profil Pegawai ASN`, `06. Inventaris BMN Pribadi Sub-Screen`, `07. Riwayat Pengajuan Cuti ASN Sub-Screen`).
+  - **Halaman 2 (`02. Pengajuan Surat Tugas`)**: 3 layar alur pengajuan SPT standar.
+  - **Halaman 3 (`03. Modul Kepegawaian Mobile`)**: 7 layar lengkap termasuk ST Builder Premium 4-step (Template Dasar, Menimbang/Dasar, Diktum/Biaya/Laporan, Penandatangan/Tembusan), Otorisasi Nomor ST, dan Preview PDF resmi.
+  - **Halaman 4 (`04. Menu Kepegawaian (Cuti & SDM)`)**: 5 layar lengkap termasuk Inbox & Approval Cuti, Formulir Cuti BKN, Detail Pegawai Biodata (tanpa uang makan), Riwayat Perubahan (Audit History Diff), dan Kalender Penugasan Lapangan.
+
+- **Implementasi Kode, Evolusi Navigasi Sub-Screen Layanan & Verifikasi Kualitas**:
+  - File: `mobile/src/features/dashboard/PortalDashboardScreen.tsx`.
+  - **Peningkatan UX Lapangan dari Modal Pop-up ke Sub-Screen Khusus**:
+    1. Mengatasi kendala data lapangan (riwayat cuti bertahun-tahun & inventaris BMN 10+ aset) yang sebelumnya sesak di modal pop-up kecil, dengan mengubahnya menjadi **Dedicated Sub-Screen (dengan tombol `← Kembali`)**:
+       - **Layar Inventaris BMN Saya**: Mengintegrasikan Aset Tetap dan Pinjaman Berjalan dalam 1 layar via Segmented Control `[ Aset Tetap (12) | Pinjaman Berjalan (3) ]`, Search Bar live, Filter Kategori chip (`Semua`, `Kendaraan`, `IT & PC`, `Peralatan`), serta rincian lengkap BMN (NUP, kondisi, plat nomor).
+       - **Layar Riwayat Pengajuan Cuti ASN**: Banner Ringkasan Kuota Hero (Soft Emerald), **Filter Pill Horisontal per Tahun** (`2026`, `2025`, `2024`, `Semua`), kartu riwayat terperinci, tombol cetak formulir cuti BKN resmi, dan tombol aksi `+ Ajukan Permohonan Cuti Baru`.
+       - **Kalkulator Dinas (SBM)**: Tetap dipertahankan sebagai **Bottom Sheet Modal** cepat karena merupakan alat simulasi kalkulasi tanpa arsip data panjang.
+    2. **Floating Bottom Navigation Bar**: Tetap terlihat secara persisten di bagian bawah layar saat membuka sub-layar BMN maupun Cuti, memberikan fleksibilitas navigasi instan kembali ke Beranda atau Surat Tugas tanpa perlu menekan tombol Back berkali-kali.
+    3. **Koreksi & Konsolidasi Endpoint REST API**:
+       - `GET /me/assets` (AuthController::myAssets) untuk inventaris BMN personal.
+       - `GET /me/dashboard` (properti `my_assets`) untuk pinjaman aktif berjalan.
+       - `GET /me/leave-requests` dan `GET /me/leave-balance?year=2026` untuk kuota dan riwayat cuti.
+       - `GET /surat-tugas/my` untuk penugasan SPT dinas.
+     4. **Penataan Ulang Menu Layanan Terpadu & Spacing Helpdesk TU**:
+        - **Urutan Kartu Diperbarui**: Kartu **"Aset Saya"** dipindahkan ke posisi paling atas (Card 1), diikuti berturut-turut oleh **"Pinjaman BMN Aktif"** (Card 2), **"Riwayat Pengajuan Cuti"** (Card 3), dan **"Kalkulator Dinas (SBM)"** (Card 4).
+        - **Spacing & Estetika Helpdesk TU**: Strip *"Butuh bantuan administrasi & TU?"* diberikan breathing space yang lega (`marginTop: 22`, `marginBottom: 95`, `paddingVertical: 14`, `paddingHorizontal: 16`), dilengkapi badge lingkaran hijau lembut (`#DCFCE7`) dan teks konsultasi SPPD, BMN & Cuti yang mudah dibaca tanpa terpotong oleh floating bottom navigation.
+  - Dokumentasi arsitektur terbit: `docs/mobile-portal-architecture.md`.
+  - Verifikasi TypeScript: **0 errors (100% Lulus)** via `npx tsc --noEmit`.
+  - Verifikasi Metro Bundler: Berjalan aktif dan hot reload mulus tanpa runtime crash.
+  - Artefak visual visualizer: `page1_screen4_layanan_aset_top_and_helpdesk_space.png`, `page1_screen4_and_dedicated_subscreens.png`, dan `page1_all_7_screens_portal.png`.

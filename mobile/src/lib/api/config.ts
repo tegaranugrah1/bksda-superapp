@@ -1,10 +1,16 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 /**
  * API configuration for BKSDA Superapp
  * Automatically resolves local host IP from React Native Bundle URL or environment variable
  */
 function getApiUrl(): string {
+  // On Web / Desktop Virtual Mode, always match the browser host to connect seamlessly
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hostname = window.location.hostname || '127.0.0.1';
+    return `http://${hostname}:8000/api`;
+  }
+
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
@@ -19,7 +25,7 @@ function getApiUrl(): string {
     }
   }
 
-  return 'http://192.168.100.176:8000/api';
+  return 'http://127.0.0.1:8000/api';
 }
 
 const API_URL = getApiUrl();
