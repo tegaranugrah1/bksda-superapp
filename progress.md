@@ -479,3 +479,22 @@
 - **Verifikasi Kualitas**:
   - TypeScript check: **0 error**.
   - Invariant gerak: **36/36 PASS (100% Hijau)**.
+
+---
+
+### 13. Pembaruan Instruksi Setup & Onboarding Pengembang (`README.md` & `frontend/.env.example`) — Selesai ✅
+
+- **Latar Belakang & Masalah**:
+  - Instruksi setup pada `README.md` sebelumnya belum mencantumkan daftar ekstensi PHP wajib (`pdo_pgsql`, `mbstring`, `zip`, `gd`, dll), penjelasan port Docker `5435`, dan `frontend/.env.example` belum tersedia sehingga instruksi `cp .env.example .env.local` di frontend sebelumnya gagal jika di-clone oleh pengguna baru.
+- **Penyempurnaan yang Diterapkan**:
+  1. **Pembuatan File `frontend/.env.example` & Whitelist Git**:
+     - Menambahkan file `frontend/.env.example` dengan konfigurasi endpoint `NEXT_PUBLIC_API_URL` dan `NEXT_PUBLIC_STORAGE_URL`.
+     - Memperbarui `frontend/.gitignore` dengan `!.env.example` agar file template environment terlacak di repository.
+  2. **Modernisasi `README.md` Komprehensif**:
+     - **Daftar Prasyarat**: Spesifikasi PHP 8.3+, Composer 2.x, Node.js 20+, Docker Compose, dan Git.
+     - **Tabel Ekstensi PHP Wajib & Panduan OS**: Perintah terminal sekali klik untuk Linux Ubuntu/Debian dan panduan edit `php.ini` untuk Windows.
+     - **Penjelasan Port Docker**: Klarifikasi pemetaan port host `5435` untuk mencegah konflik dengan PostgreSQL lokal yang sudah ada di port `5432`.
+     - **Langkah Setup Terstruktur**: Langkah A (Clone), B (Docker Compose), C (Backend Laravel: `composer install`, `cp .env`, `key:generate`, `storage:link`, `migrate`, `db:seed`), D (Frontend: `npm install`, `cp .env.local`).
+     - **Tabel Kredensial Awal**: Super Admin NIP (`198001012005011001`), Super Admin Username (`superadmin`), Admin Persuratan (`magang`), pgAdmin, dan RustFS Console.
+     - **Troubleshooting FAQ**: Solusi untuk error PDO driver, connection refused, symlink storage, dan CORS frontend.
+     - **Status VM 108 Hermes**: Memperbarui status VM Hermes Agent (`192.168.100.205`) menjadi aktif 🟢.
