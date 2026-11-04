@@ -105,7 +105,25 @@ class CheckModuleAccess
      */
     private function isAssetOwner($asset, $employee): bool
     {
-        return $asset->employee_id !== null
-            && (int) $asset->employee_id === (int) $employee->id;
+        if ($asset->employee_id !== null && (int) $asset->employee_id === (int) $employee->id) {
+            return true;
+        }
+
+        $empName = trim($employee->nama_lengkap ?? '');
+        if (mb_strlen($empName) >= 3) {
+            $cleanName = trim(preg_replace('/,.*$/', '', $empName));
+            $lowerPengguna = mb_strtolower((string) ($asset->pengguna ?? ''));
+            $lowerNamaPengguna = mb_strtolower((string) ($asset->nama_pengguna ?? ''));
+            if (str_contains($lowerPengguna, mb_strtolower($empName)) ||
+                str_contains($lowerNamaPengguna, mb_strtolower($empName)) ||
+                (mb_strlen($cleanName) >= 3 && (
+                    str_contains($lowerPengguna, mb_strtolower($cleanName)) ||
+                    str_contains($lowerNamaPengguna, mb_strtolower($cleanName))
+                ))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

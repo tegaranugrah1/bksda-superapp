@@ -541,3 +541,31 @@
   - Verifikasi TypeScript: **0 errors (100% Lulus)** via `npx tsc --noEmit`.
   - Verifikasi Metro Bundler: Berjalan aktif dan hot reload mulus tanpa runtime crash.
   - Artefak visual visualizer: `page1_screen4_layanan_aset_top_and_helpdesk_space.png`, `page1_screen4_and_dedicated_subscreens.png`, dan `page1_all_7_screens_portal.png`.
+
+---
+
+### 15. Integrasi Foto Dokumentasi Aset Portal Web & Lightbox Modal — Selesai ✅
+
+- **Kebutuhan & Permintaan Pengguna**:
+  1. Pada tampilan **Grid View** tab "Aset Saya" di modul Portal Web, foto aset wajib diambil dari foto dokumentasi dengan urutan prioritas:
+     - **Prioritas 1**: Foto Geotag (`foto_geotag_url` / `foto_geotag_path`).
+     - **Prioritas 2**: Tampak Depan (`foto_depan_url` / `foto_depan_path`).
+     - **Prioritas 3**: Tampak Belakang (`foto_belakang_url` / `foto_belakang_path`).
+     - **Prioritas 4**: Tampak Kiri (`foto_kiri_url` / `foto_kiri_path`).
+     - **Prioritas 5**: Tampak Kanan (`foto_kanan_url` / `foto_kanan_path`).
+     - **Prioritas 6**: Foto Lokasi / Foto URL Umum.
+  2. Menghapus tombol *"Buka Detail Aset"* pada kartu aset.
+  3. Mengubah interaksi kartu: Saat kartu aset di-klik, sistem membuka **Lightbox Photo Preview Modal** yang menampilkan foto resolusi tinggi, navigasi galeri (*slider* foto), label sudut pandang dokumentasi, dan tautan gambar asli.
+
+- **Implementasi Solusi**:
+  1. **Backend `AuthController.php` (`GET /api/me/assets`)**:
+     - Memperluas kueri select untuk memuat seluruh 5 titik dokumentasi audit BMN (`foto_geotag`, `depan`, `belakang`, `kiri`, `kanan`, `lokasi`, `foto_url`).
+     - Menghasilkan URL inline view dengan token dan timestamp cache-busting.
+  2. **Frontend `MyAssetsTab.tsx`**:
+     - Menambahkan fungsi `resolvePhotoUrl()` untuk otomatis mentransformasi tautan Google Drive (*share link*) menjadi gambar *high-res direct image* (`lh3.googleusercontent.com/d/...`), menghindari error CORS dan gambar pecah.
+     - Mengimplementasikan `getAssetPhotos()` dan `getPrimaryAssetPhoto()` dengan urutan prioritas resmi (Geotag -> Tampak Depan -> Tampak Belakang -> Tampak Kiri -> Tampak Kanan).
+     - Menghapus tombol detail dan menjadikan seluruh kartu interaktif (*cursor-pointer* dengan efek hover zoom & badge sumber foto).
+     - Membangun Lightbox Photo Modal dengan dukungan keyboard (`Esc`, `ArrowLeft`, `ArrowRight`), tombol navigasi geser, indikator pill foto ganda, dan toast notifikasi ramah jika aset belum memiliki dokumentasi foto.
+  3. **Verifikasi Kualitas**:
+     - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+     - HTTP Status Endpoint Portal: 200 OK.

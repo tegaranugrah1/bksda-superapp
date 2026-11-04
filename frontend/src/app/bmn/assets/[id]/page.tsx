@@ -177,6 +177,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
         "penghuni",
         "pengguna",
         "nama_pengguna",
+        "employee_id",
       ];
 
       editableKeys.forEach((key) => {
@@ -201,6 +202,18 @@ function AssetDetail({ assetId }: { assetId: string }) {
       }
       if (payload.nama_pengguna && payload.nama_pengguna !== asset.nama_pengguna) {
         payload.pengguna = payload.nama_pengguna;
+      }
+
+      if (payload.pengguna || payload.nama_pengguna) {
+        const empName = payload.pengguna || payload.nama_pengguna;
+        const matched = employees.find(
+          (e: any) =>
+            (e.nama_lengkap && e.nama_lengkap.toLowerCase() === empName.toLowerCase()) ||
+            (e.name && e.name.toLowerCase() === empName.toLowerCase())
+        );
+        if (matched) {
+          payload.employee_id = matched.id;
+        }
       }
 
       if (Object.keys(payload).length === 0) {

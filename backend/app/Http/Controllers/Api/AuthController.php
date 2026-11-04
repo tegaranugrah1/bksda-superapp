@@ -345,23 +345,56 @@ class AuthController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $assets = \App\Modules\Bmn\Models\Asset::where('employee_id', $employee->id)
+        $fullName = trim($employee->nama_lengkap ?? '');
+        $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+        $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
+        $escapedClean = addcslashes(mb_strtolower($cleanName), '%_');
+
+        $assets = \App\Modules\Bmn\Models\Asset::where(function ($query) use ($employee, $fullName, $escapedName, $cleanName, $escapedClean) {
+            $query->where('employee_id', $employee->id);
+            if (mb_strlen($fullName) >= 3) {
+                $query->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
+                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+            }
+            if (mb_strlen($cleanName) >= 3 && $cleanName !== $fullName) {
+                $query->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedClean . '%'])
+                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedClean . '%']);
+            }
+        })
         ->select([
             'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
             'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
-            'foto_geotag_url', 'foto_geotag_path', 'updated_at',
+            'foto_geotag_url', 'foto_geotag_path',
+            'foto_depan_path', 'foto_belakang_path', 'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path', 'foto_url',
+            'employee_id', 'updated_at',
         ])
         ->latest()->limit(50)->get()
-        ->map(function ($asset) use ($request) {
+        ->map(function ($asset) use ($request, $employee) {
+            // Auto-heal relational link if employee_id was null
+            if (is_null($asset->employee_id)) {
+                \App\Modules\Bmn\Models\Asset::where('id', $asset->id)
+                    ->update(['employee_id' => $employee->id]);
+                $asset->employee_id = $employee->id;
+            }
+
+            $token = $request->bearerToken() ?: $request->query('token');
+            $tokenParam = $token ? "&token=" . urlencode($token) : "";
+            $v = $asset->updated_at?->timestamp ?: time();
+
             if ($asset->foto_geotag_path && ! $asset->foto_geotag_url) {
-                $token = $request->bearerToken() ?: $request->query('token');
-                $tokenParam = $token ? "&token=" . urlencode($token) : "";
-                $v = $asset->updated_at?->timestamp ?: time();
                 $asset->foto_geotag_url = "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}";
             }
             if ($asset->foto_geotag_path && ! str_starts_with($asset->foto_geotag_path, 'http')) {
                 $asset->foto_geotag_path = null;
             }
+
+            // Provide URLs for all 5-point audit photos
+            $asset->foto_depan_url = $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_belakang_url = $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_kiri_url = $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_kanan_url = $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_lokasi_url = $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null;
+
             return $asset;
         });
 

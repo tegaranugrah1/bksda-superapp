@@ -2830,8 +2830,8 @@
     "semantic_hash": ""
   },
   "mobile/package.json": {
-    "mtime": 1787548979.3606129,
-    "ast_hash": "8334a4502b21d16a79312eeefc1a6b4d",
+    "mtime": 1793761940.9551997,
+    "ast_hash": "9bd1b8d952a36edde637ecd5567e0cec",
     "semantic_hash": ""
   },
   "mobile/src/__tests__/App.test.tsx": {
@@ -3190,8 +3190,8 @@
     "semantic_hash": "f48d60887d0c870505b5bfe94d3930c7"
   },
   "mobile/src/features/dashboard/screens/DashboardScreen.tsx": {
-    "mtime": 1788919976.6076376,
-    "ast_hash": "d19f6369ca65ab5be5bfcf5c82cfe9f5",
+    "mtime": 1793771612.8941917,
+    "ast_hash": "a38a0f6a47c431c9e5b680a5cc59507d",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/screens/__tests__/DashboardScreen.test.tsx": {
@@ -3465,8 +3465,8 @@
     "semantic_hash": "1d3c44842e6620a809d28b81e732e3c2"
   },
   "mobile/src/lib/api/config.ts": {
-    "mtime": 1785369782.3732548,
-    "ast_hash": "3fc19fc0fe2dfef8306b1b5faea66a6f",
+    "mtime": 1793762513.2966113,
+    "ast_hash": "f0a982283bfa4232573cf76ffdc92655",
     "semantic_hash": ""
   },
   "mobile/src/lib/api/errors.ts": {
@@ -3490,9 +3490,9 @@
     "semantic_hash": "703486d54dbd0cf087addde4005675dc"
   },
   "mobile/src/lib/auth/tokenStorage.ts": {
-    "mtime": 1781828806.4974763,
-    "ast_hash": "499ee5bb950e8464e6d5cbaa835c687f",
-    "semantic_hash": "499ee5bb950e8464e6d5cbaa835c687f"
+    "mtime": 1793762259.0278935,
+    "ast_hash": "72174ff48f503ada5c0dbecc799bd9bb",
+    "semantic_hash": ""
   },
   "mobile/src/lib/devicePermissions.ts": {
     "mtime": 1781833770.7389042,
@@ -3585,8 +3585,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1787550881.2538366,
-    "ast_hash": "8f3e53cbfcf89b7498584d50925608ba",
+    "mtime": 1793774325.6055498,
+    "ast_hash": "041711ee5befcc53c320e5bc0e379e08",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793751281.5811226,
-    "ast_hash": "0d599e1eb3c9fba517a47457310bf26c",
+    "mtime": 1793774552.3248987,
+    "ast_hash": "7624294ec4d33e58bfe3c76185e1c197",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7967,6 +7967,31 @@
   "docs/animate-ui-motion-guidelines.md": {
     "mtime": 1793751280.9379537,
     "ast_hash": "c2251ea2859a972edf2dcc6d8a8758c6",
+    "semantic_hash": ""
+  },
+  "frontend/scripts/build-clean-mobile-design.cjs": {
+    "mtime": 1793760613.0097754,
+    "ast_hash": "4778c062b8f65960a8d933d7d2033319",
+    "semantic_hash": ""
+  },
+  "frontend/scripts/build-portal-mobile-design.cjs": {
+    "mtime": 1793760465.2462249,
+    "ast_hash": "42fce33e9c764a9dd98f9a854bea4d66",
+    "semantic_hash": ""
+  },
+  "frontend/scripts/build-refined-mobile-with-fab.cjs": {
+    "mtime": 1793761432.8344033,
+    "ast_hash": "151d514cc04eb486d0eb2427beaae1d9",
+    "semantic_hash": ""
+  },
+  "frontend/scripts/build-web-referenced-mobile-design.cjs": {
+    "mtime": 1793760930.9051712,
+    "ast_hash": "8ac3657253951a0d7fec35d2a5907803",
+    "semantic_hash": ""
+  },
+  "docs/mobile-portal-architecture.md": {
+    "mtime": 1793774567.9582446,
+    "ast_hash": "5ae469cf5f07d1a6440776b5ad686164",
     "semantic_hash": ""
   }
 }

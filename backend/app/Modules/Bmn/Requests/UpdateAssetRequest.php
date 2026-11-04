@@ -71,6 +71,7 @@ class UpdateAssetRequest extends FormRequest
             'penghuni' => ['sometimes', 'nullable', 'string'],
             'pengguna' => ['sometimes', 'nullable', 'string'],
             'nama_pengguna' => ['sometimes', 'nullable', 'string'],
+            'employee_id' => ['sometimes', 'nullable', 'integer', 'exists:kpg_employees,id'],
             'lokasi_spesifik' => ['sometimes', 'nullable', 'string'],
             'tahun_perolehan' => ['sometimes', 'nullable', 'integer'],
             'foto_geotag_url' => ['sometimes', 'nullable', 'string'],
