@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import {
   RecentActivitiesFeedCard,
@@ -204,195 +205,209 @@ export default function KepegawaianDashboardPage() {
 
           {/* 3 Interactive Category Cards */}
           <div className="grid grid-cols-1 gap-2.5">
-            <Link
-              href="/kepegawaian/employees?jenis=PNS"
-              className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-blue-300/70 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      Pegawai PNS
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                      {pnsPct}%
-                    </span>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+              <Link
+                href="/kepegawaian/employees?jenis=PNS"
+                className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-blue-300/70 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIP</p>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        Pegawai PNS
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                        {pnsPct}%
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIP</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-bold text-slate-900 dark:text-white">{pnsCount}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors" />
-              </div>
-            </Link>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{pnsCount}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                </div>
+              </Link>
+            </motion.div>
 
-            <Link
-              href="/kepegawaian/employees?jenis=PPPK"
-              className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-amber-300/70 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                      Pegawai PPPK (P3K)
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                      {pppkPct}%
-                    </span>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+              <Link
+                href="/kepegawaian/employees?jenis=PPPK"
+                className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-amber-300/70 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
+                    <Briefcase className="w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIPPPK</p>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        Pegawai PPPK (P3K)
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                        {pppkPct}%
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIPPPK</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-bold text-slate-900 dark:text-white">{pppkCount}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
-              </div>
-            </Link>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{pppkCount}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
+                </div>
+              </Link>
+            </motion.div>
 
-            <Link
-              href="/kepegawaian/employees?jenis=MMP"
-              className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-emerald-300/70 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      Personil MMP
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      {mmpPct}%
-                    </span>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+              <Link
+                href="/kepegawaian/employees?jenis=MMP"
+                className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-emerald-300/70 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                    <UserCheck className="w-4 h-4" />
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">Masyarakat Mitra Polhut</p>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Personil MMP
+                      </span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        {mmpPct}%
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">Masyarakat Mitra Polhut</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-bold text-slate-900 dark:text-white">{mmpCount}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 transition-colors" />
-              </div>
-            </Link>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{mmpCount}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 transition-colors" />
+                </div>
+              </Link>
+            </motion.div>
           </div>
         </div>
 
         {/* Right Column: 2x2 Grid for Surat Tugas, Layanan Cuti, Surat Masuk, Status Keaktifan */}
         <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link
-            href="/kepegawaian/surat-tugas/inbox"
-            className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-blue-400/70 transition-colors flex flex-col justify-between cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
-                <Inbox className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
-                Surat Tugas
-              </span>
-            </div>
-            <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {activeStCount}
-                </p>
-                <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
-                  {pendingStCount} Draft/Pending
+          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+            <Link
+              href="/kepegawaian/surat-tugas/inbox"
+              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-blue-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
+                  <Inbox className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                  Surat Tugas
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                Surat Tugas Diterbitkan
-              </p>
-            </div>
-          </Link>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {activeStCount}
+                  </p>
+                  <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                    {pendingStCount} Draft/Pending
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                  Surat Tugas Diterbitkan
+                </p>
+              </div>
+            </Link>
+          </motion.div>
 
-          <Link
-            href="/kepegawaian/cuti"
-            className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-amber-400/70 transition-colors flex flex-col justify-between cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                Layanan Cuti
-              </span>
-            </div>
-            <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {pendingCutiCount}
-                </p>
-                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
-                  {approvedCutiCount} Disetujui
+          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+            <Link
+              href="/kepegawaian/cuti"
+              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-amber-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                  Layanan Cuti
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                Permohonan Cuti Menunggu
-              </p>
-            </div>
-          </Link>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {pendingCutiCount}
+                  </p>
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                    {approvedCutiCount} Disetujui
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                  Permohonan Cuti Menunggu
+                </p>
+              </div>
+            </Link>
+          </motion.div>
 
-          <Link
-            href="/kepegawaian/surat-masuk"
-            className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-indigo-400/70 transition-colors flex flex-col justify-between cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
-                <Archive className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
-                Surat Masuk
-              </span>
-            </div>
-            <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {totalSuratMasuk}
-                </p>
-                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
-                  {unrepliedSuratMasuk} Belum Dibalas
+          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+            <Link
+              href="/kepegawaian/surat-masuk"
+              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-indigo-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
+                  <Archive className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                  Surat Masuk
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                Total Agenda Surat Masuk
-              </p>
-            </div>
-          </Link>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {totalSuratMasuk}
+                  </p>
+                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
+                    {unrepliedSuratMasuk} Belum Dibalas
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                  Total Agenda Surat Masuk
+                </p>
+              </div>
+            </Link>
+          </motion.div>
 
-          <Link
-            href="/kepegawaian/employees?status=active"
-            className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-emerald-400/70 transition-colors flex flex-col justify-between cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-                Keaktifan
-              </span>
-            </div>
-            <div className="mt-4">
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {activeRate}
-                </p>
-                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
-                  Aktif
+          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+            <Link
+              href="/kepegawaian/employees?status=active"
+              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-emerald-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                  Keaktifan
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                Status Keaktifan Personil SDM
-              </p>
-            </div>
-          </Link>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {activeRate}
+                  </p>
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                    Aktif
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                  Status Keaktifan Personil SDM
+                </p>
+              </div>
+            </Link>
+          </motion.div>
         </div>
       </div>
 

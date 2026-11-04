@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Search,
   Plus,
@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
+import { motion, AnimatePresence } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
 import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
 
@@ -191,16 +192,23 @@ export default function EmployeeListPage() {
       });
       return data;
     },
+    placeholderData: keepPreviousData,
     staleTime: 30000,
   });
 
-  const counts = data?.meta?.counts ?? {
-    total: data?.meta?.total ?? 0,
+  const lastCountsRef = useRef<EmployeeCounts>({
+    total: 0,
     pns: 0,
     pppk: 0,
     mmp: 0,
     trashed: 0,
-  };
+  });
+
+  if (data?.meta?.counts) {
+    lastCountsRef.current = data.meta.counts;
+  }
+
+  const counts = data?.meta?.counts ?? lastCountsRef.current;
 
   const isTrashedView = canWrite && statusFilter === "trashed";
   const hasActiveFilter =
@@ -363,11 +371,14 @@ export default function EmployeeListPage() {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <button
+            <motion.button
               key={card.key}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={card.onClick}
-              className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
+              className={`text-left p-4 rounded-2xl border transition-colors cursor-pointer ${
                 card.active
                   ? card.activeClass
                   : `bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800/80 shadow-2xs ${card.hoverClass}`
@@ -397,7 +408,7 @@ export default function EmployeeListPage() {
               >
                 {card.subtitle}
               </p>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -499,29 +510,36 @@ export default function EmployeeListPage() {
             )}
           </div>
         </div>
-
-        {isTrashedView && (
-          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-medium">
-            <span>
-              Menampilkan <strong>Data Pegawai Terhapus (Soft Delete)</strong>. Anda dapat memulihkan pegawai kembali ke daftar aktif atau menghapusnya secara permanen.
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setStatusFilter("all");
-                setPage(1);
-              }}
-              className="font-bold underline ml-4 shrink-0 cursor-pointer"
-            >
-              Kembali ke Daftar Aktif
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* 4. Table Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
+      {/* 4. Table Card with Motion Glide Transition */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${jenisFilter}-${statusFilter}-${wilayahFilter}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.14, ease: "easeOut" }}
+          className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs min-h-[460px] flex flex-col justify-between"
+        >
+          {isTrashedView && (
+            <div className="flex items-center justify-between px-4 py-2.5 bg-rose-50 dark:bg-rose-950/30 border-b border-rose-200/60 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-medium">
+              <span>
+                Menampilkan <strong>Data Pegawai Terhapus (Soft Delete)</strong>. Anda dapat memulihkan pegawai kembali ke daftar aktif atau menghapusnya secara permanen.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter("all");
+                  setPage(1);
+                }}
+                className="font-bold underline ml-4 shrink-0 cursor-pointer"
+              >
+                Kembali ke Daftar Aktif
+              </button>
+            </div>
+          )}
+          <div className="overflow-x-auto flex-1">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50/80 dark:bg-zinc-800/50 border-b border-slate-200/80 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
               <tr>
@@ -549,10 +567,20 @@ export default function EmployeeListPage() {
                 </tr>
               ) : data?.data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                    {isTrashedView
-                      ? "Tidak ada data pegawai di tempat sampah."
-                      : "Tidak ada pegawai ditemukan sesuai filter."}
+                  <td colSpan={5} className="px-6 py-20 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Inbox className="w-10 h-10 text-slate-300 dark:text-zinc-600" />
+                      <p className="font-bold text-sm text-slate-700 dark:text-zinc-300">
+                        {isTrashedView
+                          ? "Tidak ada data pegawai di tempat sampah."
+                          : "Tidak ada pegawai ditemukan sesuai filter."}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {isTrashedView
+                          ? "Semua data pegawai saat ini berstatus aktif atau arsip bersih."
+                          : "Coba ubah kata kunci pencarian atau reset filter."}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -755,7 +783,8 @@ export default function EmployeeListPage() {
             </div>
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
 
       {canManageAccess && (
         <EmployeeAccessSheet

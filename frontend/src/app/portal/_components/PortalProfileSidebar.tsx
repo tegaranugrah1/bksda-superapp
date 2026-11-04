@@ -10,6 +10,7 @@ import {
   Camera, Cloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { authStore } from "@/lib/auth-store";
 import { toast } from "sonner";
@@ -373,192 +374,66 @@ export function PortalProfileSidebar({
             Menu Utama
           </p>
 
-          {/* 1. Dashboard Utama */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("dashboard")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "dashboard" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard Utama</span>
-            </div>
-          </button>
-
-          {/* 2. Pinjaman Aktif */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("pinjaman")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "pinjaman" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <HandHelping className="w-4 h-4" />
-              <span>Pinjaman Aktif</span>
-            </div>
-            {pinjamanCount > 0 && (
-              <span
+          {/* 1 s.d. 7: Vertical Nav Items with Sliding Indicator */}
+          {[
+            { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
+            { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
+            { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
+            { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
+            { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
+            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeNavTab === item.id && !isInlineReportOpen;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelectNavTab(item.id)}
                 className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                  activeNavTab === "pinjaman" && !isInlineReportOpen
-                    ? "bg-emerald-500 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  "relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left select-none cursor-pointer",
+                  isActive
+                    ? "text-white font-bold"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/70"
                 )}
               >
-                {pinjamanCount}
-              </span>
-            )}
-          </button>
-
-          {/* 3. Aset Saya */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("aset")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "aset" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <Briefcase className="w-4 h-4" />
-              <span>Aset Saya</span>
-            </div>
-            {assetCount > 0 && (
-              <span
-                className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                  activeNavTab === "aset" && !isInlineReportOpen
-                    ? "bg-emerald-500 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                {isActive && (
+                  <motion.span
+                    layoutId="activePortalSidebarIndicator"
+                    className="absolute inset-0 bg-emerald-600 rounded-xl shadow-xs"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
                 )}
-              >
-                {assetCount}
-              </span>
-            )}
-          </button>
-
-          {/* 4. Surat Tugas & Laporan */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("surat_tugas")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "surat_tugas" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <ClipboardList className="w-4 h-4" />
-              <span>Surat Tugas & Laporan</span>
-            </div>
-            {suratTugasCount > 0 && (
-              <span
-                className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                  activeNavTab === "surat_tugas" && !isInlineReportOpen
-                    ? "bg-emerald-500 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                <div className="flex items-center gap-2.5 relative z-10">
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </div>
+                {item.count !== undefined && item.count > 0 && (
+                  <span
+                    className={cn(
+                      "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                      isActive
+                        ? "bg-emerald-500 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    )}
+                  >
+                    {item.count}
+                  </span>
                 )}
-              >
-                {suratTugasCount}
-              </span>
-            )}
-          </button>
-
-          {/* 5. Pengajuan Cuti */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("cuti")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "cuti" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-4 h-4" />
-              <span>Pengajuan Cuti</span>
-            </div>
-            {leaveCount > 0 && (
-              <span
-                className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                  activeNavTab === "cuti" && !isInlineReportOpen
-                    ? "bg-emerald-500 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                {item.badgeText && (
+                  <span
+                    className={cn(
+                      "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                      isActive ? "bg-white/20 text-white" : item.badgeClass
+                    )}
+                  >
+                    {item.badgeText}
+                  </span>
                 )}
-              >
-                {leaveCount}
-              </span>
-            )}
-          </button>
-
-          {/* 6. Visum SPD */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("visum")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "visum" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Visum SPD</span>
-            </div>
-            <span
-              className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                activeNavTab === "visum" && !isInlineReportOpen
-                  ? "bg-emerald-500 text-white"
-                  : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
-              )}
-            >
-              Baru
-            </span>
-          </button>
-
-          {/* 7. Kalkulator & Pengeluaran Dinas */}
-          <button
-            type="button"
-            onClick={() => onSelectNavTab("kalkulator_dinas")}
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              activeNavTab === "kalkulator_dinas" && !isInlineReportOpen
-                ? "bg-emerald-600 text-white shadow-sm font-bold"
-                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <Calculator className="w-4 h-4" />
-              <span>Kalkulator Dinas</span>
-            </div>
-            <span
-              className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                activeNavTab === "kalkulator_dinas" && !isInlineReportOpen
-                  ? "bg-emerald-500 text-white"
-                  : "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
-              )}
-            >
-              Baru
-            </span>
-          </button>
+              </button>
+            );
+          })}
 
                     {/* 8. BKSDA Drive */}
           <Link

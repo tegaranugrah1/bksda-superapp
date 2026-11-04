@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ShieldCheck, Award, Calendar, FileCheck } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface PortalQuickStatsProps {
   rank?: string | null;
@@ -30,7 +31,11 @@ export function PortalQuickStats({
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {/* 1. STATUS VERIFIKASI DUKCAPIL */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3">
+      <motion.div
+        whileHover={{ y: -3 }}
+        transition={{ duration: 0.15 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3"
+      >
         <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
           <ShieldCheck className="w-5 h-5" />
         </div>
@@ -42,10 +47,14 @@ export function PortalQuickStats({
           </p>
           <p className="text-[10px] text-slate-500 truncate">Data ASN Sinkron</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* 2. PANGKAT & GOLONGAN */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3">
+      <motion.div
+        whileHover={{ y: -3 }}
+        transition={{ duration: 0.15 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3"
+      >
         <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shrink-0">
           <Award className="w-5 h-5" />
         </div>
@@ -58,12 +67,15 @@ export function PortalQuickStats({
             {rank ? "Golongan Aktif" : "Non-PNS / Belum Diatur"}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3. SISA CUTI TAHUN 2026 */}
-      <div
+      <motion.div
         role="button"
         tabIndex={0}
+        whileHover={{ y: -3 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.15 }}
         onClick={() => onSelectTab?.("cuti")}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -89,12 +101,15 @@ export function PortalQuickStats({
               : "Cuti Tahunan Ready"}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* 4. SURAT TUGAS & ASET */}
-      <div
+      <motion.div
         role="button"
         tabIndex={0}
+        whileHover={{ y: -3 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.15 }}
         onClick={() => onSelectTab?.("surat_tugas")}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -114,7 +129,7 @@ export function PortalQuickStats({
           </p>
           <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Aktif Dalam Penugasan</p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

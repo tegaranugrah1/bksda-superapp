@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -103,6 +104,8 @@ export default function InboxSuratCutiPage() {
       });
       return data;
     },
+    placeholderData: keepPreviousData,
+    staleTime: 10000,
   });
 
   // Real-time inbox update via WebSocket
@@ -110,17 +113,33 @@ export default function InboxSuratCutiPage() {
     queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 
+  const lastSummaryCountsRef = useRef({
+    all: 0,
+    PENGAJUAN: 0,
+    DISETUJUI: 0,
+    DITOLAK: 0,
+  });
+
+  const lastTotalRecordsRef = useRef(0);
+
+  if (responseData?.summary_counts) {
+    lastSummaryCountsRef.current = responseData.summary_counts;
+  }
+  if (responseData?.total !== undefined) {
+    lastTotalRecordsRef.current = responseData.total;
+  }
+
   const list: LeaveRequestItem[] = responseData?.data || (Array.isArray(responseData) ? responseData : []);
-  const totalRecords: number = responseData?.total ?? list.length;
+  const totalRecords: number = responseData?.total ?? (lastTotalRecordsRef.current || list.length);
   const lastPage: number = responseData?.last_page ?? 1;
   const fromRecord: number = responseData?.from ?? (list.length > 0 ? (page - 1) * perPage + 1 : 0);
   const toRecord: number = responseData?.to ?? (fromRecord + list.length - (list.length > 0 ? 1 : 0));
-  const summaryCounts = responseData?.summary_counts || {
+  const summaryCounts = responseData?.summary_counts ?? (lastSummaryCountsRef.current.all > 0 ? lastSummaryCountsRef.current : {
     all: totalRecords,
     DISETUJUI: list.filter((x) => (x.status || "").toUpperCase() === "DISETUJUI").length,
     PENGAJUAN: list.filter((x) => !x.status || (x.status || "").toUpperCase() === "PENGAJUAN").length,
     DITOLAK: list.filter((x) => (x.status || "").toUpperCase() === "DITOLAK").length,
-  };
+  });
 
   // Toggle Status (PENGAJUAN <-> DISETUJUI / DITOLAK)
   const toggleStatusMutation = useMutation({
@@ -372,19 +391,30 @@ export default function InboxSuratCutiPage() {
           const Icon = card.icon;
           const isActive = selectedStatus === card.key;
           return (
-            <button
+            <motion.button
               key={card.key}
               type="button"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setSelectedStatus(card.key)}
               className={cn(
-                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer",
+                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer",
                 isActive
                   ? card.activeClass
                   : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
               )}
             >
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{card.label}</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  {card.key === "PENGAJUAN" && card.count > 0 && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                  )}
+                  {card.label}
+                </p>
                 <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
                   {card.count}
                 </p>
@@ -392,7 +422,7 @@ export default function InboxSuratCutiPage() {
               <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", card.iconClass)}>
                 <Icon className="w-4 h-4" />
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -457,21 +487,29 @@ export default function InboxSuratCutiPage() {
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+      {/* Data Table Container with Motion Glide Transition */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`${selectedStatus}-${selectedYear}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.14, ease: "easeOut" }}
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
+        >
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-xs text-slate-400">
             <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Memuat riwayat surat cuti...
           </div>
         ) : list.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
+          <div className="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-3">
             <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Belum Ada Data Cuti</h3>
             <p className="text-xs text-slate-400">Tidak ada data cuti yang sesuai dengan filter pencarian ini.</p>
           </div>
         ) : (
-          <div>
+          <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
@@ -887,7 +925,8 @@ export default function InboxSuratCutiPage() {
             </div>
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Modals Cuti */}
       <EditLeaveModal

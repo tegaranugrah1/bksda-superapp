@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -209,15 +211,38 @@ export default function SuratKeluarListPage() {
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 text-zinc-700 dark:text-zinc-300 font-medium"
-          >
-            <option value="all">Semua Status</option>
-            <option value="terdaftar">Resmi / Terdaftar</option>
-            <option value="draft">Draft</option>
-          </select>
+          {/* Sliding Pill Status Filter */}
+          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl">
+            {[
+              { id: "all", label: "Semua" },
+              { id: "terdaftar", label: "Terdaftar" },
+              { id: "draft", label: "Draft" },
+            ].map((tab) => {
+              const isActive = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={cn(
+                    "relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
+                    isActive
+                      ? "text-white"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeSuratKeluarStatusTab"
+                      className="absolute inset-0 bg-blue-600 rounded-lg shadow-xs"
+                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           <select
             value={templateFilter}

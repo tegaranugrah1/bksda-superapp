@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface BreadcrumbItem {
   id: number;
@@ -118,27 +120,45 @@ export function DriveToolbar({
             />
           </div>
 
-          {/* Grid/List Switcher */}
-          <div className="flex items-center p-0.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          {/* Grid/List Switcher with Sliding Pill Indicator */}
+          <div className="relative flex items-center p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
             <button
               onClick={() => onViewModeChange("grid")}
-              className={`p-1.5 rounded-lg transition-colors ${
+              className={cn(
+                "relative p-1.5 rounded-lg transition-colors cursor-pointer select-none",
                 viewMode === "grid"
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                  ? "text-emerald-700 dark:text-emerald-300 font-bold"
                   : "text-slate-400 hover:text-slate-600"
-              }`}
+              )}
+              title="Tampilan Grid"
             >
-              <LayoutGrid className="w-4 h-4" />
+              {viewMode === "grid" && (
+                <motion.span
+                  layoutId="activeDriveViewModeIndicator"
+                  className="absolute inset-0 bg-emerald-100 dark:bg-emerald-950/60 rounded-lg shadow-2xs"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <LayoutGrid className="w-4 h-4 relative z-10" />
             </button>
             <button
               onClick={() => onViewModeChange("list")}
-              className={`p-1.5 rounded-lg transition-colors ${
+              className={cn(
+                "relative p-1.5 rounded-lg transition-colors cursor-pointer select-none",
                 viewMode === "list"
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                  ? "text-emerald-700 dark:text-emerald-300 font-bold"
                   : "text-slate-400 hover:text-slate-600"
-              }`}
+              )}
+              title="Tampilan Daftar"
             >
-              <List className="w-4 h-4" />
+              {viewMode === "list" && (
+                <motion.span
+                  layoutId="activeDriveViewModeIndicator"
+                  className="absolute inset-0 bg-emerald-100 dark:bg-emerald-950/60 rounded-lg shadow-2xs"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <List className="w-4 h-4 relative z-10" />
             </button>
           </div>
 

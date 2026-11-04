@@ -4,6 +4,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   TreePine,
   Search,
@@ -102,22 +104,33 @@ export default function TslListPage() {
             { value: "", label: "Semua" },
             { value: "satwa", label: "🐾 Satwa" },
             { value: "tumbuhan", label: "🌿 Tumbuhan" },
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => {
-                setTipe(tab.value as "" | "satwa" | "tumbuhan");
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                tipe === tab.value
-                  ? "bg-green-600 text-white shadow-md"
-                  : "bg-white text-gray-600 hover:bg-green-50 border border-gray-200"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ].map((tab) => {
+            const isActive = tipe === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  setTipe(tab.value as "" | "satwa" | "tumbuhan");
+                  setPage(1);
+                }}
+                className={cn(
+                  "relative px-4 py-2 rounded-xl text-sm font-bold transition-colors select-none cursor-pointer",
+                  isActive
+                    ? "text-white"
+                    : "bg-white text-gray-600 hover:bg-green-50 border border-gray-200"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="activeTslTabIndicator"
+                    className="absolute inset-0 bg-green-600 rounded-xl shadow-md"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -146,45 +159,52 @@ export default function TslListPage() {
           {data.map((item) => {
             const iucn = getIucnStyle(item.status_iucn);
             return (
-              <Link
+              <motion.div
                 key={item.id}
-                href={`/tsl/${item.slug}`}
-                className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1"
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.15 }}
               >
-                <div className="h-40 bg-green-50 overflow-hidden">
-                  {item.thumbnail_path ? (
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.thumbnail_path}`}
-                      alt={item.nama_lokal}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <TreePine className="w-10 h-10 text-green-200" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <p className="font-bold text-gray-900 text-sm line-clamp-1 group-hover:text-green-700 transition-colors">
-                    {item.nama_lokal}
-                  </p>
-                  <p className="text-xs text-gray-400 italic line-clamp-1 mt-0.5">
-                    {item.nama_latin || ""}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    {item.status_iucn && (
-                      <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded-full ${iucn.bg} ${iucn.text}`}
-                      >
-                        {item.status_iucn}
-                      </span>
+                <Link
+                  href={`/tsl/${item.slug}`}
+                  className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow flex flex-col h-full"
+                >
+                  <div className="h-40 bg-green-50 overflow-hidden">
+                    {item.thumbnail_path ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_STORAGE_URL}/${item.thumbnail_path}`}
+                        alt={item.nama_lokal}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <TreePine className="w-10 h-10 text-green-200" />
+                      </div>
                     )}
-                    <span className="text-[10px] text-gray-400">
-                      {item.tipe === "satwa" ? "🐾 Satwa" : "🌿 Tumbuhan"}
-                    </span>
                   </div>
-                </div>
-              </Link>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm line-clamp-1 group-hover:text-green-700 transition-colors">
+                        {item.nama_lokal}
+                      </p>
+                      <p className="text-xs text-gray-400 italic line-clamp-1 mt-0.5">
+                        {item.nama_latin || ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      {item.status_iucn && (
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full ${iucn.bg} ${iucn.text}`}
+                        >
+                          {item.status_iucn}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-gray-400">
+                        {item.tipe === "satwa" ? "🐾 Satwa" : "🌿 Tumbuhan"}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
         </div>

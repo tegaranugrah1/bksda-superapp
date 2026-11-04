@@ -39,6 +39,7 @@ import {
 } from "./_components/DetailSection";
 import { PhotoGallery, PhotoGalleryRef, driveToThumbnail } from "./_components/PhotoGallery";
 import { useRole } from "@/hooks/useRole";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
@@ -691,35 +692,47 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
         {/* ==================== SECTION 3: TECHNICAL & COMPLIANCE BENTO PANEL ==================== */}
         <section className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-xs hover:shadow-md transition-shadow">
-          {/* Tab Navigation Bar */}
+          {/* Tab Navigation Bar with Sliding Indicator */}
           <div className="flex items-center gap-1.5 border-b border-slate-200/80 dark:border-zinc-800 overflow-x-auto pb-3">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  "px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-all",
-                  activeTab === tab.key
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800"
-                )}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-                {typeof tab.count === "number" && tab.count > 0 && (
-                  <span
-                    className={cn(
-                      "px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
-                      activeTab === tab.key
-                        ? "bg-emerald-700/70 text-white"
-                        : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800"
-                    )}
-                  >
-                    {tab.count}
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "relative px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-colors select-none cursor-pointer",
+                    isActive
+                      ? "text-white font-bold"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeBmnDetailTabIndicator"
+                      className="absolute inset-0 bg-emerald-600 rounded-xl shadow-xs"
+                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    {tab.icon}
+                    <span>{tab.label}</span>
                   </span>
-                )}
-              </button>
-            ))}
+                  {typeof tab.count === "number" && tab.count > 0 && (
+                    <span
+                      className={cn(
+                        "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800"
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Tab Active Content */}

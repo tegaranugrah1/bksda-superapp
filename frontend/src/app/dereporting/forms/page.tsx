@@ -26,6 +26,7 @@ import {
     Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -281,9 +282,11 @@ export default function DeReportingFormsListPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {forms.map((form) => (
-                        <div
+                        <motion.div
                             key={form.id}
-                            className="bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                            whileHover={{ y: -3 }}
+                            transition={{ duration: 0.15 }}
+                            className="bg-white dark:bg-zinc-950/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
                         >
                             <div className="space-y-2.5">
                                 <div className="flex items-start justify-between gap-3">
@@ -416,7 +419,7 @@ export default function DeReportingFormsListPage() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             )}

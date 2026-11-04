@@ -350,3 +350,151 @@
   - [x] `node frontend/tests/kepegawaian-bank-allocation.playwright.cjs`: 6/6 test suites PASS (12 DOM assertions).
   - [x] TypeScript compiler (`cd frontend; npx tsc --noEmit`): 0 error.
   - [x] Sinkronisasi Knowledge Graph (`graphify update .`): 11.837 nodes, 21.684 edges, 851 communities ter-update.
+
+---
+
+### 8. Implementasi Animate UI (Shadcn Motion Primitives) & Peta Jalan Seluruh Modul (/ponytail) — Selesai ✅
+
+- **Tujuan & Prinsip Ponytail**:
+  - Menerapkan sentuhan animasi modern enterprise (*Animate UI* berbasis Shadcn motion primitives) tanpa menambah ketergantungan library baru (memanfaatkan `framer-motion: ^12.38.0` yang telah terpasang).
+  - Akselerasi perangkat keras 60 FPS (hanya memanipulasi `transform` dan `opacity`, tanpa jank atau layout reflow).
+  - Durasi ultra-responsif (120ms – 240ms) dengan fisika pegas (*spring physics*).
+
+- **Eksekusi Pilot pada Halaman Detail Pegawai (`/kepegawaian/employees/[id]`)**:
+  1. **Sliding Active Tab Indicator**:
+     - Menghadirkan indikator pil hijau zamrud (`bg-emerald-600 rounded-xl shadow-xs`) dengan `layoutId="activeTabIndicator"` yang meluncur mulus mengikuti tab yang aktif (Biodata, Riwayat Penugasan, Cuti, Presensi & Uang Makan, Riwayat Perubahan).
+     - Label dan ikon tab terlindungi dengan `relative z-10`.
+  2. **Elevasi Taktil pada Kartu Metrik (Top 4 Metrics)**:
+     - Efek melayang halus (`whileHover={{ y: -3 }}`) dan respon sentuhan (`whileTap={{ scale: 0.98 }}`) dengan durasi `0.15s` pada kartu Masa Kerja, Total SPT, Sisa Cuti, dan Uang Makan.
+  3. **Transisi Konten Panel Lembut**:
+     - Membungkus tab panel dengan `<AnimatePresence mode="wait">` dan `<motion.div key={activeTab}>` dengan efek luncur vertikal halus 8px (`duration: 0.16s`), mencegah pergantian halaman tersentak (*jumpy*).
+  4. **1-Click Copy Micro-Bounce Feedback**:
+     - Membuat helper ringkas 1-baris `CopyIcon` dengan animasi rotasi pop `initial={{ scale: 0.5, rotate: -15 }}` dan pegas lembut saat menyalin NIP, nomor telepon WhatsApp, email dinas, dan rekening bank.
+
+- **Dokumentasi Desain & Peta Jalan Lengkap Seluruh Modul**:
+  - Diterbitkan panduan resmi: [`docs/animate-ui-motion-guidelines.md`](docs/animate-ui-motion-guidelines.md) mencakup 7 resep standar gerak siap pakai.
+  - Diterbitkan laporan audit & inventaris: [`animate-ui-roadmap-and-inventory.md`](animate-ui-roadmap-and-inventory.md) yang memetakan seluruh 102 halaman pada 8 modul utama (Kepegawaian, Persuratan, Keuangan, BMN, Inventory, De-Reporting, Portal/Publik, dan Drive).
+
+- **Hasil Pengujian & Verifikasi Kualitas 100% Hijau**:
+  - [x] Invariant Gerak Animate UI (`node frontend/tests/animate-ui-motion-check.cjs`): 30/30 checks PASS (100% HIJAU) mencakup Detail Pegawai, Uang Makan, Settings, Surat Tugas Inbox, Cuti, Daftar Pegawai, dan Dashboard.
+  - [x] Playwright End-to-End Test (`node frontend/tests/kepegawaian-detail-fullscreen.playwright.cjs`): 6/6 suites PASS (22 DOM assertions).
+  - [x] Kompilasi TypeScript (`cd frontend; npx tsc --noEmit`): 0 error.
+  - [x] AST Knowledge Graph (`graphify update .`): 11.866 nodes, 21.728 edges, 843 communities ter-update.
+
+---
+
+### 9. Ekspansi Motion Primitives Penuh ke Seluruh Modul Kepegawaian (/ponytail) — Selesai ✅
+
+- **Latar Belakang & Keluhan Pengguna**:
+  - Animasi pada halaman Detail Pegawai (`/kepegawaian/employees/[id]`) telah berjalan sangat mulus (sliding pill tab indicator dan tab panel yang dibuka memiliki transisi animasi halus saat berpindah antar tab).
+  - Namun, halaman-halaman lain di Modul Kepegawaian sebelumnya belum memiliki transisi panel saat berpindah tab/filter.
+
+- **Penyelarasan & Upgrade Gerak Menyeluruh per Halaman**:
+  1. **Uang Makan Pegawai (`/kepegawaian/uang-makan`)**:
+     - Memasang `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` (`opacity: 0 -> 1, y: 8 -> 0`, 160ms easeOut) pada seluruh 4 panel tab: *Upload Presensi*, *Pratinjau Matriks*, *Daftar Nominatif*, dan *Riwayat Batch*.
+     - Tab yang dibuka kini meluncur masuk secara halus dan konsisten dengan Detail Pegawai.
+  2. **Pengaturan Kepegawaian (`/kepegawaian/settings`)**:
+     - Mengganti tombol statis dengan sliding pill indicator (`layoutId="activeSettingsTabIndicator"`) berpegas natural.
+     - Membungkus ke-5 panel tab (*Template Surat Tugas*, *Jenis Tugas ST*, *Template Biaya*, *Jenis Surat Cuti*, dan *Uang Makan & Hari Libur*) dengan `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>`.
+  3. **Inbox Surat Tugas (`/kepegawaian/surat-tugas/inbox`)**:
+     - Membungkus daftar surat tugas dengan `<AnimatePresence mode="wait">` + `<motion.div key={activeTab}>` saat berpindah status (*Semua*, *Draft*, *Menunggu Persetujuan*, *Disetujui*, *Ditolak*, *Sampah*).
+     - Menambahkan slide-in vertikal lembut pada Full Reader View saat dokumen surat tugas dibuka.
+  4. **Manajemen Cuti Pegawai (`/kepegawaian/cuti`)**:
+     - Membungkus tabel data permohonan cuti dengan `<AnimatePresence mode="wait">` + `<motion.div key={selectedStatus + selectedYear}>` sehingga transisi filter status maupun tahun berjalan mulus tanpa lompatan visual.
+  5. **Daftar Pegawai (`/kepegawaian/employees`)**:
+     - Membungkus tabel data pegawai dengan `<AnimatePresence mode="wait">` + `<motion.div key={jenisFilter + statusFilter + wilayahFilter}>` saat admin berganti kategori (Total, PNS, PPPK, MMP, Trashed).
+  6. **Dashboard Kepegawaian (`/kepegawaian`)**:
+     - Menambahkan elevasi taktil (`whileHover={{ y: -2/-3 }}`) dan respon klik (`whileTap={{ scale: 0.98 }}`) pada 3 kartu kategori personil (PNS, PPPK, MMP) serta 4 kartu bento layanan (Surat Tugas, Cuti, Surat Masuk, Keaktifan).
+
+- **Verifikasi Kualitas**:
+  - `animate-ui-motion-check.cjs`: Diperluas dari 15 checks menjadi **30 checks otomatis**, seluruhnya **PASS 100%**.
+  - TypeScript Compiler: **0 error**.
+
+---
+
+### 10. Eliminasi Kedipan Angka Nol (0 Flickering Fix) saat Pindah Tab & Filter Kepegawaian (/ponytail) — Selesai ✅
+
+- **Akar Masalah (Root Cause)**:
+  - Pada TanStack Query v5, saat `queryKey` berubah (misalnya pengguna mengklik kartu "Pegawai PNS", "PPPK", "MMP", atau filter status cuti "Menunggu Persetujuan", "Disetujui", "Ditolak"), query baru berada dalam status *fetching* dan `data` bernilai `undefined` selama 100–300 milidetik.
+  - Nilai `counts` pada `employees/page.tsx` dan `summaryCounts` pada `cuti/page.tsx` sebelumnya mengandalkan fallback default `{ total: 0, pns: 0, pppk: 0, mmp: 0, trashed: 0 }`. Akibatnya, seluruh angka pada kartu metrik drop menjadi **0** sesaat sebelum melompat kembali ke angka asli.
+
+- **Solusi Defensif & Ringkas Sesuai Prinsip Ponytail**:
+  1. **Aktivasi `placeholderData: keepPreviousData` (TanStack Query)**:
+     - Diterapkan pada `employees/page.tsx`, `cuti/page.tsx`, dan `surat-tugas/inbox/page.tsx`.
+     - Query mempertahankan data sebelumnya selama proses request filter/tab baru berlangsung di latar belakang, mencegah status `data = undefined`.
+  2. **Persistensi State Ref (`useRef`) Anti-Zero Reset**:
+     - Memasang `lastCountsRef` pada Daftar Pegawai dan `lastSummaryCountsRef` / `lastTotalRecordsRef` pada Inbox Cuti.
+     - Angka ringkasan dan badge counter tidak akan pernah turun ke angka 0 saat pergantian filter, menghasilkan transisi yang 100% mulus (*seamless*).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **30/30 PASS (100% Hijau)**.
+
+---
+
+### 11. Eliminasi Scrollbar Layout Shift & Pergerakan Melompat saat Pindah dari/ke Data Terhapus (/ponytail) — Selesai ✅
+
+- **Akar Masalah (Root Cause)**:
+  1. **Scrollbar Jump (Horizontal 15px Shift)**: Pada "Data Terhapus", data bernilai 0 sehingga tinggi konten lebih pendek dari tinggi layar. Kontainer `<main>` sebelumnya menggunakan `overflow-y: auto` tanpa reservasi gutter. Saat beralih ke tab aktif yang memiliki 10 baris, scrollbar vertikal tiba-tiba muncul dan menggeser seluruh lebar halaman sebesar 15–17px ke kiri.
+  2. **Banner Vertical Displacement**: Banner rose peringatan `isTrashedView` diletakkan di luar kontainer tabel (di antara filter toolbar dan tabel), sehingga saat masuk/keluar tab Data Terhapus, tabel terdorong ke bawah 44px lalu tertarik kembali ke atas.
+  3. **Height Collapsing**: Tabel tanpa `min-height` menciut dari ~500px menjadi ~120px saat berpindah ke tab kosong, memicu lonjakan layout visual yang tersentak.
+
+- **Solusi Defensif & Ringkas Sesuai Prinsip Ponytail**:
+  1. **Reservasi Gutter Scrollbar Permanen (`scrollbar-gutter: stable`)**:
+     - Ditambahkan pada `html`, `body`, dan `main` di `globals.css` serta class utility `[scrollbar-gutter:stable]` pada `<main>` di `kepegawaian/layout.tsx`.
+     - Ruang scrollbar di sisi kanan layar selalu direservasi, sehingga lebar halaman tidak pernah bergeser 1 piksel pun saat data kosong maupun penuh.
+  2. **Enkapsulasi Banner Peringatan ke Dalam Kartu Tabel**:
+     - Banner `isTrashedView` dipindahkan ke dalam kartu tabel beranimasi (`motion.div`). Posisi dan jarak kartu tabel dari filter toolbar tetap statis sempurna.
+  3. **Ketinggian Kontainer Stabil (`min-h-[460px] flex flex-col justify-between`)**:
+     - Ditambahkan pada tabel Daftar Pegawai dan Inbox Cuti. Tampilan kosong di-center secara estetis dan kartu tidak pernah menciut.
+  4. **Penghalusan Kurva Animasi**:
+     - Durasi 140ms easeOut, `initial={{ opacity: 0, y: 4 }}` dan `exit={{ opacity: 0 }}` (menghapus tarikan y negatif yang menyentak).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **30/30 PASS (100% Hijau)**.
+  - Playwright E2E: **6/6 Suites PASS (22 DOM Assertions)**.
+
+---
+
+### 12. Modernisasi Animate UI Modul Arsip Surat Masuk Kepegawaian (`/kepegawaian/surat-masuk`) (/ponytail) — Selesai ✅
+
+- **Fitur Animasi & Motion Primitives yang Diimplementasikan**:
+  1. **Tactile Quick Filter Summary Cards**:
+     - 4 kartu status (Total Arsip, Menunggu Balasan, Sudah Dibalas, Arsip Bulan Ini) dikonversi menggunakan `<motion.button>` dengan `whileHover={{ y: -3 }}` dan `whileTap={{ scale: 0.98 }}`.
+     - Pulsing beacon (radar ping amber) aktif otomatis pada kartu 'Menunggu Balasan' jika terdapat surat yang butuh balasan.
+     - Persistensi ref `lastSummaryCountsRef` & `displaySummaryCounts` memastikan angka ringkasan tidak pernah kedip ke 0 saat filter berubah.
+  2. **Data Table Glide Transition & Height Stability**:
+     - Tabel arsip dibungkus dengan `<AnimatePresence mode="wait">` + `<motion.div key={...}>` dengan ketinggian stabil `min-h-[460px] flex flex-col justify-between`.
+     - Cross-fade halus (140ms easeOut) saat mengganti filter kategori, status balasan, rentang tanggal, maupun halaman.
+     - Layout kosong (empty state) dan pemuatan terpusat sempurna tanpa sentakan pergeseran layout.
+  3. **Smooth Modals dengan Backdrop Blur & Spring Pop-Up**:
+     - 4 modal utama dibungkus `<AnimatePresence>`:
+       1. Modal Detail Surat (`detailItem`)
+       2. Modal Tambah / Edit Arsip (`formOpen` & `<motion.form>`)
+       3. Modal Pratinjau Lampiran PDF/Gambar (`preview`)
+       4. Modal Export Excel Rekapitulasi (`exportOpen`)
+     - Backdrop fade-in (`opacity: 0 -> 1`), Dialog container spring scale (`scale: 0.96 -> 1, y: 10 -> 0`).
+
+- **Verifikasi Kualitas**:
+  - TypeScript check: **0 error**.
+  - Invariant gerak: **36/36 PASS (100% Hijau)**.
+
+---
+
+### 13. Pembaruan Instruksi Setup & Onboarding Pengembang (`README.md` & `frontend/.env.example`) — Selesai ✅
+
+- **Latar Belakang & Masalah**:
+  - Instruksi setup pada `README.md` sebelumnya belum mencantumkan daftar ekstensi PHP wajib (`pdo_pgsql`, `mbstring`, `zip`, `gd`, dll), penjelasan port Docker `5435`, dan `frontend/.env.example` belum tersedia sehingga instruksi `cp .env.example .env.local` di frontend sebelumnya gagal jika di-clone oleh pengguna baru.
+- **Penyempurnaan yang Diterapkan**:
+  1. **Pembuatan File `frontend/.env.example` & Whitelist Git**:
+     - Menambahkan file `frontend/.env.example` dengan konfigurasi endpoint `NEXT_PUBLIC_API_URL` dan `NEXT_PUBLIC_STORAGE_URL`.
+     - Memperbarui `frontend/.gitignore` dengan `!.env.example` agar file template environment terlacak di repository.
+  2. **Modernisasi `README.md` Komprehensif**:
+     - **Daftar Prasyarat**: Spesifikasi PHP 8.3+, Composer 2.x, Node.js 20+, Docker Compose, dan Git.
+     - **Tabel Ekstensi PHP Wajib & Panduan OS**: Perintah terminal sekali klik untuk Linux Ubuntu/Debian dan panduan edit `php.ini` untuk Windows.
+     - **Penjelasan Port Docker**: Klarifikasi pemetaan port host `5435` untuk mencegah konflik dengan PostgreSQL lokal yang sudah ada di port `5432`.
+     - **Langkah Setup Terstruktur**: Langkah A (Clone), B (Docker Compose), C (Backend Laravel: `composer install`, `cp .env`, `key:generate`, `storage:link`, `migrate`, `db:seed`), D (Frontend: `npm install`, `cp .env.local`).
+     - **Tabel Kredensial Awal**: Super Admin NIP (`198001012005011001`), Super Admin Username (`superadmin`), Admin Persuratan (`magang`), pgAdmin, dan RustFS Console.
+     - **Troubleshooting FAQ**: Solusi untuk error PDO driver, connection refused, symlink storage, dan CORS frontend.
+     - **Status VM 108 Hermes**: Memperbarui status VM Hermes Agent (`192.168.100.205`) menjadi aktif 🟢.
