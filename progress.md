@@ -597,9 +597,26 @@
      - Frontend `AssetCatalogModal.tsx` & `page.tsx`: Menampilkan badge pengguna pegawai (`👤 Pengguna: [Nama]`) dan penanda aset sedang dipinjam (`🔄 Sedang Dipinjam: [Nama Peminjam] s.d. [Tanggal]`).
      - Aset yang sedang dipinjam otomatis dinonaktifkan dari seleksi permohonan pinjam baru dengan notifikasi toast protektif.
   9. **Optimasi Kinerja & Memori RAM (Prinsip Ponytail)**:
-     - Mengurangi beban initial render dari 100 aset sekaligus menjadi **12 aset per batch** (`per_page: 12`).
-     - Pemuatan cepat, konsumsi RAM browser minimal, decoding foto langsung responsif, dilengkapi tombol *"Muat Lebih Banyak (+12 Aset)"* dan indikator counter real-time (`X dari Total Aset`).
+     - Mengurangi beban initial render dari 100 aset sekaligus menjadi **10 aset per batch** (`per_page: 10`) dengan grid 5 kolom (`lg:grid-cols-5`).
+     - Tepat 2 baris kartu pada desktop tanpa perlu scroll vertikal.
+     - Pemuatan cepat, konsumsi RAM browser minimal, decoding foto langsung responsif, dilengkapi tombol *"Muat Lebih Banyak (+10 Aset)"* dan indikator counter real-time (`X dari Total Aset`).
 
 - **Verifikasi Kualitas**:
   - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
   - HTTP Status: 200 OK.
+
+---
+
+### 17. Perbaikan HTTP 500 Endpoint `/api/bmn/loans` (PostgreSQL Constraint Violation) — Selesai ✅
+
+- **Root Cause**:
+  - Pada tabel `bmn_asset_loans`, constraint PostgreSQL bawaan `bmn_asset_loans_status_check` hanya mengizinkan `('dipinjam', 'dikembalikan')`.
+  - Ketika `LoanService@listLoans` memeriksa pinjaman yang telah melewati `due_date` (misal permohonan pinjam Oktober 2026 yang jatuh tempo 2026-10-11), sistem memperbarui status ke `terlambat`.
+  - PostgreSQL menolak pembaruan tersebut dengan exception: `SQLSTATE[23514]: Check violation: 7 ERROR: new row for relation "bmn_asset_loans" violates check constraint "bmn_asset_loans_status_check"` sehingga menyebabkan HTTP 500 Internal Server Error saat membuka daftar peminjaman.
+
+- **Solusi & Implementasi**:
+  1. **Migration Baru**: `backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php`.
+  2. Memperbarui check constraint PostgreSQL menjadi:
+     `CHECK (status::text = ANY (ARRAY['dipinjam'::text, 'dikembalikan'::text, 'terlambat'::text]))`.
+  3. Migration berhasil dijalankan dan status HTTP `GET /api/bmn/loans?page=1&per_page=10` pulih menjadi **200 OK**.
+

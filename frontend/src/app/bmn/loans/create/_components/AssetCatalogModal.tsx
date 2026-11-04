@@ -201,7 +201,7 @@ export function AssetCatalogModal({
       try {
         const params: Record<string, string | number> = {
           page,
-          per_page: 12,
+          per_page: 10,
         };
         if (debouncedSearch) {
           params.search = debouncedSearch;
@@ -415,7 +415,7 @@ export function AssetCatalogModal({
             </div>
           ) : viewMode === "grid" ? (
             /* ================= GRID VIEW ================= */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {assets.map((asset) => {
                 const photo = getPrimaryPhoto(asset);
                 const isSelected = Boolean(tempSelectedMap[asset.id]);
@@ -458,21 +458,21 @@ export function AssetCatalogModal({
 
                       {/* Photo Source Badge */}
                       {photo && (
-                        <span className="absolute top-2.5 left-2.5 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-zinc-900/80 text-white backdrop-blur-sm border border-white/20">
+                        <span className="absolute top-2 left-2 text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider bg-zinc-900/80 text-white backdrop-blur-sm border border-white/20">
                           {photo.label}
                         </span>
                       )}
 
                       {/* Plate Badge */}
                       {asset.no_polisi && asset.no_polisi !== "-" && (
-                        <span className="absolute top-2.5 right-11 text-[9.5px] px-2 py-0.5 rounded font-mono font-bold uppercase bg-blue-600 text-white shadow-sm">
+                        <span className="absolute top-2 right-10 text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase bg-blue-600 text-white shadow-sm">
                           {asset.no_polisi}
                         </span>
                       )}
 
                       {/* Loan Status Banner on Photo */}
                       {isLoaned && (
-                        <span className="absolute bottom-2.5 left-2.5 text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-500 text-white shadow-md flex items-center gap-1 border border-amber-300/40">
+                        <span className="absolute bottom-2 left-2 text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-500 text-white shadow-md flex items-center gap-1 border border-amber-300/40">
                           <Clock className="w-3 h-3" />
                           Sedang Dipinjam
                         </span>
@@ -481,7 +481,7 @@ export function AssetCatalogModal({
                       {/* Selection Check Circle / Lock */}
                       <div
                         className={cn(
-                          "absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center transition-all border",
+                          "absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all border",
                           isLoaned
                             ? "bg-amber-100 dark:bg-amber-900/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 shadow-sm"
                             : isSelected
@@ -490,17 +490,17 @@ export function AssetCatalogModal({
                         )}
                         title={isLoaned ? `Sedang dipinjam oleh ${asset.active_loan?.borrower_name}` : undefined}
                       >
-                        {isLoaned ? <Clock className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        {isLoaned ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3 stroke-[3]" />}
                       </div>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div className="p-3 flex-1 flex flex-col justify-between">
                       <div className="min-w-0">
-                        <div className="mb-1">
+                        <div className="mb-0.5">
                           <h4
                             className={cn(
-                              "text-sm font-bold line-clamp-2 leading-snug",
+                              "text-xs sm:text-sm font-bold line-clamp-1 leading-snug",
                               isSelected ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-900 dark:text-zinc-100"
                             )}
                             title={asset.nama_barang}
@@ -510,14 +510,14 @@ export function AssetCatalogModal({
                         </div>
                         {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
                           <p
-                            className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mb-2 font-medium"
+                            className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mb-1 font-medium"
                             title={formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) || ""}
                           >
                             {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}
                           </p>
                         )}
-                        <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
-                          <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-semibold">
+                        <div className="flex items-center gap-1.5 flex-wrap text-[9.5px] font-mono text-zinc-500 dark:text-zinc-400">
+                          <span className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.2 rounded text-zinc-600 dark:text-zinc-300 font-semibold">
                             {asset.kode_barang}
                           </span>
                           <span>•</span>
@@ -528,11 +528,11 @@ export function AssetCatalogModal({
                         {/* Status Pengguna Pegawai */}
                         {userInCharge && (
                           <div
-                            className="flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-200 mt-2.5 bg-zinc-50 dark:bg-zinc-800/60 px-2.5 py-1.5 rounded-lg border border-zinc-200/70 dark:border-zinc-700/70"
+                            className="flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-200 mt-2 bg-zinc-50 dark:bg-zinc-800/60 px-2 py-1 rounded-md border border-zinc-200/70 dark:border-zinc-700/70"
                             title={`Aset ini ditugaskan/digunakan oleh: ${userInCharge}`}
                           >
-                            <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <div className="min-w-0 flex-1 text-[11px] leading-tight">
+                            <User className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <div className="min-w-0 flex-1 text-[10.5px] leading-tight">
                               <span className="text-zinc-400 font-medium">Pengguna:</span>{" "}
                               <span className="font-semibold text-zinc-800 dark:text-zinc-200 truncate">{userInCharge}</span>
                             </div>
@@ -541,13 +541,13 @@ export function AssetCatalogModal({
 
                         {/* Status Peminjaman Aktif */}
                         {asset.active_loan && (
-                          <div className="flex items-start gap-1.5 text-xs text-amber-800 dark:text-amber-300 mt-2 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                            <div className="min-w-0 flex-1 text-[11px] leading-tight">
+                          <div className="flex items-start gap-1.5 text-xs text-amber-800 dark:text-amber-300 mt-2 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-900/50">
+                            <Clock className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1 text-[10.5px] leading-tight">
                               <span className="font-bold text-amber-900 dark:text-amber-200">Sedang Dipinjam:</span>{" "}
                               <span className="font-semibold block truncate">{asset.active_loan.borrower_name}</span>
                               {asset.active_loan.due_date && (
-                                <span className="text-amber-700 dark:text-amber-400 block text-[10px] mt-0.5">
+                                <span className="text-amber-700 dark:text-amber-400 block text-[9.5px] mt-0.5">
                                   Batas: {asset.active_loan.due_date}
                                 </span>
                               )}
@@ -557,10 +557,10 @@ export function AssetCatalogModal({
                       </div>
 
                       {/* Footer Info */}
-                      <div className="mt-3.5 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
+                      <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
                         <span
                           className={cn(
-                            "text-[9.5px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                            "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
                             asset.kondisi === "Baik"
                               ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
                               : asset.kondisi === "Rusak Ringan"
@@ -572,15 +572,15 @@ export function AssetCatalogModal({
                         </span>
 
                         {isLoaned ? (
-                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                          <span className="text-[9.5px] font-bold text-amber-600 dark:text-amber-400">
                             Dipinjam
                           </span>
                         ) : asset.lokasi_ruang ? (
-                          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[140px]" title={asset.lokasi_ruang}>
+                          <span className="text-[9.5px] text-zinc-500 dark:text-zinc-400 truncate max-w-[120px]" title={asset.lokasi_ruang}>
                             📍 {asset.lokasi_ruang}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Siap Pinjam</span>
+                          <span className="text-[9.5px] text-emerald-600 dark:text-emerald-400 font-medium">Siap Pinjam</span>
                         )}
                       </div>
                     </div>
@@ -740,7 +740,7 @@ export function AssetCatalogModal({
                 onClick={() => setPage((p) => p + 1)}
                 className="rounded-xl text-xs h-9 px-5 font-semibold bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 shadow-xs"
               >
-                <span>Muat Lebih Banyak (+12 Aset)</span>
+                <span>Muat Lebih Banyak (+10 Aset)</span>
               </Button>
             </div>
           )}

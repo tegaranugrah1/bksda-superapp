@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793779435.013782,
-    "ast_hash": "9b470b7c796a734c0617ff7bde9afb1b",
+    "mtime": 1793836531.5633936,
+    "ast_hash": "708c109e0d38c7bbbab63bf6c7b45442",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7975,8 +7975,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/_components/AssetCatalogModal.tsx": {
-    "mtime": 1793779360.9100654,
-    "ast_hash": "c379a8a92901dc7c1ed4e96c26540c38",
+    "mtime": 1793836491.7727897,
+    "ast_hash": "0eeeb6ec73e1e48e06ab07b44e0c1568",
+    "semantic_hash": ""
+  },
+  "backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php": {
+    "mtime": 1793836343.0587897,
+    "ast_hash": "660506c8fca1a03809ab29e6ddb5160a",
     "semantic_hash": ""
   }
 }
