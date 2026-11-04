@@ -8,14 +8,14 @@ class EmployeeAccessRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Otorisasi dikunci di level Middleware Route nantinya
+        return $this->user()?->role === 'super_admin';
     }
 
     public function rules(): array
     {
         return [
             // Jabatan sistemik (Bukan jabatan fungsional instansi)
-            'role' => 'required|string|in:super_admin,admin,user',
+            'role' => 'required|string|in:super_admin,admin,user,pegawai',
 
             // Modul akses (bisa kosong untuk super_admin)
             'access_modules' => 'nullable|array',

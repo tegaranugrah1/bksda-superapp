@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Inbox, Clock, CheckCircle2, FileEdit, XCircle, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 import type { StatusCounts } from "../_lib/types";
 
 interface GmailStatusTabsProps {
@@ -71,12 +72,19 @@ export function GmailStatusTabs({ activeTab, onTabChange, counts }: GmailStatusT
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition-all whitespace-nowrap shrink-0 group ${
+            className={`relative flex items-center gap-2 px-5 py-3 text-xs font-bold transition-all whitespace-nowrap shrink-0 group select-none cursor-pointer ${
               isActive
                 ? `${tab.activeColor} bg-slate-50/50 dark:bg-zinc-800/30`
                 : "border-transparent text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-50/30 dark:hover:bg-zinc-800/20"
             }`}
           >
+            {isActive && (
+              <motion.span
+                layoutId="activeGmailInboxTabIndicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-current"
+                transition={{ type: "spring", stiffness: 420, damping: 32 }}
+              />
+            )}
             <Icon
               className={`w-4 h-4 transition-transform group-hover:scale-110 ${
                 isActive ? "text-current" : "text-slate-400 dark:text-zinc-500"
@@ -85,10 +93,16 @@ export function GmailStatusTabs({ activeTab, onTabChange, counts }: GmailStatusT
             <span>{tab.label}</span>
             {tab.count !== undefined && tab.count > 0 && (
               <span
-                className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-black inline-flex items-center gap-1 ${
                   isActive ? tab.badgeColor : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
                 }`}
               >
+                {tab.id === "pending" && (
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
+                  </span>
+                )}
                 {tab.count.toLocaleString("id-ID")}
               </span>
             )}

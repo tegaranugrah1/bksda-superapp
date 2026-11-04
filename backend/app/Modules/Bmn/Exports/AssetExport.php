@@ -24,7 +24,7 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
         $query = Asset::latest();
 
         if (!empty($this->filters['search'])) {
-            $search = mb_strtolower(trim((string) $this->filters['search']));
+            $search = addcslashes(mb_strtolower(trim((string) $this->filters['search'])), '%_');
             $query->where(function ($q) use ($search) {
                 $q->whereRaw('LOWER(nama_barang) LIKE ?', ["%{$search}%"])
                     ->orWhereRaw('LOWER(kode_barang) LIKE ?', ["%{$search}%"])
@@ -45,7 +45,8 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $query->where('jenis_bmn', $this->filters['jenis_bmn']);
         }
         if (!empty($this->filters['lokasi_ruang'])) {
-            $query->where('lokasi_ruang', 'LIKE', '%' . $this->filters['lokasi_ruang'] . '%');
+            $lokasi = addcslashes(trim((string) $this->filters['lokasi_ruang']), '%_');
+            $query->where('lokasi_ruang', 'LIKE', '%' . $lokasi . '%');
         }
 
         return $query->get();
@@ -101,7 +102,7 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $row[] = $asset->nup_lama;
         }
 
-        return array_merge($row, [
+        return $this->sanitizeRow(array_merge($row, [
             $asset->nama_barang,
             $asset->status_bmn,
             $asset->merk,
@@ -175,6 +176,16 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
             $asset->nama_pengguna,
             $asset->status_pmk,
             $asset->foto_geotag_url,
-        ]);
+        ]));
+    }
+
+    private function sanitizeRow(array $row): array
+    {
+        return array_map(function ($val) {
+            if (is_string($val) && preg_match('/^[=+\-@\t\r]/', $val)) {
+                return "'" . $val;
+            }
+            return $val;
+        }, $row);
     }
 }

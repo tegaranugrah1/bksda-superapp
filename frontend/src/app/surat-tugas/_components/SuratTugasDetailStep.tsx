@@ -3,23 +3,53 @@
 import React from "react";
 import {
   ChevronLeft,
-  AlertCircle,
   Calendar as CalendarIcon,
   Search,
   CheckCircle2,
   X,
   FileText,
   Upload,
+  Users,
+  Italic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
-import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import {
+  buildKegiatanDiktumText,
+  cleanMelaksanakanKegiatanPrefix,
+  normalizeTaskTypeName,
+  isJenisKegiatanTask,
+} from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import {
+  formatNipLabel,
+  formatDateIndonesian,
+  daysBetween,
+  renderFormattedItalic,
+  toggleItalicInTextarea,
+} from "@/lib/letter-utils";
+import api from "@/lib/api";
+import { ScheduleConflictBanner } from "@/app/kepegawaian/surat-tugas/_components/ScheduleConflictBanner";
+import { useScheduleConflicts } from "@/app/kepegawaian/surat-tugas/_lib/useScheduleConflicts";
 
 export type JenisTugasType =
   | "Perjalanan Dinas ( Lebih dari 1 Hari )"
+  | "Perjalanan Dinas Luar Wilayah"
+  | "Perjalanan Dinas Dalam Kawasan / Wilayah"
   | "Melaksanakan Kegiatan ( 1 Hari )"
-  | "Menugaskan Staf";
+  | "Menugaskan Staf"
+  | "Pengawasan / Pemeriksaan Pekerjaan"
+  | string;
+
+export interface StTaskTypeOption {
+  id: number;
+  nama: string;
+  kode: string;
+  mode_lokasi: "luar_wilayah" | "dalam_kawasan" | "tempat_saja";
+  aturan_durasi: "fleksibel" | "wajib_1_hari";
+  default_sertakan_laporan: boolean;
+  contoh_format?: string | null;
+}
 
 export interface SuratTugasFormData {
   nama_kegiatan: string;
@@ -36,6 +66,9 @@ interface SuratTugasDetailStepProps {
   handleSubmit: (e: React.FormEvent) => void;
   jenisTugas: JenisTugasType;
   setJenisTugas: (val: JenisTugasType) => void;
+  taskTypes: StTaskTypeOption[];
+  selectedTaskTypeId: number | null;
+  setSelectedTaskTypeId: (id: number | null) => void;
   kotaAsal: string;
   setKotaAsal: (val: string) => void;
   kotaTujuan: string;
@@ -61,20 +94,37 @@ interface SuratTugasDetailStepProps {
   selectedFile: File | null;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isSubmitting: boolean;
+  isBedaHari: boolean;
+  setIsBedaHari: (val: boolean) => void;
+  employeeDates: Record<string, { mulai: string; selesai: string }>;
+  setEmployeeDates: React.Dispatch<React.SetStateAction<Record<string, { mulai: string; selesai: string }>>>;
+  hasBuruh: boolean;
+  setHasBuruh: (val: boolean) => void;
+  jumlahBuruh: number;
+  setJumlahBuruh: React.Dispatch<React.SetStateAction<number>>;
+  untukKegiatanText?: string;
+  setUntukKegiatanText?: (val: string) => void;
+  removeEmployee?: (id: string) => void;
 }
 
 export function SuratTugasDetailStep({
   setStep,
   selectedEmployees,
+  removeEmployee,
   handleSubmit,
   jenisTugas,
   setJenisTugas,
+  taskTypes,
+  selectedTaskTypeId,
+  setSelectedTaskTypeId,
   kotaAsal,
   setKotaAsal,
   kotaTujuan,
   setKotaTujuan,
   namaKegiatanText,
   setNamaKegiatanText,
+  untukKegiatanText = "Pengawasan Pekerjaan Konstruksi",
+  setUntukKegiatanText,
   tempatSpesifik,
   setTempatSpesifik,
   formData,
@@ -94,6 +144,14 @@ export function SuratTugasDetailStep({
   selectedFile,
   handleFileChange,
   isSubmitting,
+  isBedaHari,
+  setIsBedaHari,
+  employeeDates,
+  setEmployeeDates,
+  hasBuruh,
+  setHasBuruh,
+  jumlahBuruh,
+  setJumlahBuruh,
 }: SuratTugasDetailStepProps) {
   const [expenseOptions, setExpenseOptions] = React.useState<Array<{ id: string; label: string }>>([
     { id: "DIPA", label: "DIPA Balai KSDA Kalimantan Timur" },
@@ -110,9 +168,9 @@ export function SuratTugasDetailStep({
   ]);
 
   React.useEffect(() => {
-    fetch("/api/kepegawaian/st-expense-templates/public?active_only=true")
-      .then((res) => res.json())
-      .then((data) => {
+    api.get("/kepegawaian/st-expense-templates/public?active_only=true")
+      .then((res) => {
+        const data = res.data;
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
           const list = data.data.map((item: { name: string; code: string }) => ({
             id: item.name,
@@ -125,76 +183,231 @@ export function SuratTugasDetailStep({
       .catch(() => {});
   }, []);
 
+  const { data: conflictData, isLoading: isCheckingConflicts } = useScheduleConflicts({
+    employees: selectedEmployees,
+    tanggalMulai: formData.tanggal_mulai,
+    tanggalSelesai: formData.tanggal_selesai,
+    isBedaHari,
+    employeeDates,
+  });
+
+  const conflicts = conflictData?.conflicts || [];
+  const hasConflict = (conflictData?.has_conflict && conflicts.length > 0) ?? false;
+
+  const handleRemoveEmployee = React.useCallback(
+    (empId: number) => {
+      if (removeEmployee) {
+        removeEmployee(String(empId));
+      }
+    },
+    [removeEmployee]
+  );
+
+  const activeTaskType = React.useMemo(() => {
+    if (selectedTaskTypeId) {
+      return taskTypes.find((t) => t.id === selectedTaskTypeId) || null;
+    }
+    return (
+      taskTypes.find((t) => t.nama.toLowerCase() === jenisTugas.toLowerCase()) ||
+      taskTypes.find((t) => t.kode.toLowerCase() === jenisTugas.toLowerCase()) ||
+      null
+    );
+  }, [selectedTaskTypeId, taskTypes, jenisTugas]);
+
+  const isJenisKegiatan = React.useMemo(() => {
+    return (
+      isJenisKegiatanTask(jenisTugas, activeTaskType?.contoh_format) ||
+      activeTaskType?.kode === "jenis_kegiatan"
+    );
+  }, [jenisTugas, activeTaskType]);
+
+  const modeLokasi = React.useMemo(() => {
+    if (activeTaskType?.mode_lokasi) return activeTaskType.mode_lokasi;
+    if (isJenisKegiatan) return "luar_wilayah";
+    if (jenisTugas.toLowerCase().includes("dalam kawasan")) return "dalam_kawasan";
+    if (jenisTugas.toLowerCase().includes("perjalanan dinas")) return "luar_wilayah";
+    return "tempat_saja";
+  }, [activeTaskType, jenisTugas, isJenisKegiatan]);
+
+  const isWajibSatuHari = React.useMemo(() => {
+    if (activeTaskType?.aturan_durasi === "wajib_1_hari") return true;
+    return jenisTugas.toLowerCase().includes("1 hari");
+  }, [activeTaskType, jenisTugas]);
+
+  const handleTaskTypeChange = (typeName: string) => {
+    setJenisTugas(typeName);
+    const matched = taskTypes.find((t) => t.nama === typeName);
+    if (matched) {
+      setSelectedTaskTypeId(matched.id);
+      if (matched.aturan_durasi === "wajib_1_hari") {
+        setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
+      }
+      if (
+        matched.kode === "jenis_kegiatan" ||
+        isJenisKegiatanTask(matched.nama, matched.contoh_format)
+      ) {
+        if (!untukKegiatanText) {
+          setUntukKegiatanText?.("Pengawasan Pekerjaan Konstruksi");
+        }
+      }
+    }
+  };
+
+  const previewDiktumUtama = React.useMemo(() => {
+    return buildKegiatanDiktumText({
+      modeLokasi,
+      jenisTugas,
+      kotaAsal,
+      kotaTujuan,
+      tempatSpesifik,
+      namaKegiatanText,
+      untukKegiatanText,
+      contohFormat: activeTaskType?.contoh_format,
+    });
+  }, [modeLokasi, jenisTugas, kotaAsal, kotaTujuan, tempatSpesifik, namaKegiatanText, untukKegiatanText, activeTaskType]);
+
+  const previewBiayaText = React.useMemo(() => {
+    if (!formData.sumber_dana || formData.sumber_dana === "dl1" || formData.sumber_dana.toLowerCase().includes("tidak ada biaya")) {
+      return "";
+    }
+    if (formData.sumber_dana === "other") {
+      return formData.sumber_dana_other
+        ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${formData.sumber_dana_other};`
+        : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;";
+    }
+    return `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${formData.sumber_dana};`;
+  }, [formData.sumber_dana, formData.sumber_dana_other]);
+
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/50 ring-1 ring-slate-100/50 animate-in fade-in slide-in-from-right-8 duration-500">
+    <div className="bg-white/90 backdrop-blur-xl rounded-4xl p-6 sm:p-10 shadow-xl border border-white/60 ring-1 ring-slate-100/60 animate-in fade-in slide-in-from-right-8 duration-500">
       <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
         <button
           type="button"
           onClick={() => setStep(1)}
-          className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+          disabled={isSubmitting}
+          aria-label="Kembali ke pemilihan personel"
+          className="w-11 h-11 shrink-0 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             Detail Surat Tugas
           </h2>
           <p className="text-slate-500 text-sm font-medium">
-            Lengkapi informasi perjalanan dinas.
+            Lengkapi rincian penugasan, jadwal kegiatan, dan pembebanan anggaran.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 flex gap-3 text-emerald-800">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600" />
-          <div>
-            <span className="block text-sm font-bold mb-1">
-              Daftar Pegawai ({selectedEmployees.length})
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="space-y-8 [&_input:not([type=radio])]:text-base [&_textarea]:text-base [&_select]:text-base [&_label:has(input:focus-visible)]:outline-2 [&_label:has(input:focus-visible)]:outline-blue-600">
+        {/* Ringkasan Pegawai */}
+        <div className="bg-blue-50/70 border border-blue-100/80 rounded-2xl p-4 flex gap-3 text-blue-900">
+          <Users className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
+          <div className="min-w-0">
+            <span className="block text-xs font-bold uppercase tracking-wider text-blue-700 mb-0.5">
+              Personel yang Ditugaskan ({selectedEmployees.length} Orang)
             </span>
-            <div className="text-xs font-medium text-emerald-700/80 flex flex-wrap gap-x-2 gap-y-1">
+            <div className="text-xs font-semibold text-blue-950 flex flex-wrap gap-x-2 gap-y-1">
               {selectedEmployees.map((e) => e.name).join(", ")}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
+          {/* Card Klasifikasi Jenis Tugas & Lokasi */}
           <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
+              <label htmlFor="task-type" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                 JENIS TUGAS <span className="text-red-500">*</span>
               </label>
 
               <select
-                value={jenisTugas}
-                onChange={(e) => {
-                  const val = e.target.value as JenisTugasType;
-                  setJenisTugas(val);
-                  if (val.includes("Melaksanakan Kegiatan")) {
-                    setFormData((prev) => ({ ...prev, tanggal_selesai: prev.tanggal_mulai }));
-                  }
-                }}
+                id="task-type"
+                value={normalizeTaskTypeName(jenisTugas)}
+                onChange={(e) => handleTaskTypeChange(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold text-slate-800 outline-none cursor-pointer"
               >
-                <option value="Perjalanan Dinas ( Lebih dari 1 Hari )">
-                  Melaksanakan Perjalanan Dinas ( Lebih dari 1 Hari )
-                </option>
-                <option value="Melaksanakan Kegiatan ( 1 Hari )">
-                  Melaksanakan Kegiatan ( 1 Hari )
-                </option>
-                <option value="Menugaskan Staf">Menugaskan Staf</option>
+                {taskTypes && taskTypes.length > 0 ? (
+                  taskTypes.map((tt) => (
+                    <option key={tt.id} value={tt.nama}>
+                      {tt.nama}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Perjalanan Dinas Luar Wilayah">
+                      Perjalanan Dinas Luar Wilayah
+                    </option>
+                    <option value="Perjalanan Dinas Dalam Kawasan / Wilayah">
+                      Perjalanan Dinas Dalam Kawasan / Wilayah
+                    </option>
+                    <option value="Melaksanakan Kegiatan (1 Hari)">
+                      Melaksanakan Kegiatan (1 Hari)
+                    </option>
+                    <option value="Menugaskan Staf">Menugaskan Staf</option>
+                  </>
+                )}
               </select>
             </div>
 
-            {jenisTugas.includes("Perjalanan Dinas") ? (
+            {/* Input Form Sesuai Mode Lokasi */}
+            {modeLokasi === "dalam_kawasan" ? (
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
-                {/* 2 Split Columns: Dari (Asal) & Ke (Tujuan) */}
+                <div className="space-y-1.5">
+                  <label htmlFor="st-detail-field-1" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Di ( Kota / Kabupaten Wilayah Penugasan ) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="st-detail-field-1"
+                    type="text"
+                    required
+                    value={kotaTujuan}
+                    onChange={(e) => setKotaTujuan(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Kabupaten Paser"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="st-detail-field-2" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Dalam Rangka <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="st-detail-field-2"
+                    required
+                    rows={2}
+                    value={namaKegiatanText}
+                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                    placeholder="Contoh: Patroli kebakaran hutan"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="st-detail-field-3" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Di ( Kawasan / Lokasi Spesifik ) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="st-detail-field-3"
+                    type="text"
+                    required
+                    value={tempatSpesifik}
+                    onChange={(e) => setTempatSpesifik(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Cagar Alam Teluk Adang"
+                  />
+                </div>
+              </div>
+            ) : isJenisKegiatan ? (
+              <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label htmlFor="st-detail-field-4" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-4"
                       type="text"
                       required
                       value={kotaAsal}
@@ -205,10 +418,11 @@ export function SuratTugasDetailStep({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label htmlFor="st-detail-field-5" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-5"
                       type="text"
                       required
                       value={kotaTujuan}
@@ -220,24 +434,149 @@ export function SuratTugasDetailStep({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Dalam Rangka <span className="text-red-500">*</span>
+                  <label htmlFor="st-detail-field-6" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Untuk ( Jenis Kegiatan / Tugas ) <span className="text-red-500">*</span>
                   </label>
+                  <input
+                    id="st-detail-field-6"
+                    type="text"
+                    required
+                    value={untukKegiatanText}
+                    onChange={(e) => setUntukKegiatanText?.(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Bisa disesuaikan jika jenis pekerjaan lain (misal: Pengawasan Pekerjaan Konstruksi, Pemeriksaan Fisik BMN, dll.)
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="st-detail-field-7" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
                   <textarea
+                    id="st-detail-field-7"
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
+                    placeholder="Contoh: Pengelolaan kontrak sarpras"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <label htmlFor="st-detail-field-8" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Di ( Tempat Spesifik / Lokasi Proyek )
+                  </label>
+                  <input
+                    id="st-detail-field-8"
+                    type="text"
+                    value={tempatSpesifik}
+                    onChange={(e) => setTempatSpesifik(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                    placeholder="Contoh: Suaka Badak Kelian"
+                  />
+                </div>
+              </div>
+            ) : modeLokasi === "luar_wilayah" ? (
+              <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="st-detail-field-9" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dari ( Kota / Lokasi Asal ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="st-detail-field-9"
+                      type="text"
+                      required
+                      value={kotaAsal}
+                      onChange={(e) => setKotaAsal(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                      placeholder="Contoh: Samarinda"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="st-detail-field-10" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Ke ( Kota / Kabupaten Tujuan ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="st-detail-field-10"
+                      type="text"
+                      required
+                      value={kotaTujuan}
+                      onChange={(e) => setKotaTujuan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
+                      placeholder="Contoh: Kabupaten Kutai Barat"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="st-detail-field-11" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Dalam Rangka <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
+                  <textarea
+                    id="st-detail-field-11"
+                    required
+                    rows={2}
+                    value={namaKegiatanText}
+                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
+                    placeholder="Contoh: Inventarisasi satwa"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="st-detail-field-12" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Di ( Tempat Spesifik / Opsional )
                   </label>
                   <input
+                    id="st-detail-field-12"
                     type="text"
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
@@ -249,45 +588,62 @@ export function SuratTugasDetailStep({
             ) : (
               <div className="space-y-4 pt-1 animate-in fade-in duration-300">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    {jenisTugas.includes("Melaksanakan Kegiatan")
-                      ? "Melaksanakan Kegiatan ( 1 Hari )"
-                      : "Menugaskan Staf"}{" "}
-                    <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="st-detail-field-13" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Nama Kegiatan / Tugas <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
+                      }}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                      title="Miringkan teks terpilih (*kata*) - Ctrl+I"
+                    >
+                      <Italic className="w-3 h-3 text-blue-600" />
+                      <span className="font-serif italic font-bold">Miringkan (*I*)</span>
+                    </button>
+                  </div>
                   <textarea
+                    id="st-detail-field-13"
                     required
                     rows={2}
                     value={namaKegiatanText}
                     onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
+                        e.preventDefault();
+                        toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
+                      }
+                    }}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
-                    placeholder={
-                      jenisTugas.includes("Melaksanakan Kegiatan")
-                        ? "Contoh: opname fisik (stok opname) barang persediaan"
-                        : "Contoh: verifikasi berkas administrasi persediaan"
-                    }
+                    placeholder="Contoh: Stok opname persediaan"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Pada ( Tempat / Unit / Lokasi Kegiatan )
+                    <label htmlFor="st-detail-field-14" className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Pada ( Tempat / Unit Lokasi )
                     </label>
                     <input
+                      id="st-detail-field-14"
                       type="text"
                       value={tempatSpesifik}
                       onChange={(e) => setTempatSpesifik(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
-                      placeholder="Contoh: Kantor Balai / tempat kegiatannya"
+                      placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label htmlFor="st-detail-field-15" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Di ( Kota / Kabupaten ) <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="st-detail-field-15"
                       type="text"
                       required
                       value={kotaTujuan}
@@ -301,36 +657,49 @@ export function SuratTugasDetailStep({
             )}
 
             {/* Live Generated Preview Box */}
-            <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900">
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">
-                📌 Pratinjau Teks Hasil Resmi
-              </span>
-              <p className="text-xs font-bold leading-relaxed">
-                {jenisTugas.includes("Perjalanan Dinas")
-                  ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${
-                      kotaTujuan || "..."
-                    }${namaKegiatanText ? ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText)}` : ""}${
-                      tempatSpesifik ? ` di ${tempatSpesifik}` : ""
-                    }`
-                  : jenisTugas.includes("Melaksanakan Kegiatan")
-                  ? `Melaksanakan Kegiatan ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."}${
-                      tempatSpesifik ? ` pada ${tempatSpesifik}` : ""
-                    }${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
-                  : `Menugaskan Staf untuk ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."}${
-                      tempatSpesifik ? ` pada ${tempatSpesifik}` : ""
-                    }${kotaTujuan ? ` di ${kotaTujuan}` : ""}`}
+            <div className="mt-3 p-3.5 bg-blue-50/70 border border-blue-200/70 rounded-xl text-blue-950">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  Pratinjau Kalimat Tugas Resmi
+                </span>
+                <span className="text-[10px] text-blue-600/70 font-medium">
+                  Tata Naskah Dinas KSDAE
+                </span>
+              </div>
+              <p className="text-xs font-semibold leading-relaxed text-slate-800">
+                {renderFormattedItalic(previewDiktumUtama)}
+                {formData.tanggal_mulai && formData.tanggal_selesai ? (
+                  formData.tanggal_mulai === formData.tanggal_selesai ? (
+                    <span className="text-slate-600 font-medium">
+                      , selama 1 (satu) hari pada tanggal {formatDateIndonesian(formData.tanggal_mulai)};
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 font-medium">
+                      , selama {daysBetween(formData.tanggal_mulai, formData.tanggal_selesai)} hari terhitung mulai tanggal {formatDateIndonesian(formData.tanggal_mulai)} sampai dengan {formatDateIndonesian(formData.tanggal_selesai)};
+                    </span>
+                  )
+                ) : ";"}
               </p>
+              {previewBiayaText && (
+                <p className="text-[11px] text-slate-600 mt-2 pt-2 border-t border-blue-200/50 leading-relaxed">
+                  <span className="font-semibold text-slate-700">Pembebanan Anggaran: </span>
+                  {renderFormattedItalic(previewBiayaText)}
+                </p>
+              )}
             </div>
           </div>
 
-          {jenisTugas.includes("Melaksanakan Kegiatan") ? (
+          {/* Waktu & Jadwal Pelaksanaan */}
+          {isWajibSatuHari ? (
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <label htmlFor="st-detail-field-16" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
                 Tanggal Kegiatan ( 1 Hari ) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
+                  id="st-detail-field-16"
                   type="date"
                   required
                   value={formData.tanggal_mulai}
@@ -342,54 +711,280 @@ export function SuratTugasDetailStep({
                       tanggal_selesai: e.target.value,
                     })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
                 />
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Mulai Tanggal <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="date"
-                    required
-                    value={formData.tanggal_mulai}
-                    onClick={(e) => e.currentTarget.showPicker?.()}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggal_mulai: e.target.value })
-                    }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
-                  />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="st-detail-field-17" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                    Mulai Tanggal <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input
+                      id="st-detail-field-17"
+                      type="date"
+                      required
+                      value={formData.tanggal_mulai}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tanggal_mulai: e.target.value })
+                      }
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="st-detail-field-18" className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
+                    Sampai Tanggal <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input
+                      id="st-detail-field-18"
+                      type="date"
+                      required
+                      min={formData.tanggal_mulai}
+                      value={formData.tanggal_selesai}
+                      onClick={(e) => e.currentTarget.showPicker?.()}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tanggal_selesai: e.target.value })
+                      }
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Sampai Tanggal <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type="date"
-                    required
-                    min={formData.tanggal_mulai}
-                    value={formData.tanggal_selesai}
-                    onClick={(e) => e.currentTarget.showPicker?.()}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tanggal_selesai: e.target.value })
-                    }
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium text-slate-700 cursor-pointer"
-                  />
+
+              {/* Toggle Jadwal Personel Berbeda Hari */}
+              {selectedEmployees.length > 1 && (
+                <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-amber-950">
+                        Jadwal Personel Berbeda Hari?
+                      </p>
+                      <p className="text-[11px] text-amber-700/90 mt-0.5">
+                        Aktifkan jika masing-masing pegawai memiliki tanggal tugas berbeda (Template Beda Hari).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isBedaHari}
+                      aria-label="Jadwal personel berbeda hari"
+                      onClick={() => {
+                        const nextVal = !isBedaHari;
+                        setIsBedaHari(nextVal);
+                        if (nextVal) {
+                          setEmployeeDates((prev) => {
+                            const nextDates = { ...prev };
+                            selectedEmployees.forEach((emp) => {
+                              if (!nextDates[emp.id]?.mulai && formData.tanggal_mulai) {
+                                nextDates[emp.id] = {
+                                   mulai: formData.tanggal_mulai,
+                                   selesai: formData.tanggal_selesai || formData.tanggal_mulai,
+                                };
+                              }
+                            });
+                            return nextDates;
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-blue-600",
+                        isBedaHari ? "bg-amber-600" : "bg-slate-300"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                          isBedaHari ? "translate-x-5" : "translate-x-0"
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  {isBedaHari && (
+                    <div className="pt-2 border-t border-amber-200/60 space-y-3 animate-in fade-in duration-200">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                        Rincian Tanggal Tugas Per Personel:
+                      </p>
+                      <div className="space-y-2">
+                        {selectedEmployees.map((emp, idx) => {
+                          const dates = employeeDates[emp.id] || {
+                            mulai: formData.tanggal_mulai || "",
+                            selesai: formData.tanggal_selesai || "",
+                          };
+                          return (
+                            <div
+                              key={emp.id}
+                              className="p-3 bg-white border border-amber-200/80 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-slate-800 truncate">
+                                  {idx + 1}. {emp.name}
+                                </p>
+                                <p className="text-[10px] text-slate-400 truncate">
+                                  {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
+                                </p>
+                              </div>
+                              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 w-full md:w-auto shrink-0">
+                                <div>
+                                  <label htmlFor={`st-detail-field-19-${emp.id}`} className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                    Mulai
+                                  </label>
+                                  <input
+                                    id={`st-detail-field-19-${emp.id}`}
+                                    type="date"
+                                    required={isBedaHari}
+                                    value={dates.mulai}
+                                    onClick={(e) => e.currentTarget.showPicker?.()}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setEmployeeDates((prev) => ({
+                                        ...prev,
+                                        [emp.id]: {
+                                          mulai: val,
+                                          selesai: prev[emp.id]?.selesai || val,
+                                        },
+                                      }));
+                                    }}
+                                    className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                  />
+                                </div>
+                                <div>
+                                  <label htmlFor={`st-detail-field-20-${emp.id}`} className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                                    Selesai
+                                  </label>
+                                  <input
+                                    id={`st-detail-field-20-${emp.id}`}
+                                    type="date"
+                                    required={isBedaHari}
+                                    min={dates.mulai}
+                                    value={dates.selesai}
+                                    onClick={(e) => e.currentTarget.showPicker?.()}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setEmployeeDates((prev) => ({
+                                        ...prev,
+                                        [emp.id]: {
+                                          mulai: prev[emp.id]?.mulai || val,
+                                          selesai: val,
+                                        },
+                                      }));
+                                    }}
+                                    className="w-full md:w-32 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {/* Alert Real-time Bentrok Jadwal Penugasan / Cuti */}
+              {conflicts.length > 0 && (
+                <div className="pt-2">
+                  <ScheduleConflictBanner conflicts={conflicts} />
+                </div>
+              )}
+
+              {/* Toggle Buruh / Tenaga Lapangan (PM) */}
+              <div className="p-4 bg-blue-50/50 border border-blue-200/60 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-blue-950">
+                      Apakah ada Buruh / Tenaga Lapangan (PM)?
+                    </p>
+                    <p className="text-[11px] text-blue-700/90 mt-0.5">
+                      Aktifkan jika penugasan menyertakan buruh (format: Nama: <b>PM</b>, Jabatan: <b>-</b>).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={hasBuruh}
+                    aria-label="Sertakan buruh atau tenaga lapangan"
+                    onClick={() => {
+                      const nextVal = !hasBuruh;
+                      setHasBuruh(nextVal);
+                      if (nextVal && jumlahBuruh < 1) {
+                        setJumlahBuruh(1);
+                      }
+                    }}
+                    className={cn(
+                      "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-blue-600",
+                      hasBuruh ? "bg-blue-600" : "bg-slate-300"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                        hasBuruh ? "translate-x-5" : "translate-x-0"
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {hasBuruh && (
+                  <div className="pt-3 border-t border-blue-200/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
+                    <div>
+                      <label htmlFor="worker-count" className="text-xs font-bold text-blue-900 block">
+                        Jumlah Buruh (Orang)
+                      </label>
+                      <p className="text-[11px] text-blue-700/80">
+                        Berapa orang buruh yang diikutsertakan?
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setJumlahBuruh((prev) => Math.max(1, prev - 1))}
+                        disabled={jumlahBuruh <= 1}
+                        aria-label="Kurangi jumlah buruh"
+                        className="w-11 h-11 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        id="worker-count"
+                        min={1}
+                        max={100}
+                        value={jumlahBuruh}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setJumlahBuruh(isNaN(val) ? 1 : Math.max(1, Math.min(100, val)));
+                        }}
+                        className="w-16 px-2 py-1.5 text-center bg-white border border-blue-300 rounded-lg text-sm font-bold text-slate-800"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setJumlahBuruh((prev) => Math.min(100, prev + 1))}
+                        disabled={jumlahBuruh >= 100}
+                        aria-label="Tambah jumlah buruh"
+                        className="w-11 h-11 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* Sumber Dana */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-2">
               Sumber Dana <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -399,8 +994,8 @@ export function SuratTugasDetailStep({
                   className={cn(
                     "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
                     formData.sumber_dana === opt.id
-                      ? "bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500/20"
-                      : "bg-white border-slate-200 hover:bg-slate-50"
+                      ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500/20 text-blue-900"
+                      : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
                   )}
                 >
                   <input
@@ -418,60 +1013,68 @@ export function SuratTugasDetailStep({
                     className={cn(
                       "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
                       formData.sumber_dana === opt.id
-                        ? "border-emerald-500"
+                        ? "border-blue-600"
                         : "border-slate-300"
                     )}
                   >
                     {formData.sumber_dana === opt.id && (
-                      <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                      <div className="w-2.5 h-2.5 bg-blue-600 rounded-full" />
                     )}
                   </div>
-                  <span
-                    className={cn(
-                      "text-sm font-semibold transition-colors",
-                      formData.sumber_dana === opt.id
-                        ? "text-emerald-900"
-                        : "text-slate-600"
-                    )}
-                  >
-                    {opt.label}
-                  </span>
+                  <span className="text-xs font-bold">{opt.label}</span>
                 </label>
               ))}
             </div>
 
             {formData.sumber_dana === "other" && (
               <div className="mt-3 animate-in fade-in slide-in-from-top-2">
+                <label htmlFor="other-funding" className="block mb-2 text-xs font-bold text-slate-600">Nama sumber dana lainnya</label>
                 <input
                   type="text"
+                  id="other-funding"
                   required
                   value={formData.sumber_dana_other}
                   onChange={(e) =>
                     setFormData({ ...formData, sumber_dana_other: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
                   placeholder="Sebutkan sumber dana..."
                 />
               </div>
             )}
           </div>
 
-          {/* PLH - muncul jika ada Kasubag TU / Kepala Seksi yang ikut perjalanan */}
+          {/* PLH Jika ada Pejabat Struktural */}
           {hasPejabatStruktural && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <label htmlFor="plh-search" className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Nama PLH <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">
+              <p className="text-xs text-amber-700 font-medium bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
                 Wajib diisi karena Kepala Subbagian Tata Usaha atau Kepala Seksi melaksanakan perjalanan dinas.
               </p>
-              <div className="relative" ref={plhDropdownRef}>
+              <div className="relative" ref={plhDropdownRef} onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  plhDropdownRef.current?.querySelector("input")?.focus();
+                  setShowPlhDropdown(false);
+                }
+              }}>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
                   <input
                     type="text"
+                    id="plh-search"
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowDown" && showPlhDropdown) {
+                        const firstResult = plhDropdownRef.current?.querySelector<HTMLButtonElement>("ul button");
+                        if (firstResult) {
+                          event.preventDefault();
+                          firstResult.focus();
+                        }
+                      }
+                    }}
                     required={!namaPlh}
                     value={plhSearchQuery || namaPlh}
                     onChange={(e) => {
@@ -480,8 +1083,8 @@ export function SuratTugasDetailStep({
                       setShowPlhDropdown(true);
                     }}
                     onFocus={() => setShowPlhDropdown(true)}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm font-medium"
-                    placeholder="Cari nama atau NIP Pelaksana Harian (PLH)..."
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                    placeholder="Nama atau NIP PLH"
                   />
                 </div>
                 {showPlhDropdown &&
@@ -493,8 +1096,9 @@ export function SuratTugasDetailStep({
                           <li key={emp.id}>
                             <button
                               type="button"
-                              className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between transition-colors"
+                              className="w-full text-left px-4 py-3 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-blue-600 flex items-center justify-between transition-colors cursor-pointer"
                               onClick={() => {
+                                plhDropdownRef.current?.querySelector("input")?.focus();
                                 setNamaPlh(emp.name);
                                 setPlhSearchQuery("");
                                 setShowPlhDropdown(false);
@@ -529,7 +1133,8 @@ export function SuratTugasDetailStep({
                       setNamaPlh("");
                       setPlhSearchQuery("");
                     }}
-                    className="text-blue-400 hover:text-red-500 transition-colors"
+                    aria-label={`Hapus PLH ${namaPlh}`}
+                    className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full text-blue-400 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-blue-600 transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -538,19 +1143,19 @@ export function SuratTugasDetailStep({
             </div>
           )}
 
-          {/* Tanda Setuju - muncul jika ada pegawai dari Seksi */}
+          {/* Tanda Setuju Kepala Seksi jika ada pegawai Seksi */}
           {hasSeksiEmployee && (
             <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Tanda Setuju <span className="text-red-500">*</span>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                Tanda Setuju Kepala Seksi <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label
                   className={cn(
                     "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
                     tandaSetuju === "sudah"
-                      ? "bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500/20"
-                      : "bg-white border-slate-200 hover:bg-slate-50"
+                      ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500/20 text-blue-900"
+                      : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
                   )}
                 >
                   <input
@@ -565,32 +1170,21 @@ export function SuratTugasDetailStep({
                   <div
                     className={cn(
                       "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
-                      tandaSetuju === "sudah"
-                        ? "border-emerald-500"
-                        : "border-slate-300"
+                      tandaSetuju === "sudah" ? "border-blue-600" : "border-slate-300"
                     )}
                   >
                     {tandaSetuju === "sudah" && (
-                      <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                      <div className="w-2.5 h-2.5 bg-blue-600 rounded-full" />
                     )}
                   </div>
-                  <span
-                    className={cn(
-                      "text-sm font-semibold transition-colors",
-                      tandaSetuju === "sudah"
-                        ? "text-emerald-900"
-                        : "text-slate-600"
-                    )}
-                  >
-                    Sudah disetujui Kepala Seksi
-                  </span>
+                  <span className="text-xs font-bold">Sudah disetujui Kepala Seksi</span>
                 </label>
                 <label
                   className={cn(
                     "flex items-center p-4 border rounded-xl cursor-pointer transition-all",
                     tandaSetuju === "belum"
-                      ? "bg-amber-50 border-amber-500 ring-1 ring-amber-500/20"
-                      : "bg-white border-slate-200 hover:bg-slate-50"
+                      ? "bg-amber-50 border-amber-500 ring-1 ring-amber-500/20 text-amber-900"
+                      : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
                   )}
                 >
                   <input
@@ -605,73 +1199,63 @@ export function SuratTugasDetailStep({
                   <div
                     className={cn(
                       "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
-                      tandaSetuju === "belum"
-                        ? "border-amber-500"
-                        : "border-slate-300"
+                      tandaSetuju === "belum" ? "border-amber-500" : "border-slate-300"
                     )}
                   >
                     {tandaSetuju === "belum" && (
                       <div className="w-2.5 h-2.5 bg-amber-500 rounded-full" />
                     )}
                   </div>
-                  <span
-                    className={cn(
-                      "text-sm font-semibold transition-colors",
-                      tandaSetuju === "belum"
-                        ? "text-amber-900"
-                        : "text-slate-600"
-                    )}
-                  >
-                    Belum disetujui Kepala Seksi
-                  </span>
+                  <span className="text-xs font-bold">Belum disetujui Kepala Seksi</span>
                 </label>
               </div>
             </div>
           )}
 
+          {/* Upload Dasar Surat */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
               Upload Dasar Surat{" "}
               <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">
-                (Opsional)
+                (Opsional, PDF/Gambar Max. 10MB)
               </span>
             </label>
             <div className="mt-2 relative">
               <input
                 type="file"
                 id="dasar_surat"
-                accept=".pdf"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
                 className="sr-only"
                 onChange={handleFileChange}
               />
               <label
                 htmlFor="dasar_surat"
                 className={cn(
-                  "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-all bg-slate-50 hover:bg-slate-100",
+                  "flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-all bg-slate-50 hover:bg-slate-100",
                   selectedFile
-                    ? "border-emerald-500 bg-emerald-50/50"
+                    ? "border-blue-500 bg-blue-50/40"
                     : "border-slate-300"
                 )}
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <div className="flex min-w-0 max-w-full flex-col items-center justify-center px-3 py-4">
                   {selectedFile ? (
                     <>
-                      <FileText className="w-8 h-8 text-emerald-500 mb-2" />
-                      <p className="text-sm font-bold text-emerald-700">
+                      <FileText className="w-7 h-7 text-blue-600 mb-1.5" />
+                      <p className="text-xs font-bold text-blue-900 break-all text-center max-w-full">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-emerald-600/70 opacity-80 mt-1">
+                      <p className="text-[10px] text-blue-600 font-medium mt-0.5">
                         {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </>
                   ) : (
                     <>
-                      <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                      <p className="text-sm font-semibold text-slate-600">
-                        Klik untuk upload file
+                      <Upload className="w-7 h-7 text-slate-400 mb-1.5" />
+                      <p className="text-xs font-semibold text-slate-700">
+                        Klik untuk upload dokumen pendukung / disposisi
                       </p>
-                      <p className="text-xs text-slate-400 mt-1">
-                        PDF (Max. 10MB)
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        PDF atau Gambar (Max. 10MB)
                       </p>
                     </>
                   )}
@@ -680,28 +1264,50 @@ export function SuratTugasDetailStep({
             </div>
           </div>
 
+          {/* Keterangan Tambahan */}
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <label htmlFor="st-detail-field-21" className="text-xs font-bold uppercase tracking-wider text-slate-600">
               Keterangan Lainnya
             </label>
             <textarea
+              id="st-detail-field-21"
               value={formData.keterangan}
               onChange={(e) =>
                 setFormData({ ...formData, keterangan: e.target.value })
               }
-              className="w-full min-h-25 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none text-sm font-medium"
+              className="w-full min-h-20 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none text-xs font-medium text-slate-800"
               placeholder="Catatan tambahan (opsional)"
             />
           </div>
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end">
+        {/* Action Button */}
+        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setStep(1)}
+            disabled={isSubmitting}
+            className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+          >
+            Kembali ke Personel
+          </Button>
+
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="h-14 px-10 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold tracking-wide shadow-lg shadow-emerald-500/20 transition-all text-base disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isSubmitting || hasConflict}
+            className={cn(
+              "min-h-12 h-auto whitespace-normal px-4 sm:px-8 py-3 rounded-xl font-bold tracking-wide shadow-md transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer",
+              hasConflict
+                ? "bg-red-600 hover:bg-red-700 text-white shadow-red-500/10"
+                : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10"
+            )}
           >
-            {isSubmitting ? "Mengirim Data..." : "Submit Pengajuan"}
+            {isSubmitting
+              ? "Mengirim Data..."
+              : hasConflict
+              ? "Jadwal Bentrok — Harap Perbaiki"
+              : "Submit Pengajuan Surat Tugas"}
           </Button>
         </div>
       </form>

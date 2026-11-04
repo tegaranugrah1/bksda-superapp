@@ -11,6 +11,18 @@ class SuratKeluarRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'no_surat' => $this->no_surat ? strip_tags(trim((string)$this->no_surat)) : null,
+            'kode_klasifikasi' => $this->kode_klasifikasi ? strip_tags(trim((string)$this->kode_klasifikasi)) : null,
+            'tujuan_surat' => $this->tujuan_surat ? strip_tags(trim((string)$this->tujuan_surat)) : null,
+            'perihal' => $this->perihal ? strip_tags(trim((string)$this->perihal)) : null,
+            'sifat' => $this->sifat ? strip_tags(trim((string)$this->sifat)) : null,
+            'lampiran' => $this->lampiran ? strip_tags(trim((string)$this->lampiran)) : null,
+        ]);
+    }
+
     public function rules(): array
     {
         return [

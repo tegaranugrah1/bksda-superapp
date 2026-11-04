@@ -173,7 +173,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
   },
   {
     id: "surat_izin",
-    name: "Surat Izin",
+    name: "Surat Izin (SIMAKSI / Umum)",
     hal: 75,
     category: "administrasi",
     categoryLabel: "Administrasi",
@@ -181,6 +181,17 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     description: "Izin resmi pejabat kepada pegawai/pihak luar untuk melakukan kegiatan atau melintas kawasan.",
     icon: FileBadge,
     colorClass: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/50",
+  },
+  {
+    id: "surat_izin_cuti",
+    name: "Surat Izin Cuti Resmi (TTE)",
+    hal: 75,
+    category: "administrasi",
+    categoryLabel: "Izin & Kepegawaian",
+    prefix: "SI..../K.18/TU/PEG.11.01/B/...",
+    description: "Format resmi naskah penetapan izin cuti PNS Balai KSDA Kaltim bertanda tangan Kepala Balai.",
+    icon: FileBadge,
+    colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50",
   },
   {
     id: "surat_panggilan",

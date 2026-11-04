@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { printDocumentWindow, BA_PEMERIKSAAN_PRINT_CSS } from "../_lib/print-helpers";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import {
   formatPlainRupiah,
@@ -11,6 +12,7 @@ import {
 } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
 import type { PemeriksaAnggota } from "../_lib/pemeriksa-defaults";
+import type { BaPemeriksaanContent } from "../../auction-batches/_lib/document-content-defaults";
 
 interface BaPemeriksaanDocumentProps {
   number: string;
@@ -21,6 +23,7 @@ interface BaPemeriksaanDocumentProps {
   stTanggal: string;
   assets: AuctionAsset[];
   kepalaBalai: SkKepalaBalai;
+  content?: BaPemeriksaanContent;
 }
 
 interface BaLampiranPage {
@@ -178,75 +181,12 @@ function buildBaLampiranPages(assets: AuctionAsset[]): BaLampiranPage[] {
 }
 
 export function handlePrintBaPemeriksaan() {
-  const printContent = document.getElementById("ba-pemeriksaan-print-root");
-  if (!printContent) {
-    toast.error("Tidak ada dokumen Berita Acara Pemeriksaan untuk dicetak.");
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Berita Acara Pemeriksaan BMN</title>
-        <style>
-          @page ba-pem-portrait { size: A4 portrait; margin: 0 0 28mm 0; }
-          @page ba-pem-landscape { size: A4 landscape; margin: 0 0 20mm 0; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0; padding: 0; background: white; color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt; line-height: 1.5;
-          }
-          p { margin: 0; padding: 0; }
-          article { margin: 0; }
-          .doc-page { width: 210mm; box-sizing: border-box; margin: 0 auto; padding: 5mm 20mm 0; page: ba-pem-portrait; }
-          .doc-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
-          .doc-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          .doc-body { width: 166mm; margin-left: auto; margin-right: auto; text-align: justify; text-justify: inter-word; }
-          .doc-body p { text-align: justify; text-justify: inter-word; }
-          .doc-title { margin-top: 0.75rem; text-align: center; font-weight: 700; line-height: 1.3; }
-          .doc-title p { margin: 0; }
-          .doc-text-block { margin-top: 1rem; }
-          .doc-text-block > * + * { margin-top: 0.85rem; }
-          .pemeriksa-list { margin-top: 0.5rem; }
-          .pemeriksa-item { display: grid; grid-template-columns: 8mm minmax(0, 1fr); column-gap: 0; }
-          .pemeriksa-item + .pemeriksa-item { margin-top: 0.5rem; }
-          .pemeriksa-row { display: grid; grid-template-columns: 28mm 5mm minmax(0, 1fr); column-gap: 0; }
-          .pemeriksa-row .colon { text-align: center; }
-          .doc-editable { outline: none; border-bottom: none !important; }
-
-          .ba-pem-page-landscape { width: 297mm; margin: 0 auto; padding: 10mm 16mm 20mm; page: ba-pem-landscape; page-break-before: always; break-before: page; }
-          .ba-pem-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
-          .ba-pem-lamp-meta { width: 100%; font-size: 10.5pt; line-height: 1.35; }
-          .ba-pem-lamp-meta .meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); }
-          .ba-pem-lamp-meta .meta-row .colon { text-align: center; }
-          .ba-pem-lamp-meta .lampiran-title { white-space: nowrap; }
-          table.ba-pem-table { border-collapse: collapse; width: 100%; font-size: 8.5pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
-          table.ba-pem-table th, table.ba-pem-table td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; overflow-wrap: anywhere; word-break: normal; }
-          table.ba-pem-table td.doc-editable { border: 1px solid #000 !important; }
-          table.ba-pem-table tbody tr:last-child td { border-bottom: 1px solid #000 !important; }
-          table.ba-pem-table thead { display: table-header-group; }
-          table.ba-pem-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .ba-pem-column-number-row th { font-weight: normal; }
-          .ba-pem-ttd-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16mm; margin-top: 9mm; break-inside: avoid; page-break-inside: avoid; }
-          .ba-pem-ttd-grid p { margin: 0; padding: 0; line-height: 1.3; }
-          .ba-pem-pemeriksa-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 9mm; column-gap: 12mm; margin-top: 24mm; }
-          .ba-pem-pemeriksa-cell p { margin: 0; line-height: 1.25; }
-          .ba-pem-pemeriksa-cell .name { font-weight: bold; }
-          .ba-pem-ttd-kepala { text-align: left; }
-          .ba-pem-ttd-kepala .kepala-name-block { margin-top: 24mm; }
-          .ba-pem-ttd-kepala .kepala-name-block p { line-height: 1.25; }
-          .ba-pem-ttd-kepala .kepala-name-block .name { font-weight: bold; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  printDocumentWindow({
+    rootId: "ba-pemeriksaan-print-root",
+    title: "Berita Acara Pemeriksaan BMN",
+    emptyMessage: "Tidak ada dokumen Berita Acara Pemeriksaan untuk dicetak.",
+    styles: BA_PEMERIKSAAN_PRINT_CSS,
+  });
 }
 
 export function BaPemeriksaanDocument({
@@ -258,6 +198,7 @@ export function BaPemeriksaanDocument({
   stTanggal,
   assets,
   kepalaBalai,
+  content,
 }: BaPemeriksaanDocumentProps) {
   const docDate = parseDocDate(date);
   const nomorText = buildNomorText(number, kap, docDate);
@@ -333,7 +274,7 @@ export function BaPemeriksaanDocument({
 
         <div className="doc-body doc-text-block mx-auto mt-4 w-[166mm] space-y-3 text-justify">
           <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Pada hari ini {day} tanggal {dateText} bulan {month} tahun {yearText}, kami yang bertanda tangan di bawah ini :
+            Pada hari ini {content?.hari || day} tanggal {dateText} bulan {month} tahun {yearText}, kami yang bertanda tangan di bawah ini :
           </p>
 
           <div className="pemeriksa-list">
@@ -367,11 +308,11 @@ export function BaPemeriksaanDocument({
             )}
           </div>
 
-          <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Telah melaksanakan tugas pemeriksaan secara administrasi, teknis tentang kondisi dan nilai taksiran Barang Milik Negara berupa Alat Angkutan Bermotor yang berada pada Balai Konservasi Sumber Daya Alam Kalimantan Timur sesuai dengan Surat Tugas Nomor : {formattedStNumber}, tanggal {formattedStTanggal} sebagaimana terlampir.
+          <p contentEditable suppressContentEditableWarning className="doc-editable whitespace-pre-line">
+            {content?.dasarTugas || `Telah melaksanakan tugas pemeriksaan secara administrasi, teknis tentang kondisi dan nilai taksiran Barang Milik Negara berupa Alat Angkutan Bermotor yang berada pada Balai Konservasi Sumber Daya Alam Kalimantan Timur sesuai dengan Surat Tugas Nomor : ${formattedStNumber}, tanggal ${formattedStTanggal} sebagaimana terlampir.`}
           </p>
-          <p contentEditable suppressContentEditableWarning className="doc-editable">
-            Demikian Berita Acara Pemeriksaan ini dibuat dengan sebenarnya, ditandatangani oleh masing-masing pemeriksa.
+          <p contentEditable suppressContentEditableWarning className="doc-editable whitespace-pre-line">
+            {content?.penutup || "Demikian Berita Acara Pemeriksaan ini dibuat dengan sebenarnya, ditandatangani oleh masing-masing pemeriksa."}
           </p>
         </div>
       </article>

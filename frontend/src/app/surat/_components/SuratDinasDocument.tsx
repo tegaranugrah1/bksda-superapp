@@ -2,6 +2,7 @@
 
 import React from "react";
 import { toast } from "sonner";
+import { formatNipLabel, isPppk } from "@/lib/letter-utils";
 
 export type TemplateType =
   | "surat_dinas"
@@ -23,7 +24,8 @@ export type TemplateType =
   | "laporan"
   | "perjanjian"
   | "piagam"
-  | "sertifikat";
+  | "sertifikat"
+  | "surat_izin_cuti";
 
 export interface TembusanItem {
   id: string;
@@ -44,6 +46,7 @@ export interface PersonItem {
   jabatan: string;
   alamat?: string;
   unit?: string;
+  satuanKerja?: string;
   instansi?: string;
   idType?: "NIP" | "NIK" | string;
   partyType?: "internal" | "external";
@@ -86,6 +89,14 @@ export interface SuratDinasData {
   subjekPernyataan?: string;
   pejabatMenerangkan?: PersonItem;
   pegawaiDiterangkan?: PersonItem;
+
+  // Surat Izin Cuti Resmi (BKSDA)
+  jenisCuti?: string;
+  jumlahHari?: number;
+  terbilangHari?: string;
+  tanggalMulai?: string;
+  tanggalSelesai?: string;
+  pegawai?: PersonItem;
 
   // Surat Kuasa
   pemberiKuasa?: PersonItem;
@@ -179,6 +190,7 @@ export function getDefaultNomorPrefix(type: TemplateType): string {
     case "perjanjian": return "PKS.071";
     case "piagam": return "PGM.001";
     case "sertifikat": return "SRT.005";
+    case "surat_izin_cuti": return "SI.1";
     case "surat_dinas":
     default:
       return "S.888";
@@ -190,7 +202,7 @@ export function getDefaultNomorForTemplate(type: TemplateType, nomorUrut?: strin
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const yyyy = d.getFullYear();
   const prefix = nomorUrut || getDefaultNomorPrefix(type);
-  const klas = klasifikasi || "KSA.01.05";
+  const klas = klasifikasi || (type === "surat_izin_cuti" ? "PEG.11.01" : "KSA.01.05");
 
   if (type === "surat_edaran" || type === "instruksi" || type === "keputusan") {
     return `${prefix} TAHUN ${yyyy}`;
@@ -707,6 +719,31 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         tembusan: [],
       };
 
+    case "surat_izin_cuti":
+      return {
+        ...DEFAULT_SURAT_DINAS_DATA,
+        templateType: "surat_izin_cuti",
+        nomor,
+        kotaTanggal: `Samarinda, ${baseDate}`,
+        jenisCuti: "Tahunan",
+        jumlahHari: 3,
+        terbilangHari: "tiga",
+        tanggalMulai: baseDate,
+        tanggalSelesai: baseDate,
+        pegawai: {
+          nama: "AGUS PURNOMO, S.Hut.",
+          nip: "19850712 201012 1 002",
+          pangkatGol: "Penata (III/c)",
+          jabatan: "Pengendali Ekosistem Hutan Ahli Muda",
+          unit: "Balai Konservasi Sumber Daya Alam Kalimantan Timur",
+        },
+        paragraf: [],
+        jabatanPenandatangan: DEFAULT_KEPALA_BALAI.jabatan,
+        namaPenandatangan: DEFAULT_KEPALA_BALAI.nama,
+        nipPenandatangan: DEFAULT_KEPALA_BALAI.nip,
+        tembusan: [],
+      };
+
     case "surat_dinas":
     default:
       return DEFAULT_SURAT_DINAS_DATA;
@@ -723,6 +760,14 @@ export const SURAT_DINAS_BASE_CSS = `
   * { box-sizing: border-box; }
   body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000; background: #fff; }
   h1, h2, h3, h4, p { margin: 0; padding: 0; }
+  .whitespace-pre { white-space: pre !important; }
+  .font-bold { font-weight: bold !important; }
+  .font-normal { font-weight: normal !important; }
+  .text-center { text-align: center !important; }
+  .text-justify { text-align: justify !important; text-justify: inter-word !important; }
+  .text-right { text-align: right !important; }
+  .uppercase { text-transform: uppercase !important; }
+
   .pkpknl-page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 4mm 20mm 20mm 20mm; font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #000; }
   .pkpknl-kop { margin-top: 0; margin-left: -20mm; margin-right: -20mm; margin-bottom: 6px; text-align: center; }
   .pkpknl-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
@@ -743,7 +788,7 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-body { width: 100%; margin: 14px 0 0; text-align: justify; text-justify: inter-word; }
   .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; line-height: 1.5; }
   .pkpknl-body p.no-indent { text-indent: 0 !important; }
-  .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+  .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; margin-top: 1.5rem !important; }
   .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
   .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
   .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 105px; display: flex; align-items: flex-start; text-align: left; padding-top: 34px; padding-left: 1.35cm; margin-top: 14px; margin-bottom: 0; color: #94a3b8; font-size: 9pt; }
@@ -754,6 +799,22 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-tembusan-item.single-item { display: block; }
   table.pengantar-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
   table.pengantar-table th, table.pengantar-table td { border: 1px solid #000; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: top; }
+
+  /* Surat Izin Cuti Specific Styles */
+  .surat-izin-cuti-header { width: 100%; text-align: center; margin-top: 18px; margin-bottom: 24px; }
+  .surat-izin-cuti-title { font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.35; margin: 0; }
+  .surat-izin-cuti-nomor { font-size: 11pt; font-weight: normal; margin-top: 4px; line-height: 1.35; }
+  .surat-izin-cuti-body { width: 100%; font-size: 11pt; line-height: 1.55; text-align: justify; text-justify: inter-word; }
+  .surat-izin-cuti-p { margin: 0 0 14px 0; line-height: 1.55; }
+  .surat-izin-cuti-table { width: 100%; border-collapse: collapse; margin: 0 0 14px 0; margin-left: 24px; max-width: calc(100% - 24px); }
+  .surat-izin-cuti-table td { padding: 3px 0; vertical-align: top; font-size: 11pt; line-height: 1.45; }
+  .surat-izin-cuti-table td.sic-label { width: 175px; white-space: nowrap; }
+  .surat-izin-cuti-table td.sic-colon { width: 18px; text-align: center; }
+  .surat-izin-cuti-table td.sic-val { text-align: left; }
+  .surat-izin-cuti-subtable { width: 100%; border-collapse: collapse; margin: 6px 0 14px 0; margin-left: 24px; max-width: calc(100% - 24px); }
+  .surat-izin-cuti-subtable td { padding: 3px 0; vertical-align: top; font-size: 11pt; line-height: 1.45; }
+  .surat-izin-cuti-subtable td.sic-sub-bullet { width: 22px; }
+  .surat-izin-cuti-subtable td.sic-sub-text { text-align: justify; text-justify: inter-word; }
 `;
 
 export function handlePrintSuratDinas() {
@@ -762,6 +823,13 @@ export function handlePrintSuratDinas() {
     toast.error("Tidak ada dokumen naskah dinas untuk dicetak.");
     return;
   }
+
+  // Collect active stylesheets and inline style blocks
+  const headElements = typeof document !== "undefined"
+    ? Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
+        .map((el) => el.outerHTML)
+        .join("\n")
+    : "";
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
@@ -773,17 +841,29 @@ export function handlePrintSuratDinas() {
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="utf-8" />
         <title>Naskah Dinas Resmi Permen Kehutanan</title>
+        ${headElements}
         <style>
           ${SURAT_DINAS_BASE_CSS}
+          .surat-dinas-print-root, .pkpknl-page {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 auto !important;
+          }
         </style>
       </head>
       <body>
-        ${printContent.innerHTML}
+        <div class="surat-dinas-print-root">
+          ${printContent.innerHTML}
+        </div>
         <script>
           window.onload = function() {
-            window.print();
-            window.close();
+            setTimeout(function() {
+              window.focus();
+              window.print();
+              window.close();
+            }, 350);
           };
         </script>
       </body>
@@ -845,6 +925,12 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     sectionLaporan,
     diberikanKepada,
     atasPeran,
+    jenisCuti,
+    jumlahHari,
+    terbilangHari,
+    tanggalMulai,
+    tanggalSelesai,
+    pegawai,
   } = data;
 
   const nomorText = nomor !== undefined && nomor !== null && nomor !== "" ? nomor : getDefaultNomorForTemplate(currentTemplate);
@@ -873,6 +959,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           .pkpknl-kop { margin-top: 0 !important; margin-left: -20mm !important; margin-right: -20mm !important; }
           .pkpknl-edit { background: none !important; }
           .pkpknl-meta-nomor { white-space: pre !important; }
+          .whitespace-pre { white-space: pre !important; }
           .pkpknl-meta-nomor-long { font-size: 10pt !important; letter-spacing: -0.2px; }
           .pkpknl-meta-nomor-extra-long { font-size: 9.5pt !important; letter-spacing: -0.3px; }
           .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
@@ -1036,7 +1123,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {penerimaPengantar?.partyType === "internal" ? "${ttd_pengirim}" : "${ttd_penerima}"}
                 </div>
                 <p className="font-bold">{penerimaPengantar?.nama || "..........................................."}</p>
-                <p>{(penerimaPengantar?.idType === "NIK" ? "NIK. " : "NIP. ") + (penerimaPengantar?.nip || "...........................................")}</p>
+                <p>{(penerimaPengantar?.idType === "NIK" ? "NIK. " : `${formatNipLabel(penerimaPengantar, true)} `) + (penerimaPengantar?.nip || "...........................................")}</p>
               </div>
               <div>
                 <p>&nbsp;</p>
@@ -1046,7 +1133,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {"${ttd_pengirim}"}
                 </div>
                 <p className="font-bold">{namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                <p>NIP. {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                <p>{formatNipLabel(nipPenandatangan, true)} {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
               </div>
             </div>
           </div>
@@ -1064,14 +1151,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
             <p className="mb-2">Yang bertanda tangan di bawah ini :</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
-              <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+              <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
               <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pejabatMenerangkan?.pangkatGol || "Pembina Tk. I (IV/b)"}</span></div>
               <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
             </div>
 
             <p className="mb-2">Dengan ini menyatakan dengan sesungguhnya, bahwa :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
-              <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
+              <div className="flex"><span className="w-36">Nama, {formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
               <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
               <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
             </div>
@@ -1089,7 +1176,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mb-2">Yang bertanda tangan di bawah ini :</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
               <div className="flex"><span className="w-32">Nama</span><span className="w-4">:</span><span className="font-bold">{pemberiKuasa?.nama || namaPenandatangan}</span></div>
-              <div className="flex"><span className="w-32">NIP</span><span className="w-4">:</span><span>{pemberiKuasa?.nip || nipPenandatangan}</span></div>
+              <div className="flex"><span className="w-32">{formatNipLabel(pemberiKuasa || nipPenandatangan)}</span><span className="w-4">:</span><span>{pemberiKuasa?.nip || nipPenandatangan}</span></div>
               <div className="flex"><span className="w-32">Jabatan</span><span className="w-4">:</span><span>{pemberiKuasa?.jabatan || jabatanPenandatangan}</span></div>
               <div className="flex"><span className="w-32">Alamat</span><span className="w-4">:</span><span>{pemberiKuasa?.alamat || "Samarinda"}</span></div>
             </div>
@@ -1097,7 +1184,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mb-2">Memberi kuasa kepada :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
               <div className="flex"><span className="w-32">Nama</span><span className="w-4">:</span><span className="font-bold">{penerimaKuasa?.nama}</span></div>
-              <div className="flex"><span className="w-32">NIP</span><span className="w-4">:</span><span>{penerimaKuasa?.nip || "-"}</span></div>
+              <div className="flex"><span className="w-32">{formatNipLabel(penerimaKuasa)}</span><span className="w-4">:</span><span>{penerimaKuasa?.nip || "-"}</span></div>
               <div className="flex"><span className="w-32">Jabatan</span><span className="w-4">:</span><span>{penerimaKuasa?.jabatan}</span></div>
               <div className="flex"><span className="w-32">Alamat</span><span className="w-4">:</span><span>{penerimaKuasa?.alamat}</span></div>
             </div>
@@ -1124,7 +1211,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <div className="space-y-3 mb-4 text-[11pt]">
                 <p>Dengan hormat kami harapkan kehadiran Saudara :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama} ({pegawaiDiterangkan?.nip})</span></div>
                   <div className="flex"><span className="w-36">Pangkat/Gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
                   <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
                   <div className="flex"><span className="w-36">Unit Organisasi</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.unit || "Balai KSDA Kalimantan Timur"}</span></div>
@@ -1132,7 +1219,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
                 <p>Untuk menghadap kepada :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
                   <div className="flex"><span className="w-36">Hari, Tanggal</span><span className="w-4">:</span><span className="font-normal">{acaraHariTanggal}</span></div>
                   <div className="flex"><span className="w-36">Waktu</span><span className="w-4">:</span><span>{acaraWaktu}</span></div>
                   <div className="flex"><span className="w-36">Tempat</span><span className="w-4">:</span><span>{acaraTempat}</span></div>
@@ -1143,7 +1230,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <div className="space-y-3 mb-4 text-[11pt]">
                 <p>Yang bertanda tangan di bawah ini :</p>
                 <div className="pl-6 space-y-1">
-                  <div className="flex"><span className="w-36">Nama, NIP</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
+                  <div className="flex"><span className="w-36">Nama, {formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan} ({pejabatMenerangkan?.nip || nipPenandatangan})</span></div>
                   <div className="flex"><span className="w-36">Jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
                 </div>
 
@@ -1154,6 +1241,97 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ─── 5.1 SURAT IZIN CUTI RESMI (BKSDA KALTIM) ───────────────────── */}
+        {currentTemplate === "surat_izin_cuti" && (
+          <div className="w-full surat-izin-cuti-container text-[11pt] text-black">
+            <div className="surat-izin-cuti-header text-center">
+              <h2 className="surat-izin-cuti-title font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">
+                SURAT IZIN CUTI {(jenisCuti || "TAHUNAN").toUpperCase().replace(/^CUTI\s+/i, "")}
+              </h2>
+              <p className="surat-izin-cuti-nomor text-[11pt] font-normal leading-snug m-0 mt-0.5">
+                Nomor :{" "}
+                <span
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="pkpknl-edit pkpknl-meta-nomor font-normal whitespace-pre"
+                  onBlur={(e) => onUpdateField?.("nomor", e.currentTarget.innerText)}
+                >
+                  {nomorText}
+                </span>
+              </p>
+            </div>
+
+            {(() => {
+              const jenisCutiClean = (jenisCuti || "Tahunan").replace(/^Cuti\s+/i, "");
+              const isTahunan = jenisCutiClean.toLowerCase().includes("tahunan");
+              const tipeHari = isTahunan ? "hari kerja" : "hari kalender";
+
+              return (
+                <div className="surat-izin-cuti-body text-justify">
+                  <p className="surat-izin-cuti-p">
+                    1. Diberikan Cuti {jenisCutiClean} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
+                  </p>
+
+                  <table className="surat-izin-cuti-table">
+                    <tbody>
+                      <tr>
+                        <td className="sic-label">Nama</td>
+                        <td className="sic-colon">:</td>
+                        <td className="sic-val font-bold">{pegawai?.nama || pegawaiDiterangkan?.nama || "-"}</td>
+                      </tr>
+                      <tr>
+                        <td className="sic-label">{formatNipLabel(pegawai || pegawaiDiterangkan)}</td>
+                        <td className="sic-colon">:</td>
+                        <td className="sic-val">{pegawai?.nip || pegawaiDiterangkan?.nip || "-"}</td>
+                      </tr>
+                      <tr>
+                        <td className="sic-label">Pangkat /Gol. Ruang</td>
+                        <td className="sic-colon">:</td>
+                        <td className="sic-val">{pegawai?.pangkatGol || pegawaiDiterangkan?.pangkatGol || "-"}</td>
+                      </tr>
+                      <tr>
+                        <td className="sic-label">Jabatan</td>
+                        <td className="sic-colon">:</td>
+                        <td className="sic-val">{pegawai?.jabatan || pegawaiDiterangkan?.jabatan || "-"}</td>
+                      </tr>
+                      <tr>
+                        <td className="sic-label">Satuan Kerja</td>
+                        <td className="sic-colon">:</td>
+                        <td className="sic-val">{pegawai?.satuanKerja || pegawai?.unit || "Balai Konservasi Sumber Daya Alam Kalimantan Timur"}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <p className="surat-izin-cuti-p">
+                    Selama {jumlahHari || 0} ({terbilangHari || "..."}) {tipeHari} terhitung mulai tanggal {tanggalMulai || "..."} s.d {tanggalSelesai || "..."}, dengan ketentuan sebagai berikut :
+                  </p>
+
+                  <table className="surat-izin-cuti-subtable">
+                    <tbody>
+                      <tr>
+                        <td className="sic-sub-bullet">a.</td>
+                        <td className="sic-sub-text">
+                          Selama menjalankan Cuti {jenisCutiClean} wajib menyerahkan pekerjaan pada atasan langsungnya atau pejabat lain yang ditunjuk.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="sic-sub-bullet">b.</td>
+                        <td className="sic-sub-text">
+                          Setelah selesai menjalankan Cuti {jenisCutiClean} wajib melaporkan diri kepada atasan langsungnya dan bekerja kembali sebagaimana biasa.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <p className="surat-izin-cuti-p">
+                    2. Demikian Surat Izin Cuti {jenisCutiClean} ini dibuat untuk dapat dipergunakan sebagaimana mestinya.
+                  </p>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1336,13 +1514,13 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <p className="mt-4 mb-2">Yang bertanda tangan di bawah ini:</p>
             <div className="pl-6 space-y-1 mb-3 text-[11pt]">
               <div className="flex"><span className="w-36">nama</span><span className="w-4">:</span><span className="font-bold">{pejabatMenerangkan?.nama || namaPenandatangan}</span></div>
-              <div className="flex"><span className="w-36">NIP</span><span className="w-4">:</span><span>{pejabatMenerangkan?.nip || nipPenandatangan}</span></div>
+              <div className="flex"><span className="w-36">{formatNipLabel(pejabatMenerangkan || nipPenandatangan)}</span><span className="w-4">:</span><span>{pejabatMenerangkan?.nip || nipPenandatangan}</span></div>
               <div className="flex"><span className="w-36">jabatan</span><span className="w-4">:</span><span>{pejabatMenerangkan?.jabatan || jabatanPenandatangan}</span></div>
             </div>
             <p className="mt-4 mb-2">dengan ini menerangkan bahwa :</p>
             <div className="pl-6 space-y-1 mb-4 text-[11pt]">
               <div className="flex"><span className="w-36">nama</span><span className="w-4">:</span><span className="font-bold">{pegawaiDiterangkan?.nama}</span></div>
-              <div className="flex"><span className="w-36">NIP</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.nip}</span></div>
+              <div className="flex"><span className="w-36">{formatNipLabel(pegawaiDiterangkan)}</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.nip}</span></div>
               <div className="flex"><span className="w-36">pangkat/gol.</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.pangkatGol}</span></div>
               <div className="flex"><span className="w-36">jabatan</span><span className="w-4">:</span><span>{pegawaiDiterangkan?.jabatan}</span></div>
             </div>
@@ -1357,7 +1535,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             </div>
             <p className="mb-3 text-justify">Pada hari ini, {hariTanggalAcara || "..."} bertempat di {lokasiDibuat || "Samarinda"}, kami masing-masing:</p>
             <div className="pl-4 space-y-2 mb-3 text-justify text-[11pt]">
-              <p>1. <strong>{pihakPertama?.nama}</strong>, NIP. {pihakPertama?.nip}, {pihakPertama?.jabatan}, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
+              <p>1. <strong>{pihakPertama?.nama}</strong>, {formatNipLabel(pihakPertama, true)} {pihakPertama?.nip}, {pihakPertama?.jabatan}, selanjutnya disebut <strong>PIHAK PERTAMA</strong>.</p>
               <p>2. <strong>{pihakKedua?.nama}</strong>, {pihakKedua?.jabatan} {pihakKedua?.instansi || ""}, selanjutnya disebut <strong>PIHAK KEDUA</strong>.</p>
             </div>
             <p className="mb-2 font-medium">Telah melaksanakan/bersepakat mengenai:</p>
@@ -1440,7 +1618,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         )}
 
         {/* ─── PARAGRAF BATANG TUBUH UMUM ──────────────────────────────────── */}
-        {currentTemplate !== "surat_pengantar" && (
+        {currentTemplate !== "surat_pengantar" && currentTemplate !== "surat_izin_cuti" && (
           <div className="pkpknl-body">
             {paragraf && paragraf.length > 1 ? (
               paragraf.slice(0, -1).map((pText, idx) => (
@@ -1467,7 +1645,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         {/* ─── GRUP PENUTUP + TANDA TANGAN + TEMBUSAN ──────────────────────── */}
         {currentTemplate !== "surat_pengantar" && (
           <div data-break-candidate="penutup-ttd" className="penutup-ttd-group" style={{ display: "block", breakInside: "avoid", pageBreakInside: "avoid" }}>
-            {paragraf && paragraf.length > 0 && (
+            {paragraf && paragraf.length > 0 && currentTemplate !== "surat_izin_cuti" && (
               <div className="pkpknl-body">
                 <p
                   contentEditable
@@ -1499,7 +1677,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                     <p className="font-bold">{pihakKedua?.nama || penerimaKuasa?.nama || ".............................."}</p>
                     {(pihakKedua?.nip || penerimaKuasa?.nip) && (
                       <p className="text-[10pt]">
-                        {(pihakKedua?.idType === "NIK" || penerimaKuasa?.idType === "NIK" ? "NIK. " : "NIP. ") + (pihakKedua?.nip || penerimaKuasa?.nip)}
+                        {(pihakKedua?.idType === "NIK" || penerimaKuasa?.idType === "NIK" ? "NIK. " : `${formatNipLabel(pihakKedua || penerimaKuasa, true)} `) + (pihakKedua?.nip || penerimaKuasa?.nip)}
                       </p>
                     )}
                   </div>
@@ -1511,7 +1689,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                       {"${ttd_pengirim}"}
                     </div>
                     <p className="font-bold">{pihakPertama?.nama || pemberiKuasa?.nama || namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                    <p className="text-[10pt]">NIP. {pihakPertama?.nip || pemberiKuasa?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                    <p className="text-[10pt]">{formatNipLabel(pihakPertama || pemberiKuasa || nipPenandatangan, true)} {pihakPertama?.nip || pemberiKuasa?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
                   </div>
                 </div>
 
@@ -1523,24 +1701,24 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                       {"${ttd_pengirim}"}
                     </div>
                     <p className="font-bold">{pihakKetiga?.nama || namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                    <p className="text-[10pt]">NIP. {pihakKetiga?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                    <p className="text-[10pt]">{formatNipLabel(pihakKetiga || nipPenandatangan, true)} {pihakKetiga?.nip || nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
                   </div>
                 )}
               </div>
             ) : (
               /* Kaki Standar 1 Kolom Kanan Bawah */
               <div className="pkpknl-ttd">
-                {(currentTemplate === "surat_keterangan" || currentTemplate === "surat_pernyataan") && (
-                  <p className="mb-1 text-zinc-700">Samarinda, {kotaTanggal}</p>
+                {(currentTemplate === "surat_keterangan" || currentTemplate === "surat_pernyataan" || currentTemplate === "surat_izin_cuti") && (
+                  <p className="mb-1 text-black font-normal">{kotaTanggal.startsWith("Samarinda") ? kotaTanggal : `Samarinda, ${kotaTanggal}`}</p>
                 )}
                 {(currentTemplate === "pengumuman" || currentTemplate === "instruksi") && (
-                  <div className="mb-1 text-zinc-700">
+                  <div className="mb-1 text-black font-normal">
                     <p>Dikeluarkan di Samarinda</p>
                     <p>pada tanggal {kotaTanggal}</p>
                   </div>
                 )}
                 {(currentTemplate === "surat_edaran" || currentTemplate === "keputusan") && (
-                  <div className="mb-1 text-zinc-700">
+                  <div className="mb-1 text-black font-normal">
                     <p>Ditetapkan di Samarinda</p>
                     <p>pada tanggal {kotaTanggal}</p>
                   </div>
@@ -1557,7 +1735,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   {"${ttd_pengirim}"}
                 </div>
                 <p className="pkpknl-ttd-name pkpknl-edit font-bold">{namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}</p>
-                <p className="pkpknl-edit">NIP. {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
+                <p className="pkpknl-edit">{formatNipLabel(nipPenandatangan, true)} {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}</p>
               </div>
             )}
 

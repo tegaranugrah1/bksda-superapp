@@ -8,6 +8,7 @@ use App\Modules\Kepegawaian\Requests\StoreStTemplateRequest;
 use App\Modules\Kepegawaian\Requests\UpdateStTemplateRequest;
 use App\Modules\Kepegawaian\Resources\StTemplateResource;
 use App\Modules\Kepegawaian\Services\StTemplateService;
+use App\Support\Security\UploadValidationRules;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class StTemplateController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $includeInactive = $request->user()?->role === 'super_admin'
+        $includeInactive = in_array($request->user()?->role, ['super_admin', 'admin'], true)
             && $request->boolean('include_inactive');
 
         return StTemplateResource::collection(
@@ -31,7 +32,7 @@ class StTemplateController extends Controller
     public function show(Request $request, int $id): StTemplateResource
     {
         $query = StTemplate::with('defaultSigner');
-        if ($request->user()?->role !== 'super_admin') {
+        if (! in_array($request->user()?->role, ['super_admin', 'admin'], true)) {
             $query->where('is_active', true);
         }
 
@@ -115,11 +116,11 @@ class StTemplateController extends Controller
     public function uploadKop(Request $request): JsonResponse
     {
         $request->validate([
-            'kop' => ['required', 'file', 'image', 'mimes:png,jpg,jpeg,webp', 'max:5120'],
+            'kop' => UploadValidationRules::image(maxKilobytes: 5120),
         ]);
 
         $file = $request->file('kop');
-        $extension = $file->getClientOriginalExtension() ?: 'png';
+        $extension = $file->extension() ?: 'png';
         $filename = 'kop_' . time() . '_' . Str::random(8) . '.' . $extension;
         $path = $file->storeAs('kop-surat', $filename, 'public');
 

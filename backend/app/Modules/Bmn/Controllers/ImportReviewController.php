@@ -25,7 +25,13 @@ class ImportReviewController extends Controller
     public function upload(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => UploadValidationRules::spreadsheet(),
+            'file' => [
+                'required',
+                'file',
+                'mimes:xlsx,xls',
+                'extensions:xlsx,xls',
+                'max:10240',
+            ],
         ]);
 
         try {
@@ -150,6 +156,7 @@ class ImportReviewController extends Controller
             ->get();
 
         foreach ($rows as $row) {
+            /** @var ImportStaging $row */
             $updates = ['selected' => $request->selected];
 
             if ($row->diff_status === 'updated') {
@@ -451,7 +458,7 @@ class ImportReviewController extends Controller
     private function applyIdentityFilters($query, Request $request)
     {
         foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
-            $value = trim((string) $request->input($field, ''));
+            $value = addcslashes(trim((string) $request->input($field, '')), '%_');
 
             if ($value !== '') {
                 $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);

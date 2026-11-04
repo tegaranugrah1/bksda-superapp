@@ -42,14 +42,40 @@ export function TagFilterCombobox({
   }, [tags, selectedTagIds, activeCount]);
 
   const filteredTags = useMemo(() => {
-    if (!search.trim()) return tags;
-    const cleanSearch = search.trim().toLowerCase().replace(/^#/, "");
-    return tags.filter(
-      (t) =>
-        t.name.toLowerCase().includes(cleanSearch) ||
-        t.label.toLowerCase().includes(cleanSearch) ||
-        (t.description && t.description.toLowerCase().includes(cleanSearch))
-    );
+    if (search.trim()) {
+      const cleanSearch = search.trim().toLowerCase().replace(/^#/, "");
+      return tags.filter(
+        (t) =>
+          t.name.toLowerCase().includes(cleanSearch) ||
+          t.label.toLowerCase().includes(cleanSearch) ||
+          (t.description && t.description.toLowerCase().includes(cleanSearch))
+      );
+    }
+
+    const mainList = tags.filter((t) => !t.parent_id);
+    const subMap = new Map<string, IBmnTag[]>();
+    tags.forEach((t) => {
+      if (t.parent_id) {
+        const list = subMap.get(t.parent_id) || [];
+        list.push(t);
+        subMap.set(t.parent_id, list);
+      }
+    });
+
+    const ordered: IBmnTag[] = [];
+    mainList.forEach((main) => {
+      ordered.push(main);
+      const subs = subMap.get(main.id) || [];
+      subs.forEach((s) => ordered.push(s));
+    });
+
+    tags.forEach((t) => {
+      if (t.parent_id && !mainList.some((m) => m.id === t.parent_id)) {
+        ordered.push(t);
+      }
+    });
+
+    return ordered;
   }, [tags, search]);
 
   const singleColorTheme = singleSelectedTag
@@ -195,6 +221,7 @@ export function TagFilterCombobox({
           {/* Filtered Tags */}
           {filteredTags.map((tag) => {
             const isSelected = selectedTagIds.includes(tag.id);
+            const isSub = Boolean(tag.parent_id);
             const swatch = AVAILABLE_TAG_COLORS.find((c) => c.key === tag.color);
             return (
               <button
@@ -205,19 +232,29 @@ export function TagFilterCombobox({
                 }}
                 className={cn(
                   "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left group",
+                  isSub && "pl-5 bg-slate-50/50 dark:bg-slate-900/30",
                   isSelected
                     ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold"
                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 )}
               >
-                <span className="flex items-center gap-2 truncate">
-                  <span
-                    className={cn(
-                      "w-2.5 h-2.5 rounded-full shrink-0 border border-black/10",
-                      swatch?.class || "bg-emerald-500"
-                    )}
-                  />
+                <span className="flex items-center gap-1.5 truncate">
+                  {isSub ? (
+                    <span className="font-mono text-slate-400 text-xs font-bold shrink-0 select-none mr-0.5">↳</span>
+                  ) : (
+                    <span
+                      className={cn(
+                        "w-2.5 h-2.5 rounded-full shrink-0 border border-black/10",
+                        swatch?.class || "bg-emerald-500"
+                      )}
+                    />
+                  )}
                   <span className="truncate font-medium">{tag.label}</span>
+                  {isSub && (
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-400">
+                      sub
+                    </span>
+                  )}
                 </span>
                 <span className="flex items-center gap-1.5 shrink-0 ml-2">
                   {tag.assets_count !== undefined && tag.assets_count > 0 && (

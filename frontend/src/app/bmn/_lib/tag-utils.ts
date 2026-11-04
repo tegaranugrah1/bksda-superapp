@@ -4,7 +4,19 @@ export interface IBmnTag {
   label: string;
   color: string;
   description?: string | null;
+  parent_id?: string | null;
+  is_main_tag?: boolean;
+  is_sub_tag?: boolean;
+  parent?: {
+    id: string;
+    name: string;
+    label: string;
+    color?: string;
+  } | null;
+  sub_tags?: IBmnTag[];
+  sub_tags_count?: number;
   assets_count?: number;
+  direct_assets_count?: number;
 }
 
 export const TAG_COLOR_MAP: Record<string, { bg: string; text: string; border: string; ring: string }> = {

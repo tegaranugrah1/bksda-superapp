@@ -465,10 +465,18 @@ export default function VisumManageTemplatesModal({
     label: string
   ) => {
     if (!templateData) return;
-    setTemplateData({
-      ...templateData,
-      [transitKey]: {},
-    });
+    const next = { ...templateData };
+    if (transitKey === "transit_3") {
+      next.transit_3 = templateData.transit_4 || {};
+      next.transit_4 = templateData.transit_5 || {};
+      next.transit_5 = {};
+    } else if (transitKey === "transit_4") {
+      next.transit_4 = templateData.transit_5 || {};
+      next.transit_5 = {};
+    } else {
+      next.transit_5 = {};
+    }
+    setTemplateData(next);
     toast.info(`Destinasi ${label} dihapus dari template.`);
   };
 

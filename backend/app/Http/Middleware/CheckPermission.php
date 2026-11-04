@@ -38,21 +38,31 @@ class CheckPermission
             ], 401);
         }
 
-        // 2. VALIDASI UTAMA: Gunakan helper hasPermission di model User
-        if (! $user->hasPermission($permission)) {
+        // 2. VALIDASI UTAMA: Gunakan helper hasPermission di model User (mendukung pemisah pipe |)
+        $requiredPerms = array_map('trim', explode('|', $permission));
+        $hasAccess = false;
+        foreach ($requiredPerms as $p) {
+            if ($user->hasPermission($p)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (! $hasAccess) {
             // Special exception for BMN view permission: Allow regular employees to see their own assets
-            if ($permission === 'bmn.view') {
+            if (in_array('bmn.view', $requiredPerms, true)) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
                 if ($employee) {
                     // 1. List assets endpoint: check if they are filtering by their own employee_id
-                    if ($request->filled('employee_id') && (int)$employee->id === (int)$request->query('employee_id')) {
+                    if ($request->isMethod('GET') && $request->is('api/bmn/assets')
+                        && filter_var($request->query('employee_id'), FILTER_VALIDATE_INT) === (int) $employee->id) {
                         return $next($request);
                     }
 
                     // 2. Detail asset endpoint: check if the asset belongs to them
                     $assetId = $request->route('asset');
-                    if ($assetId) {
-                        $asset = \App\Modules\Bmn\Models\Asset::find($assetId);
+                    if ($request->isMethod('GET') && $assetId) {
+                        $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
                         if ($asset && $this->isAssetOwner($asset, $employee)) {
                             return $next($request);
                         }
@@ -77,54 +87,7 @@ class CheckPermission
      */
     private function isAssetOwner($asset, $employee): bool
     {
-        if ((int)$asset->employee_id === (int)$employee->id) {
-            return true;
-        }
-
-        if (!$employee->nama_lengkap) {
-            return false;
-        }
-
-        $fullName = strtolower(trim($employee->nama_lengkap));
-        $assetPengguna = strtolower(trim($asset->pengguna ?? ''));
-        $assetNamaPengguna = strtolower(trim($asset->nama_pengguna ?? ''));
-
-        if ($assetPengguna === '' && $assetNamaPengguna === '') {
-            return false;
-        }
-
-        // Exact or substring matches
-        if (str_contains($assetPengguna, $fullName) || str_contains($fullName, $assetPengguna)) {
-            return true;
-        }
-        if (str_contains($assetNamaPengguna, $fullName) || str_contains($fullName, $assetNamaPengguna)) {
-            return true;
-        }
-
-        // Match name before comma (stripping titles like A.Md., S.T., etc.)
-        if (str_contains($fullName, ',')) {
-            $parts = explode(',', $fullName);
-            $baseName = trim($parts[0]);
-            if (strlen($baseName) > 2) {
-                if (str_contains($assetPengguna, $baseName) || str_contains($baseName, $assetPengguna)) {
-                    return true;
-                }
-                if (str_contains($assetNamaPengguna, $baseName) || str_contains($baseName, $assetNamaPengguna)) {
-                    return true;
-                }
-            }
-        }
-
-        // Match first two words
-        $words = explode(' ', $fullName);
-        if (count($words) >= 2) {
-            $twoWords = $words[0] . ' ' . $words[1];
-            if (str_contains($assetPengguna, $twoWords) || str_contains($twoWords, $assetPengguna)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $asset->employee_id !== null
+            && (int) $asset->employee_id === (int) $employee->id;
     }
 }
-

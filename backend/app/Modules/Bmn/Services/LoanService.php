@@ -29,6 +29,28 @@ class LoanService
             $query->where('status', $filters['status']);
         }
 
+        if (!empty($filters['employee_id'])) {
+            $query->where('employee_id', (int) $filters['employee_id']);
+        }
+
+        if (!empty($filters['search'])) {
+            $s = addcslashes((string) $filters['search'], '%_');
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($s, $likeOp) {
+                $q->where('purpose', $likeOp, "%{$s}%")
+                    ->orWhere('notes', $likeOp, "%{$s}%")
+                    ->orWhereHas('asset', function ($aq) use ($s, $likeOp) {
+                        $aq->where('nama_barang', $likeOp, "%{$s}%")
+                            ->orWhere('kode_barang', $likeOp, "%{$s}%")
+                            ->orWhere('nup', $likeOp, "%{$s}%");
+                    })
+                    ->orWhereHas('borrower', function ($bq) use ($s, $likeOp) {
+                        $bq->where('nama_lengkap', $likeOp, "%{$s}%")
+                            ->orWhere('nip', $likeOp, "%{$s}%");
+                    });
+            });
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
@@ -73,6 +95,26 @@ class LoanService
                 ]);
 
                 $createdLoans[] = $record->load(['asset', 'borrower']);
+
+                try {
+                    event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $record->id));
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
+
+                try {
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $data['borrower_employee_id'],
+                        'Peminjaman Aset BMN',
+                        "Aset {$asset->nama_barang}".($asset->kode_barang ? " ({$asset->kode_barang})" : '').' telah dicatat dipinjamkan kepada Anda.',
+                        'bmn',
+                        'pinjaman',
+                        (string) $record->id,
+                        ['asset_id' => $asset->id, 'loan_id' => $record->id]
+                    );
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
             }
 
             return $createdLoans;
@@ -104,6 +146,26 @@ class LoanService
 
             $asset->update(['employee_id' => $employeeId]);
 
+            try {
+                event(new \App\Events\AdminInboxChanged('bmn', 'loan_created', (string) $loan->id));
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
+
+            try {
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $employeeId,
+                    'Peminjaman Aset BMN',
+                    "Aset {$asset->nama_barang} telah dicatat dipinjamkan kepada Anda.",
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    ['asset_id' => $asset->id, 'loan_id' => $loan->id]
+                );
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
+
             return $loan;
         });
     }
@@ -123,9 +185,15 @@ class LoanService
             $updateData = [];
             if (isset($data['borrower_employee_id'])) $updateData['employee_id'] = $data['borrower_employee_id'];
             if (isset($data['loan_date'])) $updateData['tanggal_pinjam'] = $data['loan_date'];
-            if (isset($data['due_date'])) $updateData['due_date'] = $data['due_date'];
+            if (array_key_exists('due_date', $data)) $updateData['due_date'] = $data['due_date'];
             if (isset($data['purpose'])) $updateData['purpose'] = $data['purpose'];
             if (isset($data['notes'])) $updateData['notes'] = $data['notes'];
+
+            $effectiveLoanDate = $updateData['tanggal_pinjam'] ?? $loan->tanggal_pinjam;
+            $effectiveDueDate = array_key_exists('due_date', $updateData) ? $updateData['due_date'] : $loan->due_date;
+            if ($effectiveDueDate && $effectiveLoanDate && strtotime((string) $effectiveDueDate) < strtotime((string) $effectiveLoanDate)) {
+                throw new Exception('Tanggal batas kembali (due date) tidak boleh mendahului tanggal peminjaman.');
+            }
 
             $loan->update($updateData);
             $loan->load(['asset', 'borrower']);
@@ -167,6 +235,20 @@ class LoanService
                 'new_value' => "Dikembalikan (Kondisi: {$conditionText})",
                 'alasan_perubahan' => 'Pengembalian aset dari peminjaman',
             ]);
+
+            try {
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $loan->employee_id,
+                    'Pengembalian Aset BMN',
+                    "Pengembalian aset {$asset->nama_barang} telah berhasil dicatat.",
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    ['asset_id' => $asset->id, 'loan_id' => $loan->id]
+                );
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
 
             return $loan;
         });

@@ -46,6 +46,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   const router = useRouter();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const { hasPermission } = useRole();
   const [activeTab, setActiveTab] = useState("assets");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -87,7 +88,6 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     );
   }
 
-  const { hasPermission } = useRole();
   const canUpdate = hasPermission("bmn.auction.update");
   const readOnly = isReadOnly(batch.status) || !canUpdate;
   const refetchAll = () => {
@@ -273,7 +273,26 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
       {/* Main Workspace Body with Tabs */}
       <div className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-wrap h-auto bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-1.5 gap-1 w-full justify-start overflow-x-auto">
+          {/* Mobile Tab Select Dropdown (< md) */}
+          <div className="md:hidden">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1.5 block">
+              Pilih Tahapan Alur Lelang:
+            </label>
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full h-11 px-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-semibold text-zinc-900 dark:text-zinc-100 shadow-xs focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+            >
+              {workflowTabs.map((tab) => (
+                <option key={tab.value} value={tab.value}>
+                  {tab.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop Tab Pills (>= md) */}
+          <TabsList className="hidden md:flex flex-wrap h-auto bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-1.5 gap-1 w-full justify-start overflow-x-auto">
             {workflowTabs.map((tab) => (
               <TabsTrigger
                 key={tab.value}

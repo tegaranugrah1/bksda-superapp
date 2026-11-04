@@ -5,8 +5,8 @@
 // source of truth here avoids drift between their print stylesheets and the
 // window-opening logic.
 
-import { toast } from "sonner";
 import { EMPTY_DOC_NUMBER_GAP } from "./auction-helpers";
+import { printDocumentWindow } from "./print-helpers";
 
 /**
  * Canonical print stylesheet for the "Surat Pernyataan" family. This is the
@@ -64,24 +64,10 @@ interface PrintPernyataanOptions {
 
 /** Open a print window for one of the surat-pernyataan documents. */
 export function printPernyataan({ rootId, title, emptyMessage }: PrintPernyataanOptions): void {
-  const printContent = document.getElementById(rootId);
-  if (!printContent) {
-    toast.error(emptyMessage);
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>${title}</title>
-        <style>${PERNYATAAN_PRINT_CSS}</style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  printDocumentWindow({
+    rootId,
+    title,
+    emptyMessage,
+    styles: PERNYATAAN_PRINT_CSS,
+  });
 }

@@ -33,6 +33,7 @@ class UpdateAuctionBatchDraftMetadataRequest extends FormRequest
             'document_kaps.*' => ['nullable', 'string', 'max:255'],
             'document_dates' => ['nullable', 'array'],
             'document_dates.*' => ['nullable', 'date'],
+            'document_contents' => ['nullable', 'array'],
             'workflow' => ['nullable', 'array'],
             'workflow.documents' => ['nullable', 'array'],
             'workflow.documents.*' => ['nullable', 'array'],

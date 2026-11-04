@@ -1,7 +1,8 @@
 <?php
 
 use App\Modules\DeReporting\Controllers\EksternalController;
-// Import 4 Pengendali Raksasa kita
+use App\Modules\DeReporting\Controllers\FormBuilderController;
+// Import Pengendali Modul DeReporting
 use App\Modules\DeReporting\Controllers\InternalController;
 use App\Modules\DeReporting\Controllers\MasterDataController;
 use App\Modules\DeReporting\Controllers\OperatorController;
@@ -14,11 +15,15 @@ use Illuminate\Support\Facades\Route;
 | Tanpa Token. Digunakan khusus oleh layar eksternal masyarakat.
 */
 
-// 1. Ekstraktor Dropdown (Peringatan: Controller memiliki perisai exception di dalamnya)
-Route::get('/master/{type}', [MasterDataController::class, 'index']);
+// 1. Ekstraktor Dropdown (Rate limited 120 req/menit)
+Route::get('/master/{type}', [MasterDataController::class, 'index'])->middleware('throttle:120,1');
 
-// 2. Lubang Penerima Formulir Masyarakat (Rate Limiting telah diurus di Controller)
-Route::post('/eksternals/public', [EksternalController::class, 'storePublic']);
+// 2. Lubang Penerima Formulir Masyarakat (Rate Limiting 10 req/menit)
+Route::post('/eksternals/public', [EksternalController::class, 'storePublic'])->middleware('throttle:10,1');
+
+// 3. Formulir Dinamis Publik (Google Forms Style)
+Route::get('/public-forms/{slug}', [FormBuilderController::class, 'showPublic']);
+Route::post('/public-forms/{slug}/submit', [FormBuilderController::class, 'submitPublic'])->middleware('throttle:15,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +39,20 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
     // Pintu gaib pengunduh PDF dari Brankas Privat
     Route::get('/internals/{id}/download', [InternalController::class, 'downloadFile']);
 
+    // 2. BACA & UNDUH LAPORAN EKSTERNAL (Seluruh Pegawai)
+    Route::get('/eksternals', [EksternalController::class, 'index']);
+    Route::get('/eksternals/{id}', [EksternalController::class, 'show']);
+    Route::get('/eksternals/{id}/download', [EksternalController::class, 'downloadFile']);
+
+    // 3. PENGELOLAAN FORMULIR DINAMIS (FORM BUILDER)
+    Route::apiResource('forms', FormBuilderController::class);
+    Route::post('/forms/{id}/duplicate', [FormBuilderController::class, 'duplicate']);
+    Route::get('/forms/{id}/responses', [FormBuilderController::class, 'responses']);
+    Route::get('/forms/{id}/responses/export', [FormBuilderController::class, 'exportCsv']);
+    Route::get('/forms/{id}/summary', [FormBuilderController::class, 'summary']);
+    Route::get('/forms/responses/{responseId}/download/{fieldId}', [FormBuilderController::class, 'downloadAttachment']);
+    Route::post('/forms/responses/{id}/share', [FormBuilderController::class, 'shareResponseFolder'])->middleware('throttle:30,1');
+
     /*
     |--------------------------------------------------------------------------
     | ZONA ADMIN & SUPER ADMIN (OTORITAS TINGGI)
@@ -48,13 +67,12 @@ Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function
         Route::delete('/master/{type}/{id}', [MasterDataController::class, 'destroy']);
 
         // B. PENUGASAN OPERATOR WILAYAH
+        Route::get('/operators/candidates', [OperatorController::class, 'candidates']);
         Route::apiResource('operators', OperatorController::class)->except(['show']);
 
-        // C. PENINJAUAN LAPORAN MASYARAKAT (EKSTERNAL)
-        Route::get('/eksternals', [EksternalController::class, 'index']);
+        // C. TINDAKAN LAPORAN MASYARAKAT (EKSTERNAL)
         Route::put('/eksternals/{id}/status', [EksternalController::class, 'updateStatus']);
-        Route::get('/eksternals/{id}/download', [EksternalController::class, 'downloadFile']);
-        Route::delete('/eksternals/{id}', [EksternalController::class, 'destroy']); // Ekstra fungsi buang laporan sampah
+        Route::delete('/eksternals/{id}', [EksternalController::class, 'destroy']);
     });
 
 });

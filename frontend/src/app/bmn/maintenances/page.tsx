@@ -5,9 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Wrench, Loader2, Calendar, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const formatRupiah = (angka: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
+import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
 
 interface IMaintenance {
   id: string;
@@ -30,27 +28,46 @@ export default function BmnMaintenancePage() {
   });
 
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-blue-500" /> Pemeliharaan
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Riwayat servis dan biaya pemeliharaan aset.</p>
+    <div className="p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* 1. Unified Clean Enterprise Header Bar */}
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Wrench className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              Barang Milik Negara
+            </span>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Pemeliharaan Aset
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              Riwayat servis, perbaikan teknis, dan catatan biaya pemeliharaan BMN.
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Tanggal & Aset</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">Deskripsi</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase text-right">Biaya</th>
+              <tr className="border-b border-slate-200/80 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-800/50">
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Tanggal & Aset</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Deskripsi</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider text-right">Biaya</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/50">
               {isLoading ? (
-                <tr><td colSpan={3} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-blue-500 mx-auto mb-2" /><p className="text-sm text-zinc-400">Memuat...</p></td></tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={3} className="px-4 py-4">
+                      <div className="h-10 bg-slate-100 dark:bg-zinc-800/60 rounded-xl" />
+                    </td>
+                  </tr>
+                ))
               ) : response?.data?.length === 0 ? (
                 <tr><td colSpan={3} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" /><p className="text-sm text-zinc-400">Belum ada riwayat pemeliharaan.</p></td></tr>
               ) : (
@@ -80,11 +97,11 @@ export default function BmnMaintenancePage() {
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">{response?.data?.length || 0} item</span>
+        <div className="px-4 py-3 border-t border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-sm">
+          <span className="text-xs text-slate-400">Total {response?.data?.length || 0} catatan servis</span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="text-xs rounded-lg">Prev</Button>
-            <Button variant="outline" size="sm" disabled={page === response?.last_page} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg">Next</Button>
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="text-xs rounded-lg cursor-pointer">Prev</Button>
+            <Button variant="outline" size="sm" disabled={page === response?.last_page} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg cursor-pointer">Next</Button>
           </div>
         </div>
       </div>

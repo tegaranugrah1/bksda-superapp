@@ -1,15 +1,23 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Printer, X } from "lucide-react";
 import {
   formatDateIndonesian,
   formatNIP,
+  formatNipLabel,
   indexToLetter,
   daysBetween,
   numberToWords,
+  renderFormattedItalic,
 } from "@/lib/letter-utils";
-import { resolveKopImageUrl } from "@/app/kepegawaian/surat-tugas/_lib";
+import {
+  resolveKopImageUrl,
+  splitStoredUntukItems,
+  buildOrderedAdditionalUntukItems,
+  buildBiayaTextFor,
+  type StTemplateConfiguration,
+} from "@/app/kepegawaian/surat-tugas/_lib";
 
 interface Employee {
   id: string | number;
@@ -17,6 +25,9 @@ interface Employee {
   name?: string;
   nip: string;
   jabatan?: string;
+  is_pppk?: boolean;
+  nip_label?: string;
+  pangkat_golongan?: string;
   pivot?: { peran?: string };
 }
 
@@ -38,41 +49,33 @@ interface SuratTugasLetterPreviewProps {
     tanggal_selesai: string;
     tanggal_surat?: string | null;
     sumber_dana?: string | null;
+    sumber_dana_other?: string | null;
+    template_type?: string | null;
+    sertakan_laporan?: boolean | null;
     status: string;
     keterangan?: string | null;
     tembusan?: string[] | null;
     nama_plh?: string | null;
+    penandatangan_nama?: string | null;
+    penandatangan_nip?: string | null;
     employees?: Employee[];
     approver?: { name: string; nip?: string };
     template_snapshot?: {
-      configuration?: {
-        header_title?: string;
-        penutup_text?: string;
-        date_format_style?: "inline" | "tabular";
-        signer_authority_mandate?: string | null;
-        signer_title?: string;
-        tembusan_position?: "beside" | "bottom";
-        tembusan_label?: string;
-        tembusan_items?: string[];
-      };
-      [key: string]: any;
+      configuration?: StTemplateConfiguration;
+      signer?: { name?: string | null; nip?: string | null };
+      [key: string]: unknown;
     } | null;
     template?: {
-      configuration?: {
-        header_title?: string;
-        penutup_text?: string;
-        date_format_style?: "inline" | "tabular";
-        signer_authority_mandate?: string | null;
-        signer_title?: string;
-        tembusan_position?: "beside" | "bottom";
-        tembusan_label?: string;
-        tembusan_items?: string[];
-      };
-      [key: string]: any;
+      configuration?: StTemplateConfiguration;
+      default_signer_name?: string | null;
+      default_signer_nip?: string | null;
+      [key: string]: unknown;
     } | null;
   };
   onClose: () => void;
 }
+
+export type SuratTugasPreviewData = SuratTugasLetterPreviewProps["data"];
 
 /** Parse menimbang/dasar field: could be array of {id, text}, array of strings, or a plain string */
 function parseItems(value: DasarItem[] | string | null | undefined): DasarItem[] {
@@ -101,42 +104,29 @@ function parseItems(value: DasarItem[] | string | null | undefined): DasarItem[]
 
 function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
   const lines = (title || "KEPALA BALAI,").split("\n");
-  const regex = /(\*[^*]+\*|IMPLEMENTING PARTNER|Implementing Partner)/g;
 
   return (
     <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px", fontSize: "11pt", lineHeight: "1.35" }}>
-      {lines.map((line, i) => {
-        const parts = line.split(regex);
-        return (
-          <p key={i} style={{ margin: 0 }}>
-            {parts.map((part, j) => {
-              if (part.startsWith("*") && part.endsWith("*") && part.length > 1) {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part.slice(1, -1)}
-                  </span>
-                );
-              }
-              if (part.toUpperCase() === "IMPLEMENTING PARTNER") {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part}
-                  </span>
-                );
-              }
-              return <React.Fragment key={j}>{part}</React.Fragment>;
-            })}
-          </p>
-        );
-      })}
+      {lines.map((line, i) => (
+        <p key={i} style={{ margin: 0 }}>
+          {renderFormattedItalic(line)}
+        </p>
+      ))}
     </div>
   );
 }
 
 export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLetterPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const config = (data.template_snapshot?.configuration || data.template?.configuration || {}) as Record<string, any>;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    return () => dialog?.close();
+  }, []);
+
+  const config = data.template_snapshot?.configuration || data.template?.configuration || {};
   const headerTitle = typeof config.header_title === "string" ? config.header_title : "KEPALA BALAI,";
   const penutupText = typeof config.penutup_text === "string" ? config.penutup_text : "Demikian untuk dilaksanakan dengan penuh tanggung jawab.";
   const dateFormatStyle = config.date_format_style || "inline";
@@ -145,6 +135,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const tembusanPosition = config.tembusan_position || "beside";
   const tembusanLabel = config.tembusan_label || "Tembusan:";
   const kopImageUrl = config.kop_image_url || null;
+  const signerName = data.penandatangan_nama || data.template_snapshot?.signer?.name ||
+    data.template?.default_signer_name || data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.";
+  const signerNip = data.penandatangan_nip || data.template_snapshot?.signer?.nip ||
+    data.template?.default_signer_nip || data.approver?.nip || "19740514 199903 1 001";
+  const isOfficial = ["approved", "completed", "published", "diterbitkan"].includes(data.status.toLowerCase());
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -162,11 +157,13 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       kopEl.style.marginRight = '0';
     }
     
+    const cleanDocTitle = (data.nomor_surat || 'Draft').replace(/[<>&"']/g, '');
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Surat Tugas - ${data.nomor_surat || 'Draft'}</title>
+        <title>Surat Tugas - ${cleanDocTitle}</title>
         <style>
           @page { size: A4 portrait; margin: 0; }
           html, body { margin: 0; padding: 0; background: #ffffff; }
@@ -187,38 +184,61 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
 
   const menimbangItems = parseItems(data.menimbang);
   const dasarItems = parseItems(data.dasar);
-  const tembusanItems = (data.tembusan || [])
+  const tembusanItems = (data.tembusan ?? config.tembusan_items ?? [])
     .map((t: any) => (typeof t === 'string' ? t.trim() : (t?.text || '').trim()))
     .filter(Boolean);
 
   const employees: Employee[] = data.employees || [];
 
   // Build "Untuk" text from the letter data
-  const untukText = data.maksud_tujuan || "...";
+  const storedUntuk = splitStoredUntukItems(data.maksud_tujuan);
+  const untukText = storedUntuk[0] || "...";
+  // Builder documents already contain the ordered clauses, including intentional omissions.
+  const additionalUntuk = data.template_snapshot || storedUntuk.length > 1
+    ? storedUntuk.slice(1)
+    : buildOrderedAdditionalUntukItems({
+        templateType: data.template_type,
+        biayaText: data.sumber_dana ? buildBiayaTextFor(
+          data.sumber_dana, data.sumber_dana_other || "", data.tanggal_surat || data.tanggal_mulai, data.template_type,
+        ) : "",
+        sertakanLaporan: data.sertakan_laporan ?? true,
+        customTemplateItems: config.untuk,
+      }).map((item) => item.text);
 
   // Format date for signature
   const tanggalSurat = data.tanggal_surat || data.tanggal_mulai;
 
   return (
-    <div data-print-root className="fixed inset-0 z-[100] flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto" onClick={onClose}>
+    <dialog
+      ref={dialogRef}
+      data-print-root
+      aria-labelledby="st-preview-title"
+      className="fixed inset-0 z-[100] m-0 h-dvh max-h-none w-full max-w-none border-0 p-0 flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
       {/* Toolbar */}
-      <div className="sticky top-0 w-full z-10 flex items-center justify-between px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
-        <div className="text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-          <span className="text-sm text-zinc-400 uppercase tracking-widest font-bold">Pratinjau Surat Tugas</span>
-          <span className="text-blue-400 font-mono text-sm">
+      <div className="sticky top-0 w-full z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
+        <div className="min-w-0 flex-1 text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+          <h2 id="st-preview-title" className="text-sm text-zinc-300 uppercase tracking-widest font-bold">Pratinjau Surat Tugas</h2>
+          <span className="text-blue-400 font-mono text-sm break-all">
             {data.nomor_surat || "DRAFT"}
           </span>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <button
+            type="button"
+            aria-label="Cetak Surat Tugas (A4)"
             onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/20"
+            className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/20"
           >
             <Printer className="w-4 h-4" /> <span className="hidden md:inline">Cetak (A4)</span>
           </button>
           <button
+            type="button"
+            aria-label="Tutup pratinjau Surat Tugas"
             onClick={onClose}
-            className="p-2.5 text-zinc-400 hover:text-white hover:bg-red-500 rounded-xl transition-all"
+            className="min-h-11 min-w-11 p-2.5 text-zinc-400 hover:text-white hover:bg-red-500 rounded-xl transition-all"
             title="Tutup"
           >
             <X className="w-5 h-5" />
@@ -227,13 +247,14 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       </div>
 
       {/* Letter Content */}
-      <div data-print-content className="py-10 print:py-0 w-full flex justify-center">
+      <div data-print-content role="region" aria-label="Dokumen Surat Tugas, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="py-6 sm:py-10 print:py-0 w-full overflow-x-auto shrink-0 focus-visible:outline-2 focus-visible:outline-blue-400">
+        <div className="flex w-max min-w-full justify-center print:block print:w-auto">
         <div
           onClick={(e) => e.stopPropagation()}
           ref={printRef}
           id="print-letter-area"
           data-print-letter
-          className="w-[210mm] min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
+          className="w-[210mm] shrink-0 min-h-[297mm] bg-white p-[25mm] shadow-2xl shadow-black/50 print:shadow-none print:m-0 print:p-[15mm] text-black relative"
           style={{
             fontFamily: "'Bookman Old Style', 'Georgia', serif",
             fontSize: "11pt",
@@ -276,7 +297,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                         {menimbangItems.map((m, idx) => (
                           <tr key={m.id || idx}>
                             <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
-                            <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{m.text || "..."}</td>
+                            <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{renderFormattedItalic(m.text || "...")}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -300,7 +321,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                         {dasarItems.map((d, idx) => (
                           <tr key={d.id || idx}>
                             <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{d.text || "..."}</td>
+                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{renderFormattedItalic(d.text || "...")}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -343,7 +364,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                                       <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
                                     </tr>
                                     <tr>
-                                      <td style={{ width: "70px", padding: "1px 0" }}>NIP</td>
+                                      <td style={{ width: "70px", padding: "1px 0" }}>{formatNipLabel(emp)}</td>
                                       <td style={{ width: "20px", padding: "1px 0" }}>:</td>
                                       <td style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</td>
                                     </tr>
@@ -384,13 +405,13 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                           {(() => {
                             const hasDuration = /selama\s+\d+|terhitung\s+mulai\s+tanggal|pada\s+tanggal/i.test(untukText);
                             if (hasDuration || untukText.endsWith(";")) {
-                              return untukText;
+                              return renderFormattedItalic(untukText);
                             }
                             const isSingleDay = data.tanggal_mulai && data.tanggal_selesai && data.tanggal_mulai === data.tanggal_selesai;
                             const days = daysBetween(data.tanggal_mulai, data.tanggal_selesai);
                             return (
                               <>
-                                {untukText}
+                                {renderFormattedItalic(untukText)}
                                 {data.tempat_tujuan && !untukText.includes(data.tempat_tujuan) && (
                                   <>, dari Samarinda ke {data.tempat_tujuan}</>
                                 )}
@@ -406,20 +427,14 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                           })()}
                         </td>
                       </tr>
-                      <tr>
-                        <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>2.</td>
-                        <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                          {data.sumber_dana
-                            ? `Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada ${data.sumber_dana};`
-                            : "Segala biaya yang timbul akibat Surat Tugas ini dibebankan pada anggaran yang tersedia;"}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>3.</td>
-                        <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                          Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.
-                        </td>
-                      </tr>
+                      {additionalUntuk.map((text, index) => (
+                        <tr key={index}>
+                          <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{index + 2}.</td>
+                          <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
+                            {renderFormattedItalic(text)}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </td>
@@ -428,7 +443,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           </table>
 
           {/* PENUTUP */}
-          <p style={{ margin: "28px 0 0", textAlign: penutupText.length > 80 ? "justify" : "left" }}>{penutupText}</p>
+          <p style={{ margin: "28px 0 0", textAlign: penutupText.length > 80 ? "justify" : "left" }}>
+            {renderFormattedItalic(penutupText)}
+          </p>
 
           {/* TANDA TANGAN */}
           <div style={{ pageBreakInside: "avoid" }}>
@@ -474,15 +491,14 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                   ))}
 
                   <p style={{ margin: "0 0 0" }}>{signerTitle}</p>
-                  {data.nama_plh && <p style={{ margin: 0, fontSize: "10pt" }}>( PLH )</p>}
                   <p style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
-                    {data.status === "approved" ? "" : "${ttd_pengirim}"}
+                    {isOfficial ? "" : "${ttd_pengirim}"}
                   </p>
                   <p style={{ margin: 0, fontWeight: "bold" }}>
-                    {data.nama_plh || (data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}
+                    {signerName}
                   </p>
                   <p style={{ margin: 0, fontSize: "10pt" }}>
-                    NIP. {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
+                    {formatNipLabel({ nip: signerNip }, true)} {formatNIP(signerNip)}
                   </p>
                 </div>
 
@@ -536,15 +552,14 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                     ))}
 
                     <p style={{ margin: "0 0 0" }}>{signerTitle}</p>
-                    {data.nama_plh && <p style={{ margin: 0, fontSize: "10pt" }}>( PLH )</p>}
                     <p style={{ margin: 0, height: "80px", display: "flex", alignItems: "center", color: "#94a3b8", fontSize: "9pt" }}>
-                      {data.status === "approved" ? "" : "${ttd_pengirim}"}
+                      {isOfficial ? "" : "${ttd_pengirim}"}
                     </p>
                     <p style={{ margin: 0, fontWeight: "bold" }}>
-                      {data.nama_plh || (data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.")}
+                      {signerName}
                     </p>
                     <p style={{ margin: 0, fontSize: "10pt" }}>
-                      NIP. {data.approver?.nip ? formatNIP(data.approver.nip) : "19740514 199903 1 001"}
+                      {formatNipLabel({ nip: signerNip }, true)} {formatNIP(signerNip)}
                     </p>
                   </div>
                 </div>
@@ -571,6 +586,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
             )}
           </div>
         </div>
+        </div>
       </div>
 
       <style
@@ -587,6 +603,6 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       `,
         }}
       />
-    </div>
+    </dialog>
   );
 }

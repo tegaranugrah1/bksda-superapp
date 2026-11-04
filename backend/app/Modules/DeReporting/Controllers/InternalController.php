@@ -88,16 +88,24 @@ class InternalController extends Controller
             return response()->json(['message' => 'Berkas fisik tidak ditemukan di dalam brankas server.'], 404);
         }
 
-        return Storage::download($report->file_path, $report->judul_laporan.'.'.pathinfo($report->file_path, PATHINFO_EXTENSION));
+        $safeTitle = preg_replace('/[\/\\\\:*?"<>|\r\n]/', '_', $report->judul_laporan ?: 'Laporan_Internal');
+        $ext = pathinfo($report->file_path, PATHINFO_EXTENSION);
+
+        return Storage::download($report->file_path, "{$safeTitle}.{$ext}");
     }
 
     /**
      * DELETE /api/dereporting/internals/{id}
      * Menghapus Laporan Internal (SoftDeletes)
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $report = Internal::findOrFail($id);
+        $user = $request->user();
+
+        if ($user && ! in_array($user->role, ['admin', 'super_admin']) && (int) $report->user_id !== (int) $user->id) {
+            return response()->json(['message' => 'Anda tidak memiliki hak untuk menghapus laporan ini.'], 403);
+        }
 
         // File fisik tetap tersimpan untuk keperluan Audit Forensik (SoftDeletes)
         $report->delete();

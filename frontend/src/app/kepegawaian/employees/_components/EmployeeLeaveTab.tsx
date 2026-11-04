@@ -1,0 +1,1481 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import {
+  Calendar,
+  Save,
+  Award,
+  Info,
+  AlertCircle,
+  CheckCircle2,
+  ShieldCheck,
+  Clock,
+  Plus,
+  FileText,
+  Pencil,
+  Trash2,
+  CalendarDays,
+  FileCheck2,
+  SlidersHorizontal,
+  FileCheck,
+  FileUp,
+  ChevronDown,
+  MoreHorizontal,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { isAxiosError } from "axios";
+import { cn } from "@/lib/utils";
+import { ScanViewerModal, UploadScanModal } from "@/app/kepegawaian/cuti/_components/CutiModals";
+
+interface EmployeeLeaveData {
+  id?: number;
+  employee_id: number;
+  year: number;
+  hak_cuti_n: number;
+  sisa_cuti_n1: number;
+  cuti_terpakai_n1: number;
+  sisa_cuti_n2: number;
+  cuti_terpakai_n2: number;
+  cuti_terpakai_n0: number;
+  catatan?: string | null;
+  hak_n1_diakui: number;
+  hak_n2_diakui: number;
+  total_hak_cuti: number;
+  sisa_cuti_tersedia: number;
+  is_eligible_24_days: boolean;
+}
+
+interface LeaveRecordItem {
+  id: number;
+  employee_id: number;
+  nomor_pengajuan: string;
+  tanggal_pengajuan: string;
+  jenis_cuti: string;
+  alasan_cuti?: string | null;
+  jumlah_hari: number;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  alamat_menjalankan_cuti?: string | null;
+  telepon?: string | null;
+  catatan_atasan?: string | null;
+  status: string;
+  scan_surat_path?: string | null;
+  scan_surat_nama?: string | null;
+  scan_formulir_path?: string | null;
+  scan_formulir_nama?: string | null;
+  scan_surat_izin_path?: string | null;
+  scan_surat_izin_nama?: string | null;
+}
+
+interface ApiResponse {
+  data: EmployeeLeaveData;
+  requests: LeaveRecordItem[];
+  employee: {
+    id: number;
+    nip: string;
+    nama_lengkap: string;
+  };
+}
+
+interface EmployeeLeaveTabProps {
+  employeeId: string;
+}
+
+const JENIS_CUTI_OPTIONS = [
+  "Cuti Tahunan",
+  "Cuti Tahunan Tahun 2025",
+  "Cuti Tahunan 2025 & 2026",
+  "Cuti Sakit",
+  "Cuti Alasan Penting",
+  "Cuti Melahirkan",
+  "Cuti Besar",
+  "Cuti Bersama",
+  "Cuti di Luar Tanggungan Negara",
+];
+
+function parseLocalDate(str: string): Date {
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+interface DynamicLeaveType {
+  id: number;
+  nama: string;
+  kode: string | null;
+  hitung_hari: "hari_kerja" | "hari_kalender";
+  potong_kuota_tahunan: boolean;
+  maks_hari: number | null;
+}
+
+function calculateLeaveDays(
+  startDateStr: string,
+  endDateStr: string,
+  jenisCuti: string,
+  leaveTypes: DynamicLeaveType[] = []
+): number {
+  if (!startDateStr || !endDateStr) return 0;
+  const start = parseLocalDate(startDateStr);
+  const end = parseLocalDate(endDateStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+
+  const matched = leaveTypes.find(
+    (lt) =>
+      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
+      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
+  );
+  const isHariKerja = matched
+    ? matched.hitung_hari === "hari_kerja"
+    : jenisCuti.toLowerCase().includes("tahunan");
+
+  if (!isHariKerja) {
+    // Hari Kalender
+    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, diffTime + 1);
+  }
+
+  // Hari Kerja (Senin - Jumat, abaikan Sabtu & Minggu)
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getDay(); // 0 is Sunday, 6 is Saturday
+    if (day !== 0 && day !== 6) {
+      count++;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return Math.max(1, count);
+}
+
+export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
+  const queryClient = useQueryClient();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [filterScope, setFilterScope] = useState<"year" | "all">("year");
+
+  // Fetch dynamic leave types
+  const { data: leaveTypes = [] } = useQuery<DynamicLeaveType[]>({
+    queryKey: ["leaveTypes"],
+    queryFn: async () => {
+      const res = await api.get("/api/kepegawaian/leave-types");
+      return res.data?.data || [];
+    },
+  });
+
+  // Modal dialog states
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBalanceDialogOpen, setIsBalanceDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<LeaveRecordItem | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [fileScanFormulir, setFileScanFormulir] = useState<File | null>(null);
+  const [fileScanSuratIzin, setFileScanSuratIzin] = useState<File | null>(null);
+  const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
+  const [uploadScanItem, setUploadScanItem] = useState<LeaveRecordItem | null>(null);
+
+  // Form for Leave Balance (Admin Quota)
+  const [balanceForm, setBalanceForm] = useState({
+    hak_cuti_n: 12,
+    sisa_cuti_n1: 0,
+    cuti_terpakai_n1: 0,
+    sisa_cuti_n2: 0,
+    cuti_terpakai_n2: 0,
+    cuti_terpakai_n0: 0,
+    catatan: "",
+  });
+
+  // Form for Official Leave Record (Surat Izin Cuti)
+  const [recordForm, setRecordForm] = useState({
+    nomor_pengajuan: "",
+    tanggal_pengajuan: new Date().toISOString().split("T")[0],
+    jenis_cuti: "Cuti Tahunan",
+    alasan_cuti: "",
+    jumlah_hari: 1,
+    tanggal_mulai: new Date().toISOString().split("T")[0],
+    tanggal_selesai: new Date().toISOString().split("T")[0],
+    catatan_atasan: "",
+  });
+
+  const { data: apiResponse, isLoading } = useQuery({
+    queryKey: ["employeeLeave", employeeId, selectedYear],
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse>(
+        `/kepegawaian/employees/${employeeId}/leaves?year=${selectedYear}`
+      );
+      return data;
+    },
+  });
+
+  const leaveData = apiResponse?.data;
+  const leaveRequests = useMemo(() => apiResponse?.requests || [], [apiResponse]);
+
+  // Filter requests based on selected filterScope (timezone-safe ISO string slice)
+  const filteredRequests = useMemo(() => {
+    if (filterScope === "all") return leaveRequests;
+    return leaveRequests.filter((r) => {
+      if (!r.tanggal_mulai) return false;
+      const startYear = parseInt(String(r.tanggal_mulai).slice(0, 4), 10);
+      return startYear === selectedYear;
+    });
+  }, [leaveRequests, filterScope, selectedYear]);
+
+  // Sync balance form state whenever leaveData changes
+  useEffect(() => {
+    if (leaveData) {
+      setBalanceForm({
+        hak_cuti_n: leaveData.hak_cuti_n ?? 12,
+        sisa_cuti_n1: leaveData.sisa_cuti_n1 ?? 0,
+        cuti_terpakai_n1: leaveData.cuti_terpakai_n1 ?? 0,
+        sisa_cuti_n2: leaveData.sisa_cuti_n2 ?? 0,
+        cuti_terpakai_n2: leaveData.cuti_terpakai_n2 ?? 0,
+        cuti_terpakai_n0: leaveData.cuti_terpakai_n0 ?? 0,
+        catatan: leaveData.catatan || "",
+      });
+    }
+  }, [leaveData]);
+
+  // Real-time calculation based on BKN PNS Leave Rules (PerBKN 24/2017 & 7/2021)
+  const calc = useMemo(() => {
+    const hakN = Math.max(0, balanceForm.hak_cuti_n || 12);
+    const sisaN1Raw = Math.max(0, balanceForm.sisa_cuti_n1 || 0);
+    const hakN1 = Math.min(6, sisaN1Raw);
+
+    const usedN1 = Math.max(0, balanceForm.cuti_terpakai_n1 || 0);
+    const usedN2 = Math.max(0, balanceForm.cuti_terpakai_n2 || 0);
+    const sisaN2Raw = Math.max(0, balanceForm.sisa_cuti_n2 || 0);
+
+    const isEligible24 = usedN1 === 0 && usedN2 === 0 && sisaN1Raw >= 12 && sisaN2Raw >= 12;
+    const hakN2 = isEligible24 ? 6 : 0;
+
+    const totalHak = hakN + hakN1 + hakN2;
+    const usedN0 = Math.max(0, balanceForm.cuti_terpakai_n0 || 0);
+    const sisaTersedia = Math.max(0, totalHak - usedN0);
+
+    return {
+      hakN,
+      hakN1,
+      hakN2,
+      isEligible24,
+      totalHak,
+      usedN0,
+      sisaTersedia,
+    };
+  }, [balanceForm]);
+
+  // Mutation: Save Quota Balance
+  const saveBalanceMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        year: selectedYear,
+        hak_cuti_n: balanceForm.hak_cuti_n,
+        sisa_cuti_n1: balanceForm.sisa_cuti_n1,
+        cuti_terpakai_n1: balanceForm.cuti_terpakai_n1,
+        sisa_cuti_n2: balanceForm.sisa_cuti_n2,
+        cuti_terpakai_n2: balanceForm.cuti_terpakai_n2,
+        cuti_terpakai_n0: balanceForm.cuti_terpakai_n0,
+        catatan: balanceForm.catatan,
+      };
+      await api.post(`/kepegawaian/employees/${employeeId}/leaves`, payload);
+    },
+    onSuccess: () => {
+      toast.success("Saldo & Kuota Cuti Pegawai berhasil disimpan!");
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal menyimpan saldo cuti.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
+  const handleFileValidate = (f: File | null) => {
+    if (!f) return false;
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran berkas maksimal 10MB");
+      return false;
+    }
+    const validExts = ["pdf", "jpg", "jpeg", "png"];
+    const ext = f.name.split(".").pop()?.toLowerCase();
+    if (!ext || !validExts.includes(ext)) {
+      toast.error("Format berkas harus PDF, JPG, atau PNG");
+      return false;
+    }
+    return true;
+  };
+
+  // Mutation: Save/Update Official Leave Record (SI / ST) with Optional Scan
+  const saveRecordMutation = useMutation({
+    mutationFn: async () => {
+      if (!recordForm.nomor_pengajuan.trim()) {
+        toast.error("Nomor surat persetujuan (SI / ST) wajib diisi.");
+        throw new Error("Nomor surat wajib diisi");
+      }
+      if (!recordForm.tanggal_mulai || !recordForm.tanggal_selesai) {
+        toast.error("Rentang tanggal cuti wajib diisi.");
+        throw new Error("Tanggal cuti wajib diisi");
+      }
+      const startYear = parseInt(recordForm.tanggal_mulai.slice(0, 4), 10);
+      const endYear = parseInt(recordForm.tanggal_selesai.slice(0, 4), 10);
+      if (startYear !== endYear) {
+        toast.error("Pengajuan cuti tidak boleh lintas tahun kalender (PerBKN 24/2017).");
+        throw new Error("Lintas tahun kalender tidak diperbolehkan");
+      }
+
+      const formData = new FormData();
+      formData.append("nomor_pengajuan", recordForm.nomor_pengajuan);
+      formData.append("tanggal_pengajuan", recordForm.tanggal_pengajuan);
+      formData.append("jenis_cuti", recordForm.jenis_cuti);
+      formData.append("alasan_cuti", recordForm.alasan_cuti || recordForm.jenis_cuti);
+      formData.append("jumlah_hari", String(recordForm.jumlah_hari));
+      formData.append("tanggal_mulai", recordForm.tanggal_mulai);
+      formData.append("tanggal_selesai", recordForm.tanggal_selesai);
+      formData.append("catatan_atasan", recordForm.alasan_cuti || "");
+      formData.append("status", "DISETUJUI");
+      if (fileScanFormulir) {
+        formData.append("file_scan_formulir", fileScanFormulir);
+      }
+      if (fileScanSuratIzin) {
+        formData.append("file_scan_surat_izin", fileScanSuratIzin);
+      }
+
+      if (editingRecord) {
+        formData.append("_method", "PUT");
+        await api.post(`/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.post(`/kepegawaian/employees/${employeeId}/leave-records`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingRecord ? "Penetapan cuti berhasil diperbarui!" : "Surat Izin Cuti berhasil dicatat!");
+      setIsDialogOpen(false);
+      setEditingRecord(null);
+      setFileScanFormulir(null);
+      setFileScanSuratIzin(null);
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal menyimpan penetapan cuti.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
+  // Mutation: Upload or Replace Scan File on Existing Record
+  const uploadRecordScanMutation = useMutation({
+    mutationFn: async ({
+      id,
+      fileFormulir,
+      fileSuratIzin,
+    }: {
+      id: number;
+      fileFormulir: File | null;
+      fileSuratIzin: File | null;
+    }) => {
+      const formData = new FormData();
+      if (fileFormulir) {
+        formData.append("file_scan_formulir", fileFormulir);
+      }
+      if (fileSuratIzin) {
+        formData.append("file_scan_surat_izin", fileSuratIzin);
+      }
+      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Berkas cuti resmi berhasil disimpan!");
+      setUploadScanItem(null);
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal mengunggah berkas scan.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
+  // Mutation: Delete Official Leave Record
+  const deleteRecordMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/kepegawaian/employees/${employeeId}/leave-records/${id}`);
+    },
+    onSuccess: () => {
+      toast.success("Penetapan cuti berhasil dihapus.");
+      setDeleteConfirmId(null);
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal menghapus penetapan cuti.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+  });
+
+  const handleDateChange = (field: "tanggal_mulai" | "tanggal_selesai", val: string) => {
+    setRecordForm((prev) => {
+      const next = { ...prev, [field]: val };
+      if (next.tanggal_mulai && next.tanggal_selesai) {
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, next.jenis_cuti, leaveTypes);
+        if (days > 0) {
+          next.jumlah_hari = days;
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleJenisCutiChange = (val: string) => {
+    setRecordForm((prev) => {
+      const next = { ...prev, jenis_cuti: val };
+      if (next.tanggal_mulai && next.tanggal_selesai) {
+        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, val, leaveTypes);
+        if (days > 0) {
+          next.jumlah_hari = days;
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleOpenCreateDialog = () => {
+    setEditingRecord(null);
+    setFileScanFormulir(null);
+    setFileScanSuratIzin(null);
+    const today = new Date().toISOString().split("T")[0];
+    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes);
+    setRecordForm({
+      nomor_pengajuan: "",
+      tanggal_pengajuan: today,
+      jenis_cuti: "Cuti Tahunan",
+      alasan_cuti: "",
+      jumlah_hari: initialDays || 1,
+      tanggal_mulai: today,
+      tanggal_selesai: today,
+      catatan_atasan: "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (record: LeaveRecordItem) => {
+    setEditingRecord(record);
+    setFileScanFormulir(null);
+    setFileScanSuratIzin(null);
+    const rawAlasan = record.alasan_cuti || record.catatan_atasan || "";
+    const cleanAlasan = rawAlasan.toLowerCase().includes("sisa cuti") ? "" : rawAlasan;
+
+    setRecordForm({
+      nomor_pengajuan: record.nomor_pengajuan || "",
+      tanggal_pengajuan: record.tanggal_pengajuan || new Date().toISOString().split("T")[0],
+      jenis_cuti: record.jenis_cuti || "Cuti Tahunan",
+      alasan_cuti: cleanAlasan,
+      jumlah_hari: record.jumlah_hari || 1,
+      tanggal_mulai: record.tanggal_mulai || "",
+      tanggal_selesai: record.tanggal_selesai || "",
+      catatan_atasan: record.catatan_atasan || "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const availableLeaveTypeNames = useMemo(() => {
+    if (leaveTypes.length > 0) {
+      const names = leaveTypes.map((lt) => lt.nama);
+      if (recordForm.jenis_cuti && !names.includes(recordForm.jenis_cuti)) {
+        names.push(recordForm.jenis_cuti);
+      }
+      return names;
+    }
+    return JENIS_CUTI_OPTIONS;
+  }, [leaveTypes, recordForm.jenis_cuti]);
+
+  const selectedLeaveType = leaveTypes.find(
+    (lt) => lt.nama.toLowerCase() === recordForm.jenis_cuti.toLowerCase()
+  );
+  const isTahunan = selectedLeaveType
+    ? selectedLeaveType.potong_kuota_tahunan
+    : recordForm.jenis_cuti.toLowerCase().includes("tahunan");
+
+  return (
+    <div className="space-y-6">
+      {/* Header Selector & Title */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-xs">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900">Buku Kendali & Hak Cuti PNS</h3>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                Tahun {selectedYear}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Penghitungan otomatis hak cuti tahunan dan pencatatan Surat Izin (SI/ST) sesuai{" "}
+              <span className="font-semibold text-slate-700">Peraturan BKN No. 24/2017 & No. 7/2021</span>.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsBalanceDialogOpen(true)}
+            className="h-8.5 px-3 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 gap-1.5 shadow-2xs"
+            title="Penyesuaian saldo awal khusus untuk pegawai pindahan atau mutasi"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Sesuaikan Saldo Awal</span>
+          </Button>
+
+          <label className="text-xs font-semibold text-slate-600 ml-1">Tahun:</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xs"
+          >
+            {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2, currentYear - 3].map((y) => (
+              <option key={y} value={y}>
+                Tahun {y}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="p-12 text-center text-xs text-slate-400">
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          Memuat data saldo dan riwayat cuti...
+        </div>
+      ) : (
+        <>
+          {/* Top Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: Total Hak Cuti Tahun Ini */}
+            <div className="bg-linear-to-br from-blue-50/80 via-blue-50/40 to-indigo-50/80 border border-blue-100 rounded-2xl p-4.5 relative overflow-hidden shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-blue-800">Total Hak Cuti {selectedYear}</span>
+                <Award className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="mt-2.5 flex items-baseline gap-2">
+                <span className="text-3xl font-extrabold text-blue-950 tracking-tight">{calc.totalHak}</span>
+                <span className="text-xs font-bold text-blue-600">Hari Kerja</span>
+              </div>
+              <div className="mt-2 pt-2 border-t border-blue-100/60 flex flex-wrap items-center gap-1.5 text-[11px] text-blue-700">
+                <span className="font-semibold">Pokok: {calc.hakN}</span>
+                <span>•</span>
+                <span>Sisa {selectedYear - 1}: +{calc.hakN1}</span>
+                <span>•</span>
+                <span>Sisa {selectedYear - 2}: +{calc.hakN2}</span>
+              </div>
+            </div>
+
+            {/* Card 2: Sisa Cuti Tersedia Saat Ini */}
+            <div className="bg-linear-to-br from-emerald-50/80 via-emerald-50/40 to-teal-50/80 border border-emerald-100 rounded-2xl p-4.5 relative overflow-hidden shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-emerald-800">Sisa Cuti Tersedia</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="mt-2.5 flex items-baseline gap-2">
+                <span className="text-3xl font-extrabold text-emerald-950 tracking-tight">{calc.sisaTersedia}</span>
+                <span className="text-xs font-bold text-emerald-600">Hari Kerja</span>
+              </div>
+              <div className="mt-2 pt-2 border-t border-emerald-100/60 text-[11px] text-emerald-700 flex items-center justify-between">
+                <span>Terpakai tahun ini:</span>
+                <span className="font-bold bg-emerald-100/80 px-2 py-0.5 rounded-md text-emerald-900">
+                  {calc.usedN0} Hari
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Status Akumulasi Klausa 24 Hari */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 flex flex-col justify-between shadow-xs">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-700">Klausa Akumulasi Cuti</span>
+                  <ShieldCheck className="w-4 h-4 text-slate-400" />
+                </div>
+                {calc.isEligible24 ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Akumulasi 24 Hari Aktif</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">
+                    <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span>Maksimal Standar 18 Hari</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
+                {calc.isEligible24
+                  ? "2 Tahun berturut-turut tanpa pemakaian cuti. Kuota akumulasi maksimal 24 hari diizinkan."
+                  : "Sisa cuti tahun lalu (N-1) diakui maksimal 6 hari kerja sesuai ketentuan PerBKN 24/2017."}
+              </p>
+            </div>
+          </div>
+
+          {/* Section: Riwayat Surat Izin / Penetapan Cuti Resmi (Buku Kendali BKSDA) */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+                  <FileCheck2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">Riwayat Surat Izin & Penetapan Cuti Resmi</h4>
+                  <p className="text-xs text-slate-500">
+                    Pencatatan nomor Surat Izin (SI/ST) dari kartu kendali cuti resmi BKSDA Kalimantan Timur.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                {/* Filter toggle: Tahun Ini vs Semua Tahun */}
+                <div className="inline-flex p-0.5 rounded-xl bg-slate-100 border border-slate-200 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setFilterScope("year")}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      filterScope === "year"
+                        ? "bg-white text-blue-700 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Tahun {selectedYear}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterScope("all")}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      filterScope === "all"
+                        ? "bg-white text-blue-700 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Semua ({leaveRequests.length})
+                  </button>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleOpenCreateDialog}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-1.5 h-8.5 px-3.5 shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Catat Surat Izin
+                </Button>
+              </div>
+            </div>
+
+            {/* Table: Fit 100% without horizontal scrolling */}
+            {filteredRequests.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-slate-50/70 border border-dashed border-slate-200">
+                <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs font-semibold text-slate-700">Belum ada riwayat surat izin cuti tercatat</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {filterScope === "year"
+                    ? `Tidak ada transaksi cuti pada tahun ${selectedYear}.`
+                    : "Belum ada penetapan cuti untuk pegawai ini."}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenCreateDialog}
+                  className="mt-3 text-xs font-bold gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah Cuti Pertama
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50/90 text-slate-600 font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3 w-8 text-center">No</th>
+                      <th className="py-2.5 px-3 w-[28%]">Surat Persetujuan (SI / ST)</th>
+                      <th className="py-2.5 px-3 w-[16%]">Jenis Cuti</th>
+                      <th className="py-2.5 px-3 w-[22%]">Pelaksanaan & Durasi</th>
+                      <th className="py-2.5 px-3 w-[18%]">Alasan Cuti</th>
+                      <th className="py-2.5 px-3 w-[16%] text-right">Status & Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredRequests.map((req, idx) => (
+                      <tr key={req.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-3 text-center font-bold text-slate-400 align-top">{idx + 1}</td>
+                        <td className="py-3 px-3 align-top">
+                          <div className="font-bold text-slate-900 font-mono text-[11px] break-all leading-tight">
+                            {req.nomor_pengajuan || "-"}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                            <CalendarDays className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>Tgl Surat: {formatDate(req.tanggal_pengajuan)}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 align-top">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold leading-snug ${
+                              req.jenis_cuti.toLowerCase().includes("tahunan")
+                                ? "bg-blue-50 text-blue-700 border border-blue-200/60"
+                                : req.jenis_cuti.toLowerCase().includes("sakit")
+                                ? "bg-rose-50 text-rose-700 border border-rose-200/60"
+                                : "bg-purple-50 text-purple-700 border border-purple-200/60"
+                            }`}
+                          >
+                            {req.jenis_cuti}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 align-top">
+                          <div className="font-medium text-slate-800 text-[11px]">
+                            {formatDate(req.tanggal_mulai)} s.d. {formatDate(req.tanggal_selesai)}
+                          </div>
+                          <div className="mt-1">
+                            <span className="inline-block font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[10px]">
+                              {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 align-top">
+                          {(() => {
+                            const raw = req.alasan_cuti || req.catatan_atasan;
+                            if (!raw || raw.toLowerCase().includes("sisa cuti")) {
+                              return <span className="text-slate-400 text-[11px] italic">-</span>;
+                            }
+                            return (
+                              <span className="inline-block text-[11px] font-medium text-slate-700 bg-slate-100/90 border border-slate-200/80 px-2 py-0.5 rounded-md leading-snug">
+                                {raw}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-3 px-3 align-top text-right">
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              {req.status}
+                            </span>
+                            {(() => {
+                              const hasSuratIzin = !!(req.scan_surat_izin_path || req.scan_surat_path);
+                              const hasFormulir = !!req.scan_formulir_path;
+                              const uploadedCount = (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
+
+                              return (
+                                <div className="flex items-center gap-1.5">
+                                  {/* Berkas Dropdown Menu */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className={cn(
+                                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer",
+                                          uploadedCount === 2
+                                            ? "text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                                            : uploadedCount === 1
+                                            ? "text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100"
+                                            : "text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100"
+                                        )}
+                                        title="Kelola & Lihat Berkas Scan Cuti"
+                                      >
+                                        {uploadedCount === 2 ? (
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        ) : uploadedCount === 1 ? (
+                                          <Clock className="w-3 h-3 text-amber-600" />
+                                        ) : (
+                                          <FileUp className="w-3 h-3 text-purple-600" />
+                                        )}
+                                        <span>{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
+                                        <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-60 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
+                                        Berkas Scan Cuti
+                                      </DropdownMenuLabel>
+
+                                      <DropdownMenuItem
+                                        disabled={!hasSuratIzin}
+                                        onClick={() =>
+                                          setViewerModal({
+                                            url: `/kepegawaian/leave-requests/${req.id}/scan-surat-izin`,
+                                            fileName: req.scan_surat_izin_nama || req.scan_surat_nama,
+                                            title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
+                                          })
+                                        }
+                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-emerald-600" : "text-slate-400")} />
+                                          <span className={cn("font-medium", !hasSuratIzin && "text-slate-400")}>Surat Izin (TTE)</span>
+                                        </div>
+                                        {hasSuratIzin ? (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                                            Lihat
+                                          </span>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                        )}
+                                      </DropdownMenuItem>
+
+                                      <DropdownMenuItem
+                                        disabled={!hasFormulir}
+                                        onClick={() =>
+                                          setViewerModal({
+                                            url: `/kepegawaian/leave-requests/${req.id}/scan-formulir`,
+                                            fileName: req.scan_formulir_nama,
+                                            title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
+                                          })
+                                        }
+                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <FileText className={cn("w-4 h-4", hasFormulir ? "text-indigo-600" : "text-slate-400")} />
+                                          <span className={cn("font-medium", !hasFormulir && "text-slate-400")}>Formulir (Scan)</span>
+                                        </div>
+                                        {hasFormulir ? (
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
+                                            Lihat
+                                          </span>
+                                        ) : (
+                                          <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                        )}
+                                      </DropdownMenuItem>
+
+                                      <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+
+                                      <DropdownMenuItem
+                                        onClick={() => setUploadScanItem(req)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl text-purple-700 hover:bg-purple-50 cursor-pointer font-semibold"
+                                      >
+                                        <FileUp className="w-3.5 h-3.5 text-purple-600" />
+                                        <span>{uploadedCount > 0 ? "Unggah Ulang Berkas" : "Unggah Berkas Scan"}</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+
+                                  {/* Aksi More Dropdown (...) */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                        title="Aksi Lainnya"
+                                      >
+                                        <MoreHorizontal className="w-3.5 h-3.5" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40 p-1 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                      <DropdownMenuItem
+                                        onClick={() => handleOpenEditDialog(req)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-amber-700 hover:bg-amber-50 font-medium"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                        <span>Edit Cuti</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteConfirmId(req.id)}
+                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-rose-600 hover:bg-rose-50 font-medium"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        <span>Hapus Cuti</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+        </>
+      )}
+
+      {/* Modal Dialog: Penyesuaian Saldo Awal (Khusus Pindahan / Mutasi) */}
+      <Dialog open={isBalanceDialogOpen} onOpenChange={setIsBalanceDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-slate-900">
+              Penyesuaian Saldo Awal (Tahun {selectedYear})
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Digunakan khusus pegawai baru atau mutasi instansi luar. Untuk operasional rutin BKSDA, saldo cuti otomatis dihitung dari Surat Izin (SI/ST).
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveBalanceMutation.mutate();
+              setIsBalanceDialogOpen(false);
+            }}
+            className="space-y-3.5 py-2"
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Hak Pokok Tahun {selectedYear}</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={balanceForm.hak_cuti_n}
+                  onChange={(e) => setBalanceForm({ ...balanceForm, hak_cuti_n: Number(e.target.value) })}
+                  className="mt-1 text-xs h-9"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Standar PNS: 12 hari</span>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700">Sisa Cuti Tahun {selectedYear - 1} (N-1)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={balanceForm.sisa_cuti_n1}
+                  onChange={(e) => setBalanceForm({ ...balanceForm, sisa_cuti_n1: Number(e.target.value) })}
+                  className="mt-1 text-xs h-9"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Diakui maks. 6 hari</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700">Catatan Penangguhan / Keterangan Khusus</label>
+              <Textarea
+                rows={2}
+                value={balanceForm.catatan}
+                onChange={(e) => setBalanceForm({ ...balanceForm, catatan: e.target.value })}
+                placeholder="Contoh: Pegawai pindahan dari BKSDA Sulsel, membawa sisa cuti..."
+                className="mt-1 text-xs"
+              />
+            </div>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsBalanceDialogOpen(false)}
+                className="text-xs font-bold"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={saveBalanceMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {saveBalanceMutation.isPending ? "Menyimpan..." : "Simpan Penyesuaian"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog: Tambah / Edit Surat Izin Cuti */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-w-[95vw] p-6">
+          <DialogHeader className="pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                <FileCheck2 className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-slate-900">
+                  {editingRecord ? "Edit Surat Izin Penetapan Cuti" : "Catat Surat Izin Penetapan Cuti"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                  Pencatatan data surat keputusan izin cuti resmi (SI / ST) untuk buku kendali cuti pegawai.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Interactive Employee Leave Balance Card */}
+          <div className="rounded-xl border border-blue-100 bg-linear-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/80 p-3.5 mt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <Award className="w-4 h-4 text-blue-600" />
+                  <span>Sisa Kuota Cuti Pegawai (Tahun {selectedYear}):</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-600">
+                  <span>Pokok: <b>{calc.hakN}</b></span>
+                  <span>•</span>
+                  <span>N-1: <b>+{calc.hakN1}</b></span>
+                  <span>•</span>
+                  <span>N-2: <b>+{calc.hakN2}</b></span>
+                  <span>•</span>
+                  <span>Terpakai: <b>{calc.usedN0}</b></span>
+                </div>
+              </div>
+              <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Kuota Tersedia</span>
+                <span className="text-xl font-extrabold text-blue-700">{calc.sisaTersedia} <span className="text-xs font-bold">Hari</span></span>
+              </div>
+            </div>
+
+            {/* Live simulation of remaining balance if Cuti Tahunan / cuts quota */}
+            {isTahunan && recordForm.jumlah_hari > 0 && (
+              <div className="mt-2.5 pt-2 border-t border-blue-100/70 flex items-center justify-between text-[11px]">
+                <span className="text-slate-600">Simulasi sisa setelah cuti ini ({recordForm.jumlah_hari} hari):</span>
+                {(() => {
+                  const projectedDiff = editingRecord
+                    ? Math.max(0, recordForm.jumlah_hari - editingRecord.jumlah_hari)
+                    : recordForm.jumlah_hari;
+                  const projectedRemaining = calc.sisaTersedia - projectedDiff;
+                  if (projectedRemaining < 0) {
+                    return (
+                      <span className="font-bold text-rose-600 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Melebihi kuota (kurang {Math.abs(projectedRemaining)} hari)
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className="font-bold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Sisa {projectedRemaining} Hari
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveRecordMutation.mutate();
+            }}
+            className="space-y-4 pt-1 pb-1"
+          >
+            {/* Grid Baris 1: Surat Persetujuan & Tanggal Terbit */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-7">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Nomor Surat Persetujuan (SI / ST) <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  required
+                  value={recordForm.nomor_pengajuan}
+                  onChange={(e) => setRecordForm({ ...recordForm, nomor_pengajuan: e.target.value })}
+                  placeholder="Contoh: SI.80/K.18/TU/PEG.12.1/B/04/2025"
+                  className="mt-1 text-xs font-mono h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div className="sm:col-span-5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Surat <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  required
+                  value={recordForm.tanggal_pengajuan}
+                  onChange={(e) => setRecordForm({ ...recordForm, tanggal_pengajuan: e.target.value })}
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Grid Baris 2: Jenis Cuti & Alasan Cuti (1 Baris Side-by-Side) */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-6">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Jenis Cuti / Izin <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={recordForm.jenis_cuti}
+                  onChange={(e) => handleJenisCutiChange(e.target.value)}
+                  className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 bg-slate-50/50 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
+                >
+                  {availableLeaveTypeNames.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="sm:col-span-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700">
+                    Alasan / Keperluan Cuti
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium">
+                    Opsional
+                  </span>
+                </div>
+                <Input
+                  value={recordForm.alasan_cuti}
+                  onChange={(e) => setRecordForm({ ...recordForm, alasan_cuti: e.target.value })}
+                  placeholder="Opsional (otomatis sesuai jenis cuti)"
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Grid Baris 3: Rentang Tanggal Mulai & Selesai */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Mulai Pelaksanaan <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  required
+                  value={recordForm.tanggal_mulai}
+                  onChange={(e) => handleDateChange("tanggal_mulai", e.target.value)}
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  Tanggal Selesai Pelaksanaan <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  required
+                  value={recordForm.tanggal_selesai}
+                  onChange={(e) => handleDateChange("tanggal_selesai", e.target.value)}
+                  className="mt-1 text-xs h-9 bg-slate-50/50 focus:bg-white transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Grid Baris 4 (DI BAWAH Tanggal Mulai & Selesai): Lama Cuti Otomatis Terhitung */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="sm:col-span-5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                  <span>Lama Cuti <span className="text-rose-500">*</span></span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {selectedLeaveType
+                      ? selectedLeaveType.hitung_hari === "hari_kerja"
+                        ? "Hari Kerja"
+                        : "Hari Kalender"
+                      : recordForm.jenis_cuti.toLowerCase().includes("tahunan")
+                      ? "Hari Kerja"
+                      : "Hari Kalender"}
+                  </span>
+                </label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    required
+                    value={recordForm.jumlah_hari}
+                    onChange={(e) => setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) })}
+                    className="text-xs font-bold h-9 pr-14 bg-slate-50/50 focus:bg-white transition-colors"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[11px] font-medium text-slate-400">
+                    Hari
+                  </div>
+                </div>
+              </div>
+
+              <div className="sm:col-span-7 flex flex-col justify-end">
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600 flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span>
+                    {(selectedLeaveType
+                      ? selectedLeaveType.hitung_hari === "hari_kerja"
+                        : recordForm.jenis_cuti.toLowerCase().includes("tahunan"))
+                      ? "Otomatis dihitung hari kerja (Senin - Jumat)."
+                      : "Otomatis dihitung hari kalender penuh."}
+                    {" Dapat diedit manual jika terdapat libur nasional."}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Baris 5: Berkas Scan Surat Cuti (1 Baris - 2 Slot Side-by-Side) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* Slot 1: Scan Surat Pengantar dan Formulir Cuti */}
+              <div className="flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-1 gap-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 truncate">
+                    <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="truncate">1. Scan Surat Pengantar & Formulir</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                    Opsional
+                  </span>
+                </div>
+
+                {editingRecord?.scan_formulir_nama && !fileScanFormulir && (
+                  <div className="mb-1.5 p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-[11px] text-blue-800 flex items-center justify-between gap-1">
+                    <span className="flex items-center gap-1 truncate">
+                      <FileCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span className="truncate font-semibold">{editingRecord.scan_formulir_nama}</span>
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-medium shrink-0">Tersimpan</span>
+                  </div>
+                )}
+
+                <div className="border border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-2.5 text-center bg-slate-50/50 transition-colors">
+                  <input
+                    type="file"
+                    id="file_scan_formulir_manual"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (handleFileValidate(f)) {
+                        setFileScanFormulir(f);
+                      } else {
+                        e.target.value = "";
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label htmlFor="file_scan_formulir_manual" className="cursor-pointer block">
+                    {fileScanFormulir ? (
+                      <div className="flex items-center justify-center gap-1.5 text-blue-600 font-semibold text-xs">
+                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanFormulir.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                          ({(fileScanFormulir.size / 1024 / 1024).toFixed(1)} MB)
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-600 text-[11px] font-medium block truncate">
+                        {editingRecord?.scan_formulir_nama ? "Ganti Berkas Pengantar & Formulir" : "Pilih Scan Pengantar & Formulir"}
+                      </span>
+                    )}
+                  </label>
+                </div>
+                {fileScanFormulir && (
+                  <button
+                    type="button"
+                    onClick={() => setFileScanFormulir(null)}
+                    className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
+                  >
+                    Batalkan pilihan berkas
+                  </button>
+                )}
+              </div>
+
+              {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
+              <div className="flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-1 gap-1">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 truncate">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="truncate">2. Scan Surat Izin Resmi (TTE)</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                    Opsional
+                  </span>
+                </div>
+
+                {(editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama) && !fileScanSuratIzin && (
+                  <div className="mb-1.5 p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between gap-1">
+                    <span className="flex items-center gap-1 truncate">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate font-semibold">{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-medium shrink-0">Tersimpan</span>
+                  </div>
+                )}
+
+                <div className="border border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-2.5 text-center bg-slate-50/50 transition-colors">
+                  <input
+                    type="file"
+                    id="file_scan_surat_izin_manual"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (handleFileValidate(f)) {
+                        setFileScanSuratIzin(f);
+                      } else {
+                        e.target.value = "";
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label htmlFor="file_scan_surat_izin_manual" className="cursor-pointer block">
+                    {fileScanSuratIzin ? (
+                      <div className="flex items-center justify-center gap-1.5 text-emerald-600 font-semibold text-xs">
+                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanSuratIzin.name}</span>
+                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                          ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(1)} MB)
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-600 text-[11px] font-medium block truncate">
+                        {editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama ? "Ganti Berkas Surat Izin" : "Pilih Surat Izin Resmi / TTE"}
+                      </span>
+                    )}
+                  </label>
+                </div>
+                {fileScanSuratIzin && (
+                  <button
+                    type="button"
+                    onClick={() => setFileScanSuratIzin(null)}
+                    className="text-[10px] text-rose-500 hover:underline mt-1 text-left"
+                  >
+                    Batalkan pilihan surat izin
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <DialogFooter className="gap-2 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDialogOpen(false)}
+                className="text-xs font-semibold"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={saveRecordMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 shadow-xs"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {saveRecordMutation.isPending
+                  ? "Menyimpan..."
+                  : editingRecord
+                  ? "Simpan Perubahan"
+                  : "Simpan Penetapan Cuti"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog: Delete Record */}
+      <Dialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-slate-900">Hapus Penetapan Cuti?</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Apakah Anda yakin ingin menghapus data penetapan cuti ini? Saldo cuti terpakai akan otomatis dikurangi
+              kembali.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteConfirmId(null)}
+              className="text-xs font-bold"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={deleteRecordMutation.isPending}
+              onClick={() => deleteConfirmId && deleteRecordMutation.mutate(deleteConfirmId)}
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {deleteRecordMutation.isPending ? "Menghapus..." : "Ya, Hapus"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pratinjau Berkas Scan Cuti Pegawai */}
+      <ScanViewerModal
+        isOpen={!!viewerModal}
+        scanUrl={viewerModal?.url || null}
+        fileName={viewerModal?.fileName}
+        title={viewerModal?.title}
+        onClose={() => setViewerModal(null)}
+      />
+
+      {/* Upload / Ganti Berkas Scan Cuti Pegawai */}
+      <UploadScanModal
+        item={uploadScanItem ? {
+          id: uploadScanItem.id,
+          scan_surat_path: uploadScanItem.scan_surat_path,
+          scan_surat_nama: uploadScanItem.scan_surat_nama,
+          scan_formulir_path: uploadScanItem.scan_formulir_path,
+          scan_formulir_nama: uploadScanItem.scan_formulir_nama,
+          scan_surat_izin_path: uploadScanItem.scan_surat_izin_path,
+          scan_surat_izin_nama: uploadScanItem.scan_surat_izin_nama,
+          employee: { nama_lengkap: apiResponse?.employee?.nama_lengkap || "Pegawai" },
+        } : null}
+        isPending={uploadRecordScanMutation.isPending}
+        onClose={() => setUploadScanItem(null)}
+        onUpload={({ fileFormulir, fileSuratIzin }) => {
+          if (uploadScanItem) {
+            uploadRecordScanMutation.mutate({
+              id: uploadScanItem.id,
+              fileFormulir,
+              fileSuratIzin,
+            });
+          }
+        }}
+      />
+    </div>
+  );
+}

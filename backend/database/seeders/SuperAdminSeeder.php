@@ -39,15 +39,24 @@ class SuperAdminSeeder extends Seeder
             ]
         );
 
-        // 4. Buat Akun Anak Magang
+        // 4. Buat Akun Anak Magang (Admin Modul Persuratan)
         User::updateOrCreate(
             ['username' => 'magang'],
             [
                 'name' => 'Anak Magang',
                 'email' => 'magang@bksdakaltim.net',
                 'password' => 'konservasi#ksdae',
-                'role' => 'user',
-                'access_modules' => ['surat', 'kepegawaian', 'bmn', 'inventory', 'dereporting'],
+                'role' => 'admin',
+                'access_modules' => ['surat'],
+                'permissions' => [
+                    'surat.view',
+                    'surat.create',
+                    'surat.update',
+                    'surat.delete',
+                    'surat.export',
+                    'surat.manage',
+                    'surat.document.view',
+                ],
                 'is_active' => true,
             ]
         );

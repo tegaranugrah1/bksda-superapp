@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
+import { printDocumentWindow, SK_TIM_PENILAI_PRINT_CSS } from "../_lib/print-helpers";
 import { runSkPagination } from "../_lib/sk-print";
 import type { SkBuilderItem, SkKepalaBalai } from "../_lib/sk-defaults";
 import type {
@@ -57,153 +58,25 @@ function renderKeduaText(text: string) {
 }
 
 export function handlePrintSkTimPenilai() {
-  const printContent = document.getElementById("sk-tim-penilai-print-root");
-  if (!printContent) {
-    toast.error("Tidak ada dokumen SK Tim Penilai untuk dicetak.");
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>SK Tim Penilai BMN</title>
-        <style>
-          @page { size: A4; margin: 0; }
-          @page sktp-main { size: A4; margin: 0; }
-          @page sktp-main:first { size: A4; margin: 0; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0; padding: 0; background: white; color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt; line-height: 1.25;
-          }
-          p { margin: 0; padding: 0; }
-          .sktp-page {
-            width: 210mm;
-            margin: 0 auto; padding: 5mm 20mm 0;
-          }
-          .sktp-main-document { page: sktp-main; position: relative; }
-          .sktp-print-root .sktp-page.sktp-main-document.sktp-main-paginated {
-            height: 297mm !important;
-            min-height: 297mm !important;
-            padding: 5mm 20mm 28mm !important;
-            overflow: hidden !important;
-            position: relative !important;
-            box-shadow: none !important;
-          }
-          .sktp-print-root .sktp-page.sktp-main-document.sktp-main-paginated.sktp-main-continuation-page {
-            padding-top: 18mm !important;
-          }
-          .sktp-print-root .sktp-main-document.sktp-main-page-break {
-            page-break-after: always;
-            break-after: page;
-          }
-          .sktp-main-flow { width: 100%; }
-          .sktp-main-paginated .sktp-paginated-field-section + .sktp-paginated-field-section { margin-top: 0 !important; }
-          .sktp-main-paginated .sktp-paginated-field-section.sktp-section-start { margin-top: 0.5rem !important; }
-          .sktp-page-ttd { padding-bottom: 0; }
-          article { margin: 0; }
-          .sktp-page-break { page-break-after: always; break-after: always; }
-          .sktp-kop {
-            margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
-            margin-bottom: 6px; text-align: center;
-          }
-          .sktp-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          .sktp-title {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 10px; text-align: center; font-weight: bold; line-height: 1.3;
-          }
-          .sktp-title-nomor { font-weight: normal; }
-          .sktp-title-tentang { margin-top: 10px; }
-          .sktp-subtitle {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 16px;
-          }
-          .sktp-subtitle > p { text-align: center; font-weight: bold; }
-          .sktp-subtitle > p + p { margin-top: 6px; }
-          .sktp-body { width: 166mm; margin-left: auto; margin-right: auto; }
-          table { border-collapse: collapse; width: 100%; }
-          td { vertical-align: top; padding: 0; }
-          .sktp-field-section {
-            display: grid;
-            grid-template-columns: 28mm 8mm minmax(0, 1fr);
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .sktp-field-section + .sktp-field-section { margin-top: 0.5rem; }
-          .sktp-field-label, .sktp-field-colon { padding: 0; }
-          .sktp-field-colon { text-align: center; }
-          .sktp-mengingat-list {
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .sktp-mengingat-item {
-            display: grid;
-            grid-template-columns: 9mm minmax(0, 1fr);
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            padding-top: 0;
-          }
-          .sktp-mengingat-item:first-child { padding-top: 0; }
-          .sktp-mengingat-text { text-align: justify; }
-          .sktp-memutuskan { text-align: center; font-weight: bold; margin-bottom: 8px; }
-          .sktp-ttd { width: 20rem; margin-left: auto; margin-top: 1.25rem; }
-          .sktp-ttd, .sktp-ttd p { font-weight: normal !important; text-align: left !important; }
-          .sktp-ttd p { margin: 0; padding: 0; line-height: 1.25; }
-          .sktp-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
-          .sktp-ttd-meta span { font-weight: normal !important; text-align: left !important; }
-          .sktp-keempat-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-          .sktp-signature-name { font-weight: normal !important; }
-          .sktp-ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .sktp-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
-          .sktp-tembusan { margin-top: 1rem; }
-          .sktp-tembusan, .sktp-tembusan p { font-weight: normal !important; text-align: left !important; }
-          .sktp-tembusan p { margin: 0; padding: 0; line-height: 1.3; }
-          .sktp-kedua-text { display: grid; row-gap: 0; white-space: normal; }
-          .sktp-kedua-line { text-align: justify; }
-          .sktp-kedua-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); column-gap: 0; text-align: left; }
-          .sktp-kedua-subitem { margin-left: 8mm; }
-          .sktp-kedua-marker { text-align: left; }
-          .sktp-kedua-item-text { text-align: justify; }
-          .sktp-lampiran {
-            width: 210mm;
-            margin: 0 auto;
-            padding: 12mm 20mm 28mm;
-            page-break-before: always;
-            break-before: page;
-          }
-          .sktp-attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
-          .sktp-attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-          .sktp-attachment-meta .meta-label { white-space: nowrap; }
-          .sktp-attachment-meta .meta-colon { text-align: center; }
-          .sktp-lampiran-title { text-align: center; font-weight: bold; line-height: 1.3; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-          .sktp-tabel { width: 100%; border-collapse: collapse; font-size: 10pt; }
-          .sktp-tabel th, .sktp-tabel td { border: 1px solid #000; padding: 0.5rem; }
-          .sktp-tabel td { vertical-align: middle; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-
-  // JS pagination: split main page into explicit A4 pages, inject continuation
-  // words at page breaks, with bottom safe area for BSrE and top safe area on
-  // continuation pages. Shared with the other SK documents via runSkPagination.
-  setTimeout(
-    () =>
-      runSkPagination(printWindow, {
-        prefix: "sktp",
-        sectionStartMarginTop: "0.5rem",
-        decisionRowLabels: ["KESATU.....", "KEDUA.....", "KETIGA....."],
-        finalGroupClass: "sktp-keempat-group",
-        finalGroupLabel: "KEEMPAT.....",
-      }),
-    600,
-  );
+  printDocumentWindow({
+    rootId: "sk-tim-penilai-print-root",
+    title: "SK Tim Penilai BMN",
+    emptyMessage: "Tidak ada dokumen SK Tim Penilai untuk dicetak.",
+    styles: SK_TIM_PENILAI_PRINT_CSS,
+    onWindowReady: (printWindow) => {
+      setTimeout(
+        () =>
+          runSkPagination(printWindow, {
+            prefix: "sktp",
+            sectionStartMarginTop: "0.5rem",
+            decisionRowLabels: ["KESATU.....", "KEDUA.....", "KETIGA....."],
+            finalGroupClass: "sktp-keempat-group",
+            finalGroupLabel: "KEEMPAT.....",
+          }),
+        600,
+      );
+    },
+  });
 }
 
 export function SkTimPenilaiDocument({

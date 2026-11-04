@@ -3,6 +3,7 @@
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatDateLong, parseDocDate, EMPTY_DOC_NUMBER_GAP } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
+import type { SuratTugasContent } from "../../auction-batches/_lib/document-content-defaults";
 
 interface PersonLike {
   nama?: string | null;
@@ -18,6 +19,7 @@ interface SuratTugasPemeriksaanPenilaianDocumentProps {
   kepalaBalai: SkKepalaBalai;
   timPenilai: PersonLike[];
   pemeriksa: PersonLike[];
+  content?: SuratTugasContent;
 }
 
 function buildNomor(number: string, kap: string, today: Date) {
@@ -33,6 +35,7 @@ export function SuratTugasPemeriksaanPenilaianDocument({
   kepalaBalai,
   timPenilai,
   pemeriksa,
+  content,
 }: SuratTugasPemeriksaanPenilaianDocumentProps) {
   const docDate = parseDocDate(date);
   const nomorText = buildNomor(number, kap, docDate);
@@ -63,8 +66,8 @@ export function SuratTugasPemeriksaanPenilaianDocument({
           </div>
 
           <div className="doc-text-block">
-            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit">
-              Dalam rangka pemeriksaan fisik dan penilaian Barang Milik Negara berupa alat angkutan bermotor pada Balai Konservasi Sumber Daya Alam Kalimantan Timur, dengan ini menugaskan kepada:
+            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit whitespace-pre-line">
+              {content?.dasar || "Dalam rangka pemeriksaan fisik dan penilaian Barang Milik Negara berupa alat angkutan bermotor pada Balai Konservasi Sumber Daya Alam Kalimantan Timur, dengan ini menugaskan kepada:"}
             </p>
 
             <table className="surat-tugas-table">
@@ -89,8 +92,8 @@ export function SuratTugasPemeriksaanPenilaianDocument({
               </tbody>
             </table>
 
-            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit">
-              Untuk melaksanakan pemeriksaan, penelitian administrasi, dan penilaian kewajaran nilai taksiran atas objek BMN yang akan dipindahtangankan melalui penjualan secara lelang.
+            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit whitespace-pre-line">
+              {content?.maksud || "Untuk melaksanakan pemeriksaan, penelitian administrasi, dan penilaian kewajaran nilai taksiran atas objek BMN yang akan dipindahtangankan melalui penjualan secara lelang."}
             </p>
 
             <table className="surat-tugas-table">
@@ -116,8 +119,8 @@ export function SuratTugasPemeriksaanPenilaianDocument({
               </tbody>
             </table>
 
-            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit">
-              Surat tugas ini berlaku sejak tanggal ditetapkan sampai dengan selesainya kegiatan pemeriksaan dan penilaian BMN dimaksud.
+            <p contentEditable suppressContentEditableWarning className="surat-tugas-edit whitespace-pre-line">
+              {content?.penutup || "Surat tugas ini berlaku sejak tanggal ditetapkan sampai dengan selesainya pelaksanaan tugas, dengan ketentuan apabila terdapat kekeliruan akan diadakan perbaikan sebagaimana mestinya."}
             </p>
           </div>
 

@@ -21,17 +21,19 @@ import {
   Clock,
   ShieldCheck,
   Eye,
+  StickyNote,
 } from "lucide-react";
 import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
   getStatusLabel,
+  needsBuilderCompletion,
   getResolvedTempatTujuan,
   extractDalamRangka,
   cleanMaksudTujuan,
   formatFormalSumberDana,
 } from "../_lib/status-helpers";
-import { formatDateIndonesian } from "@/lib/letter-utils";
+import { formatDateIndonesian, formatDateRangeIndonesian, formatNIP } from "@/lib/letter-utils";
 
 interface GmailReaderViewProps {
   letter: AssignmentLetter;
@@ -44,8 +46,10 @@ interface GmailReaderViewProps {
   onReject?: (letter: AssignmentLetter) => void;
   onEdit?: (letter: AssignmentLetter) => void;
   onDownload?: (letter: AssignmentLetter) => void;
+  onViewDoc?: (letter: AssignmentLetter) => void;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onForceDelete?: (id: string) => void;
   onCreatePlh?: (letter: AssignmentLetter) => void;
   existingPlh?: AssignmentLetter | null;
   onOpenExistingPlh?: (letter: AssignmentLetter) => void;
@@ -65,8 +69,10 @@ export function GmailReaderView({
   onReject,
   onEdit,
   onDownload,
+  onViewDoc,
   onDelete,
   onRestore,
+  onForceDelete,
   onCreatePlh,
   existingPlh,
   onOpenExistingPlh,
@@ -76,26 +82,25 @@ export function GmailReaderView({
 }: GmailReaderViewProps) {
   const router = useRouter();
   const employees = letter.employees || [];
+  const needsCompletion = needsBuilderCompletion(letter);
   const tujuan = getResolvedTempatTujuan(letter);
   const mainTitle = extractDalamRangka(letter.maksud_tujuan);
   const cleanedContext = cleanMaksudTujuan(letter.maksud_tujuan);
-  const isKepalaAssigned = employees.some(
-    (e) =>
-      e.jabatan?.toLowerCase().includes("kepala balai") ||
-      e.nama_lengkap?.toLowerCase().includes("ari wibawanto")
-  );
+
+  // Deteksi pejabat struktural yang mewajibkan penunjukan PLH:
+  // Wajib jika Kasubbag TU atau Kepala Seksi yang melaksanakan perjalanan dinas (Kepala Balai tidak perlu PLH)
   const hasPejabatStruktural = employees.some((e) => {
     const pos = (e.jabatan || "").toLowerCase();
-    const name = (e.nama_lengkap || "").toLowerCase();
     return (
       pos.includes("kepala seksi") ||
       pos.includes("kepala subbagian") ||
-      pos.includes("kasubag") ||
-      pos.includes("kepala balai") ||
-      name.includes("ari wibawanto")
+      pos.includes("kasubag")
     );
   });
-  const hasPlhInfo = Boolean(letter.nama_plh || hasPejabatStruktural || isKepalaAssigned);
+  const hasPlhInfo = Boolean(letter.nama_plh || hasPejabatStruktural);
+  const hasBedaHari =
+    letter.template_type === "beda-hari" ||
+    employees.some((e) => Boolean(e.tanggal_mulai && e.tanggal_selesai));
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 overflow-hidden select-text">
@@ -140,16 +145,16 @@ export function GmailReaderView({
 
         {/* Right: Workflow Actions & Destructive Action Separated */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Approve / Publish Button (Hanya tampil jika sudah ada nomor surat) */}
-          {onApprove && !isTrashView && letter.status !== "approved" && Boolean(letter.nomor_surat && letter.nomor_surat.trim() && letter.nomor_surat.toLowerCase() !== "belum terbit") && (
+          {/* Approve / Publish Button (Hanya tampil jika status Menunggu Persetujuan / pending) */}
+          {onApprove && !isTrashView && letter.status === "pending" && (
             <button
               disabled={updatingStatus}
               onClick={() => onApprove(letter)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
-              title="Setujui & Terbitkan Surat Tugas"
+              title={needsCompletion ? "Lengkapi Surat Tugas di Builder sebelum diterbitkan" : "Setujui & Terbitkan Surat Tugas"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Terbitkan</span>
+              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              <span>{needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan"}</span>
             </button>
           )}
 
@@ -219,7 +224,28 @@ export function GmailReaderView({
           ) : (
             onDelete && (
               <button
-                onClick={() => onDelete(letter.id)}
+                onClick={() => onDelete?.(letter.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
+                title="Pindahkan ke sampah"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Pindahkan ke Sampah</span>
+              </button>
+            )
+          )}
+          {isTrashView && onForceDelete && (
+            <button
+              onClick={() => onForceDelete(letter.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              title="Hapus permanen dari arsip"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Hapus Permanen</span>
+            </button>
+          )}
+          {false && onDelete && ((
+              <button
+                onClick={() => onDelete?.(letter.id)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
                 title="Pindahkan ke sampah"
               >
@@ -302,8 +328,11 @@ export function GmailReaderView({
               <Calendar className="w-4 h-4 text-purple-500 shrink-0" />
               <div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase">Tanggal Tugas</p>
-                <p className="font-bold truncate">
-                  {letter.tanggal_mulai ? formatDateIndonesian(letter.tanggal_mulai) : "-"}
+                <p
+                  className="font-bold truncate"
+                  title={formatDateRangeIndonesian(letter.tanggal_mulai, letter.tanggal_selesai)}
+                >
+                  {formatDateRangeIndonesian(letter.tanggal_mulai, letter.tanggal_selesai)}
                 </p>
               </div>
             </div>
@@ -340,6 +369,7 @@ export function GmailReaderView({
                   <th className="py-2 px-3">Nama Pegawai</th>
                   <th className="py-2 px-3">NIP</th>
                   <th className="py-2 px-3">Jabatan / Satker</th>
+                  {hasBedaHari && <th className="py-2 px-3">Jadwal Tugas</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
@@ -349,10 +379,17 @@ export function GmailReaderView({
                     <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-zinc-100">
                       {emp.nama_lengkap}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{emp.nip}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{formatNIP(emp.nip)}</td>
                     <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">
                       {emp.jabatan || "-"} {emp.satuan_kerja ? `(${emp.satuan_kerja})` : ""}
                     </td>
+                    {hasBedaHari && (
+                      <td className="py-2.5 px-3 font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap text-xs">
+                        {emp.tanggal_mulai && emp.tanggal_selesai
+                          ? formatDateRangeIndonesian(emp.tanggal_mulai, emp.tanggal_selesai)
+                          : "-"}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -360,10 +397,39 @@ export function GmailReaderView({
           </div>
         </div>
 
-        {/* Bottom Section: 3 Sejajar (PLH, Dokumen Dasar Surat, dan 1 Group Edit/Lihat/Tolak/Arsipkan) */}
-        <div className={`grid grid-cols-1 gap-4 ${hasPlhInfo ? "lg:grid-cols-3" : "lg:grid-cols-3"}`}>
-          {/* 1. Card Pelaksana Harian (PLH) */}
-          {hasPlhInfo && (
+        {/* Card Keterangan (Tampil full-width jika ada PLH Kasubbag TU/Kasi agar leluasa dibaca) */}
+        {hasPlhInfo && (
+          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                <StickyNote className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                  Catatan & Keterangan
+                </span>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                  Keterangan Surat Tugas
+                </h4>
+              </div>
+            </div>
+
+            {letter.keterangan && letter.keterangan.trim() ? (
+              <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium">
+                {letter.keterangan}
+              </div>
+            ) : (
+              <div className="py-2.5 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+                Tidak ada catatan atau keterangan tambahan
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Bottom Section: 3 Sejajar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* 1. Card Pelaksana Harian (PLH) ATAU Card Keterangan jika tanpa PLH */}
+          {hasPlhInfo ? (
             <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -382,7 +448,7 @@ export function GmailReaderView({
 
                 <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
                   {hasPejabatStruktural
-                    ? "Pejabat struktural melaksanakan tugas dinas. Penunjukan PLH diperlukan untuk operasional harian."
+                    ? "Kasubbag TU atau Kepala Seksi melaksanakan perjalanan dinas. Penunjukan PLH diperlukan untuk operasional harian."
                     : "Petugas yang ditunjuk sebagai pelaksana tugas harian selama dinas berlangsung."}
                 </p>
 
@@ -420,14 +486,38 @@ export function GmailReaderView({
                 <div className="h-10" />
               )}
             </div>
+          ) : (
+            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                    <StickyNote className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                      Catatan & Keterangan
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                      Keterangan Surat Tugas
+                    </h4>
+                  </div>
+                </div>
+
+                {letter.keterangan && letter.keterangan.trim() ? (
+                  <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium max-h-48 overflow-y-auto custom-scrollbar">
+                    {letter.keterangan}
+                  </div>
+                ) : (
+                  <div className="py-3 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+                    Tidak ada catatan atau keterangan tambahan
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {/* 2. Card Dokumen Dasar Surat */}
-          <div
-            className={`p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4 ${
-              !hasPlhInfo ? "lg:col-span-2" : ""
-            }`}
-          >
+          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
@@ -451,15 +541,28 @@ export function GmailReaderView({
             </div>
 
             {letter.file_surat_path ? (
-              onDownload && (
-                <button
-                  onClick={() => onDownload(letter)}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>UNDUH PDF</span>
-                </button>
-              )
+              <div className="grid grid-cols-2 gap-2">
+                {onViewDoc && (
+                  <button
+                    onClick={() => onViewDoc(letter)}
+                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-100 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200/80 dark:border-zinc-700 active:scale-95"
+                    title="Lihat Pratinjau Dokumen Dasar"
+                  >
+                    <Eye className="w-4 h-4 text-blue-500" />
+                    <span>LIHAT DOKUMEN</span>
+                  </button>
+                )}
+                {onDownload && (
+                  <button
+                    onClick={() => onDownload(letter)}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    title="Unduh Berkas Dokumen Dasar"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>UNDUH</span>
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="py-3 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center">
                 <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">
@@ -497,7 +600,7 @@ export function GmailReaderView({
                   )}
                   {onDelete && (
                     <button
-                      onClick={() => onDelete(letter.id)}
+                      onClick={() => onDelete?.(letter.id)}
                       className="h-10 w-full rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-black text-[10px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -525,7 +628,7 @@ export function GmailReaderView({
                   {letter.status === "pending" ? (
                     <button
                       onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-                      className="h-12 w-full rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-all active:scale-95"
+                      className="h-12 w-full rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-all active:scale-95"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Otorisasi ST</span>

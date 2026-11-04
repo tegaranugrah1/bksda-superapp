@@ -9,10 +9,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class SuratMasuk extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (SuratMasuk $surat) {
+            if ($surat->isForceDeleting()) {
+                $surat->disposisi()->forceDelete();
+                if ($surat->file_path && Storage::disk('private')->exists($surat->file_path)) {
+                    Storage::disk('private')->delete($surat->file_path);
+                }
+            } else {
+                $surat->disposisi()->delete();
+            }
+        });
+
+        static::restoring(function (SuratMasuk $surat) {
+            $surat->disposisi()->restore();
+        });
+    }
 
     protected $table = 'surat_masuk';
 

@@ -1,20 +1,32 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Printer, Trash2, X } from "lucide-react";
+import { ChevronDown, Copy, Plus, Printer, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import { formatPlainRupiah } from "../_lib/auction-helpers";
-import type { EmployeeOption } from "../_hooks/useEmployeeOptions";
+import { printDocumentWindow, KERTAS_KERJA_PRINT_CSS } from "../_lib/print-helpers";
+import { useEmployeeOptions, type EmployeeOption } from "../_hooks/useEmployeeOptions";
+
+export interface WorksheetSourceAsset {
+  id: string;
+  nama_barang: string;
+  merk_tipe?: string | null;
+  kode_barang?: string | null;
+  nup?: string | number | null;
+  jenis_bmn?: string | null;
+  nilai_taksiran?: number | null;
+  worksheet: WorksheetState;
+}
 
 interface KertasKerjaAssetSectionProps {
   asset: AuctionAsset;
   worksheetNumber: number;
-  employees: EmployeeOption[];
+  employees?: EmployeeOption[];
   onClose: () => void;
   initialState?: Partial<WorksheetState> | null;
   isSaving?: boolean;
   onSave?: (payload: { nilaiTaksiran: number; worksheet: WorksheetState }) => void;
+  availableSourceAssets?: WorksheetSourceAsset[];
 }
 
 interface LelangRow {
@@ -35,7 +47,7 @@ interface LelangRow {
   nilaiTaksiran: string;
 }
 
-interface WorksheetState {
+export interface WorksheetState {
   namaObjek: string;
   lokasiObjek: string;
   roda2Atau3: boolean;
@@ -89,6 +101,69 @@ const indonesianMonths = [
   "November",
   "Desember",
 ];
+
+const BLANK_DATE_SPACES = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"; // 10 non-breaking spaces for manual handwritten date
+
+function buildLokasiTanggal(city: string, isManualDate: boolean, day: string, month: string, year: string): string {
+  const cityName = (city || "Samarinda").trim();
+  const monthName = (month || indonesianMonths[new Date().getMonth()]).trim();
+  const yearName = (year || String(new Date().getFullYear())).trim();
+  if (isManualDate) {
+    return `${cityName}, ${BLANK_DATE_SPACES} ${monthName} ${yearName}`;
+  }
+  const dayName = (day || String(new Date().getDate())).trim();
+  return `${cityName}, ${dayName} ${monthName} ${yearName}`;
+}
+
+function parseLokasiTanggal(str?: string) {
+  const today = new Date();
+  const defaultCity = "Samarinda";
+  const defaultDay = String(today.getDate());
+  const defaultMonth = indonesianMonths[today.getMonth()];
+  const defaultYear = String(today.getFullYear());
+
+  if (!str) {
+    return {
+      city: defaultCity,
+      isManualDate: false,
+      day: defaultDay,
+      month: defaultMonth,
+      year: defaultYear,
+    };
+  }
+
+  let city = defaultCity;
+  let datePart = str;
+  if (str.includes(",")) {
+    const parts = str.split(",");
+    city = parts[0].trim() || defaultCity;
+    datePart = parts.slice(1).join(",").trim();
+  }
+
+  let matchedMonth = defaultMonth;
+  for (const m of indonesianMonths) {
+    if (new RegExp(`\\b${m}\\b`, "i").test(datePart)) {
+      matchedMonth = m;
+      break;
+    }
+  }
+
+  const yearMatch = datePart.match(/\b(20\d\d|19\d\d)\b/);
+  const year = yearMatch ? yearMatch[1] : defaultYear;
+
+  const beforeMonth = datePart.split(matchedMonth)[0] || "";
+  const dayMatch = beforeMonth.match(/\b(\d{1,2})\b/);
+  const isManualDate = !dayMatch;
+  const day = dayMatch ? dayMatch[1] : defaultDay;
+
+  return {
+    city,
+    isManualDate,
+    day,
+    month: matchedMonth,
+    year,
+  };
+}
 
 function formatTodayLocationDate() {
   const date = new Date();
@@ -200,6 +275,13 @@ function parseMoney(value: string) {
   return Number(value.replace(/[^\d-]/g, "")) || 0;
 }
 
+function formatRibuan(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return "";
+  const clean = String(value).replace(/\D/g, "");
+  if (!clean) return "";
+  return Number(clean).toLocaleString("id-ID");
+}
+
 function parsePercent(value: string) {
   const normalized = value.replace("%", "").replace(",", ".").trim();
   return Number(normalized) || 0;
@@ -255,17 +337,23 @@ function CellInput({
   value,
   onChange,
   className = "",
+  placeholder,
+  inputMode,
   onBlur,
 }: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  placeholder?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   onBlur?: () => void;
 }) {
   return (
     <input
       value={value ?? ""}
       onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      inputMode={inputMode}
       onBlur={onBlur}
       className={`w-full min-w-0 border border-zinc-300 bg-white px-1 py-0.5 text-center outline-none focus:bg-yellow-50 ${className}`}
     />
@@ -365,7 +453,7 @@ function EmployeeSelectInput({
         <option value="">-- Pilih Pegawai --</option>
         {employees.map((employee) => (
           <option key={employee.id} value={String(employee.id)}>
-            {employee.nama_lengkap || employee.name || "-"}
+            {employee.nama_lengkap || employee.name || "-"}{employee.nip ? ` (NIP: ${employee.nip})` : ""}
           </option>
         ))}
       </select>
@@ -374,81 +462,21 @@ function EmployeeSelectInput({
 }
 
 export function handlePrintKertasKerjaAsset() {
-  const printContent = document.getElementById("kertas-kerja-print-root");
-  if (!printContent) return;
-
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  const clone = printContent.cloneNode(true) as HTMLElement;
-  clone.querySelectorAll("input").forEach((input) => {
-    input.setAttribute("value", input.value);
+  printDocumentWindow({
+    rootId: "kertas-kerja-print-root",
+    title: "Kertas Kerja Analisis BMN",
+    styles: KERTAS_KERJA_PRINT_CSS,
+    beforePrint: (clone) => {
+      clone.querySelectorAll("input").forEach((input) => {
+        input.setAttribute("value", input.value);
+      });
+      clone.querySelectorAll("textarea").forEach((textarea) => {
+        textarea.textContent = textarea.value;
+        const rows = Number(textarea.getAttribute("rows") || "1");
+        textarea.style.height = `${Math.max(textarea.scrollHeight, rows * 14)}px`;
+      });
+    },
   });
-  clone.querySelectorAll("textarea").forEach((textarea) => {
-    textarea.textContent = textarea.value;
-    const rows = Number(textarea.getAttribute("rows") || "1");
-    textarea.style.height = `${Math.max(textarea.scrollHeight, rows * 14)}px`;
-  });
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Kertas Kerja Analisis BMN</title>
-        <style>
-          @page { size: A4 portrait; margin: 7mm 8mm 10mm; }
-          * { box-sizing: border-box; }
-          body { margin: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 7.8pt; }
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #c8c8c8; padding: 1px 2px; vertical-align: top; }
-          .kk-page { width: 194mm; margin: 0 auto; border: 1px solid #111; }
-          .kk-header { display: grid; grid-template-columns: 32mm 1fr; border-bottom: 1px solid #111; min-height: 19mm; }
-          .kk-logo { display: flex; align-items: center; justify-content: center; }
-          .kk-logo img { width: 24mm; height: auto; }
-          .kk-title { display: flex; flex-direction: column; justify-content: center; text-align: center; font-weight: 700; line-height: 1.25; }
-          .kk-content { padding: 3mm 4mm 4mm; }
-          .kk-meta { display: grid; grid-template-columns: 31mm 3mm 1fr; width: 60mm; margin-bottom: 1.5mm; }
-          .kk-section-title { margin: 1mm 0 .5mm; font-weight: 700; }
-          .kk-identitas { display: grid; grid-template-columns: 1fr 1fr; gap: .5mm 8mm; }
-          .kk-row { display: grid; grid-template-columns: 39mm 3mm 1fr; min-height: 3.5mm; }
-          .kk-row-wide { grid-column: 1 / -1; }
-          .kk-row-full { display: grid; grid-template-columns: 39mm 3mm 1fr; grid-column: 1 / -1; min-height: 3.5mm; }
-          .kk-right-identitas .kk-row { grid-template-columns: 27mm 3mm 1fr; }
-          .kk-checks { display: flex; gap: 8mm; align-items: center; white-space: nowrap; }
-          .kk-doc-row .kk-checks { flex-wrap: nowrap; gap: 10mm; }
-          .kk-check { display: inline-flex; align-items: center; gap: 1.5mm; white-space: nowrap; }
-          .kk-bar { background: #aaa; border: 1px solid #888; text-align: center; font-weight: 700; padding: .5mm; margin-top: 1.2mm; }
-          .kk-table { table-layout: fixed; }
-          .kk-table th { text-align: center; font-weight: 700; }
-          .kk-table th, .kk-table td { font-size: 6.9pt; line-height: 1.05; }
-          .kk-table td { height: 4.8mm; }
-          .kk-table input { width: 100%; min-width: 0; border: 1px solid #c8c8c8; font: inherit; height: 4mm; padding: 0 1mm; }
-          .kk-table textarea { width: 100%; min-width: 0; border: 1px solid #c8c8c8; font: inherit; min-height: 4mm; padding: 0 1mm; overflow: hidden; white-space: normal; overflow-wrap: anywhere; resize: none; }
-          .kk-table input, .kk-table textarea { border-color: transparent; background: transparent; }
-          .kk-calculated-cell { display: block; width: 100%; min-height: 4mm; border: 1px solid #c8c8c8; padding: 0 1mm; text-align: right; line-height: 4mm; }
-          .kk-calculated-cell { border-color: transparent; }
-          .kk-calculated-cell.center { text-align: center; }
-          .kk-right { text-align: right; }
-          .kk-center { text-align: center; }
-          .kk-summary { margin-top: 1mm; font-size: 7pt; line-height: 1.12; font-weight: 700; }
-          .kk-summary-row { display: grid; grid-template-columns: 46mm 1fr 8mm 13mm 34mm; min-height: 3.4mm; }
-          .kk-summary-main { grid-column: 5; text-align: right; }
-          .kk-summary-x { grid-column: 3; text-align: center; }
-          .kk-summary-factor { grid-column: 4; text-align: center; }
-          .kk-summary-result { grid-column: 5; text-align: right; }
-          .kk-date-panitia-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm; margin-top: 6mm; text-align: center; }
-          .kk-date-panitia-row > :first-child { text-align: left; padding-left: 9mm; }
-          .kk-date-panitia-row > :nth-child(3) { text-align: center; }
-          .kk-sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm; margin-top: 16mm; text-align: center; }
-          .kk-box { display: inline-flex; width: 3mm; height: 3mm; align-items: center; justify-content: center; border: 1px solid #000; font-size: 7pt; line-height: 1; }
-          .print-hidden { display: none !important; }
-        </style>
-      </head>
-      <body>${clone.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
 }
 
 export function KertasKerjaAssetSection({
@@ -459,17 +487,65 @@ export function KertasKerjaAssetSection({
   initialState,
   isSaving = false,
   onSave,
+  availableSourceAssets = [],
 }: KertasKerjaAssetSectionProps) {
+  const [isCopyOpen, setIsCopyOpen] = useState(false);
+  const copyDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isCopyOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (copyDropdownRef.current && !copyDropdownRef.current.contains(e.target as Node)) {
+        setIsCopyOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isCopyOpen]);
+
+  const { sortedEmployeesForPanitia } = useEmployeeOptions();
+  const employeeList = employees && employees.length > 0 ? employees : sortedEmployeesForPanitia;
+
   const [state, setState] = useState<WorksheetState>(() => {
     const defaultState = createInitialState(asset);
     if (!initialState) return defaultState;
 
+    const rows = (initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows).map((row) => ({
+      ...row,
+      harga: row.harga ? formatRibuan(row.harga) : "",
+    }));
+
     return {
       ...defaultState,
       ...initialState,
-      lelangRows: initialState.lelangRows?.length ? initialState.lelangRows : defaultState.lelangRows,
+      lelangRows: rows,
     };
   });
+
+  const [dateParts, setDateParts] = useState(() =>
+    parseLokasiTanggal(initialState?.lokasiTanggal || state.lokasiTanggal),
+  );
+
+  useEffect(() => {
+    if (initialState?.lokasiTanggal) {
+      setDateParts(parseLokasiTanggal(initialState.lokasiTanggal));
+    }
+  }, [asset.id, initialState?.lokasiTanggal]);
+
+  const handleDatePartChange = (patch: Partial<ReturnType<typeof parseLokasiTanggal>>) => {
+    setDateParts((prev) => {
+      const next = { ...prev, ...patch };
+      const formatted = buildLokasiTanggal(
+        next.city,
+        next.isManualDate,
+        next.day,
+        next.month,
+        next.year,
+      );
+      setState((current) => ({ ...current, lokasiTanggal: formatted }));
+      return next;
+    });
+  };
 
   const computedRows = useMemo(
     () =>
@@ -499,10 +575,11 @@ export function KertasKerjaAssetSection({
   };
 
   const updateRow = (index: number, key: keyof LelangRow, value: string) => {
+    const finalValue = key === "harga" ? formatRibuan(value) : value;
     setState((current) => ({
       ...current,
       lelangRows: current.lelangRows.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [key]: value } : row,
+        rowIndex === index ? { ...row, [key]: finalValue } : row,
       ),
     }));
   };
@@ -524,25 +601,132 @@ export function KertasKerjaAssetSection({
   };
 
   const removeLelangRow = (index: number) => {
-    setState((current) => {
-      if (current.lelangRows.length <= 3) return current;
-      return {
-        ...current,
-        lelangRows: current.lelangRows.filter((_, rowIndex) => rowIndex !== index),
-      };
-    });
+    setState((current) => ({
+      ...current,
+      lelangRows: current.lelangRows.filter((_, i) => i !== index),
+    }));
+  };
+
+
+
+  const handleApplySourceWorksheet = (source: WorksheetSourceAsset) => {
+    let sw = source.worksheet as any;
+    if (!sw) return;
+
+    try {
+      if (typeof sw === "string") sw = JSON.parse(sw);
+    } catch {
+      return;
+    }
+    sw = sw?.vehicleWorksheet || sw;
+
+    const updatedRows = (sw.lelangRows || []).map((row: any) => ({
+      ...row,
+      harga: row.harga ? formatRibuan(row.harga) : "",
+    }));
+
+    setState((current) => ({
+      ...current,
+      ...sw,
+      lelangRows: updatedRows.length > 0 ? updatedRows : current.lelangRows,
+      namaObjek: current.namaObjek || asset.merk_tipe || asset.nama_barang,
+      nup: String(asset.nup || current.nup || ""),
+      noPolisi: asset.no_polisi || current.noPolisi || "",
+      merekKendaraan: current.merekKendaraan || getAssetBrand(asset),
+      tipeKendaraan: current.tipeKendaraan || getAssetType(asset),
+      tahunPembuatan: String(asset.tahun_perolehan || current.tahunPembuatan || sw.tahunPembuatan || ""),
+      warna: current.warna || sw.warna || "",
+      bahanBakar: current.bahanBakar || sw.bahanBakar || "",
+      roda2Atau3: current.roda2Atau3,
+      roda4AtauLebih: current.roda4AtauLebih,
+    }));
+
+    if (sw.lokasiTanggal) {
+      setDateParts(parseLokasiTanggal(sw.lokasiTanggal));
+    }
+
+    setIsCopyOpen(false);
+    toast.success(
+      `Kertas kerja berhasil disalin dari ${source.nama_barang} (NUP ${source.nup || "-"}). Silakan tinjau dan klik Simpan.`
+    );
   };
 
   return (
     <section id="kertas-kerja-preview" className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 backdrop-blur-md p-4 dark:border-zinc-800 dark:bg-zinc-900/95 sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
         <div>
           <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Nomor kertas kerja #{worksheetNumber} mengikuti urutan aset terpilih.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {availableSourceAssets.length > 0 ? (
+            <div className="relative" ref={copyDropdownRef}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCopyOpen((prev) => !prev)}
+                className="rounded-xl gap-1.5 text-xs border-indigo-200 bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70 hover:text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 cursor-pointer"
+                title="Salin data analisis dari kertas kerja aset lain"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span>Salin dari Aset Lain</span>
+                <ChevronDown className={`h-3 w-3 opacity-60 transition-transform ${isCopyOpen ? "rotate-180" : ""}`} />
+              </Button>
+
+              {isCopyOpen && (
+                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-3 rounded-2xl shadow-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-2">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <Copy className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                      Salin Data Kertas Kerja
+                    </h4>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      Salin data komparasi pasar, panitia, &amp; kondisi dari aset yang sudah dinilai.
+                    </p>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
+                    {availableSourceAssets.map((src) => (
+                      <button
+                        key={src.id}
+                        type="button"
+                        onClick={() => handleApplySourceWorksheet(src)}
+                        className="w-full text-left p-2 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800 transition group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-semibold text-xs truncate text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50">
+                            {src.nama_barang}
+                          </span>
+                          {src.nilai_taksiran ? (
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                              Rp{formatPlainRupiah(src.nilai_taksiran)}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                          <span>NUP: {src.nup || "-"}</span>
+                          {src.merk_tipe && <span>• {src.merk_tipe}</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              disabled
+              className="rounded-xl gap-1.5 text-xs opacity-50 cursor-not-allowed"
+              title="Belum ada aset lain di paket ini yang memiliki kertas kerja tersimpan"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              <span>Salin dari Aset Lain</span>
+            </Button>
+          )}
+
           <Button variant="outline" className="rounded-xl gap-2 text-xs" onClick={onClose}>
             <X className="h-3.5 w-3.5" />
             Tutup
@@ -563,7 +747,7 @@ export function KertasKerjaAssetSection({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)] xl:items-start">
         <div className="space-y-4 print:hidden">
           <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</h3>
@@ -607,8 +791,86 @@ export function KertasKerjaAssetSection({
               <WorksheetInput label="Warna" value={state.warna} onChange={(value) => update("warna", value)} />
               <WorksheetInput label="Tahun Pembuatan" value={state.tahunPembuatan} onChange={(value) => update("tahunPembuatan", value)} />
               <WorksheetInput label="Bahan Bakar" value={state.bahanBakar} onChange={(value) => update("bahanBakar", value)} />
-              <WorksheetInput label="Lokasi / Tanggal" value={state.lokasiTanggal} onChange={(value) => update("lokasiTanggal", value)} />
+              <WorksheetInput
+                label="Lokasi / Tanggal"
+                value={state.lokasiTanggal}
+                onChange={(value) => {
+                  update("lokasiTanggal", value);
+                  setDateParts(parseLokasiTanggal(value));
+                }}
+              />
             </div>
+
+            <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={dateParts.isManualDate}
+                  onChange={(e) => handleDatePartChange({ isManualDate: e.target.checked })}
+                  className="h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+                />
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                    Kosongkan Tanggal (Diisi Manual / Pulpen)
+                  </span>
+                  <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    Menyisipkan spasi kosong untuk diisi tanggal bertulis tangan saat tanda tangan fisik
+                  </span>
+                </div>
+              </label>
+
+              <div className={`grid gap-1.5 ${dateParts.isManualDate ? "grid-cols-2" : "grid-cols-3"}`}>
+                {!dateParts.isManualDate && (
+                  <div>
+                    <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Tgl
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={dateParts.day}
+                      onChange={(e) => handleDatePartChange({ day: e.target.value })}
+                      className={inputCls}
+                      placeholder="Tgl"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Bulan
+                  </span>
+                  <select
+                    value={dateParts.month}
+                    onChange={(e) => handleDatePartChange({ month: e.target.value })}
+                    className={inputCls}
+                  >
+                    {indonesianMonths.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Tahun
+                  </span>
+                  <input
+                    type="number"
+                    min={1900}
+                    max={2100}
+                    value={dateParts.year}
+                    onChange={(e) => handleDatePartChange({ year: e.target.value })}
+                    className={inputCls}
+                    placeholder="Tahun"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
               <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kondisi Kendaraan</p>
               <div className="grid gap-2">
@@ -642,14 +904,21 @@ export function KertasKerjaAssetSection({
             <div className="mt-3 space-y-2">
               {state.lelangRows.map((row, index) => (
                 <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950">
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">
-                    Baris {index + 1}: {row.data || "Kosong"}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200 truncate">
+                      Baris {index + 1}: {row.data || "Kosong"}
+                    </span>
+                    {row.harga && (
+                      <span className="shrink-0 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        • Rp{row.harga}
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeLelangRow(index)}
                     disabled={state.lelangRows.length <= 3}
-                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-500/10"
+                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-500/10 shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                     Hapus
@@ -662,17 +931,20 @@ export function KertasKerjaAssetSection({
           <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Panitia Penaksir</h3>
             <div className="grid gap-3">
-              <EmployeeSelectInput label="Ambil Pegawai 1" employees={employees} onSelect={(name) => update("panitia1", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 1" employees={employeeList} onSelect={(name) => update("panitia1", name)} />
               <WorksheetInput label="Nama Panitia 1" value={state.panitia1} onChange={(value) => update("panitia1", value)} />
-              <EmployeeSelectInput label="Ambil Pegawai 2" employees={employees} onSelect={(name) => update("panitia2", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 2" employees={employeeList} onSelect={(name) => update("panitia2", name)} />
               <WorksheetInput label="Nama Panitia 2" value={state.panitia2} onChange={(value) => update("panitia2", value)} />
-              <EmployeeSelectInput label="Ambil Pegawai 3" employees={employees} onSelect={(name) => update("panitia3", name)} />
+              <EmployeeSelectInput label="Ambil Pegawai 3" employees={employeeList} onSelect={(name) => update("panitia3", name)} />
               <WorksheetInput label="Nama Panitia 3" value={state.panitia3} onChange={(value) => update("panitia3", value)} />
             </div>
           </div>
         </div>
 
-        <div id="kertas-kerja-print-root" className="overflow-x-auto">
+        <div
+          id="kertas-kerja-print-root"
+          className="overflow-x-auto xl:sticky xl:top-[76px] xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-100/50 p-2 dark:border-zinc-800 dark:bg-zinc-950/50 shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
+        >
           <div className="kk-page mx-auto min-w-245 border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`
               .kk-page { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; }
@@ -723,7 +995,7 @@ export function KertasKerjaAssetSection({
               .kk-summary-result { grid-column: 5; text-align: right; }
               .kk-date-panitia-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 24px; text-align: center; }
               .kk-date-panitia-row > :first-child { text-align: left; padding-left: 36px; }
-              .kk-date-panitia-row > :nth-child(3) { text-align: center; }
+              .kk-date-panitia-row > :nth-child(3) { text-align: center; white-space: pre-wrap; }
               .kk-sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 58px; text-align: center; }
               .kk-box { display: inline-flex; width: 12px; height: 12px; align-items: center; justify-content: center; border: 1px solid #000; font-size: 9px; line-height: 1; }
               @media print {
@@ -827,7 +1099,7 @@ export function KertasKerjaAssetSection({
                       <td><CellTextarea value={row.data} onChange={(value) => updateRow(index, "data", value)} /></td>
                       <td><CellInput value={row.kode} onChange={(value) => updateRow(index, "kode", value)} /></td>
                       <td><CellTextarea value={row.tipe} onChange={(value) => updateRow(index, "tipe", value)} /></td>
-                      <td><CellInput value={row.harga} onChange={(value) => updateRow(index, "harga", value)} className="text-right" /></td>
+                      <td><CellInput value={row.harga} onChange={(value) => updateRow(index, "harga", value)} className="text-right font-medium" placeholder="0" inputMode="numeric" /></td>
                       <td><CellInput value={row.waktu} onChange={(value) => updateRow(index, "waktu", value)} /></td>
                       <td><CellInput value={row.lokasi} onChange={(value) => updateRow(index, "lokasi", value)} /></td>
                       <td><CellInput value={row.tahun} onChange={(value) => updateRow(index, "tahun", value)} /></td>
@@ -903,7 +1175,7 @@ export function KertasKerjaAssetSection({
               <div className="kk-date-panitia-row">
                 <span>Panitia Penaksir</span>
                 <span></span>
-                <span>{state.lokasiTanggal}</span>
+                <span style={{ whiteSpace: "pre-wrap" }}>{state.lokasiTanggal}</span>
               </div>
               <div className="kk-sign">
                 <span>{state.panitia1}</span>

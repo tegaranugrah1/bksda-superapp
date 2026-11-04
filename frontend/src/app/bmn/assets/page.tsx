@@ -10,6 +10,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -44,6 +45,8 @@ interface IAsset {
 interface IResponse { data: IAsset[]; last_page: number; total?: number }
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
+
+import { SIMAN_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
 
 export default function BmnAssetsPage() {
   const searchParams = useSearchParams();
@@ -243,14 +246,27 @@ export default function BmnAssetsPage() {
   const allSelected = response?.data ? response.data.length > 0 && response.data.every(a => selectedIds.has(a.id)) : false;
 
   return (
-    <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Data Aset</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Katalog seluruh Barang Milik Negara.</p>
+    <div className="p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* 1. Unified Clean Enterprise Header Bar */}
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+              Barang Milik Negara
+            </span>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Data Aset
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              Katalog seluruh Barang Milik Negara BKSDA Kalimantan Timur.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <div className="relative">
             <Button variant="outline" size="sm" className="rounded-xl gap-2 text-xs" onClick={() => setShowExportMenu(!showExportMenu)}>
               <Download className="w-3.5 h-3.5" /> Export {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua") ? "(filtered)" : ""}
@@ -258,16 +274,16 @@ export default function BmnAssetsPage() {
             {showExportMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 w-56 p-1">
+                <div className="absolute right-0 top-full mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-lg z-50 w-56 p-1">
                   {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua" || debouncedSearch) && (
-                    <p className="px-3 py-1.5 text-[9px] text-emerald-600 font-medium border-b border-slate-100 dark:border-slate-800/50 mb-1">
+                    <p className="px-3 py-1.5 text-[9px] text-emerald-600 font-medium border-b border-slate-100 dark:border-zinc-800/50 mb-1">
                       ✓ Export sesuai filter aktif
                     </p>
                   )}
-                  <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 rounded-lg">
+                  <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer">
                     Dengan NUP Lama (80 kolom)
                   </button>
-                  <button onClick={() => { handleExport(false); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50 rounded-lg">
+                  <button onClick={() => { handleExport(false); setShowExportMenu(false); }} className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer">
                     Tanpa NUP Lama (79 kolom)
                   </button>
                 </div>
@@ -279,7 +295,7 @@ export default function BmnAssetsPage() {
               {canImport && <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />}
               {canCreate && (
                 <Link href="/bmn/assets/create">
-                  <Button size="sm" className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500">
+                  <Button size="sm" className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 cursor-pointer">
                     <Plus className="w-3.5 h-3.5" /> Tambah Aset
                   </Button>
                 </Link>
@@ -311,19 +327,29 @@ export default function BmnAssetsPage() {
             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           />
         </div>
-        <div className="flex gap-1">
-          {KONDISI_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => { setKondisiFilter(opt); setPageState(1); updateUrl({ kondisi: opt, page: 1 }); }}
-              className={cn(
-                "px-3 py-2 rounded-lg text-xs font-semibold transition-all",
-                kondisiFilter === opt ? "bg-emerald-600 text-white" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 dark:bg-slate-900/50"
-              )}
-            >
-              {opt}
-            </button>
-          ))}
+        <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+          {KONDISI_OPTIONS.map((opt) => {
+            const isActive = kondisiFilter === opt;
+            return (
+              <button
+                key={opt}
+                onClick={() => { setKondisiFilter(opt); setPageState(1); updateUrl({ kondisi: opt, page: 1 }); }}
+                className={cn(
+                  "relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
+                  isActive ? "text-white font-bold" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="activeBmnKondisiTab"
+                    className="absolute inset-0 bg-emerald-600 rounded-lg shadow-xs"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{opt}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -359,18 +385,27 @@ export default function BmnAssetsPage() {
           className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[220px]"
         >
           <option value="Semua">Semua Lokasi</option>
-          {locations && locations.length > 0 ? (
-            locations.map((l) => (
-              <option key={l.id} value={l.name}>{l.name} ({l.unit_kerja})</option>
-            ))
-          ) : (
-            <>
-              <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
-              <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
-              <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
-              <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
-            </>
-          )}
+          <optgroup label="Data SIMAN Lama (Ruang)">
+            {SIMAN_LOKASI_RUANG_OPTIONS.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Unit Kerja & Resor (BKSDA)">
+            {locations && locations.length > 0 ? (
+              locations.map((l) => (
+                <option key={l.id} value={l.name}>{l.name} ({l.unit_kerja})</option>
+              ))
+            ) : (
+              <>
+                <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
+                <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
+                <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
+                <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+              </>
+            )}
+          </optgroup>
         </select>
         <TagFilterCombobox
           tags={tagsList}
@@ -494,16 +529,16 @@ export default function BmnAssetsPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden relative">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs relative">
         {isFetching && !isLoading && (
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-slate-100 overflow-hidden z-10">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-slate-100 dark:bg-zinc-800 overflow-hidden z-10">
             <div className="h-full bg-emerald-500 animate-pulse w-1/3 rounded-r-full" />
           </div>
         )}
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900/50">
+              <tr className="border-b border-slate-200/80 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-800/50">
                 {canWrite && (
                   <th className="px-3 py-3 w-10">
                     <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
@@ -518,9 +553,15 @@ export default function BmnAssetsPage() {
                 <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
               {isLoading ? (
-                <tr><td colSpan={canWrite ? 8 : 6} className="p-12 text-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" /><p className="text-sm text-slate-400">Memuat data...</p></td></tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={canWrite ? 8 : 6} className="px-6 py-4">
+                      <div className="h-10 bg-slate-100 dark:bg-zinc-800/60 rounded-xl" />
+                    </td>
+                  </tr>
+                ))
               ) : response?.data?.length === 0 ? (
                 <tr><td colSpan={canWrite ? 8 : 6} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-slate-400">Tidak ada data ditemukan</p></td></tr>
               ) : (
@@ -593,10 +634,23 @@ export default function BmnAssetsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/bmn/assets/${asset.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 dark:bg-blue-500/10 text-blue-600"><Eye className="w-4 h-4" /></Link>
+                      <div className="flex items-center justify-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        <Link
+                          href={`/bmn/assets/${asset.id}`}
+                          aria-label={`Lihat detail ${asset.nama_barang}`}
+                          className="min-h-9 min-w-9 flex items-center justify-center p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
                         {canDispose && (
-                          <button onClick={() => handleDispose(asset.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:bg-red-500/10 text-red-500"><Trash2 className="w-4 h-4" /></button>
+                          <button
+                            type="button"
+                            onClick={() => handleDispose(asset.id)}
+                            aria-label={`Dispose aset ${asset.nama_barang}`}
+                            className="min-h-9 min-w-9 flex items-center justify-center p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500 dark:text-red-400 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </td>

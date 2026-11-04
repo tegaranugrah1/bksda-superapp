@@ -7,6 +7,7 @@ use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Imports\AssetImport;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
+use App\Modules\Bmn\Models\Tag;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
@@ -36,9 +37,10 @@ class AssetController extends Controller
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
-            $likePattern = "%{$search}%";
+            $escapedSearch = addcslashes($search, '%_');
+            $likePattern = "%{$escapedSearch}%";
             $cleanSearch = ltrim($search, '#');
-            $cleanLikePattern = "%{$cleanSearch}%";
+            $cleanLikePattern = '%' . addcslashes($cleanSearch, '%_') . '%';
             $isPgSql = config('database.default') === 'pgsql';
             $likeOp = $isPgSql ? 'ilike' : 'like';
 
@@ -65,37 +67,8 @@ class AssetController extends Controller
             });
         }
 
-        if ($request->filled('employee_id')) {
-            $employeeId = $request->employee_id;
-            $employee = \App\Modules\Kepegawaian\Models\Employee::find($employeeId);
-            $query->where(function($q) use ($employeeId, $employee) {
-                $q->where('employee_id', $employeeId);
-                if ($employee && $employee->nama_lengkap) {
-                    $fullName = trim($employee->nama_lengkap);
-                    $fullNameLower = mb_strtolower($fullName);
-                    
-                    // Search full name
-                    $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $fullNameLower . '%'])
-                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $fullNameLower . '%']);
-                    
-                    // Search name before comma (titles)
-                    if (str_contains($fullName, ',')) {
-                        $nameParts = explode(',', $fullName);
-                        $baseName = mb_strtolower(trim($nameParts[0]));
-                        if (strlen($baseName) > 2) {
-                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $baseName . '%'])
-                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $baseName . '%']);
-                        }
-                    }
-                    
-                    // Search first two words for better fuzzy match
-                    $words = explode(' ', $fullNameLower);
-                    if (count($words) >= 2) {
-                        $twoWords = $words[0] . ' ' . $words[1];
-                        $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $twoWords . '%']);
-                    }
-                }
-            });
+        if ($request->query->has('employee_id')) {
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->filled('borrower_id')) {
@@ -104,27 +77,23 @@ class AssetController extends Controller
             });
         }
 
-        if ($request->filled('kondisi')) {
-            $kondisi = mb_strtolower(trim((string) $request->kondisi));
-            $query->whereRaw('LOWER(kondisi) LIKE ?', ["%{$kondisi}%"]);
-        }
-
-        if ($request->filled('jenis_bmn')) {
-            $jenisBmn = mb_strtolower(trim((string) $request->jenis_bmn));
-            $query->whereRaw('LOWER(jenis_bmn) LIKE ?', ["%{$jenisBmn}%"]);
-        }
-
-        if ($request->filled('lokasi_ruang')) {
-            $lokasiRuang = mb_strtolower(trim((string) $request->lokasi_ruang));
-            $query->whereRaw('LOWER(lokasi_ruang) LIKE ?', ["%{$lokasiRuang}%"]);
+        foreach (['kondisi', 'jenis_bmn', 'lokasi_ruang'] as $field) {
+            if ($request->filled($field)) {
+                $val = addcslashes(mb_strtolower(trim((string) $request->input($field))), '%_');
+                $query->whereRaw("LOWER({$field}) LIKE ?", ["%{$val}%"]);
+            }
         }
 
         $rawTags = $request->input('tag_ids', $request->input('tag_id'));
         if ($rawTags && $rawTags !== 'Semua') {
             $tagIds = is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags);
-            foreach (array_filter($tagIds) as $tId) {
-                if ($tId !== 'Semua') {
-                    $query->whereHas('tags', fn ($q) => $q->where('bmn_tags.id', $tId));
+            $cleanTagIds = array_filter($tagIds, fn ($id) => $id !== 'Semua' && !empty($id));
+            if (!empty($cleanTagIds)) {
+                $tagsModels = Tag::with('subTags')->whereIn('id', $cleanTagIds)->get();
+                foreach ($tagsModels as $tModel) {
+                    /** @var Tag $tModel */
+                    $familyIds = $tModel->getFamilyTagIds();
+                    $query->whereHas('tags', fn ($q) => $q->whereIn('bmn_tags.id', $familyIds));
                 }
             }
         }
@@ -164,6 +133,7 @@ class AssetController extends Controller
     {
         try {
             $asset = $this->assetService->updateAsset($id, $request->validated(), $request->user()->id);
+            $asset->load(['penanggungJawab', 'tags', 'loans.borrower', 'maintenances', 'historyUpdates.author']);
 
             return response()->json(['message' => 'Perubahan aset berhasil direkam.', 'data' => new AssetResource($asset)]);
         } catch (Exception $e) {

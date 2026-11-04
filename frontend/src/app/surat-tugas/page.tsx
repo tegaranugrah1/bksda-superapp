@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { cleanMelaksanakanKegiatanPrefix } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { buildKegiatanDiktumText } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
+import { formatDateRangeIndonesian } from "@/lib/letter-utils";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   EmployeeSelectionStep,
   Employee,
@@ -13,8 +16,11 @@ import {
   SuratTugasDetailStep,
   JenisTugasType,
   SuratTugasFormData,
+  StTaskTypeOption,
 } from "./_components/SuratTugasDetailStep";
 import { SuratTugasSuccessStep } from "./_components/SuratTugasSuccessStep";
+
+import { detectDefaultKotaAsal } from "@/app/kepegawaian/surat-tugas/_lib";
 
 export default function SuratTugasForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -27,19 +33,34 @@ export default function SuratTugasForm() {
   const { data: allEmployees = [], isLoading: isSearching } = useQuery({
     queryKey: ["all-employees-list"],
     queryFn: async () => {
-      const response = await api.get("/kepegawaian/employees/select");
-      return response.data.data || response.data;
+      const response = await api.get("/kepegawaian/employees/select", {
+        params: { limit: 500 },
+      });
+      return response.data.data || response.data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  const searchResults = allEmployees
-    .filter(
-      (emp: Employee) =>
-        emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (emp.nip && emp.nip.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-    .slice(0, 50);
+  const { data: taskTypes = [] } = useQuery<StTaskTypeOption[]>({
+    queryKey: ["st-task-types-public"],
+    queryFn: async () => {
+      const response = await api.get("/kepegawaian/st-task-types/public");
+      return response.data?.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return allEmployees
+      .filter((emp: Employee) => {
+        const name = emp.name || (emp as any).nama_lengkap || "";
+        const nip = emp.nip || "";
+        return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+      })
+      .slice(0, 50);
+  }, [allEmployees, searchQuery]);
 
   const [formData, setFormData] = useState<SuratTugasFormData>({
     nama_kegiatan: "",
@@ -50,92 +71,57 @@ export default function SuratTugasForm() {
     keterangan: "",
   });
 
-  // Builder State untuk Detail Kegiatan (Synced 100% dengan /kepegawaian/surat-tugas/create)
+  const [selectedTaskTypeId, setSelectedTaskTypeId] = useState<number | null>(null);
   const [jenisTugas, setJenisTugas] = useState<JenisTugasType>(
-    "Perjalanan Dinas ( Lebih dari 1 Hari )"
+    "Perjalanan Dinas Luar Wilayah"
   );
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
   const [namaKegiatanText, setNamaKegiatanText] = useState("");
+  const [untukKegiatanText, setUntukKegiatanText] = useState("Pengawasan Pekerjaan Konstruksi");
   const [tempatSpesifik, setTempatSpesifik] = useState("");
   const [namaPlh, setNamaPlh] = useState("");
   const [plhSearchQuery, setPlhSearchQuery] = useState("");
   const [showPlhDropdown, setShowPlhDropdown] = useState(false);
   const plhDropdownRef = useRef<HTMLDivElement>(null);
 
-  const plhSearchResults = allEmployees
-    .filter(
-      (emp: Employee) =>
-        emp.name.toLowerCase().includes(plhSearchQuery.toLowerCase()) ||
-        (emp.nip && emp.nip.toLowerCase().includes(plhSearchQuery.toLowerCase()))
-    )
-    .slice(0, 50);
+  const plhSearchResults = useMemo(() => {
+    if (!plhSearchQuery.trim()) return [];
+    const q = plhSearchQuery.toLowerCase().trim();
+    return allEmployees
+      .filter((emp: Employee) => {
+        const name = emp.name || (emp as any).nama_lengkap || "";
+        const nip = emp.nip || "";
+        return name.toLowerCase().includes(q) || nip.toLowerCase().includes(q);
+      })
+      .slice(0, 50);
+  }, [allEmployees, plhSearchQuery]);
   const [tandaSetuju, setTandaSetuju] = useState<"sudah" | "belum" | "">("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBedaHari, setIsBedaHari] = useState(false);
+  const [employeeDates, setEmployeeDates] = useState<Record<string, { mulai: string; selesai: string }>>({});
+  const [hasBuruh, setHasBuruh] = useState(false);
+  const [jumlahBuruh, setJumlahBuruh] = useState(1);
 
-  // Helper: Dapatkan kota penempatan untuk seorang pegawai
-  const getEmployeeCity = (emp: Employee): string => {
-    // 1. Prioritaskan flag resmi backend seksi_wilayah
-    if (emp.seksi_wilayah === "I") return "Berau";
-    if (emp.seksi_wilayah === "II") return "Tenggarong";
-    if (emp.seksi_wilayah === "III") return "Balikpapan";
-
-    // 2. Fallback pencocokan string satuan_kerja / department
-    // Urutkan III -> II -> I untuk menghindari tabrakan substring romawi
-    const dept = (emp.department || "").toLowerCase();
-
-    if (
-      dept.includes("wilayah iii") ||
-      dept.includes("wil iii") ||
-      dept.includes("seksi iii") ||
-      dept.includes("skw iii") ||
-      dept.includes("seksi 3") ||
-      dept.includes("balikpapan")
-    ) {
-      return "Balikpapan";
+  // Set default task type when loaded
+  useEffect(() => {
+    if (taskTypes.length > 0 && selectedTaskTypeId === null) {
+      const defaultType = taskTypes.find((t) => t.kode === "luar_wilayah") || taskTypes[0];
+      if (defaultType) {
+        setSelectedTaskTypeId(defaultType.id);
+        setJenisTugas(defaultType.nama);
+      }
     }
+  }, [taskTypes, selectedTaskTypeId]);
 
-    if (
-      dept.includes("wilayah ii") ||
-      dept.includes("wil ii") ||
-      dept.includes("seksi ii") ||
-      dept.includes("skw ii") ||
-      dept.includes("seksi 2") ||
-      dept.includes("tenggarong")
-    ) {
-      return "Tenggarong";
-    }
-
-    if (
-      dept.includes("wilayah i") ||
-      dept.includes("wil i") ||
-      dept.includes("seksi i") ||
-      dept.includes("skw i") ||
-      dept.includes("seksi 1") ||
-      dept.includes("berau")
-    ) {
-      return "Berau";
-    }
-
-    return "Samarinda";
-  };
-
-  // Helper: Format gabungan nama kota unik, contoh: "Samarinda dan Tenggarong"
-  const formatKotaAsal = (cities: string[]): string => {
-    const uniqueCities = Array.from(new Set(cities.filter(Boolean)));
-    if (uniqueCities.length === 0) return "Samarinda";
-    if (uniqueCities.length === 1) return uniqueCities[0];
-    if (uniqueCities.length === 2) return `${uniqueCities[0]} dan ${uniqueCities[1]}`;
-    return `${uniqueCities.slice(0, -1).join(", ")} dan ${uniqueCities[uniqueCities.length - 1]}`;
-  };
-
-  // Deteksi otomatis Kota Asal berdasarkan Penempatan Satker Pegawai
-  const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
-    if (!employees || employees.length === 0) return "Samarinda";
-    const cities = employees.map(getEmployeeCity);
-    return formatKotaAsal(cities);
-  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || selectedEmployees.length > 0 || allEmployees.length === 0) return;
+    const empId = new URLSearchParams(window.location.search).get("employee_id");
+    if (!empId) return;
+    const found = allEmployees.find((e: Employee) => String(e.id) === empId);
+    if (found) setSelectedEmployees([found]);
+  }, [allEmployees, selectedEmployees.length]);
 
   useEffect(() => {
     if (selectedEmployees.length > 0) {
@@ -143,9 +129,9 @@ export default function SuratTugasForm() {
     } else {
       setKotaAsal("Samarinda");
     }
-  }, [selectedEmployees, detectDefaultKotaAsal]);
+  }, [selectedEmployees]);
 
-  // Deteksi apakah ada pejabat struktural (Kasubag TU / Kepala Seksi) yang ikut perjalanan
+  // Deteksi apakah ada pejabat struktural yang ikut perjalanan
   const hasPejabatStruktural = selectedEmployees.some((emp) => {
     const pos = (emp.position || "").toLowerCase();
     return (
@@ -210,14 +196,20 @@ export default function SuratTugasForm() {
       return;
     }
     setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ["application/pdf"];
+      const validTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+      ];
       if (!validTypes.includes(file.type)) {
-        toast.error("Format file tidak didukung. Hanya PDF yang diperbolehkan.");
+        toast.error("Format file tidak didukung. Harap upload PDF atau gambar (JPG/PNG).");
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
@@ -231,53 +223,117 @@ export default function SuratTugasForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Security & Input Validation Bounds
+    if (!namaKegiatanText.trim() || namaKegiatanText.trim().length < 5) {
+      toast.error("Nama kegiatan / maksud tugas minimal 5 karakter.");
+      return;
+    }
+
+    if (!formData.tanggal_mulai) {
+      toast.error("Silakan isi tanggal pelaksanaan tugas.");
+      return;
+    }
+
+    if (formData.tanggal_selesai && formData.tanggal_selesai < formData.tanggal_mulai) {
+      toast.error("Tanggal selesai tidak boleh mendahului tanggal mulai.");
+      return;
+    }
+
+    if (!formData.sumber_dana) {
+      toast.error("Silakan pilih sumber pembebanan dana.");
+      return;
+    }
+
     if (hasSeksiEmployee && !tandaSetuju) {
       toast.error("Silakan pilih status persetujuan Kepala Seksi terlebih dahulu.");
       return;
     }
 
+    if (isBedaHari) {
+      const missingDates = selectedEmployees.some((emp) => {
+        const d = employeeDates[emp.id];
+        return !d?.mulai || !d?.selesai;
+      });
+      if (missingDates) {
+        toast.error("Lengkapi tanggal mulai dan selesai untuk semua personel pada jadwal berbeda hari.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
-      let finalNamaKegiatan = `${jenisTugas}`;
-      if (jenisTugas.includes("Perjalanan Dinas")) {
-        finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${
-          kotaAsal.trim() || "..."
-        } ke ${kotaTujuan.trim() || "..."}${
-          namaKegiatanText.trim() ? ` dalam rangka ${cleanMelaksanakanKegiatanPrefix(namaKegiatanText)}` : ""
-        }${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
-      } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
-        const cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
-        finalNamaKegiatan = `Melaksanakan Kegiatan ${
-          cleanNama || "..."
-        }${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${
-          kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""
-        }`;
-      } else {
-        finalNamaKegiatan = `Menugaskan Staf untuk ${
-          cleanMelaksanakanKegiatanPrefix(namaKegiatanText) || "..."
-        }${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${
-          kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""
-        }`;
-      }
+      const activeTaskType = taskTypes.find((t) => t.id === selectedTaskTypeId) || null;
+      const currentModeLokasi = activeTaskType?.mode_lokasi || (
+        jenisTugas.toLowerCase().includes("dalam kawasan") ? "dalam_kawasan" :
+        jenisTugas.toLowerCase().includes("perjalanan dinas") ? "luar_wilayah" :
+        "tempat_saja"
+      );
+
+      // Single Source of Truth Diktum Formula (Ponytail: Unified & Reusable)
+      const finalNamaKegiatan = buildKegiatanDiktumText({
+        modeLokasi: currentModeLokasi,
+        jenisTugas,
+        kotaAsal,
+        kotaTujuan,
+        tempatSpesifik,
+        namaKegiatanText,
+        untukKegiatanText,
+        contohFormat: activeTaskType?.contoh_format,
+      });
 
       const calculatedTempatTujuan =
         tempatSpesifik.trim() ||
         kotaTujuan.trim() ||
-        (jenisTugas.includes("Perjalanan Dinas") ? kotaAsal.trim() : "");
+        kotaAsal.trim() ||
+        "Kalimantan Timur";
 
       const submitData = new FormData();
       submitData.append("maksud_tujuan", finalNamaKegiatan);
       submitData.append("nama_kegiatan", finalNamaKegiatan);
       submitData.append("tempat_tujuan", calculatedTempatTujuan);
       submitData.append("tanggal_mulai", formData.tanggal_mulai);
-      submitData.append("tanggal_selesai", formData.tanggal_selesai);
+      submitData.append("tanggal_selesai", formData.tanggal_selesai || formData.tanggal_mulai);
       submitData.append("sumber_dana", formData.sumber_dana);
+      submitData.append("template_type", isBedaHari ? "beda-hari" : "standard");
+      submitData.append("jumlah_buruh", hasBuruh ? String(jumlahBuruh) : "0");
+      if (activeTaskType?.id) {
+        submitData.append("task_type_id", String(activeTaskType.id));
+      }
+      const isSertakanLaporan = activeTaskType ? (activeTaskType.default_sertakan_laporan ?? true) : true;
+      submitData.append("sertakan_laporan", isSertakanLaporan ? "1" : "0");
 
       if (formData.sumber_dana === "other") {
         submitData.append("sumber_dana_other", formData.sumber_dana_other);
       }
-      if (formData.keterangan)
-        submitData.append("keterangan", formData.keterangan);
+
+      if (isBedaHari) {
+        submitData.append("template_snapshot[configuration][show_departure_column]", "0");
+      }
+
+      let finalKeterangan = formData.keterangan?.trim() || "";
+      if (isBedaHari) {
+        const buruhList = hasBuruh
+          ? Array.from({ length: jumlahBuruh }, (_, i) => ({
+              id: `pm-${i + 1}`,
+              name: "PM",
+            }))
+          : [];
+        const allPersons = [...selectedEmployees, ...buruhList];
+        const scheduleLines = allPersons.map((emp, index) => {
+          const dates = employeeDates[emp.id] || {
+            mulai: formData.tanggal_mulai,
+            selesai: formData.tanggal_selesai,
+          };
+          const rangeText = formatDateRangeIndonesian(dates.mulai, dates.selesai);
+          return `${index + 1}. ${emp.name}: ${rangeText}`;
+        });
+        const scheduleBlock = `[Jadwal Personel Berbeda Hari]:\n${scheduleLines.join("\n")}`;
+        finalKeterangan = finalKeterangan ? `${finalKeterangan}\n\n${scheduleBlock}` : scheduleBlock;
+      }
+      if (finalKeterangan) {
+        submitData.append("keterangan", finalKeterangan);
+      }
+
       if (namaPlh) submitData.append("nama_plh", namaPlh);
       if (tandaSetuju) submitData.append("tanda_setuju", tandaSetuju);
       submitData.append("has_seksi_employee", hasSeksiEmployee ? "1" : "0");
@@ -288,6 +344,10 @@ export default function SuratTugasForm() {
 
       selectedEmployees.forEach((emp, index) => {
         submitData.append(`employees[${index}][id]`, emp.id);
+        if (isBedaHari && employeeDates[emp.id]) {
+          submitData.append(`employees[${index}][tanggal_mulai]`, employeeDates[emp.id].mulai);
+          submitData.append(`employees[${index}][tanggal_selesai]`, employeeDates[emp.id].selesai);
+        }
       });
 
       await api.post("/surat-tugas/submit", submitData, {
@@ -297,14 +357,25 @@ export default function SuratTugasForm() {
 
       toast.success("Pengajuan surat tugas berhasil disubmit!");
       setStep(3);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: unknown) {
       console.error("Submit failed:", error);
       const axiosErr = error as {
         response?: {
-          data?: { message?: string; errors?: Record<string, string[]> };
+          data?: {
+            message?: string;
+            errors?: Record<string, string[]>;
+            conflicts?: Array<{ message?: string }>;
+          };
         };
       };
-      if (axiosErr?.response?.data?.errors) {
+      if (axiosErr?.response?.data?.conflicts && axiosErr.response.data.conflicts.length > 0) {
+        const conflictMsgs = axiosErr.response.data.conflicts
+          .map((c) => c.message)
+          .filter(Boolean)
+          .join("\n");
+        toast.error(`Bentrok Jadwal:\n${conflictMsgs}`);
+      } else if (axiosErr?.response?.data?.errors) {
         const firstError = Object.values(axiosErr.response.data.errors)[0]?.[0];
         toast.error(firstError || "Validasi gagal.");
       } else {
@@ -321,13 +392,88 @@ export default function SuratTugasForm() {
   return (
     <>
       {isSearching && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-100 flex flex-col items-center justify-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-sm font-bold text-slate-700">
             Tunggu sebentar, memuat pegawai...
           </p>
         </div>
       )}
+
+      {/* 3-Step Horizontal Progress Indicator (UI/UX Pro Max) */}
+      <div className="mb-8 max-w-md mx-auto px-4">
+        <div className="flex items-center justify-between relative">
+          <div className="absolute left-6 right-6 top-4 h-0.5 bg-slate-200 z-0"></div>
+          <div
+            className="absolute left-6 top-4 h-0.5 bg-blue-600 transition-all duration-300 z-0"
+            style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "88%" }}
+          ></div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                step >= 1
+                  ? "bg-blue-600 text-white shadow-sm ring-4 ring-blue-100"
+                  : "bg-slate-200 text-slate-500"
+              )}
+            >
+              1
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                step >= 1 ? "text-blue-900" : "text-slate-400"
+              )}
+            >
+              Personel
+            </span>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                step >= 2
+                  ? "bg-blue-600 text-white shadow-sm ring-4 ring-blue-100"
+                  : "bg-slate-200 text-slate-500"
+              )}
+            >
+              2
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                step >= 2 ? "text-blue-900" : "text-slate-400"
+              )}
+            >
+              Detail &amp; Waktu
+            </span>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                step === 3
+                  ? "bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-100"
+                  : "bg-slate-200 text-slate-500"
+              )}
+            >
+              {step === 3 ? <Check className="w-4 h-4" /> : "3"}
+            </div>
+            <span
+              className={cn(
+                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                step === 3 ? "text-emerald-700 font-bold" : "text-slate-400"
+              )}
+            >
+              Selesai
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="w-full pb-20">
         {step === 1 && (
           <EmployeeSelectionStep
@@ -348,15 +494,21 @@ export default function SuratTugasForm() {
           <SuratTugasDetailStep
             setStep={setStep}
             selectedEmployees={selectedEmployees}
+            removeEmployee={removeEmployee}
             handleSubmit={handleSubmit}
             jenisTugas={jenisTugas}
             setJenisTugas={setJenisTugas}
+            taskTypes={taskTypes}
+            selectedTaskTypeId={selectedTaskTypeId}
+            setSelectedTaskTypeId={setSelectedTaskTypeId}
             kotaAsal={kotaAsal}
             setKotaAsal={setKotaAsal}
             kotaTujuan={kotaTujuan}
             setKotaTujuan={setKotaTujuan}
             namaKegiatanText={namaKegiatanText}
             setNamaKegiatanText={setNamaKegiatanText}
+            untukKegiatanText={untukKegiatanText}
+            setUntukKegiatanText={setUntukKegiatanText}
             tempatSpesifik={tempatSpesifik}
             setTempatSpesifik={setTempatSpesifik}
             formData={formData}
@@ -376,6 +528,14 @@ export default function SuratTugasForm() {
             selectedFile={selectedFile}
             handleFileChange={handleFileChange}
             isSubmitting={isSubmitting}
+            isBedaHari={isBedaHari}
+            setIsBedaHari={setIsBedaHari}
+            employeeDates={employeeDates}
+            setEmployeeDates={setEmployeeDates}
+            hasBuruh={hasBuruh}
+            setHasBuruh={setHasBuruh}
+            jumlahBuruh={jumlahBuruh}
+            setJumlahBuruh={setJumlahBuruh}
           />
         )}
         {step === 3 && <SuratTugasSuccessStep />}

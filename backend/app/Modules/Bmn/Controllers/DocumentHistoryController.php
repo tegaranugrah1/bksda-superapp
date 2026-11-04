@@ -29,7 +29,7 @@ class DocumentHistoryController extends Controller
         $type = $validated['type'] ?? 'all';
         $perPage = (int) ($validated['per_page'] ?? 10);
         $employeeId = $validated['employee_id'] ?? null;
-        $search = trim((string) ($validated['search'] ?? ''));
+        $search = addcslashes(trim((string) ($validated['search'] ?? '')), '%_');
 
         $queries = [];
 

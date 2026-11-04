@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   Inbox,
   Send,
@@ -54,70 +54,46 @@ const QUICK_LINKS = [
 ];
 
 export default function SuratHubPage() {
-  const [totalSuratMasuk, setTotalSuratMasuk] = useState<number>(0);
-  const [totalSuratKeluar, setTotalSuratKeluar] = useState<number>(0);
-  const [suratMasukList, setSuratMasukList] = useState<SuratMasukItem[]>([]);
-  const [suratKeluarList, setSuratKeluarList] = useState<SuratKeluarItem[]>([]);
+  const { data: hubData, isLoading } = useQuery({
+    queryKey: ["surat-hub-summary"],
+    queryFn: async () => {
+      const [resMasuk, resKeluar] = await Promise.allSettled([
+        api.get("/surat-masuk?per_page=5"),
+        api.get("/surat-keluar?per_page=5"),
+      ]);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [resMasuk, resKeluar] = await Promise.allSettled([
-          api.get("/surat-masuk?per_page=5"),
-          api.get("/surat-keluar?per_page=5"),
-        ]);
+      const masukRaw = resMasuk.status === "fulfilled" ? resMasuk.value.data : null;
+      const keluarRaw = resKeluar.status === "fulfilled" ? resKeluar.value.data : null;
 
-        if (resMasuk.status === "fulfilled") {
-          const apiRes = resMasuk.value.data;
-          const apiData = apiRes?.data || apiRes || [];
-          const totalMasuk = apiRes?.meta?.total ?? apiRes?.total ?? (Array.isArray(apiData) ? apiData.length : 0);
+      const masukItems: SuratMasukItem[] = (masukRaw?.data || masukRaw || []).map((d: any) => ({
+        ...d,
+        perihal: d.isi_ringkas || d.perihal || "-",
+      }));
+      const keluarItems: SuratKeluarItem[] = keluarRaw?.data || keluarRaw || [];
 
-          if (Array.isArray(apiData)) {
-            let localMasuk: SuratMasukItem[] = [];
-            try {
-              const saved = localStorage.getItem("bksda_saved_surat_masuk");
-              if (saved) localMasuk = JSON.parse(saved) || [];
-            } catch {}
+      const totalMasuk = masukRaw?.meta?.total ?? masukRaw?.total ?? masukItems.length;
+      const totalKeluar = keluarRaw?.meta?.total ?? keluarRaw?.total ?? keluarItems.length;
 
-            const map = new Map<string, SuratMasukItem>();
-            localMasuk.forEach((item) => {
-              if (item.no_agenda) map.set(String(item.no_agenda), item);
-            });
-            apiData.forEach((d: any) => {
-              map.set(String(d.no_agenda || d.id), {
-                ...d,
-                perihal: d.isi_ringkas || d.perihal || "",
-              });
-            });
+      return {
+        totalSuratMasuk: totalMasuk,
+        totalSuratKeluar: totalKeluar,
+        suratMasukList: masukItems.slice(0, 5),
+        suratKeluarList: keluarItems.slice(0, 5),
+      };
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 15000,
+  });
 
-            const list = Array.from(map.values()).sort(
-              (a, b) => (Number(b.no_agenda) || Number(b.id) || 0) - (Number(a.no_agenda) || Number(a.id) || 0)
-            );
-            setTotalSuratMasuk(Math.max(totalMasuk, list.length));
-            setSuratMasukList(list.slice(0, 5));
-          }
-        }
-
-        if (resKeluar.status === "fulfilled") {
-          const apiRes = resKeluar.value.data;
-          const keluarData = apiRes?.data || apiRes || [];
-          const totalKeluar = apiRes?.meta?.total ?? apiRes?.total ?? (Array.isArray(keluarData) ? keluarData.length : 0);
-
-          if (Array.isArray(keluarData)) {
-            setTotalSuratKeluar(totalKeluar);
-            setSuratKeluarList(keluarData.slice(0, 5));
-          }
-        }
-      } catch (err) {
-        console.error("Gagal memuat ringkasan surat:", err);
-      }
-    }
-
-    loadData();
-  }, []);
+  const totalSuratMasuk = hubData?.totalSuratMasuk ?? 0;
+  const totalSuratKeluar = hubData?.totalSuratKeluar ?? 0;
+  const suratMasukList = hubData?.suratMasukList ?? [];
+  const suratKeluarList = hubData?.suratKeluarList ?? [];
 
   return (
-    <div className="w-full p-4 md:p-6 space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
+    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 font-sans">
       {/* 1. Header Banner Bersih & Formal */}
       <HeaderBanner />
 
@@ -140,7 +116,7 @@ export default function SuratHubPage() {
             const Icon = item.icon;
             return (
               <Link key={item.href + item.title} href={item.href}>
-                <div className="relative overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-200 group hover:shadow-md flex flex-col justify-between h-full min-h-24">
+                <div className="relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-200 group hover:shadow-xs flex flex-col justify-between h-full min-h-24">
                   <div className="flex items-center justify-between mb-3">
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.iconStyle} group-hover:scale-105 transition-transform`}

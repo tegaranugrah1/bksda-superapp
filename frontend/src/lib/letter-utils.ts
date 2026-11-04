@@ -1,3 +1,5 @@
+import React from "react";
+
 /**
  * Format tanggal ke format surat Indonesia.
  * formatDateIndonesian("2024-03-15") → "15 Maret 2024"
@@ -5,26 +7,64 @@
 export function formatDateIndonesian(dateStr: string | null | undefined): string {
     if (!dateStr) return '...';
     try {
-        const months = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-        const cleaned = String(dateStr).split("T")[0].trim();
-        const parts = cleaned.split("-");
-        if (parts.length === 3) {
-            const year = parseInt(parts[0], 10);
-            const monthIdx = parseInt(parts[1], 10) - 1;
-            const day = parseInt(parts[2], 10);
-            if (!isNaN(year) && !isNaN(monthIdx) && !isNaN(day) && monthIdx >= 0 && monthIdx < 12) {
-                return `${day} ${months[monthIdx]} ${year}`;
-            }
-        }
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return String(dateStr);
-        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        const parts = String(dateStr).split("T")[0].trim().split("-").map(Number);
+        const d = parts.length === 3 && !parts.some(isNaN) ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date(dateStr);
+        return isNaN(d.getTime()) ? String(dateStr) : d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
     } catch {
         return '...';
     }
+}
+
+const INDO_MONTHS = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
+function parseDateParts(dateStr: string) {
+    const cleaned = String(dateStr).split("T")[0].trim();
+    const parts = cleaned.split("-").map(Number);
+    if (parts.length === 3 && !parts.some(isNaN)) {
+        return { y: parts[0], m: parts[1] - 1, d: parts[2] };
+    }
+    const dt = new Date(dateStr);
+    return isNaN(dt.getTime()) ? null : { y: dt.getFullYear(), m: dt.getMonth(), d: dt.getDate() };
+}
+
+/**
+ * Format rentang tanggal tugas ringkas dalam bahasa Indonesia:
+ * - 1 hari / sama: "29 September 2026"
+ * - Bulan & tahun sama: "24 s/d 27 Agustus 2026"
+ * - Beda bulan, tahun sama: "28 Agustus s/d 02 September 2026"
+ * - Beda tahun: "28 Desember 2025 s/d 02 Januari 2026"
+ */
+export function formatDateRangeIndonesian(
+    startDate?: string | null,
+    endDate?: string | null
+): string {
+    if (!startDate && !endDate) return "-";
+    if (startDate && !endDate) return formatDateIndonesian(startDate);
+    if (!startDate && endDate) return formatDateIndonesian(endDate);
+
+    const s = parseDateParts(startDate!);
+    const e = parseDateParts(endDate!);
+
+    if (!s || !e) {
+        return `${formatDateIndonesian(startDate)} s/d ${formatDateIndonesian(endDate)}`;
+    }
+
+    if (s.y === e.y && s.m === e.m && s.d === e.d) {
+        return `${s.d} ${INDO_MONTHS[s.m]} ${s.y}`;
+    }
+
+    if (s.y === e.y && s.m === e.m) {
+        return `${s.d} s/d ${e.d} ${INDO_MONTHS[s.m]} ${s.y}`;
+    }
+
+    if (s.y === e.y) {
+        return `${s.d} ${INDO_MONTHS[s.m]} s/d ${e.d} ${INDO_MONTHS[e.m]} ${s.y}`;
+    }
+
+    return `${s.d} ${INDO_MONTHS[s.m]} ${s.y} s/d ${e.d} ${INDO_MONTHS[e.m]} ${e.y}`;
 }
 
 /**
@@ -80,11 +120,65 @@ export function daysBetween(start: string, end: string): number {
  */
 export function formatNIP(nip: string | null | undefined): string {
     if (!nip) return '...';
-    if (nip.startsWith('MMP-')) return '-';
+    const trimmed = nip.trim();
+    if (!trimmed || trimmed === '-' || trimmed.toUpperCase().startsWith('MMP-') || trimmed.toUpperCase() === 'MMP') {
+        return '-';
+    }
     const cleaned = nip.replace(/\s/g, '');
     if (cleaned.length !== 18) return cleaned;
     return `${cleaned.substring(0, 8)} ${cleaned.substring(8, 14)} ${cleaned.substring(14, 15)} ${cleaned.substring(15)}`;
 }
+
+export type NipIdentifiable =
+    | {
+          nip?: string | null;
+          pangkat_golongan?: string | null;
+          pangkatGol?: string | null;
+          jabatan?: string | null;
+          position?: string | null;
+          is_pppk?: boolean | null;
+          nip_label?: string | null;
+          role?: string | null;
+      }
+    | string
+    | null
+    | undefined;
+
+/**
+ * Cek apakah seorang pegawai berstatus PPPK (P3K).
+ * Sesuai aturan BKN, NIP PPPK memiliki kode '21' pada digit ke 13-14 (0-indexed 12-14),
+ * atau pangkat/golongan/jabatan memuat "pppk" / "p3k".
+ */
+export function isPppk(emp?: NipIdentifiable): boolean {
+    if (!emp) return false;
+    if (typeof emp === 'string') {
+        const clean = emp.replace(/\s+/g, '');
+        return clean.length >= 14 && clean.substring(12, 14) === '21';
+    }
+    if (typeof emp.is_pppk === 'boolean') {
+        return emp.is_pppk;
+    }
+    if (typeof emp.nip_label === 'string' && emp.nip_label.toUpperCase().includes('PPPK')) {
+        return true;
+    }
+    const nip = (emp.nip || '').replace(/\s+/g, '');
+    if (nip.length >= 14 && nip.substring(12, 14) === '21') {
+        return true;
+    }
+    const gol = (emp.pangkat_golongan || emp.pangkatGol || '').toLowerCase();
+    const jab = (emp.jabatan || emp.position || '').toLowerCase();
+    return gol.includes('pppk') || jab.includes('pppk') || gol.includes('p3k');
+}
+
+/**
+ * Mendapatkan label NIP yang sesuai: "NIPPPK" untuk PPPK, dan "NIP" untuk PNS/umum.
+ * withDot = true akan menghasilkan "NIPPPK." atau "NIP."
+ */
+export function formatNipLabel(emp?: NipIdentifiable, withDot = false): string {
+    const label = isPppk(emp) ? 'NIPPPK' : 'NIP';
+    return withDot ? `${label}.` : label;
+}
+
 
 export function extractFoluKawasan(namaKegiatan: string, tempatKegiatan?: string): string {
     const explicitPlace = tempatKegiatan?.trim().replace(/[;,.]$/, '');
@@ -110,4 +204,67 @@ export function isGeneratedFoluMenimbangText(text: string | null | undefined): b
         text?.startsWith('bahwa dalam upaya menjaga kelestarian keanekaragaman hayati') &&
         text.includes('perlu dilakukan kegiatan pengamanan dan perlindungan')
     );
+}
+
+/**
+ * Render teks dengan konversi markdown *teks miring* ke elemen React italic (<em ...>).
+ * Aman dari XSS karena teks murni dipecah dan dimasukkan ke text node React.
+ */
+export function renderFormattedItalic(text?: string | null): React.ReactNode {
+    if (!text) return null;
+    const parts = String(text).split(/(\*(?!\s)[^*\r\n]+?(?<!\s)\*)/g);
+    if (parts.length === 1) return text;
+    return parts.map((part, i) => {
+        if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+            return React.createElement(
+                "em",
+                { key: i, className: "italic", style: { fontStyle: "italic" } },
+                part.slice(1, -1)
+            );
+        }
+        return part;
+    });
+}
+
+/**
+ * Toggle atau sisipkan pembungkus asteriks (*teks*) pada elemen HTMLTextAreaElement.
+ * Memanggil callback onUpdate dengan teks baru dan mempertahankan/mengatur seleksi cursor.
+ */
+export function toggleItalicInTextarea(
+    textarea: HTMLTextAreaElement,
+    currentValue: string,
+    onUpdate: (newValue: string) => void
+) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = currentValue || "";
+
+    if (start !== end) {
+        const selected = text.slice(start, end);
+        if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
+            const unwrapped = selected.slice(1, -1);
+            const nextText = text.slice(0, start) + unwrapped + text.slice(end);
+            onUpdate(nextText);
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start, start + unwrapped.length);
+            }, 0);
+        } else {
+            const wrapped = `*${selected}*`;
+            const nextText = text.slice(0, start) + wrapped + text.slice(end);
+            onUpdate(nextText);
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start, start + wrapped.length);
+            }, 0);
+        }
+    } else {
+        const placeholder = "*teks miring*";
+        const nextText = text.slice(0, start) + placeholder + text.slice(end);
+        onUpdate(nextText);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
+        }, 0);
+    }
 }

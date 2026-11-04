@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileCheck, FileSpreadsheet } from "lucide-react";
+import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileSpreadsheet, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface SuratTugasItem {
   id: string;
@@ -28,6 +29,7 @@ interface SuratTugasTabProps {
   fetchSTDetail: (id: string) => Promise<void>;
   stDetailLoading: boolean;
   onOpenReportModal: (type: "general" | "smart_patrol") => void;
+  onOpenKalkulator?: (stId: string) => void;
 }
 
 export function SuratTugasTab({
@@ -36,7 +38,10 @@ export function SuratTugasTab({
   fetchSTDetail,
   stDetailLoading,
   onOpenReportModal,
+  onOpenKalkulator,
 }: SuratTugasTabProps) {
+  const [activeLoadingId, setActiveLoadingId] = React.useState<string | null>(null);
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -127,16 +132,56 @@ export function SuratTugasTab({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{st.maksud_tujuan}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex flex-wrap items-center gap-2 mt-0.5">
                   {st.nomor_surat && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
+                  {st.status && (
+                    <span className={cn(
+                      "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                      ["diterbitkan", "disetujui", "approved", "completed", "published"].includes(st.status.toLowerCase())
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                        : ["pending", "draft"].includes(st.status.toLowerCase())
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                        : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
+                    )}>
+                      {st.status}
+                    </span>
+                  )}
                   <span className="text-xs text-slate-400">
-                    {new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                    {st.tanggal_mulai && !Number.isNaN(new Date(st.tanggal_mulai).getTime())
+                      ? new Date(st.tanggal_mulai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                      : "-"}
+                    {st.tanggal_selesai && st.tanggal_selesai !== st.tanggal_mulai && !Number.isNaN(new Date(st.tanggal_selesai).getTime())
+                      ? ` s/d ${new Date(st.tanggal_selesai).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`
+                      : ""}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button onClick={() => fetchSTDetail(st.id)} disabled={stDetailLoading} className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50" title="Lihat">
-                  {stDetailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                {onOpenKalkulator && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenKalkulator(st.id)}
+                    className="p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-emerald-600 transition-colors"
+                    title="Hitung Biaya & Pengeluaran Dinas"
+                  >
+                    <Calculator className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setActiveLoadingId(st.id);
+                    try {
+                      await fetchSTDetail(st.id);
+                    } finally {
+                      setActiveLoadingId(null);
+                    }
+                  }}
+                  disabled={stDetailLoading}
+                  className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors disabled:opacity-50"
+                  title="Lihat"
+                >
+                  {activeLoadingId === st.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>

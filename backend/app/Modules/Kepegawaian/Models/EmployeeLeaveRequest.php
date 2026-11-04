@@ -2,10 +2,12 @@
 
 namespace App\Modules\Kepegawaian\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeLeaveRequest extends Model
 {
@@ -15,6 +17,7 @@ class EmployeeLeaveRequest extends Model
 
     protected $fillable = [
         'employee_id',
+        'surat_keluar_id',
         'nomor_pengajuan',
         'tanggal_pengajuan',
         'jenis_cuti',
@@ -36,6 +39,14 @@ class EmployeeLeaveRequest extends Model
         'kepala_balai_nama',
         'kepala_balai_nip',
         'catatan_atasan',
+        'scan_surat_path',
+        'scan_surat_nama',
+        'scan_surat_uploaded_at',
+        'scan_surat_uploaded_by',
+        'scan_formulir_path',
+        'scan_formulir_nama',
+        'scan_surat_izin_path',
+        'scan_surat_izin_nama',
     ];
 
     protected $casts = [
@@ -46,10 +57,34 @@ class EmployeeLeaveRequest extends Model
         'sisa_n2' => 'integer',
         'sisa_n1' => 'integer',
         'sisa_n0' => 'integer',
+        'scan_surat_uploaded_at' => 'datetime',
     ];
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function suratKeluar(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Surat\Models\SuratKeluar::class, 'surat_keluar_id');
+    }
+
+    public function isAnnual(): bool
+    {
+        return (bool) LeaveType::withTrashed()->matchingNameOrCode((string) $this->jenis_cuti)
+            ->first()?->potong_kuota_tahunan;
+    }
+
+    public function scopeAnnual(Builder $query): Builder
+    {
+        // Legacy rows may contain a master code; inactive/deleted types still account for past leave.
+        $types = LeaveType::withTrashed()->where('potong_kuota_tahunan', true);
+        $column = DB::raw('LOWER(TRIM('.$this->qualifyColumn('jenis_cuti').'))');
+
+        return $query->where(function (Builder $annual) use ($types, $column) {
+            $annual->whereIn($column, (clone $types)->selectRaw('LOWER(TRIM(nama))'))
+                ->orWhereIn($column, (clone $types)->whereNotNull('kode')->selectRaw('LOWER(TRIM(kode))'));
+        });
     }
 }

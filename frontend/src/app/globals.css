@@ -107,7 +107,9 @@
 }
 
 @layer base {
-  html {
+  html,
+  body,
+  main {
     scrollbar-gutter: stable;
   }
   * {

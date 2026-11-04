@@ -11,6 +11,9 @@ import {
   parseDocDate,
   EMPTY_DOC_NUMBER_GAP,
 } from "../_lib/auction-helpers";
+import type { BaKoreksiContent } from "../../auction-batches/_lib/document-content-defaults";
+
+import { printDocumentWindow, BA_KOREKSI_PRINT_CSS } from "../_lib/print-helpers";
 
 const BA_ATTACHMENT_PAGE_HEIGHT_MM = 269;
 const BA_ATTACHMENT_FALLBACK_CHUNK_SIZE = 8;
@@ -35,88 +38,12 @@ export function handlePrintBa(orderedSelectedAssets: AuctionAsset[]) {
     toast.error("Tidak ada aset terpilih untuk dicetak.");
     return;
   }
-  const printContent = document.getElementById("ba-koreksi-print-root");
-  if (!printContent) return;
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>BA Koreksi Kondisi BMN</title>
-        <style>
-          @page { size: A4; margin: 0 0 28mm 0; }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-            color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt;
-            line-height: 1.25;
-          }
-          p { margin: 0; padding: 0; }
-          article { margin: 0; }
-          .ba-page {
-            width: 210mm;
-            box-sizing: border-box;
-            margin: 0 auto;
-            padding: 5mm 20mm 0;
-            page-break-after: always;
-          }
-          .ba-page:last-child { page-break-after: auto; }
-          .ba-lampiran {
-            width: 210mm;
-            box-sizing: border-box;
-            margin: 0 auto;
-            padding: 5mm 20mm 0;
-            min-height: ${BA_ATTACHMENT_PAGE_HEIGHT_MM}mm;
-            page-break-before: always;
-            break-before: page;
-          }
-          .ba-header { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; text-align: center; }
-          .ba-header img { width: 196mm !important; max-width: 196mm !important; height: auto !important; }
-          .ba-body { width: 166mm; margin-left: auto; margin-right: auto; text-align: justify; text-justify: inter-word; }
-          .ba-body p { text-align: justify; text-justify: inter-word; }
-          .ba-lampiran-body { width: 166mm; margin-left: auto; margin-right: auto; }
-          .ba-title { margin-top: 0.75rem; text-align: center; font-weight: 700; }
-          .ba-title p { margin: 0; line-height: 1.2; }
-          .ba-text-block { margin-top: 1rem; }
-          .ba-text-block > * + * { margin-top: 1.25rem; }
-          table { border-collapse: collapse; }
-          .identity-table td { padding: 0.125rem 0; }
-          .identity-table .label-cell { width: 24mm; }
-          .identity-table .colon-cell { width: 6mm; text-align: center; }
-          .ba-asset-table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: center; font-size: 8.5pt; break-inside: auto; page-break-inside: auto; }
-          .ba-asset-table thead { display: table-header-group; }
-          .ba-asset-table th, .ba-asset-table td { border: 1px solid #000; padding: 0.18rem 0.2rem; overflow-wrap: anywhere; word-break: normal; }
-          .ba-asset-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .ba-asset-table td.text-left { text-align: left; }
-          .ba-asset-table td.text-right { text-align: right; }
-          .ba-section-title { font-size: 10pt; font-weight: 600; margin-bottom: 0.5rem; }
-          .ba-continuation-spacer { height: 8mm; }
-          .attachment-meta { width: 109mm; margin-left: auto; text-align: left; }
-          .attachment-meta .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-          .attachment-meta .meta-label { white-space: nowrap; }
-          .attachment-meta .meta-colon { text-align: center; }
-          .attachment-meta .meta-value { min-width: 0; }
-          .attachment-meta .lampiran-value { display: inline-block; max-width: 80mm; }
-          .signature { width: 20rem; margin-left: auto; break-inside: avoid; page-break-inside: avoid; }
-          .attachment-signature { margin-top: 1.5rem; }
-          .signature p { margin: 0; padding: 0; line-height: 1.15; }
-          .signature p.ttd-spacer-top { margin-top: 2rem !important; }
-          .ttd-placeholder { box-sizing: border-box; height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .attachment-signature .ttd-placeholder { height: 84px; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .ba-editable { outline: none; border-bottom: none !important; }
-          .ba-measurement { display: none !important; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  printDocumentWindow({
+    rootId: "ba-koreksi-print-root",
+    title: "BA Koreksi Kondisi BMN",
+    emptyMessage: "Tidak ada dokumen BA Koreksi untuk dicetak.",
+    styles: BA_KOREKSI_PRINT_CSS,
+  });
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -448,7 +375,21 @@ function buildFallbackLampiranPages(assets: AuctionAsset[]) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date }: { assets: AuctionAsset[]; baNumber: string; baKap: string; date?: string; kepalaBalai: SkKepalaBalai }) {
+export function CorrectionDocument({
+  assets,
+  baNumber,
+  baKap,
+  kepalaBalai,
+  date,
+  content,
+}: {
+  assets: AuctionAsset[];
+  baNumber: string;
+  baKap: string;
+  date?: string;
+  kepalaBalai: SkKepalaBalai;
+  content?: BaKoreksiContent;
+}) {
   const measurementRef = useRef<HTMLDivElement>(null);
   const fallbackLampiranPages = useMemo(() => buildFallbackLampiranPages(assets), [assets]);
   const [lampiranPages, setLampiranPages] = useState<BaLampiranPage[]>(fallbackLampiranPages);
@@ -636,7 +577,7 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date 
             suppressContentEditableWarning
             className="ba-editable"
           >
-            Pada hari {day} tanggal {datePhrase}, bertempat di Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur, kami penanggungjawab Unit Penatausahaan Kuasa Pengguna Barang pada Balai Konservasi Sumber Daya Alam Kalimantan Timur :
+            Pada hari {day} tanggal {datePhrase}, bertempat di {content?.tempat || "Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur"}, kami penanggungjawab Unit Penatausahaan Kuasa Pengguna Barang pada Balai Konservasi Sumber Daya Alam Kalimantan Timur :
           </p>
           <table className="identity-table">
             <tbody>
@@ -684,19 +625,16 @@ export function CorrectionDocument({ assets, baNumber, baKap, kepalaBalai, date 
           <p
             contentEditable="true"
             suppressContentEditableWarning
-            className="ba-editable"
+            className="ba-editable whitespace-pre-line"
           >
-            Menyatakan bahwa telah dilakukan koreksi perubahan kondisi dengan cara melakukan koreksi terhadap kondisi Barang Milik Negara
-            pada Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur pada tanggal {datePhrase} berdasarkan Penilaian Barang Milik Negara
-            dengan hasil (rincian terlampir).
+            {content?.alasan || `Menyatakan bahwa telah dilakukan koreksi perubahan kondisi dengan cara melakukan koreksi terhadap kondisi Barang Milik Negara pada Kantor Balai Konservasi Sumber Daya Alam Kalimantan Timur pada tanggal ${datePhrase} berdasarkan Penilaian Barang Milik Negara dengan hasil (rincian terlampir).`}
           </p>
           <p
             contentEditable="true"
             suppressContentEditableWarning
-            className="ba-editable"
+            className="ba-editable whitespace-pre-line"
           >
-            Demikian Berita Acara ini dibuat sebagai bahan koreksi perubahan kondisi Barang Milik Negara Semester Satu tahun {yearText},
-            dan apabila dikemudian hari terdapat kekeliruan akan dilakukan perbaikan sebagaimana mestinya.
+            {content?.penutup || `Demikian Berita Acara ini dibuat sebagai bahan koreksi perubahan kondisi Barang Milik Negara Semester Satu tahun ${yearText}, dan apabila dikemudian hari terdapat kekeliruan akan dilakukan perbaikan sebagaimana mestinya.`}
           </p>
         </div>
         <div className="signature mt-20 ml-auto w-80">

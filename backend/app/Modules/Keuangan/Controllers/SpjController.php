@@ -239,17 +239,19 @@ class SpjController extends Controller
             $filePath = $service->generate($payload);
 
             $spt = $payload['nomor_spt'] ?? $payload['sptNumber'] ?? 'SPJ';
-            $sptClean = preg_replace('/[^a-zA-Z0-9_-]/', '_', $spt);
+            $sptClean = preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $spt);
             $date = $payload['tanggal_mulai'] ?? $payload['travel']['startDate'] ?? date('Y-m-d');
-            $filename = "SPJ_{$tipeAnggaran}_{$sptClean}_{$date}.xlsx";
+            $dateClean = preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $date);
+            $filename = "SPJ_{$tipeAnggaran}_{$sptClean}_{$dateClean}.xlsx";
 
             return response()->download($filePath, $filename, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'X-Content-Type-Options' => 'nosniff',
             ])->deleteFileAfterSend(true);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat file Excel: ' . $e->getMessage(),
+                'message' => config('app.debug') ? ('Gagal membuat file Excel: ' . $e->getMessage()) : 'Gagal membuat file Excel.',
             ], 500);
         }
     }

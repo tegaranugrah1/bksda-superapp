@@ -1,5 +1,5 @@
 import { SUMBER_DANA_OPTIONS } from "./constants";
-import type { StExpenseTemplate } from "./types";
+import type { StExpenseTemplate, StTemplate } from "./types";
 
 export function normalizeSumberDana(
   value: string | null | undefined,
@@ -11,12 +11,18 @@ export function normalizeSumberDana(
 
   // 1. Check custom expense templates from database first
   if (customExpenseTemplates && customExpenseTemplates.length > 0) {
-    const match = customExpenseTemplates.find(
-      (t) =>
-        t.code.toLowerCase() === normalized ||
-        t.name.toLowerCase().replace(/\s+/g, " ").trim() === normalized ||
-        String(t.id) === normalized
-    );
+    const match =
+      customExpenseTemplates.find(
+        (t) =>
+          t.code.toLowerCase() === normalized ||
+          t.name.toLowerCase().replace(/\s+/g, " ").trim() === normalized ||
+          String(t.id) === normalized
+      ) ||
+      (normalized.includes("folu")
+        ? customExpenseTemplates.find(
+            (t) => t.category === "hibah_folu" || t.code.toLowerCase().includes("folu")
+          )
+        : undefined);
     if (match) return match.code;
   }
 
@@ -29,16 +35,21 @@ export function normalizeSumberDana(
   );
   if (exactLabel) return exactLabel.id;
 
-  if (normalized.includes("folu")) return "folu";
-  if (normalized.includes("dipa")) return "dipa";
-  if (normalized.includes("kja")) return "kja";
-  if (normalized.includes("mja")) return "mja";
-  if (normalized.includes("cop")) return "cop";
-  if (normalized.includes("tjiwi")) return "tjiwi_kimia";
-  if (normalized.includes("bosf")) return "bosf";
-  if (normalized.includes("can")) return "can";
-  if (normalized.includes("alert")) return "alert";
-  if (normalized.includes("dl 1") || normalized.includes("tidak ada biaya")) return "dl1";
+  const KEYWORD_MAP: Array<[string, string]> = [
+    ["folu", "folu"],
+    ["dipa", "dipa"],
+    ["kja", "kja"],
+    ["mja", "mja"],
+    ["cop", "cop"],
+    ["tjiwi", "tjiwi_kimia"],
+    ["bosf", "bosf"],
+    ["can", "can"],
+    ["alert", "alert"],
+    ["dl 1", "dl1"],
+    ["tidak ada biaya", "dl1"],
+  ];
+  const matchedKey = KEYWORD_MAP.find(([keyword]) => normalized.includes(keyword));
+  if (matchedKey) return matchedKey[1];
 
   // 3. Preserve custom code if it's a slug or alphanumeric identifier (not generic sentence)
   if (value && value !== "other" && !value.includes(" ") && value.length < 50) {
@@ -46,6 +57,62 @@ export function normalizeSumberDana(
   }
 
   return "other";
+}
+
+export function isFoluSumberDana(
+  sumberDana?: string | null,
+  expenseTemplates?: StExpenseTemplate[]
+): boolean {
+  if (!sumberDana) return false;
+  const lower = sumberDana.toLowerCase();
+  if (lower.includes("folu")) return true;
+  if (expenseTemplates && expenseTemplates.length > 0) {
+    const matched = expenseTemplates.find(
+      (t) =>
+        t.code.toLowerCase() === lower ||
+        t.name.toLowerCase().replace(/\s+/g, " ").trim() === lower ||
+        String(t.id) === lower
+    );
+    if (matched?.category === "hibah_folu") return true;
+  }
+  return false;
+}
+
+/**
+ * Mencari Template ST secara dinamis berdasarkan relasi `configuration.sumber_dana` di Pengaturan.
+ * Jika tidak ada Template ST khusus untuk sumber dana tersebut, fallback ke Template Default (`is_default`).
+ */
+export function findMatchingTemplateForSumberDana(
+  sumberDana: string | null | undefined,
+  templates: StTemplate[],
+  expenseTemplates?: StExpenseTemplate[]
+): StTemplate | undefined {
+  if (!templates || templates.length === 0) return undefined;
+  const raw = (sumberDana || "").trim().toLowerCase();
+  const normalizedCode = normalizeSumberDana(sumberDana, expenseTemplates).toLowerCase();
+  const isFolu = isFoluSumberDana(sumberDana, expenseTemplates);
+
+  const candidateCodes = new Set<string>([raw, normalizedCode].filter(Boolean));
+  if (isFolu) {
+    candidateCodes.add("folu");
+    candidateCodes.add("folu_nc23");
+  }
+
+  // 1. Cari Template ST (selain PLH/BMN/Beda Hari) yang `configuration.sumber_dana` atau `code`-nya cocok
+  const specificMatch = templates.find((t) => {
+    if (["plh", "bmn", "beda_hari"].includes(t.type)) return false;
+    const tplSumberDana = String(t.configuration?.sumber_dana || "").trim().toLowerCase();
+    const tplCode = String(t.code || "").trim().toLowerCase();
+    if (tplSumberDana && candidateCodes.has(tplSumberDana)) return true;
+    if (tplCode && tplCode !== "default" && candidateCodes.has(tplCode)) return true;
+    if (isFolu && (tplSumberDana.includes("folu") || tplCode.includes("folu"))) return true;
+    return false;
+  });
+
+  if (specificMatch) return specificMatch;
+
+  // 2. Fallback ke Template ST Default umum (is_default = true)
+  return templates.find((t) => t.is_default);
 }
 
 export function isFundingDasarText(
@@ -56,26 +123,25 @@ export function isFundingDasarText(
   const lower = text.toLowerCase();
   if (expenseTemplates && expenseTemplates.length > 0) {
     const matchedCustom = expenseTemplates.some(
-      (t) => t.dasar_text && lower.includes(t.dasar_text.replace(/{tahun}/g, "").trim().toLowerCase().substring(0, 25))
+      (t) =>
+        Boolean(t.dasar_text && t.dasar_text.trim()) &&
+        lower.includes(t.dasar_text!.replace(/{tahun}/g, "").trim().toLowerCase().substring(0, 25))
     );
     if (matchedCustom) return true;
   }
 
-  return (
-    lower.includes("surat pengesahan dipa") ||
-    lower.includes("sp dipa") ||
-    lower.includes("perjanjian kerjasama") ||
-    lower.includes("perjanjian kerja sama") ||
-    lower.includes("pks.") ||
-    lower.includes("kideco") ||
-    lower.includes("jayantara") ||
-    lower.includes("orangutan protection") ||
-    lower.includes("tjiwi kimia") ||
-    lower.includes("bosf") ||
-    lower.includes("alert") ||
-    lower.includes("conservation action network") ||
-    lower.includes("folu net sink") ||
-    lower.includes("hibah")
-  );
+  const STATIC_FUNDING_KEYWORDS = [
+    "surat pengesahan dipa",
+    "sp dipa",
+    "perjanjian kerja",
+    "pks.",
+    "kideco",
+    "jayantara",
+    "orangutan protection",
+    "tjiwi kimia",
+    "bosf",
+    "alert",
+    "conservation action network",
+  ];
+  return STATIC_FUNDING_KEYWORDS.some((keyword) => lower.includes(keyword));
 }
-

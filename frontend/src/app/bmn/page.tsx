@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Package, Wrench, HandCoins, ShieldAlert, TrendingUp, PieChart, BarChart3, Calendar, MapPin } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
@@ -37,16 +37,38 @@ const JENIS_COLORS: Record<string, string> = {
   "BANGUNAN AIR": "bg-teal-500",
 };
 
-export default function BmnDashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+function AlertItem({ item, label, colorClass, badgeClass }: { item: { id: string; nama_barang: string; merk: string; no_polisi: string }; label: string; colorClass: string; badgeClass: string }) {
+  return (
+    <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors", colorClass)}>
+      <div>
+        <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{item.nama_barang} <span className="text-zinc-400">({item.merk})</span></p>
+        <p className="text-[10px] text-zinc-500">{item.no_polisi || "Tanpa Polisi"}</p>
+      </div>
+      <span className={cn("text-[10px] font-bold px-2 py-1 rounded-lg", badgeClass)}>{label}</span>
+    </Link>
+  );
+}
 
-  useEffect(() => {
-    api.get("/bmn/dashboard/stats")
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+function BarProgressRow({ label, count, maxCount, barColor, extra, labelWidth = "w-[140px]" }: { label: string; count: number; maxCount: number; barColor?: string; extra?: React.ReactNode; labelWidth?: string }) {
+  const pct = (count / (maxCount || 1)) * 100;
+  return (
+    <div className="flex items-center gap-2">
+      <span className={cn("text-[10px] text-zinc-600 dark:text-zinc-400 truncate shrink-0", labelWidth)}>{label}</span>
+      <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
+        <div className={cn("h-full rounded-full", barColor || "bg-violet-500")} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 text-right">
+        {count} {extra}
+      </span>
+    </div>
+  );
+}
+
+export default function BmnDashboardPage() {
+  const { data, isLoading } = useQuery<DashboardData>({
+    queryKey: ["bmn-dashboard-stats"],
+    queryFn: async () => (await api.get("/bmn/dashboard/stats")).data,
+  });
 
   const totalAssets = data?.total_asset || 0;
   const conditionStats = data?.asset_by_condition || {};
@@ -54,7 +76,7 @@ export default function BmnDashboardPage() {
   const rusakRingan = conditionStats["Rusak Ringan"] || 0;
   const rusakBerat = conditionStats["Rusak Berat"] || 0;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="p-6 md:p-8 space-y-6 animate-pulse">
         <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-lg" />
@@ -90,31 +112,13 @@ export default function BmnDashboardPage() {
           </div>
           <div className="space-y-2">
             {data.stnk_alerts.expired.map((v) => (
-              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors">
-                <div>
-                  <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{v.nama_barang} <span className="text-zinc-400">({v.merk})</span></p>
-                  <p className="text-[10px] text-zinc-500">{v.no_polisi || "Tanpa Polisi"}</p>
-                </div>
-                <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-1 rounded-lg">🚨 Pajak Expired ({v.tanggal_pajak_stnk})</span>
-              </Link>
+              <AlertItem key={v.id} item={v} label={`🚨 Pajak Expired (${v.tanggal_pajak_stnk})`} colorClass="bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20" badgeClass="text-red-700 bg-red-100 dark:text-red-300 dark:bg-red-950/50" />
             ))}
             {data.stnk_alerts.expiring_soon.map((v) => (
-              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors">
-                <div>
-                  <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{v.nama_barang} <span className="text-zinc-400">({v.merk})</span></p>
-                  <p className="text-[10px] text-zinc-500">{v.no_polisi || "Tanpa Polisi"}</p>
-                </div>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">⚠️ Pajak {v.tanggal_pajak_stnk}</span>
-              </Link>
+              <AlertItem key={v.id} item={v} label={`⚠️ Pajak ${v.tanggal_pajak_stnk}`} colorClass="bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20" badgeClass="text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50" />
             ))}
             {data.stnk_alerts.plat_expired.map((v) => (
-              <Link key={v.id} href={`/bmn/assets/${v.id}`} className="flex items-center justify-between p-3 rounded-xl bg-orange-50 dark:bg-orange-500/10 hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors">
-                <div>
-                  <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{v.nama_barang} <span className="text-zinc-400">({v.merk})</span></p>
-                  <p className="text-[10px] text-zinc-500">{v.no_polisi || "Tanpa Polisi"}</p>
-                </div>
-                <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-1 rounded-lg">🔄 Ganti Plat ({v.tanggal_ganti_plat})</span>
-              </Link>
+              <AlertItem key={v.id} item={v} label={`🔄 Ganti Plat (${v.tanggal_ganti_plat})`} colorClass="bg-orange-50 dark:bg-orange-500/10 hover:bg-orange-100 dark:hover:bg-orange-500/20" badgeClass="text-orange-700 bg-orange-100 dark:text-orange-300 dark:bg-orange-950/50" />
             ))}
           </div>
         </div>
@@ -174,20 +178,17 @@ export default function BmnDashboardPage() {
           </div>
           {data?.asset_by_jenis && data.asset_by_jenis.length > 0 ? (
             <div className="space-y-2">
-              {data.asset_by_jenis.map((item, i) => {
-                const maxCount = data.asset_by_jenis[0]?.total || 1;
-                const pct = (item.total / maxCount) * 100;
-                const color = JENIS_COLORS[item.jenis_bmn] || "bg-slate-400";
-                return (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate w-[160px] shrink-0">{item.jenis_bmn}</span>
-                    <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
-                      <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 w-20 text-right">{item.total} <span className="text-zinc-400 font-normal">{formatRupiah(item.total_nilai)}</span></span>
-                  </div>
-                );
-              })}
+              {data.asset_by_jenis.map((item, i) => (
+                <BarProgressRow
+                  key={i}
+                  label={item.jenis_bmn}
+                  count={item.total}
+                  maxCount={data.asset_by_jenis[0]?.total || 1}
+                  barColor={JENIS_COLORS[item.jenis_bmn] || "bg-slate-400"}
+                  labelWidth="w-[160px]"
+                  extra={<span className="text-zinc-400 font-normal">{formatRupiah(item.total_nilai)}</span>}
+                />
+              ))}
             </div>
           ) : (
             <p className="text-xs text-zinc-400 text-center py-4">Belum ada data</p>
@@ -205,19 +206,16 @@ export default function BmnDashboardPage() {
           </div>
           {data?.asset_by_lokasi && data.asset_by_lokasi.length > 0 ? (
             <div className="space-y-2">
-              {data.asset_by_lokasi.map((item, i) => {
-                const maxCount = data.asset_by_lokasi[0]?.total || 1;
-                const pct = (item.total / maxCount) * 100;
-                return (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate w-[140px] shrink-0">{item.lokasi_ruang}</span>
-                    <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
-                      <div className="h-full bg-violet-500 rounded-full" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 w-8 text-right">{item.total}</span>
-                  </div>
-                );
-              })}
+              {data.asset_by_lokasi.map((item, i) => (
+                <BarProgressRow
+                  key={i}
+                  label={item.lokasi_ruang}
+                  count={item.total}
+                  maxCount={data.asset_by_lokasi[0]?.total || 1}
+                  barColor="bg-violet-500"
+                  labelWidth="w-[140px]"
+                />
+              ))}
             </div>
           ) : (
             <p className="text-xs text-zinc-400 text-center py-4">Belum ada data</p>

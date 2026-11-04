@@ -9,6 +9,7 @@ import {
 } from "../_lib/auction-helpers";
 import { AssetLampiranLandscapeTable, getAssetSuratStatus } from "./AssetLampiranLandscapeTable";
 import { runSkPagination } from "../_lib/sk-print";
+import { printDocumentWindow, SK_PAGINATED_PRINT_CSS } from "../_lib/print-helpers";
 import type {
   SkBuilderItem,
   SkKepalaBalai,
@@ -33,190 +34,25 @@ export function handlePrintSk(orderedSelectedAssets: AuctionAsset[], _skNumber: 
     toast.error("Tidak ada aset terpilih untuk dicetak.");
     return;
   }
-  const printContent = document.getElementById("sk-penghentian-print-root");
-  if (!printContent) return;
-  const clone = printContent.cloneNode(true) as HTMLElement;
-  const measurementNode = clone.querySelector(".sk-measurement");
-  if (measurementNode) {
-    measurementNode.remove();
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>SK Penghentian Penggunaan BMN</title>
-        <style>
-          @page { size: A4; margin: 0; }
-          @page sk-main { size: A4; margin: 0; }
-          @page sk-main:first { size: A4; margin: 0; }
-          @page sk-attachment { size: A4 landscape; margin: 14mm 0 20mm 0; }
-          .sk-measurement, .sk-measurement * { display: none !important; visibility: hidden !important; }
-          .sk-no-print { display: none !important; }
-          * { box-sizing: border-box; }
-          body {
-            margin: 0; padding: 0; background: white; color: black;
-            font-family: 'Bookman Old Style', Georgia, serif;
-            font-size: 11pt; line-height: 1.4;
-          }
-          p { margin: 0; padding: 0; }
-          .sk-page {
-            width: 210mm;
-            margin: 0 auto; padding: 5mm 20mm 0;
-          }
-          .sk-main-document { page: sk-main; position: relative; }
-          .sk-print-root .sk-page.sk-main-document.sk-main-paginated {
-            height: 297mm !important;
-            min-height: 297mm !important;
-            padding: 5mm 20mm 28mm !important;
-            overflow: hidden !important;
-            position: relative !important;
-            box-shadow: none !important;
-          }
-          .sk-print-root .sk-page.sk-main-document.sk-main-paginated.sk-main-continuation-page {
-            padding-top: 18mm !important;
-          }
-          .sk-print-root .sk-main-document.sk-main-page-break {
-            page-break-after: always;
-            break-after: page;
-          }
-          .sk-main-flow { width: 100%; }
-          .sk-main-paginated .sk-paginated-field-section + .sk-paginated-field-section { margin-top: 0 !important; }
-          .sk-main-paginated .sk-paginated-field-section.sk-section-start { margin-top: 0.75rem !important; }
-          .sk-attachment-document {
-            page: sk-attachment;
-            page-break-before: always;
-            break-before: page;
-            width: 297mm !important;
-            max-width: 297mm !important;
-            padding: 10mm 16mm 20mm !important;
-          }
-          .sk-attachment-page {
-            width: 258mm;
-            margin: 0 auto;
-            page: sk-attachment;
-            break-inside: avoid;
-            page-break-inside: avoid;
-          }
-          .sk-attachment-page-continuation {
-            page-break-before: always;
-            break-before: page;
-            padding-top: 12mm !important;
-          }
-          .sk-continuation-spacer {
-            height: 8mm !important;
-            display: block;
-          }
-          .sk-attachment-document .sk-body {
-            width: 258mm !important;
-            margin-left: auto;
-            margin-right: auto;
-          }
-          .sk-page-ttd { padding-bottom: 0; }
-          article { margin: 0; }
-          .sk-page-break { page-break-after: always; break-after: always; }
-          /* KOP */
-          .sk-kop {
-            margin-top: -5mm; margin-left: -16mm; margin-right: -16mm;
-            margin-bottom: 6px; text-align: center;
-          }
-          .sk-kop img { width: 196mm !important; max-width: 196mm !important; height: auto !important; display: block; margin: 0 auto; }
-          /* Judul SK — halaman 1 */
-          .sk-title {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 10px; text-align: center; font-weight: bold; line-height: 1.3;
-          }
-          .sk-title-nomor { font-weight: normal; }
-          .sk-title-tentang { margin-top: 10px; }
-          /* Sub-judul (DENGAN RAHMAT, KEPALA BALAI) */
-          .sk-subtitle {
-            width: 166mm; margin-left: auto; margin-right: auto;
-            margin-top: 16px;
-          }
-          .sk-subtitle > p { text-align: center; font-weight: bold; }
-          .sk-subtitle > p + p { margin-top: 6px; }
-          /* Tabel Menimbang/Mengingat/Memutuskan */
-          .sk-body { width: 166mm; margin-left: auto; margin-right: auto; }
-          table { border-collapse: collapse; width: 100%; }
-          td { vertical-align: top; padding: 0; }
-
-          /* Menimbang/Mengingat: parent boleh paginate, item anak tetap utuh */
-          .sk-field-section {
-            display: grid;
-            grid-template-columns: 28mm 8mm minmax(0, 1fr);
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .sk-field-section + .sk-field-section { margin-top: 0.75rem; }
-          .sk-field-label, .sk-field-colon { padding: 0; }
-          .sk-field-colon { text-align: center; }
-          .sk-mengingat-list {
-            break-inside: auto !important;
-            page-break-inside: auto !important;
-          }
-          .sk-mengingat-item {
-            display: grid;
-            grid-template-columns: 9mm minmax(0, 1fr);
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            padding-top: 0.35rem;
-          }
-          .sk-mengingat-item:first-child { padding-top: 0; }
-          .sk-mengingat-text { text-align: justify; }
-          /* Halaman 2 */
-          .sk-page2-body { width: 166mm; margin-left: auto; margin-right: auto; padding-top: 16mm; }
-          .sk-memutuskan { text-align: center; font-weight: bold; margin-bottom: 12px; }
-
-          /* TTD block */
-          .sk-ttd { width: 20rem; margin-left: auto; margin-top: 3rem; }
-          .sk-ttd, .sk-ttd p { font-weight: normal !important; text-align: left !important; }
-          .sk-ttd p { margin: 0; padding: 0; line-height: 1.3; }
-          .sk-ttd-meta { display: grid !important; grid-template-columns: max-content auto 1fr; column-gap: 0.4rem; line-height: 1.3; }
-          .sk-ttd-meta span { font-weight: normal !important; text-align: left !important; }
-          .sk-ketiga-group { break-inside: avoid !important; page-break-inside: avoid !important; }
-          .sk-signature-name { font-weight: normal !important; }
-          .ttd-placeholder { height: 84px; color: #94a3b8; font-weight: normal !important; text-align: left !important; display: flex !important; align-items: center !important; padding-top: 0px !important; padding-left: 1.1cm !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-          .sk-continuation-word { position: absolute; right: 23mm; bottom: 31mm; width: 163mm; height: 0; line-height: 11pt; overflow: visible; white-space: nowrap; text-align: right !important; margin: 0; padding: 0; font-weight: normal !important; font-size: 11pt; z-index: 20; }
-          /* Tembusan */
-          .sk-tembusan { margin-top: 2rem; }
-          .sk-tembusan, .sk-tembusan p { font-weight: normal !important; text-align: left !important; }
-          .sk-tembusan p { margin: 0; padding: 0; line-height: 1.5; }
-          /* Halaman 3 lampiran */
-          .sk-attachment-meta { width: 128mm; margin-left: auto; text-align: left; }
-          .meta-row { display: grid; grid-template-columns: 24mm 5mm minmax(0, 1fr); align-items: start; }
-          .meta-label { white-space: nowrap; }
-          .meta-colon { text-align: center; }
-          .sk-lampiran-title { text-align: center; font-weight: bold; line-height: 1.3; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-          .sk-asset-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 8.5pt; }
-          .sk-asset-table th, .sk-asset-table td { border: 1px solid #000; padding: 0.25rem; }
-          .sk-asset-table thead { display: table-header-group; }
-          .sk-asset-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .sk-column-number-row th { font-weight: normal; }
-          .sk-asset-table td.text-left { text-align: left; }
-          .sk-asset-table td.text-right { text-align: right; }
-          .sk-lampiran-ttd { width: 20rem; margin-left: auto; margin-top: 1rem; break-inside: avoid; page-break-inside: avoid; }
-          .sk-lampiran-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .sk-lampiran-ttd .ttd-placeholder { height: 84px !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
-        </style>
-      </head>
-      <body>${clone.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  // Wait for full render, then inject continuation words at page breaks, then print
-  setTimeout(
-    () =>
-      runSkPagination(printWindow, {
-        prefix: "sk",
-        sectionStartMarginTop: "0.75rem",
-        decisionRowLabels: ["KESATU.....", "KEDUA....."],
-        finalGroupClass: "sk-ketiga-group",
-        finalGroupLabel: "KETIGA.....",
-      }),
-    600,
-  );
+  printDocumentWindow({
+    rootId: "sk-penghentian-print-root",
+    title: "SK Penghentian Penggunaan BMN",
+    emptyMessage: "Tidak ada dokumen SK Penghentian untuk dicetak.",
+    styles: SK_PAGINATED_PRINT_CSS,
+    onWindowReady: (printWindow) => {
+      setTimeout(
+        () =>
+          runSkPagination(printWindow, {
+            prefix: "sk",
+            sectionStartMarginTop: "0.75rem",
+            decisionRowLabels: ["KESATU.....", "KEDUA....."],
+            finalGroupClass: "sk-ketiga-group",
+            finalGroupLabel: "KETIGA.....",
+          }),
+        600,
+      );
+    },
+  });
 }
 
 function getOuterHeight(element: Element | null) {

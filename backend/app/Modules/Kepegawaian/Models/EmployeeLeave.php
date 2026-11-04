@@ -44,6 +44,8 @@ class EmployeeLeave extends Model
         'total_hak_cuti',
         'sisa_cuti_tersedia',
         'is_eligible_24_days',
+        'pending_cuti_tahunan',
+        'sisa_cuti_dapat_diajukan',
     ];
 
     /**
@@ -77,7 +79,7 @@ class EmployeeLeave extends Model
      */
     public function getTotalHakCutiAttribute(): int
     {
-        $n = (int) ($this->hak_cuti_n ?: 12);
+        $n = $this->hak_cuti_n !== null ? (int) $this->hak_cuti_n : 12;
         return $n + $this->hak_n1_diakui + $this->hak_n2_diakui;
     }
 
@@ -87,6 +89,30 @@ class EmployeeLeave extends Model
     public function getSisaCutiTersediaAttribute(): int
     {
         return max(0, $this->total_hak_cuti - (int) $this->cuti_terpakai_n0);
+    }
+
+    /**
+     * Jumlah hari cuti tahunan yang sedang dalam proses pengajuan (status PENGAJUAN)
+     */
+    public function getPendingCutiTahunanAttribute(): int
+    {
+        if (! $this->employee_id || ! $this->year) {
+            return 0;
+        }
+
+        return (int) EmployeeLeaveRequest::where('employee_id', $this->employee_id)
+            ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
+            ->annual()
+            ->whereYear('tanggal_mulai', $this->year)
+            ->sum('jumlah_hari');
+    }
+
+    /**
+     * Sisa hak cuti tahunan yang benar-benar dapat diajukan (setelah dikurangi antrean pengajuan)
+     */
+    public function getSisaCutiDapatDiajukanAttribute(): int
+    {
+        return max(0, $this->sisa_cuti_tersedia - $this->pending_cuti_tahunan);
     }
 
     public function employee(): BelongsTo

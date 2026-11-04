@@ -5,6 +5,8 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\Kepegawaian\Models\EmployeeHistory;
+use App\Modules\Kepegawaian\Models\MealAllowanceItem;
 use App\Modules\Kepegawaian\Requests\EmployeeRequest;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\SuratTugas\Models\AssignmentLetter;
@@ -12,7 +14,6 @@ use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -23,31 +24,121 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Employee::query()
+        $baseQuery = Employee::query()
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
-            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
-
-        // Ambil parameter pencarian dari URL (?search=...)
-        $searchTerm = $request->input('search');
-
-        if (! empty($searchTerm)) {
-            $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($searchTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
+            ->where(function ($q) {
+                $q->whereNull('satuan_kerja')
+                    ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
-        }
 
-        // Status filter opsional
-        if ($request->has('is_active')) {
+        $canViewTrashed = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+
+        $counts = [
+            'total' => (clone $baseQuery)->count(),
+            'pns' => (clone $baseQuery)->ofJenis('PNS')->count(),
+            'pppk' => (clone $baseQuery)->ofJenis('PPPK')->count(),
+            'mmp' => (clone $baseQuery)->ofJenis('MMP')->count(),
+            'trashed' => $canViewTrashed ? (clone $baseQuery)->onlyTrashed()->count() : 0,
+        ];
+
+        $statusFilter = strtolower(trim((string) $request->input('status', '')));
+        $isTrashedView = $canViewTrashed && ($statusFilter === 'trashed' || $request->boolean('trashed'));
+
+        $query = clone $baseQuery;
+        if ($isTrashedView) {
+            $query->onlyTrashed();
+        } elseif ($statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        } elseif ($request->has('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
 
-        // Ambil data dengan Pagination (default 10 baris per halaman)
-        $requestedPerPage = max(1, (int) $request->input('per_page', 10));
+        $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));
+        if (in_array($jenisPegawai, ['PNS', 'PPPK', 'P3K', 'MMP'], true)) {
+            $query->ofJenis($jenisPegawai);
+        }
+
+        $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+        $wilayah = trim((string) $request->input('wilayah', ''));
+        if ($wilayah !== '') {
+            if ($wilayah === 'BALAI') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%balai%')
+                        ->orWhere('satuan_kerja', $likeOp, '%samarinda%')
+                        ->orWhere('satuan_kerja', $likeOp, '%tata usaha%');
+                });
+            } elseif ($wilayah === 'SKW_1') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah i %')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
+                        ->orWhere('satuan_kerja', $likeOp, '%berau%')
+                        ->orWhere('satuan_kerja', $likeOp, '%derawan%')
+                        ->orWhere('satuan_kerja', $likeOp, '%kelay%')
+                        ->orWhere('satuan_kerja', $likeOp, '%segah%')
+                        ->orWhere('satuan_kerja', $likeOp, '%talisayan%');
+                });
+            } elseif ($wilayah === 'SKW_2') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah ii %')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
+                        ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
+                        ->orWhere('satuan_kerja', $likeOp, '%paser%')
+                        ->orWhere('satuan_kerja', $likeOp, '%sangatta%')
+                        ->orWhere('satuan_kerja', $likeOp, '%bengalon%')
+                        ->orWhere('satuan_kerja', $likeOp, '%sangkulirang%')
+                        ->orWhere('satuan_kerja', $likeOp, '%muara kama%')
+                        ->orWhere('satuan_kerja', $likeOp, '%kembang janggut%')
+                        ->orWhere('satuan_kerja', $likeOp, '%dondang%');
+                });
+            } elseif ($wilayah === 'SKW_3') {
+                $query->where(function ($q) use ($likeOp) {
+                    $q->where('satuan_kerja', $likeOp, '%wilayah iii%')
+                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
+                        ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
+                        ->orWhere('satuan_kerja', $likeOp, '%bangkirai%')
+                        ->orWhere('satuan_kerja', $likeOp, '%penajam%')
+                        ->orWhere('satuan_kerja', $likeOp, '%nusantara%');
+                });
+            } else {
+                $escapedWilayah = addcslashes($wilayah, '%_');
+                $resorMatch = null;
+                if (preg_match('/Resor\s+0*(\d+)\.\s*(.+)$/i', $wilayah, $m)) {
+                    $resorNum = $m[1];
+                    $resorName = addcslashes(trim($m[2]), '%_');
+                    $resorMatch = ["Resor KSDA Wilayah {$resorNum}", $resorName];
+                }
+                $query->where(function ($q) use ($escapedWilayah, $resorMatch, $likeOp) {
+                    $q->where('satuan_kerja', $likeOp, "%{$escapedWilayah}%")
+                        ->orWhere('jabatan', $likeOp, "%{$escapedWilayah}%");
+                    if ($resorMatch) {
+                        $q->orWhere('jabatan', $likeOp, "%{$resorMatch[0]}%")
+                            ->orWhere('jabatan', $likeOp, "%{$resorMatch[1]}%");
+                    }
+                });
+            }
+        }
+
+        // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
+        $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
+
+        if ($searchTerm !== '') {
+            $escapedTerm = addcslashes($searchTerm, '%_');
+            $query->where(function ($q) use ($escapedTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('jabatan', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('satuan_kerja', $likeOp, "%{$escapedTerm}%");
+            });
+        }
+
+        // Ambil data dengan Pagination (default 10 baris per halaman, 'all' = 500)
+        $rawPerPage = strtolower(trim((string) $request->input('per_page', '10')));
+        $requestedPerPage = $rawPerPage === 'all' ? 500 : max(1, (int) $rawPerPage);
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
@@ -61,55 +152,43 @@ class EmployeeController extends Controller
                 'last_page' => $employees->lastPage(),
                 'per_page' => $employees->perPage(),
                 'total' => $employees->total(),
+                'counts' => $counts,
             ],
         ]);
     }
 
     /**
-     * Rule 1.4 & 4.4: Sanitasi dan Upload File ke Private Storage
+     * Rule 1.4 & 4.4: Sanitasi dan Upload File ke RustFS Object Storage
      */
     public function store(EmployeeRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        // Jika user melampirkan file foto
-        if ($request->hasFile('foto')) {
-            $file = $request->file('foto');
-
-            $path = $file->store('employees/foto');
-            $validated['foto_profil'] = $path;
-        }
-
-        $employee = Employee::create($validated);
-
-        // Re-store photo with proper folder structure after employee is created
-        if (isset($validated['foto_profil'])) {
-            $oldPath = $validated['foto_profil'];
-            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
-            $ext = pathinfo($oldPath, PATHINFO_EXTENSION);
-            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
-            $newPath = $folder . '/' . $filename;
-
-            // Move file to proper folder
-            if (Storage::exists($oldPath)) {
-                Storage::move($oldPath, $newPath);
-                $employee->update(['foto_profil' => $newPath]);
+        $employee = DB::transaction(function () use ($validated, $request) {
+            $employee = Employee::create($validated);
+            if ($request->hasFile('foto')) {
+                $employee->replaceProfilePhoto($request->file('foto'));
             }
-        }
 
-        // Auto-create user account with default password '123'
-        if (!User::where('username', $employee->nip)->exists()) {
-            User::create([
-                'name' => $employee->nama_lengkap,
-                'username' => $employee->nip,
-                'password' => Hash::make('123'),
-                'role' => 'pegawai',
-            ]);
-        }
+            // Auto-create inactive user account with random secure password if it doesn't exist yet
+            $nip = trim((string) $employee->nip);
+            if ($nip !== '' && ! User::withTrashed()->where('username', $nip)->exists()) {
+                User::create([
+                    'name' => $employee->nama_lengkap,
+                    'username' => $nip,
+                    'email' => strtolower(preg_replace('/[^a-zA-Z0-9._-]/', '', $nip)) . '@bksda.local',
+                    'password' => Str::random(64),
+                    'role' => 'user',
+                    'is_active' => false,
+                ]);
+            }
+
+            return $employee;
+        });
 
         return response()->json([
             'message' => 'Data pegawai berhasil ditambahkan.',
-            'data' => $employee,
+            'data' => $employee->fresh(),
         ], 201);
     }
 
@@ -118,10 +197,12 @@ class EmployeeController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $employee = Employee::findOrFail($id);
+        $employee = Employee::with('user')->findOrFail($id);
 
         $data = $employee->toArray();
+        unset($data['user']);
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
+        $data['email'] = $employee->email ?? $employee->user?->email ?? null;
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
@@ -135,28 +216,91 @@ class EmployeeController extends Controller
     public function update(EmployeeRequest $request, $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $currentUser = $request->user();
+
+        // Mencegah akun admin non-super_admin mengubah profil pegawai super_admin
+        $oldNip = trim((string) $employee->nip);
+        $targetUser = $oldNip !== '' ? User::where('username', $oldNip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mengubah data pegawai Super Admin.',
+            ], 403);
+        }
+
         $validated = $request->validated();
+
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $oldValues = [];
+        foreach ($trackedFields as $field) {
+            $oldValues[$field] = $employee->$field;
+        }
 
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
-            // Hapus foto lama dari server agar tidak jadi file sampah (Orphan file)
-            if ($employee->foto_profil) {
-                Storage::delete($employee->foto_profil);
-            }
-
-            // Simpan foto baru
-            $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
-            $ext = $request->file('foto')->extension();
-            $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
-            $path = $request->file('foto')->storeAs($folder, $filename);
-            $validated['foto_profil'] = $path;
+            $employee->replaceProfilePhoto($request->file('foto'));
         }
 
         $employee->update($validated);
+        $newNip = trim((string) $employee->nip);
+
+        // Sinkronisasi email ke akun User jika ada
+        if ($targetUser && !empty($employee->email)) {
+            $targetUser->email = $employee->email;
+            $targetUser->save();
+        }
+
+        // Catat riwayat audit jika ada field biodata yang berubah
+        $changes = [];
+        foreach ($trackedFields as $field) {
+            $newVal = $employee->$field;
+            $oldVal = $oldValues[$field];
+            if ($oldVal != $newVal) {
+                $changes[$field] = [
+                    'old' => $oldVal,
+                    'new' => $newVal,
+                ];
+            }
+        }
+
+        if (! empty($changes)) {
+            EmployeeHistory::create([
+                'employee_id' => $employee->id,
+                'user_id' => $currentUser?->id,
+                'action' => 'UPDATE_BIODATA',
+                'changes' => $changes,
+                'created_at' => now(),
+            ]);
+        }
+
+        if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
+            User::where('username', $oldNip)->update([
+                'username' => $newNip,
+                'name' => $employee->nama_lengkap,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
             'data' => $employee,
+        ]);
+    }
+
+    /**
+     * Ambil riwayat perubahan biodata pegawai untuk Tab Riwayat Perubahan.
+     * GET /api/kepegawaian/employees/{id}/histories
+     */
+    public function histories(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $histories = EmployeeHistory::where('employee_id', $employee->id)
+            ->with(['user:id,name,username'])
+            ->latest('created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $histories,
         ]);
     }
 
@@ -171,17 +315,18 @@ class EmployeeController extends Controller
         ]);
 
         $employee = Employee::findOrFail($id);
+        $currentUser = $request->user();
 
-        // Delete old photo
-        if ($employee->foto_profil) {
-            Storage::delete($employee->foto_profil);
+        // Mencegah admin non-super_admin mengganti foto super_admin
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mengubah foto profil Super Admin.',
+            ], 403);
         }
 
-        $folder = 'employees/' . Str::slug($employee->nama_lengkap) . '/foto-profil';
-        $ext = $request->file('foto')->extension();
-        $filename = Str::slug($employee->nama_lengkap) . '_profil.' . $ext;
-        $path = $request->file('foto')->storeAs($folder, $filename);
-        $employee->update(['foto_profil' => $path]);
+        $path = $employee->replaceProfilePhoto($request->file('foto'));
 
         return response()->json([
             'message' => 'Foto pegawai berhasil diperbarui.',
@@ -192,12 +337,34 @@ class EmployeeController extends Controller
     /**
      * Rule 3.6: Soft Delete
      */
-    public function destroy($id): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
 
+        $currentUser = $request->user();
+        if ($currentUser && ($currentUser->username === $employee->nip || (int) $currentUser->employee_id === (int) $employee->id)) {
+            return response()->json([
+                'message' => 'Anda tidak dapat menghapus data pegawai akun Anda sendiri.',
+            ], 403);
+        }
+
+        // Mencegah admin non-super_admin menghapus akun pegawai super_admin
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat menghapus data akun Super Admin.',
+            ], 403);
+        }
+
         // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
         $employee->delete();
+
+        // Deactivate associated user account and revoke existing tokens to prevent orphaned login
+        if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
+            $user->update(['is_active' => false]);
+            $user->tokens()->delete();
+        }
 
         return response()->json([
             'message' => 'Data pegawai berhasil dihapus (soft delete).',
@@ -205,35 +372,123 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Public select - untuk dropdown di form surat tugas
-     * Rate limited: 30 per menit
+     * POST /api/kepegawaian/employees/{id}/restore
+     * Pulihkan data pegawai yang telah di-soft-delete menjadi aktif kembali.
+     */
+    public function restore($id): JsonResponse
+    {
+        $employee = Employee::onlyTrashed()->findOrFail($id);
+        $employee->restore();
+        $employee->update(['is_active' => true]);
+
+        return response()->json([
+            'message' => 'Data pegawai berhasil dipulihkan.',
+            'data' => $employee->fresh(),
+        ]);
+    }
+
+    /**
+     * DELETE /api/kepegawaian/employees/{id}/force
+     * Hapus permanen data pegawai, foto di RustFS, serta akun user terkait.
+     */
+    public function forceDestroy(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::withTrashed()->findOrFail($id);
+
+        $currentUser = $request->user();
+        if ($currentUser && ($currentUser->username === $employee->nip || (int) $currentUser->employee_id === (int) $employee->id)) {
+            return response()->json([
+                'message' => 'Anda tidak dapat menghapus permanen data pegawai akun Anda sendiri.',
+            ], 403);
+        }
+
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::withTrashed()->where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat menghapus permanen akun Super Admin.',
+            ], 403);
+        }
+
+        $filesToDelete = array_filter([$employee->foto_profil]);
+        $leaveRequests = EmployeeLeaveRequest::withTrashed()
+            ->where('employee_id', $employee->id)
+            ->get(['scan_surat_path', 'scan_formulir_path', 'scan_surat_izin_path']);
+        foreach ($leaveRequests as $lr) {
+            foreach (['scan_surat_path', 'scan_formulir_path', 'scan_surat_izin_path'] as $col) {
+                if (! empty($lr->{$col})) {
+                    $filesToDelete[] = $lr->{$col};
+                }
+            }
+        }
+
+        DB::transaction(function () use ($employee, $targetUser) {
+            if ($targetUser && $targetUser->role !== 'super_admin') {
+                $targetUser->tokens()->delete();
+                $targetUser->forceDelete();
+            }
+            $employee->forceDelete();
+        });
+
+        foreach (array_unique($filesToDelete) as $path) {
+            if (Storage::exists($path)) {
+                Storage::delete($path);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Data pegawai, akun akses, dan foto profil berhasil dihapus permanen.',
+        ]);
+    }
+
+    /**
+     * Protected select - untuk dropdown di form surat tugas & modul internal
      */
     public function select(Request $request): JsonResponse
     {
-        $searchTerm = $request->input('q', '');
+        $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
 
-        $query = Employee::query()->where('is_active', true);
+        $query = Employee::query()
+            ->where('is_active', true)
+            ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
+            ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
+            ->where('nama_lengkap', 'NOT LIKE', '%magang%');
 
         if (! empty($searchTerm)) {
+            $escapedTerm = addcslashes($searchTerm, '%_');
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($searchTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$searchTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$searchTerm}%");
+            $query->where(function ($q) use ($escapedTerm, $likeOp) {
+                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
+                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
             });
         }
 
+        $limit = min(200, max(1, $request->integer('limit', $request->integer('per_page', 200))));
+
         $employees = $query->orderBy('nama_lengkap', 'asc')
-            ->limit(200)
-            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'satuan_kerja']);
+            ->limit($limit)
+            ->get(['id', 'nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja']);
+
+        $isAuth = $request->user() !== null;
 
         return response()->json([
-            'data' => $employees->map(function ($emp) {
+            'data' => $employees->map(function ($emp) use ($isAuth) {
+                $cleanNip = trim((string) $emp->nip);
+                $maskedNip = $cleanNip !== ''
+                    ? (strlen($cleanNip) > 8
+                        ? substr($cleanNip, 0, 4) . str_repeat('*', max(4, strlen($cleanNip) - 8)) . substr($cleanNip, -4)
+                        : '****')
+                    : '-';
+                $displayNip = $isAuth ? $cleanNip : $maskedNip;
+
                 return [
                     'id' => $emp->id,
                     'name' => $emp->nama_lengkap,
                     'nama_lengkap' => $emp->nama_lengkap,
                     'nama' => $emp->nama_lengkap,
-                    'nip' => $emp->nip,
+                    'nip' => $displayNip,
+                    'pangkat_golongan' => $emp->pangkat_golongan,
+                    'rank' => $emp->pangkat_golongan,
                     'department' => $emp->satuan_kerja,
                     'satuan_kerja' => $emp->satuan_kerja,
                     'position' => $emp->jabatan,
@@ -247,13 +502,19 @@ class EmployeeController extends Controller
 
     /**
      * POST /api/kepegawaian/employees/{id}/reset-password
-     * Reset password pegawai ke default '123'
+     * Reset password pegawai dan invalidasi token aktif.
      */
-    public function resetPassword($id): JsonResponse
+    public function resetPassword(Request $request, $id): JsonResponse
     {
+        $validated = $request->validate([
+            'password' => 'nullable|string|min:8',
+            'mode' => 'nullable|string|in:send_link,generate',
+        ]);
+
         $employee = Employee::findOrFail($id);
 
-        $user = User::where('username', $employee->nip)->first();
+        $nip = trim((string) $employee->nip);
+        $user = $nip !== '' ? User::where('username', $nip)->first() : null;
 
         if (!$user) {
             return response()->json([
@@ -261,12 +522,88 @@ class EmployeeController extends Controller
             ], 404);
         }
 
-        $user->update([
-            'password' => Hash::make('123'),
+        $currentUser = $request->user();
+        if ($user->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mereset password akun Super Admin.',
+            ], 403);
+        }
+
+        // Mode B: Kirim link reset jika diminta dan user punya email valid
+        if ($request->input('mode') === 'send_link' && $user->hasDeliverableEmail()) {
+            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->email]);
+            return response()->json([
+                'message' => 'Tautan reset kata sandi telah dikirimkan ke email terverifikasi pegawai (' . $user->email . ').',
+            ]);
+        }
+
+        // Mode A (Default): Generate password acak 12 karakter & paksa ganti saat login berikutnya
+        $customPassword = $request->input('password');
+        $temporaryPassword = !empty($customPassword)
+            ? (string) $customPassword
+            : \Illuminate\Support\Str::password(12);
+
+        $user->forceFill([
+            'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+            'must_change_password' => true,
+        ])->save();
+
+        // Revoke active sessions / bearer tokens upon password reset
+        $user->tokens()->delete();
+
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_PASSWORD',
+            'changes' => [],
+            'notes' => 'Reset kata sandi pegawai oleh ' . ($currentUser?->name ?? 'Admin') . ($request->input('mode') === 'send_link' ? ' (kirim link email)' : ' (generate password sementara)'),
+            'created_at' => now(),
         ]);
 
         return response()->json([
-            'message' => 'Password berhasil direset ke default.',
+            'message' => 'Password berhasil direset. Pegawai wajib menggantinya saat login berikutnya.',
+            'temporary_password' => $temporaryPassword,
+        ]);
+    }
+
+    /**
+     * DELETE /api/kepegawaian/employees/{id}/2fa
+     * Super admin mereset 2FA pegawai yang kehilangan akses / ganti HP.
+     */
+    public function reset2Fa(Request $request, $id): JsonResponse
+    {
+        $currentUser = $request->user();
+        if ($currentUser?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya Super Admin yang berhak mereset 2FA pegawai.'], 403);
+        }
+
+        $employee = Employee::findOrFail($id);
+        $nip = trim((string) $employee->nip);
+        $user = $nip !== '' ? User::where('username', $nip)->first() : null;
+
+        if (! $user) {
+            return response()->json(['message' => 'Akun user untuk pegawai ini tidak ditemukan.'], 404);
+        }
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        // Ponytail: Catat riwayat audit
+        EmployeeHistory::create([
+            'employee_id' => $employee->id,
+            'user_id' => $currentUser?->id,
+            'action' => 'RESET_2FA',
+            'changes' => [],
+            'notes' => 'Reset Autentikasi 2 Langkah (2FA) pegawai oleh Super Admin (' . ($currentUser?->name ?? 'Super Admin') . ')',
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Autentikasi 2 Langkah (2FA) untuk ' . ($employee->nama_lengkap ?? $user->name) . ' berhasil direset.',
         ]);
     }
 
@@ -274,13 +611,14 @@ class EmployeeController extends Controller
      * GET /api/kepegawaian/employees/{id}/assignment-letters
      * Mengambil riwayat surat tugas khusus untuk pegawai ini
      */
-    public function assignmentLetters(string $id): JsonResponse
+    public function assignmentLetters(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
 
         $letters = $employee->assignmentLetters()
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
         return response()->json([
             'message' => 'Riwayat penugasan berhasil diambil.',
@@ -290,6 +628,37 @@ class EmployeeController extends Controller
                 'last_page' => $letters->lastPage(),
                 'per_page' => $letters->perPage(),
                 'total' => $letters->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * GET /api/kepegawaian/employees/{id}/meal-allowances
+     * Mengambil riwayat penerimaan uang makan khusus untuk pegawai ini
+     */
+    public function mealAllowances(Request $request, string $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
+
+        $items = MealAllowanceItem::with('batch')
+            ->where(function ($q) use ($employee) {
+                $q->where('employee_id', $employee->id);
+                if (!empty($employee->nip)) {
+                    $q->orWhere('nip', $employee->nip);
+                }
+            })
+            ->orderByDesc('id')
+            ->paginate($perPage);
+
+        return response()->json([
+            'message' => 'Riwayat uang makan berhasil diambil.',
+            'data' => $items->items(),
+            'meta' => [
+                'current_page' => $items->currentPage(),
+                'last_page' => $items->lastPage(),
+                'per_page' => $items->perPage(),
+                'total' => $items->total(),
             ],
         ]);
     }
@@ -305,20 +674,32 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
-            ->where('satuan_kerja', 'NOT LIKE', '%pusat%');
+            ->where(function ($q) {
+                $q->whereNull('satuan_kerja')
+                    ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
+            });
 
-        // 1. Total & Active Employees
+        // 1. Total & Active Employees + Kategori Breakdown
         $totalEmployees = (clone $baseQuery)->count();
         $activeEmployees = (clone $baseQuery)->where('is_active', true)->count();
+        $pnsCount = (clone $baseQuery)->ofJenis('PNS')->count();
+        $pppkCount = (clone $baseQuery)->ofJenis('PPPK')->count();
+        $mmpCount = (clone $baseQuery)->ofJenis('MMP')->count();
         $activeRate = $totalEmployees > 0 
             ? number_format(($activeEmployees / $totalEmployees) * 100, 1) . '%' 
             : '100%';
 
-        // 2. Surat Tugas Aktif
+        // 2. Surat Tugas Aktif & Pending
         $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
+        $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
 
-        // 3. Pending Leave Requests
-        $pendingCutiCount = EmployeeLeaveRequest::whereIn('status', ['PENDING', 'pending'])->count();
+        // 3. Leave Requests & Surat Masuk
+        $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
+        $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
+        $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
+        $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
+            $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+        })->count();
 
         // 4. Sebaran Satuan Kerja
         $satkerRaw = (clone $baseQuery)
@@ -349,6 +730,7 @@ class EmployeeController extends Controller
         $denom = max(1, $totalEmployees);
         $satkerBreakdown = [
             [
+                'code' => 'BALAI',
                 'name' => 'Kantor Balai (Samarinda)',
                 'count' => $samarindaCount,
                 'percentage' => (int) round(($samarindaCount / $denom) * 100),
@@ -356,6 +738,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-blue-500',
             ],
             [
+                'code' => 'SKW_1',
                 'name' => 'Seksi KSDA Wilayah I Berau',
                 'count' => $berauCount,
                 'percentage' => (int) round(($berauCount / $denom) * 100),
@@ -363,6 +746,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-sky-400',
             ],
             [
+                'code' => 'SKW_2',
                 'name' => 'Seksi KSDA Wilayah II Tenggarong',
                 'count' => $tenggarongCount,
                 'percentage' => (int) round(($tenggarongCount / $denom) * 100),
@@ -370,6 +754,7 @@ class EmployeeController extends Controller
                 'dot' => 'bg-emerald-400',
             ],
             [
+                'code' => 'SKW_3',
                 'name' => 'Seksi KSDA Wilayah III Balikpapan',
                 'count' => $balikpapanCount,
                 'percentage' => (int) round(($balikpapanCount / $denom) * 100),
@@ -379,7 +764,7 @@ class EmployeeController extends Controller
         ];
 
         // 5. Recent Surat Tugas
-        $recentSt = AssignmentLetter::latest()->take(5)->get()->map(function ($st) {
+        $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
             return [
                 'id' => 'st-' . $st->id,
                 'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
@@ -394,9 +779,16 @@ class EmployeeController extends Controller
             'data' => [
                 'total_employees' => $totalEmployees,
                 'active_employees' => $activeEmployees,
+                'pns_count' => $pnsCount,
+                'pppk_count' => $pppkCount,
+                'mmp_count' => $mmpCount,
                 'active_rate' => $activeRate,
                 'active_surat_tugas' => $activeStCount,
+                'pending_surat_tugas' => $pendingStCount,
                 'pending_cuti' => $pendingCutiCount,
+                'approved_cuti' => $approvedCutiCount,
+                'total_surat_masuk' => $totalSuratMasuk,
+                'unreplied_surat_masuk' => $unrepliedSuratMasuk,
                 'satker_breakdown' => $satkerBreakdown,
                 'recent_activities' => $recentSt,
             ],

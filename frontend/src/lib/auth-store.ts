@@ -146,13 +146,19 @@ export const authStore = {
     localStorage.setItem("bksda_user", userJson);
     if (token) {
       localStorage.setItem("bksda_token", token);
+    } else {
+      localStorage.removeItem("bksda_token");
     }
     
     setAuthCookie("bksda_logged_in", "true");
     setAuthCookie("bksda_user", userJson);
     if (token) {
       setAuthCookie("bksda_token", token);
+    } else {
+      deleteAuthCookie("bksda_token");
     }
+
+    clearGetCache(true);
 
     window.dispatchEvent(new Event("auth-change"));
 
@@ -189,9 +195,26 @@ export const authStore = {
   logout() {
     if (typeof window === "undefined") return;
 
-    localStorage.removeItem("bksda_logged_in");
-    localStorage.removeItem("bksda_user");
-    localStorage.removeItem("bksda_token");
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith("bksda_") || k.startsWith("bmn."))) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch {
+      localStorage.removeItem("bksda_logged_in");
+      localStorage.removeItem("bksda_user");
+      localStorage.removeItem("bksda_token");
+      localStorage.removeItem("bksda_portal_dashboard_cache");
+      localStorage.removeItem("bksda_portal_nav_tab");
+      localStorage.removeItem("bksda_kalkulator_panjar_v2");
+      localStorage.removeItem("bksda_visum_spd_draft_v2");
+      localStorage.removeItem("bksda_visum_spd_selected_template_id");
+      localStorage.removeItem("bksda_visum_spd_type_v1");
+    }
     
     deleteAuthCookie("bksda_logged_in");
     deleteAuthCookie("bksda_user");
@@ -200,7 +223,7 @@ export const authStore = {
     deleteAuthCookie("XSRF-TOKEN");
 
     try {
-      clearGetCache();
+      clearGetCache(true);
     } catch {}
 
     window.dispatchEvent(new Event("auth-change"));

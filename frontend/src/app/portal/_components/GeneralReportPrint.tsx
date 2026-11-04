@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatNipLabel } from "@/lib/letter-utils";
 
 export interface GeneralReportData {
   id?: string;
@@ -69,18 +70,14 @@ function formatNameWithDegree(fullName: string): string {
 
 function cleanCoverSubtitle(rawTitle?: string): string {
   if (!rawTitle) return "PELAKSANAAN TUGAS DINAS";
-  let cleaned = rawTitle.trim();
-  cleaned = cleaned.replace(/^laporan\s+/i, "").trim();
-  return cleaned.toUpperCase();
+  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
+  return (cleaned || "PELAKSANAAN TUGAS DINAS").toUpperCase();
 }
 
 function ensureLeadingLaporan(rawTitle?: string): string {
   if (!rawTitle) return "LAPORAN PELAKSANAAN TUGAS";
-  let cleaned = rawTitle.trim();
-  if (!/^laporan\s+/i.test(cleaned)) {
-    cleaned = `LAPORAN ${cleaned}`;
-  }
-  return cleaned.toUpperCase();
+  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
+  return `LAPORAN ${cleaned || "PELAKSANAAN TUGAS"}`.toUpperCase();
 }
 
 export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
@@ -96,7 +93,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
   }
 
   return (
-    <div className="print-report-wrapper bg-white text-black font-sans font-['Arial',sans-serif] text-[12pt] leading-relaxed max-w-[210mm] mx-auto p-0">
+    <div className="print-report-wrapper bg-white text-black font-sans text-[12pt] leading-relaxed max-w-[210mm] mx-auto p-0">
       {/* 
         MASTER PRINT ENGINE:
         Menggunakan teknik Master Table (thead/tfoot) untuk memaksa margin atas dan bawah pada SETIAP halaman 
@@ -164,17 +161,18 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
       {/* ==================== PAGE 1: COVER ==================== */}
       {isCustomImageCover ? (
         /* MODE COVER MANUAL: FULL-PAGE UPLOADED COVER IMAGE */
-        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after relative bg-white">
+        <div className="w-full min-h-200 print:min-h-0 print:h-[297mm] flex flex-col items-center justify-center p-0 m-0 overflow-hidden border-none page-break-after relative bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={data.custom_cover_image_url}
             alt="Cover Manual Laporan"
             className="w-full h-full object-cover object-center block m-0 p-0"
+            onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
           />
         </div>
       ) : (
         /* MODE COVER STANDAR & CUSTOM SUB-UNIT COVER */
-        <div className="w-full min-h-[800px] print:min-h-0 print:h-[297mm] flex flex-col justify-between items-center text-center py-8 print:pt-[15mm] print:pb-[15mm] px-8 print:px-[20mm] border-none overflow-hidden page-break-after bg-white box-border">
+        <div className="w-full min-h-200 print:min-h-0 print:h-[297mm] flex flex-col justify-between items-center text-center py-8 print:pt-[15mm] print:pb-[15mm] px-8 print:px-[20mm] border-none overflow-hidden page-break-after bg-white box-border">
           {/* TOP TITLE BLOCK */}
           <div className="w-full space-y-2 pt-4">
             <h1 className="text-[17.5pt] font-bold tracking-wider uppercase font-sans">
@@ -295,19 +293,19 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                 <div className="space-y-2">
                   <h3 className="text-[12pt] font-bold uppercase">D. PELAKSANA KEGIATAN</h3>
                   <div className="pl-4 overflow-x-visible">
-                    <div className="relative pt-[28px]">
+                    <div className="relative pt-7">
                       {/* MAGIC HACK: Cover up the 1 | 2 | 3 row ONLY on the first page to perfectly match MS Word behavior! */}
-                      <div className="absolute top-0 left-0 right-0 h-[28px] bg-gray-50 print:bg-white border-b border-black z-10 box-border"></div>
-                      <table className="w-full border-collapse border border-black text-[12pt] mt-[-28px] relative z-0">
+                      <div className="absolute top-0 left-0 right-0 h-7 bg-gray-50 print:bg-white border-b border-black z-10 box-border"></div>
+                      <table className="w-full border-collapse border border-black text-[12pt] -mt-7 relative z-0">
                         <thead className="content-table-head">
-                          <tr className="bg-slate-50 print:bg-white text-center text-[10pt] font-normal content-table-row h-[28px]">
-                            <th className="border border-black p-0 w-12 h-[28px] font-normal">1</th>
-                            <th className="border border-black p-0 h-[28px] font-normal">2</th>
-                            <th className="border border-black p-0 h-[28px] font-normal">3</th>
+                          <tr className="bg-slate-50 print:bg-white text-center text-[10pt] font-normal content-table-row h-7">
+                            <th className="border border-black p-0 w-12 h-7 font-normal">1</th>
+                            <th className="border border-black p-0 h-7 font-normal">2</th>
+                            <th className="border border-black p-0 h-7 font-normal">3</th>
                           </tr>
                           <tr className="bg-slate-100 print:bg-white text-center font-normal content-table-row">
                             <th className="border border-black px-3 py-1.5 w-12 font-normal">No.</th>
-                            <th className="border border-black px-3 py-1.5 font-normal">Nama / NIP</th>
+                            <th className="border border-black px-3 py-1.5 font-normal">Nama / NIP / NIPPPK</th>
                             <th className="border border-black px-3 py-1.5 font-normal">Jabatan</th>
                           </tr>
                         </thead>
@@ -318,7 +316,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                               <td className="border border-black px-3 py-2 text-center">{idx + 1}.</td>
                               <td className="border border-black px-3 py-2">
                                 <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
-                                <p className="text-[12pt] text-black font-normal">NIP. {p.nip || "-"}</p>
+                                <p className="text-[12pt] text-black font-normal">{p.nip ? `${formatNipLabel(p, true)} ${p.nip}` : "NIP. -"}</p>
                               </td>
                               <td className="border border-black px-3 py-2">{p.jabatan || "-"}</td>
                             </tr>
@@ -368,7 +366,7 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                         </p>
 
                         <div className="pt-2 flex justify-end">
-                          <div className="min-w-[280px] max-w-[340px] text-left space-y-0.5 text-[12pt]">
+                          <div className="min-w-70 max-w-85 text-left space-y-0.5 text-[12pt]">
                             <p className="font-normal">{data.kota_laporan || "Samarinda"}, {tanggalFormat}</p>
                             <p className="font-normal">Pelaksana Kegiatan,</p>
 
@@ -378,13 +376,13 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                                 data.pelaksana.map((p, idx) => (
                                   <div key={idx} className="pt-24 space-y-0.5">
                                     <p className="font-normal">{formatNameWithDegree(p.nama_lengkap)}</p>
-                                    <p className="text-[12pt] font-normal">NIP. {p.nip || "-"}</p>
+                                    <p className="text-[12pt] font-normal">{p.nip ? `${formatNipLabel(p, true)} ${p.nip}` : "NIP. -"}</p>
                                   </div>
                                 ))
                               ) : (
                                 <div className="pt-24 space-y-0.5">
-                                  <p className="font-normal">ANISA RAHMAWATI, S.Tr.Kom.</p>
-                                  <p className="text-[12pt] font-normal">NIP. 199911032025062012</p>
+                                  <p className="font-normal underline">( .................................................... )</p>
+                                  <p className="text-[12pt] font-normal">NIP. -</p>
                                 </div>
                               )}
                             </div>
@@ -410,15 +408,21 @@ export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
                       )}
                       <div className="grid grid-cols-2 gap-4 pl-4 pt-1">
                         {chunk.map((foto, idx) => (
-                          <div key={idx} className="overflow-hidden">
-                            <div className="w-full h-72 print:h-[72mm] relative flex items-center justify-center p-0">
+                          <div key={idx} className="overflow-hidden space-y-1">
+                            <div className="w-full h-72 print:h-[68mm] relative flex items-center justify-center p-0">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={foto.url}
-                                alt={`Dokumentasi ${pageIdx * 6 + idx + 1}`}
+                                alt={foto.caption || `Dokumentasi ${pageIdx * 6 + idx + 1}`}
                                 className="w-full h-full object-contain mx-auto rounded-none border-none"
+                                onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                               />
                             </div>
+                            {foto.caption && (
+                              <p className="text-[10pt] text-center text-slate-700 italic leading-snug">
+                                {foto.caption}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>

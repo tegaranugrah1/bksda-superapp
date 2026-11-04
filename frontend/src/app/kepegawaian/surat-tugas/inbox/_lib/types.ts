@@ -8,6 +8,8 @@ export interface InboxEmployee {
   nip: string;
   satuan_kerja?: string;
   jabatan?: string;
+  tanggal_mulai?: string | null;
+  tanggal_selesai?: string | null;
 }
 
 export interface LetterItem {

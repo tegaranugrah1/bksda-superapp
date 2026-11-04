@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { updateValuation, AuctionBatch, AuctionBatchAsset, ChecklistResponse } from "../../_lib/api";
 import { formatRupiah, type AuctionAsset } from "../../../auction-candidates/_lib/auction-helpers";
-import { KertasKerjaAssetSection } from "../../../auction-candidates/_components/KertasKerjaAssetSection";
+import {
+  KertasKerjaAssetSection,
+  type WorksheetSourceAsset,
+} from "../../../auction-candidates/_components/KertasKerjaAssetSection";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -117,12 +120,8 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
   const getVehicleWorksheetInitialState = (data: any) => {
     if (!data) return null;
     let parsed = data;
-    if (typeof parsed === "string") {
-      try {
-        parsed = JSON.parse(parsed);
-      } catch (e) {
-        return null;
-      }
+    while (typeof parsed === "string") {
+      try { parsed = JSON.parse(parsed); } catch { break; }
     }
     if (!parsed || typeof parsed !== "object") return null;
     if (parsed.type === "vehicle_worksheet_v1") return parsed.vehicleWorksheet || null;
@@ -240,6 +239,23 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
     });
   };
 
+  const availableSourceAssets = useMemo<WorksheetSourceAsset[]>(() => {
+    if (!activeAsset || !assets) return [];
+    return assets
+      .filter((a) => a.id !== activeAsset.id && a.pivot?.kertas_kerja_data)
+      .map((a) => ({
+        id: a.id,
+        nama_barang: a.nama_barang,
+        merk_tipe: a.merk_tipe,
+        kode_barang: a.kode_barang,
+        nup: a.nup,
+        jenis_bmn: a.jenis_bmn,
+        nilai_taksiran: a.pivot?.nilai_taksiran,
+        worksheet: getVehicleWorksheetInitialState(a.pivot?.kertas_kerja_data) as any,
+      }))
+      .filter((a) => Boolean(a.worksheet));
+  }, [activeAsset, assets]);
+
   return (
     <div className="space-y-6">
       {/* Overview stats */}
@@ -268,8 +284,106 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
         </div>
       )}
 
-      {/* Valuation Table */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 shadow-xs">
+      {/* Mobile Stacked Cards (< sm) */}
+      <div className="sm:hidden space-y-3">
+        {assets.length === 0 ? (
+          <div className="p-8 text-center text-zinc-400 text-xs bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            Belum ada aset dalam paket lelang ini.
+          </div>
+        ) : (
+          assets.map((asset, index) => {
+            const isEditing = editingAssetId === asset.id;
+            const hasWorksheet = !!asset.pivot?.kertas_kerja_data;
+
+            return (
+              <div
+                key={asset.id}
+                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-3 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-zinc-400">#{index + 1}</span>
+                    <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{asset.nama_barang}</h3>
+                    <div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 mt-0.5">
+                      <span className="font-bold text-emerald-600">{asset.kode_barang}</span>
+                      <span>•</span>
+                      <span>NUP: {asset.nup}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-xs py-1 border-t border-zinc-100 dark:border-zinc-800">
+                  <span className="text-zinc-500">Nilai Perolehan:</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatRupiah(asset.nilai_perolehan)}</span>
+                </div>
+
+                <div className="flex justify-between items-center text-xs py-1 border-t border-zinc-100 dark:border-zinc-800">
+                  <span className="text-zinc-500">Nilai Taksiran:</span>
+                  <div>
+                    {isEditing ? (
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={formatThousands(editingValue)}
+                          onChange={(e) => setEditingValue(e.target.value.replace(/\D/g, ""))}
+                          className="h-8 rounded-lg text-xs w-28 text-right border-zinc-200 dark:border-zinc-800 font-medium"
+                          placeholder="0"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveValuation(asset.id);
+                            if (e.key === "Escape") setEditingAssetId(null);
+                          }}
+                        />
+                        <Button
+                          size="icon-sm"
+                          onClick={() => handleSaveValuation(asset.id)}
+                          className="h-8 w-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                          disabled={updateValuationMutation.isPending}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => handleStartEditValuation(asset)}
+                        className={`font-bold text-xs px-2.5 py-1 rounded-lg border ${
+                          asset.pivot?.nilai_taksiran
+                            ? "bg-zinc-50 border-zinc-200 dark:bg-zinc-800 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                            : "bg-red-50 border-red-100 text-red-700 dark:bg-red-950/20 dark:border-red-900/30"
+                        } ${!readOnly ? "cursor-pointer" : ""}`}
+                      >
+                        {asset.pivot?.nilai_taksiran ? formatRupiah(asset.pivot.nilai_taksiran) : "Belum Dinilai"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {!readOnly && (
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenWorksheet(asset)}
+                      className={`w-full rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 min-h-[36px] ${
+                        hasWorksheet
+                          ? "text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                          : "text-zinc-600 dark:text-zinc-400"
+                      }`}
+                    >
+                      <Calculator className="h-4 w-4" />
+                      {hasWorksheet ? "Edit Kertas Kerja" : "Buka Kertas Kerja"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Valuation Table (>= sm) */}
+      <div className="hidden sm:block overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -330,10 +444,11 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                         {isEditing ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <Input
-                              type="number"
-                              value={editingValue}
-                              onChange={(e) => setEditingValue(e.target.value)}
-                              className="h-8 rounded-lg text-xs w-36 text-right border-zinc-200 dark:border-zinc-800"
+                              type="text"
+                              inputMode="numeric"
+                              value={formatThousands(editingValue)}
+                              onChange={(e) => setEditingValue(e.target.value.replace(/\D/g, ""))}
+                              className="h-8 rounded-lg text-xs w-36 text-right border-zinc-200 dark:border-zinc-800 font-medium"
                               placeholder="0"
                               autoFocus
                               onKeyDown={(e) => {
@@ -399,15 +514,18 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
           <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-2xl max-h-[94vh] overflow-y-auto">
             <DialogHeader className="sr-only">
               <DialogTitle>Kertas Kerja Penaksiran Kendaraan</DialogTitle>
+              <DialogDescription>
+                Formulir analisis dan penentuan nilai taksiran BMN kendaraan dinas operasional untuk lelang.
+              </DialogDescription>
             </DialogHeader>
             <KertasKerjaAssetSection
               asset={toWorksheetAsset(activeAsset)}
-              worksheetNumber={Number(activeAsset.pivot?.lot_number) || 1}
-              employees={[]}
+              worksheetNumber={Math.max(1, assets.findIndex((a) => a.id === activeAsset.id) + 1)}
               initialState={getVehicleWorksheetInitialState(activeAsset.pivot?.kertas_kerja_data)}
               isSaving={updateValuationMutation.isPending}
               onClose={() => setActiveAsset(null)}
               onSave={handleSaveVehicleWorksheet}
+              availableSourceAssets={availableSourceAssets}
             />
           </DialogContent>
         </Dialog>

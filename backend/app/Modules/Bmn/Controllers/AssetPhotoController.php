@@ -17,9 +17,11 @@ class AssetPhotoController extends Controller
     private const VALID_TYPES = ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2'];
 
     /** Get the configured storage disk for BMN photos. */
-    private function disk(): \Illuminate\Contracts\Filesystem\Filesystem
+    private function disk(): \Illuminate\Filesystem\FilesystemAdapter
     {
-        return Storage::disk(config('filesystems.default'));
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk(config('filesystems.default'));
+        return $disk;
     }
 
     /**
@@ -278,7 +280,9 @@ class AssetPhotoController extends Controller
                 $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag.{$ext}";
                 return response()->streamDownload(function () use ($asset) {
                     echo $this->disk()->get($asset->foto_geotag_path);
-                }, $filename);
+                }, $filename, [
+                    'X-Content-Type-Options' => 'nosniff',
+                ]);
             }
 
             if ($asset->foto_geotag_url) {
@@ -304,7 +308,9 @@ class AssetPhotoController extends Controller
 
         return response()->streamDownload(function () use ($asset, $column) {
             echo $this->disk()->get($asset->$column);
-        }, $filename);
+        }, $filename, [
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**
@@ -340,7 +346,8 @@ class AssetPhotoController extends Controller
         }
 
         $zipName = Str::slug($asset->nama_barang) . "_{$asset->nup}_Foto.zip";
-        $zipPath = storage_path("app/temp/{$zipName}");
+        $tempFilename = 'asset_photos_' . bin2hex(random_bytes(8)) . '.zip';
+        $zipPath = storage_path("app/temp/{$tempFilename}");
 
         // Ensure temp directory exists
         if (!is_dir(storage_path('app/temp'))) {
@@ -350,17 +357,17 @@ class AssetPhotoController extends Controller
         $zip = new ZipArchive();
         $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-        // Stream each file from storage (works with both local and S3 disks)
+        // Stream each file from storage directly into ZIP without disk leaks
         foreach ($entries as $entry) {
-            $tempFile = tempnam(sys_get_temp_dir(), 'bmn_');
-            file_put_contents($tempFile, $this->disk()->get($entry['storage_path']));
-            $zip->addFile($tempFile, $entry['name']);
+            $zip->addFromString($entry['name'], $this->disk()->get($entry['storage_path']));
         }
 
         $zip->close();
 
         // Clean up temp files after sending
-        return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);
+        return response()->download($zipPath, $zipName, [
+            'X-Content-Type-Options' => 'nosniff',
+        ])->deleteFileAfterSend(true);
     }
 
     /**
@@ -374,11 +381,13 @@ class AssetPhotoController extends Controller
             if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
                 $file = $this->disk()->get($asset->foto_geotag_path);
                 $mime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
-                return response($file, 200)->header('Content-Type', $mime);
+                return response($file, 200)
+                    ->header('Content-Type', $mime)
+                    ->header('X-Content-Type-Options', 'nosniff');
             }
 
-            if ($asset->foto_geotag_url) {
-                return redirect($asset->foto_geotag_url);
+            if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://'))) {
+                return redirect()->away($asset->foto_geotag_url);
             }
 
             return response()->json(['message' => 'Foto geotag tidak tersedia.'], 404);
@@ -398,6 +407,8 @@ class AssetPhotoController extends Controller
         $file = $this->disk()->get($asset->$column);
         $mime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
 
-        return response($file, 200)->header('Content-Type', $mime);
+        return response($file, 200)
+            ->header('Content-Type', $mime)
+            ->header('X-Content-Type-Options', 'nosniff');
     }
 }

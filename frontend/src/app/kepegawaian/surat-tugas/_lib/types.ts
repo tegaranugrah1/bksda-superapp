@@ -12,6 +12,9 @@ export interface Employee {
   position?: string;
   satuan_kerja?: string;
   unit_kerja?: string;
+  is_pppk?: boolean;
+  nip_label?: string;
+  is_buruh?: boolean;
 }
 
 export interface DasarItem {
@@ -49,6 +52,7 @@ export interface StTemplateConfiguration {
   sumber_dana?: string;
   biaya_text?: string | null;
   nomor_surat_format?: string;
+  nomor_numbering_type?: "st_pattern" | "naskah_auto";
   untuk?: DasarItem[];
   [key: string]: unknown;
 }

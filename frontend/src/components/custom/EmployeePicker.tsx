@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useTransition } from "react";
 import { Search, Loader2, UserCheck, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { formatNipLabel } from "@/lib/letter-utils";
 
 export interface Employee {
     id: string;
@@ -122,7 +123,7 @@ export function EmployeePicker({ onSelect, placeholder = "Ketik nama atau NIP pe
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-bold text-zinc-200 truncate group-hover:text-emerald-400">{emp.nama_lengkap}</p>
-                                    <p className="text-xs text-zinc-500 font-mono mt-0.5">{emp.nip}</p>
+                                    <p className="text-xs text-zinc-500 font-mono mt-0.5">{formatNipLabel(emp, true)} {emp.nip}</p>
                                 </div>
                             </li>
                         ))}

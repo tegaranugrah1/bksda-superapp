@@ -4,10 +4,11 @@ import React from "react";
 
 export interface LeaveRequestPrintData {
   id?: number;
-  nomor_pengajuan?: string;
+  nomor_pengajuan?: string | null;
   tanggal_pengajuan: string;
   jenis_cuti: string;
   alasan_cuti: string;
+  catatan_atasan?: string | null;
   jumlah_hari: number;
   tanggal_mulai: string;
   tanggal_selesai: string;
@@ -24,12 +25,19 @@ export interface LeaveRequestPrintData {
   kasubbag_nip?: string;
   kepala_balai_nama?: string;
   kepala_balai_nip?: string;
+  scan_surat_path?: string | null;
+  scan_surat_nama?: string | null;
+  scan_formulir_path?: string | null;
+  scan_formulir_nama?: string | null;
+  scan_surat_izin_path?: string | null;
+  scan_surat_izin_nama?: string | null;
   employee?: {
     nama_lengkap: string;
     nip: string;
     jabatan?: string;
     satuan_kerja?: string;
     pangkat_golongan?: string;
+    masa_kerja?: string | null;
   };
 }
 
@@ -37,60 +45,15 @@ interface FormulirCutiPrintProps {
   data: LeaveRequestPrintData;
 }
 
+import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
+import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
+
+export { calculateMasaKerja };
+
 function formatDateIndo(dateStr?: string | null): string {
   if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
-
-export function calculateMasaKerja(nip?: string | null, namaLengkap?: string | null): string {
-  if (!nip) return "0 Tahun 0 Bulan";
-  
-  const cleanNip = nip.replace(/\D/g, "");
-  if (cleanNip.length < 12) return "0 Tahun 0 Bulan";
-
-  const yearAdmitted = parseInt(cleanNip.substring(8, 12), 10);
-  if (isNaN(yearAdmitted) || yearAdmitted < 1950 || yearAdmitted > 2099) {
-    return "0 Tahun 0 Bulan";
-  }
-
-  const code13_14 = cleanNip.length >= 14 ? parseInt(cleanNip.substring(12, 14), 10) : 0;
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  let totalMonths = 0;
-
-  if (code13_14 >= 21) {
-    const years = Math.max(0, currentYear - yearAdmitted);
-    totalMonths = years * 12;
-  } else if (code13_14 >= 1 && code13_14 <= 12) {
-    const monthAdmitted = code13_14;
-    totalMonths = (currentYear - yearAdmitted) * 12 + (currentMonth - monthAdmitted);
-    if (totalMonths < 0) totalMonths = 0;
-  } else {
-    const years = Math.max(0, currentYear - yearAdmitted);
-    totalMonths = years * 12;
-  }
-
-  const nama = (namaLengkap || "").toLowerCase();
-  if (nama.includes("a.md") || nama.includes("amd")) {
-    totalMonths += 36;
-  }
-
-  const years = Math.floor(totalMonths / 12);
-  const months = totalMonths % 12;
-
-  return `${years} Tahun ${months} Bulan`;
+  const formatted = formatDateIndonesian(dateStr);
+  return formatted === "..." ? "-" : formatted;
 }
 
 function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
@@ -123,13 +86,15 @@ function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
 
 export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
   const emp = data.employee || {
-    nama_lengkap: "TEGAR ANUGRAH, A.Md.Kom.",
-    nip: "19990707 202506 1 006",
-    jabatan: "PRANATA KOMPUTER TERAMPIL",
+    nama_lengkap: "( .................................................... )",
+    nip: "-",
+    jabatan: "-",
     satuan_kerja: "Balai KSDA Kalimantan Timur",
   };
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = data.tanggal_mulai && !Number.isNaN(new Date(data.tanggal_mulai).getTime())
+    ? new Date(data.tanggal_mulai).getFullYear()
+    : new Date().getFullYear();
   const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = getKotaAtasanFromSatuanKerja(emp.satuan_kerja);
 
   const isDefaultDheny = !data.kasubbag_nama || data.kasubbag_nama.includes("DHENY");
@@ -146,7 +111,8 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
   return (
     <div
       id="printable-formulir-cuti"
-      className="bg-white text-black p-3 font-sans max-w-[210mm] mx-auto text-[9.5px] leading-snug print:p-0 print:m-0"
+      className="bg-white text-black p-3 max-w-[210mm] mx-auto text-[9.5px] leading-snug print:p-0 print:m-0"
+      style={{ fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif" }}
     >
       {/* Header Surat Top Left */}
       <div className="flex justify-between items-start mb-3">
@@ -162,7 +128,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
 
       {/* Judul Formulir */}
       <div className="text-center mb-3">
-        <h1 className="font-bold text-[11px] uppercase underline tracking-wide">
+        <h1 className="font-bold text-[11px] uppercase tracking-wide">
           FORMULIR PERMINTAAN DAN PEMBERIAN CUTI
         </h1>
       </div>
@@ -182,14 +148,14 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           <tr className="border-b border-black">
             <td className="w-24 px-2.5 py-0.5 font-semibold border-r border-black">Nama</td>
             <td className="w-[42%] px-2.5 py-0.5 uppercase border-r border-black">{emp.nama_lengkap}</td>
-            <td className="w-20 px-2.5 py-0.5 font-semibold border-r border-black">NIP</td>
+            <td className="w-20 px-2.5 py-0.5 font-semibold border-r border-black">{formatNipLabel(emp)}</td>
             <td className="px-2.5 py-0.5">{emp.nip}</td>
           </tr>
           <tr className="border-b border-black">
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Jabatan</td>
             <td className="px-2.5 py-0.5 uppercase border-r border-black">{emp.jabatan || "-"}</td>
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Masa Kerja</td>
-            <td className="px-2.5 py-0.5">{data.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
+            <td className="px-2.5 py-0.5">{data.masa_kerja || emp.masa_kerja || calculateMasaKerja(emp.nip, emp.nama_lengkap)}</td>
           </tr>
           <tr>
             <td className="px-2.5 py-0.5 font-semibold border-r border-black">Unit Kerja</td>
@@ -272,69 +238,80 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
       <table className="w-full border-collapse border-x border-b border-black text-[9.5px]">
         <thead>
           <tr>
-            <th colSpan={4} className="bg-gray-100 text-left px-2.5 py-0.5 font-bold uppercase border-b border-black">
+            <th colSpan={5} className="bg-gray-100 text-left px-2.5 py-0.5 font-bold uppercase border-b border-black">
               V. CATATAN CUTI ***
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            {/* Left half: Cuti Tahunan */}
-            <td colSpan={2} className="w-1/2 align-top border-r border-black p-0">
-              <div className="px-2.5 py-0.5 font-semibold border-b border-black">1. CUTI TAHUNAN</div>
-              <table className="w-full text-center border-collapse text-[9px]">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-black font-semibold">
-                    <td className="py-0.5 w-16 border-r border-black">TAHUN</td>
-                    <td className="py-0.5 w-16 border-r border-black">SISA</td>
-                    <td className="py-0.5 text-left pl-2">KETERANGAN</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-black">
-                    <td className="py-0.5 border-r border-black">N - 2</td>
-                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n2 || "-"}</td>
-                    <td className="py-0.5 text-left pl-2">Tahun {currentYear - 2}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="py-0.5 border-r border-black">N - 1</td>
-                    <td className="py-0.5 font-bold border-r border-black">{data.sisa_n1 || "-"}</td>
-                    <td className="py-0.5 text-left pl-2">Tahun {currentYear - 1}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="py-0.5 border-r border-black">N</td>
-                    <td className="py-0.5 font-bold text-[9.5px] border-r border-black">{data.sisa_n0}</td>
-                    <td className="py-0.5 text-left pl-2">Tahun {currentYear}</td>
-                  </tr>
-                </tbody>
-              </table>
+          {/* Baris 1: Header Cuti Tahunan & 2. Cuti Besar */}
+          <tr className="border-b border-black">
+            <td colSpan={3} className="px-2.5 py-0.5 font-semibold border-r border-black w-1/2">
+              1. CUTI TAHUNAN
             </td>
+            <td className="px-2.5 py-0.5 border-r border-black w-[calc(50%-2.75rem)]">
+              2. Cuti Besar
+            </td>
+            <td className="w-11 text-center font-bold text-xs h-5">
+              {isBesar ? "✓" : ""}
+            </td>
+          </tr>
 
-            <td colSpan={2} className="w-[48%] align-top p-0">
-              <table className="w-full border-collapse text-[9px]">
-                <tbody>
-                  <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">2. Cuti Besar</td>
-                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isBesar ? "✓" : ""}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">3. Cuti Sakit</td>
-                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isSakit ? "✓" : ""}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">4. Cuti Melahirkan</td>
-                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isMelahirkan ? "✓" : ""}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">5. Cuti Karena Alasan Penting</td>
-                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isPenting ? "✓" : ""}</td>
-                  </tr>
-                  <tr className="border-b border-black">
-                    <td className="px-2.5 py-0.5">6. Cuti di Luar Tanggungan Negara</td>
-                    <td className="w-11 border-l border-black h-4.5 text-center font-bold">{isLuarTanggungan ? "✓" : ""}</td>
-                  </tr>
-                </tbody>
-              </table>
+          {/* Baris 2: Subheader Tabel Cuti Tahunan & 3. Cuti Sakit */}
+          <tr className="border-b border-black text-[9px]">
+            <td className="py-0.5 w-16 border-r border-black text-center font-semibold bg-gray-50">
+              TAHUN
+            </td>
+            <td className="py-0.5 w-14 border-r border-black text-center font-semibold bg-gray-50">
+              SISA
+            </td>
+            <td className="py-0.5 px-2 border-r border-black text-left font-semibold bg-gray-50">
+              KETERANGAN
+            </td>
+            <td className="px-2.5 py-0.5 border-r border-black text-[9.5px]">
+              3. Cuti Sakit
+            </td>
+            <td className="w-11 text-center font-bold text-xs h-5">
+              {isSakit ? "✓" : ""}
+            </td>
+          </tr>
+
+          {/* Baris 3: N - 2 & 4. Cuti Melahirkan */}
+          <tr className="border-b border-black text-[9px]">
+            <td className="py-0.5 border-r border-black text-center">N - 2</td>
+            <td className="py-0.5 border-r border-black text-center font-bold">{data.sisa_n2 ?? "-"}</td>
+            <td className="py-0.5 px-2 border-r border-black text-left">Tahun {currentYear - 2}</td>
+            <td className="px-2.5 py-0.5 border-r border-black text-[9.5px]">
+              4. Cuti Melahirkan
+            </td>
+            <td className="w-11 text-center font-bold text-xs h-5">
+              {isMelahirkan ? "✓" : ""}
+            </td>
+          </tr>
+
+          {/* Baris 4: N - 1 & 5. Cuti Karena Alasan Penting */}
+          <tr className="border-b border-black text-[9px]">
+            <td className="py-0.5 border-r border-black text-center">N - 1</td>
+            <td className="py-0.5 border-r border-black text-center font-bold">{data.sisa_n1 ?? "-"}</td>
+            <td className="py-0.5 px-2 border-r border-black text-left">Tahun {currentYear - 1}</td>
+            <td className="px-2.5 py-0.5 border-r border-black text-[9.5px]">
+              5. Cuti Karena Alasan Penting
+            </td>
+            <td className="w-11 text-center font-bold text-xs h-5">
+              {isPenting ? "✓" : ""}
+            </td>
+          </tr>
+
+          {/* Baris 5: N & 6. Cuti di Luar Tanggungan Negara */}
+          <tr className="text-[9px]">
+            <td className="py-0.5 border-r border-black text-center">N</td>
+            <td className="py-0.5 border-r border-black text-center font-bold text-[9.5px]">{data.sisa_n0 ?? "-"}</td>
+            <td className="py-0.5 px-2 border-r border-black text-left">Tahun {currentYear}</td>
+            <td className="px-2.5 py-0.5 border-r border-black text-[9.5px]">
+              6. Cuti di Luar Tanggungan Negara
+            </td>
+            <td className="w-11 text-center font-bold text-xs h-5">
+              {isLuarTanggungan ? "✓" : ""}
             </td>
           </tr>
         </tbody>
@@ -365,7 +342,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                 <div className="h-6" />
                 <div>
                   <p className="font-bold uppercase text-[9.5px]">{emp.nama_lengkap}</p>
-                  <p className="text-[9px]">NIP. {emp.nip}</p>
+                  <p className="text-[9px]">{formatNipLabel(emp, true)} {emp.nip}</p>
                 </div>
               </div>
             </td>
@@ -396,13 +373,18 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           </tr>
           <tr>
             <td colSpan={4} className="p-2">
-              <div className="flex justify-end">
+              <div className="flex justify-between items-end">
+                <div className="text-left text-[9px] max-w-[50%]">
+                  {data.catatan_atasan && (
+                    <p className="italic text-gray-700">Catatan: {data.catatan_atasan}</p>
+                  )}
+                </div>
                 <div className="text-center w-70 h-20 flex flex-col justify-between">
                   <p className="text-[9px] font-semibold">{atasanTitle},</p>
                   <div className="h-6" />
                   <div>
                     <p className="font-bold uppercase text-[9.5px]">{finalAtasanNama}</p>
-                    <p className="text-[9px]">NIP. {finalAtasanNip}</p>
+                    <p className="text-[9px]">{formatNipLabel(finalAtasanNip, true)} {finalAtasanNip}</p>
                   </div>
                 </div>
               </div>
@@ -440,7 +422,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
                   <div className="h-6" />
                   <div>
                     <p className="font-bold uppercase text-[9.5px]">{data.kepala_balai_nama || "M. ARI WIBOWANTO, S.Hut.,M.Sc."}</p>
-                    <p className="text-[9px]">NIP. {data.kepala_balai_nip || "19740514 199903 1 001"}</p>
+                    <p className="text-[9px]">{formatNipLabel(data.kepala_balai_nip, true)} {data.kepala_balai_nip || "19740514 199903 1 001"}</p>
                   </div>
                 </div>
               </div>
@@ -483,6 +465,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
           #printable-formulir-cuti,
           #printable-formulir-cuti * {
             visibility: visible;
+            font-family: Calibri, 'Segoe UI', Arial, sans-serif !important;
           }
           #printable-formulir-cuti {
             position: absolute !important;

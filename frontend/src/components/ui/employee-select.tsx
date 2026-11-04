@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import api from "@/lib/api";
+import { formatNipLabel } from "@/lib/letter-utils";
 
 export interface Employee {
   id: number;
@@ -165,7 +166,7 @@ export function EmployeeSelect({
                     <span className="font-medium">{employee.name}</span>
                     {employee.nip && (
                       <span className="text-xs text-muted-foreground">
-                        {employee.nip}
+                        {formatNipLabel(employee, true)} {employee.nip}
                       </span>
                     )}
                   </div>

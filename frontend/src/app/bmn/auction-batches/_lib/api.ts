@@ -176,6 +176,7 @@ export interface UpdateAuctionDraftMetadataPayload {
   document_numbers?: Record<string, string | null>;
   document_kaps?: Record<string, string | null>;
   document_dates?: Record<string, string | null>;
+  document_contents?: Record<string, any>;
   workflow?: {
     documents?: Record<
       string,

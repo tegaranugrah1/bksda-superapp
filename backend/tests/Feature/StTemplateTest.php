@@ -41,15 +41,20 @@ class StTemplateTest extends TestCase
         ]);
     }
 
-    public function test_only_superadmin_can_create_template(): void
+    public function test_only_authorized_roles_can_create_template(): void
     {
         $payload = $this->payload();
 
-        $this->actingAs($this->admin, 'sanctum')
+        $regularUser = User::factory()->create([
+            'role' => 'pegawai',
+            'username' => 'pegawai_template_test',
+        ]);
+
+        $this->actingAs($regularUser, 'sanctum')
             ->postJson('/api/kepegawaian/st-templates', $payload)
             ->assertForbidden();
 
-        $response = $this->actingAs($this->superadmin, 'sanctum')
+        $response = $this->actingAs($this->admin, 'sanctum')
             ->postJson('/api/kepegawaian/st-templates', $payload)
             ->assertCreated();
 

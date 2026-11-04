@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, CalendarClock } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, RotateCcw, Package, AlertTriangle, CalendarClock, Handshake } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import { ReturnLoanModal } from "./_components/ReturnLoanModal";
 
@@ -62,10 +63,26 @@ export default function LoansPage() {
     const queryClient = useQueryClient();
     const { hasPermission } = useRole();
     const canManage = hasPermission("bmn.asset.update");
-    const [records, setRecords] = useState<Loan[]>([]);
-    const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
-    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState("all");
+
+    const { data: response, isLoading: loading } = useQuery({
+        queryKey: ["bmn-loans", page, filterStatus],
+        queryFn: async () => {
+            const params: Record<string, string | number> = { page, per_page: 10 };
+            if (filterStatus !== "all") params.status = filterStatus;
+            const res = await api.get('/bmn/loans', { params });
+            return res.data;
+        },
+        placeholderData: (prev) => prev,
+    });
+
+    const records: Loan[] = response?.data || [];
+    const pagination = {
+        current_page: response?.meta?.current_page || response?.current_page || 1,
+        last_page: response?.meta?.last_page || response?.last_page || 1,
+        total: response?.meta?.total || response?.total || 0,
+    };
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
@@ -82,33 +99,6 @@ export default function LoansPage() {
         purpose: "",
         notes: "",
     });
-
-    const fetchRecords = useCallback(async (page = 1) => {
-        setLoading(true);
-        try {
-            const params: Record<string, string | number> = { page, per_page: 10 };
-            if (filterStatus !== "all") params.status = filterStatus;
-
-            const res = await api.get('/bmn/loans', { params });
-            setRecords(res.data.data || []);
-            setPagination({
-                current_page: res.data.meta?.current_page || res.data.current_page || 1,
-                last_page: res.data.meta?.last_page || res.data.last_page || 1,
-                total: res.data.meta?.total || res.data.total || 0,
-            });
-        } catch (error) {
-            console.error("Failed to fetch loans:", error);
-            toast.error("Gagal memuat data peminjaman");
-        } finally {
-            setLoading(false);
-        }
-    }, [filterStatus]);
-
-    /* eslint-disable react-hooks/set-state-in-effect */
-    useEffect(() => {
-        fetchRecords();
-    }, [fetchRecords]);
-    /* eslint-enable react-hooks/set-state-in-effect */
 
     const openReturnModal = (record: Loan) => {
         setReturningRecord(record);
@@ -137,7 +127,7 @@ export default function LoansPage() {
             toast.success("Aset berhasil dikembalikan");
             setIsReturnModalOpen(false);
             setReturningRecord(null);
-            fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-loans"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", returningRecord.asset_id] });
             router.refresh();
@@ -157,7 +147,7 @@ export default function LoansPage() {
             toast.success("Peminjaman berhasil diperbarui");
             setIsEditModalOpen(false);
             setEditingRecord(null);
-            fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-loans"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", editingRecord.asset_id] });
             router.refresh();
@@ -181,7 +171,7 @@ export default function LoansPage() {
             const assetId = deletingRecord.asset_id;
             setDeletingRecord(null);
             
-            fetchRecords(pagination.current_page);
+            queryClient.invalidateQueries({ queryKey: ["bmn-loans"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
             router.refresh();
@@ -193,43 +183,72 @@ export default function LoansPage() {
     };
 
     return (
-        <div className="p-6 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Sirkulasi & Pinjaman</h1>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Kelola data peminjaman dan pengembalian Barang Milik Negara.</p>
+        <div className="p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* 1. Unified Clean Enterprise Header Bar */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                        <Handshake className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                            Barang Milik Negara
+                        </span>
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                            Peminjaman Aset
+                        </h1>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                            Kelola data sirkulasi, peminjaman, dan pengembalian BMN.
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
                     <Button
                         onClick={() => router.push('/bmn/loans/create')}
                         size="sm"
-                        className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500"
+                        className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 cursor-pointer"
                     >
                         <Plus className="w-3.5 h-3.5" /> Pinjam Aset
                     </Button>
                 </div>
             </div>
 
-            {/* Filter */}
-            <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative w-full sm:w-48">
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                        <SelectTrigger className="w-full bg-white dark:bg-zinc-900 h-10 border-zinc-200 dark:border-zinc-800 rounded-xl px-4 shadow-xs text-sm">
-                            <SelectValue placeholder="Status Peminjaman" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                            <SelectItem value="all">Semua Status</SelectItem>
-                            {STATUS_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
+            {/* Sliding Pill Status Filter */}
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl w-fit">
+                {[
+                    { value: "all", label: "Semua Status" },
+                    ...STATUS_OPTIONS,
+                ].map((opt) => {
+                    const isActive = filterStatus === opt.value;
+                    return (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => { setFilterStatus(opt.value); setPage(1); }}
+                            className={cn(
+                                "relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
+                                isActive
+                                    ? "text-white font-bold"
+                                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
+                            )}
+                        >
+                            {isActive && (
+                                <motion.span
+                                    layoutId="activeBmnLoansStatusTab"
+                                    className="absolute inset-0 bg-emerald-600 rounded-lg shadow-xs"
+                                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                                />
+                            )}
+                            <span className="relative z-10">{opt.label}</span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
-                <div className="p-4 border-b border-zinc-100 dark:border-zinc-800/50 flex justify-between items-center">
-                    <h2 className="font-semibold text-zinc-800 dark:text-zinc-200">Riwayat Peminjaman ({pagination.total})</h2>
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-2xs">
+                <div className="p-4 border-b border-slate-200/80 dark:border-zinc-800 flex justify-between items-center">
+                    <h2 className="font-semibold text-slate-800 dark:text-zinc-200 text-sm">Riwayat Peminjaman ({pagination.total})</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -249,12 +268,13 @@ export default function LoansPage() {
                         </thead>
                         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
                             {loading ? (
-                                <tr>
-                                    <td colSpan={canManage ? 8 : 7} className="text-center py-20">
-                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600 mb-2" />
-                                        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Memuat data peminjaman...</p>
-                                    </td>
-                                </tr>
+                                [...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan={canManage ? 8 : 7} className="px-4 py-4">
+                                            <div className="h-10 bg-slate-100 dark:bg-zinc-800/60 rounded-xl" />
+                                        </td>
+                                    </tr>
+                                ))
                             ) : records.length === 0 ? (
                                 <tr>
                                     <td colSpan={canManage ? 8 : 7} className="text-center py-20">
@@ -319,17 +339,38 @@ export default function LoansPage() {
                                         </td>
                                         {canManage && (
                                             <td className="px-4 py-3">
-                                                <div className="flex gap-1 justify-center">
+                                                <div className="flex gap-1.5 justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                     {r.status !== 'dikembalikan' && (
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:bg-emerald-500/10" title="Kembalikan"
-                                                            onClick={() => openReturnModal(r)}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="min-h-9 min-w-9 h-9 w-9 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg cursor-pointer"
+                                                            title="Kembalikan Aset"
+                                                            aria-label="Kembalikan Aset"
+                                                            onClick={() => openReturnModal(r)}
+                                                        >
                                                             <RotateCcw className="h-4 w-4" />
                                                         </Button>
                                                     )}
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:bg-amber-500/10" onClick={() => openEditModal(r)} disabled={r.status === 'dikembalikan'} title="Edit">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="min-h-9 min-w-9 h-9 w-9 text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg cursor-pointer"
+                                                        onClick={() => openEditModal(r)}
+                                                        disabled={r.status === 'dikembalikan'}
+                                                        title="Edit Peminjaman"
+                                                        aria-label="Edit Peminjaman"
+                                                    >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:bg-rose-500/10" title="Hapus" onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="min-h-9 min-w-9 h-9 w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg cursor-pointer"
+                                                        title="Hapus Catatan"
+                                                        aria-label="Hapus Catatan"
+                                                        onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}
+                                                    >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -341,12 +382,12 @@ export default function LoansPage() {
                         </tbody>
                     </table>
                 </div>
-                {pagination.last_page > 1 && (
-                    <div className="flex items-center justify-between p-4 border-t border-zinc-100 dark:border-zinc-800/50">
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">Halaman {pagination.current_page} dari {pagination.last_page}</p>
+                {pagination.total > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-200/80 dark:border-zinc-800 gap-3">
+                        <p className="text-xs text-slate-500 dark:text-zinc-400">Total {pagination.total} transaksi peminjaman (Hal {page} / {pagination.last_page})</p>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => fetchRecords(pagination.current_page - 1)} disabled={pagination.current_page === 1}>Sebelumnya</Button>
-                            <Button variant="outline" size="sm" onClick={() => fetchRecords(pagination.current_page + 1)} disabled={pagination.current_page === pagination.last_page}>Selanjutnya</Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-xs rounded-lg cursor-pointer">Sebelumnya</Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= pagination.last_page} className="text-xs rounded-lg cursor-pointer">Selanjutnya</Button>
                         </div>
                     </div>
                 )}

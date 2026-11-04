@@ -35,6 +35,28 @@ class OperatorController extends Controller
     }
 
     /**
+     * GET /api/dereporting/operators/candidates
+     * Mengambil daftar user/pegawai yang belum menjadi operator DeReporting
+     */
+    public function candidates(Request $request): JsonResponse
+    {
+        $search = $request->input('search', '');
+        $query = User::whereNull('dereporting_role')
+            ->where('is_active', true);
+
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('username', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('name', 'asc')->limit(100)->get(['id', 'name', 'username', 'email']);
+
+        return response()->json(['data' => $users]);
+    }
+
+    /**
      * POST /api/dereporting/operators
      * Mengangkat Pegawai Menjadi Operator Bidang
      */

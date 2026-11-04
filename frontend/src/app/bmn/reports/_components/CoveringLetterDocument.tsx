@@ -1,7 +1,15 @@
 "use client";
 
 import { useRef, useState, useEffect, useLayoutEffect } from "react";
-import { toast } from "sonner";
+import {
+  parseDate,
+  formatIndonesianDate,
+  fallback,
+  formatNip,
+  displayName,
+  signatureName,
+  printReportDocumentWindow,
+} from "../_lib/report-utils";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -42,56 +50,6 @@ export interface CoveringLetterDocumentProps {
   title?: string;
 }
 
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-
-function parseDate(value: string) {
-  const date = value ? new Date(`${value}T00:00:00`) : new Date();
-  return Number.isNaN(date.getTime()) ? new Date() : date;
-}
-
-function formatIndonesianDate(value?: string | null): string {
-  if (!value) return "";
-  const date = parseDate(value);
-  return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function fallback(value?: string | number | null): string {
-  const text = `${value ?? ""}`.trim();
-  return text || "-";
-}
-
-function formatNip(nip?: string | null): string {
-  if (!nip) return "";
-  const trimmed = nip.trim();
-  if (trimmed === "" || trimmed === "-") return "";
-  if (trimmed.startsWith("MMP-")) return "";
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length === 18) {
-    return `${digits.slice(0, 8)} ${digits.slice(8, 14)} ${digits.slice(14, 15)} ${digits.slice(15, 18)}`;
-  }
-  return trimmed;
-}
-
-function displayName(value?: string | null): string {
-  const text = fallback(value);
-  if (text === "-") return text;
-  if (/[a-z]/.test(text)) return text;
-  return text
-    .toLocaleLowerCase("id-ID")
-    .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("id-ID"))
-    .replace(/\bS\.hut\./gi, "S.Hut.")
-    .replace(/\bM\.sc\./gi, "M.Sc.")
-    .replace(/\bM\.t\./gi, "M.T.")
-    .replace(/\bM\.p\./gi, "M.P.");
-}
-
-function signatureName(value?: string | null): string {
-  const name = displayName(value);
-  if (name === "-") return "";
-  const [mainName, ...suffix] = name.split(",");
-  const upperMain = mainName.trim().toLocaleUpperCase("id-ID");
-  return suffix.length > 0 ? `${upperMain},${suffix.join(",")}` : upperMain;
-}
 
 function renderRoleLines(roleText?: string | null) {
   if (!roleText) return null;
@@ -116,87 +74,67 @@ function formatTableCell(val?: string | null) {
   };
 }
 
-export function handlePrintCoveringLetter(documentId = "covering-letter-print-root") {
-  const printContent = document.getElementById(documentId);
-  if (!printContent) {
-    toast.error("Tidak ada dokumen Surat Pengantar untuk dicetak.");
-    return;
+const COVERING_LETTER_PRINT_STYLES = `
+  @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
+  @page :first { margin-top: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.35; }
+  p { margin: 0; }
+  .covering-page { width: 210mm; margin: 0 auto; padding: 3.5mm 12mm 10mm; }
+  .covering-header { margin: 0 -6mm; text-align: center; }
+  .covering-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
+  
+  .covering-meta-row { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 5mm; }
+  .covering-meta-left { max-width: 120mm; }
+  .covering-meta-right { text-align: right; min-width: 45mm; font-size: 10pt; }
+  .covering-meta-item { display: grid; grid-template-columns: 18mm 4mm 1fr; align-items: flex-start; margin-bottom: 1.5mm; }
+  .covering-meta-label { font-weight: normal; }
+  .covering-meta-colon { text-align: center; }
+  .covering-meta-val { text-align: left; word-break: break-word; line-height: 1.3; }
+
+  .covering-recipient-block { margin-top: 6mm; margin-bottom: 4mm; word-break: break-word; overflow-wrap: anywhere; }
+  .covering-recipient-block p { margin-bottom: 0.5mm; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
+
+  .covering-title-block { text-align: center; margin: 4mm 0 3mm; }
+  .covering-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin: 0; }
+
+  .covering-table { width: 100%; border-collapse: collapse; margin-top: 3mm; margin-bottom: 4mm; font-size: 9.5pt; table-layout: fixed; }
+  .covering-table thead { display: table-header-group; }
+  .covering-table thead tr.table-number-row th { font-weight: normal; padding: 1px 0; font-size: 8.5pt; text-align: center; }
+  .covering-table th, .covering-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
+  .covering-table th { font-weight: bold; background: transparent; text-align: center; }
+  .covering-table tr { break-inside: avoid; page-break-inside: avoid; }
+  .page-continuation-spacer { height: 0; margin: 0; padding: 0; border: none; page-break-before: always; break-before: page; }
+
+  .covering-closing-block,
+  .avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 4mm;
   }
+  .covering-received-date { margin-top: 4mm; font-size: 10pt; }
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
+  .covering-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 6mm; text-align: left; break-inside: avoid !important; page-break-inside: avoid !important; }
+  .covering-signatures.sender-only { justify-content: flex-end; }
+  .covering-sig-left, .covering-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; break-inside: avoid !important; page-break-inside: avoid !important; }
+  .covering-sig-left { max-width: 48%; }
+  .covering-sig-right { max-width: 52%; }
+  .covering-sig-role { min-height: 10mm; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; text-align: left; }
+  .covering-sig-role p, .covering-sig-name, .covering-sig-id, .covering-sig-phone { white-space: nowrap; }
+  .covering-sig-name { margin-top: 28mm; font-weight: bold; text-align: left; white-space: nowrap; min-height: 1.2em; }
+  .covering-sig-id { white-space: nowrap; }
+  .covering-sig-phone { white-space: nowrap; margin-top: 1mm; font-size: 9.5pt; }
+  .covering-measure-container { display: none !important; }
+`;
 
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Surat Pengantar BMN</title>
-        <style>
-          @page { size: A4 portrait; margin: 15mm 0 15mm 0; }
-          @page :first { margin-top: 0; }
-          * { box-sizing: border-box; }
-          body { margin: 0; padding: 0; background: white; color: black; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; line-height: 1.35; }
-          p { margin: 0; }
-          .covering-page { width: 210mm; margin: 0 auto; padding: 3.5mm 12mm 10mm; }
-          .covering-header { margin: 0 -6mm; text-align: center; }
-          .covering-header img { width: 188mm; max-width: 188mm; height: auto; display: block; margin: 0 auto; }
-          
-          .covering-meta-row { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 5mm; }
-          .covering-meta-left { max-width: 120mm; }
-          .covering-meta-right { text-align: right; min-width: 45mm; font-size: 10pt; }
-          .covering-meta-item { display: grid; grid-template-columns: 18mm 4mm 1fr; align-items: flex-start; margin-bottom: 1.5mm; }
-          .covering-meta-label { font-weight: normal; }
-          .covering-meta-colon { text-align: center; }
-          .covering-meta-val { text-align: left; word-break: break-word; line-height: 1.3; }
-
-          .covering-recipient-block { margin-top: 6mm; margin-bottom: 4mm; word-break: break-word; overflow-wrap: anywhere; }
-          .covering-recipient-block p { margin-bottom: 0.5mm; word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
-
-          .covering-title-block { text-align: center; margin: 4mm 0 3mm; }
-          .covering-title-text { font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin: 0; }
-
-          .covering-table { width: 100%; border-collapse: collapse; margin-top: 3mm; margin-bottom: 4mm; font-size: 9.5pt; table-layout: fixed; }
-          .covering-table thead { display: table-header-group; }
-          .covering-table thead tr.table-number-row th { font-weight: normal; padding: 1px 0; font-size: 8.5pt; text-align: center; }
-          .covering-table th, .covering-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
-          .covering-table th { font-weight: bold; background: transparent; text-align: center; }
-          .covering-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .page-continuation-spacer { height: 0; margin: 0; padding: 0; border: none; page-break-before: always; break-before: page; }
-
-          .covering-closing-block,
-          .avoid-break {
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            margin-top: 4mm;
-          }
-          .covering-received-date { margin-top: 4mm; font-size: 10pt; }
-
-          .covering-signatures { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; margin-top: 6mm; text-align: left; break-inside: avoid !important; page-break-inside: avoid !important; }
-          .covering-signatures.sender-only { justify-content: flex-end; }
-          .covering-sig-left, .covering-sig-right { display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: fit-content; break-inside: avoid !important; page-break-inside: avoid !important; }
-          .covering-sig-left { max-width: 48%; }
-          .covering-sig-right { max-width: 52%; }
-          .covering-sig-role { min-height: 10mm; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; text-align: left; }
-          .covering-sig-role p, .covering-sig-name, .covering-sig-id, .covering-sig-phone { white-space: nowrap; }
-          .covering-sig-name { margin-top: 28mm; font-weight: bold; text-align: left; white-space: nowrap; min-height: 1.2em; }
-          .covering-sig-id { white-space: nowrap; }
-          .covering-sig-phone { white-space: nowrap; margin-top: 1mm; font-size: 9.5pt; }
-          .covering-measure-container { display: none !important; }
-        </style>
-      </head>
-      <body>
-        ${printContent.innerHTML}
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
-          };
-        </script>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
+export function handlePrintCoveringLetter(documentId = "covering-letter-print-root") {
+  printReportDocumentWindow({
+    rootId: documentId,
+    title: "Surat Pengantar BMN",
+    emptyMessage: "Tidak ada dokumen Surat Pengantar untuk dicetak.",
+    styles: COVERING_LETTER_PRINT_STYLES,
+    withAutoCloseScript: true,
+  });
 }
 
 function estimateInitialCutoff(

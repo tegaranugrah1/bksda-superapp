@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: http: https:",
     "font-src 'self' data: https:",
-    "connect-src 'self' ws: wss: http: https: http://localhost:8000 http://127.0.0.1:8000 https://bksdakaltim.net https://www.bksdakaltim.net https://api.bksdakaltim.net https://storage.bksdakaltim.net https://*.supabase.co",
+    "connect-src 'self' ws: wss: http: https: http://localhost:8000 http://127.0.0.1:8000 https://*.bksdakaltim.web.id https://bksdakaltim.web.id https://bksdakaltim.net https://www.bksdakaltim.net https://api.bksdakaltim.net https://storage.bksdakaltim.net https://*.supabase.co",
     "frame-src 'self' blob: data: https://www.youtube.com https://www.youtube-nocookie.com",
     "media-src 'self' blob: https:",
     "worker-src 'self' blob:",
@@ -49,31 +49,32 @@ const nextConfig: NextConfig = {
                 destination: "https://bksdakaltim.ksdae.kehutanan.go.id/",
                 permanent: false,
             },
+            {
+                source: "/kepegawaian/settings/st-templates",
+                destination: "/kepegawaian/settings",
+                permanent: true,
+            },
         ];
     },
 
     async rewrites() {
-        if (process.env.NODE_ENV === "development") {
-            const backendUrl = "http://localhost:8000";
-            return [
-                {
-                    source: "/api/:path*",
-                    destination: `${backendUrl}/api/:path*`,
-                },
-                {
-                    source: "/sanctum/:path*",
-                    destination: `${backendUrl}/sanctum/:path*`,
-                },
-                {
-                    source: "/storage/:path*",
-                    destination: `${backendUrl}/storage/:path*`,
-                },
-            ];
-        }
+        const backendUrl =
+            process.env.NEXT_PUBLIC_BACKEND_URL ||
+            (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "") : null) ||
+            (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "https://api.bksdakaltim.net");
+
         return [
             {
+                source: "/api/:path*",
+                destination: `${backendUrl}/api/:path*`,
+            },
+            {
+                source: "/sanctum/:path*",
+                destination: `${backendUrl}/sanctum/:path*`,
+            },
+            {
                 source: "/storage/:path*",
-                destination: `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://backend.vercel.app'}/storage/:path*`,
+                destination: `${backendUrl}/storage/:path*`,
             },
         ];
     },
@@ -134,6 +135,16 @@ const nextConfig: NextConfig = {
             {
                 protocol: 'https',
                 hostname: 'bksdakaltim.ksdae.kehutanan.go.id',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'bksdakaltim.web.id',
+                pathname: '/storage/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'storage.bksdakaltim.web.id',
                 pathname: '/**',
             },
             {

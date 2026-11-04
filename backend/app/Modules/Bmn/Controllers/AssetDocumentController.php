@@ -247,19 +247,22 @@ class AssetDocumentController extends Controller
 
         $mime = $preview ? 'image/jpeg' : ($asset->$mimeColumn ?: $disk->mimeType($path) ?: 'application/octet-stream');
         $filename = basename($path);
+        $cleanFilename = str_replace(['"', "\r", "\n"], '', $filename);
 
         if ($download) {
             return response()->streamDownload(function () use ($disk, $path) {
                 echo $disk->get($path);
-            }, $filename, [
+            }, $cleanFilename, [
                 'Content-Type' => $mime,
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'X-Content-Type-Options' => 'nosniff',
             ]);
         }
 
         return response($disk->get($path), 200)
             ->header('Content-Type', $mime)
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-            ->header('Content-Disposition', 'inline; filename="'.$filename.'"');
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Content-Disposition', 'inline; filename="'.$cleanFilename.'"');
     }
 }

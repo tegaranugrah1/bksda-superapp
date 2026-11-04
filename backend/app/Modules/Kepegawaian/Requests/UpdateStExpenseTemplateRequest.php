@@ -9,7 +9,7 @@ class UpdateStExpenseTemplateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
     }
 
     public function rules(): array
@@ -18,8 +18,8 @@ class UpdateStExpenseTemplateRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:100', Rule::unique('st_expense_templates', 'code')->ignore($id)],
-            'category' => ['nullable', 'string', 'in:dipa,kerjasama,hibah_folu,dl1,other'],
+            'code' => ['nullable', 'string', 'max:100', Rule::unique('st_expense_templates', 'code')->ignore($id)->whereNull('deleted_at')],
+            'category' => ['nullable', 'string', 'in:dipa,kerjasama,hibah_folu,dl1,other,DIPA,KERJASAMA,HIBAH_FOLU,DL1,OTHER'],
             'biaya_text' => ['nullable', 'string'],
             'dasar_text' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],

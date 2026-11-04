@@ -45,7 +45,7 @@ class UserResource extends JsonResource
                 'department' => $employee->satuan_kerja,
                 'email' => $employee->email,
                 'phone' => $employee->no_telepon ?? null,
-                'photo' => $employee->foto_profil ? \Illuminate\Support\Facades\Storage::url($employee->foto_profil) : null,
+                'photo' => $employee->foto_profil ? (str_starts_with($employee->foto_profil, 'http') ? $employee->foto_profil : \Illuminate\Support\Facades\Storage::url($employee->foto_profil)) : null,
                 'rank' => $employee->pangkat_golongan,
                 'is_active' => $employee->is_active,
             ];

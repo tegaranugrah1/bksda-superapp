@@ -18,4 +18,7 @@ return [
     CMSServiceProvider::class,
     App\Modules\Surat\SuratServiceProvider::class,
     App\Modules\Keuangan\KeuanganServiceProvider::class,
+    \App\Modules\Agent\AgentServiceProvider::class,
+    \Laravel\Reverb\ApplicationManagerServiceProvider::class,
+    \Laravel\Reverb\ReverbServiceProvider::class,
 ];

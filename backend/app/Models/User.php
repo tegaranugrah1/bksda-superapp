@@ -8,11 +8,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->email)) {
+                $base = strtolower(preg_replace('/[^a-zA-Z0-9._-]/', '', (string) $user->username));
+                $user->email = ($base !== '' ? $base : Str::uuid()->toString()) . '@bksda.local';
+            }
+        });
+
+        static::updated(function (User $user) {
+            if ($user->wasChanged('email')) {
+                $previous = clone $user;
+                $previous->email = $user->getRawOriginal('email');
+                Password::deleteToken($previous);
+                Password::deleteToken($user);
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -20,11 +42,19 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $attributes = ['is_active' => true];
+
     protected $fillable = [
         'name',
         'username',
         'email',
+        'email_verified_at',
         'password',
+        'must_change_password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
+        'drive_quota_bytes',
         'role',
         'access_modules',
         'permissions',
@@ -42,6 +72,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -55,6 +87,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
             'access_modules' => 'array', // Mengubah JSON DB menjadi Array PHP
             'permissions' => 'array',
             'is_active' => 'boolean',
@@ -67,6 +103,65 @@ class User extends Authenticatable
     public function dereportingBidang()
     {
         return $this->belongsTo(Bidang::class, 'dereporting_bidang_id');
+    }
+
+    /**
+     * @return list<string> Current persistent credentials that may receive private events.
+     */
+    public function broadcastTokenIds(): array
+    {
+        // A queued event or retained model may predate the owner's deactivation.
+        if (! static::query()->whereKey($this->getKey())->where('is_active', true)->exists()) {
+            return [];
+        }
+
+        $now = now();
+        $expiration = (int) config('sanctum.expiration');
+
+        return $this->tokens()
+            ->where(function ($query) use ($now) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', $now);
+            })
+            ->when($expiration, fn ($query) => $query->where('created_at', '>', $now->copy()->subMinutes($expiration)))
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+    }
+
+    public function canUseBroadcastToken(string $tokenId): bool
+    {
+        $bearer = request()->bearerToken();
+        if (! $bearer) {
+            return false;
+        }
+
+        // Verify the actual secret even when Sanctum selected a cookie session.
+        $token = PersonalAccessToken::findToken($bearer);
+
+        return $token !== null
+            && (string) $token->getKey() === $tokenId
+            && $token->tokenable_type === $this->getMorphClass()
+            && (string) $token->tokenable_id === (string) $this->getKey()
+            && in_array($tokenId, $this->broadcastTokenIds(), true);
+    }
+
+    public function canAccessAdminInbox(string $module): bool
+    {
+        if (! in_array($module, ['surat_tugas', 'kepegawaian', 'bmn'], true)) {
+            return false;
+        }
+
+        $user = static::query()->select(['id', 'role', 'access_modules', 'permissions', 'is_active'])->find($this->getKey());
+        if (! $user || ! $user->is_active || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+            return false;
+        }
+
+        $modules = $user->access_modules ?? [];
+        $hasModule = $user->role === 'super_admin'
+            || in_array($module, $modules, true)
+            || ($module === 'surat_tugas' && in_array('kepegawaian', $modules, true));
+
+        return $hasModule && $user->hasPermission("{$module}.view");
     }
 
     /**
@@ -120,10 +215,29 @@ class User extends Authenticatable
                 return $this->role === 'admin' && $hasModuleAccess;
             }
 
+            if (str_starts_with($permission, 'surat.')) {
+                $isReadPermission = in_array($permission, ['surat.view', 'surat.document.view']);
+                if ($isReadPermission) {
+                    return in_array('surat', $this->access_modules ?? []);
+                }
+                return $this->role === 'admin' && in_array('surat', $this->access_modules ?? []);
+            }
+
             return false;
         }
 
         // 3. Cek apakah permission terdaftar di array permissions user
         return in_array($permission, $this->permissions);
+    }
+
+    /**
+     * Mengecek apakah user memiliki email asli yang sudah terverifikasi dan dapat dikirimi email.
+     * Mengikuti security trust boundary: domain internal (.local) atau belum diverifikasi tidak boleh dikirimi email publik.
+     */
+    public function hasDeliverableEmail(): bool
+    {
+        return $this->email_verified_at !== null
+            && ! empty($this->email)
+            && ! str_ends_with(strtolower((string) $this->email), '.local');
     }
 }

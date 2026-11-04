@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Megaphone, BookOpen, HelpCircle, FileCheck2, ArrowRight } from "lucide-react";
+import { Megaphone, BookOpen, HelpCircle, ArrowRight } from "lucide-react";
 
 export function PortalInfoSidebar() {
   return (

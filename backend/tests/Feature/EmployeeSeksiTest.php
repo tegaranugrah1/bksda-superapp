@@ -59,6 +59,8 @@ class EmployeeSeksiTest extends TestCase
 
     public function test_employees_select_endpoint_returns_is_seksi_and_seksi_wilayah(): void
     {
+        $user = \App\Models\User::factory()->create();
+
         Employee::create([
             'nip' => '198501012010011005',
             'nama_lengkap' => 'Budi Santoso',
@@ -67,11 +69,30 @@ class EmployeeSeksiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $res = $this->getJson('/api/kepegawaian/employees/select?q=Budi');
+        $res = $this->actingAs($user)->getJson('/api/kepegawaian/employees/select?q=Budi');
 
         $res->assertStatus(200)
             ->assertJsonPath('data.0.name', 'Budi Santoso')
             ->assertJsonPath('data.0.is_seksi', true)
             ->assertJsonPath('data.0.seksi_wilayah', 'II');
+    }
+
+    public function test_employees_select_endpoint_defaults_to_large_limit_covering_all_employees(): void
+    {
+        $user = \App\Models\User::factory()->create();
+
+        // Create 60 active employees
+        for ($i = 1; $i <= 60; $i++) {
+            Employee::create([
+                'nip' => '19900101202001' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                'nama_lengkap' => 'Pegawai Nomor ' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'is_active' => true,
+            ]);
+        }
+
+        // Default request without limit should return all 60 (not cut at 50)
+        $res = $this->actingAs($user)->getJson('/api/kepegawaian/employees/select');
+        $res->assertStatus(200);
+        $this->assertGreaterThanOrEqual(60, count($res->json('data')));
     }
 }

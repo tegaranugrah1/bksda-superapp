@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { printDocumentWindow, PERMOHONAN_KPKNL_PRINT_CSS } from "../_lib/print-helpers";
 import { AssetLampiranLandscapeTable } from "./AssetLampiranLandscapeTable";
 import type { AuctionAsset } from "../_lib/auction-helpers";
 import {
@@ -32,78 +33,12 @@ function buildNomor(number: string, kap: string, today: Date) {
 }
 
 export function handlePrintPermohonanKpknl() {
-  const printContent = document.getElementById("permohonan-kpknl-print-root");
-  if (!printContent) {
-    toast.error("Tidak ada dokumen Permohonan KPKNL untuk dicetak.");
-    return;
-  }
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Surat Permohonan Persetujuan KPKNL</title>
-        <style>
-          @page pkpknl-portrait { size: A4 portrait; margin: 0 0 28mm 0; }
-          @page pkpknl-landscape { size: A4 landscape; margin: 0 0 20mm 0; }
-          * { box-sizing: border-box; }
-          body { margin: 0; padding: 0; background: white; color: black; font-family: 'Bookman Old Style', Georgia, serif; font-size: 11pt; line-height: 1.4; }
-          p { margin: 0; padding: 0; }
-
-          .pkpknl-page { width: 210mm; margin: 0 auto; padding: 5mm 20mm 0; page: pkpknl-portrait; }
-          .pkpknl-page-landscape { width: 297mm; margin: 0 auto; padding: 10mm 16mm 20mm; page: pkpknl-landscape; page-break-before: always; break-before: page; }
-          .pkpknl-kop { margin-top: -5mm; margin-left: -16mm; margin-right: -16mm; margin-bottom: 6px; text-align: center; }
-          .pkpknl-meta-grid { width: 166mm; margin: 14px auto 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6mm; }
-          .pkpknl-meta-left { line-height: 1.5; min-width: 0; }
-          .pkpknl-meta-row { display: grid; grid-template-columns: 21mm 4mm minmax(0, 1fr); align-items: start; }
-          .pkpknl-meta-nomor { white-space: pre !important; display: inline-block; }
-          .pkpknl-meta-colon { text-align: center; }
-          .pkpknl-meta-tanggal { text-align: right; line-height: 1.5; white-space: nowrap; flex-shrink: 0; }
-          .pkpknl-yth { width: 166mm; margin: 18px auto 0; }
-          .pkpknl-yth p { margin: 0; line-height: 1.4; }
-          .pkpknl-edit { outline: none; border-bottom: none !important; }
-          .pkpknl-body { width: 166mm; margin: 14px auto 0; text-align: justify; text-justify: inter-word; }
-          .pkpknl-body p { margin-bottom: 0.7rem; text-indent: 2.5em; }
-          .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
-          .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
-          .pkpknl-ttd .pkpknl-ttd-name { font-weight: normal; }
-          .pkpknl-tembusan { width: 166mm; margin: 1.2rem auto 0; }
-          .pkpknl-tembusan-title { font-weight: normal; }
-          .pkpknl-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); }
-
-          /* Lampiran landscape (shared prefix-aware styles) */
-          .pkpknl-lamp-root { width: 258mm; margin: 0 auto; font-family: 'Bookman Old Style', Georgia, serif; }
-          .pkpknl-lamp-page { page: pkpknl-landscape; break-inside: avoid; page-break-inside: avoid; }
-          .pkpknl-lamp-page-continuation { page-break-before: always; break-before: page; padding-top: 8mm; }
-          .pkpknl-lamp-page-with-signature { break-inside: avoid; page-break-inside: avoid; }
-          .pkpknl-lamp-meta { width: 128mm; margin-left: auto; text-align: left; font-size: 10pt; }
-          .pkpknl-lamp-meta p { margin: 0 0 0.45rem 0; }
-          .pkpknl-lamp-meta .pkpknl-lamp-meta-lampiran { margin-bottom: 0.45rem; }
-          .pkpknl-lamp-meta-row { display: grid; grid-template-columns: 22mm 5mm minmax(0, 1fr); align-items: start; }
-          .pkpknl-lamp-colon { text-align: center; }
-          .pkpknl-lamp-edit { outline: none; }
-          .pkpknl-lamp-title { text-align: center; font-weight: bold; font-size: 12pt; margin-top: 1rem; line-height: 1.3; }
-          .pkpknl-lamp-title p { margin: 0; }
-          .pkpknl-lamp-table { border-collapse: collapse; width: 100%; font-size: 9pt; text-align: center; margin-top: 0.75rem; table-layout: fixed; }
-          .pkpknl-lamp-table th, .pkpknl-lamp-table td { border: 1px solid #000; padding: 6px 4px; vertical-align: middle; overflow-wrap: anywhere; }
-          .pkpknl-lamp-table thead { display: table-header-group; }
-          .pkpknl-lamp-table tr { break-inside: avoid; page-break-inside: avoid; }
-          .pkpknl-lamp-column-number-row th { font-weight: normal; }
-          .pkpknl-lamp-jumlah-row td { background: #f3f4f6; }
-          .pkpknl-lamp-ttd { width: 20rem; margin: 1rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
-          .pkpknl-lamp-ttd p { margin: 0; padding: 0; line-height: 1.15; }
-          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-placeholder { box-sizing: border-box; height: 84px; display: flex; align-items: center; text-align: left; padding-top: 0px; padding-left: 1.1cm; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-size: 9pt; }
-          .pkpknl-lamp-ttd .pkpknl-lamp-ttd-name { font-weight: normal; }
-        </style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 500);
+  printDocumentWindow({
+    rootId: "permohonan-kpknl-print-root",
+    title: "Surat Permohonan Persetujuan KPKNL",
+    emptyMessage: "Tidak ada dokumen Permohonan KPKNL untuk dicetak.",
+    styles: PERMOHONAN_KPKNL_PRINT_CSS,
+  });
 }
 
 export function PermohonanKpknlDocument({
