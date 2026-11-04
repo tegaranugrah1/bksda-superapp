@@ -848,7 +848,7 @@ export default function EmployeeDetailPage() {
         {/* ======================================================== */}
         <div className="lg:col-span-8 xl:col-span-9 space-y-6">
           {/* Top 4 Metric Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5">
             {/* Metric 1: Masa Kerja */}
             <motion.div
               whileHover={{ y: -3 }}

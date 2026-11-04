@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793749369.7784128,
-    "ast_hash": "590db6f49cf9e6b9ffc6bb15fe935cba",
+    "mtime": 1793749973.7877152,
+    "ast_hash": "28f81b1192e43fe6289c9a4751a7a58a",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793749307.137992,
-    "ast_hash": "731960e54ee4cc0e81bd8e5e5eb5dbbb",
+    "mtime": 1793749985.5552845,
+    "ast_hash": "4ff370be083b41b9754e21ca75570035",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6790,8 +6790,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-masuk/page.tsx": {
-    "mtime": 1793584952.029462,
-    "ast_hash": "c977d7b2cad4c7b4a80a84f09a1a9d28",
+    "mtime": 1793749866.038211,
+    "ast_hash": "cbfb47775889394fdfcfeb88b09bc6ac",
     "semantic_hash": ""
   },
   "docs/REKAP_CUTI_PEGAWAI_BKSDA_KALTIM.md": {
@@ -7960,8 +7960,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/animate-ui-motion-check.cjs": {
-    "mtime": 1793745658.0672822,
-    "ast_hash": "a5c18e4d9a5205afc062d9dbf22c94b4",
+    "mtime": 1793749925.9263835,
+    "ast_hash": "89ba357d3e7023a5850436b6fd204e36",
     "semantic_hash": ""
   },
   "docs/animate-ui-motion-guidelines.md": {

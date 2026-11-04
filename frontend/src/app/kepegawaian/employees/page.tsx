@@ -365,7 +365,7 @@ export default function EmployeeListPage() {
       {/* 2. Clickable Summary Stat Cards (Data-driven Ponytail + Clean Enterprise Pro Max) */}
       <div
         className={`grid grid-cols-2 sm:grid-cols-3 ${
-          canWrite ? "lg:grid-cols-5" : "lg:grid-cols-4"
+          canWrite ? "xl:grid-cols-5 lg:grid-cols-3" : "xl:grid-cols-4 lg:grid-cols-2"
         } gap-3`}
       >
         {statCards.map((card) => {

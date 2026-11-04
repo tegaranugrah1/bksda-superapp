@@ -579,9 +579,9 @@ function PortalContent() {
         </header>
 
         {/* 3-COLUMN HYBRID LAYOUT (MYASN INSPIRED) */}
-        <div className={cn("max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
+        <div className={cn("max-w-400 mx-auto px-4 sm:px-6 2xl:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
           {/* LEFT COLUMN: SIDEBAR PROFIL & NAVIGASI */}
-          <div className="w-full lg:w-72 shrink-0 print:hidden">
+          <div className="w-full lg:w-64 xl:w-72 2xl:w-72 shrink-0 print:hidden">
             <PortalProfileSidebar
               user={data.user}
               employee={data.employee}
@@ -661,7 +661,7 @@ function PortalContent() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-7 gap-3">
                       {moduleCards.map((mod) => (
                         <motion.div
                           key={mod.key}
@@ -671,16 +671,16 @@ function PortalContent() {
                         >
                           <Link
                             href={mod.href}
-                            className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center flex flex-col items-center justify-center space-y-2 h-full"
+                            className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center flex flex-col items-center justify-center space-y-1.5 h-full"
                           >
                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", mod.bg, mod.color)}>
                               {mod.icon}
                             </div>
-                            <div className="space-y-0.5">
-                              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                            <div className="space-y-0.5 w-full">
+                              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate">
                                 {mod.label}
                               </p>
-                              <p className="text-[10px] text-slate-400 truncate max-w-25">
+                              <p className="text-[10px] text-slate-400 truncate w-full">
                                 {mod.desc}
                               </p>
                             </div>
@@ -690,6 +690,11 @@ function PortalContent() {
                     </div>
                   </div>
                 )}
+
+                {/* WIDGET PENGUMUMAN & BANTUAN DI BAWAH PADA LAYAR LAPTOP (< 2xl) */}
+                <div className="block 2xl:hidden pt-1">
+                  <PortalInfoSidebar isHorizontal={true} />
+                </div>
               </>
             ) : activeNavTab === "pinjaman" ? (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
@@ -757,9 +762,9 @@ function PortalContent() {
             ) : null}
           </main>
 
-          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Hidden on Visum & Kalkulator tab to give full width) */}
+          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Tampil di Kanan HANYA pada Layar Lebar >= 2xl) */}
           {activeNavTab !== "visum" && activeNavTab !== "kalkulator_dinas" && (
-            <div className="shrink-0 print:hidden font-sans">
+            <div className="hidden 2xl:block shrink-0 print:hidden font-sans">
               <PortalInfoSidebar />
             </div>
           )}

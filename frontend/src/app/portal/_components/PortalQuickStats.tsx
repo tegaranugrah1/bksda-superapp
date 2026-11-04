@@ -29,7 +29,7 @@ export function PortalQuickStats({
   onSelectTab,
 }: PortalQuickStatsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
       {/* 1. STATUS VERIFIKASI DUKCAPIL */}
       <motion.div
         whileHover={{ y: -3 }}

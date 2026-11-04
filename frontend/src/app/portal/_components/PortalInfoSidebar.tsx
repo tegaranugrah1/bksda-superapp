@@ -2,10 +2,18 @@
 
 import React from "react";
 import { Megaphone, BookOpen, HelpCircle, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function PortalInfoSidebar() {
+export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boolean }) {
   return (
-    <aside className="w-full lg:w-72 shrink-0 space-y-4">
+    <aside
+      className={cn(
+        "w-full shrink-0",
+        isHorizontal
+          ? "grid grid-cols-1 md:grid-cols-3 gap-4"
+          : "w-full 2xl:w-72 space-y-4"
+      )}
+    >
       {/* WIDGET 1: PENGUMUMAN BALAI */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">

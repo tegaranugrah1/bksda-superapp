@@ -111,7 +111,7 @@ export default function KepegawaianLayout({
         <aside
           className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-white dark:bg-zinc-900 border-r border-slate-200/80 dark:border-zinc-800/80 transform transition-all duration-200 ease-in-out md:relative md:translate-x-0 ${
             isOpen ? "translate-x-0 w-72" : "-translate-x-full"
-          } ${collapsed ? "md:w-20" : "md:w-72"}`}
+          } ${collapsed ? "md:w-20" : "md:w-64 xl:w-72"}`}
         >
           {/* Header */}
           <div className={`border-b border-slate-200/80 dark:border-zinc-800/80 ${collapsed ? "p-3" : "p-4"}`}>

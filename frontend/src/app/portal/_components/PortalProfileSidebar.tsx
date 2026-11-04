@@ -251,7 +251,7 @@ export function PortalProfileSidebar({
 
   return (
     <>
-      <aside className="w-full lg:w-72 shrink-0 space-y-4">
+      <aside className="w-full lg:w-64 xl:w-72 2xl:w-72 shrink-0 space-y-4">
         {/* PROFILE CARD */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-4 relative">
           {/* Edit Profile Icon (Top Right Pencil) */}

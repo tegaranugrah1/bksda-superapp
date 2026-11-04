@@ -353,7 +353,7 @@ export default function InboxSuratCutiPage() {
       </div>
 
       {/* Quick Filter Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[
           {
             key: "all",
