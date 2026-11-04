@@ -569,3 +569,37 @@
   3. **Verifikasi Kualitas**:
      - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
      - HTTP Status Endpoint Portal: 200 OK.
+
+---
+
+### 16. Redesain Seleksi Peminjaman Aset BMN (Modal Katalog Visual & Non-AI Professional UI) — Selesai ✅
+
+- **Kebutuhan & Hasil Diskusi `/grill-me`**:
+  1. Penggantian Popover sempit pada `http://localhost:3000/bmn/loans/create` menjadi **Modal Dialog Katalog Aset Visual** yang luas (`max-w-5xl`).
+  2. **Filter Otomatis Layak Pinjam**: Mengecualikan aset tak bergerak/infrastruktur (Tanah, Bangunan/Gedung/Pagar, Rumah Negara) dan aset rusak berat.
+  3. **Filter Tab Kategori Cepat**:
+     - `Semua Layak Pinjam` (`Layers`)
+     - `Kendaraan Bermotor` (`Car`)
+     - `IT & Komputer` (`Laptop`)
+     - `Peralatan Lapangan` (`Compass`)
+  4. **Dual View Switcher**: Pilihan tampilan Grid kartu visual berfoto (16:10) vs List kompak.
+  5. **Prinsip UI/UX Pro Max & Ponytail**:
+     - **Tanpa Ikon AI**: Tidak menggunakan ikon `Sparkles` / sihir AI; menggunakan ikon domain logistik/BMN resmi (`Boxes`, `Layers`, `Car`, `Laptop`, `Compass`).
+     - Desain flat eksekutif yang bersih, kontras tinggi, border tegas, tanpa gradien mencolok (*zero bloat*).
+     - Multi-select dengan Sticky Floating Bottom Bar: *"X barang dipilih"* dan tombol *"Masukkan ke Form Pinjam (X)"*.
+  6. **Dek Barang Terpilih di Step 1**: Kartu berfoto terstruktur rapi dengan tombol hapus merah lembut (`✕`).
+  7. **Ekspansi Ukuran Modal Katalog (Lega & Responsif Desktop)**:
+     - Mengatasi pembatasan default `DialogContent` shadcn (`sm:max-w-sm`) dengan menetapkan `w-[96vw] max-w-full sm:max-w-[95vw] md:max-w-[92vw] lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] h-[92vh] max-h-[92vh]`.
+     - Tampilan Grid ditingkatkan menjadi multi-kolom responsif (`grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4`) dengan kartu foto luas, teks multi-line tanpa truncate terpotong (`line-clamp-2`), badge NUP monospace jelas, dan thumbnail list view besar (`w-16 h-16`).
+     - Header pencarian lebih tinggi (`h-11`) dan counter real-time aset layak pinjam.
+  8. **Transparansi Pengguna & Status Pinjam Aktif (Backend + Frontend)**:
+     - Backend `AssetController.php`: Kueri pencarian diperluas untuk mencakup `pengguna`, `nama_pengguna`, penanggung jawab (`penanggungJawab.nama_lengkap`), dan peminjam aktif (`loans.borrower.nama_lengkap`). Mencari nama pegawai kini langsung menemukan aset terkait.
+     - Frontend `AssetCatalogModal.tsx` & `page.tsx`: Menampilkan badge pengguna pegawai (`👤 Pengguna: [Nama]`) dan penanda aset sedang dipinjam (`🔄 Sedang Dipinjam: [Nama Peminjam] s.d. [Tanggal]`).
+     - Aset yang sedang dipinjam otomatis dinonaktifkan dari seleksi permohonan pinjam baru dengan notifikasi toast protektif.
+  9. **Optimasi Kinerja & Memori RAM (Prinsip Ponytail)**:
+     - Mengurangi beban initial render dari 100 aset sekaligus menjadi **12 aset per batch** (`per_page: 12`).
+     - Pemuatan cepat, konsumsi RAM browser minimal, decoding foto langsung responsif, dilengkapi tombol *"Muat Lebih Banyak (+12 Aset)"* dan indikator counter real-time (`X dari Total Aset`).
+
+- **Verifikasi Kualitas**:
+  - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+  - HTTP Status: 200 OK.

@@ -52,6 +52,16 @@ class AssetController extends Controller
                     ->orWhere('tipe', $likeOp, $likePattern)
                     ->orWhere('nup', $likeOp, $likePattern)
                     ->orWhere('no_polisi', $likeOp, $likePattern)
+                    ->orWhere('pengguna', $likeOp, $likePattern)
+                    ->orWhere('nama_pengguna', $likeOp, $likePattern)
+                    ->orWhereHas('penanggungJawab', function ($pq) use ($likePattern, $likeOp) {
+                        $pq->where('nama_lengkap', $likeOp, $likePattern);
+                    })
+                    ->orWhereHas('loans', function ($lq) use ($likePattern, $likeOp) {
+                        $lq->active()->whereHas('borrower', function ($bq) use ($likePattern, $likeOp) {
+                            $bq->where('nama_lengkap', $likeOp, $likePattern);
+                        });
+                    })
                     ->orWhereHas('tags', function ($tq) use ($cleanLikePattern, $likeOp) {
                         $tq->where('name', $likeOp, $cleanLikePattern)
                             ->orWhere('label', $likeOp, $cleanLikePattern);
