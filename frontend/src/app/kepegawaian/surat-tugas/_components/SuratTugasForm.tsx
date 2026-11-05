@@ -16,7 +16,10 @@ import {
   Download,
   ChevronDown,
   FileDown,
+  Paperclip,
+  Eye,
 } from "lucide-react";
+import { DokumenDasarDrawer } from "./DokumenDasarDrawer";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -130,6 +133,10 @@ export function SuratTugasForm({
   const [klasifikasi, setKlasifikasi] = useState(
     mode === "create" && initialTemplate === "plh" ? "PEG.09.01" : "KSA.0X.0X"
   );
+  const [fileSuratPath, setFileSuratPath] = useState<string | null>(null);
+  const [originalMaksudTujuan, setOriginalMaksudTujuan] = useState<string>("");
+  const [originalKeterangan, setOriginalKeterangan] = useState<string>("");
+  const [isBaseDocOpen, setIsBaseDocOpen] = useState(false);
   const [nomorNumberingType, setNomorNumberingType] = useState<"st_pattern" | "naskah_auto">("st_pattern");
   const [customNomorNaskah, setCustomNomorNaskah] = useState("");
   const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, "0");
@@ -804,6 +811,15 @@ export function SuratTugasForm({
         const data = res.data.data || res.data;
 
         setSuratStatus(data.status || "");
+        if (data.file_surat_path) {
+          setFileSuratPath(data.file_surat_path);
+        }
+        if (data.maksud_tujuan) {
+          setOriginalMaksudTujuan(data.maksud_tujuan);
+        }
+        if (data.keterangan) {
+          setOriginalKeterangan(data.keterangan);
+        }
         if (data.nomor_surat) {
           const isStPattern = data.nomor_surat.startsWith("ST.");
           if (isStPattern) {
@@ -2640,6 +2656,24 @@ export function SuratTugasForm({
           {/* Card Dasar Hukum */}
           <FormSection title="Dasar Hukum & Anggaran">
             <div className="space-y-4">
+              {letterId && (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs">
+                  <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 min-w-0">
+                    <Paperclip className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="font-semibold truncate">
+                      {fileSuratPath ? "Berkas dasar terlampir dari pengajuan" : "Dokumen rujukan / pengajuan pegawai"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsBaseDocOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-white dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-lg border border-blue-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer shrink-0"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Lihat Dokumen Dasar</span>
+                  </button>
+                </div>
+              )}
               <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-[10px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
                 <p>
                   <b className="text-amber-800 dark:text-amber-200">Urutan Otomatis 3 Lapis Dasar Hukum:</b>{" "}
@@ -3951,6 +3985,28 @@ export function SuratTugasForm({
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {letterId && (
+              <button
+                type="button"
+                onClick={() => setIsBaseDocOpen((prev) => !prev)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs",
+                  isBaseDocOpen
+                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                    : fileSuratPath
+                    ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                )}
+                title="Buka panel dokumen dasar untuk menyalin perihal & melihat berkas"
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+                <span>Dasar Surat</span>
+                {fileSuratPath && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                )}
+              </button>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -4064,6 +4120,14 @@ export function SuratTugasForm({
         <option value="Tenggarong" />
         <option value="Berau" />
       </datalist>
+
+      <DokumenDasarDrawer
+        isOpen={isBaseDocOpen}
+        onClose={() => setIsBaseDocOpen(false)}
+        letterId={letterId}
+        hasFile={Boolean(fileSuratPath)}
+        fileName={fileSuratPath ? 'Dokumen_Dasar_' + letterId + '.pdf' : null}
+      />
     </div>
   );
 }

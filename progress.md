@@ -866,3 +866,23 @@
      - Test suite ekspor naskah dinas `frontend/tests/test-export-transform.cjs`: **100% PASS** (8 invariant checks mencakup Yth multi-line, perihal non-bold, posisi tembusan di bawah TTD, threshold single page 305mm, geometri KOP 189.4mm, spasi poin rapat 4pt, smart pagination multi-halaman, dan clearance KOP 2.5mm).
      - Test suite template naskah dinas `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (20 invariant checks).
      - Kompilasi TypeScript `npx tsc --noEmit`: **0 Errors**.
+
+### 25. Modul Kepegawaian - Fitur Pratinjau Dokumen Dasar di Surat Tugas Builder (5 November 2026)
+- **Konteks & Kebutuhan Pengguna**:
+  - Pada pengajuan Surat Tugas Publik (`/surat-tugas`), pegawai melampirkan berkas fisik acuan tugas (surat undangan, nota dinas rujukan, disposisi, dsb.) dalam format PDF atau gambar (JPG/PNG).
+  - Operator/Admin di halaman **Surat Tugas Builder** (`/kepegawaian/surat-tugas/builder/[id]`) membutuhkan akses visual cepat untuk melihat berkas dasar penugasan tersebut tanpa harus berpindah halaman atau membuka tab unduhan terpisah, guna membaca dan menyalin (*copy*) perihal, nomor surat rujukan, tanggal, dan maksud penugasan langsung ke kolom form builder.
+- **Solusi & Fitur yang Diimplementasikan**:
+  1. **Tombol Pemicu Terintegrasi (*Integrated Trigger Buttons*)**:
+     - *Sticky Top Preview Toolbar*: Ditambahkan tombol `Dasar Surat` dengan ikon klip berkas dan indikator hijau aktif (`animate-pulse`) saat permohonan memiliki berkas lampiran.
+     - *Seksi Dasar Hukum & Anggaran*: Ditambahkan tombol kontekstual `Lihat Dokumen Dasar` tepat di atas daftar butir dasar hukum, memungkinkan operator langsung membuka berkas saat menyusun konsideran rujukan.
+  2. **Panel Samping Dokumen Dasar Non-Blocking (`DokumenDasarDrawer.tsx`)**:
+     - Panel meluncur dari sisi kanan layar (`fixed top-14 right-0 bottom-0 z-30`) dengan lebar lega (`w-[640px] xl:w-[750px] 2xl:w-[850px]`) dan batas aman `max-w-[calc(100vw-32rem)]`.
+     - **Non-blocking & Zero Overlay**: Tidak ada backdrop gelap yang menutupi formulir, sehingga formulir *ST Builder Premium* di sebelah kiri tetap **100% terbuka, aktif, dan dapat diketik/diisi langsung**.
+     - **Header Natural & Elegan**: Latar putih bersih (`bg-white dark:bg-zinc-900`) dengan tipografi standar sans-serif, badge netral abu-abu, tombol outline yang konsisten dengan desain BKSDA SuperApp, serta tombol `Tab Baru` dan `Unduh`.
+  3. **Optimasi Native PDF Engine (*Fit Width & No Thumbnails*)**:
+     - URL berkas PDF dilengkapi parameter engine PDFium: `#navpanes=0&view=FitH&pagemode=none`.
+     - Bilah *thumbnail* halaman samping (ukuran kecil) otomatis disembunyikan.
+     - Halaman naskah otomatis diskalakan penuh pas selebar panel (*Fit to Width* / ~100% zoom fisik), menghasilkan teks tajam dan nyaman dibaca langsung tanpa perlu zoom manual.
+     - Menggunakan endpoint streaming JSON/Base64 (`/surat-tugas/${id}/download?preview=1`) untuk menghindari double download dan mencegah gangguan download manager eksternal (IDM).
+  4. **Pembersihan Kartu Teks Redundan**:
+     - Menghapus kartu ringkasan teks permohonan di atas viewer sesuai instruksi pengguna, sehingga 100% tinggi panel didedikasikan untuk pratinjau dokumen asli beresolusi penuh.
