@@ -814,7 +814,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                     onChange={(val) => updateField("no_stnk", val)}
                     isEditMode={isEditMode}
                   />
-                  {currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!currentData.no_polisi && currentData.no_polisi.trim() !== "-" && (
+                  {currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && (
                     <>
                       <FormInputRow
                         label="No Mesin"

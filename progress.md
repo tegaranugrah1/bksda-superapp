@@ -687,5 +687,32 @@
   8. **Graf Simpul Kode Penuh (`07 - Graph Node Codebase (Graphify)`)**:
      - 12.785 simpul kode AST dengan resolusi tautan dua arah (`[[...]]`) lengkap yang langsung terhubung di Obsidian Graph View (`Ctrl + G`).
 
+---
+
+### 20. Sinkronisasi Data Kendaraan & Visibilitas No Mesin/No Rangka BMN — Selesai ✅
+
+- **Gejala Permasalahan**:
+  - Pada halaman detail aset `https://bksdakaltim.web.id/bmn/assets/0a904007-4d04-4a70-a0c5-d7419e4a9f23` (Sepeda Motor Patroli), nomor mesin dan nomor rangka tidak ditampilkan, sedangkan pada peramban localhost data tersebut muncul.
+
+- **Akar Masalah (Root Cause)**:
+  1. **Disparitas Data Database Produksi**:
+     - Pada database produksi (`bksdakaltim.web.id` / `192.168.100.203`), record aset tersebut masih berupa data lama per 17 Juni 2026 dengan `no_polisi = '-'`, `no_mesin = NULL`, dan `no_rangka = NULL`.
+     - Pembaruan nomor polisi (`KT 5422 M`), nomor mesin (`KD11E1427846`), dan nomor rangka (`MH1KD1115PK428603`) sebelumnya tersimpan di basis data lokal (`localhost:5435`).
+  2. **Kondisi Guard Frontend Terlalu Ketat**:
+     - Di `frontend/src/app/bmn/assets/[id]/page.tsx` line 817, terdapat syarat: `currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!currentData.no_polisi && currentData.no_polisi.trim() !== "-"`.
+     - Karena nilai `no_polisi` di server produksi adalah `"-"`, maka baris input/tampilan No Mesin dan No Rangka otomatis disembunyikan oleh antarmuka, sehingga staf tidak dapat melihat maupun mengisinya saat mode edit aktif.
+
+- **Solusi & Hasil Verifikasi**:
+  1. **Sinkronisasi Langsung ke Database Produksi**:
+     - Menjalankan kueri pembaruan data langsung pada container database produksi (`bksdasuperapp-bksdasuperapp-einhoc-db-1`):
+       `no_polisi = 'KT 5422 M'`, `no_mesin = KD11E1427846`, `no_rangka = MH1KD1115PK428603`.
+     - Verifikasi live response backend produksi via tinker:
+       `{"id":"0a904007-4d04-4a70-a0c5-d7419e4a9f23","nama_barang":"Sepeda Motor Patroli","no_polisi":"KT 5422 M","no_mesin":"KD11E1427846","no_rangka":"MH1KD1115PK428603"}` (**100% Cocok**).
+  2. **Penyederhanaan Guard Tampilan Frontend**:
+     - Mengubah kondisi menjadi `currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR"` murni, sehingga nomor mesin dan nomor rangka selalu dapat dilihat dan disunting untuk seluruh armada kendaraan operasional BMN.
+  3. **Verifikasi Frontend**:
+     - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+
+
 
 
