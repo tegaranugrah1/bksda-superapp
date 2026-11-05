@@ -22,6 +22,9 @@ import {
   Sparkles,
   ChevronDown,
   UserRound,
+  Users,
+  ClipboardPaste,
+  FileCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -43,6 +46,12 @@ import {
   getTodayIndoDate,
   formatIsoDateToIndo,
   getDefaultNomorSurat,
+  parseYthList,
+  formatYthList,
+  detectPointLevel,
+  getPointLevelClassName,
+  parseRawDocumentText,
+  PointLevel,
 } from "../../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 
@@ -177,6 +186,46 @@ function PartySelectorBlock({
   );
 }
 
+const COMMON_YTH_PRESETS = [
+  "Kepala Seksi KSDA Wilayah I Berau",
+  "Kepala Seksi KSDA Wilayah II Tenggarong",
+  "Kepala Seksi KSDA Wilayah III Balikpapan",
+  "Kepala Subbagian Tata Usaha",
+  "Kepala Balai KSDA Kalimantan Timur",
+];
+
+const SAMPLE_SIMATA_BKN_TEXT = `Menindaklanjuti Nota Dinas Sekretaris Direktorat Jenderal KSDAE Nomor: ND.1148/SKSDAE/KSDMOTL/PEG.05.02/B/06/2026 tanggal 18 Juni 2026 Hal seperti pokok surat di atas, disampaikan hal-hal sebagai berikut :
+1. Sesuai Keputusan Kepala BKN Nomor 411 Tahun 2025, Kementerian Kehutanan berkomitmen untuk menggunakan Simata BKN (Sistem Informasi Manajemen Talenta BKN) pada tahun 2026, untuk itu perlu dilakukan percepatan kesediaan data yang diperlukan dalam proses talent pool SIMATA. Adapun parameter dan bobot penilaian manajemen talenta sesuai Keputusan Kepala BKN Nomor 411 Tahun 2025 terdiri dari:
+a. Kinerja (sumbu Y), antara lain:
+i. Kinerja utama, dengan data pendukung berupa penilaian kinerja (hasil evaluasi SKP dan perilaku kerja);
+ii. Kinerja penguat, dengan data pendukung berupa sertifikat penghargaan, keputusan penugasan pegawai dalam tim kerja, dan hasil umpan balik kinerja 360 derajat.
+b. Potensial (sumbu X), antara lain:
+i. Kompetensi, dengan data pendukung berupa hasil penilaian kompetensi, riwayat pengembangan kompetensi, dan riwayat pengalaman jabatan;
+ii. Potensi, dengan data pendukung berupa hasil penilaian potensi;
+iii. Kualifikasi, dengan data pendukung berupa tingkat pendidikan formal terakhir dan kesesuaian bidang ilmu;
+iv. Integritas dan moralitas, dengan data pendukung berupa riwayat hukuman disiplin.
+2. Pemenuhan parameter penilaian kompetensi dan potensi sebagaimana sumbu Y dilakukan melalui kegiatan CACT atau ProASN dan Pemenuhan data umpan balik kinerja 360 derajat telah dilakukan melalui Simpeg Kementerian Kehutanan
+3. Data pendukung sebagaimana poin 1 berupa:
+a. Penilaian Kinerja diunggah melalui SIMPEG;
+b. Penghargaan diunggah melalui MyASN ataupun SIASN BKN;
+c. Keputusan/surat tugas terkait penugasan tim kerja diunggah melalui SIMPEG Kementerian Kehutanan untuk selanjutnya dilakukan validasi dan dipadankan pada Simata BKN;
+d. Penilaian umpan balik 360 derajat yang telah dilakukan akan dilakukan pemadanan pada Simata BKN secara bertahap;
+e. Riwayat pengembangan kompetensi berupa sertifikat pelatihan/sertifikasi/ diklat fungsional diunggah melalui MyASN ataupun SIASN BKN;
+f. Riwayat pengalaman jabatan berupa surat tugas sebagai pelaksana harian/pelaksana tugas diunggah melalui Simpeg Kementerian Kehutanan dan dilakukan pemadanan data melalui API dengan SIASN BKN;
+g. Riwayat pendidikan formal diunggah melalui SIMPEG.
+4. Sehubungan dengan hal tersebut, agar Saudara(i) menyampaikan kepada seluruh ASN diwilayah kerja masing-masing untuk :
+a. Mengunggah dan/atau memperbarui data-data sebagaimana Poin 3 di atas, berupa:
+1) Riwayat penilaian SKP dan perilaku kerja;
+2) Riwayat pemberian penghargaan ASN selama lima (5) tahun terakhir;
+3) Riwayat penugasan dalam tim kerja selama kurun waktu dua (2) tahun terakhir;
+4) Riwayat pelatihan dan pengembangan kompetensi dibuktikan dengan sertifikat kepesertaan dan/atau sertifikat kompetensi selama tiga (3) tahun terakhir;
+5) Riwayat Pelaksana Tugas (Plt.), Pelaksana Harian (Plh.), dan Penjabat (Pj.);
+6) Riwayat pendidikan formal yang telah ditetapkan pencantuman gelarnya;
+7) Riwayat keputusan pengenaan sanksi disiplin selama lima tahun terakhir.
+b. ASN yang belum melakukan penilaian 360 derajat agar segera melakukan penilaian 360 derajat.
+5. Batas waktu pengisian data di atas sampai dengan tanggal 31 Juli 2026 pukul 16.30 WIB.
+Demikian kami sampaikan, atas perhatiannya diucapkan terima kasih`;
+
 function getComputedTujuan(tpl: TemplateType, d: SuratDinasData): string {
   switch (tpl) {
     case "nota_dinas":
@@ -231,6 +280,8 @@ function GenerateSuratDinasContent() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showManualNomor, setShowManualNomor] = useState(false);
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
+  const [showSmartPaste, setShowSmartPaste] = useState(false);
+  const [smartPasteText, setSmartPasteText] = useState("");
 
   // Helper to extract month suffix (MM/YYYY)
   const currentMonthSuffix = useMemo(() => {
@@ -301,6 +352,9 @@ function GenerateSuratDinasContent() {
               ...item.document_payload,
               paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
               tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
+              ythList: Array.isArray(item.document_payload.ythList)
+                ? item.document_payload.ythList
+                : parseYthList(item.document_payload.yth || defData.yth),
             });
           } else {
             const loadedTemplate = (item.template_type as TemplateType) || templateParam || "surat_dinas";
@@ -315,6 +369,7 @@ function GenerateSuratDinasContent() {
               kotaTanggal: item.tanggal_surat ? formatIsoDateToIndo(item.tanggal_surat) : defData.kotaTanggal,
               paragraf: defData.paragraf || [],
               tembusan: defData.tembusan || [],
+              ythList: defData.ythList || parseYthList(defData.yth),
             });
           }
           toast.info(`Memuat Surat Keluar: ${item.no_surat}`);
@@ -327,7 +382,13 @@ function GenerateSuratDinasContent() {
   }, [idParam]);
 
   const updateField = (field: keyof SuratDinasData, value: any) => {
-    setData((prev) => ({ ...prev, [field]: value }));
+    setData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "yth" && typeof value === "string") {
+        next.ythList = parseYthList(value);
+      }
+      return next;
+    });
   };
 
   // Switch template
@@ -388,6 +449,113 @@ function GenerateSuratDinasContent() {
       list.splice(insertAt, 0, newPointText);
       return { ...prev, paragraf: list };
     });
+  };
+
+  // Tambah Sub-Poin Huruf (a., b., c., dst.)
+  const handleAddSubPointLetter = () => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      const alphabet = "abcdefghijklmnopqrstuvwxyz";
+      let nextLetter = "a";
+      for (let i = list.length - 1; i >= 0; i--) {
+        const m = list[i].trim().match(/^([a-z])\.\s/i);
+        if (m) {
+          const char = m[1].toLowerCase();
+          const charIdx = alphabet.indexOf(char);
+          if (charIdx >= 0 && charIdx < alphabet.length - 1) {
+            nextLetter = alphabet[charIdx + 1];
+          }
+          break;
+        }
+      }
+      const insertAt = Math.max(0, list.length - 1);
+      list.splice(insertAt, 0, `${nextLetter}. `);
+      return { ...prev, paragraf: list };
+    });
+  };
+
+  // Tambah Sub-Sub Poin Romawi (i., ii., iii., iv., dst.)
+  const handleAddSubPointRoman = () => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
+      let nextRoman = "i";
+      for (let i = list.length - 1; i >= 0; i--) {
+        const m = list[i].trim().match(/^(i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/i);
+        if (m) {
+          const r = m[1].toLowerCase();
+          const rIdx = romans.indexOf(r);
+          if (rIdx >= 0 && rIdx < romans.length - 1) {
+            nextRoman = romans[rIdx + 1];
+          }
+          break;
+        }
+      }
+      const insertAt = Math.max(0, list.length - 1);
+      list.splice(insertAt, 0, `${nextRoman}. `);
+      return { ...prev, paragraf: list };
+    });
+  };
+
+  // Tambah Butir Angka Kurung (1), 2), 3), dst.)
+  const handleAddSubPointBracket = () => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      let maxNum = 0;
+      for (let i = list.length - 1; i >= 0; i--) {
+        const m = list[i].trim().match(/^(\d+)\)\s/);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (n > maxNum) maxNum = n;
+          break;
+        }
+      }
+      const nextNum = maxNum > 0 ? maxNum + 1 : 1;
+      const insertAt = Math.max(0, list.length - 1);
+      list.splice(insertAt, 0, `${nextNum}) `);
+      return { ...prev, paragraf: list };
+    });
+  };
+
+  // Ubah Level Poin pada Baris Tertentu
+  const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      const current = list[index] || "";
+      const cleaned = current
+        .replace(/^(?:[0-9]+[.)]|[a-z][.)]|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.)\s*/i, "")
+        .trim();
+
+      let prefix = "";
+      if (targetType === "num") prefix = "1. ";
+      else if (targetType === "letter") prefix = "a. ";
+      else if (targetType === "roman") prefix = "i. ";
+      else if (targetType === "bracket") prefix = "1) ";
+
+      list[index] = prefix + cleaned;
+      return { ...prev, paragraf: list };
+    });
+  };
+
+  // Terapkan Salin-Tempel Teks Utuh
+  const handleApplySmartPaste = (rawTextToApply?: string) => {
+    const text = rawTextToApply || smartPasteText;
+    if (!text.trim()) {
+      toast.error("Teks naskah dinas masih kosong.");
+      return;
+    }
+    const parsed = parseRawDocumentText(text);
+    if (parsed.length === 0) {
+      toast.error("Gagal memecah teks menjadi paragraf.");
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      paragraf: parsed,
+    }));
+    setShowSmartPaste(false);
+    setSmartPasteText("");
+    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke naskah dinas!`);
   };
 
   const handleRemoveParagraph = (index: number) => {
@@ -467,6 +635,58 @@ function GenerateSuratDinasContent() {
     setData((prev) => ({
       ...prev,
       tembusan: (prev.tembusan || []).map((t) => (t.id === id ? { ...t, text } : t)),
+    }));
+  };
+
+  // Yth. (Penerima Nota Dinas & Memorandum) management
+  const currentYthList = useMemo(() => {
+    if (data.ythList && data.ythList.length > 0) return data.ythList;
+    return parseYthList(data.yth);
+  }, [data.ythList, data.yth]);
+
+  const handleAddYth = () => {
+    const next = [...currentYthList, ""];
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
+    }));
+  };
+
+  const handleRemoveYth = (idx: number) => {
+    const next = currentYthList.filter((_, i) => i !== idx);
+    const finalNext = next.length > 0 ? next : [""];
+    setData((prev) => ({
+      ...prev,
+      ythList: finalNext,
+      yth: formatYthList(finalNext),
+    }));
+  };
+
+  const handleYthChange = (idx: number, val: string) => {
+    const next = [...currentYthList];
+    next[idx] = val;
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
+    }));
+  };
+
+  const handleAppendYthPreset = (name: string) => {
+    let next: string[];
+    if (currentYthList.length === 1 && !currentYthList[0].trim()) {
+      next = [name];
+    } else if (!currentYthList.includes(name)) {
+      next = [...currentYthList.filter((s) => s.trim()), name];
+    } else {
+      toast.info(`"${name}" sudah ada dalam daftar Yth.`);
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
     }));
   };
 
@@ -557,6 +777,7 @@ function GenerateSuratDinasContent() {
       tujuanKepada: "",
       tujuanDi: "",
       yth: "",
+      ythList: [""],
       dari: "",
       paragraf: [""],
       tembusan: [],
@@ -908,15 +1129,88 @@ function GenerateSuratDinasContent() {
               {/* NOTA DINAS & MEMORANDUM */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <>
-                  <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Yth. (Penerima)</label>
-                    <Input
-                      value={data.yth || ""}
-                      onChange={(e) => updateField("yth", e.target.value)}
-                      placeholder="Contoh: Kepala Balai KSDA Kalimantan Timur"
-                      className="mt-1 text-xs"
-                    />
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                        Yth. (Penerima)
+                        <span className="text-[10px] text-zinc-400 font-normal">
+                          ({currentYthList.filter((s) => s.trim()).length} penerima)
+                        </span>
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleAddYth}
+                        className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Tambah Penerima
+                      </Button>
+                    </div>
+
+                    {/* Pilihan Cepat / Preset Button Penerima */}
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className="text-[10px] text-zinc-400 font-medium">Pilihan cepat:</span>
+                      {COMMON_YTH_PRESETS.map((preset) => {
+                        const shortLabel = preset
+                          .replace(/^Kepala\s+/, "")
+                          .replace("Balai KSDA Kalimantan Timur", "Kepala Balai")
+                          .replace("Subbagian Tata Usaha", "Kasubag TU");
+                        const isAdded = currentYthList.includes(preset);
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => handleAppendYthPreset(preset)}
+                            disabled={isAdded}
+                            className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${
+                              isAdded
+                                ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
+                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                            }`}
+                            title={isAdded ? "Sudah ada dalam daftar Yth" : `Klik untuk menambah ${preset}`}
+                          >
+                            <span>+</span>
+                            <span>{shortLabel}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Baris Input Interaktif Tiap Penerima */}
+                    <div className="space-y-1.5">
+                      {currentYthList.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-zinc-400 w-5 text-right shrink-0">
+                            {currentYthList.length > 1 ? `${idx + 1}.` : "•"}
+                          </span>
+                          <Input
+                            value={item}
+                            onChange={(e) => handleYthChange(idx, e.target.value)}
+                            placeholder={
+                              idx === 0
+                                ? "Contoh: Kepala Seksi KSDA Wilayah I Berau"
+                                : `Penerima ke-${idx + 1}...`
+                            }
+                            className="h-8 text-xs flex-1"
+                          />
+                          {currentYthList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveYth(idx)}
+                              className="text-zinc-400 hover:text-red-500 p-1 shrink-0 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                              title="Hapus penerima ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
                   <div>
                     <label className="font-semibold text-zinc-700 dark:text-zinc-300">Dari (Pengirim)</label>
                     <Input
@@ -1239,66 +1533,201 @@ function GenerateSuratDinasContent() {
           {/* Card 3: Paragraf Isi */}
           {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2.5 gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
                   <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
-                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Paragraf)
+                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
                 </h2>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center flex-wrap gap-1.5">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleAddParagraph}
-                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2.5 gap-1 font-semibold"
+                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah paragraf biasa"
                   >
                     <Plus className="w-3.5 h-3.5 text-zinc-500" />
-                    Tambah Paragraf
+                    Paragraf
                   </Button>
                   <Button
+                    type="button"
                     variant="default"
                     size="sm"
                     onClick={handleAddPoint}
-                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2.5 gap-1 font-semibold shadow-xs"
+                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 gap-1 font-semibold shadow-xs"
+                    title="Tambah Poin Utama (1., 2., 3., ...)"
                   >
                     <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
-                    Tambah Poin
+                    + Poin 1.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddSubPointLetter}
+                    className="h-7 text-xs border-emerald-300 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Sub-Poin Huruf (a., b., c., ...)"
+                  >
+                    + Sub a.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddSubPointRoman}
+                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/60 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...)"
+                  >
+                    + Butir i.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddSubPointBracket}
+                    className="h-7 text-xs border-violet-300 text-violet-800 bg-violet-50/60 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-300 dark:bg-violet-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Butir Angka Kurung (1), 2), 3), ...)"
+                  >
+                    + Butir 1)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowSmartPaste(!showSmartPaste)}
+                    className="h-7 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 p-1 px-2.5 gap-1 font-semibold"
+                    title="Tempel teks utuh naskah dinas bertingkat"
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5 text-indigo-500" />
+                    Tempel Teks Utuh
                   </Button>
                 </div>
               </div>
 
-              <div className="space-y-3 text-xs">
+              {/* Smart Paste Drawer */}
+              {showSmartPaste && (
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-indigo-200 dark:border-indigo-900 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                      <ClipboardPaste className="w-3.5 h-3.5" />
+                      Tempel & Parse Naskah Dinas Bertingkat Otomatis
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSmartPaste(false)}
+                      className="text-xs text-zinc-400 hover:text-zinc-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 leading-normal">
+                    Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
+                  </p>
+                  <Textarea
+                    value={smartPasteText}
+                    onChange={(e) => setSmartPasteText(e.target.value)}
+                    rows={6}
+                    placeholder="Tempel teks nota dinas di sini..."
+                    className="text-xs font-mono bg-white dark:bg-zinc-900 leading-relaxed"
+                  />
+                  <div className="flex items-center justify-between pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
+                        handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
+                      }}
+                      className="h-7 text-xs border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 gap-1 font-medium"
+                      title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
+                    >
+                      <Sparkles className="w-3 h-3 text-indigo-500" />
+                      Muat Contoh Simata BKN (31 Butir)
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSmartPaste(false)}
+                        className="h-7 text-xs text-zinc-500"
+                      >
+                        Batal
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleApplySmartPaste()}
+                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1"
+                      >
+                        <FileCheck className="w-3 h-3" />
+                        Terapkan ke Dokumen
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2.5 text-xs">
                 {(data.paragraf || []).map((pText, idx) => {
                   const pList = data.paragraf || [];
                   const isPenutup = idx === pList.length - 1;
                   const isPembuka = idx === 0;
-                  const isPoin = /^[0-9]+[.)]\s/i.test(pText.trim());
-                  const poinMatch = pText.trim().match(/^([0-9]+)[.)]\s/i);
-                  const poinNum = poinMatch ? poinMatch[1] : null;
+                  const lvl = detectPointLevel(pText);
+
+                  const indentClass =
+                    lvl === 2
+                      ? "ml-3 sm:ml-5 border-l-2 border-emerald-400"
+                      : lvl === 3
+                      ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
+                      : lvl === 4
+                      ? "ml-9 sm:ml-14 border-l-2 border-violet-400"
+                      : "";
 
                   return (
                     <div
                       key={idx}
-                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${
+                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${indentClass} ${
                         isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
-                          : isPoin
+                          : lvl === 1
                           ? "border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20"
+                          : lvl === 2
+                          ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20"
+                          : lvl === 3
+                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
+                          : lvl === 4
+                          ? "border-violet-200 dark:border-violet-900/50 bg-violet-50/30 dark:bg-violet-950/20"
                           : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
-                            {isPoin ? `Poin ${poinNum || idx + 1}` : `Paragraf ${idx + 1}`}
+                            {idx + 1}.
                           </span>
                           {isPenutup ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                               Penutup (Bawah)
                             </Badge>
-                          ) : isPoin ? (
+                          ) : lvl === 1 ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 flex items-center gap-1">
                               <ListOrdered className="w-2.5 h-2.5" />
-                              Poin Bernomor
+                              Poin Utama (Tingkat 1)
+                            </Badge>
+                          ) : lvl === 2 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                              Sub-Poin (Tingkat 2)
+                            </Badge>
+                          ) : lvl === 3 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                              Sub-Butir (Tingkat 3)
+                            </Badge>
+                          ) : lvl === 4 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-violet-300 bg-violet-50 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
+                              Sub-Butir (Tingkat 4)
                             </Badge>
                           ) : isPembuka ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-500 border-zinc-200">
@@ -1306,31 +1735,101 @@ function GenerateSuratDinasContent() {
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-600 border-blue-200 bg-blue-50/50 dark:text-blue-400">
-                              Isi
+                              Paragraf Biasa
                             </Badge>
                           )}
                         </div>
-                        {!isPenutup && pList.length > 1 && (
+
+                        {/* Quick Level Switchers & Delete */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-zinc-400">Level:</span>
                           <button
                             type="button"
-                            onClick={() => handleRemoveParagraph(idx)}
-                            className="text-zinc-400 hover:text-red-500 p-0.5 rounded transition-colors"
-                            title={isPoin ? "Hapus poin ini" : "Hapus paragraf ini"}
+                            onClick={() => handleChangeParagraphLevel(idx, "num")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 1
+                                ? "bg-indigo-100 text-indigo-700 border-indigo-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-indigo-300"
+                            }`}
+                            title="Jadikan Poin 1."
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            1.
                           </button>
-                        )}
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "letter")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 2
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-emerald-300"
+                            }`}
+                            title="Jadikan Sub-Poin a."
+                          >
+                            a.
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "roman")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(pText.trim())
+                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
+                            }`}
+                            title="Jadikan Romawi i."
+                          >
+                            i.
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "bracket")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 3 && /^[0-9]+\)/.test(pText.trim())
+                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
+                            }`}
+                            title="Jadikan Kurung 1)"
+                          >
+                            1)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "plain")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 0
+                                ? "bg-zinc-200 text-zinc-700 border-zinc-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-zinc-400"
+                            }`}
+                            title="Jadikan Teks Biasa (Hapus Prefix)"
+                          >
+                            Teks
+                          </button>
+
+                          {!isPenutup && pList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveParagraph(idx)}
+                              className="text-zinc-400 hover:text-red-500 p-1 ml-1 rounded transition-colors"
+                              title="Hapus butir ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <Textarea
                         value={pText}
                         onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                        rows={isPembuka ? 4 : isPenutup ? 2 : isPoin ? 3 : 3}
+                        rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
                         placeholder={
                           isPenutup
                             ? "Tulis isi penutup naskah..."
-                            : isPoin
-                            ? `Tulis isi poin ${poinNum || idx + 1}...`
-                            : `Tulis isi paragraf ${idx + 1}...`
+                            : lvl === 1
+                            ? `Tulis isi poin utama...`
+                            : lvl === 2
+                            ? `Tulis isi sub-poin...`
+                            : lvl === 3
+                            ? `Tulis isi butir...`
+                            : `Tulis isi paragraf...`
                         }
                         className="text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
                       />

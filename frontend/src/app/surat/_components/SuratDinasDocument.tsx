@@ -64,6 +64,7 @@ export interface SuratDinasData {
 
   // Nota Dinas & Memorandum
   yth?: string;
+  ythList?: string[];
   dari?: string;
 
   // Undangan & Panggilan
@@ -169,6 +170,118 @@ export function formatIsoDateToIndo(isoStr?: string): string {
   }
 }
 
+/**
+ * Parsing string Yth multi-baris menjadi list nama penerima yang bersih tanpa nomor prefix.
+ */
+export function parseYthList(ythStr?: string): string[] {
+  if (!ythStr || !ythStr.trim()) return [""];
+  const lines = ythStr.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return [""];
+  return lines.map((line) => line.replace(/^[0-9]+[.)\-]\s*/, "").trim());
+}
+
+/**
+ * Memformat list nama penerima menjadi string Yth bertata naskah dinas resmi.
+ * 1 penerima -> tanpa nomor ("Kepala Balai ...")
+ * 2 atau lebih -> bernomor urut ("1. ...\n2. ...")
+ */
+export function formatYthList(items: string[]): string {
+  const cleaned = items.map((it) => it.trim()).filter(Boolean);
+  if (cleaned.length === 0) return "";
+  if (cleaned.length === 1) return cleaned[0];
+  return cleaned.map((it, idx) => `${idx + 1}. ${it}`).join("\n");
+}
+
+export type PointLevel = 0 | 1 | 2 | 3 | 4;
+
+/**
+ * Mendeteksi tingkat hierarki butir poin naskah dinas Permen Kehutanan 1/2025:
+ * Level 0: Paragraf teks biasa
+ * Level 1: Angka utama (1., 2., 3., dst.)
+ * Level 2: Sub-poin huruf (a., b., c., dst.)
+ * Level 3: Sub-sub-poin Romawi kecil (i., ii., iii., iv., dst.) ATAU angka kurung (1), 2), 3), dst.)
+ * Level 4: Sub-butir huruf kurung (a), b), c), dst.)
+ */
+export function detectPointLevel(text: string): PointLevel {
+  const trimmed = text.trim();
+  if (!trimmed) return 0;
+
+  // Level 4: a), b), c)
+  if (/^[a-z]\)\s/i.test(trimmed)) return 4;
+
+  // Level 3: i., ii., iii., iv., v., vi., vii., viii., ix., x. ATAU 1), 2), 3)
+  if (/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/i.test(trimmed) || /^[0-9]+\)\s/.test(trimmed)) {
+    return 3;
+  }
+
+  // Level 2: a., b., c., d., e., f., g., dst. (kecuali romawi 'i.' yang sudah ditangani di Level 3)
+  if (/^[a-z]\.\s/i.test(trimmed)) {
+    return 2;
+  }
+
+  // Level 1: 1., 2., 3., 10., dst.
+  if (/^[0-9]+\.\s/.test(trimmed)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+export function getPointLevelClassName(level: PointLevel): string {
+  switch (level) {
+    case 1: return "poin-item poin-level-1";
+    case 2: return "poin-item poin-level-2";
+    case 3: return "poin-item poin-level-3";
+    case 4: return "poin-item poin-level-4";
+    default: return "";
+  }
+}
+
+/**
+ * Smart Parser untuk memecah teks mentah salin-tempel naskah dinas menjadi array paragraf bertingkat
+ */
+export function parseRawDocumentText(rawText: string): string[] {
+  if (!rawText || !rawText.trim()) return [];
+  const rawLines = rawText.split(/\r?\n/).map((l) => l.trim());
+  const paragraphs: string[] = [];
+  let currentBuffer = "";
+
+  for (const line of rawLines) {
+    if (!line) {
+      if (currentBuffer) {
+        paragraphs.push(currentBuffer.trim());
+        currentBuffer = "";
+      }
+      continue;
+    }
+
+    const isNewPoint =
+      /^[0-9]+\.\s/.test(line) ||
+      /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/i.test(line) ||
+      /^[a-z]\.\s/i.test(line) ||
+      /^[0-9]+\)\s/.test(line) ||
+      /^[a-z]\)\s/i.test(line) ||
+      /^(?:Demikian)\b/i.test(line);
+
+    if (isNewPoint && currentBuffer) {
+      paragraphs.push(currentBuffer.trim());
+      currentBuffer = line;
+    } else {
+      if (currentBuffer) {
+        currentBuffer += " " + line;
+      } else {
+        currentBuffer = line;
+      }
+    }
+  }
+
+  if (currentBuffer) {
+    paragraphs.push(currentBuffer.trim());
+  }
+
+  return paragraphs;
+}
+
 export function getDefaultNomorPrefix(type: TemplateType): string {
   switch (type) {
     case "nota_dinas": return "ND.102";
@@ -259,6 +372,11 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         lampiran: "1 (satu) lembar",
         perihal: "Kartu Istri/Kartu Suami Aparatur Sipil Negara Virtual",
         yth: "1. Kepala Seksi KSDA Wilayah I Berau\n2. Kepala Seksi KSDA Wilayah II Tenggarong\n3. Kepala Seksi KSDA Wilayah III Balikpapan",
+        ythList: [
+          "Kepala Seksi KSDA Wilayah I Berau",
+          "Kepala Seksi KSDA Wilayah II Tenggarong",
+          "Kepala Seksi KSDA Wilayah III Balikpapan",
+        ],
         dari: "Kepala Balai KSDA Kalimantan Timur",
         paragraf: [
           "Menindaklanjuti Nota Dinas Sekretaris Direktorat Jenderal KSDAE Nomor ND.70/SETKSDAE/KKOTL/PEG.10.1/B/01/2025 tanggal 21 Januari 2025 perihal Edaran Kartu Istri/Kartu Suami Aparatur Sipil Negara Virtual, bersama ini disampaikan hal-hal sebagai berikut:",
@@ -307,6 +425,9 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         lampiran: "-",
         perihal: "Permohonan Data Realisasi Anggaran dan Fisik Pengadaan Sarana Konservasi Triwulan III",
         yth: "Kepala Subbagian Tata Usaha",
+        ythList: [
+          "Kepala Subbagian Tata Usaha",
+        ],
         dari: DEFAULT_KEPALA_BALAI.jabatanLengkap,
         paragraf: [
           "Guna keperluan sinkronisasi penyusunan laporan capaian kinerja triwulanan dan evaluasi program prioritas penanganan keanekaragaman hayati, kami mohon bantuan data rekonsiliasi realisasi anggaran serta bukti fisik pengadaan sarpras SMART patrol.",
@@ -792,11 +913,37 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; line-height: 1.5; }
   .pkpknl-body p.no-indent { text-indent: 0 !important; }
   .pkpknl-body p.poin-item {
+    text-align: justify !important;
+    text-justify: inter-word !important;
+    line-height: 1.55 !important;
+    margin-bottom: 0.45rem !important;
+  }
+  .pkpknl-body p.poin-level-1 {
     text-indent: -1.5rem !important;
     padding-left: 1.5rem !important;
-    margin-bottom: 0.5rem;
-    text-align: justify;
-    line-height: 1.6;
+  }
+  .pkpknl-body p.poin-level-2 {
+    text-indent: -1.5rem !important;
+    padding-left: 3.25rem !important;
+  }
+  .pkpknl-body p.poin-level-3 {
+    text-indent: -1.5rem !important;
+    padding-left: 5rem !important;
+  }
+  .pkpknl-body p.poin-level-4 {
+    text-indent: -1.5rem !important;
+    padding-left: 6.75rem !important;
+  }
+  .pkpknl-footer-bsre {
+    margin-top: 2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8pt;
+    color: #64748b;
+    font-style: italic;
+    line-height: 1.35;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; margin-top: 1.5rem !important; }
   .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
@@ -899,6 +1046,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     nipPenandatangan,
     tembusan,
     yth,
+    ythList,
     dari,
     acaraHariTanggal,
     acaraWaktu,
@@ -1021,7 +1169,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   className="pkpknl-edit flex-1 whitespace-pre-line leading-relaxed"
                   onBlur={(e) => onUpdateField?.("yth", e.currentTarget.innerText)}
                 >
-                  {yth}
+                  {yth || (ythList && ythList.length > 0 ? formatYthList(ythList) : "")}
                 </span>
               </div>
               <div className="flex items-baseline">
@@ -1632,13 +1780,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           <div className="pkpknl-body">
             {paragraf && paragraf.length > 1 ? (
               paragraf.slice(0, -1).map((pText, idx) => {
-                const isPoin = /^[A-Z0-9]+[.)]\s/i.test(pText.trim());
+                const lvl = detectPointLevel(pText);
+                const lvlClass = getPointLevelClassName(lvl);
                 return (
                   <p
                     key={idx}
                     contentEditable
                     suppressContentEditableWarning
-                    className={`pkpknl-edit ${isPoin ? "poin-item" : ""}`}
+                    className={`pkpknl-edit ${lvlClass}`}
                     onBlur={(e) => {
                       const newParas = [...paragraf];
                       newParas[idx] = e.currentTarget.innerText;
@@ -1662,12 +1811,13 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <div className="pkpknl-body">
                 {(() => {
                   const lastP = paragraf[paragraf.length - 1];
-                  const isPoin = /^[A-Z0-9]+[.)]\s/i.test(lastP.trim());
+                  const lvl = detectPointLevel(lastP);
+                  const lvlClass = getPointLevelClassName(lvl);
                   return (
                     <p
                       contentEditable
                       suppressContentEditableWarning
-                      className={`pkpknl-edit ${isPoin ? "poin-item" : ""}`}
+                      className={`pkpknl-edit ${lvlClass}`}
                       onBlur={(e) => {
                         const newParas = [...paragraf];
                         newParas[newParas.length - 1] = e.currentTarget.innerText;
@@ -1783,6 +1933,12 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             )}
           </div>
         )}
+
+        {/* Catatan Kaki TTE Resmi BSrE BSSN */}
+        <div className="pkpknl-footer-bsre">
+          <p className="m-0">Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik</p>
+          <p className="m-0">yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).</p>
+        </div>
       </article>
     </div>
   );

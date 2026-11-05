@@ -781,3 +781,44 @@
      - TypeScript compiler `npx tsc --noEmit`: **0 Errors**.
      - Graphify AST knowledge graph: `graphify update .` **11.974 nodes, 21.879 edges**.
 
+---
+
+### 23. Pengelolaan Sub-Poin Bertingkat (Hierarki 4 Level), Smart Text Parser & Fitur Button Yth Nota Dinas/Memorandum — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada halaman `http://localhost:3000/surat/keluar/dinas`:
+    1. Penerima **Yth.** dapat ditambah menggunakan button (tombol), dengan pilihan cepat pejabat/unit internal (SKW I Berau, SKW II Tenggarong, SKW III Balikpapan, Kasubag TU, Kepala Balai) tanpa harus mengetik manual.
+    2. Mendukung naskah dinas dengan **sub-poin bertingkat kompleks** sesuai spesimen resmi Surat Edaran Manajemen Talenta Simata BKN (Keputusan Kepala BKN No. 411/2025):
+       - **Level 1 (Angka Utama)**: `1. `, `2. `, `3. `, dst.
+       - **Level 2 (Sub-Poin Huruf)**: `a. `, `b. `, `c. `, dst.
+       - **Level 3 (Sub-Sub Poin Romawi / Kurung)**: `i. `, `ii. `, `iii. ` atau `1) `, `2) `, `3) `
+       - **Level 4 (Sub-Butir Kurung)**: `a) `, `b) `, `c) `
+       - Setiap tingkat memiliki indentasi bertingkat resmi (*stepped hanging indent*) yang proporsional dan rata kiri-kanan (*justified*).
+    3. Fitur **Tempel Teks Utuh (Smart Text Parser)** yang memungkinkan staf menyalin teks naskah dinas lengkap (termasuk pembuka, 31 butir poin bersarang, dan penutup) lalu memecahnya secara otomatis menjadi array terstruktur dengan satu klik.
+    4. Catatan kaki (*footnote*) resmi sertifikasi TTE elektronik: "Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN)".
+
+- **Implementasi Tingkat Teknis**:
+  1. **Manajemen Yth Berbasis Tombol & Pilihan Cepat (`dinas/page.tsx`, `SuratDinasDocument.tsx`)**:
+     - Fungsi `parseYthList` & `formatYthList`: jika 1 penerima diformat tanpa nomor (`Kepala Balai ...`), jika 2+ penerima otomatis diberi penomoran berurutan (`1. ...\n2. ...`).
+     - Tombol `[+ Tambah Penerima]` dan chip pill pilihan cepat (`+ SKW I Berau`, `+ SKW II Tenggarong`, `+ SKW III Balikpapan`, `+ Kasubag TU`, `+ Kepala Balai`).
+     - Setiap baris penerima memiliki input mandiri dan tombol hapus (`Trash2`).
+  2. **Deteksi Hierarki 4 Level & Styling CSS (`SuratDinasDocument.tsx`)**:
+     - Fungsi `detectPointLevel(text)`: mengklasifikasikan teks ke dalam Level 0 (paragraf biasa), Level 1 (`1. `), Level 2 (`a. `), Level 3 (`i. ` / `1) `), dan Level 4 (`a) `).
+     - Aturan CSS naskah dinas:
+       - `.poin-level-1`: `padding-left: 1.5rem; text-indent: -1.5rem;`
+       - `.poin-level-2`: `padding-left: 3.25rem; text-indent: -1.5rem;`
+       - `.poin-level-3`: `padding-left: 5rem; text-indent: -1.5rem;`
+       - `.poin-level-4`: `padding-left: 6.75rem; text-indent: -1.5rem;`
+     - Catatan kaki `.pkpknl-footer-bsre` di bagian bawah naskah.
+  3. **Smart Parser Teks Mentah (`parseRawDocumentText`)**:
+     - Menggabungkan baris terpotong ke butir sebelumnya dan memisahkan setiap nomor/huruf/butir baru secara akurat.
+     - Drawer **[📋 Tempel Teks Utuh]** di antarmuka editor dilengkapi tombol **Muat Contoh Simata BKN (31 Butir)** untuk demonstrasi instan.
+  4. **Peralihan Level Interaktif pada Editor (`dinas/page.tsx`)**:
+     - Tombol cepat pada header: `[+ Paragraf]`, `[+ Poin 1.]`, `[+ Sub a.]`, `[+ Butir i.]`, `[+ Butir 1)]`.
+     - Badge warna level pada setiap kartu paragraf dengan visual margin indentasi yang merefleksikan kedalaman poin.
+     - Tombol konversi level instan (`1.`, `a.`, `i.`, `1)`, `Teks`) pada setiap kartu paragraf tanpa perlu mengetik ulang prefix.
+  5. **Verifikasi Kualitas**:
+     - Test suite `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (pengujian helper Yth, 4 level hierarki, ekstraksi 31 butir Simata BKN, dan catatan kaki BSrE BSSN).
+     - TypeScript compile check: `npx tsc --noEmit` $\rightarrow$ **0 Errors**.
+
+
