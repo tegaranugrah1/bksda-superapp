@@ -20,6 +20,7 @@ import {
   cleanMelaksanakanKegiatanPrefix,
   normalizeTaskTypeName,
   isJenisKegiatanTask,
+  capitalizeOfficialText,
 } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import {
   formatNipLabel,
@@ -253,6 +254,30 @@ export function SuratTugasDetailStep({
     }
   };
 
+  const handleNamaKegiatanChange = (val: string) => {
+    const fullMatch = val.trim().match(
+      /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+(.+?)\s+ke\s+(.+?)\s+dalam\s+rangka\s+(.+)$/i
+    );
+    if (fullMatch) {
+      const asal = capitalizeOfficialText(fullMatch[1].trim());
+      const tujuan = capitalizeOfficialText(fullMatch[2].trim());
+      let rest = fullMatch[3].trim().replace(/;$/, "");
+      let tempat = "";
+      const diMatch = rest.match(/^(.*?)\s+di\s+([^,;]+)$/i);
+      if (diMatch) {
+        rest = diMatch[1].trim();
+        tempat = capitalizeOfficialText(diMatch[2].trim());
+      }
+      const cleanAct = capitalizeOfficialText(rest);
+      setKotaAsal(asal);
+      setKotaTujuan(tujuan);
+      if (tempat) setTempatSpesifik(tempat);
+      setNamaKegiatanText(cleanAct);
+      return;
+    }
+    setNamaKegiatanText(val);
+  };
+
   const previewDiktumUtama = React.useMemo(() => {
     return buildKegiatanDiktumText({
       modeLokasi,
@@ -364,6 +389,7 @@ export function SuratTugasDetailStep({
                     required
                     value={kotaTujuan}
                     onChange={(e) => setKotaTujuan(e.target.value)}
+                    onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Kabupaten Paser"
                   />
@@ -378,7 +404,8 @@ export function SuratTugasDetailStep({
                     required
                     rows={2}
                     value={namaKegiatanText}
-                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                    onBlur={() => setNamaKegiatanText(capitalizeOfficialText(namaKegiatanText))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800 resize-none"
                     placeholder="Contoh: Patroli kebakaran hutan"
                   />
@@ -394,6 +421,7 @@ export function SuratTugasDetailStep({
                     required
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
+                    onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Cagar Alam Teluk Adang"
                   />
@@ -412,6 +440,7 @@ export function SuratTugasDetailStep({
                       required
                       value={kotaAsal}
                       onChange={(e) => setKotaAsal(e.target.value)}
+                      onBlur={() => setKotaAsal(capitalizeOfficialText(kotaAsal))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Samarinda"
                     />
@@ -427,6 +456,7 @@ export function SuratTugasDetailStep({
                       required
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
+                      onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Kabupaten Kutai Barat"
                     />
@@ -443,6 +473,7 @@ export function SuratTugasDetailStep({
                     required
                     value={untukKegiatanText}
                     onChange={(e) => setUntukKegiatanText?.(e.target.value)}
+                    onBlur={() => setUntukKegiatanText?.(capitalizeOfficialText(untukKegiatanText))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
                   />
@@ -475,7 +506,8 @@ export function SuratTugasDetailStep({
                     required
                     rows={2}
                     value={namaKegiatanText}
-                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                    onBlur={() => setNamaKegiatanText(capitalizeOfficialText(namaKegiatanText))}
                     onKeyDown={(e) => {
                       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
                         e.preventDefault();
@@ -496,6 +528,7 @@ export function SuratTugasDetailStep({
                     type="text"
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
+                    onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Suaka Badak Kelian"
                   />
@@ -514,6 +547,7 @@ export function SuratTugasDetailStep({
                       required
                       value={kotaAsal}
                       onChange={(e) => setKotaAsal(e.target.value)}
+                      onBlur={() => setKotaAsal(capitalizeOfficialText(kotaAsal))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Samarinda"
                     />
@@ -529,6 +563,7 @@ export function SuratTugasDetailStep({
                       required
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
+                      onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Kabupaten Kutai Barat"
                     />
@@ -559,7 +594,8 @@ export function SuratTugasDetailStep({
                     required
                     rows={2}
                     value={namaKegiatanText}
-                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                    onBlur={() => setNamaKegiatanText(capitalizeOfficialText(namaKegiatanText))}
                     onKeyDown={(e) => {
                       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
                         e.preventDefault();
@@ -580,6 +616,7 @@ export function SuratTugasDetailStep({
                     type="text"
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
+                    onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                     placeholder="Contoh: Suaka Margasatwa Kelian"
                   />
@@ -611,7 +648,8 @@ export function SuratTugasDetailStep({
                     required
                     rows={2}
                     value={namaKegiatanText}
-                    onChange={(e) => setNamaKegiatanText(e.target.value)}
+                    onChange={(e) => handleNamaKegiatanChange(e.target.value)}
+                    onBlur={() => setNamaKegiatanText(capitalizeOfficialText(namaKegiatanText))}
                     onKeyDown={(e) => {
                       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
                         e.preventDefault();
@@ -633,6 +671,7 @@ export function SuratTugasDetailStep({
                       type="text"
                       value={tempatSpesifik}
                       onChange={(e) => setTempatSpesifik(e.target.value)}
+                      onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
                     />
@@ -648,6 +687,7 @@ export function SuratTugasDetailStep({
                       required
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
+                      onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium text-slate-800"
                       placeholder="Contoh: Samarinda"
                     />

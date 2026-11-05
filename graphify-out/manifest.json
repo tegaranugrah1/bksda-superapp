@@ -1670,8 +1670,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1793775825.807141,
-    "ast_hash": "485cbe6630b68b99a2441787c3cc0c58",
+    "mtime": 1793840560.009523,
+    "ast_hash": "18388d604275a01be97393eb8184e451",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/create/page.tsx": {
@@ -2380,8 +2380,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts": {
-    "mtime": 1793584952.0414617,
-    "ast_hash": "ac03573ca83211ce7bf5932a92e2f77f",
+    "mtime": 1793842320.4053118,
+    "ast_hash": "0caa690f6707eaed424b8bb49fc2443c",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/constants.ts": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793751280.9462054,
-    "ast_hash": "d46bb516e7ff1a1ce2da9edf2cc415ca",
+    "mtime": 1793842584.6473782,
+    "ast_hash": "85c5b0a009d724ace8f6c9dd7f796103",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx": {
-    "mtime": 1793593288.612567,
-    "ast_hash": "6d763b48ee40f7cd69944f51e72cdceb",
+    "mtime": 1793842493.9676452,
+    "ast_hash": "9d42d24c6d5930f6f04030d90f5875ea",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasSuccessStep.tsx": {
@@ -6145,8 +6145,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1793837735.9965189,
-    "ast_hash": "46c211afbbdeb835b1b4ab11bd2b6a9b",
+    "mtime": 1793840641.986386,
+    "ast_hash": "b6a6deb670a89fc62bbbbe7880ace3d4",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7982,6 +7982,11 @@
   "backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php": {
     "mtime": 1793836343.0587897,
     "ast_hash": "660506c8fca1a03809ab29e6ddb5160a",
+    "semantic_hash": ""
+  },
+  "frontend/tests/diktum-capitalization-check.cjs": {
+    "mtime": 1793842551.2606974,
+    "ast_hash": "f9df88b03744338ca331b56a2e88a229",
     "semantic_hash": ""
   }
 }

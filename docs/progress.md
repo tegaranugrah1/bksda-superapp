@@ -9639,3 +9639,19 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
      - `php backend/tests/self_check_public_surat_tugas.php`: 100% PASS.
      - `cd frontend; npx tsc --noEmit`: 0 error.
      - `graphify update .`: 11.837 nodes, 21.684 edges, 851 communities ter-update.
+
+
+15. **Auto-Kapitalisasi Kalimat Tugas Resmi Tata Naskah Dinas KSDAE (`/surat-tugas` & `/kepegawaian/surat-tugas`) — Prinsip /ponytail (05 November 2026)**:
+    - **Single Source of Truth (`activity-helpers.ts`)**:
+      - Mengembangkan fungsi bersama `capitalizeOfficialText(text)` dan mengintegrasikannya ke `buildKegiatanDiktumText(...)` sebagai pemformat tunggal diktum utama penugasan resmi ("Untuk" Poin 1).
+      - Menangani normalisasi Title Case resmi: Mengubah huruf depan setiap kata penting menjadi kapital (contoh: `kabupaten kutai barat` $\rightarrow$ `Kabupaten Kutai Barat`, `suaka badak kelian` $\rightarrow$ `Suaka Badak Kelian`).
+      - Menjaga akronim kedinasan dan kehutanan tetap UPPERCASE penuh (`BMN`, `SKW`, `TSL`, `TWR`, `KPG`, `SPPD`, `GPS`, `BKSDA`, `KSDAE`, `KLHK`, `UPT`, `PEH`, `ASN`, `PNS`, `PPNPN`, `PPPK`, `ATK`, `DIPA`, `SBM`, `SIMAN`, `SPD`, `SP2D`, `WRU`, `SMART`, `TN`, `TWA`, `SM`, `CA`, `SATS-DN`, `SATS-LN`, `KPA`, `PPK`, `BPP`, `BPK`, `BKN`, `SDM`, `TU`, `KPH`, `KPHP`, `KPHL`, `BPKH`, `KAK`, `TOR`, `PNBP`, `SK`, `SOP`, `MOU`, `PKS`, `TIK`, `IT`, `BPJS`, `SIMPEG`, `SIASN`, dan angka Romawi `I` s.d. `XX`).
+      - Mempertahankan kata hubung dan preposisi tetap huruf kecil jika berada di tengah frasa (`dan`, `atau`, `serta`, `dengan`, `di`, `ke`, `dari`, `pada`, `dalam`, `rangka`, `untuk`, `tentang`, `oleh`, `sebagai`, `yang`, `terhadap`, dll.).
+      - Preservasi teks miring markdown (`*bekantan*` $\rightarrow$ `*Bekantan*`).
+    - **Smart Input Parsing & Live Pratinjau Interaktif (`SuratTugasDetailStep.tsx`)**:
+      - Pratinjau Kalimat Tugas Resmi di kotak biru otomatis menampilkan format Title Case resmi secara reaktif *real-time* saat pengguna mengetik.
+      - Mendukung pemisahan kolom dinas secara otomatis jika pengguna menyalin satu kalimat penugasan penuh (misal dari SK/memo internal): `Melaksanakan Perjalanan Dinas dari Samarinda ke kabupaten kutai barat dalam rangka inventarisasi bmn di suaka badak kelian;` otomatis mengekstrak asal (`Samarinda`), tujuan (`Kabupaten Kutai Barat`), kegiatan (`Inventarisasi BMN`), dan tempat spesifik (`Suaka Badak Kelian`).
+      - Event `onBlur` pada seluruh kolom formulir publik (`kotaAsal`, `kotaTujuan`, `namaKegiatanText`, `tempatSpesifik`, `untukKegiatanText`) otomatis memformat input teks pengguna menjadi Title Case resmi saat fokus berpindah.
+    - **Verifikasi & Runnable Self-Check (`frontend/tests/diktum-capitalization-check.cjs`)**:
+      - 5/5 assertions lulus (100% PASS) memvalidasi kapitalisasi huruf depan, akronim BMN/SKW, preposisi tengah, teks miring markdown, serta pemformatan diktum baik dari kolom terpisah maupun dari kalimat mentah utuh.
+      - Kompilasi TypeScript Next.js (`npx tsc --noEmit`): 0 error.

@@ -716,3 +716,32 @@
 
 
 
+
+---
+
+### 21. Auto-Kapitalisasi Kalimat Tugas Resmi & Pratinjau Diktum Surat Tugas Sesuai Tata Naskah Dinas KSDAE — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada formulir publik Surat Tugas (`http://localhost:3000/surat-tugas`), kotak **Pratinjau Kalimat Tugas Resmi** harus secara otomatis memformat huruf depan setiap kata penting menjadi kapital (Title Case resmi) sesuai kaidah tata naskah dinas.
+  - Contoh kasus: Kalimat mentah pengguna berupa:
+    `Melaksanakan Perjalanan Dinas dari Samarinda ke kabupaten kutai barat dalam rangka inventarisasi bmn di suaka badak kelian;`
+    Harus otomatis diformat menjadi:
+    `Melaksanakan Perjalanan Dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka Inventarisasi BMN di Suaka Badak Kelian;`
+
+- **Implementasi Tingkat Akar (*Ponytail Principle: Single Source of Truth*)**:
+  1. **Fungsi Bersama `capitalizeOfficialText(text)` (`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`)**:
+     - Mengubah huruf depan setiap kata penting menjadi huruf kapital (Title Case), dan menormalkan input yang ditulis dengan Caps Lock/UPPERCASE penuh.
+     - Otomatis mengubah singkatan/akronim kedinasan dan kehutanan menjadi huruf kapital penuh (`BMN`, `SKW`, `TSL`, `TWR`, `KPG`, `SPPD`, `GPS`, `BKSDA`, `KSDAE`, `KLHK`, `UPT`, `PEH`, `ASN`, `PNS`, `PPNPN`, `PPPK`, `ATK`, `DIPA`, `SBM`, `SIMAN`, `SPD`, `SP2D`, `WRU`, `SMART`, `TN`, `TWA`, `SM`, `CA`, `SATS-DN`, `SATS-LN`, `KPA`, `PPK`, `BPP`, `BPK`, `BKN`, `SDM`, `TU`, `KPH`, `KPHP`, `KPHL`, `BPKH`, `KAK`, `TOR`, `PNBP`, `SK`, `SOP`, `MOU`, `PKS`, `TIK`, `IT`, `BPJS`, `SIMPEG`, `SIASN`, dan angka Romawi `I` s.d. `XX`).
+     - Mempertahankan kata hubung/preposisi tetap huruf kecil saat berada di tengah frasa (`dan`, `atau`, `serta`, `dengan`, `di`, `ke`, `dari`, `pada`, `dalam`, `rangka`, `untuk`, `tentang`, `oleh`, `sebagai`, `yang`, `terhadap`, `hingga`, `sampai`, `antar`, `secara`, `terkait`).
+     - Mendukung format teks miring markdown (`*bekantan*` $\rightarrow$ `*Bekantan*`).
+  2. **Penyempurnaan `buildKegiatanDiktumText(...)`**:
+     - Seluruh komponen dinamis (`capAsal`, `capTujuan`, `capKota`, `capTempat`, `capNama`, `capUntuk`) otomatis diformat melalui `capitalizeOfficialText`.
+     - *Smart Raw Sentence Parser*: Jika pengguna menyalin-tempel kalimat utuh penugasan (misal: `Melaksanakan Perjalanan Dinas dari Samarinda ke kabupaten kutai barat dalam rangka inventarisasi bmn di suaka badak kelian;`) langsung ke kolom kegiatan, sistem cerdas memilah asal (`Samarinda`), tujuan (`Kabupaten Kutai Barat`), kegiatan (`Inventarisasi BMN`), dan tempat spesifik (`Suaka Badak Kelian`) tanpa menghasilkan teks dobel atau `ke ...`.
+  3. **Integrasi Reaktif & On-Blur (`frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx`)**:
+     - Kotak biru **Pratinjau Kalimat Tugas Resmi** secara reaktif dan instan merefleksikan huruf depan kapital saat pengguna mengetik.
+     - Event `onBlur` dipasang pada 15 kolom input formulir (`kotaAsal`, `kotaTujuan`, `namaKegiatanText`, `tempatSpesifik`, `untukKegiatanText`), sehingga saat pengguna berpindah kolom, nilai di dalam kolom input otomatis rapi bertata naskah dinas.
+  4. **Suite Pengujian Otomatis (`frontend/tests/diktum-capitalization-check.cjs`)**:
+     - 5/5 invariant assertion lulus (100% PASS): verifikasi title case, akronim BMN/SKW/KPHP, huruf kecil preposisi, teks miring markdown, serta pemformatan diktum baik dari kolom terpisah maupun kalimat mentah utuh.
+  5. **Verifikasi Kompilasi & Graphify**:
+     - `npx tsc --noEmit` di `frontend`: **0 Error (100% Pass)**.
+     - `graphify update .`: 11.948 nodes, 21.852 edges, 853 communities ter-update.
