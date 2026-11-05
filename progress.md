@@ -821,4 +821,48 @@
      - Test suite `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (pengujian helper Yth, 4 level hierarki, ekstraksi 31 butir Simata BKN, dan catatan kaki BSrE BSSN).
      - TypeScript compile check: `npx tsc --noEmit` $\rightarrow$ **0 Errors**.
 
+---
 
+### 24. Ekspor Word/PDF Presisi Tinggi, Smart Pagination, dan Siklus Hidup Nomor Naskah (${nomor_naskah}) Tata Naskah Dinas — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada generator naskah dinas (`http://localhost:3000/surat/keluar/dinas`):
+    1. **Ekspor Microsoft Word (.doc) Editable & Presisi Cetak**:
+       - KOP naskah pada hasil Word memiliki penataan simetris (sisi kiri sedikit lebih menjorok ke kiri dari teks naskah, dan sisi kanan sejajar dengan tepi teks naskah kanan, sesuai konfigurasi Surat Tugas).
+       - Judul naskah (*NOTA DINAS* / *MEMORANDUM*) dan Nomor berada tepat di tengah dengan spasi yang lega dari KOP.
+       - Nomor surat diletakkan lebih dekat dengan judul naskah.
+       - Baris *Perihal* tidak di-bold pada Word sesuai kaidah naskah resmi.
+       - Tembusan ditempatkan di bawah blok tanda tangan pimpinan pada sisi kiri.
+       - Spasi Yth (1, 2, 3) dan jarak dari tanggal ke paragraf pertama serta paragraf penutup diberi jeda lega (*spacing*) yang proporsional tanpa *stretched justification*.
+    2. **Ekspor PDF Fisik Presisi A4 & Smart Pagination**:
+       - Clearance KOP pada pratinjau web, cetak fisik (@media print), dan unduhan PDF diseragamkan tepat 2.5mm dari tepi kertas atas (tidak terpotong dan tidak turun terlalu jauh).
+       - *Smart Pagination*: Pada dokumen multi-halaman (>1 halaman), paragraf terakhir/penutup, tanda tangan, dan tembusan tetap menjadi satu kesatuan (*keep-together*) pindah bersama ke halaman berikutnya, dan halaman 1 memiliki sisa margin bawah yang bersih (~60mm).
+       - Pada naskah 1 halaman, dicegah agar tidak memicu halaman ke-2 kosong (*zero orphan page*).
+    3. **Penyelarasan Spasi Poin Bertingkat**:
+       - Spasi antar poin utama (`1.`), sub-poin (`a.`), butir romawi (`i.`), dan butir kurung (`1)`) dibuat rapat dan dekat sesuai acuan spesimen fisik resmi.
+    4. **Siklus Hidup Nomor Naskah Fleksibel (${nomor_naskah})**:
+       - Pada Card 1 (Identitas & Meta Dokumen), disediakan toggle switcher antara **Pola Nomor Baku** (format resmi Balai) dan **Nomor Naskah (${nomor_naskah})**.
+       - Posisi label `NOMOR :` / `Nomor: ` pada pratinjau, Word, PDF, dan cetak tetap terkunci pada koordinat yang sama tanpa bergeser saat diganti dengan ${nomor_naskah}.
+       - Naskah dapat disimpan sebagai Draf, diekspor ke Word/PDF, atau dicetak untuk diajukan ke pimpinan / sistem luar untuk proses verifikasi/ACC.
+       - Di Daftar Surat Keluar (`/surat/keluar`), naskah dengan ${nomor_naskah} ditandai dengan badge khusus amber **`Perlu Nomor Definitif`**.
+       - Setelah naskah di-ACC dan memiliki nomor resmi, operator cukup membuka kembali (klik Edit) untuk memasukkan nomor definitif dan mendaftarkannya ke Agenda Resmi.
+
+- **Implementasi Tingkat Teknis (Ponytail Principle: Minimal, Native, Robust)**:
+  1. **Helper Ekspor Cerdas (`frontend/src/app/surat/_lib/export-surat-dinas.ts`)**:
+     - `exportSuratDinasWord(nomor, templateType, perihal)`: Membangun dokumen Word berbasis MHTML table layout yang 100% kompatibel dengan MS Word. Mengonversi gambar KOP menjadi inline base64, merender baris Yth multi-baris tanpa forced justification, menata KOP dengan offset simetris (lebar 189.4mm, posisi 11.0mm dari tepi), menyematkan spacer pemisah sebelum batang tubuh, dan menyusun tembusan tepat di bawah tanda tangan.
+     - `exportSuratDinasPdf(nomor, templateType, perihal)`: Mengintegrasikan `jspdf` dan `html2canvas-pro` dengan algoritma *smart pagination*. Mengukur koordinat elemen `.penutup-ttd-group`; jika melebihi batas aman halaman 1 (270mm), seluruh grup penutup, tanda tangan, dan tembusan digeser bersama ke halaman 2 dengan margin atas 22mm.
+  2. **Clearance KOP & Layout Seragam (`SuratDinasDocument.tsx`)**:
+     - `SURAT_DINAS_BASE_CSS` dan `@media print`: Clearance KOP diatur tepat `2.5mm auto 4mm auto !important` dan padding atas root diatur `0`, menjamin konsistensi 1:1 antara tampilan live preview layar, jendela dialog Cetak browser, dan berkas fisik PDF.
+  3. **Penataan Butir Bertingkat Rapat**:
+     - `poin-marker` memiliki lebar 1.35rem, `poin-level-2` memiliki margin kiri 1.35rem dan jarak bawah 0.15rem, menghasilkan perataan vertikal yang rapat dan rapi persis seperti spesimen naskah dinas resmi.
+     - Di `export-surat-dinas.ts`, tabel 2 kolom list diatur dengan cell padding bawah 2pt untuk sub-butir.
+  4. **Penguncian Posisi Label `NOMOR :` (`.nota-dinas-nomor-wrapper`)**:
+     - Membungkus label `NOMOR : ` / `Nomor: ` dan nomor naskah ke dalam elemen ber-anchor tetap (`display: inline-block; min-width: 78mm; text-align: left;`).
+     - Mengeliminasi pergeseran teks horizontal saat berganti antara nomor panjang (`M.015/K.18/TU/KSA.01.05/B/11/2026`) dan nomor pendek (`${nomor_naskah}`).
+  5. **Antarmuka Form & Daftar Surat Keluar (`dinas/page.tsx` & `keluar/page.tsx`)**:
+     - Card 1 formulir menyematkan tombol tab toggle: `[ Pola Nomor Baku ]` dan `[ Nomor Naskah (${nomor_naskah}) ]`.
+     - Tabel Surat Keluar menampilkan penanda visual badge amber `Perlu Nomor Definitif` jika nomor surat memuat `${nomor_naskah}`.
+  6. **Verifikasi Kualitas**:
+     - Test suite ekspor naskah dinas `frontend/tests/test-export-transform.cjs`: **100% PASS** (8 invariant checks mencakup Yth multi-line, perihal non-bold, posisi tembusan di bawah TTD, threshold single page 305mm, geometri KOP 189.4mm, spasi poin rapat 4pt, smart pagination multi-halaman, dan clearance KOP 2.5mm).
+     - Test suite template naskah dinas `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (20 invariant checks).
+     - Kompilasi TypeScript `npx tsc --noEmit`: **0 Errors**.

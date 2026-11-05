@@ -25,14 +25,25 @@ import {
   Users,
   ClipboardPaste,
   FileCheck,
+  Download,
+  FileDown,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { formatNipLabel } from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
   SuratDinasDocument,
   SuratDinasData,
@@ -51,9 +62,13 @@ import {
   detectPointLevel,
   getPointLevelClassName,
   parseRawDocumentText,
+  splitPointMarkerAndText,
+  getNextMarkerForSection,
+  reindexParagraphMarkers,
   PointLevel,
 } from "../../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
+import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
 
 interface PartySelectorBlockProps {
   label: string;
@@ -282,6 +297,35 @@ function GenerateSuratDinasContent() {
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
   const [showSmartPaste, setShowSmartPaste] = useState(false);
   const [smartPasteText, setSmartPasteText] = useState("");
+  const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
+
+  const handleExportWord = async () => {
+    try {
+      setIsExporting("word");
+      toast.loading("Menyiapkan dokumen Word...", { id: "export-dinas-doc" });
+      await exportSuratDinasWord(data.nomor || "", activeTemplate, data.perihal || "");
+      toast.success("Dokumen Word (.doc) berhasil diunduh!", { id: "export-dinas-doc" });
+    } catch (err) {
+      console.error("Gagal mengekspor dokumen Word:", err);
+      toast.error("Gagal mengunduh dokumen Word. Silakan coba kembali.", { id: "export-dinas-doc" });
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting("pdf");
+      toast.loading("Menyiapkan berkas fisik PDF...", { id: "export-dinas-pdf" });
+      await exportSuratDinasPdf(data.nomor || "", activeTemplate, data.perihal || "");
+      toast.success("Berkas PDF (.pdf) berhasil diunduh!", { id: "export-dinas-pdf" });
+    } catch (err) {
+      console.error("Gagal mengekspor berkas PDF:", err);
+      toast.error("Gagal mengunduh berkas PDF. Silakan gunakan opsi Cetak.", { id: "export-dinas-pdf" });
+    } finally {
+      setIsExporting(null);
+    }
+  };
 
   // Helper to extract month suffix (MM/YYYY)
   const currentMonthSuffix = useMemo(() => {
@@ -293,6 +337,10 @@ function GenerateSuratDinasContent() {
     const d = new Date();
     return `${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
   }, [data.kotaTanggal]);
+
+  const isAutoNomorNaskah = Boolean(
+    data.nomor && (data.nomor === "${nomor_naskah}" || data.nomor.includes("${nomor_naskah}"))
+  );
 
   // Memoized parsed nomor components: [nomorUrut, kodeKlasifikasi, suffix]
   const nomorSegments = useMemo(() => {
@@ -306,8 +354,10 @@ function GenerateSuratDinasContent() {
       };
     }
     const parts = raw.split("/");
+    const defaultPrefix = getDefaultNomorPrefix(activeTemplate);
+    const hasPlaceholder = parts[0]?.includes("${");
     return {
-      nomorUrut: parts[0] ?? getDefaultNomorPrefix(activeTemplate),
+      nomorUrut: hasPlaceholder || !parts[0] ? defaultPrefix : parts[0],
       kodeKlasifikasi: parts[3] ?? "KSA.01.05",
       suffix: currentMonthSuffix,
     };
@@ -421,101 +471,42 @@ function GenerateSuratDinasContent() {
     toast.success(`Pejabat penandatangan dipilih: ${empName}`);
   };
 
-  // Paragraph management: Penutup is ALWAYS the last paragraph
-  const handleAddParagraph = () => {
+  // Ponytail unified helper: Tambah / sisipkan butir dengan auto-scroll dan auto-focus
+  const handleInsertPoint = (
+    type: "plain" | "num" | "letter" | "roman" | "bracket",
+    atIndex?: number
+  ) => {
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, "");
-      return { ...prev, paragraf: list };
+      let insertAt = atIndex;
+      if (insertAt === undefined) {
+        // Ponytail: Sisipkan di sebelum penutup jika paragraf terakhir adalah teks penutup biasa (Level 0)
+        const lastItem = list[list.length - 1] || "";
+        const lastLvl = detectPointLevel(lastItem);
+        insertAt = lastLvl === 0 && list.length > 1 ? list.length - 1 : list.length;
+      }
+      const marker = type === "plain" ? "" : getNextMarkerForSection(list, insertAt, type);
+      list.splice(insertAt, 0, marker);
+      return { ...prev, paragraf: reindexParagraphMarkers(list) };
     });
+    setTimeout(() => {
+      const textareas = document.querySelectorAll<HTMLTextAreaElement>(".paragraf-textarea");
+      const targetIdx = atIndex !== undefined ? atIndex : Math.max(0, textareas.length - 2);
+      const target = textareas[targetIdx];
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.focus();
+        const len = target.value.length;
+        target.setSelectionRange(len, len);
+      }
+    }, 60);
   };
 
-  const handleAddPoint = () => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      // Count existing numbered points in list
-      let maxNum = 0;
-      for (const item of list) {
-        const match = item.trim().match(/^(\d+)[.)]\s/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num > maxNum) maxNum = num;
-        }
-      }
-      const nextNum = maxNum + 1;
-      const newPointText = `${nextNum}. `;
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, newPointText);
-      return { ...prev, paragraf: list };
-    });
-  };
-
-  // Tambah Sub-Poin Huruf (a., b., c., dst.)
-  const handleAddSubPointLetter = () => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      const alphabet = "abcdefghijklmnopqrstuvwxyz";
-      let nextLetter = "a";
-      for (let i = list.length - 1; i >= 0; i--) {
-        const m = list[i].trim().match(/^([a-z])\.\s/i);
-        if (m) {
-          const char = m[1].toLowerCase();
-          const charIdx = alphabet.indexOf(char);
-          if (charIdx >= 0 && charIdx < alphabet.length - 1) {
-            nextLetter = alphabet[charIdx + 1];
-          }
-          break;
-        }
-      }
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, `${nextLetter}. `);
-      return { ...prev, paragraf: list };
-    });
-  };
-
-  // Tambah Sub-Sub Poin Romawi (i., ii., iii., iv., dst.)
-  const handleAddSubPointRoman = () => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
-      let nextRoman = "i";
-      for (let i = list.length - 1; i >= 0; i--) {
-        const m = list[i].trim().match(/^(i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/i);
-        if (m) {
-          const r = m[1].toLowerCase();
-          const rIdx = romans.indexOf(r);
-          if (rIdx >= 0 && rIdx < romans.length - 1) {
-            nextRoman = romans[rIdx + 1];
-          }
-          break;
-        }
-      }
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, `${nextRoman}. `);
-      return { ...prev, paragraf: list };
-    });
-  };
-
-  // Tambah Butir Angka Kurung (1), 2), 3), dst.)
-  const handleAddSubPointBracket = () => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      let maxNum = 0;
-      for (let i = list.length - 1; i >= 0; i--) {
-        const m = list[i].trim().match(/^(\d+)\)\s/);
-        if (m) {
-          const n = parseInt(m[1], 10);
-          if (n > maxNum) maxNum = n;
-          break;
-        }
-      }
-      const nextNum = maxNum > 0 ? maxNum + 1 : 1;
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, `${nextNum}) `);
-      return { ...prev, paragraf: list };
-    });
-  };
+  const handleAddParagraph = () => handleInsertPoint("plain");
+  const handleAddPoint = () => handleInsertPoint("num");
+  const handleAddSubPointLetter = () => handleInsertPoint("letter");
+  const handleAddSubPointRoman = () => handleInsertPoint("roman");
+  const handleAddSubPointBracket = () => handleInsertPoint("bracket");
 
   // Ubah Level Poin pada Baris Tertentu
   const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
@@ -527,13 +518,14 @@ function GenerateSuratDinasContent() {
         .trim();
 
       let prefix = "";
-      if (targetType === "num") prefix = "1. ";
-      else if (targetType === "letter") prefix = "a. ";
-      else if (targetType === "roman") prefix = "i. ";
-      else if (targetType === "bracket") prefix = "1) ";
+      if (targetType === "plain") {
+        prefix = "";
+      } else {
+        prefix = getNextMarkerForSection(list, index, targetType);
+      }
 
       list[index] = prefix + cleaned;
-      return { ...prev, paragraf: list };
+      return { ...prev, paragraf: reindexParagraphMarkers(list) };
     });
   };
 
@@ -551,7 +543,7 @@ function GenerateSuratDinasContent() {
     }
     setData((prev) => ({
       ...prev,
-      paragraf: parsed,
+      paragraf: reindexParagraphMarkers(parsed),
     }));
     setShowSmartPaste(false);
     setSmartPasteText("");
@@ -561,9 +553,10 @@ function GenerateSuratDinasContent() {
   const handleRemoveParagraph = (index: number) => {
     setData((prev) => {
       const p = prev.paragraf || [];
+      const updated = p.length > 1 ? p.filter((_, i) => i !== index) : p;
       return {
         ...prev,
-        paragraf: p.length > 1 ? p.filter((_, i) => i !== index) : p,
+        paragraf: reindexParagraphMarkers(updated),
       };
     });
   };
@@ -893,6 +886,49 @@ function GenerateSuratDinasContent() {
             <Send className="w-3.5 h-3.5" />
             {isRegistering ? "Menyimpan..." : editingSuratKeluarId ? "Update Naskah" : "Daftarkan Resmi"}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isExporting !== null}
+                className="rounded-xl text-xs gap-1.5 shadow-sm text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+              >
+                {isExporting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-0.5 text-blue-600" />
+                ) : (
+                  <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                )}
+                <span>Unduh</span>
+                <ChevronDown className="w-3 h-3 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+              <DropdownMenuItem
+                onClick={handleExportPdf}
+                disabled={isExporting !== null}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+              >
+                <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                <div className="flex flex-col text-left">
+                  <span>Unduh PDF (.pdf)</span>
+                  <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleExportWord}
+                disabled={isExporting !== null}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="flex flex-col text-left">
+                  <span>Unduh Word (.doc)</span>
+                  <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button
             size="sm"
             variant="outline"
@@ -950,7 +986,7 @@ function GenerateSuratDinasContent() {
 
             <div className="space-y-3 text-xs">
               {/* Nomor Surat Editor */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nomor Naskah</label>
                   <span className="font-mono text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 whitespace-pre">
@@ -958,75 +994,124 @@ function GenerateSuratDinasContent() {
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
-                  <div className="grid grid-cols-12 gap-1.5 items-end">
-                    <div className="col-span-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[10px] font-bold text-zinc-500">Awalan/No</label>
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
-                          className="text-[9px] px-1 py-0.2 rounded border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 font-mono"
-                          title="Format baku"
-                        >
-                          {getDefaultNomorPrefix(activeTemplate)}
-                        </button>
-                      </div>
-                      <Input
-                        value={nomorSegments.nomorUrut}
-                        onChange={(e) => handleUpdateNomorUrut(e.target.value)}
-                        placeholder="Contoh: S.888 atau ND.102"
-                        className="h-8 text-xs font-mono font-bold text-left bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-2"
-                      />
-                    </div>
+                {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
+                <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const prefix = getDefaultNomorPrefix(activeTemplate);
+                      const klasifikasi = nomorSegments.kodeKlasifikasi || "KSA.01.05";
+                      updateField("nomor", `${prefix}/K.18/TU/${klasifikasi}/B/${currentMonthSuffix}`);
+                    }}
+                    className={cn(
+                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      !isAutoNomorNaskah
+                        ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    )}
+                  >
+                    Pola Nomor Baku
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField("nomor", "${nomor_naskah}")}
+                    className={cn(
+                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      isAutoNomorNaskah
+                        ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    )}
+                  >
+                    Nomor Naskah (${"{nomor_naskah}"})
+                  </button>
+                </div>
 
-                    <div className="col-span-3 text-center pb-2">
-                      <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
-                        /K.18/TU/
+                {isAutoNomorNaskah ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700">
+                      <span className="text-slate-500 dark:text-zinc-400 font-semibold text-xs shrink-0 font-mono">
+                        Nomor :
                       </span>
-                    </div>
-
-                    <div className="col-span-3">
-                      <label className="text-[10px] font-bold text-zinc-500 block mb-1">Klasifikasi</label>
                       <Input
-                        value={nomorSegments.kodeKlasifikasi}
-                        onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
-                        placeholder="KSA.01.05"
-                        className="h-8 text-xs font-mono font-bold bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-1.5"
-                      />
-                    </div>
-
-                    <div className="col-span-2 text-center pb-2">
-                      <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
-                        /B/{currentMonthSuffix}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1.5 border-t border-zinc-200 dark:border-zinc-800">
-                    <span className="text-[10.5px]">
-                      Pola: <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/K.18/TU/</strong> ... <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/B/{currentMonthSuffix}</strong>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowManualNomor(!showManualNomor)}
-                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
-                    </button>
-                  </div>
-
-                  {showManualNomor && (
-                    <div className="pt-1">
-                      <Input
+                        type="text"
+                        placeholder="${nomor_naskah}"
                         value={data.nomor}
                         onChange={(e) => updateField("nomor", e.target.value)}
-                        placeholder="Ketik nomor surat lengkap..."
-                        className="h-8 text-xs font-mono bg-white dark:bg-zinc-900"
+                        className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 h-8 border-slate-200 dark:border-zinc-700 text-zinc-900 dark:text-white"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
+                    <div className="grid grid-cols-12 gap-1.5 items-end">
+                      <div className="col-span-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[10px] font-bold text-zinc-500">Awalan/No</label>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
+                            className="text-[9px] px-1 py-0.2 rounded border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 font-mono"
+                            title="Format baku"
+                          >
+                            {getDefaultNomorPrefix(activeTemplate)}
+                          </button>
+                        </div>
+                        <Input
+                          value={nomorSegments.nomorUrut}
+                          onChange={(e) => handleUpdateNomorUrut(e.target.value)}
+                          placeholder="Contoh: S.888 atau ND.102"
+                          className="h-8 text-xs font-mono font-bold text-left bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-2"
+                        />
+                      </div>
+
+                      <div className="col-span-3 text-center pb-2">
+                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                          /K.18/TU/
+                        </span>
+                      </div>
+
+                      <div className="col-span-3">
+                        <label className="text-[10px] font-bold text-zinc-500 block mb-1">Klasifikasi</label>
+                        <Input
+                          value={nomorSegments.kodeKlasifikasi}
+                          onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
+                          placeholder="KSA.01.05"
+                          className="h-8 text-xs font-mono font-bold bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-1.5"
+                        />
+                      </div>
+
+                      <div className="col-span-2 text-center pb-2">
+                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                          /B/{currentMonthSuffix}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1.5 border-t border-zinc-200 dark:border-zinc-800">
+                      <span className="text-[10.5px]">
+                        Pola: <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/K.18/TU/</strong> ... <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/B/{currentMonthSuffix}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowManualNomor(!showManualNomor)}
+                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
+                      </button>
+                    </div>
+
+                    {showManualNomor && (
+                      <div className="pt-1">
+                        <Input
+                          value={data.nomor}
+                          onChange={(e) => updateField("nomor", e.target.value)}
+                          placeholder="Ketik nomor surat lengkap..."
+                          className="h-8 text-xs font-mono bg-white dark:bg-zinc-900"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sifat & Lampiran (Hanya untuk Surat Dinas & Undangan) */}
@@ -1533,8 +1618,9 @@ function GenerateSuratDinasContent() {
           {/* Card 3: Paragraf Isi */}
           {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2.5 gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+              {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
+              <div className="sticky top-2 z-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-zinc-100 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
                   <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
                   3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
                 </h2>
@@ -1543,9 +1629,9 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleAddParagraph}
+                    onClick={() => handleInsertPoint("plain")}
                     className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah paragraf biasa"
+                    title="Tambah paragraf biasa ke akhir"
                   >
                     <Plus className="w-3.5 h-3.5 text-zinc-500" />
                     Paragraf
@@ -1554,9 +1640,9 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="default"
                     size="sm"
-                    onClick={handleAddPoint}
+                    onClick={() => handleInsertPoint("num")}
                     className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 gap-1 font-semibold shadow-xs"
-                    title="Tambah Poin Utama (1., 2., 3., ...)"
+                    title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
                   >
                     <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
                     + Poin 1.
@@ -1565,9 +1651,9 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleAddSubPointLetter}
+                    onClick={() => handleInsertPoint("letter")}
                     className="h-7 text-xs border-emerald-300 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Sub-Poin Huruf (a., b., c., ...)"
+                    title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
                   >
                     + Sub a.
                   </Button>
@@ -1575,9 +1661,9 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleAddSubPointRoman}
+                    onClick={() => handleInsertPoint("roman")}
                     className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/60 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...)"
+                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
                   >
                     + Butir i.
                   </Button>
@@ -1585,9 +1671,9 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleAddSubPointBracket}
+                    onClick={() => handleInsertPoint("bracket")}
                     className="h-7 text-xs border-violet-300 text-violet-800 bg-violet-50/60 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-300 dark:bg-violet-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Butir Angka Kurung (1), 2), 3), ...)"
+                    title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
                   >
                     + Butir 1)
                   </Button>
@@ -1740,8 +1826,70 @@ function GenerateSuratDinasContent() {
                           )}
                         </div>
 
-                        {/* Quick Level Switchers & Delete */}
+                        {/* Quick Level Switchers, Insert Below & Delete */}
                         <div className="flex items-center gap-1">
+                          {/* Mini Dropdown: + Sisipkan Tepat di Bawah Butir Ini */}
+                          {!isPenutup && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
+                                  title="Sisipkan butir baru tepat di bawah ini"
+                                >
+                                  <Plus className="w-2.5 h-2.5" />
+                                  <span>Sisipkan</span>
+                                  <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-xl p-1 z-50 text-xs">
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold"
+                                >
+                                  <span>↳ + Sub-Butir Anak</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-medium"
+                                >
+                                  <span>= + Poin Setara</span>
+                                </DropdownMenuItem>
+                                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("num", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-indigo-600 w-4">1.</span> Poin Utama
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("letter", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-emerald-600 w-4">a.</span> Sub-Poin Huruf
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("roman", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-amber-600 w-4">i.</span> Butir Romawi
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-violet-600 w-4">1)</span> Butir Kurung
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("plain", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-500 text-[11px]"
+                                >
+                                  <span className="font-mono w-4">¶</span> Paragraf Biasa
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+
                           <span className="text-[10px] text-zinc-400">Level:</span>
                           <button
                             type="button"
@@ -1831,7 +1979,7 @@ function GenerateSuratDinasContent() {
                             ? `Tulis isi butir...`
                             : `Tulis isi paragraf...`
                         }
-                        className="text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
+                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
                       />
                     </div>
                   );
@@ -2158,15 +2306,60 @@ function GenerateSuratDinasContent() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrintSuratDinas}
-                className="h-7 text-xs gap-1 rounded-lg"
-              >
-                <Printer className="w-3 h-3" />
-                Cetak Dokumen
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isExporting !== null}
+                      className="h-7 text-xs gap-1 rounded-lg text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+                    >
+                      {isExporting ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-0.5 text-blue-600" />
+                      ) : (
+                        <Download className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      )}
+                      <span>Unduh</span>
+                      <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+                    <DropdownMenuItem
+                      onClick={handleExportPdf}
+                      disabled={isExporting !== null}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                    >
+                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                      <div className="flex flex-col text-left">
+                        <span>Unduh PDF (.pdf)</span>
+                        <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleExportWord}
+                      disabled={isExporting !== null}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <div className="flex flex-col text-left">
+                        <span>Unduh Word (.doc)</span>
+                        <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrintSuratDinas}
+                  className="h-7 text-xs gap-1 rounded-lg"
+                >
+                  <Printer className="w-3 h-3" />
+                  Cetak Dokumen
+                </Button>
+              </div>
             </div>
 
             <div className="w-fit mx-auto">

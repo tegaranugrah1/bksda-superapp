@@ -324,6 +324,13 @@ export default function SuratKeluarListPage() {
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           <span>{item.no_surat}</span>
                         </div>
+                        {item.no_surat?.includes("${nomor_naskah}") && (
+                          <div className="mt-1 pl-5">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                              Perlu Nomor Definitif
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 pl-5">
                           <Calendar className="h-3 w-3 text-zinc-400 shrink-0" />
                           <span>{item.tanggal_surat}</span>

@@ -76,6 +76,9 @@ const {
   detectPointLevel,
   getPointLevelClassName,
   parseRawDocumentText,
+  splitPointMarkerAndText,
+  getNextMarkerForSection,
+  reindexParagraphMarkers,
 } = docMod.exports;
 const ndData = getDefaultDataForTemplate('nota_dinas');
 
@@ -201,5 +204,182 @@ console.log('[TEST] Checking BSrE BSSN footnote presence in SuratDinasDocument..
 assert(docSource.includes('Balai Besar Sertifikasi Elektronik (BSrE)'));
 assert(docSource.includes('Badan Siber dan Sandi Negara (BSSN)'));
 console.log('✅ BSrE BSSN footnote verified.');
+
+console.log('[TEST] Checking Marker and Content split (splitPointMarkerAndText)...');
+const split1 = splitPointMarkerAndText('1. Sesuai Keputusan Kepala BKN...');
+assert.equal(split1.marker, '1.');
+assert.equal(split1.content, 'Sesuai Keputusan Kepala BKN...');
+
+const split2 = splitPointMarkerAndText('a. Kinerja (sumbu Y), antara lain:');
+assert.equal(split2.marker, 'a.');
+assert.equal(split2.content, 'Kinerja (sumbu Y), antara lain:');
+
+const split3 = splitPointMarkerAndText('i. Kinerja utama, dengan data...');
+assert.equal(split3.marker, 'i.');
+assert.equal(split3.content, 'Kinerja utama, dengan data...');
+
+const split4 = splitPointMarkerAndText('1) Riwayat penilaian SKP...');
+assert.equal(split4.marker, '1)');
+assert.equal(split4.content, 'Riwayat penilaian SKP...');
+console.log('✅ splitPointMarkerAndText verified.');
+
+console.log('[TEST] Checking Sequential numbering & restart rules (getNextMarkerForSection)...');
+// Simulation of user building document:
+const simList = [
+  'Menindaklanjuti Nota Dinas...',
+  '1. Sesuai Keputusan Kepala BKN...',
+];
+
+// Under Point 1: first sub-point letter should be 'a. '
+const subA = getNextMarkerForSection(simList, simList.length, 'letter');
+assert.equal(subA, 'a. ', 'First sub-point under Point 1 must be a.');
+simList.push('a. Kinerja (sumbu Y)');
+
+// Under sub a: first roman should be 'i. '
+const romI = getNextMarkerForSection(simList, simList.length, 'roman');
+assert.equal(romI, 'i. ', 'First roman under sub a must be i.');
+simList.push('i. Kinerja utama');
+
+// Under sub a: second roman should be 'ii. '
+const romII = getNextMarkerForSection(simList, simList.length, 'roman');
+assert.equal(romII, 'ii. ', 'Second roman under sub a must be ii.');
+simList.push('ii. Kinerja penguat');
+
+// Under Point 1: second sub-point letter should be 'b. ' (NOT j.)
+const subB = getNextMarkerForSection(simList, simList.length, 'letter');
+assert.equal(subB, 'b. ', 'Second sub-point under Point 1 must be b.');
+simList.push('b. Potensial (sumbu X)');
+
+// Under sub b: roman MUST RESTART from 'i. ' (NOT iii.)
+const romIRestart = getNextMarkerForSection(simList, simList.length, 'roman');
+assert.equal(romIRestart, 'i. ', 'Roman under sub b must restart from i.');
+simList.push('i. Kompetensi');
+
+// Add Point 2: next main point should be '2. '
+const pt2 = getNextMarkerForSection(simList, simList.length, 'num');
+assert.equal(pt2, '2. ', 'Next main point must be 2.');
+simList.push('2. Pemenuhan parameter...');
+
+// Add Point 3: next main point should be '3. '
+const pt3 = getNextMarkerForSection(simList, simList.length, 'num');
+assert.equal(pt3, '3. ', 'Next main point must be 3.');
+simList.push('3. Data pendukung...');
+
+// Under Point 3: sub-point letter MUST RESTART from 'a. ' (NOT k.)
+const subARestart = getNextMarkerForSection(simList, simList.length, 'letter');
+assert.equal(subARestart, 'a. ', 'Letter under Point 3 must restart from a.');
+simList.push('a. Penilaian Kinerja');
+
+const subB2 = getNextMarkerForSection(simList, simList.length, 'letter');
+assert.equal(subB2, 'b. ', 'Next letter under Point 3 must be b.');
+simList.push('b. Penghargaan');
+
+// Under Point 4: brackets test
+simList.push('4. Sehubungan dengan hal tersebut...');
+simList.push('a. Mengunggah data-data:');
+
+// Under sub a: first bracket should be '1) '
+const brk1 = getNextMarkerForSection(simList, simList.length, 'bracket');
+assert.equal(brk1, '1) ', 'First bracket under sub a must be 1)');
+simList.push('1) Riwayat penilaian SKP');
+
+// Second bracket should be '2) '
+const brk2 = getNextMarkerForSection(simList, simList.length, 'bracket');
+assert.equal(brk2, '2) ', 'Second bracket under sub a must be 2)');
+simList.push('2) Riwayat pemberian penghargaan');
+
+console.log('✅ getNextMarkerForSection verified with restarts for sub a, butir i, and 1).');
+
+console.log('[TEST] Checking Print CSS multi-page margins (@page and @page :first)...');
+assert(docSource.includes('@page { size: A4 portrait; margin: 0; }'), 'Base @page must have 0 margin as in surat-tugas builder');
+assert(docSource.includes('@page :first { margin: 0; }'), '@page :first must have 0 margin for KOP');
+console.log('✅ Multi-page @page print margins verified.');
+
+console.log('[TEST] Checking Point hierarchy detection for empty markers (e.g. freshly inserted points)...');
+assert.equal(detectPointLevel('5.'), 1);
+assert.equal(detectPointLevel('5. '), 1);
+assert.equal(detectPointLevel('a.'), 2);
+assert.equal(detectPointLevel('a. '), 2);
+assert.equal(detectPointLevel('i.'), 3);
+assert.equal(detectPointLevel('1)'), 3);
+assert.equal(detectPointLevel('a)'), 4);
+console.log('✅ Empty marker detection verified.');
+
+console.log('[TEST] Checking Sequential numbering incrementing past 5 (empty & with text)...');
+const sampleList5 = [
+  'Menindaklanjuti...',
+  '1. Poin 1',
+  '2. Poin 2',
+  '3. Poin 3',
+  '4. Poin 4',
+  '5. Poin 5',
+  'Demikian...',
+];
+// Insert at length - 1 (before Demikian)
+const nextAfter5 = getNextMarkerForSection(sampleList5, sampleList5.length - 1, 'num');
+assert.equal(nextAfter5, '6. ', 'Next number after 5 must be 6.');
+sampleList5.splice(sampleList5.length - 1, 0, nextAfter5); // inserts '6. '
+
+const nextAfter6 = getNextMarkerForSection(sampleList5, sampleList5.length - 1, 'num');
+assert.equal(nextAfter6, '7. ', 'Next number after 6 (even without text) must be 7.');
+sampleList5.splice(sampleList5.length - 1, 0, nextAfter6); // inserts '7. '
+
+const nextAfter7 = getNextMarkerForSection(sampleList5, sampleList5.length - 1, 'num');
+assert.equal(nextAfter7, '8. ', 'Next number after 7 must be 8.');
+console.log('✅ Sequential numbering incrementing past 5 verified (6, 7, 8...).');
+
+console.log('[TEST] Checking BSrE BSSN footnote hidden in print...');
+assert(docSource.includes('print:hidden'), 'BSrE footer must have print:hidden so it is excluded from printed paper');
+assert(docSource.includes('.pkpknl-footer-bsre {\n      display: none !important;\n    }'), 'BSrE footer must be display: none in print styles');
+console.log('✅ BSrE BSSN footnote print hiding verified.');
+
+console.log('[TEST] Checking reindexParagraphMarkers & elimination of duplicate 5s/8s...');
+const duplicateList = [
+  'Menindaklanjuti...',
+  '1. Poin 1',
+  '2. Poin 2',
+  '3. Poin 3',
+  '4. Poin 4',
+  '5. Poin 5',
+  '5. duplicate',
+  'a. sub-poin',
+  '5. duplicate again',
+  'Demikian...'
+];
+const reindexed = reindexParagraphMarkers(duplicateList);
+assert.equal(reindexed[5], '5. Poin 5');
+assert.equal(reindexed[6], '6. duplicate');
+assert.equal(reindexed[7], 'a. sub-poin');
+assert.equal(reindexed[8], '7. duplicate again');
+console.log('✅ reindexParagraphMarkers correctly normalizes 5., 6., a., 7.');
+
+console.log('[TEST] Checking removal of redundant bottom action bar in dinas/page.tsx...');
+const pageSource = fs.readFileSync(path.resolve(__dirname, '../src/app/surat/keluar/dinas/page.tsx'), 'utf8');
+assert(!pageSource.includes('Tambah Butir ke Akhir:'), 'Bottom action bar "Tambah Butir ke Akhir:" should be deleted');
+console.log('✅ Bottom action bar removed.');
+
+console.log('[TEST] Checking Unduh dropdown with PDF & Word options in dinas/page.tsx...');
+assert(pageSource.includes('Unduh PDF (.pdf)'), 'Must include Unduh PDF option');
+assert(pageSource.includes('Unduh Word (.doc)'), 'Must include Unduh Word option');
+assert(pageSource.includes('handleExportPdf'), 'Must have handleExportPdf handler');
+assert(pageSource.includes('handleExportWord'), 'Must have handleExportWord handler');
+
+const exportLibPath = path.resolve(__dirname, '../src/app/surat/_lib/export-surat-dinas.ts');
+assert(fs.existsSync(exportLibPath), 'export-surat-dinas.ts must exist');
+const exportLibSource = fs.readFileSync(exportLibPath, 'utf8');
+assert(exportLibSource.includes('export async function exportSuratDinasWord'), 'Must export exportSuratDinasWord');
+assert(exportLibSource.includes('export async function exportSuratDinasPdf'), 'Must export exportSuratDinasPdf');
+console.log('✅ Unduh dropdown with Word and PDF export verified.');
+
+console.log('[TEST] Checking ${nomor_naskah} switcher and indicator...');
+assert(pageSource.includes('isAutoNomorNaskah'), 'Must have isAutoNomorNaskah flag');
+assert(pageSource.includes('Pola Nomor Baku'), 'Must have Pola Nomor Baku option');
+assert(pageSource.includes('Nomor Naskah (${nomor_naskah})'), 'Must have Nomor Naskah (${nomor_naskah}) option');
+
+assert(docSource.includes('nota-dinas-nomor-wrapper'), 'Must include fixed-anchor wrapper nota-dinas-nomor-wrapper');
+
+const keluarPageSource = fs.readFileSync(path.resolve(__dirname, '../src/app/surat/keluar/page.tsx'), 'utf8');
+assert(keluarPageSource.includes('Perlu Nomor Definitif'), 'Surat Keluar list must display Perlu Nomor Definitif badge for ${nomor_naskah}');
+console.log('✅ ${nomor_naskah} switcher, fixed NOMOR position, and Surat Keluar list badge verified.');
 
 console.log('✅ ALL NOTA DINAS, NESTED POINTS, YTH BUTTONS & BSrE ASSERTIONS PASSED!');
