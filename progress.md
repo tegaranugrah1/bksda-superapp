@@ -620,3 +620,38 @@
      `CHECK (status::text = ANY (ARRAY['dipinjam'::text, 'dikembalikan'::text, 'terlambat'::text]))`.
   3. Migration berhasil dijalankan dan status HTTP `GET /api/bmn/loans?page=1&per_page=10` pulih menjadi **200 OK**.
 
+---
+
+### 18. Redesain Tab Pinjaman Aktif di Portal Pegawai (`/portal`) — Selesai ✅
+
+- **Latar Belakang & Kebutuhan**:
+  - Tampilan tab **Pinjaman Aktif** di Portal Pegawai (`http://localhost:3000/portal`) sebelumnya hanya berupa daftar teks sederhana tanpa foto dan tanpa opsi tampilan grid visual, berbeda dengan tab **Aset Saya** (`MyAssetsTab`) yang sudah memiliki pratinjau foto dokumentasi dan modal lightbox interaktif.
+  - Pengguna meminta agar tampilan pinjaman aktif dibuat serupa dan setara dengan tampilan Aset Saya, tetap menerapkan prinsip **Ponytail** (kode minimal, reuse helper yang ada) dan standar **UI/UX Pro Max** (tanpa ikon AI).
+
+- **Perubahan Backend (`AuthController.php`)**:
+  - Memperbarui pemetaan `my_assets` pada endpoint `GET /api/me/dashboard` agar tidak hanya mengirimkan teks dasar, melainkan juga menyertakan seluruh atribut foto dokumentasi lengkap:
+    - `foto_geotag_url`, `foto_geotag_path`
+    - `foto_depan_url`, `foto_belakang_url`, `foto_kiri_url`, `foto_kanan_url`, `foto_lokasi_url`, `foto_url`
+  - Menyertakan token bearer dan parameter cache-busting timestamp `v` untuk URL foto dinamis.
+  - Menambahkan data `kondisi`, `tipe`, `merk_tipe`, dan `lokasi_ruang`.
+
+- **Perubahan Frontend (`ActiveLoansTab.tsx` & `page.tsx`)**:
+  1. **Dual View Switcher (List vs Grid)**:
+     - Header daftar pinjaman aktif dilengkapi tombol toggle tampilan **List** (`List`) dan **Grid** (`LayoutGrid`).
+     - Tampilan Grid menampilkan foto dokumentasi dengan rasio aspek video, badge jenis foto (`GEOTAG`, `TAMPAK DEPAN`), badge plat nomor kendaraan bermotor, badge status pinjaman (`Dipinjam` biru / `Terlambat` merah), strip jadwal tanggal pinjam & batas kembali, serta badge kondisi fisik aset (`Baik`, `Rusak Ringan`, `Rusak Berat`).
+     - Tampilan List menampilkan thumbnail foto dengan hover zoom overlay, rincian NUP, kode barang, spesifikasi merk, tanggal pinjam & batas kembali, badge status, dan indikator kamera.
+  2. **Modal Lightbox Foto Dokumentasi Interaktif**:
+     - Mengklik aset (baik pada tampilan list maupun grid) akan membuka modal foto resolusi penuh berlatar gelap blur (`fixed inset-0 z-50 bg-black/85 backdrop-blur-md`).
+     - Navigasi keyboard terintegrasi: tombol `Escape` untuk menutup modal, `Panah Kiri` dan `Panah Kanan` untuk berpindah foto.
+     - Pill selector sudut foto di bagian bawah modal jika aset memiliki beberapa foto dokumentasi.
+     - Tombol eksternal untuk membuka foto asli di tab peramban baru.
+  3. **Zero AI Bloat & Ponytail Code Reuse**:
+     - Tidak menggunakan ikon sihir / AI (`Sparkles`), murni menggunakan ikon domain logistik/portal (`Package`, `Camera`, `List`, `LayoutGrid`, `ZoomIn`, `Clock`, `ExternalLink`).
+     - Menggunakan kembali (*reuse*) helper `formatMerkTipe`, `resolvePhotoUrl`, dan `getAssetPhotos` dari `MyAssetsTab.tsx`.
+
+- **Verifikasi Kualitas**:
+  - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+  - PHP Lint: `php -l backend/app/Http/Controllers/Api/AuthController.php` **No syntax errors detected**.
+  - HTTP Status: `http://localhost:3000/portal` **200 OK**.
+
+

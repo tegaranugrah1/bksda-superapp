@@ -147,19 +147,37 @@ class AuthController extends Controller
                 'rank_level' => 0,
                 'is_active' => $employee->is_active,
             ] : null,
-            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) {
+            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) use ($request) {
+                $asset = $loan->asset;
+                $token = $request->bearerToken() ?: $request->query('token');
+                $tokenParam = $token ? "&token=" . urlencode($token) : "";
+                $v = $asset->updated_at?->timestamp ?: time();
+
                 return [
-                    'id' => $loan->asset->id,
-                    'nama_barang' => $loan->asset->nama_barang,
-                    'kode_barang' => $loan->asset->kode_barang,
-                    'nup' => $loan->asset->nup,
-                    'nup_lama' => $loan->asset->nup_lama,
+                    'id' => $asset->id,
+                    'loan_id' => $loan->id,
+                    'nama_barang' => $asset->nama_barang,
+                    'kode_barang' => $asset->kode_barang,
+                    'nup' => $asset->nup,
+                    'nup_lama' => $asset->nup_lama,
                     'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
                     'due_date' => ($loan->due_date ?? $loan->tanggal_kembali)?->toIso8601String(),
                     'status' => $loan->status,
-                    'merk' => $loan->asset->merk_tipe ?? $loan->asset->merk,
-                    'jenis_bmn' => $loan->asset->jenis_bmn,
-                    'no_polisi' => $loan->asset->no_polisi,
+                    'kondisi' => $asset->kondisi,
+                    'merk' => $asset->merk,
+                    'tipe' => $asset->tipe,
+                    'merk_tipe' => $asset->merk_tipe ?? $asset->merk,
+                    'jenis_bmn' => $asset->jenis_bmn,
+                    'no_polisi' => $asset->no_polisi,
+                    'lokasi_ruang' => $asset->lokasi_ruang,
+                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}" : $asset->foto_geotag_url,
+                    'foto_geotag_path' => $asset->foto_geotag_path && str_starts_with($asset->foto_geotag_path, 'http') ? $asset->foto_geotag_path : null,
+                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
+                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
+                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
+                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
+                    'foto_lokasi_url' => $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null,
+                    'foto_url' => $asset->foto_url,
                 ];
             })->values(),
         ];
