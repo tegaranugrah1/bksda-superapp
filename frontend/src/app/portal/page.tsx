@@ -608,158 +608,231 @@ function PortalContent() {
               initialCooldown={data.user.email_cooldown_remaining || 0}
               onSuccess={fetchDashboard}
             />
-            {inlineFormType === "general" ? (
-              <GeneralReportInlineForm
-                onBack={() => {
-                  setInlineFormType(null);
-                  setActiveNavTab("dashboard");
-                }}
-              />
-            ) : inlineFormType === "smart_patrol" ? (
-              <SmartPatrolInlineForm
-                onBack={() => {
-                  setInlineFormType(null);
-                  setActiveNavTab("dashboard");
-                }}
-              />
-            ) : activeNavTab === "dashboard" ? (
-              <>
-                {/* HERO BANNER GREETING */}
-                <PortalHeaderBanner
-                  displayName={data.employee?.name || data.user.name}
-                  activeSuratTugasCount={suratTugas.length}
-                  onOpenVisum={() => {
-                    setInlineFormType(null);
-                    setActiveNavTab("visum");
-                  }}
-                  onOpenKalkulator={() => {
-                    setInlineFormType(null);
-                    setActiveNavTab("kalkulator_dinas");
-                  }}
-                />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={inlineFormType ? `inline-${inlineFormType}` : `tab-${activeNavTab}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full space-y-6"
+              >
+                {inlineFormType === "general" ? (
+                  <GeneralReportInlineForm
+                    onBack={() => {
+                      setInlineFormType(null);
+                      setActiveNavTab("dashboard");
+                    }}
+                  />
+                ) : inlineFormType === "smart_patrol" ? (
+                  <SmartPatrolInlineForm
+                    onBack={() => {
+                      setInlineFormType(null);
+                      setActiveNavTab("dashboard");
+                    }}
+                  />
+                ) : activeNavTab === "dashboard" ? (
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0 },
+                      show: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.07,
+                          delayChildren: 0.02,
+                        },
+                      },
+                    }}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-6 w-full"
+                  >
+                    {/* HERO BANNER GREETING */}
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, y: 12 },
+                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
+                      }}
+                    >
+                      <PortalHeaderBanner
+                        displayName={data.employee?.name || data.user.name}
+                        activeSuratTugasCount={suratTugas.length}
+                        onOpenVisum={() => {
+                          setInlineFormType(null);
+                          setActiveNavTab("visum");
+                        }}
+                        onOpenKalkulator={() => {
+                          setInlineFormType(null);
+                          setActiveNavTab("kalkulator_dinas");
+                        }}
+                      />
+                    </motion.div>
 
-                {/* QUICK STATS ROW (4 STATUS CARDS) */}
-                <PortalQuickStats
-                  rank={data.employee?.rank}
-                  rankLevel={data.employee?.rank_level}
-                  activeSuratTugasCount={suratTugas.length}
-                  myAssetsCount={filteredMyAssets.length}
-                  leaveBalance={myLeaveBalance}
-                  year={currentYear}
-                  onSelectTab={(t) => setActiveNavTab(t)}
-                />
+                    {/* QUICK STATS ROW (4 STATUS CARDS) */}
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, y: 12 },
+                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
+                      }}
+                    >
+                      <PortalQuickStats
+                        rank={data.employee?.rank}
+                        rankLevel={data.employee?.rank_level}
+                        activeSuratTugasCount={suratTugas.length}
+                        myAssetsCount={filteredMyAssets.length}
+                        leaveBalance={myLeaveBalance}
+                        year={currentYear}
+                        onSelectTab={(t) => setActiveNavTab(t)}
+                      />
+                    </motion.div>
 
-                {/* MODUL AKSES GRID */}
-                {moduleCards.length > 0 && (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400">
-                        Modul Akses System
-                      </h3>
-                      <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
-                        {moduleCards.length} Modul Terotorisasi
-                      </span>
-                    </div>
+                    {/* MODUL AKSES GRID */}
+                    {moduleCards.length > 0 && (
+                      <motion.div
+                        variants={{
+                          hidden: { opacity: 0, y: 12 },
+                          show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
+                        }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-sm transition-shadow space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400">
+                            Modul Akses System
+                          </h3>
+                          <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-200/50 dark:border-emerald-800/50">
+                            {moduleCards.length} Modul Terotorisasi
+                          </span>
+                        </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-7 gap-3">
-                      {moduleCards.map((mod) => (
                         <motion.div
-                          key={mod.key}
-                          whileHover={{ y: -4 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
+                          variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                              opacity: 1,
+                              transition: {
+                                staggerChildren: 0.04,
+                                delayChildren: 0.06,
+                              },
+                            },
+                          }}
+                          initial="hidden"
+                          animate="show"
+                          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-7 gap-3"
                         >
-                          <Link
-                            href={mod.href}
-                            className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors text-center flex flex-col items-center justify-center space-y-1.5 h-full"
-                          >
-                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", mod.bg, mod.color)}>
-                              {mod.icon}
-                            </div>
-                            <div className="space-y-0.5 w-full">
-                              <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate">
-                                {mod.label}
-                              </p>
-                              <p className="text-[10px] text-slate-400 truncate w-full">
-                                {mod.desc}
-                              </p>
-                            </div>
-                          </Link>
+                          {moduleCards.map((mod) => (
+                            <motion.div
+                              key={mod.key}
+                              variants={{
+                                hidden: { opacity: 0, y: 10, scale: 0.96 },
+                                show: {
+                                  opacity: 1,
+                                  y: 0,
+                                  scale: 1,
+                                  transition: { type: "spring", stiffness: 380, damping: 25 },
+                                },
+                              }}
+                              whileHover={{ y: -5, transition: { type: "spring", stiffness: 420, damping: 20 } }}
+                              whileTap={{ scale: 0.97 }}
+                            >
+                              <Link
+                                href={mod.href}
+                                className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
+                              >
+                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:shadow-xs", mod.bg, mod.color)}>
+                                  {mod.icon}
+                                </div>
+                                <div className="space-y-0.5 w-full">
+                                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate">
+                                    {mod.label}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 truncate w-full">
+                                    {mod.desc}
+                                  </p>
+                                </div>
+                              </Link>
+                            </motion.div>
+                          ))}
                         </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </motion.div>
+                    )}
 
-                {/* WIDGET PENGUMUMAN & BANTUAN DI BAWAH PADA LAYAR LAPTOP (< 2xl) */}
-                <div className="block 2xl:hidden pt-1">
-                  <PortalInfoSidebar isHorizontal={true} />
-                </div>
-              </>
-            ) : activeNavTab === "pinjaman" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
-              </div>
-            ) : activeNavTab === "aset" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                <MyAssetsTab
-                  assetsLoading={assetsLoading}
-                  filteredMyAssets={filteredMyAssets as AssetItem[]}
-                  assetViewMode={assetViewMode}
-                  setAssetViewMode={setAssetViewMode}
-                />
-              </div>
-            ) : activeNavTab === "surat_tugas" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                <SuratTugasTab
-                  stLoading={stLoading}
-                  suratTugas={suratTugas}
-                  fetchSTDetail={fetchSTDetail}
-                  stDetailLoading={stDetailLoading}
-                  onOpenReportModal={(type) => setInlineFormType(type)}
-                  onOpenKalkulator={(stId) => {
-                    setInlineFormType(null);
-                    setActiveKalkulatorStId(stId);
-                    setActiveNavTab("kalkulator_dinas");
-                  }}
-                />
-              </div>
-            ) : activeNavTab === "cuti" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                <MyLeaveTab
-                  myLeaveRequests={myLeaveRequests}
-                  activeLeaveId={activeLeaveId}
-                  onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
-                  onCancelLeave={async (id) => {
-                    if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
-                    try {
-                      await api.delete(`/me/leave-requests/${id}`);
-                      toast.success("Permohonan cuti berhasil dibatalkan.");
-                      fetchMyLeaveRequests();
-                    } catch (error: unknown) {
-                      const err = error as { response?: { data?: { message?: string } } };
-                      toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
-                    }
-                  }}
-                  onPrintLeave={(item) => {
-                    setPrintLeaveData(item);
-                    setTimeout(() => window.print(), 300);
-                  }}
-                />
-              </div>
-            ) : activeNavTab === "visum" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6">
-                <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
-              </div>
-            ) : activeNavTab === "kalkulator_dinas" ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6 print:p-0 print:border-none print:shadow-none print:bg-transparent print:rounded-none">
-                <KalkulatorDinasTab
-                  suratTugasList={suratTugas}
-                  currentUserName={data.employee?.name || data.user.name}
-                  initialSelectedStId={activeKalkulatorStId}
-                />
-              </div>
-            ) : null}
+                    {/* WIDGET PENGUMUMAN & BANTUAN DI BAWAH PADA LAYAR LAPTOP (< 2xl) */}
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, y: 12 },
+                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
+                      }}
+                      className="block 2xl:hidden pt-1"
+                    >
+                      <PortalInfoSidebar isHorizontal={true} />
+                    </motion.div>
+                  </motion.div>
+                ) : activeNavTab === "pinjaman" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
+                  </div>
+                ) : activeNavTab === "aset" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <MyAssetsTab
+                      assetsLoading={assetsLoading}
+                      filteredMyAssets={filteredMyAssets as AssetItem[]}
+                      assetViewMode={assetViewMode}
+                      setAssetViewMode={setAssetViewMode}
+                    />
+                  </div>
+                ) : activeNavTab === "surat_tugas" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <SuratTugasTab
+                      stLoading={stLoading}
+                      suratTugas={suratTugas}
+                      fetchSTDetail={fetchSTDetail}
+                      stDetailLoading={stDetailLoading}
+                      onOpenReportModal={(type) => setInlineFormType(type)}
+                      onOpenKalkulator={(stId) => {
+                        setInlineFormType(null);
+                        setActiveKalkulatorStId(stId);
+                        setActiveNavTab("kalkulator_dinas");
+                      }}
+                    />
+                  </div>
+                ) : activeNavTab === "cuti" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                    <MyLeaveTab
+                      myLeaveRequests={myLeaveRequests}
+                      activeLeaveId={activeLeaveId}
+                      onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                      onCancelLeave={async (id) => {
+                        if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
+                        try {
+                          await api.delete(`/me/leave-requests/${id}`);
+                          toast.success("Permohonan cuti berhasil dibatalkan.");
+                          fetchMyLeaveRequests();
+                        } catch (error: unknown) {
+                          const err = error as { response?: { data?: { message?: string } } };
+                          toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
+                        }
+                      }}
+                      onPrintLeave={(item) => {
+                        setPrintLeaveData(item);
+                        setTimeout(() => window.print(), 300);
+                      }}
+                    />
+                  </div>
+                ) : activeNavTab === "visum" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6">
+                    <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
+                  </div>
+                ) : activeNavTab === "kalkulator_dinas" ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6 print:p-0 print:border-none print:shadow-none print:bg-transparent print:rounded-none">
+                    <KalkulatorDinasTab
+                      suratTugasList={suratTugas}
+                      currentUserName={data.employee?.name || data.user.name}
+                      initialSelectedStId={activeKalkulatorStId}
+                    />
+                  </div>
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
           </main>
 
           {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Tampil di Kanan HANYA pada Layar Lebar >= 2xl) */}

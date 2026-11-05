@@ -5,6 +5,7 @@ import { Package, List, LayoutGrid, Camera, X, ChevronLeft, ChevronRight, Extern
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { formatMerkTipe, getAssetPhotos, AssetItem } from "./MyAssetsTab";
 
 export interface BorrowedAssetItem {
@@ -134,9 +135,17 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
         </div>
       </div>
 
-      {viewMode === "list" ? (
-        /* List View */
-        <div className="divide-y divide-slate-100 dark:divide-zinc-800">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={viewMode}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
+          {viewMode === "list" ? (
+            /* List View */
+            <div className="divide-y divide-slate-100 dark:divide-zinc-800">
           {assets.map((asset) => {
             const photos = getAssetPhotos(asset as unknown as AssetItem);
             const primaryPhoto = photos[0] || null;
@@ -421,8 +430,10 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
               </div>
             );
           })}
-        </div>
-      )}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* ========================================================================= */}
       {/* LIGHTBOX PHOTO MODAL (Triggered when asset is clicked) */}

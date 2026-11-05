@@ -3,6 +3,7 @@
 import React from "react";
 import { Sun, Sunset, Moon, Sparkles, FileSpreadsheet, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface PortalHeaderBannerProps {
   displayName: string;
@@ -38,9 +39,23 @@ export function PortalHeaderBanner({
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 md:p-7 text-white shadow-md">
-      {/* Ambient background decoration glow */}
-      <div className="absolute -top-16 -right-16 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Ambient background decoration glow with gentle subtle float */}
+      <motion.div
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.18, 0.3, 0.18],
+        }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-16 -right-16 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.15, 0.28, 0.15],
+        }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute -bottom-16 -left-16 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"
+      />
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
@@ -64,25 +79,29 @@ export function PortalHeaderBanner({
 
         <div className="shrink-0 pt-2 md:pt-0 flex flex-wrap items-center gap-2">
           {onOpenKalkulator && (
-            <Button
-              type="button"
-              onClick={onOpenKalkulator}
-              className="rounded-2xl border border-emerald-300/40 bg-emerald-400/20 px-3.5 py-2.5 text-xs font-bold text-emerald-100 shadow-sm backdrop-blur-xs hover:bg-emerald-400/30 hover:text-white transition-all"
-            >
-              <Calculator className="mr-1.5 h-4 w-4 text-emerald-200" />
-              Kalkulator Dinas
-            </Button>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
+              <Button
+                type="button"
+                onClick={onOpenKalkulator}
+                className="rounded-2xl border border-emerald-300/40 bg-emerald-400/20 px-3.5 py-2.5 text-xs font-bold text-emerald-100 shadow-sm backdrop-blur-xs hover:bg-emerald-400/30 hover:text-white transition-all cursor-pointer"
+              >
+                <Calculator className="mr-1.5 h-4 w-4 text-emerald-200" />
+                Kalkulator Dinas
+              </Button>
+            </motion.div>
           )}
 
           {onOpenVisum && (
-            <Button
-              type="button"
-              onClick={onOpenVisum}
-              className="rounded-2xl border border-amber-300/40 bg-amber-400/20 px-3.5 py-2.5 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-xs hover:bg-amber-400/30 hover:text-white transition-all"
-            >
-              <FileSpreadsheet className="mr-1.5 h-4 w-4 text-amber-300" />
-              Buat Visum SPD
-            </Button>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}>
+              <Button
+                type="button"
+                onClick={onOpenVisum}
+                className="rounded-2xl border border-amber-300/40 bg-amber-400/20 px-3.5 py-2.5 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-xs hover:bg-amber-400/30 hover:text-white transition-all cursor-pointer"
+              >
+                <FileSpreadsheet className="mr-1.5 h-4 w-4 text-amber-300" />
+                Buat Visum SPD
+              </Button>
+            </motion.div>
           )}
         </div>
       </div>

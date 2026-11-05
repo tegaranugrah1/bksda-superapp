@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ShieldCheck, Award, Calendar, FileCheck } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 
 interface PortalQuickStatsProps {
   rank?: string | null;
@@ -19,6 +19,26 @@ interface PortalQuickStatsProps {
   onSelectTab?: (tab: "pinjaman" | "aset" | "surat_tugas" | "cuti") => void;
 }
 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 350, damping: 25 },
+  },
+};
+
 export function PortalQuickStats({
   rank,
   rankLevel,
@@ -29,12 +49,18 @@ export function PortalQuickStats({
   onSelectTab,
 }: PortalQuickStatsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
+    >
       {/* 1. STATUS VERIFIKASI DUKCAPIL */}
       <motion.div
-        whileHover={{ y: -3 }}
-        transition={{ duration: 0.15 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3"
+        variants={itemVariants}
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
+        whileTap={{ scale: 0.98 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow flex items-start gap-3 select-none"
       >
         <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
           <ShieldCheck className="w-5 h-5" />
@@ -42,7 +68,7 @@ export function PortalQuickStats({
         <div className="space-y-0.5 min-w-0">
           <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Verifikasi Dukcapil</p>
           <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Terverifikasi Aktif
           </p>
           <p className="text-[10px] text-slate-500 truncate">Data ASN Sinkron</p>
@@ -51,9 +77,10 @@ export function PortalQuickStats({
 
       {/* 2. PANGKAT & GOLONGAN */}
       <motion.div
-        whileHover={{ y: -3 }}
-        transition={{ duration: 0.15 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3"
+        variants={itemVariants}
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
+        whileTap={{ scale: 0.98 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow flex items-start gap-3 select-none"
       >
         <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shrink-0">
           <Award className="w-5 h-5" />
@@ -73,9 +100,9 @@ export function PortalQuickStats({
       <motion.div
         role="button"
         tabIndex={0}
-        whileHover={{ y: -3 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.15 }}
+        variants={itemVariants}
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => onSelectTab?.("cuti")}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -83,7 +110,7 @@ export function PortalQuickStats({
             onSelectTab?.("cuti");
           }
         }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex items-start gap-3 cursor-pointer select-none"
       >
         <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shrink-0">
           <Calendar className="w-5 h-5" />
@@ -107,9 +134,9 @@ export function PortalQuickStats({
       <motion.div
         role="button"
         tabIndex={0}
-        whileHover={{ y: -3 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.15 }}
+        variants={itemVariants}
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => onSelectTab?.("surat_tugas")}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -117,7 +144,7 @@ export function PortalQuickStats({
             onSelectTab?.("surat_tugas");
           }
         }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex items-start gap-3 cursor-pointer select-none"
       >
         <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0">
           <FileCheck className="w-5 h-5" />
@@ -130,6 +157,6 @@ export function PortalQuickStats({
           <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Aktif Dalam Penugasan</p>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

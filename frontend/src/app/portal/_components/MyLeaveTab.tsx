@@ -4,6 +4,7 @@ import React from "react";
 import { Calendar, FileCheck, FileText, Plus, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
 import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 
@@ -139,11 +140,27 @@ export function MyLeaveTab({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 }
+            }
+          }}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {filteredRequests.map((item, idx) => (
-            <div
+            <motion.div
               key={item.id ?? `leave-${item.tanggal_pengajuan}-${idx}`}
-              className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-xs"
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }
+              }}
+              whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+              className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-xs hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between border-b border-slate-200/50 dark:border-slate-800 pb-2.5 gap-2">
                 <div>
@@ -302,9 +319,9 @@ export function MyLeaveTab({
                   })()}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal Pratinjau Berkas Scan Cuti Pegawai */}

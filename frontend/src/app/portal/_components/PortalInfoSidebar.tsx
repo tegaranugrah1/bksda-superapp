@@ -3,6 +3,7 @@
 import React from "react";
 import { Megaphone, BookOpen, HelpCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boolean }) {
   return (
@@ -15,14 +16,17 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
       )}
     >
       {/* WIDGET 1: PENGUMUMAN BALAI */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-3">
+      <motion.div
+        whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
+      >
         <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">
           <Megaphone className="w-4 h-4 text-emerald-600" />
           <span>Pengumuman Resmi</span>
         </div>
 
         <div className="space-y-3 text-xs">
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition-colors hover:border-emerald-200">
             <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded">
               DIPA 2026
             </span>
@@ -34,7 +38,7 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
             </p>
           </div>
 
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition-colors hover:border-blue-200">
             <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded">
               ASET BMN
             </span>
@@ -46,10 +50,13 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* WIDGET 2: PANDUAN LAPORAN SURAT TUGAS */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-sm space-y-3">
+      <motion.div
+        whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+        className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
+      >
         <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
           <BookOpen className="w-4 h-4" />
           <span>Panduan Laporan ST</span>
@@ -60,16 +67,19 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
         <div className="pt-1">
           <a
             href="#laporan-st"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:translate-x-1"
           >
             <span>Format Laporan Resmi</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
-      </div>
+      </motion.div>
 
       {/* WIDGET 3: PUSAT BANTUAN */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm space-y-2 text-xs">
+      <motion.div
+        whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-2 text-xs"
+      >
         <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
           <HelpCircle className="w-4 h-4 text-emerald-600" />
           <span>Pusat Bantuan Subbag TU</span>
@@ -80,7 +90,7 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
         <p className="text-emerald-700 dark:text-emerald-400 font-mono font-bold text-[11px] pt-1">
           tu.bksdakaltim@ksdae.go.id
         </p>
-      </div>
+      </motion.div>
     </aside>
   );
 }
