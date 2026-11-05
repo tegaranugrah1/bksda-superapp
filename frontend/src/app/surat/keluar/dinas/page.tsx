@@ -370,6 +370,26 @@ function GenerateSuratDinasContent() {
     });
   };
 
+  const handleAddPoint = () => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      // Count existing numbered points in list
+      let maxNum = 0;
+      for (const item of list) {
+        const match = item.trim().match(/^(\d+)[.)]\s/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      const nextNum = maxNum + 1;
+      const newPointText = `${nextNum}. `;
+      const insertAt = Math.max(0, list.length - 1);
+      list.splice(insertAt, 0, newPointText);
+      return { ...prev, paragraf: list };
+    });
+  };
+
   const handleRemoveParagraph = (index: number) => {
     setData((prev) => {
       const p = prev.paragraf || [];
@@ -1224,15 +1244,26 @@ function GenerateSuratDinasContent() {
                   <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
                   3. Batang Tubuh / Isi ({(data.paragraf || []).length} Paragraf)
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddParagraph}
-                  className="h-7 text-xs text-emerald-600 hover:text-emerald-700 p-1 gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Paragraf
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddParagraph}
+                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2.5 gap-1 font-semibold"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-zinc-500" />
+                    Tambah Paragraf
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleAddPoint}
+                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2.5 gap-1 font-semibold shadow-xs"
+                  >
+                    <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
+                    Tambah Poin
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3 text-xs">
@@ -1240,23 +1271,34 @@ function GenerateSuratDinasContent() {
                   const pList = data.paragraf || [];
                   const isPenutup = idx === pList.length - 1;
                   const isPembuka = idx === 0;
+                  const isPoin = /^[0-9]+[.)]\s/i.test(pText.trim());
+                  const poinMatch = pText.trim().match(/^([0-9]+)[.)]\s/i);
+                  const poinNum = poinMatch ? poinMatch[1] : null;
+
                   return (
                     <div
                       key={idx}
                       className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${
                         isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
+                          : isPoin
+                          ? "border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20"
                           : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
-                            Paragraf {idx + 1}
+                            {isPoin ? `Poin ${poinNum || idx + 1}` : `Paragraf ${idx + 1}`}
                           </span>
                           {isPenutup ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                               Penutup (Bawah)
+                            </Badge>
+                          ) : isPoin ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 flex items-center gap-1">
+                              <ListOrdered className="w-2.5 h-2.5" />
+                              Poin Bernomor
                             </Badge>
                           ) : isPembuka ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-500 border-zinc-200">
@@ -1273,7 +1315,7 @@ function GenerateSuratDinasContent() {
                             type="button"
                             onClick={() => handleRemoveParagraph(idx)}
                             className="text-zinc-400 hover:text-red-500 p-0.5 rounded transition-colors"
-                            title="Hapus paragraf ini"
+                            title={isPoin ? "Hapus poin ini" : "Hapus paragraf ini"}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1282,9 +1324,15 @@ function GenerateSuratDinasContent() {
                       <Textarea
                         value={pText}
                         onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                        rows={isPembuka ? 4 : isPenutup ? 2 : 3}
-                        placeholder={isPenutup ? "Tulis isi penutup naskah..." : `Tulis isi paragraf ${idx + 1}...`}
-                        className="text-xs bg-white dark:bg-zinc-900 leading-relaxed"
+                        rows={isPembuka ? 4 : isPenutup ? 2 : isPoin ? 3 : 3}
+                        placeholder={
+                          isPenutup
+                            ? "Tulis isi penutup naskah..."
+                            : isPoin
+                            ? `Tulis isi poin ${poinNum || idx + 1}...`
+                            : `Tulis isi paragraf ${idx + 1}...`
+                        }
+                        className="text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
                       />
                     </div>
                   );

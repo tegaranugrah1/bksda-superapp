@@ -745,3 +745,39 @@
   5. **Verifikasi Kompilasi & Graphify**:
      - `npx tsc --noEmit` di `frontend`: **0 Error (100% Pass)**.
      - `graphify update .`: 11.948 nodes, 21.852 edges, 853 communities ter-update.
+
+---
+
+### 22. Modernisasi Katalog Tata Naskah Dinas Favorit & Template Nota Dinas Resmi Ber-KOP Alamat — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada halaman `http://localhost:3000/surat/keluar/dinas`:
+    1. Pada Katalog Tata Naskah Dinas Resmi (`TemplatePickerModal.tsx`), berikan penanda **favorit** pada **Surat Dinas**, **Nota Dinas**, dan **Memorandum**.
+    2. Format dan tata letak **Nota Dinas** diubah sesuai naskah dinas resmi Permen Kehutanan No. 1/2025:
+       - Menggunakan KOP Balai resmi ber-alamat lengkap (`kop-bksda-alamat.png`).
+       - Judul naskah `NOTA DINAS` dan format nomor `Nomor: ND...`.
+       - Format Yth tersusun rapi multi-line di bawah titik dua (`:`).
+       - Default naskah menggunakan data dinas Surat Edaran KARIS/KARSU MyASN BKN ke 3 Kepala SKW dengan 4 poin kegiatan.
+       - Tanda tangan TTE/QR Code langsung di atas nama dan NIP Kepala Balai tanpa baris jabatan duplikat di atasnya (karena jabatan "Dari: Kepala Balai KSDA Kalimantan Timur" sudah ada di kepala nota dinas).
+    3. Pada batang tubuh naskah dinas, sediakan tombol **Tambah Poin** di samping tombol **Tambah Paragraf** untuk menyisipkan butir kegiatan bernomor (`1. `, `2. `, `3. `, dst.) dengan hanging indent rapi (`poin-item`).
+
+- **Implementasi (Ponytail Principle: Minimal, Native, Robust)**:
+  1. **Aset KOP Resmi (`frontend/public/kop-bksda-alamat.png`)**:
+     - Menyediakan citra KOP Balai resmi beresolusi tinggi dengan alamat lengkap kantor Samarinda dan Call Center di direktori publik agar dapat dimuat baik pada live preview Next.js maupun jendela cetak fisik (`window.print()`).
+  2. **Katalog Template Favorit (`frontend/src/app/surat/_components/TemplatePickerModal.tsx`)**:
+     - Menambahkan tab kategori `⭐ Favorit (3)` dan filter berbasis atribut `isFavorite: true` untuk Surat Dinas, Nota Dinas, dan Memorandum.
+     - Menyematkan badge bintang emas `⭐ Favorit` pada kartu naskah.
+     - Urutan cerdas pada tab `Semua`: memprioritaskan template favorit berada di urutan teratas.
+  3. **Dokumen & KOP Nota Dinas (`frontend/src/app/surat/_components/SuratDinasDocument.tsx`)**:
+     - Mengubah sumber KOP `nota_dinas` ke `/kop-bksda-alamat.png`.
+     - Styling hanging indent `.pkpknl-body p.poin-item` (`text-indent: -1.5rem !important; padding-left: 1.5rem !important; text-align: justify;`) untuk tampilan cetak A4 dan editor.
+     - Memperbarui `getDefaultDataForTemplate("nota_dinas")` dengan nomor edaran `ND.246/K.18/TU/PEG.09.01/B/05/2026`, perihal KARIS/KARSU virtual, penerima 3 Seksi KSDA Wilayah, dan 4 poin edaran.
+  4. **Editor Naskah Dinas (`frontend/src/app/surat/keluar/dinas/page.tsx`)**:
+     - Menambahkan tombol `[+ Tambah Poin]` dengan ikon list bernomor di samping `[+ Tambah Paragraf]`.
+     - Logika `handleAddPoint`: mendeteksi penomoran terakhir dan menyisipkan butir baru tepat sebelum paragraf penutup.
+     - Badge cerdas pada kartu textarea: mendeteksi format butir dan memberi penanda `Poin X (Poin Bernomor)` berlatar indigo.
+  5. **Verifikasi & Runnable Checks**:
+     - Runnable test suite `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS**.
+     - TypeScript compiler `npx tsc --noEmit`: **0 Errors**.
+     - Graphify AST knowledge graph: `graphify update .` **11.974 nodes, 21.879 edges**.
+

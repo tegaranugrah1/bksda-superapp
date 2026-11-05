@@ -253,22 +253,25 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
     case "nota_dinas":
       return {
         templateType: "nota_dinas",
-        nomor,
-        kotaTanggal: baseDate,
+        nomor: "ND.246/K.18/TU/PEG.09.01/B/05/2026",
+        kotaTanggal: "11 Mei 2026",
         sifat: "Biasa",
-        lampiran: "-",
-        perihal: "Penyampaian Laporan Hasil Monitoring Populasi Satwa Dilindungi Triwulan III",
-        yth: "Para Kepala Seksi Konservasi Wilayah dan Staf",
-        dari: DEFAULT_KEPALA_BALAI.jabatanLengkap,
+        lampiran: "1 (satu) lembar",
+        perihal: "Kartu Istri/Kartu Suami Aparatur Sipil Negara Virtual",
+        yth: "1. Kepala Seksi KSDA Wilayah I Berau\n2. Kepala Seksi KSDA Wilayah II Tenggarong\n3. Kepala Seksi KSDA Wilayah III Balikpapan",
+        dari: "Kepala Balai KSDA Kalimantan Timur",
         paragraf: [
-          "Sehubungan dengan pelaksanaan program kerja konservasi sumber daya alam hayati dan ekosistemnya di wilayah kerja Balai KSDA Kalimantan Timur untuk periode Triwulan III Tahun 2026, bersama ini kami sampaikan petunjuk pelaksanaan kegiatan sebagaimana terlampir.",
-          "Diharapkan kepada seluruh unit kerja untuk memedomani arahan teknis serta meningkatkan intensitas patroli pengamanan kawasan secara terpadu bersama masyarakat mitra.",
-          "Demikian nota dinas ini disampaikan untuk dipedomani dan dilaksanakan dengan penuh rasa tanggung jawab.",
+          "Menindaklanjuti Nota Dinas Sekretaris Direktorat Jenderal KSDAE Nomor ND.70/SETKSDAE/KKOTL/PEG.10.1/B/01/2025 tanggal 21 Januari 2025 perihal Edaran Kartu Istri/Kartu Suami Aparatur Sipil Negara Virtual, bersama ini disampaikan hal-hal sebagai berikut:",
+          "1. Layanan Kartu Istri/Kartu Suami Aparatur Sipil Negara (KARIS/KARSU) dilaksanakan secara digital melalui aplikasi MyASN BKN.",
+          "2. Aparatur Sipil Negara (ASN) yang belum pernah memiliki KARIS/KARSU agar melakukan pengajuan penambahan pasangan melalui riwayat keluarga pada aplikasi MyASN BKN.",
+          "3. KARIS/KARSU virtual akan terbit secara otomatis pada aplikasi MyASN setelah pengajuan disetujui oleh Biro Kepegawaian.",
+          "4. Sehubungan dengan hal tersebut, diminta kepada Saudara/i untuk menyampaikan informasi ini kepada seluruh ASN (PNS dan PPPK) di lingkungan kerja masing-masing, serta memastikan ASN melakukan pembaruan data keluarga pada aplikasi MyASN.",
+          "Demikian kami sampaikan, atas perhatian dan kerjasamanya diucapkan terima kasih.",
         ],
         jabatanPenandatangan: DEFAULT_KEPALA_BALAI.jabatan,
         namaPenandatangan: DEFAULT_KEPALA_BALAI.nama,
         nipPenandatangan: DEFAULT_KEPALA_BALAI.nip,
-        tembusan: [{ id: "1", text: "Kepala Seksi KSDA Wilayah I Berau" }],
+        tembusan: [{ id: "1", text: "Sekretaris Direktorat Jenderal KSDAE di Jakarta" }],
       };
 
     case "undangan":
@@ -788,6 +791,13 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-body { width: 100%; margin: 14px 0 0; text-align: justify; text-justify: inter-word; }
   .pkpknl-body p { margin-bottom: 0.85rem; text-indent: 2.5em; line-height: 1.5; }
   .pkpknl-body p.no-indent { text-indent: 0 !important; }
+  .pkpknl-body p.poin-item {
+    text-indent: -1.5rem !important;
+    padding-left: 1.5rem !important;
+    margin-bottom: 0.5rem;
+    text-align: justify;
+    line-height: 1.6;
+  }
   .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; margin-top: 1.5rem !important; }
   .pkpknl-ttd { width: 20rem; margin: 1.5rem 0 0 auto; text-align: left; break-inside: avoid; page-break-inside: avoid; }
   .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.15; }
@@ -975,7 +985,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         <div className="pkpknl-kop text-center" style={{ marginLeft: "-20mm", marginRight: "-20mm" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/header-paling-baru.png"
+            src={currentTemplate === "nota_dinas" ? "/kop-bksda-alamat.png" : "/header-paling-baru.png"}
             alt="Kop Surat"
             style={{ width: "196mm", maxWidth: "196mm", height: "auto", display: "block", margin: "0 auto" }}
           />
@@ -989,7 +999,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                 {currentTemplate === "nota_dinas" ? "NOTA DINAS" : "MEMORANDUM"}
               </h2>
               <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5">
-                NOMOR :{" "}
+                {currentTemplate === "nota_dinas" ? "Nomor: " : "NOMOR : "}
                 <span
                   contentEditable
                   suppressContentEditableWarning
@@ -1001,14 +1011,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               </p>
             </div>
 
-            <div className="pb-2 mb-4 space-y-1 text-[11pt]">
-              <div className="flex items-baseline">
+            <div className="pb-2 mb-4 space-y-1.5 text-[11pt]">
+              <div className="flex items-start">
                 <span className="w-24 shrink-0 font-normal">Yth.</span>
                 <span className="w-4 text-center shrink-0">:</span>
                 <span
                   contentEditable
                   suppressContentEditableWarning
-                  className="pkpknl-edit flex-1"
+                  className="pkpknl-edit flex-1 whitespace-pre-line leading-relaxed"
                   onBlur={(e) => onUpdateField?.("yth", e.currentTarget.innerText)}
                 >
                   {yth}
@@ -1621,21 +1631,24 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         {currentTemplate !== "surat_pengantar" && currentTemplate !== "surat_izin_cuti" && (
           <div className="pkpknl-body">
             {paragraf && paragraf.length > 1 ? (
-              paragraf.slice(0, -1).map((pText, idx) => (
-                <p
-                  key={idx}
-                  contentEditable
-                  suppressContentEditableWarning
-                  className={`pkpknl-edit ${/^[A-Z0-9]+[.)]\s/i.test(pText.trim()) ? "no-indent" : ""}`}
-                  onBlur={(e) => {
-                    const newParas = [...paragraf];
-                    newParas[idx] = e.currentTarget.innerText;
-                    onUpdateField?.("paragraf", newParas);
-                  }}
-                >
-                  {pText}
-                </p>
-              ))
+              paragraf.slice(0, -1).map((pText, idx) => {
+                const isPoin = /^[A-Z0-9]+[.)]\s/i.test(pText.trim());
+                return (
+                  <p
+                    key={idx}
+                    contentEditable
+                    suppressContentEditableWarning
+                    className={`pkpknl-edit ${isPoin ? "poin-item" : ""}`}
+                    onBlur={(e) => {
+                      const newParas = [...paragraf];
+                      newParas[idx] = e.currentTarget.innerText;
+                      onUpdateField?.("paragraf", newParas);
+                    }}
+                  >
+                    {pText}
+                  </p>
+                );
+              })
             ) : (!paragraf || paragraf.length === 0) ? (
               <p className="text-slate-400 italic">Ketik isi naskah dinas di sini...</p>
             ) : null}
@@ -1647,18 +1660,24 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           <div data-break-candidate="penutup-ttd" className="penutup-ttd-group" style={{ display: "block", breakInside: "avoid", pageBreakInside: "avoid" }}>
             {paragraf && paragraf.length > 0 && currentTemplate !== "surat_izin_cuti" && (
               <div className="pkpknl-body">
-                <p
-                  contentEditable
-                  suppressContentEditableWarning
-                  className={`pkpknl-edit ${/^[A-Z0-9]+[.)]\s/i.test(paragraf[paragraf.length - 1].trim()) ? "no-indent" : ""}`}
-                  onBlur={(e) => {
-                    const newParas = [...paragraf];
-                    newParas[newParas.length - 1] = e.currentTarget.innerText;
-                    onUpdateField?.("paragraf", newParas);
-                  }}
-                >
-                  {paragraf[paragraf.length - 1]}
-                </p>
+                {(() => {
+                  const lastP = paragraf[paragraf.length - 1];
+                  const isPoin = /^[A-Z0-9]+[.)]\s/i.test(lastP.trim());
+                  return (
+                    <p
+                      contentEditable
+                      suppressContentEditableWarning
+                      className={`pkpknl-edit ${isPoin ? "poin-item" : ""}`}
+                      onBlur={(e) => {
+                        const newParas = [...paragraf];
+                        newParas[newParas.length - 1] = e.currentTarget.innerText;
+                        onUpdateField?.("paragraf", newParas);
+                      }}
+                    >
+                      {lastP}
+                    </p>
+                  );
+                })()}
               </div>
             )}
 
