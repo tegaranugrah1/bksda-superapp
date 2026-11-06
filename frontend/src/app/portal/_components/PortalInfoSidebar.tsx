@@ -12,22 +12,22 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
         "w-full shrink-0",
         isHorizontal
           ? "grid grid-cols-1 md:grid-cols-3 gap-4"
-          : "w-full 2xl:w-72 space-y-4"
+          : "w-full space-y-4"
       )}
     >
       {/* WIDGET 1: PENGUMUMAN BALAI */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
       >
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">
-          <Megaphone className="w-4 h-4 text-emerald-600" />
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white border-b border-[#edf3ee] dark:border-slate-800 pb-2">
+          <Megaphone className="w-4 h-4 text-[#1e5433]" />
           <span>Pengumuman Resmi</span>
         </div>
 
         <div className="space-y-3 text-xs">
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition-colors hover:border-emerald-200">
-            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded">
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-[#edf3ee] dark:border-slate-800 transition-colors hover:border-emerald-200">
+            <span className="text-[10px] font-bold text-[#1e5433] dark:text-emerald-300 bg-[#dff0e2] dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-[#dce8dd]">
               DIPA 2026
             </span>
             <p className="font-semibold text-slate-800 dark:text-slate-200 pt-1">
@@ -38,7 +38,7 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
             </p>
           </div>
 
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition-colors hover:border-blue-200">
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-[#edf3ee] dark:border-slate-800 transition-colors hover:border-blue-200">
             <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded">
               ASET BMN
             </span>
@@ -55,7 +55,7 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
       {/* WIDGET 2: PANDUAN LAPORAN SURAT TUGAS */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
+        className="bg-gradient-to-br from-[#164227] to-[#153e24] text-white rounded-2xl p-4 shadow-xs hover:shadow-md transition-shadow space-y-3 border border-[#164227]"
       >
         <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
           <BookOpen className="w-4 h-4" />
@@ -78,10 +78,10 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
       {/* WIDGET 3: PUSAT BANTUAN */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-2 text-xs"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-2 text-xs"
       >
         <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-          <HelpCircle className="w-4 h-4 text-emerald-600" />
+          <HelpCircle className="w-4 h-4 text-[#1e5433] dark:text-emerald-400" />
           <span>Pusat Bantuan Subbag TU</span>
         </div>
         <p className="text-slate-500 text-[11px]">

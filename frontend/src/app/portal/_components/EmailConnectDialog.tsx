@@ -153,85 +153,84 @@ export function EmailConnectDialog({
     <>
       {/* Banner Notifikasi jika email belum aktif/resmi */}
       {needsVerification && (
-        <section
-          className="bg-[#fefcf6] border border-[#faecd0] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs dark:bg-amber-950/20 dark:border-amber-900/50 mb-6"
-          data-purpose="verification-warning-banner"
-        >
-          <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-[#fdf3dc] text-[#92400e] flex items-center justify-center shrink-0 dark:bg-amber-900/30 dark:text-amber-300">
-              <AlertTriangle className="w-5 h-5" />
+        <div className="w-full rounded-2xl border border-[#fef3c7] bg-[#fffbeb] py-2.5 px-3.5 sm:px-4 shadow-2xs dark:border-amber-900/40 dark:from-amber-950/30 dark:via-amber-950/20 dark:to-orange-950/10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef3c7] text-[#d97706] dark:bg-amber-400/10 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-[#b45309] dark:text-amber-300">
+                  {isLocalEmail
+                    ? "Hubungkan Akun Gmail Pribadi Anda"
+                    : "Email Anda Belum Terverifikasi"}
+                </h4>
+                <p className="text-[11px] text-[#92400e]/90 dark:text-amber-200/80 mt-0.5 max-w-xl leading-normal">
+                  {isLocalEmail
+                    ? "Akun Anda saat ini menggunakan email placeholder sistem. Hubungkan Gmail Anda untuk menerima notifikasi persetujuan cuti, surat tugas, dan pemulihan kata sandi mandiri."
+                    : `Tautan verifikasi telah dikirim ke ${currentEmail}. Segera periksa kotak masuk Gmail Anda agar fitur notifikasi aktif.`}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-sm font-bold text-[#92400e] dark:text-amber-300 leading-snug">
-                {isLocalEmail
-                  ? "Hubungkan Akun Gmail Pribadi Anda"
-                  : "Email Anda Belum Terverifikasi"}
-              </h2>
-              <p className="text-xs text-[#92400e]/85 dark:text-amber-200/80 mt-0.5 leading-relaxed">
-                {isLocalEmail
-                  ? "Akun Anda saat ini menggunakan email placeholder sistem. Hubungkan Gmail Anda untuk menerima notifikasi persetujuan cuti, surat tugas, dan pemulihan kata sandi mandiri."
-                  : <>Tautan verifikasi telah dikirim ke <span className="font-semibold text-[#92400e] dark:text-amber-200">{currentEmail}</span>. Segera periksa kotak masuk Gmail Anda agar fitur notifikasi aktif.</>}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
             {isLocalEmail ? (
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowChangeForm(true);
                   setOpen(true);
                 }}
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#c25e00] hover:bg-[#a64e00] text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
+                size="sm"
+                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
               >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Hubungkan Gmail</span>
-              </button>
+                <Mail className="w-4 h-4 mr-2" />
+                Hubungkan Gmail
+              </Button>
             ) : cooldown > 0 ? (
               <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
+                <Button
                   disabled
-                  className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#c25e00]/70 text-white font-semibold text-xs shadow-xs cursor-not-allowed opacity-90"
+                  size="sm"
+                  className="bg-amber-600/70 dark:bg-amber-700/60 text-white font-semibold shadow-sm cursor-not-allowed opacity-90"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Tunggu ({cooldown}s)</span>
-                </button>
-                <button
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin text-amber-200" />
+                  Tunggu ({cooldown}s)
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setShowChangeForm(true);
                     setOpen(true);
                   }}
-                  className="text-xs border border-amber-300 dark:border-amber-800 text-[#92400e] dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 bg-white/70 dark:bg-slate-900/70 font-semibold px-3 py-2 rounded-xl cursor-pointer"
+                  className="text-xs border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 bg-white/70 dark:bg-slate-900/70 font-semibold"
                 >
-                  <Pencil className="w-3.5 h-3.5 inline mr-1" />
+                  <Pencil className="w-3.5 h-3.5 mr-1" />
                   Ganti Email
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowChangeForm(false);
                   setOpen(true);
                 }}
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#c25e00] hover:bg-[#a64e00] text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
+                size="sm"
+                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
               >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Kirim Ulang / Ganti</span>
-              </button>
+                <Mail className="w-4 h-4 mr-2" />
+                Kirim Ulang / Ganti
+              </Button>
             )}
           </div>
-        </section>
+        </div>
       )}
 
       {/* Modal Hubungkan / Perbarui Email */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eff5ee] text-[#1e5433] border border-[#dce8dd] dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <DialogTitle className="text-center text-lg font-bold">

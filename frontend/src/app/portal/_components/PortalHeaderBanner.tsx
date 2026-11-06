@@ -1,15 +1,25 @@
 "use client";
 
 import React from "react";
-import { Plus, Calculator, ArrowRight } from "lucide-react";
+import { Sun, Sunset, Moon, FileSpreadsheet, Calculator, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface PortalHeaderBannerProps {
-  displayName?: string;
-  activeSuratTugasCount: number;
+  displayName: string;
+  activeSuratTugasCount?: number;
   onOpenVisum?: () => void;
   onOpenKalkulator?: () => void;
-  onOpenSuratTugasTab?: () => void;
+  className?: string;
+}
+
+function getGreeting(): { text: string; icon: React.ReactNode } {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) return { text: "Selamat Pagi", icon: <Sun className="w-4 h-4 text-emerald-200" /> };
+  if (hour >= 11 && hour < 15) return { text: "Selamat Siang", icon: <Sun className="w-4 h-4 text-amber-300" /> };
+  if (hour >= 15 && hour < 18) return { text: "Selamat Sore", icon: <Sunset className="w-4 h-4 text-amber-400" /> };
+  return { text: "Selamat Malam", icon: <Moon className="w-4 h-4 text-indigo-300" /> };
 }
 
 function formatDate(): string {
@@ -26,147 +36,85 @@ export function PortalHeaderBanner({
   activeSuratTugasCount,
   onOpenVisum,
   onOpenKalkulator,
-  onOpenSuratTugasTab,
+  className,
 }: PortalHeaderBannerProps) {
-  const currentDate = formatDate();
+  const greeting = getGreeting();
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-12 gap-4" data-purpose="welcome-and-performance-hero">
-      {/* HERO CARD (8 Cols) */}
-      <div className="lg:col-span-8 bg-[#1e5433] text-white rounded-2xl p-6 shadow-sm border border-[#164227] flex flex-col justify-between relative overflow-hidden">
-        {/* Subtle decorative glow */}
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+    <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1e5433] via-[#164227] to-[#153e24] p-5 sm:p-6 text-white shadow-sm border border-[#164227] flex flex-col justify-between", className)}>
+      {/* Ambient background decoration glow */}
+      <motion.div
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.18, 0.3, 0.18],
+        }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-16 -right-16 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.15, 0.28, 0.15],
+        }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute -bottom-16 -left-16 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"
+      />
 
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-semibold text-emerald-100">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-              {currentDate}
-            </span>
-            <span className="text-xs text-emerald-200/80">•</span>
-            <span className="text-[11px] font-medium text-emerald-200">
-              Wilayah I - III Terpantau Aktif
-            </span>
+      <div className="relative z-10 flex flex-col justify-between h-full gap-4">
+        {/* Top: Tanggal Hari Ini */}
+        <div className="flex items-center gap-2 text-emerald-100 text-xs font-semibold tracking-wide">
+          <div className="inline-flex items-center gap-1.5">
+            {greeting.icon}
+            <span>{formatDate()}</span>
           </div>
+        </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2 leading-snug">
-            Selamat Datang di Portal Terpadu BKSDA Kaltim!
-          </h2>
-          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-2xl leading-relaxed mb-6">
-            Pusat layanan operasional konservasi sumber daya alam, administrasi kepegawaian ASN, serta tata kelola kehutanan Kalimantan Timur terintegrasi dalam satu sistem superapp.
+        {/* Middle: Title & Subtitle without AI sparkles */}
+        <div className="space-y-1.5 my-auto py-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">
+            {greeting.text}, {((displayName || "").trim() || "Pegawai").split(",")[0]}!
+          </h1>
+          <p className="text-xs sm:text-sm text-emerald-100/90 font-medium max-w-2xl leading-relaxed">
+            Pusat layanan operasional konservasi sumber daya alam, administrasi kepegawaian ASN, serta tata kelola kehutanan terpadu BKSDA Kalimantan Timur.
           </p>
         </div>
 
-        {/* Action Buttons Row */}
-        <div className="relative z-10 flex flex-wrap items-center gap-3 pt-2 border-t border-white/10">
-          {onOpenVisum && (
-            <button
-              type="button"
-              onClick={onOpenVisum}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1e5433] hover:bg-[#edf3ee] font-bold text-xs transition-colors shadow-xs cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Buat Visum SPD</span>
-            </button>
-          )}
+        {/* Bottom: Action Buttons & Sistem Terintegrasi Indicator */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {onOpenKalkulator && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  type="button"
+                  onClick={onOpenKalkulator}
+                  className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs backdrop-blur-xs hover:bg-white/20 hover:text-white transition-all cursor-pointer"
+                >
+                  <Calculator className="mr-1.5 h-4 w-4 text-emerald-200" />
+                  Kalkulator Dinas
+                </Button>
+              </motion.div>
+            )}
 
-          {onOpenKalkulator && (
-            <button
-              type="button"
-              onClick={onOpenKalkulator}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-colors cursor-pointer"
-            >
-              <Calculator className="w-4 h-4" />
-              <span>Kalkulator Dinas</span>
-            </button>
-          )}
+            {onOpenVisum && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  type="button"
+                  onClick={onOpenVisum}
+                  className="rounded-xl border border-white/20 bg-white px-3.5 py-2 text-xs font-bold text-[#1e5433] shadow-xs backdrop-blur-xs hover:bg-[#edf3ee] transition-all cursor-pointer"
+                >
+                  <FileSpreadsheet className="mr-1.5 h-4 w-4 text-amber-500" />
+                  Buat Visum SPD
+                </Button>
+              </motion.div>
+            )}
+          </div>
 
-          <a
-            href="/panduan"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-200 hover:text-white transition-colors ml-auto group"
-          >
-            <span>Panduan Operasional Balai</span>
-            <span className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
+          <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-emerald-200/80 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Sistem Terintegrasi Kemenhut</span>
+          </div>
         </div>
       </div>
-
-      {/* INDIKATOR KINERJA 2026 CARD (4 Cols) */}
-      <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-[#dce8dd] dark:border-slate-800 shadow-xs flex flex-col justify-between">
-        <div className="flex items-center justify-between pb-3 border-b border-[#edf3ee] dark:border-slate-800">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              INDIKATOR KINERJA 2026
-            </span>
-            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-              Realisasi Patroli &amp; Layanan
-            </h4>
-          </div>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#dff0e2] text-[#1e5433] border border-[#dce8dd]">
-            +3.2%
-          </span>
-        </div>
-
-        <div className="my-4">
-          <div className="flex items-baseline justify-between mb-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                94.8%
-              </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                target tercapai
-              </span>
-            </div>
-            <span className="text-xs font-bold text-[#1e5433] dark:text-emerald-400">
-              142/150 ST
-            </span>
-          </div>
-
-          <div className="w-full bg-[#edf3ee] dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-3.5">
-            <div className="bg-[#1e5433] h-2 rounded-full" style={{ width: "94.8%" }} />
-          </div>
-
-          {/* Mini Weekly Bar Chart (Sen - Jum) */}
-          <div className="grid grid-cols-5 gap-1.5 pt-1 mb-2 text-center">
-            {[
-              { day: "Sen", active: false },
-              { day: "Sel", active: false },
-              { day: "Rab", active: true },
-              { day: "Kam", active: false },
-              { day: "Jum", active: false },
-            ].map((col) => (
-              <div key={col.day} className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    "w-full h-7 rounded-md transition-colors",
-                    col.active
-                      ? "bg-[#1e5433] shadow-xs"
-                      : "bg-[#d5e8d9]/70 dark:bg-slate-800 hover:bg-[#d5e8d9]"
-                  )}
-                />
-                <span className={cn("text-[10px] font-medium", col.active ? "text-[#1e5433] dark:text-emerald-300 font-bold" : "text-slate-400")}>
-                  {col.day}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="pt-3 border-t border-[#edf3ee] dark:border-slate-800 flex items-center justify-between text-xs">
-          <span className="text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Sinkron Terakhir: 10:45
-          </span>
-          <button
-            type="button"
-            onClick={onOpenSuratTugasTab}
-            className="font-bold text-[#1e5433] dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
-          >
-            <span>Lihat Rekapitulasi</span>
-            <span className="text-[11px]">→</span>
-          </button>
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }

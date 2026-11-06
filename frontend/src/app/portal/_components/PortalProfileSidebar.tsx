@@ -4,12 +4,13 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Key, LayoutDashboard, Handshake, Package, ClipboardList,
-  Calendar, UserCheck, Building, ChevronDown, FileCheck,
+  Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
+  Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
   FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
-  Camera, Cloud, LogOut,
+  Camera, Cloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { ChangePasswordModal } from "./SecurityModals";
 import { toast } from "sonner";
@@ -52,7 +53,8 @@ interface PortalProfileSidebarProps {
   onOpenInlineReport: (type: "general" | "smart_patrol") => void;
   isInlineReportOpen: boolean;
   onRefreshDashboard?: () => void;
-  onLogout?: () => void;
+  part?: "all" | "profile" | "menu";
+  className?: string;
 }
 
 export function PortalProfileSidebar({
@@ -67,9 +69,11 @@ export function PortalProfileSidebar({
   onOpenInlineReport,
   isInlineReportOpen,
   onRefreshDashboard,
-  onLogout,
+  part = "all",
+  className,
 }: PortalProfileSidebarProps) {
   const displayName = employee?.name || user?.name || "Pegawai BKSDA";
+  const displayNip = employee?.nip || user?.username || "-";
   const displayPosition = employee?.position || "Staf Balai KSDA Kaltim";
   const displayDept = employee?.department || "Balai KSDA Kalimantan Timur";
   const displayEmail = employee?.email || user?.email || "-";
@@ -206,264 +210,238 @@ export function PortalProfileSidebar({
     }
   };
 
-  return (
-    <>
-      <aside className="w-full space-y-5" data-purpose="sidebar-profile-and-menu">
-        {/* CARD 1: PROFILE CARD */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 shadow-sm p-6 relative overflow-hidden">
-          {/* Top Right Edit Pencil Icon */}
-          <button
-            type="button"
-            onClick={openEditDialog}
-            title="Ubah Profil"
-            className="absolute top-5 right-5 text-slate-400 hover:text-[#1e5433] dark:hover:text-emerald-400 transition-colors p-1"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+    const profileCard = (
+    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 sm:p-4.5 shadow-xs space-y-4 relative flex flex-col justify-between", part === "profile" && "h-full", className)}>
+      {/* Edit Profile Icon (Top Right Pencil) */}
+      <button
+        type="button"
+        onClick={openEditDialog}
+        title="Edit Informasi Kontak Profil"
+        className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-[#16a34a] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      >
+        <Pencil className="w-4 h-4" />
+      </button>
 
-          {/* Avatar & Badges */}
-          <div className="flex flex-col items-center text-center pt-2">
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoSelect}
-              />
-              <div className="w-24 h-24 rounded-full bg-[#1e5433] text-white text-3xl font-extrabold flex items-center justify-center shadow-md overflow-hidden">
-                {employee?.photo ? (
-                  <Image
-                    src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
-                    alt={displayName}
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <span>{displayName.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-
-              {/* Camera button overlay right */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                title="Ganti Foto"
-                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#164227] hover:bg-[#153e24] text-white flex items-center justify-center transition-colors shadow-sm border-2 border-white dark:border-slate-900 cursor-pointer z-10"
-              >
-                <Camera className="w-3.5 h-3.5" />
-              </button>
-
-              {/* AKTIF Pill positioned overlapping avatar bottom */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1e5433] text-white text-[10px] font-bold tracking-wider shadow-xs z-20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                <span>AKTIF</span>
-              </div>
+      <div className="space-y-4">
+        {/* Avatar Header */}
+        <div className="flex flex-col items-center text-center space-y-3">
+          <div className="relative group">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoSelect}
+            />
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#1e5433]/20 shadow-md bg-[#e4f0e6] dark:bg-emerald-950 flex items-center justify-center">
+              {employee?.photo ? (
+                <Image
+                  src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
+                  alt={displayName}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full bg-[#1e5433] flex items-center justify-center text-white text-2xl font-bold">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
+            {/* Camera Action Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Ganti Foto Profil"
+              className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#164227] hover:bg-[#153e24] text-white shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+            {/* Status Pill */}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1e5433] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-20">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+              AKTIF
+            </div>
+          </div>
 
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mt-4">
+          <div className="space-y-1 pt-1">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
               {displayName}
-            </h2>
-            <div className="mt-1">
-              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#e4f0e6] dark:bg-emerald-950/60 text-[#1e5433] dark:text-emerald-300 border border-[#dce8dd] dark:border-emerald-800/40">
-                {user?.role || "superadmin"}
+            </h3>
+            <p className="text-xs font-mono font-medium text-[#1e5433] dark:text-emerald-300 bg-[#e4f0e6] dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-[#dce8dd] inline-block">
+              {displayNip}
+            </p>
+          </div>
+        </div>
+
+        {/* Info Details List */}
+        <div className="space-y-2.5 pt-2.5 border-t border-[#edf3ee] dark:border-slate-800 text-xs">
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <UserCheck className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayPosition}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Building className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayDept}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Mail className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
+                {displayEmail}
               </span>
             </div>
           </div>
 
-          <hr className="my-5 border-[#edf3ee] dark:border-slate-800" />
-
-          {/* Information Meta List */}
-          <div className="space-y-3.5 text-left text-xs">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 text-[#1e5433] dark:text-emerald-400 shrink-0">
-                <UserCheck className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">JABATAN</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{displayPosition}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 text-[#1e5433] dark:text-emerald-400 shrink-0">
-                <Building className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">UNIT KERJA</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{displayDept}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 text-[#1e5433] dark:text-emerald-400 shrink-0">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">EMAIL</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 truncate" title={displayEmail}>
-                  {displayEmail}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 text-[#1e5433] dark:text-emerald-400 shrink-0">
-                <Phone className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TELEPON / WHATSAPP</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200">{displayPhone}</p>
-              </div>
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Phone className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {displayPhone}
+              </span>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Ganti Password CTA Pill */}
-          <div className="mt-5">
+      {/* Single Ganti Password Button pinned to bottom */}
+      <div className="pt-2 mt-auto">
+        <button
+          type="button"
+          onClick={() => setPwDialogOpen(true)}
+          className="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-[#edf3ee] dark:bg-slate-800 hover:bg-[#e4f0e6] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 transition-colors border border-[#dce8dd] dark:border-slate-700 cursor-pointer"
+        >
+          <Key className="w-3.5 h-3.5 text-slate-500" />
+          <span>Ganti Password</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  const menuCard = (
+    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-3.5 shadow-sm flex flex-col justify-between", part === "menu" && "h-full", className)}>
+      <div className="space-y-1">
+        <p className="px-3 py-1 text-[10px] uppercase tracking-wider font-bold text-slate-400">
+          Menu Utama
+        </p>
+
+        {/* 1 s.d. 7: Vertical Nav Items with Sliding Indicator */}
+        {[
+          { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
+          { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
+          { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
+          { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
+          { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
+          { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+          { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd]" },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = activeNavTab === item.id && !isInlineReportOpen;
+          return (
             <button
+              key={item.id}
               type="button"
-              onClick={() => setPwDialogOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#edf3ee] dark:bg-slate-800 hover:bg-[#e4f0e6] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 text-xs font-semibold transition-all border border-[#dce8dd] dark:border-slate-700 shadow-xs cursor-pointer"
+              onClick={() => onSelectNavTab(item.id)}
+              className={cn(
+                "relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left select-none cursor-pointer",
+                isActive ? "text-[#1e5433] dark:text-emerald-300 font-bold"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-[#edf3ee] dark:hover:bg-slate-800 hover:text-[#1e5433] dark:hover:text-emerald-400"
+              )}
             >
-              <Key className="w-4 h-4 text-[#1e5433] dark:text-emerald-400" />
-              <span>Ganti Password</span>
-            </button>
-          </div>
-        </div>
-
-        {/* CARD 2: PRIMARY NAVIGATION MENU */}
-        <nav className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 shadow-sm p-4 space-y-1" data-purpose="primary-navigation-sidebar">
-          <p className="text-[11px] font-bold uppercase text-slate-400 tracking-wider px-3 py-1 mb-1">
-            MENU UTAMA
-          </p>
-
-          {/* Nav Items */}
-          {[
-            { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard },
-            { id: "pinjaman", label: "Pinjaman Aktif", icon: Handshake, count: pinjamanCount },
-            { id: "aset", label: "Aset Saya", icon: Package, count: assetCount },
-            { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
-            { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
-            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-200/80" },
-            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd] dark:border-emerald-800/40" },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = activeNavTab === item.id && !isInlineReportOpen;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelectNavTab(item.id)}
-                className={cn(
-                  "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer",
-                  isActive
-                    ? "bg-[#d5e8d9] dark:bg-emerald-950/60 text-[#1e5433] dark:text-emerald-300 font-bold shadow-xs"
-                    : "text-slate-700 dark:text-slate-300 hover:text-[#1e5433] dark:hover:text-emerald-400 hover:bg-[#edf3ee] dark:hover:bg-slate-800"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className={cn("w-4 h-4", isActive ? "text-[#1e5433] dark:text-emerald-300" : "text-slate-500 dark:text-slate-400")} />
-                  <span>{item.label}</span>
-                </div>
-                {item.count !== undefined && item.count > 0 && (
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-bold",
-                      isActive
-                        ? "bg-[#1e5433] text-white"
-                        : "bg-[#edf3ee] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#dce8dd] dark:border-slate-700"
-                    )}
-                  >
-                    {item.count}
-                  </span>
-                )}
-                {item.badgeText && (
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-md text-[10px] font-bold",
-                      item.badgeClass
-                    )}
-                  >
-                    {item.badgeText}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-          {/* BKSDA Drive */}
-          <Link
-            href="/drive"
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#1e5433] dark:hover:text-emerald-400 hover:bg-[#edf3ee] dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Cloud className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              <span>BKSDA Drive</span>
-            </div>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#e4f0e6] dark:bg-emerald-950/60 text-[#1e5433] dark:text-emerald-300 border border-[#dce8dd] dark:border-emerald-800/40">
-              Baru
-            </span>
-          </Link>
-
-          {/* Buat Laporan Dropdown Action */}
-          <div className="pt-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-2xl bg-[#1e5433] hover:bg-[#164227] text-white font-bold text-xs shadow-sm transition-all group focus:outline-hidden cursor-pointer">
-                <span className="flex items-center gap-2.5">
-                  <ClipboardList className="w-4 h-4 text-white" />
-                  <span>{isInlineReportOpen ? "Form Laporan Aktif" : "Buat Laporan"}</span>
+              {isActive && (
+                <motion.span
+                  layoutId="activePortalSidebarIndicator"
+                  className="absolute inset-0 bg-[#d5e8d9] dark:bg-emerald-950/80 rounded-xl shadow-2xs border border-[#b8dabf] dark:border-emerald-800/60"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <div className={cn("flex items-center gap-2.5 relative z-10", isActive && "text-[#1e5433] dark:text-emerald-300")}>
+                <Icon className={cn("w-4 h-4", isActive ? "text-[#1e5433] dark:text-emerald-300" : "text-slate-500 dark:text-slate-400")} />
+                <span>{item.label}</span>
+              </div>
+              {item.count !== undefined && item.count > 0 && (
+                <span
+                  className={cn(
+                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300"
+                      : "bg-[#edf3ee] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#dce8dd] dark:border-slate-700"
+                  )}
+                >
+                  {item.count}
                 </span>
-                <ChevronDown className="w-4 h-4 text-white opacity-80 group-hover:translate-y-0.5 transition-transform" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-[#dce8dd] shadow-xl bg-white dark:bg-slate-900">
-                <DropdownMenuItem
-                  onClick={() => onOpenInlineReport("general")}
-                  className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-slate-800 focus:bg-[#edf3ee] transition-colors"
+              )}
+              {item.badgeText && (
+                <span
+                  className={cn(
+                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300" : item.badgeClass
+                  )}
                 >
-                  <div className="p-2 rounded-lg bg-[#e4f0e6] text-[#1e5433] shrink-0 mt-0.5">
-                    <FileCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">1. Laporan Pelaksanaan ST</p>
-                    <p className="text-[10px] text-slate-500 font-normal">Buka Mode Inline Form Laporan</p>
-                  </div>
-                </DropdownMenuItem>
+                  {item.badgeText}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-                <DropdownMenuItem
-                  onClick={() => onOpenInlineReport("smart_patrol")}
-                  className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-slate-800 focus:bg-[#edf3ee] transition-colors"
-                >
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
-                    <FileSpreadsheet className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
-                    <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </nav>
+      {/* FAST ACTION: BUAT LAPORAN DROPDOWN */}
+      {onOpenInlineReport && (
+        <div className="pt-2.5 mt-auto border-t border-[#edf3ee] dark:border-slate-800">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full flex items-center justify-between px-3 py-2 font-bold text-xs rounded-xl shadow-xs bg-[#1e5433] hover:bg-[#164227] text-white transition-all focus:outline-none">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-white" />
+                <span>{isInlineReportOpen ? "Form Laporan Aktif" : "Buat Laporan"}</span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-slate-200 shadow-xl bg-white dark:bg-slate-900">
+              <DropdownMenuItem
+                onClick={() => onOpenInlineReport("general")}
+                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5">
+                  <FileCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">1. Laporan Pelaksanaan ST</p>
+                  <p className="text-[10px] text-slate-500 font-normal">Buka Mode Inline Form Laporan</p>
+                </div>
+              </DropdownMenuItem>
 
-        {/* CARD 3: DEDICATED SEPARATED LOGOUT CARD */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 shadow-sm p-4 space-y-3">
-          <button
-            type="button"
-            onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-[#dce8dd] dark:border-slate-700 hover:border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-bold transition-all cursor-pointer group"
-          >
-            <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-600 transition-colors" />
-            <span>Keluar / Logout</span>
-          </button>
-          <p className="text-center text-[10px] text-slate-400 font-mono">
-            v3.4.0 (Enterprise) • BKSDA Kaltim
-          </p>
+              <DropdownMenuItem 
+                onClick={() => onOpenInlineReport("smart_patrol")}
+                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
+                  <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </aside>
+      )}
+    </div>
+  );
 
+  const dialogs = (
+    <>
       {/* DIALOG EDIT PROFIL KONTAK */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl p-6">
@@ -543,7 +521,7 @@ export function PortalProfileSidebar({
         </DialogContent>
       </Dialog>
 
-      {/* DIALOG GANTI PASSWORD */}
+      {/* DIALOG GANTI PASSWORD (REUSED FROM SecurityModals) */}
       <ChangePasswordModal
         open={pwDialogOpen}
         onClose={() => setPwDialogOpen(false)}
@@ -608,6 +586,29 @@ export function PortalProfileSidebar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+
+  if (part === "profile") {
+    return (
+      <>
+        {profileCard}
+        {dialogs}
+      </>
+    );
+  }
+
+  if (part === "menu") {
+    return menuCard;
+  }
+
+  return (
+    <>
+      <aside className={cn("w-full space-y-4", className)}>
+        {profileCard}
+        {menuCard}
+      </aside>
+      {dialogs}
     </>
   );
 }
