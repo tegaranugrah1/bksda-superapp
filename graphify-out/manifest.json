@@ -1550,8 +1550,8 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1793584951.948005,
-    "ast_hash": "9066c3bdb12077ee7ae56776e74db8e4",
+    "mtime": 1793964378.9242969,
+    "ast_hash": "f1f9ad62ddf3def9b824d67201dd9771",
     "semantic_hash": ""
   },
   "frontend/package.json": {
@@ -2485,8 +2485,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1793935262.1891482,
-    "ast_hash": "8873e302944121f48774e451fa3d6a1f",
+    "mtime": 1793985803.205124,
+    "ast_hash": "abb1b9fa4a7e7d03064f45192142a3a8",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2565,7 +2565,7 @@
     "semantic_hash": ""
   },
   "frontend/src/components/RouteGuard.tsx": {
-    "mtime": 1788917877.7936406,
+    "mtime": 1793955947.263807,
     "ast_hash": "4da46af2d3d619821fd2552404f98af1",
     "semantic_hash": ""
   },
@@ -5670,23 +5670,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalHeaderBanner.tsx": {
-    "mtime": 1793935116.4329257,
-    "ast_hash": "2637354baf1e120a4eec7c5a3b101ad6",
+    "mtime": 1793945368.40776,
+    "ast_hash": "e3703634cceb40e5dd768c43e9227769",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalInfoSidebar.tsx": {
-    "mtime": 1793880772.0197349,
-    "ast_hash": "19e40d6c748c122065e958b73bbdc460",
+    "mtime": 1793945382.92773,
+    "ast_hash": "c458d4b0ec098c16b0b00c1d04c7ed39",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1793935071.356441,
-    "ast_hash": "5740d126e4e184c396e75281bb14b29f",
+    "mtime": 1793968107.4957397,
+    "ast_hash": "5d29cc691438b766f40fad6131eba6b3",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
-    "mtime": 1793935088.7608185,
-    "ast_hash": "d81d4fe5c685e78197f98b9a517115a1",
+    "mtime": 1793973044.642877,
+    "ast_hash": "6a26017d2333195add62a3671f9a62ad",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx": {
@@ -7280,8 +7280,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/EmailConnectDialog.tsx": {
-    "mtime": 1793935165.9714358,
-    "ast_hash": "aab4f54ac4a06c2ad1c4b15f7c5e45f9",
+    "mtime": 1793942722.456455,
+    "ast_hash": "ed19ac2619bb89c34803bc1cb2cae136",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SecurityModals.tsx": {
@@ -8727,6 +8727,16 @@
   "docs/portal_desktop_sesudah.png": {
     "mtime": 1793934430.5564015,
     "ast_hash": "f46ec2bb58451277c712ca8c50cb4261",
+    "semantic_hash": ""
+  },
+  "frontend/public/logokemenhutbksda.png": {
+    "mtime": 1793975984.775455,
+    "ast_hash": "9d7c4250c4cf5b322115a3b6ac56ddd4",
+    "semantic_hash": ""
+  },
+  "frontend/public/kemenhutlogo.png": {
+    "mtime": 1793981431.1073828,
+    "ast_hash": "57769574d53a5b20b7d1dd861241b078",
     "semantic_hash": ""
   }
 }

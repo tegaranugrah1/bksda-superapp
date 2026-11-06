@@ -1550,8 +1550,8 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1793584951.948005,
-    "ast_hash": "9066c3bdb12077ee7ae56776e74db8e4",
+    "mtime": 1793964378.9242969,
+    "ast_hash": "f1f9ad62ddf3def9b824d67201dd9771",
     "semantic_hash": ""
   },
   "frontend/package.json": {
@@ -2480,13 +2480,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/LeaveRequestDialog.tsx": {
-    "mtime": 1792746997.599954,
+    "mtime": 1793931879.4182742,
     "ast_hash": "fa8c5fb168141198f4fe6baa282f2ef2",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1793886420.2055936,
-    "ast_hash": "54a213abe93b3d2292474cb63ec283c8",
+    "mtime": 1793972219.8431325,
+    "ast_hash": "5eaff835598d84b66bec72ebf380d280",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2565,7 +2565,7 @@
     "semantic_hash": ""
   },
   "frontend/src/components/RouteGuard.tsx": {
-    "mtime": 1788917877.7936406,
+    "mtime": 1793955947.263807,
     "ast_hash": "4da46af2d3d619821fd2552404f98af1",
     "semantic_hash": ""
   },
@@ -5470,8 +5470,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SuratTugasTab.tsx": {
-    "mtime": 1793886502.7915795,
-    "ast_hash": "743f7606dc1650eab0f6ed373a4b2f9e",
+    "mtime": 1793931848.154864,
+    "ast_hash": "ffdfc0536d5d95fe94a123a9ce61d853",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/asset-utils.ts": {
@@ -5510,8 +5510,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyLeaveTab.tsx": {
-    "mtime": 1793880900.5302663,
-    "ast_hash": "6ac4ac87fe663b252981884cfa53d2bf",
+    "mtime": 1793931879.416093,
+    "ast_hash": "b63943e1675673441732748313e31d71",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/EmployeeSelectionStep.tsx": {
@@ -5540,8 +5540,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/ActiveLoansTab.tsx": {
-    "mtime": 1793886429.104286,
-    "ast_hash": "4310dba268b574b522bf28d5c5c13c4a",
+    "mtime": 1793931879.4106865,
+    "ast_hash": "ec0050aa6a6dab8abd1bf7700377314e",
     "semantic_hash": ""
   },
   "mobile/src/features/profile/ChangePasswordModal.tsx": {
@@ -5670,23 +5670,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalHeaderBanner.tsx": {
-    "mtime": 1793880615.571362,
-    "ast_hash": "044d28700e2f469d3deefdc04c2b07c1",
+    "mtime": 1793945368.40776,
+    "ast_hash": "e3703634cceb40e5dd768c43e9227769",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalInfoSidebar.tsx": {
-    "mtime": 1793880772.0197349,
-    "ast_hash": "19e40d6c748c122065e958b73bbdc460",
+    "mtime": 1793945382.92773,
+    "ast_hash": "c458d4b0ec098c16b0b00c1d04c7ed39",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalProfileSidebar.tsx": {
-    "mtime": 1793918787.4561627,
-    "ast_hash": "19eec05cf395ec67268f6fa55afcca64",
+    "mtime": 1793968107.4957397,
+    "ast_hash": "5d29cc691438b766f40fad6131eba6b3",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
-    "mtime": 1793885589.0989845,
-    "ast_hash": "27262b6dd2bf44be920fde62d0592aed",
+    "mtime": 1793973044.642877,
+    "ast_hash": "6a26017d2333195add62a3671f9a62ad",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx": {
@@ -7035,8 +7035,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/NotificationBell.tsx": {
-    "mtime": 1793914941.1443563,
-    "ast_hash": "08d59d7811462778f6a8e710156d87b5",
+    "mtime": 1793923545.6639307,
+    "ast_hash": "b4318f2a2553fadece54376cbcf6ba8b",
     "semantic_hash": ""
   },
   "backend/tests/self_check_public_surat_tugas.php": {
@@ -7280,13 +7280,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/EmailConnectDialog.tsx": {
-    "mtime": 1793918787.455158,
-    "ast_hash": "43e3f5ad9343844f3276d6a1a67a9896",
+    "mtime": 1793942722.456455,
+    "ast_hash": "ed19ac2619bb89c34803bc1cb2cae136",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SecurityModals.tsx": {
-    "mtime": 1793918787.454157,
-    "ast_hash": "a9183f0821251cf6a720be998bb9849c",
+    "mtime": 1793931879.416653,
+    "ast_hash": "74591971a8df8ef414dfd1e3666b2eaa",
     "semantic_hash": ""
   },
   "frontend/src/app/reset-password/page.tsx": {
@@ -8537,6 +8537,196 @@
   "docs/portal_desktop_redesign_impeccable.png": {
     "mtime": 1793877013.6466575,
     "ast_hash": "ddd01c46a4c20bedc9261e2506f8fee7",
+    "semantic_hash": ""
+  },
+  "docs/user_provided_portal.html": {
+    "mtime": 1793934906.0923355,
+    "ast_hash": "5946cefeaf9d82b66663490c26c2bec1",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/alert_warn.svg": {
+    "mtime": 1793933246.7249732,
+    "ast_hash": "b8207b3513166b986b17d16986a4ccdd",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/avatar_camera.svg": {
+    "mtime": 1793934057.1375413,
+    "ast_hash": "6d35efa216f9bcd1e2750a8319a9125f",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/btn_chevron.svg": {
+    "mtime": 1793934057.1385427,
+    "ast_hash": "48feb34129d6b310d23142d0c2e70815",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/hero_arrow.svg": {
+    "mtime": 1793933246.727513,
+    "ast_hash": "49093c254e5dae1f17339176662af2aa",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/hero_calc.svg": {
+    "mtime": 1793933246.7265012,
+    "ast_hash": "f682cf02ba07e12ce7c250d51505d410",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/hero_plus.svg": {
+    "mtime": 1793933246.7254796,
+    "ast_hash": "5fca444e7ee73c6152031290294237ee",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_bmn.svg": {
+    "mtime": 1793933246.7350297,
+    "ast_hash": "4b31633994be0588ad1e4fea77a9073d",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_cms.svg": {
+    "mtime": 1793933246.73807,
+    "ast_hash": "1e762a9443d01683dfc7e610df6a0d0f",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_dereporting.svg": {
+    "mtime": 1793933246.73807,
+    "ast_hash": "20ca776fa1b4bb8981331b7eca6f3eda",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_drive.svg": {
+    "mtime": 1793933246.7399247,
+    "ast_hash": "5f80096e377db0faf2c987775f9c29fd",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_kepegawaian.svg": {
+    "mtime": 1793933246.7337039,
+    "ast_hash": "3507184099b6250a66caa3ad37847966",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_keuangan.svg": {
+    "mtime": 1793933246.7345202,
+    "ast_hash": "6cb3caf6d085905e1550745ab138ea68",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_persediaan.svg": {
+    "mtime": 1793933246.7367153,
+    "ast_hash": "413e809a31160f1c6575ddb7c526f872",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/modul_persuratan.svg": {
+    "mtime": 1793933246.7394161,
+    "ast_hash": "c242c4a8a6cd1a593cb3bad8b065d24f",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_aset.svg": {
+    "mtime": 1793933246.714808,
+    "ast_hash": "7f5c3d553fcc77013fe2b876b690eaa7",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_buatlaporan.svg": {
+    "mtime": 1793933246.72191,
+    "ast_hash": "666b1831f56e16c2ced66500e40953bb",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_cuti.svg": {
+    "mtime": 1793933246.716068,
+    "ast_hash": "43f392f1a0adb92eb8f6b53dcc654ef1",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_dashboard.svg": {
+    "mtime": 1793933246.712317,
+    "ast_hash": "9768bfcf29eb9a8f34bc5a5d7878bdcf",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_drive.svg": {
+    "mtime": 1793933246.7205794,
+    "ast_hash": "3be48e4cd1d807107f4520e6580f05cc",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_gantipass.svg": {
+    "mtime": 1793933246.724118,
+    "ast_hash": "f4f2f5ca67229a0d24bd72377eb9e619",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_kalkulator.svg": {
+    "mtime": 1793933246.719682,
+    "ast_hash": "1f0710038f8a710e76c7abdacaf28eca",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_logout.svg": {
+    "mtime": 1793933246.7229214,
+    "ast_hash": "c650f8050d341250e77144366b2f3472",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_pinjaman.svg": {
+    "mtime": 1793933246.7134328,
+    "ast_hash": "90b7f09d1ee7c957fb18038e0be86a39",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_surattugas.svg": {
+    "mtime": 1793933246.7155588,
+    "ast_hash": "b4397b3c8057415e336793f31714ea0a",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/nav_visum.svg": {
+    "mtime": 1793933246.7182636,
+    "ast_hash": "44ac542285b9a02df082b8177b8780bf",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/stat_bkn.svg": {
+    "mtime": 1793933246.7280219,
+    "ast_hash": "1cfeacc5d9f82e062cce7c31ee18157f",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/stat_cuti.svg": {
+    "mtime": 1793933246.7311563,
+    "ast_hash": "2af8ad6f218424b1c4938ad612f1d630",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/stat_pangkat.svg": {
+    "mtime": 1793933246.7298205,
+    "ast_hash": "8fc5552a9df5bddfe11c9b2e1f8587b2",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/stat_st.svg": {
+    "mtime": 1793933246.73251,
+    "ast_hash": "6290507213049757fca2b622f19a6c18",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/top_bell.svg": {
+    "mtime": 1793933246.712317,
+    "ast_hash": "a11bb626e15f80081389c9b348aa3947",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/top_clock.svg": {
+    "mtime": 1793933246.7096944,
+    "ast_hash": "dad40b98f018e0f861e2a156ea1e3bc2",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/top_help.svg": {
+    "mtime": 1793934057.1233609,
+    "ast_hash": "5fa89ac180a4c1f624843b6b52df2551",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/top_search.svg": {
+    "mtime": 1793933246.708059,
+    "ast_hash": "a3a92ec0964fd6b948c6558d2f3505b1",
+    "semantic_hash": ""
+  },
+  "docs/lucide_icons/top_sun.svg": {
+    "mtime": 1793933246.7112546,
+    "ast_hash": "02aaba55e90682f2064dae25ed5d0dcc",
+    "semantic_hash": ""
+  },
+  "docs/portal_desktop_perbandingan_kemenhut.png": {
+    "mtime": 1793934440.7770562,
+    "ast_hash": "28beacd345eb3205d61166a5d0d92603",
+    "semantic_hash": ""
+  },
+  "docs/portal_desktop_sebelum.png": {
+    "mtime": 1793932739.5756948,
+    "ast_hash": "5022b88faf98f3054cae8e6727272a3c",
+    "semantic_hash": ""
+  },
+  "docs/portal_desktop_sesudah.png": {
+    "mtime": 1793934430.5564015,
+    "ast_hash": "f46ec2bb58451277c712ca8c50cb4261",
     "semantic_hash": ""
   }
 }
