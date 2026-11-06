@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Loader2, LogOut, Users, Package,
-  Boxes, FileText, LayoutGrid, Mail, Banknote,
+  Loader2, Users, Package, Boxes, FileText, LayoutGrid, Mail, Banknote,
+  Search, HelpCircle, Cloud,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { api, getApiSessionSnapshot } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
-import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
 import type { SuratTugasPreviewData } from "@/components/SuratTugasLetterPreview";
@@ -27,7 +26,6 @@ import { ActiveLoansTab, BorrowedAssetItem } from "./_components/ActiveLoansTab"
 import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
-import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
 import { NotificationBell } from "./_components/NotificationBell";
 import { EmailConnectDialog } from "./_components/EmailConnectDialog";
 import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components/SecurityModals";
@@ -82,7 +80,6 @@ const LeaveRequestDialog = dynamic(
   { ssr: false }
 );
 
-
 const FormulirCutiPrint = dynamic(
   () => import("./_components/FormulirCutiPrint").then((mod) => mod.FormulirCutiPrint),
   { ssr: false }
@@ -103,7 +100,19 @@ interface DashboardData {
     email_verified_at?: string | null;
     email_cooldown_remaining?: number;
   };
-  employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
+  employee: {
+    id: number;
+    nip: string;
+    name: string;
+    position: string;
+    department: string;
+    email: string | null;
+    phone: string | null;
+    photo: string | null;
+    rank: string | null;
+    rank_level: number;
+    is_active: boolean;
+  } | null;
   my_assets: BorrowedAssetItem[];
 }
 
@@ -119,88 +128,145 @@ interface SuratTugasItem {
 
 type SuratTugasDetail = SuratTugasPreviewData;
 
-
-
 function PortalSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950">
+    <div className="min-h-screen bg-[#edf3ee] dark:bg-slate-950">
       {/* HEADER NAVBAR SKELETON */}
-      <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm">
-        <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-[#dce8dd] dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-3 shadow-xs">
+        <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
             <div className="space-y-1">
               <div className="w-28 h-3.5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="w-20 h-2 bg-slate-100 dark:bg-slate-850 rounded animate-pulse" />
+              <div className="w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
           </div>
         </div>
       </header>
 
-      {/* 3-COLUMN SKELETON */}
-      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row items-start gap-6">
-        {/* Left column */}
-        <div className="w-full lg:w-72 shrink-0 space-y-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-4 shadow-sm">
-            <div className="w-20 h-20 rounded-full bg-slate-200 dark:bg-slate-800 mx-auto animate-pulse" />
-            <div className="space-y-2 text-center">
-              <div className="w-36 h-4 bg-slate-200 dark:bg-slate-800 rounded mx-auto animate-pulse" />
-              <div className="w-24 h-3 bg-slate-100 dark:bg-slate-850 rounded mx-auto animate-pulse" />
+      {/* SKELETON BODY */}
+      <main className="max-w-[1720px] mx-auto p-4 sm:p-6 lg:p-7">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left column */}
+          <div className="lg:col-span-3 space-y-5">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 p-6 space-y-4 shadow-sm">
+              <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-800 mx-auto animate-pulse" />
+              <div className="space-y-2 text-center">
+                <div className="w-36 h-4 bg-slate-200 dark:bg-slate-800 rounded mx-auto animate-pulse" />
+                <div className="w-20 h-3 bg-slate-100 dark:bg-slate-800 rounded mx-auto animate-pulse" />
+              </div>
             </div>
-            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
-              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
-              <div className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 p-4 space-y-2 shadow-sm">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="w-full h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
+              ))}
             </div>
+          </div>
+
+          {/* Center/Right column */}
+          <div className="lg:col-span-9 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-8 rounded-2xl bg-[#1e5433]/80 p-6 shadow-sm h-64 animate-pulse" />
+              <div className="lg:col-span-4 rounded-2xl bg-white dark:bg-slate-900 border border-[#dce8dd] dark:border-slate-800 p-6 shadow-sm h-64 animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 shadow-xs h-20 animate-pulse" />
+              ))}
+            </div>
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 p-6 shadow-sm h-72 animate-pulse" />
           </div>
         </div>
-
-        {/* Center column */}
-        <main className="flex-1 min-w-0 space-y-6 w-full">
-          {/* Banner skeleton */}
-          <div className="rounded-3xl bg-linear-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 md:p-7 text-white shadow-md space-y-3 animate-pulse">
-            <div className="w-32 h-4 bg-emerald-600/60 rounded" />
-            <div className="w-64 h-7 bg-emerald-600/80 rounded" />
-            <div className="w-96 max-w-full h-3 bg-emerald-600/50 rounded" />
-          </div>
-
-          {/* Quick stats skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm h-24 animate-pulse" />
-            ))}
-          </div>
-
-          {/* Tabs skeleton */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 min-h-75">
-            <div className="w-48 h-5 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mb-4" />
-            <div className="space-y-3">
-              <div className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
-              <div className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
-            </div>
-          </div>
-        </main>
-
-        {/* Right column */}
-        <div className="w-full lg:w-80 shrink-0 space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm h-64 animate-pulse" />
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 const ALL_MODULE_CARDS = [
-  { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: Users, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60" },
-  { key: "keuangan", href: "/keuangan", label: "Keuangan", desc: "SPJ & Visum SPD", icon: Banknote, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/60" },
-  { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: Package, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
-  { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: Boxes, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/60" },
-  { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: FileText, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60" },
-  { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: LayoutGrid, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/60" },
-  { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: Mail, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
+  {
+    key: "kepegawaian",
+    href: "/kepegawaian",
+    label: "Kepegawaian",
+    desc: "Surat Tugas, Cuti Pegawai & SK Balai",
+    icon: Users,
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-950/60",
+    border: "border-blue-100 dark:border-blue-900/40",
+  },
+  {
+    key: "keuangan",
+    href: "/keuangan",
+    label: "Keuangan",
+    desc: "SPJ & Visum SPD, Biaya Riil Dinas",
+    icon: Banknote,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/60",
+    border: "border-amber-100 dark:border-amber-900/40",
+  },
+  {
+    key: "bmn",
+    href: "/bmn",
+    label: "BMN",
+    desc: "Barang Milik Negara & Aset Inventaris",
+    icon: Package,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/60",
+    border: "border-emerald-100 dark:border-emerald-900/40",
+  },
+  {
+    key: "inventory",
+    href: "/inventory",
+    label: "Persediaan",
+    desc: "Stok ATK, Logistik & Distribusi Lapangan",
+    icon: Boxes,
+    color: "text-orange-600 dark:text-orange-400",
+    bg: "bg-orange-50 dark:bg-orange-950/60",
+    border: "border-orange-100 dark:border-orange-900/40",
+  },
+  {
+    key: "dereporting",
+    href: "/dereporting",
+    label: "DeReporting",
+    desc: "Pelaporan Digital Konservasi & Patroli",
+    icon: FileText,
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-50 dark:bg-purple-950/60",
+    border: "border-purple-100 dark:border-purple-900/40",
+  },
+  {
+    key: "cms",
+    href: "/cms",
+    label: "CMS Portal",
+    desc: "Manajemen Konten Publik & Informasi Balai",
+    icon: LayoutGrid,
+    color: "text-teal-600 dark:text-teal-400",
+    bg: "bg-teal-50 dark:bg-teal-950/60",
+    border: "border-teal-100 dark:border-teal-900/40",
+  },
+  {
+    key: "surat",
+    href: "/surat",
+    label: "Persuratan",
+    desc: "Naskah Dinas Elektronik & Disposisi",
+    icon: Mail,
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/60",
+    border: "border-indigo-100 dark:border-indigo-900/40",
+  },
+  {
+    key: "drive",
+    href: "/drive",
+    label: "BKSDA Drive",
+    desc: "Penyimpanan Cloud & Arsip Berkas Dokumen",
+    icon: Cloud,
+    color: "text-[#1e5433] dark:text-emerald-400",
+    bg: "bg-[#e4f0e6] dark:bg-emerald-950/60",
+    border: "border-[#dce8dd] dark:border-emerald-800/40",
+  },
 ] as const;
 
 function PortalContent() {
@@ -208,6 +274,9 @@ function PortalContent() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [activeNavTab, setActiveNavTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const savedTab = localStorage.getItem("bksda_portal_nav_tab");
@@ -226,9 +295,43 @@ function PortalContent() {
       localStorage.setItem("bksda_portal_nav_tab", activeNavTab);
     }
   }, [activeNavTab]);
+
+  // Keyboard shortcut Ctrl+K to focus search bar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // WITA Clock (UTC+8)
+  const [currentTimeStr, setCurrentTimeStr] = useState<string>("10:45");
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const timeFormatter = new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Makassar",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        setCurrentTimeStr(timeFormatter.format(new Date()));
+      } catch {
+        // Fallback
+      }
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [suratTugas, setSuratTugas] = useState<SuratTugasItem[]>([]);
   const [stLoading, setStLoading] = useState(false);
-  
+
   // Aset states
   const [myAssets, setMyAssets] = useState<AssetItem[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
@@ -245,8 +348,8 @@ function PortalContent() {
 
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
-    const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
-    return myAssets.filter(a => !borrowedIds.has(a.id));
+    const borrowedIds = new Set(data.my_assets.map((a) => String(a.id)));
+    return myAssets.filter((a) => !borrowedIds.has(a.id));
   }, [myAssets, data]);
 
   const employeeId = data?.employee?.id;
@@ -269,28 +372,36 @@ function PortalContent() {
     } catch (error: unknown) {
       if (session !== getApiSessionSnapshot()) return;
       const err = error as { response?: { status?: number } };
-      if (err.response?.status === 401) { router.push("/login"); }
-      else { setFetchError("Gagal memuat data dashboard."); }
-    } finally { setLoading(false); }
+      if (err.response?.status === 401) {
+        router.push("/login");
+      } else {
+        setFetchError("Gagal memuat data dashboard.");
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
-  const fetchSuratTugas = useCallback(async (targetEmpId?: number) => {
-    const empId = targetEmpId ?? employeeId;
-    if (!empId) {
-      setSuratTugas([]);
-      return;
-    }
-    try {
-      const resp = await api.get("/surat-tugas/my", { 
-        params: { per_page: 20 } 
-      });
-      setSuratTugas(resp.data.data || []);
-    } catch {
-      // Keep existing list on background error
-    } finally {
-      setStLoading(false);
-    }
-  }, [employeeId]);
+  const fetchSuratTugas = useCallback(
+    async (targetEmpId?: number) => {
+      const empId = targetEmpId ?? employeeId;
+      if (!empId) {
+        setSuratTugas([]);
+        return;
+      }
+      try {
+        const resp = await api.get("/surat-tugas/my", {
+          params: { per_page: 20 },
+        });
+        setSuratTugas(resp.data.data || []);
+      } catch {
+        // Keep existing list on background error
+      } finally {
+        setStLoading(false);
+      }
+    },
+    [employeeId]
+  );
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -318,21 +429,27 @@ function PortalContent() {
 
   const [activeLeaveId, setActiveLeaveId] = useState<string | number | null>(null);
 
-  const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
-    const validTabs = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
-    const targetTab = validTabs.includes(tabKey) ? tabKey : "dashboard";
-    setActiveNavTab(targetTab);
+  const handleNotificationNavigate = useCallback(
+    (tabKey: string, referenceId?: string | null) => {
+      const validTabs = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
+      const targetTab = validTabs.includes(tabKey) ? tabKey : "dashboard";
+      setActiveNavTab(targetTab);
 
-    if (targetTab === "surat_tugas" && referenceId) {
-      fetchSTDetail(referenceId);
-    } else if (targetTab === "cuti" && referenceId) {
-      setActiveLeaveId(referenceId);
-    }
-  }, [fetchSTDetail]);
+      if (targetTab === "surat_tugas" && referenceId) {
+        fetchSTDetail(referenceId);
+      } else if (targetTab === "cuti" && referenceId) {
+        setActiveLeaveId(referenceId);
+      }
+    },
+    [fetchSTDetail]
+  );
 
   // Fetch leave balance for logged-in employee
   const currentYear = new Date().getFullYear();
-  const [myLeaveBalance, setMyLeaveBalance] = useState<{ sisa_cuti_tersedia: number; total_hak_cuti: number } | null>(null);
+  const [myLeaveBalance, setMyLeaveBalance] = useState<{
+    sisa_cuti_tersedia: number;
+    total_hak_cuti: number;
+  } | null>(null);
 
   const [myLeaveRequests, setMyLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -360,16 +477,20 @@ function PortalContent() {
       // Update saldo cuti
       const balRes = await api.get(`/me/leave-balance?year=${currentYear}`);
       setMyLeaveBalance(balRes.data.data);
-    } catch (e) {}
+    } catch {}
   }, [currentYear]);
 
-  // Initial dashboard load with fast cache populate (strictly validated to active user session)
+  // Initial dashboard load with cache populate
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("email_verified") === "1") {
-        toast.success("Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif.");
-        try { localStorage.removeItem("bksda_portal_dashboard_cache"); } catch {}
+        toast.success(
+          "Selamat! Alamat email Anda berhasil diverifikasi. Notifikasi resmi dan pemulihan kata sandi kini aktif."
+        );
+        try {
+          localStorage.removeItem("bksda_portal_dashboard_cache");
+        } catch {}
         window.history.replaceState({}, document.title, window.location.pathname);
       }
       if (params.get("force_password_change") === "1") {
@@ -434,14 +555,12 @@ function PortalContent() {
     };
   }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests, employeeId]);
 
-  // Cek apakah ada pengajuan cuti yang masih menunggu persetujuan (status: Pengajuan)
   const hasPendingLeave = useMemo(() => {
     return myLeaveRequests.some(
       (r) => (r.status || "").toUpperCase() === "PENGAJUAN"
     );
   }, [myLeaveRequests]);
 
-  // Smart Polling (15s saat ada pengajuan cuti pending, 60s default)
   useEffect(() => {
     const pollInterval = hasPendingLeave ? 15000 : 60000;
     const interval = setInterval(() => {
@@ -467,7 +586,7 @@ function PortalContent() {
     };
   }, [hasPendingLeave]);
 
-  // Instant Cross-Tab Sync via BroadcastChannel (0ms latency, 0 beban server)
+  // Instant Cross-Tab Sync via BroadcastChannel
   useEffect(() => {
     if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") return;
 
@@ -495,9 +614,9 @@ function PortalContent() {
 
   const modules = useMemo(() => {
     if (!data) return [];
-    return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
-      ? ["kepegawaian", "keuangan", "bmn", "inventory", "dereporting", "cms", "surat"]
-      : (data.user.access_modules || []);
+    return data.user.role === "super_admin" || data.user.access_modules?.includes("*")
+      ? ["kepegawaian", "keuangan", "bmn", "inventory", "dereporting", "cms", "surat", "drive"]
+      : [...(data.user.access_modules || []), "drive"];
   }, [data]);
 
   const moduleCards = useMemo(
@@ -511,63 +630,111 @@ function PortalContent() {
 
   if (!data) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50">
-        <p className="text-slate-700 dark:text-slate-300 font-bold mb-3">{fetchError || "Gagal memuat data"}</p>
-        <Button onClick={fetchDashboard}>Coba Lagi</Button>
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#edf3ee] dark:bg-slate-900/50">
+        <p className="text-slate-700 dark:text-slate-300 font-bold mb-3">
+          {fetchError || "Gagal memuat data"}
+        </p>
+        <Button onClick={fetchDashboard} className="bg-[#1e5433] hover:bg-[#164227] text-white">
+          Coba Lagi
+        </Button>
       </div>
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 print:bg-transparent">
-        {/* HEADER NAVBAR */}
-        <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm print:hidden">
-          <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+    <div className="min-h-screen bg-[#edf3ee] dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans antialiased flex flex-col selection:bg-[#1e5433] selection:text-white print:bg-transparent">
+      {/* BEGIN: MainHeader */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-[#dce8dd] dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-3 transition-shadow print:hidden">
+        <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
+          {/* Sisi Kiri: Brand, Organisasi & Status Sub-Sistem */}
+          <div className="flex items-center gap-4 shrink-0" data-purpose="app-branding">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-white dark:bg-slate-900 shadow-sm border border-slate-200/80 dark:border-slate-800 rounded-xl">
-                <Image src="/logo_bksda.png" alt="Logo BKSDA" width={32} height={32} className="w-8 h-8 object-contain" />
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-[#dce8dd] dark:border-slate-800 shadow-xs flex items-center justify-center p-1 overflow-hidden shrink-0">
+                <Image
+                  src="/logo_bksda.png"
+                  alt="Logo Kementerian Kehutanan"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
-                <h1 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 leading-none">BKSDA KALTIM</h1>
-                <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-0.5">SuperApp Portal</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <NotificationBell onSelectTab={handleNotificationNavigate} />
-
-              <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
-                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                  {(data.employee?.name || data.user.name).charAt(0)}
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                    BKSDA KALTIM
+                  </h1>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#e4f0e6] dark:bg-emerald-950/60 text-[#1e5433] dark:text-emerald-300 uppercase tracking-wider">
+                    SUPERAPP
+                  </span>
                 </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                    {data.employee?.name || data.user.name}
-                  </p>
-                  <p className="text-[10px] text-slate-500 truncate max-w-37.5">
-                    {data.employee?.position || data.user.role}
-                  </p>
-                </div>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">
+                  Kementerian Kehutanan RI
+                </p>
               </div>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
             </div>
           </div>
-        </header>
 
-        {/* 3-COLUMN HYBRID LAYOUT (MYASN INSPIRED) */}
-        <div className={cn("max-w-400 mx-auto px-4 sm:px-6 2xl:px-8 py-6 flex flex-col lg:flex-row items-start gap-6 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
-          {/* LEFT COLUMN: SIDEBAR PROFIL & NAVIGASI */}
-          <div className="w-full lg:w-64 xl:w-72 2xl:w-72 shrink-0 print:hidden">
+          {/* Sisi Tengah: Global Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-2" data-purpose="global-search-bar">
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <Search className="w-4 h-4" />
+              </div>
+              <input
+                ref={searchInputRef}
+                aria-label="Pencarian Global"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-16 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-[#dce8dd] dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:border-[#1e5433] focus:ring-1 focus:ring-[#1e5433] shadow-xs transition-all"
+                placeholder="Cari surat tugas, modul, berkas, atau pegawai..."
+                type="text"
+              />
+              <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-[#edf3ee] dark:bg-slate-700 border border-[#dce8dd] dark:border-slate-600 rounded-md">
+                  Ctrl K
+                </kbd>
+              </div>
+            </div>
+          </div>
+
+          {/* Sisi Kanan: Status Server, Jam Operasional & Quick Tools */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0" data-purpose="header-quick-tools">
+            {/* Jam & Tanggal Operasional Samarinda */}
+            <div className="hidden lg:flex flex-col items-end text-right pr-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">WITA</span>
+                <span>{currentTimeStr}</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium">Samarinda, Kaltim</span>
+            </div>
+
+            {/* Tombol Pusat Bantuan / Panduan */}
+            <Link
+              href="/panduan"
+              className="w-9 h-9 rounded-xl border border-[#dce8dd] dark:border-slate-700 hover:border-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors shadow-xs"
+              title="Pusat Bantuan & Panduan Sistem"
+            >
+              <HelpCircle className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            </Link>
+
+            {/* Theme / Sun Toggle */}
+            <div className="flex items-center justify-center">
+              <ThemeToggle />
+            </div>
+
+            {/* Notification Bell */}
+            <NotificationBell onSelectTab={handleNotificationNavigate} />
+          </div>
+        </div>
+      </header>
+
+      {/* BEGIN: DashboardBodyLayout */}
+      <main className={cn("flex-1 max-w-[1720px] w-full mx-auto p-4 sm:p-6 lg:p-7 print:p-0 print:m-0 print:block print:max-w-none", printLeaveData && "print:hidden")}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ============================================== */}
+          {/* LEFT COLUMN: User Card & Primary Navigation     */}
+          {/* ============================================== */}
+          <div className="lg:col-span-3 space-y-5 print:hidden">
             <PortalProfileSidebar
               user={data.user}
               employee={data.employee}
@@ -583,292 +750,245 @@ function PortalContent() {
               onOpenInlineReport={(type) => setInlineFormType(type)}
               isInlineReportOpen={inlineFormType !== null}
               onRefreshDashboard={fetchDashboard}
+              onLogout={handleLogout}
             />
           </div>
 
-          {/* CENTER COLUMN: MAIN WORKSPACE OR SPECIFIC MENU ITEM */}
-          <main className="flex-1 min-w-0 space-y-6 w-full print:m-0 print:p-0 print:space-y-0 print:block">
+          {/* ============================================== */}
+          {/* CENTER/RIGHT COLUMN: Primary Dashboard Workspace */}
+          {/* ============================================== */}
+          <div className="lg:col-span-9 space-y-6 print:m-0 print:p-0 print:space-y-0 print:block">
+            {/* Alert Banner Notifikasi Email Belum Terverifikasi */}
             <EmailConnectDialog
               currentEmail={data.user.email}
               isVerified={Boolean(data.user.email_verified_at)}
               initialCooldown={data.user.email_cooldown_remaining || 0}
               onSuccess={fetchDashboard}
             />
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={inlineFormType ? `inline-${inlineFormType}` : `tab-${activeNavTab}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full space-y-6"
-              >
-                {inlineFormType === "general" ? (
-                  <GeneralReportInlineForm
-                    onBack={() => {
-                      setInlineFormType(null);
-                      setActiveNavTab("dashboard");
-                    }}
-                  />
-                ) : inlineFormType === "smart_patrol" ? (
-                  <SmartPatrolInlineForm
-                    onBack={() => {
-                      setInlineFormType(null);
-                      setActiveNavTab("dashboard");
-                    }}
-                  />
-                ) : activeNavTab === "dashboard" ? (
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0 },
-                      show: {
-                        opacity: 1,
-                        transition: {
-                          staggerChildren: 0.07,
-                          delayChildren: 0.02,
-                        },
-                      },
-                    }}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-6 w-full"
+
+            {/* Main Tab Switcher Content */}
+            {inlineFormType === "general" ? (
+              <GeneralReportInlineForm
+                onBack={() => {
+                  setInlineFormType(null);
+                  setActiveNavTab("dashboard");
+                }}
+              />
+            ) : inlineFormType === "smart_patrol" ? (
+              <SmartPatrolInlineForm
+                onBack={() => {
+                  setInlineFormType(null);
+                  setActiveNavTab("dashboard");
+                }}
+              />
+            ) : activeNavTab === "dashboard" ? (
+              <div className="space-y-6 w-full">
+                {/* HERO BANNER & KINERJA GRID */}
+                <PortalHeaderBanner
+                  displayName={data.employee?.name || data.user.name}
+                  activeSuratTugasCount={suratTugas.length}
+                  onOpenVisum={() => {
+                    setInlineFormType(null);
+                    setActiveNavTab("visum");
+                  }}
+                  onOpenKalkulator={() => {
+                    setInlineFormType(null);
+                    setActiveNavTab("kalkulator_dinas");
+                  }}
+                  onOpenSuratTugasTab={() => {
+                    setInlineFormType(null);
+                    setActiveNavTab("surat_tugas");
+                  }}
+                />
+
+                {/* 4 QUICK STATS METRIC CARDS */}
+                <PortalQuickStats
+                  rank={data.employee?.rank}
+                  activeSuratTugasCount={suratTugas.length}
+                  myAssetsCount={filteredMyAssets.length}
+                  leaveBalance={myLeaveBalance}
+                  year={currentYear}
+                  onSelectTab={(t) => setActiveNavTab(t)}
+                />
+
+                {/* MODUL AKSES SISTEM BENTO GRID (8 MODUL) */}
+                {moduleCards.length > 0 && (
+                  <section
+                    className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-[#dce8dd] dark:border-slate-800 shadow-sm"
+                    data-purpose="modules-bento-grid"
                   >
-                    {/* HERO BANNER GREETING */}
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, y: 12 },
-                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
-                      }}
-                    >
-                      <PortalHeaderBanner
-                        displayName={data.employee?.name || data.user.name}
-                        activeSuratTugasCount={suratTugas.length}
-                        onOpenVisum={() => {
-                          setInlineFormType(null);
-                          setActiveNavTab("visum");
-                        }}
-                        onOpenKalkulator={() => {
-                          setInlineFormType(null);
-                          setActiveNavTab("kalkulator_dinas");
-                        }}
-                      />
-                    </motion.div>
+                    {/* Header with Authorized Badge */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b border-[#edf3ee] dark:border-slate-800 mb-6">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                          Modul Akses Sistem
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          Pilih aplikasi operasional terintegrasi Balai KSDA Kaltim
+                        </p>
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dff0e2] border border-[#dce8dd] text-[#1e5433] text-xs font-bold self-start sm:self-auto">
+                        <span className="w-2 h-2 rounded-full bg-[#1e5433]" />
+                        <span>{moduleCards.length} Modul Terotorisasi</span>
+                      </div>
+                    </div>
 
-                    {/* QUICK STATS ROW (4 STATUS CARDS) */}
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, y: 12 },
-                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
-                      }}
-                    >
-                      <PortalQuickStats
-                        rank={data.employee?.rank}
-                        activeSuratTugasCount={suratTugas.length}
-                        myAssetsCount={filteredMyAssets.length}
-                        leaveBalance={myLeaveBalance}
-                        year={currentYear}
-                        onSelectTab={(t) => setActiveNavTab(t)}
-                      />
-                    </motion.div>
-
-                    {/* MODUL AKSES GRID */}
-                    {moduleCards.length > 0 && (
-                      <motion.div
-                        variants={{
-                          hidden: { opacity: 0, y: 12 },
-                          show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
-                        }}
-                        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-sm transition-shadow space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400">
-                            Modul Akses System
-                          </h3>
-                          <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-200/50 dark:border-emerald-800/50">
-                            {moduleCards.length} Modul Terotorisasi
-                          </span>
-                        </div>
-
-                        <motion.div
-                          variants={{
-                            hidden: { opacity: 0 },
-                            show: {
-                              opacity: 1,
-                              transition: {
-                                staggerChildren: 0.04,
-                                delayChildren: 0.06,
-                              },
-                            },
-                          }}
-                          initial="hidden"
-                          animate="show"
-                          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-7 gap-3"
+                    {/* 8 Module Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                      {moduleCards.map((mod) => (
+                        <Link
+                          key={mod.key}
+                          href={mod.href}
+                          className="group p-4 rounded-2xl border border-[#dce8dd] dark:border-slate-800 hover:border-[#1e5433]/40 dark:hover:border-emerald-500/40 bg-white dark:bg-slate-850 hover:bg-[#edf3ee]/40 dark:hover:bg-slate-800 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                         >
-                          {moduleCards.map((mod) => (
-                            <motion.div
-                              key={mod.key}
-                              variants={{
-                                hidden: { opacity: 0, y: 10, scale: 0.96 },
-                                show: {
-                                  opacity: 1,
-                                  y: 0,
-                                  scale: 1,
-                                  transition: { type: "spring", stiffness: 380, damping: 25 },
-                                },
-                              }}
-                              whileHover={{ y: -5, transition: { type: "spring", stiffness: 420, damping: 20 } }}
-                              whileTap={{ scale: 0.97 }}
+                          <div>
+                            <div
+                              className={cn(
+                                "w-12 h-12 rounded-xl group-hover:scale-105 transition-transform flex items-center justify-center border",
+                                mod.bg,
+                                mod.color,
+                                mod.border
+                              )}
                             >
-                              <Link
-                                href={mod.href}
-                                className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
-                              >
-                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:shadow-xs", mod.bg, mod.color)}>
-                                  <mod.icon className="w-5 h-5" />
-                                </div>
-                                <div className="space-y-0.5 w-full">
-                                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate">
-                                    {mod.label}
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 truncate w-full">
-                                    {mod.desc}
-                                  </p>
-                                </div>
-                              </Link>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      </motion.div>
-                    )}
-
-                    {/* WIDGET PENGUMUMAN & BANTUAN DI BAWAH PADA LAYAR LAPTOP (< 2xl) */}
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, y: 12 },
-                        show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.25, 1, 0.5, 1] } },
-                      }}
-                      className="block 2xl:hidden pt-1"
-                    >
-                      <PortalInfoSidebar isHorizontal={true} />
-                    </motion.div>
-                  </motion.div>
-                ) : activeNavTab === "pinjaman" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
-                  </div>
-                ) : activeNavTab === "aset" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <MyAssetsTab
-                      assetsLoading={assetsLoading}
-                      filteredMyAssets={filteredMyAssets as AssetItem[]}
-                      assetViewMode={assetViewMode}
-                      setAssetViewMode={setAssetViewMode}
-                    />
-                  </div>
-                ) : activeNavTab === "surat_tugas" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <SuratTugasTab
-                      stLoading={stLoading}
-                      suratTugas={suratTugas}
-                      fetchSTDetail={fetchSTDetail}
-                      stDetailLoading={stDetailLoading}
-                      onOpenReportModal={(type) => setInlineFormType(type)}
-                      onOpenKalkulator={(stId) => {
-                        setInlineFormType(null);
-                        setActiveKalkulatorStId(stId);
-                        setActiveNavTab("kalkulator_dinas");
-                      }}
-                    />
-                  </div>
-                ) : activeNavTab === "cuti" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <MyLeaveTab
-                      myLeaveRequests={myLeaveRequests}
-                      activeLeaveId={activeLeaveId}
-                      onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
-                      onCancelLeave={async (id) => {
-                        if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
-                        try {
-                          await api.delete(`/me/leave-requests/${id}`);
-                          toast.success("Permohonan cuti berhasil dibatalkan.");
-                          fetchMyLeaveRequests();
-                        } catch (error: unknown) {
-                          const err = error as { response?: { data?: { message?: string } } };
-                          toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
-                        }
-                      }}
-                      onPrintLeave={(item) => {
-                        setPrintLeaveData(item);
-                        setTimeout(() => window.print(), 300);
-                      }}
-                    />
-                  </div>
-                ) : activeNavTab === "visum" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6">
-                    <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
-                  </div>
-                ) : activeNavTab === "kalkulator_dinas" ? (
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm p-4 md:p-6 print:p-0 print:border-none print:shadow-none print:bg-transparent print:rounded-none">
-                    <KalkulatorDinasTab
-                      suratTugasList={suratTugas}
-                      currentUserName={data.employee?.name || data.user.name}
-                      initialSelectedStId={activeKalkulatorStId}
-                    />
-                  </div>
-                ) : null}
-              </motion.div>
-            </AnimatePresence>
-          </main>
-
-          {/* RIGHT COLUMN: WIDGET PENGUMUMAN & BANTUAN (Tampil di Kanan HANYA pada Layar Lebar >= 2xl) */}
-          {activeNavTab !== "visum" && activeNavTab !== "kalkulator_dinas" && (
-            <div className="hidden 2xl:block shrink-0 print:hidden font-sans">
-              <PortalInfoSidebar />
-            </div>
-          )}
-        </div>
-
-        {/* Modal Pengajuan Cuti Mandiri */}
-        <LeaveRequestDialog
-          open={leaveDialogOpen}
-          onClose={() => setLeaveDialogOpen(false)}
-          onSuccess={() => fetchMyLeaveRequests()}
-        />
-
-
-        {/* Hidden Printable Formulir Cuti */}
-        {printLeaveData && (
-          <div className="hidden print:block">
-            <FormulirCutiPrint data={printLeaveData} />
+                              <mod.icon className="w-6 h-6" />
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#1e5433] dark:group-hover:text-emerald-400 mt-3 transition-colors">
+                              {mod.label}
+                            </h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                              {mod.desc}
+                            </p>
+                          </div>
+                          <div className="mt-4 pt-2 flex items-center text-[11px] font-semibold text-[#1e5433] dark:text-emerald-400">
+                            <span>Buka Modul</span>
+                            <span className="ml-1 text-xs transition-transform group-hover:translate-x-1">→</span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            ) : activeNavTab === "pinjaman" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6">
+                <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
+              </div>
+            ) : activeNavTab === "aset" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6">
+                <MyAssetsTab
+                  assetsLoading={assetsLoading}
+                  filteredMyAssets={filteredMyAssets as AssetItem[]}
+                  assetViewMode={assetViewMode}
+                  setAssetViewMode={setAssetViewMode}
+                />
+              </div>
+            ) : activeNavTab === "surat_tugas" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6">
+                <SuratTugasTab
+                  stLoading={stLoading}
+                  suratTugas={suratTugas}
+                  fetchSTDetail={fetchSTDetail}
+                  stDetailLoading={stDetailLoading}
+                  onOpenReportModal={(type) => setInlineFormType(type)}
+                  onOpenKalkulator={(stId) => {
+                    setInlineFormType(null);
+                    setActiveKalkulatorStId(stId);
+                    setActiveNavTab("kalkulator_dinas");
+                  }}
+                />
+              </div>
+            ) : activeNavTab === "cuti" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6">
+                <MyLeaveTab
+                  myLeaveRequests={myLeaveRequests}
+                  activeLeaveId={activeLeaveId}
+                  onOpenLeaveDialog={() => setLeaveDialogOpen(true)}
+                  onCancelLeave={async (id) => {
+                    if (!confirm("Apakah Anda yakin ingin membatalkan permohonan cuti ini?")) return;
+                    try {
+                      await api.delete(`/me/leave-requests/${id}`);
+                      toast.success("Permohonan cuti berhasil dibatalkan.");
+                      fetchMyLeaveRequests();
+                    } catch (error: unknown) {
+                      const err = error as { response?: { data?: { message?: string } } };
+                      toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
+                    }
+                  }}
+                  onPrintLeave={(item) => {
+                    setPrintLeaveData(item);
+                    setTimeout(() => window.print(), 300);
+                  }}
+                />
+              </div>
+            ) : activeNavTab === "visum" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6">
+                <VisumSpdTab isPortal={true} suratTugasList={suratTugas} />
+              </div>
+            ) : activeNavTab === "kalkulator_dinas" ? (
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm p-6 print:p-0 print:border-none print:shadow-none print:bg-transparent print:rounded-none">
+                <KalkulatorDinasTab
+                  suratTugasList={suratTugas}
+                  currentUserName={data.employee?.name || data.user.name}
+                  initialSelectedStId={activeKalkulatorStId}
+                />
+              </div>
+            ) : null}
           </div>
-        )}
+        </div>
+      </main>
 
-        {/* Surat Tugas Formal Letter Preview */}
-        {stPreviewOpen && stDetail && (
-          <SuratTugasLetterPreview
-            data={stDetail}
-            onClose={() => setStPreviewOpen(false)}
-          />
-        )}
+      {/* BEGIN: MinimalFooter */}
+      <footer className="mt-auto border-t border-[#dce8dd] dark:border-slate-800 bg-white dark:bg-slate-900 py-4 px-4 sm:px-8 text-center text-xs text-slate-500 dark:text-slate-400 print:hidden">
+        <div className="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p>© 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur - Kementerian Kehutanan Republik Indonesia.</p>
+          <div className="flex items-center gap-4 text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+            <span>v3.4.0 (Enterprise)</span>
+            <span>•</span>
+            <span>Server Wilayah I Samarinda</span>
+          </div>
+        </div>
+      </footer>
 
-        {/* SECURITY GATES (FASE 1C) */}
-        <MandatoryChangePasswordModal
-          open={forcePasswordChangeOpen}
-          onSuccess={() => {
-            setForcePasswordChangeOpen(false);
-            window.history.replaceState({}, document.title, window.location.pathname);
-            fetchDashboard();
-          }}
+      {/* Modal Pengajuan Cuti Mandiri */}
+      <LeaveRequestDialog
+        open={leaveDialogOpen}
+        onClose={() => setLeaveDialogOpen(false)}
+        onSuccess={() => fetchMyLeaveRequests()}
+      />
+
+      {/* Hidden Printable Formulir Cuti */}
+      {printLeaveData && (
+        <div className="hidden print:block">
+          <FormulirCutiPrint data={printLeaveData} />
+        </div>
+      )}
+
+      {/* Surat Tugas Formal Letter Preview */}
+      {stPreviewOpen && stDetail && (
+        <SuratTugasLetterPreview
+          data={stDetail}
+          onClose={() => setStPreviewOpen(false)}
         />
-        <TwoFactorSetupModal
-          open={setup2FaOpen}
-          onOpenChange={setSetup2FaOpen}
-          onSuccess={() => {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            fetchDashboard();
-          }}
-        />
-      </div>
+      )}
+
+      {/* SECURITY GATES */}
+      <MandatoryChangePasswordModal
+        open={forcePasswordChangeOpen}
+        onSuccess={() => {
+          setForcePasswordChangeOpen(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          fetchDashboard();
+        }}
+      />
+      <TwoFactorSetupModal
+        open={setup2FaOpen}
+        onOpenChange={setSetup2FaOpen}
+        onSuccess={() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          fetchDashboard();
+        }}
+      />
+    </div>
   );
 }
 
