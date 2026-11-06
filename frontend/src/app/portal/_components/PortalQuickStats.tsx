@@ -6,7 +6,6 @@ import { motion, type Variants } from "framer-motion";
 
 interface PortalQuickStatsProps {
   rank?: string | null;
-  rankLevel?: number | null;
   activeSuratTugasCount: number;
   myAssetsCount: number;
   leaveBalance?: {
@@ -41,7 +40,6 @@ const itemVariants: Variants = {
 
 export function PortalQuickStats({
   rank,
-  rankLevel,
   activeSuratTugasCount,
   myAssetsCount,
   leaveBalance,

@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, FileText, Calendar, MapPin, Users, Printer, Downloa
 import { RouteGuard } from "@/components/RouteGuard";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { formatNIP } from "@/lib/letter-utils";
+import { formatNIP, formatDateRangeIndonesian } from "@/lib/letter-utils";
 
 interface Employee {
   id: number;
@@ -37,11 +37,6 @@ interface SuratTugasDetail {
   approver?: { id: number; name: string };
 }
 
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return Number.isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-}
 
 function parseItems(value: unknown): string[] {
   if (!value) return [];
@@ -270,7 +265,7 @@ export default function SuratTugasPreviewPage() {
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Tanggal</p>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {formatDate(data.tanggal_mulai)} — {formatDate(data.tanggal_selesai)}
+                    {formatDateRangeIndonesian(data.tanggal_mulai, data.tanggal_selesai)}
                   </p>
                 </div>
               </div>

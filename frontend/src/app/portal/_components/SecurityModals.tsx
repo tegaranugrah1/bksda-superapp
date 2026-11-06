@@ -1,18 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import QRCode from "react-qr-code";
 import {
-  ShieldAlert,
   ShieldCheck,
-  KeyRound,
   Copy,
   Check,
   Eye,
   EyeOff,
   Loader2,
   Lock,
-  ArrowRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -31,12 +29,16 @@ import { api } from "@/lib/api";
  * Modal Wajib Ganti Password (HTTP 423 Gate).
  * Tidak dapat ditutup sampai pengguna berhasil mengganti kata sandi sementara.
  */
-export function MandatoryChangePasswordModal({
+export function ChangePasswordModal({
   open,
+  onClose,
   onSuccess,
+  isMandatory = false,
 }: {
   open: boolean;
+  onClose?: () => void;
   onSuccess?: () => void;
+  isMandatory?: boolean;
 }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -66,16 +68,22 @@ export function MandatoryChangePasswordModal({
         new_password_confirmation: confirmation,
       });
 
-      toast.success("Kata sandi berhasil diubah! Akses modul kini terbuka.");
+      toast.success(
+        isMandatory
+          ? "Kata sandi berhasil diubah! Akses modul kini terbuka."
+          : "Kata sandi akun Anda berhasil diperbarui!"
+      );
       setCurrentPassword("");
       setNewPassword("");
       setConfirmation("");
       onSuccess?.();
-    } catch (err: any) {
+      onClose?.();
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
       const msg =
-        err.response?.data?.errors?.new_password?.[0] ||
-        err.response?.data?.errors?.current_password?.[0] ||
-        err.response?.data?.message ||
+        errorObj.response?.data?.errors?.new_password?.[0] ||
+        errorObj.response?.data?.errors?.current_password?.[0] ||
+        errorObj.response?.data?.message ||
         "Gagal mengganti kata sandi.";
       setErrorMsg(msg);
       toast.error(msg);
@@ -85,17 +93,19 @@ export function MandatoryChangePasswordModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md [&>button]:hidden">
+    <Dialog open={open} onOpenChange={isMandatory ? () => {} : (isOpen) => !isOpen && onClose?.()}>
+      <DialogContent className={cn("sm:max-w-md", isMandatory && "[&>button]:hidden")}>
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400 mb-2">
             <Lock className="h-6 w-6" />
           </div>
           <DialogTitle className="text-center text-lg font-bold">
-            Wajib Mengubah Kata Sandi
+            {isMandatory ? "Wajib Mengubah Kata Sandi" : "Ubah Kata Sandi Akun"}
           </DialogTitle>
           <DialogDescription className="text-center text-xs text-slate-500">
-            Kata sandi Anda baru saja diatur ulang oleh administrator. Demi keamanan akun, Anda wajib menetapkan kata sandi baru untuk melanjutkan.
+            {isMandatory
+              ? "Kata sandi Anda baru saja diatur ulang oleh administrator. Demi keamanan akun, Anda wajib menetapkan kata sandi baru untuk melanjutkan."
+              : "Perbarui kata sandi Anda secara berkala untuk menjaga keamanan akun portal ASN."}
           </DialogDescription>
         </DialogHeader>
 
@@ -107,10 +117,13 @@ export function MandatoryChangePasswordModal({
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Kata Sandi Sementara Saat Ini</Label>
+            <Label className="text-xs font-semibold">
+              {isMandatory ? "Kata Sandi Sementara Saat Ini" : "Kata Sandi Saat Ini"}
+            </Label>
             <Input
               type="password"
-              placeholder="Masukkan password sementara"
+              autoComplete="current-password"
+              placeholder={isMandatory ? "Masukkan password sementara" : "Masukkan password aktif"}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
@@ -123,6 +136,7 @@ export function MandatoryChangePasswordModal({
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 placeholder="Minimal 8 karakter"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -132,7 +146,7 @@ export function MandatoryChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -143,6 +157,7 @@ export function MandatoryChangePasswordModal({
             <Label className="text-xs font-semibold">Konfirmasi Kata Sandi Baru</Label>
             <Input
               type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
               placeholder="Ulangi kata sandi baru"
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
@@ -151,24 +166,46 @@ export function MandatoryChangePasswordModal({
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-md mt-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Menyimpan Kata Sandi...
-              </>
-            ) : (
-              "Simpan & Buka Akses Akun"
+          <div className="flex items-center gap-2 pt-2">
+            {!isMandatory && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+                className="w-1/2 rounded-xl text-xs h-10 cursor-pointer"
+              >
+                Batal
+              </Button>
             )}
-          </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className={cn(
+                "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs h-10 rounded-xl cursor-pointer",
+                isMandatory ? "w-full shadow-md mt-2" : "w-1/2"
+              )}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : isMandatory ? (
+                "Simpan & Buka Akses Akun"
+              ) : (
+                "Simpan Kata Sandi"
+              )}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
   );
+}
+
+export function MandatoryChangePasswordModal(props: { open: boolean; onSuccess?: () => void }) {
+  return <ChangePasswordModal {...props} isMandatory={true} />;
 }
 
 /**
@@ -220,8 +257,9 @@ export function TwoFactorSetupModal({
       setRecoveryCodes(resp.data.recovery_codes || []);
       setStep("recovery");
       toast.success("Autentikasi 2 Langkah berhasil diaktifkan!");
-    } catch (err: any) {
-      const msg = err.response?.data?.errors?.code?.[0] || err.response?.data?.message || "Kode TOTP tidak cocok.";
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
+      const msg = errorObj.response?.data?.errors?.code?.[0] || errorObj.response?.data?.message || "Kode TOTP tidak cocok.";
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -286,10 +324,12 @@ export function TwoFactorSetupModal({
               <Label className="text-xs font-semibold">Kode 6-Digit dari Aplikasi</Label>
               <Input
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 placeholder="000000"
                 maxLength={6}
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "")) }
                 required
                 className="h-11 text-center font-mono text-xl tracking-[0.25em] font-bold"
               />

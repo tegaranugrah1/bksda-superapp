@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatNipLabel } from "@/lib/letter-utils";
+import { formatNipLabel, formatDateIndonesian } from "@/lib/letter-utils";
 
 export interface GeneralReportData {
   id?: string;
@@ -42,20 +42,6 @@ interface GeneralReportPrintProps {
   data: GeneralReportData;
 }
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
 
 function formatNameWithDegree(fullName: string): string {
   if (!fullName) return "-";
@@ -69,19 +55,17 @@ function formatNameWithDegree(fullName: string): string {
 }
 
 function cleanCoverSubtitle(rawTitle?: string): string {
-  if (!rawTitle) return "PELAKSANAAN TUGAS DINAS";
-  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
+  const cleaned = (rawTitle || "").trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
   return (cleaned || "PELAKSANAAN TUGAS DINAS").toUpperCase();
 }
 
 function ensureLeadingLaporan(rawTitle?: string): string {
-  if (!rawTitle) return "LAPORAN PELAKSANAAN TUGAS";
-  const cleaned = rawTitle.trim().replace(/^(?:laporan(?:[\s:\-]+|$))+/i, "").trim();
-  return `LAPORAN ${cleaned || "PELAKSANAAN TUGAS"}`.toUpperCase();
+  const sub = cleanCoverSubtitle(rawTitle);
+  return `LAPORAN ${sub === "PELAKSANAAN TUGAS DINAS" ? "PELAKSANAAN TUGAS" : sub}`;
 }
 
 export function GeneralReportPrint({ data }: GeneralReportPrintProps) {
-  const tanggalFormat = formatDateIndo(data.tanggal_laporan);
+  const tanggalFormat = formatDateIndonesian(data.tanggal_laporan);
   const isCustomImageCover = data.use_custom_cover && data.cover_mode === "image" && data.custom_cover_image_url;
 
   // Chunk foto dokumentasi: maksimal 6 foto per halaman cetak

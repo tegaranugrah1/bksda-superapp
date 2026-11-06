@@ -10,7 +10,6 @@ import {
   Search,
   ChevronsUpDown,
   Check,
-  Image as ImageIcon,
   Plus,
   Trash2,
   Printer,

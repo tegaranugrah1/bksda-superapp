@@ -195,12 +195,7 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         // Login keeps one bearer; revoke it even when Sanctum selected a cookie session.
-        $token = $request->user()?->currentAccessToken();
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
-        } else {
-            $request->user()?->tokens()->delete();
-        }
+        $request->user()?->tokens()->delete();
 
         // Logout dari guard session dan invalidate session cookie
         \Illuminate\Support\Facades\Auth::guard('web')->logout();

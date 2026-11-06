@@ -3,12 +3,10 @@
 import React, { useState, useEffect } from "react";
 import {
   Mail,
-  CheckCircle2,
   AlertTriangle,
   ShieldCheck,
   ArrowRight,
   Loader2,
-  KeyRound,
   RefreshCw,
   Send,
   Pencil,
@@ -328,6 +326,7 @@ export function EmailConnectDialog({
                 <Input
                   id="current-pw"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Masukkan kata sandi login Anda"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}

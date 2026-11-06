@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  User, Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
+  Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
   Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
   FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
   Camera, Cloud,
@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
-import { authStore } from "@/lib/auth-store";
+import { ChangePasswordModal } from "./SecurityModals";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,12 +81,6 @@ export function PortalProfileSidebar({
   const [editLoading, setEditLoading] = useState(false);
 
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
-  const [pwData, setPwData] = useState({
-    current_password: "",
-    new_password: "",
-    new_password_confirmation: "",
-  });
-  const [pwLoading, setPwLoading] = useState(false);
 
   // Photo Upload States
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -153,43 +147,6 @@ export function PortalProfileSidebar({
       toast.error(err.response?.data?.message || "Gagal memperbarui profil.");
     } finally {
       setEditLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pwData.current_password) {
-      toast.error("Password saat ini wajib diisi.");
-      return;
-    }
-    if (!pwData.new_password || pwData.new_password.length < 8) {
-      toast.error("Password baru minimal 8 karakter.");
-      return;
-    }
-    if (pwData.new_password !== pwData.new_password_confirmation) {
-      toast.error("Konfirmasi password baru tidak cocok.");
-      return;
-    }
-    if (pwData.new_password === pwData.current_password) {
-      toast.error("Password baru tidak boleh sama dengan password saat ini.");
-      return;
-    }
-    setPwLoading(true);
-    try {
-      await api.post("/me/change-password", pwData);
-      toast.success("Password berhasil diubah! Silakan login kembali dengan password baru.");
-      setPwDialogOpen(false);
-      setPwData({ current_password: "", new_password: "", new_password_confirmation: "" });
-      authStore.logout();
-      window.location.href = "/login";
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-      const serverMsg = err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join(" ")
-        : err.response?.data?.message;
-      toast.error(serverMsg || "Gagal mengubah password.");
-    } finally {
-      setPwLoading(false);
     }
   };
 
@@ -549,6 +506,7 @@ export function PortalProfileSidebar({
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <Input
                     type="password"
+                    autoComplete="current-password"
                     required
                     placeholder="Masukkan kata sandi login Anda"
                     value={editData.current_password}
@@ -574,76 +532,11 @@ export function PortalProfileSidebar({
         </DialogContent>
       </Dialog>
 
-      {/* DIALOG GANTI PASSWORD */}
-      <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Key className="w-5 h-5 text-emerald-600" />
-              Ganti Password Akun
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
-              Masukkan password lama dan password baru Anda untuk mengamankan akun.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleChangePassword} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Password Saat Ini</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.current_password}
-                  onChange={(e) => setPwData({ ...pwData, current_password: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Password Baru</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.new_password}
-                  onChange={(e) => setPwData({ ...pwData, new_password: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Konfirmasi Password Baru</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.new_password_confirmation}
-                  onChange={(e) => setPwData({ ...pwData, new_password_confirmation: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setPwDialogOpen(false)} className="rounded-xl text-xs">
-                Batal
-              </Button>
-              <Button type="submit" disabled={pwLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs">
-                {pwLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Perbarui Password"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* DIALOG GANTI PASSWORD (REUSED FROM SecurityModals) */}
+      <ChangePasswordModal
+        open={pwDialogOpen}
+        onClose={() => setPwDialogOpen(false)}
+      />
 
       {/* DIALOG PREVIEW GANTI FOTO */}
       <Dialog open={photoDialogOpen} onOpenChange={(open) => !open && closePhotoDialog()}>

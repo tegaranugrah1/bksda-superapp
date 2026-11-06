@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
 import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
+import { formatDateRangeIndonesian, formatDateIndonesian } from "@/lib/letter-utils";
 
 interface MyLeaveTabProps {
   myLeaveRequests: LeaveRequestPrintData[];
@@ -201,7 +202,7 @@ export function MyLeaveTab({
                 <div className="text-slate-600 dark:text-slate-400 flex items-center justify-between text-[11px]">
                   <span className="text-slate-400">Periode:</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {item.tanggal_mulai} s.d. {item.tanggal_selesai}
+                    {formatDateRangeIndonesian(item.tanggal_mulai, item.tanggal_selesai)}
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400 font-medium pt-1">
@@ -221,7 +222,7 @@ export function MyLeaveTab({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200/40 dark:border-slate-800 text-[11px]">
-                <span className="text-slate-400">Tgl: {item.tanggal_pengajuan}</span>
+                <span className="text-slate-400">Tgl: {formatDateIndonesian(item.tanggal_pengajuan)}</span>
                 <div className="flex items-center gap-2">
                   {(item.status?.toUpperCase() === "PENGAJUAN" || item.status?.toUpperCase() === "PENDING") && onCancelLeave && item.id && (
                     <Button

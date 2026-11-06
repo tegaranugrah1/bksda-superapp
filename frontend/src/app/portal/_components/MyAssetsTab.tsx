@@ -132,28 +132,16 @@ interface MyAssetsTabProps {
   setAssetViewMode: (mode: "list" | "grid") => void;
 }
 
-export function MyAssetsTab({
-  assetsLoading,
-  filteredMyAssets,
-  assetViewMode,
-  setAssetViewMode,
-}: MyAssetsTabProps) {
-  const [failedImgMap, setFailedImgMap] = useState<Record<string, boolean>>({});
-  const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null);
+export function AssetPhotoLightbox({
+  asset,
+  onClose,
+}: {
+  asset: AssetItem | null;
+  onClose: () => void;
+}) {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
-
-  const activePhotos = selectedAsset ? getAssetPhotos(selectedAsset) : [];
+  const activePhotos = asset ? getAssetPhotos(asset) : [];
   const currentPhoto = activePhotos[activePhotoIndex] || null;
-
-  const handleAssetClick = (asset: AssetItem) => {
-    const photos = getAssetPhotos(asset);
-    if (photos.length === 0) {
-      toast.info(`Aset "${asset.nama_barang}" (NUP: ${asset.nup}) belum memiliki foto dokumentasi.`);
-      return;
-    }
-    setSelectedAsset(asset);
-    setActivePhotoIndex(0);
-  };
 
   const handlePrevPhoto = useCallback(() => {
     if (activePhotos.length <= 1) return;
@@ -165,23 +153,148 @@ export function MyAssetsTab({
     setActivePhotoIndex((prev) => (prev < activePhotos.length - 1 ? prev + 1 : 0));
   }, [activePhotos.length]);
 
-  // Keyboard navigation for lightbox
   useEffect(() => {
-    if (!selectedAsset) return;
+    setActivePhotoIndex(0);
+  }, [asset]);
 
+  useEffect(() => {
+    if (!asset) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedAsset(null);
-      } else if (e.key === "ArrowLeft") {
-        handlePrevPhoto();
-      } else if (e.key === "ArrowRight") {
-        handleNextPhoto();
-      }
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") handlePrevPhoto();
+      else if (e.key === "ArrowRight") handleNextPhoto();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedAsset, handlePrevPhoto, handleNextPhoto]);
+  }, [asset, onClose, handlePrevPhoto, handleNextPhoto]);
+
+  if (!asset || !currentPhoto) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-5xl flex items-center justify-between py-2 px-4 rounded-xl bg-slate-900/90 text-white border border-white/10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <Camera className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-bold text-white truncate">
+              {asset.nama_barang}
+              {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) ? ` - ${formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}` : ""}
+            </h4>
+            <div className="flex items-center gap-2 text-xs text-slate-300 mt-0.5">
+              <span className="font-mono text-emerald-400">NUP: {asset.nup}</span>
+              {asset.no_polisi && <span>• {asset.no_polisi}</span>}
+              <span>• {currentPhoto.label}</span>
+              {activePhotos.length > 1 && (
+                <span className="text-slate-400">({activePhotoIndex + 1} dari {activePhotos.length})</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <a
+            href={currentPhoto.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            title="Buka Foto Asli di Tab Baru"
+          >
+            <ExternalLink className="w-4 h-4" />
+          </a>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Tutup (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div
+        className="flex-1 w-full max-w-5xl flex items-center justify-center relative my-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {activePhotos.length > 1 && (
+          <button
+            onClick={handlePrevPhoto}
+            className="absolute left-2 sm:left-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 shadow-xl hover:scale-110 transition-all cursor-pointer"
+            title="Foto Sebelumnya (Panah Kiri)"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={currentPhoto.url}
+          alt={currentPhoto.label}
+          className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none animate-in zoom-in-95 duration-150"
+          referrerPolicy="no-referrer"
+        />
+
+        {activePhotos.length > 1 && (
+          <button
+            onClick={handleNextPhoto}
+            className="absolute right-2 sm:right-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 shadow-xl hover:scale-110 transition-all cursor-pointer"
+            title="Foto Selanjutnya (Panah Kanan)"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {activePhotos.length > 1 && (
+        <div
+          className="flex items-center gap-2 p-2 rounded-xl bg-slate-900/90 border border-white/10 overflow-x-auto max-w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {activePhotos.map((photo, idx) => (
+            <button
+              key={`photo-pill-${photo.key}`}
+              onClick={() => setActivePhotoIndex(idx)}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 flex items-center gap-2 cursor-pointer",
+                activePhotoIndex === idx
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
+              )}
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>{photo.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MyAssetsTab({
+  assetsLoading,
+  filteredMyAssets,
+  assetViewMode,
+  setAssetViewMode,
+}: MyAssetsTabProps) {
+  const [failedImgMap, setFailedImgMap] = useState<Record<string, boolean>>({});
+  const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null);
+
+  const handleAssetClick = (asset: AssetItem) => {
+    const photos = getAssetPhotos(asset);
+    if (photos.length === 0) {
+      toast.info(`Aset "${asset.nama_barang}" (NUP: ${asset.nup}) belum memiliki foto dokumentasi.`);
+      return;
+    }
+    setSelectedAsset(asset);
+  };
 
   if (assetsLoading) {
     return (
@@ -431,121 +544,7 @@ export function MyAssetsTab({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* LIGHTBOX PHOTO MODAL (Triggered when asset is clicked) */}
-      {/* ========================================================================= */}
-      {selectedAsset && currentPhoto && (
-        <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6 animate-in fade-in duration-200"
-          onClick={() => setSelectedAsset(null)}
-        >
-          {/* Top Bar */}
-          <div
-            className="w-full max-w-5xl flex items-center justify-between py-2 px-4 rounded-xl bg-slate-900/90 text-white border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                <Camera className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-white truncate">
-                  {selectedAsset.nama_barang}
-                  {formatMerkTipe(selectedAsset.merk, selectedAsset.tipe, selectedAsset.merk_tipe) ? ` - ${formatMerkTipe(selectedAsset.merk, selectedAsset.tipe, selectedAsset.merk_tipe)}` : ""}
-                </h4>
-                <div className="flex items-center gap-2 text-xs text-slate-300 mt-0.5">
-                  <span className="font-mono text-emerald-400">NUP: {selectedAsset.nup}</span>
-                  {selectedAsset.no_polisi && <span>• {selectedAsset.no_polisi}</span>}
-                  <span>• {currentPhoto.label}</span>
-                  {activePhotos.length > 1 && (
-                    <span className="text-slate-400">({activePhotoIndex + 1} dari {activePhotos.length})</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <a
-                href={currentPhoto.url}
-                target="_blank"
-                rel="noreferrer"
-                className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                title="Buka Foto Asli di Tab Baru"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </a>
-              <button
-                onClick={() => setSelectedAsset(null)}
-                className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                title="Tutup (Esc)"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Center Image Container */}
-          <div
-            className="flex-1 w-full max-w-5xl flex items-center justify-center relative my-4 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Previous Button */}
-            {activePhotos.length > 1 && (
-              <button
-                onClick={handlePrevPhoto}
-                className="absolute left-2 sm:left-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 shadow-xl hover:scale-110 transition-all"
-                title="Foto Sebelumnya (Panah Kiri)"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Photo Element */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={currentPhoto.url}
-              alt={currentPhoto.label}
-              className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none animate-in zoom-in-95 duration-150"
-              referrerPolicy="no-referrer"
-            />
-
-            {/* Next Button */}
-            {activePhotos.length > 1 && (
-              <button
-                onClick={handleNextPhoto}
-                className="absolute right-2 sm:right-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white border border-white/20 shadow-xl hover:scale-110 transition-all"
-                title="Foto Selanjutnya (Panah Kanan)"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
-          </div>
-
-          {/* Bottom Thumbnails Strip (if multiple photos exist) */}
-          {activePhotos.length > 1 && (
-            <div
-              className="flex items-center gap-2 p-2 rounded-xl bg-slate-900/90 border border-white/10 overflow-x-auto max-w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {activePhotos.map((photo, idx) => (
-                <button
-                  key={`photo-pill-${photo.key}`}
-                  onClick={() => setActivePhotoIndex(idx)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 flex items-center gap-2",
-                    activePhotoIndex === idx
-                      ? "bg-emerald-600 text-white shadow-md"
-                      : "bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
-                  )}
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>{photo.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <AssetPhotoLightbox asset={selectedAsset} onClose={() => setSelectedAsset(null)} />
     </>
   );
 }

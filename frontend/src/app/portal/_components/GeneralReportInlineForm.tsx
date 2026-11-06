@@ -25,6 +25,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { GeneralReportPrint, GeneralReportData } from "./GeneralReportPrint";
+import { formatDateIndonesian, daysBetween, numberToWords } from "@/lib/letter-utils";
 
 interface GeneralReportInlineFormProps {
   onBack: () => void;
@@ -40,69 +41,9 @@ interface MySuratTugasOption {
   status: string;
 }
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch (e) {
-    return dateStr || "-";
-  }
-}
-
-function getDurationInDays(startStr: string, endStr: string): number {
-  try {
-    const start = new Date(startStr);
-    const end = new Date(endStr);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
-  } catch {
-    return 1;
-  }
-}
-
-function numberToTerbilang(num: number): string {
-  const terbilangMap: Record<number, string> = {
-    1: "satu",
-    2: "dua",
-    3: "tiga",
-    4: "empat",
-    5: "lima",
-    6: "enam",
-    7: "tujuh",
-    8: "delapan",
-    9: "sembilan",
-    10: "sepuluh",
-  };
-  return terbilangMap[num] || String(num);
-}
 
 function formatJudulLaporan(rawText: string): string {
-  // Take only the first sentence before any semicolon ';' or 'Membuat laporan...'
-  let cleaned = (rawText || "").split(";")[0].trim();
-
-  // Strip trailing duration clause: ", selama ..." or "; selama ..."
-  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
-
-  // If contains "dalam rangka", extract everything after "dalam rangka"
-  const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
-  if (matchDalamRangka && matchDalamRangka[1]) {
-    cleaned = matchDalamRangka[1].trim();
-  } else {
-    // Strip leading phrases
-    cleaned = cleaned.replace(/^(melaksanakan\s+perjalanan\s+dinas\s+dari\s+[^\s]+\s+ke\s+[^\s]+|melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i, "");
-  }
-
-  // Strip leftover "dari X ke Y" if present
-  cleaned = cleaned.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
-
-  return `PELAKSANAAN ${cleaned.toUpperCase()}`;
+  return "PELAKSANAAN " + extractShortActivity(rawText).toUpperCase();
 }
 
 function extractShortActivity(rawText: string): string {
@@ -152,10 +93,10 @@ function formatWaktuDanTempatPelaksanaan(
   tanggalSelesai: string,
   tempatTujuan?: string
 ): string {
-  const daysCount = getDurationInDays(tanggalMulai, tanggalSelesai);
-  const daysTerbilang = numberToTerbilang(daysCount);
-  const tglMulaiStr = formatDateIndo(tanggalMulai);
-  const tglSelesaiStr = formatDateIndo(tanggalSelesai);
+  const daysCount = daysBetween(tanggalMulai, tanggalSelesai);
+  const daysTerbilang = numberToWords(daysCount);
+  const tglMulaiStr = formatDateIndonesian(tanggalMulai);
+  const tglSelesaiStr = formatDateIndonesian(tanggalSelesai);
 
   let cleaned = (rawMaksud || "").split(";")[0].trim();
   cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
@@ -339,7 +280,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
         "Pengesahan DIPA Tahun Anggaran 2026 Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor: DIPA-143.04.2.693614/2026 tanggal 08 Juli 2026.",
       ];
       if (st.nomor_surat) {
-        const stDateStr = formatDateIndo(st.tanggal_surat || st.tanggal_mulai);
+        const stDateStr = formatDateIndonesian(st.tanggal_surat || st.tanggal_mulai);
         baseDasar.push(
           `Surat Tugas Kepala Balai Konservasi Sumber Daya Alam Kalimantan Timur Nomor : ${st.nomor_surat} tanggal ${stDateStr}.`
         );
@@ -630,7 +571,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                               {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
                               {st.maksud_tujuan}
                             </span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{formatDateIndo(st.tanggal_mulai)}</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{formatDateIndonesian(st.tanggal_mulai)}</span>
                           </div>
                         </div>
                       ))}

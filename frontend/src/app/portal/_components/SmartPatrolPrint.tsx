@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatNipLabel } from "@/lib/letter-utils";
+import { formatNipLabel, formatDateIndonesian } from "@/lib/letter-utils";
 
 export interface TemuanSatwaLiarItem {
   id: string;
@@ -74,38 +74,20 @@ interface SmartPatrolPrintProps {
   tallySheetFile?: File | null;
 }
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
 
 function getMonthYearIndo(dateStr?: string | null): string {
   if (!dateStr) return "JULI 2026";
   try {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "JULI 2026";
-    return d.toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    }).toUpperCase();
-  } catch (e) {
+    return isNaN(d.getTime()) ? "JULI 2026" : d.toLocaleDateString("id-ID", { month: "long", year: "numeric" }).toUpperCase();
+  } catch {
     return "JULI 2026";
   }
 }
 
 export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps) {
   const defaultDate = data.tanggal || new Date().toISOString();
-  const tanggalFormatted = formatDateIndo(defaultDate);
+  const tanggalFormatted = formatDateIndonesian(defaultDate);
   const monthYearUpper = getMonthYearIndo(defaultDate);
 
   const [tallySheetUrl, setTallySheetUrl] = React.useState<string | null>(null);

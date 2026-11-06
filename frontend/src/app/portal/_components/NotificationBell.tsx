@@ -55,22 +55,23 @@ interface NotificationBellProps {
 
 function formatRelativeTime(dateString: string): string {
   try {
-    const diff = Date.now() - new Date(dateString).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "Baru saja";
-    if (minutes < 60) return `${minutes}m lalu`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}j lalu`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}h lalu`;
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-    });
+    const m = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000);
+    if (m < 1) return "Baru saja";
+    if (m < 60) return `${m}m lalu`;
+    if (m < 1440) return `${Math.floor(m / 60)}j lalu`;
+    if (m < 10080) return `${Math.floor(m / 1440)}h lalu`;
+    return new Date(dateString).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
   } catch {
     return dateString;
   }
 }
+
+const TYPE_STYLES: Record<string, string> = {
+  surat_tugas: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  cuti: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  bmn: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  system: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+};
 
 function getTypeIcon(type: string) {
   switch (type) {
@@ -90,58 +91,51 @@ const listContainerVariants: Variants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.035,
-      delayChildren: 0.02,
+      staggerChildren: 0.02,
     },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.12 },
+    transition: { duration: 0.1 },
   },
 };
 
 const itemMotionVariants: Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 4 },
   show: {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring" as const,
-      stiffness: 420,
-      damping: 28,
+      duration: 0.15,
+      ease: "easeOut",
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.15 },
+    transition: { duration: 0.1 },
   },
 };
 
 const contentSliderVariants: Variants = {
-  enter: (dir: number) => ({
-    x: dir > 0 ? 20 : dir < 0 ? -20 : 0,
+  enter: {
     opacity: 0,
-    filter: "blur(2px)",
-  }),
+    y: 5,
+  },
   center: {
-    x: 0,
     opacity: 1,
-    filter: "blur(0px)",
+    y: 0,
     transition: {
-      duration: 0.22,
-      ease: [0.22, 1, 0.36, 1] as const,
+      duration: 0.15,
+      ease: "easeOut",
     },
   },
-  exit: (dir: number) => ({
-    x: dir > 0 ? -20 : dir < 0 ? 20 : 0,
+  exit: {
     opacity: 0,
-    filter: "blur(2px)",
     transition: {
-      duration: 0.16,
-      ease: [0.22, 1, 0.36, 1] as const,
+      duration: 0.1,
+      ease: "easeIn",
     },
-  }),
+  },
 };
 
 const tabOrder: Record<"all" | "unread" | "read", number> = {
@@ -428,7 +422,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
         <PopoverContent
           align="end"
           sideOffset={8}
-          className="w-85 sm:w-96 p-0 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl overflow-hidden flex flex-col h-[480px] max-h-[85vh]"
+          className="w-[340px] sm:w-96 max-w-[calc(100vw-2rem)] p-0 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 backdrop-blur-md overflow-hidden flex flex-col h-[480px] max-h-[85vh]"
         >
           {/* Header (shrink-0) */}
           <div className="shrink-0 px-4 pt-3 pb-2.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-850/50">
@@ -531,7 +525,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
           </div>
 
           {/* Body (flex-1 min-h-0 overflow-y-auto) */}
-          <div className="flex-1 min-h-0 overflow-y-auto relative flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative flex flex-col">
             <AnimatePresence mode="wait" custom={popoverDirection}>
               {loading ? (
                 <motion.div
@@ -584,26 +578,16 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                       <motion.div
                         key={item.id}
                         variants={itemMotionVariants}
-                        layout
-                        whileHover={{ backgroundColor: "rgba(241, 245, 249, 0.7)", x: 2 }}
-                        whileTap={{ scale: 0.985 }}
                         onClick={() => handleItemClick(item)}
                         className={cn(
-                          "flex items-start gap-3 p-3.5 cursor-pointer relative text-left transition-colors duration-300",
+                          "flex items-start gap-3 p-3.5 cursor-pointer relative text-left transition-colors duration-150 hover:bg-slate-50/90 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800",
                           !item.read_at && "bg-emerald-50/40 dark:bg-emerald-950/20"
                         )}
                       >
                         <div
                           className={cn(
                             "w-8 h-8 rounded-xl shrink-0 flex items-center justify-center shadow-xs mt-0.5",
-                            item.type === "surat_tugas" &&
-                              "bg-emerald-100/70 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300",
-                            item.type === "cuti" &&
-                              "bg-amber-100/70 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300",
-                            item.type === "bmn" &&
-                              "bg-blue-100/70 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300",
-                            item.type === "system" &&
-                              "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                            TYPE_STYLES[item.type] || TYPE_STYLES.system
                           )}
                         >
                           {getTypeIcon(item.type)}
@@ -625,7 +609,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                               {formatRelativeTime(item.created_at)}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-snug">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-snug break-words">
                             {item.message}
                           </p>
                         </div>
@@ -651,7 +635,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
 
           {/* Footer (shrink-0 mt-auto) */}
           <div className="shrink-0 p-2 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-850/50 flex items-center justify-center">
-            <motion.div className="w-full" whileHover={{ x: 2 }} whileTap={{ scale: 0.98 }}>
+            <div className="w-full">
               <Button
                 variant="ghost"
                 size="sm"
@@ -664,7 +648,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                 Lihat Semua Riwayat
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </Button>
-            </motion.div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
@@ -783,7 +767,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
           </DialogHeader>
 
           {/* Body with locked flex-1 & directional slide transition */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-2 sm:px-4 py-2 relative flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 py-2 relative flex flex-col">
             {/* Subtle top loading indicator bar instead of full-page collapse */}
             {historyLoading && (
               <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-100 dark:bg-emerald-950 overflow-hidden z-20">
@@ -847,12 +831,9 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                       <motion.div
                         key={item.id}
                         variants={itemMotionVariants}
-                        layout
-                        whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                        whileTap={{ scale: 0.985 }}
                         onClick={() => handleItemClick(item)}
                         className={cn(
-                          "flex items-start gap-3.5 p-3.5 rounded-2xl cursor-pointer transition-colors duration-300 relative text-left mb-1.5",
+                          "flex items-start gap-3.5 p-3.5 rounded-2xl cursor-pointer transition-colors duration-150 relative text-left mb-1.5 active:scale-[0.99]",
                           item.read_at
                             ? "hover:bg-slate-50 dark:hover:bg-slate-850/60 bg-transparent border border-transparent"
                             : "bg-emerald-50/50 dark:bg-emerald-950/25 border border-emerald-100/80 dark:border-emerald-900/40 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40"
@@ -861,14 +842,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                         <div
                           className={cn(
                             "w-9 h-9 rounded-xl shrink-0 flex items-center justify-center shadow-xs mt-0.5 transition-transform duration-200",
-                            item.type === "surat_tugas" &&
-                              "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-                            item.type === "cuti" &&
-                              "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-                            item.type === "bmn" &&
-                              "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-                            item.type === "system" &&
-                              "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                            TYPE_STYLES[item.type] || TYPE_STYLES.system
                           )}
                         >
                           {getTypeIcon(item.type)}
@@ -900,7 +874,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
                               {formatRelativeTime(item.created_at)}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed break-words">
                             {item.message}
                           </p>
                         </div>

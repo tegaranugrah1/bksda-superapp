@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Loader2, LogOut, Users, Package,
-  Boxes, FileText, LayoutGrid, Mail, Bell, Banknote,
+  Boxes, FileText, LayoutGrid, Mail, Banknote,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { useAuth } from "@/hooks/useAuth";
@@ -192,6 +192,16 @@ function PortalSkeleton() {
     </div>
   );
 }
+
+const ALL_MODULE_CARDS = [
+  { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: Users, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60" },
+  { key: "keuangan", href: "/keuangan", label: "Keuangan", desc: "SPJ & Visum SPD", icon: Banknote, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/60" },
+  { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: Package, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
+  { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: Boxes, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/60" },
+  { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: FileText, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60" },
+  { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: LayoutGrid, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/60" },
+  { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: Mail, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
+] as const;
 
 function PortalContent() {
   const router = useRouter();
@@ -408,10 +418,9 @@ function PortalContent() {
     }
   }, [employeeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Stable reference for 60-second background polling without dependency loop
+  // Consolidated background polling & visibility synchronization
   const fetchAllRef = useRef<() => void>(() => {});
   const lastFetchTimeRef = useRef<number>(0);
-  const MIN_REFETCH_INTERVAL_MS = 30000; // Minimal jeda 30 detik antar event refetch
 
   useEffect(() => {
     fetchAllRef.current = () => {
@@ -425,33 +434,6 @@ function PortalContent() {
     };
   }, [fetchDashboard, fetchSuratTugas, fetchAssets, fetchMyLeaveRequests, employeeId]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        fetchAllRef.current();
-      }
-    }, 60000);
-
-    const handleFocus = () => {
-      const now = Date.now();
-      if (
-        document.visibilityState === "visible" &&
-        now - lastFetchTimeRef.current >= MIN_REFETCH_INTERVAL_MS
-      ) {
-        fetchAllRef.current();
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleFocus);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleFocus);
-    };
-  }, []);
-
   // Cek apakah ada pengajuan cuti yang masih menunggu persetujuan (status: Pengajuan)
   const hasPendingLeave = useMemo(() => {
     return myLeaveRequests.some(
@@ -459,19 +441,31 @@ function PortalContent() {
     );
   }, [myLeaveRequests]);
 
-  // Smart Polling (15s): Hanya aktif jika ada pengajuan cuti berstatus 'Pengajuan' dan tab browser sedang aktif
-  // Mencegah request berulang yang tidak perlu ke server jika semua pengajuan sudah selesai
+  // Smart Polling (15s saat ada pengajuan cuti pending, 60s default)
   useEffect(() => {
-    if (!hasPendingLeave) return;
-
+    const pollInterval = hasPendingLeave ? 15000 : 60000;
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
-        fetchMyLeaveRequests();
+        fetchAllRef.current();
       }
-    }, 15000);
+    }, pollInterval);
 
-    return () => clearInterval(interval);
-  }, [hasPendingLeave, fetchMyLeaveRequests]);
+    const handleSync = () => {
+      const now = Date.now();
+      if (document.visibilityState === "visible" && now - lastFetchTimeRef.current >= 20000) {
+        fetchAllRef.current();
+      }
+    };
+
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
+  }, [hasPendingLeave]);
 
   // Instant Cross-Tab Sync via BroadcastChannel (0ms latency, 0 beban server)
   useEffect(() => {
@@ -506,18 +500,10 @@ function PortalContent() {
       : (data.user.access_modules || []);
   }, [data]);
 
-  const moduleCards = useMemo(() => {
-    const all: { key: string; href: string; label: string; desc: string; icon: React.ReactNode; color: string; bg: string }[] = [
-      { key: "kepegawaian", href: "/kepegawaian", label: "Kepegawaian", desc: "Surat Tugas & SDM", icon: <Users className="w-5 h-5" />, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/60" },
-      { key: "keuangan", href: "/keuangan", label: "Keuangan", desc: "SPJ & Visum SPD", icon: <Banknote className="w-5 h-5" />, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/60" },
-      { key: "bmn", href: "/bmn", label: "BMN", desc: "Barang Milik Negara", icon: <Package className="w-5 h-5" />, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
-      { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok & Distribusi", icon: <Boxes className="w-5 h-5" />, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/60" },
-      { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Pelaporan Digital", icon: <FileText className="w-5 h-5" />, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/60" },
-      { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: <LayoutGrid className="w-5 h-5" />, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/60" },
-      { key: "surat", href: "/surat", label: "Persuratan", desc: "Surat & Disposisi", icon: <Mail className="w-5 h-5" />, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/60" },
-    ];
-    return all.filter(m => modules.includes(m.key));
-  }, [modules]);
+  const moduleCards = useMemo(
+    () => ALL_MODULE_CARDS.filter((m) => modules.includes(m.key)),
+    [modules]
+  );
 
   if (loading && !data) {
     return <PortalSkeleton />;
@@ -677,7 +663,6 @@ function PortalContent() {
                     >
                       <PortalQuickStats
                         rank={data.employee?.rank}
-                        rankLevel={data.employee?.rank_level}
                         activeSuratTugasCount={suratTugas.length}
                         myAssetsCount={filteredMyAssets.length}
                         leaveBalance={myLeaveBalance}
@@ -739,7 +724,7 @@ function PortalContent() {
                                 className="group bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
                               >
                                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:shadow-xs", mod.bg, mod.color)}>
-                                  {mod.icon}
+                                  <mod.icon className="w-5 h-5" />
                                 </div>
                                 <div className="space-y-0.5 w-full">
                                   <p className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-tight truncate">

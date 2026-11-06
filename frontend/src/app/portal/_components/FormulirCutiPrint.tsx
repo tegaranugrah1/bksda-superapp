@@ -48,13 +48,8 @@ interface FormulirCutiPrintProps {
 import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
 import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
 
-export { calculateMasaKerja };
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const formatted = formatDateIndonesian(dateStr);
-  return formatted === "..." ? "-" : formatted;
-}
+const formatDateIndo = (dateStr?: string | null): string => (dateStr ? formatDateIndonesian(dateStr) : "-");
 
 function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
   const sk = (satuanKerja || "").toLowerCase();

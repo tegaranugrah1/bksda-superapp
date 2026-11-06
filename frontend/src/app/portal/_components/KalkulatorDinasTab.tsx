@@ -10,7 +10,6 @@ import {
   Camera,
   FileText,
   Receipt,
-  Calendar,
   Image as ImageIcon,
   Check,
   X,
@@ -58,16 +57,13 @@ const formatRupiah = (val: number) => {
 };
 
 const formatRibuan = (val: number | string): string => {
-  if (val === undefined || val === null || val === "") return "";
-  const clean = String(val).replace(/[^0-9]/g, "");
-  if (!clean) return "";
-  return new Intl.NumberFormat("id-ID").format(Number(clean));
+  const clean = String(val ?? "").replace(/\D/g, "");
+  return clean ? new Intl.NumberFormat("id-ID").format(Number(clean)) : "";
 };
 
-const parseRibuan = (val: string | number): number => {
-  const num = Number(String(val).replace(/[^0-9]/g, "")) || 0;
-  return Math.min(num, 10_000_000_000);
-};
+const parseRibuan = (val: string | number): number =>
+  Math.min(Number(String(val ?? "").replace(/\D/g, "")) || 0, 10_000_000_000);
+
 
 const getStorageKey = (userName?: string) => {
   const safeUser = (userName || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
