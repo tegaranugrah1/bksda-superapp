@@ -2485,8 +2485,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1793976369.87275,
-    "ast_hash": "0d9c1ad6094ba3423424e6c54abd0ec9",
+    "mtime": 1793985803.205124,
+    "ast_hash": "abb1b9fa4a7e7d03064f45192142a3a8",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -8732,6 +8732,11 @@
   "frontend/public/logokemenhutbksda.png": {
     "mtime": 1793975984.775455,
     "ast_hash": "9d7c4250c4cf5b322115a3b6ac56ddd4",
+    "semantic_hash": ""
+  },
+  "frontend/public/kemenhutlogo.png": {
+    "mtime": 1793981431.1073828,
+    "ast_hash": "57769574d53a5b20b7d1dd861241b078",
     "semantic_hash": ""
   }
 }
