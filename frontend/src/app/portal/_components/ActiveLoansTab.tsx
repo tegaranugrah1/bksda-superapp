@@ -18,10 +18,37 @@ export interface BorrowedAssetItem extends AssetItem {
 
 interface ActiveLoansTabProps {
   assets: BorrowedAssetItem[];
+  viewMode?: "list" | "grid";
+  setViewMode?: (mode: "list" | "grid") => void;
 }
 
-export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+export function ActiveLoansTab({
+  assets,
+  viewMode: controlledViewMode,
+  setViewMode: controlledSetViewMode,
+}: ActiveLoansTabProps) {
+  const [internalViewMode, setInternalViewMode] = useState<"list" | "grid">(() =>
+    assets.length <= 4 ? "grid" : "list"
+  );
+  const [userToggled, setUserToggled] = useState(false);
+
+  useEffect(() => {
+    if (!userToggled && !controlledViewMode) {
+      setInternalViewMode(assets.length <= 4 ? "grid" : "list");
+    }
+  }, [assets.length, userToggled, controlledViewMode]);
+
+  const activeMode = controlledViewMode ?? internalViewMode;
+
+  const handleToggleMode = (mode: "list" | "grid") => {
+    setUserToggled(true);
+    if (controlledSetViewMode) {
+      controlledSetViewMode(mode);
+    } else {
+      setInternalViewMode(mode);
+    }
+  };
+
   const [failedImgMap, setFailedImgMap] = useState<Record<string, boolean>>({});
   const [selectedAsset, setSelectedAsset] = useState<BorrowedAssetItem | null>(null);
 
@@ -36,9 +63,14 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
 
   if (assets.length === 0) {
     return (
-      <div className="p-12 text-center">
-        <Package className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Tidak ada pinjaman aktif</p>
+      <div className="p-12 text-center flex flex-col items-center justify-center min-h-[360px]">
+        <div className="w-14 h-14 rounded-2xl bg-[#edf3ee] dark:bg-slate-800/80 text-[#1e5433] dark:text-emerald-400 flex items-center justify-center mb-3 border border-[#dce8dd] dark:border-slate-700/60 shadow-xs">
+          <Package className="w-7 h-7" />
+        </div>
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Tidak Ada Pinjaman Aktif</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+          Saat ini Anda tidak memiliki barang atau peralatan yang sedang dipinjam.
+        </p>
       </div>
     );
   }
@@ -46,22 +78,22 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
   return (
     <>
       {/* View Switcher Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-slate-900/50">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[#dce8dd] dark:border-slate-800 bg-[#edf3ee]/40 dark:bg-slate-900/50">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
             Daftar Pinjaman Aktif ({assets.length})
           </span>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:inline">
-            • Klik aset untuk melihat foto dokumentasi
+          <span className="text-[10.5px] text-slate-400 dark:text-slate-500 hidden sm:inline">
+            • Klik aset untuk foto dokumentasi
           </span>
         </div>
-        <div className="flex items-center bg-slate-100 dark:bg-zinc-850 p-0.5 rounded-lg border border-slate-200/40 dark:border-zinc-700/40">
+        <div className="flex items-center bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-[#dce8dd] dark:border-slate-700 shadow-2xs">
           <button
-            onClick={() => setViewMode("list")}
+            onClick={() => handleToggleMode("list")}
             className={cn(
-              "p-1.5 rounded-md transition-all",
-              viewMode === "list"
-                ? "bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm"
+              "p-1 rounded-md transition-all cursor-pointer",
+              activeMode === "list"
+                ? "bg-[#1e5433] text-white shadow-xs"
                 : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             )}
             title="Tampilan List"
@@ -69,11 +101,11 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
             <List className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={() => setViewMode("grid")}
+            onClick={() => handleToggleMode("grid")}
             className={cn(
-              "p-1.5 rounded-md transition-all",
-              viewMode === "grid"
-                ? "bg-white dark:bg-zinc-700 text-slate-800 dark:text-white shadow-sm"
+              "p-1 rounded-md transition-all cursor-pointer",
+              activeMode === "grid"
+                ? "bg-[#1e5433] text-white shadow-xs"
                 : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             )}
             title="Tampilan Grid"
@@ -85,13 +117,13 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={viewMode}
+          key={activeMode}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
         >
-          {viewMode === "list" ? (
+          {activeMode === "list" ? (
             /* List View */
             <div className="divide-y divide-slate-100 dark:divide-zinc-800">
           {assets.map((asset) => {
@@ -218,7 +250,7 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
         </div>
       ) : (
         /* Grid View */
-        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="p-3 sm:p-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           {assets.map((asset) => {
             const photos = getAssetPhotos(asset as unknown as AssetItem);
             const primaryPhoto = photos[0] || null;
@@ -239,11 +271,11 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
               <div
                 key={`loan-grid-${asset.id}`}
                 onClick={() => handleAssetClick(asset)}
-                className="bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/70 dark:border-slate-800 overflow-hidden hover:shadow-lg hover:border-blue-500/40 dark:hover:border-blue-500/40 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group"
+                className="bg-white dark:bg-slate-900/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden hover:shadow-md hover:border-[#1e5433]/40 dark:hover:border-emerald-700/50 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group"
                 title={photos.length > 0 ? "Klik untuk melihat foto dokumentasi" : "Belum ada foto"}
               >
                 {/* Photo Container */}
-                <div className="aspect-video relative bg-slate-200/50 dark:bg-slate-800/50 border-b border-slate-200/40 dark:border-slate-800/40 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="h-24 sm:h-28 w-full relative bg-slate-100 dark:bg-slate-800/60 border-b border-[#dce8dd]/60 dark:border-slate-800/60 flex items-center justify-center overflow-hidden shrink-0">
                   {hasValidThumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -259,9 +291,9 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                       }
                     />
                   ) : (
-                    <div className="flex flex-col items-center gap-1.5 p-3 text-center text-slate-400 dark:text-slate-600">
-                      <Camera className="w-7 h-7 text-slate-300 dark:text-slate-700" />
-                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-500">
+                    <div className="flex flex-col items-center gap-1 p-2 text-center text-slate-400 dark:text-slate-600">
+                      <Camera className="w-5 h-5 text-slate-300 dark:text-slate-700" />
+                      <p className="text-[8px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-500">
                         Belum ada foto
                       </p>
                     </div>
@@ -269,14 +301,14 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
 
                   {/* Photo Source Badge */}
                   {primaryPhoto && (
-                    <span className="absolute top-2.5 left-2.5 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider bg-slate-900/80 text-white backdrop-blur-sm shadow-sm border border-white/20">
+                    <span className="absolute top-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-900/80 text-white backdrop-blur-sm shadow-sm border border-white/20">
                       {primaryPhoto.label}
                     </span>
                   )}
 
                   {/* Vehicle License Plate Badge */}
                   {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && (
-                    <span className="absolute top-2.5 right-2.5 text-[9px] px-2.5 py-0.5 rounded-full font-black bg-indigo-600 text-white shadow-sm border border-indigo-500/25 uppercase">
+                    <span className="absolute top-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded-full font-black bg-indigo-600 text-white shadow-sm border border-indigo-500/25 uppercase">
                       {asset.no_polisi}
                     </span>
                   )}
@@ -284,7 +316,7 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                   {/* Overdue or Active Loan Banner */}
                   <span
                     className={cn(
-                      "absolute bottom-2.5 left-2.5 text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm border",
+                      "absolute bottom-1.5 left-1.5 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm border",
                       isOverdue
                         ? "bg-rose-600 text-white border-rose-500/30"
                         : "bg-blue-600 text-white border-blue-500/30"
@@ -294,42 +326,42 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                   </span>
 
                   {/* Hover Overlay Hint */}
-                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
-                    <ZoomIn className="w-5 h-5" />
-                    <span className="text-xs font-semibold">
+                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white">
+                    <ZoomIn className="w-4 h-4" />
+                    <span className="text-[11px] font-semibold">
                       {photos.length > 0 ? "Buka Foto" : "Tanpa Foto"}
                     </span>
                   </div>
                 </div>
 
                 {/* Card Details */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
+                <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between gap-1.5">
                   <div className="min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-[#1e5433] dark:group-hover:text-emerald-400 transition-colors">
                         {asset.nama_barang}
                       </p>
                       {photos.length > 1 && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 shrink-0">
+                        <span className="text-[8.5px] px-1 py-0.2 rounded font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 shrink-0">
                           +{photos.length - 1} foto
                         </span>
                       )}
                     </div>
                     {merkDisplay && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                         {merkDisplay}
                       </p>
                     )}
 
                     {/* Loan Schedule Dates Strip */}
-                    <div className="mt-2.5 p-2 rounded-lg bg-slate-100/70 dark:bg-zinc-800/50 border border-slate-200/50 dark:border-zinc-750 flex flex-col gap-1 text-[11px]">
+                    <div className="mt-1.5 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 flex flex-col gap-0.5 text-[10px]">
                       {asset.loan_date && (
                         <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            Pinjam:
+                            <Clock className="w-2.5 h-2.5 text-slate-400" />
+                            Tgl Pinjam:
                           </span>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">
                             {formatDateIndonesian(asset.loan_date)}
                           </span>
                         </div>
@@ -337,10 +369,10 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                       {asset.due_date && (
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                            <Clock className="w-3 h-3 text-slate-400" />
+                            <Clock className="w-2.5 h-2.5 text-slate-400" />
                             Batas Kembali:
                           </span>
-                          <span className={cn("font-medium", isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-700 dark:text-slate-300")}>
+                          <span className={cn("font-semibold", isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-700 dark:text-slate-300")}>
                             {formatDateIndonesian(asset.due_date)}
                           </span>
                         </div>
@@ -349,12 +381,12 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                   </div>
 
                   {/* Card Footer */}
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
+                  <div className="pt-1.5 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500">
+                      <span className="text-[8px] font-mono text-slate-400 dark:text-slate-500">
                         {asset.kode_barang}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">
+                      <span className="text-[9px] font-bold text-slate-700 dark:text-slate-300">
                         NUP: {asset.nup}
                       </span>
                     </div>
@@ -362,7 +394,7 @@ export function ActiveLoansTab({ assets }: ActiveLoansTabProps) {
                     {asset.kondisi && (
                       <span
                         className={cn(
-                          "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                          "text-[8px] px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider",
                           asset.kondisi === "Baik"
                             ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
                             : asset.kondisi === "Rusak Ringan"

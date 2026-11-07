@@ -254,7 +254,10 @@ function PortalContent() {
   // Aset states
   const [myAssets, setMyAssets] = useState<AssetItem[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
-  const [assetViewMode, setAssetViewMode] = useState<"list" | "grid">("list");
+  const [assetViewMode, setAssetViewMode] = useState<"list" | "grid">("grid");
+  const [assetViewToggled, setAssetViewToggled] = useState(false);
+  const [loanViewMode, setLoanViewMode] = useState<"list" | "grid">("grid");
+  const [loanViewToggled, setLoanViewToggled] = useState(false);
 
   // Surat Tugas inline preview state
   const [stPreviewOpen, setStPreviewOpen] = useState(false);
@@ -270,6 +273,19 @@ function PortalContent() {
     const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
     return myAssets.filter(a => !borrowedIds.has(a.id));
   }, [myAssets, data]);
+
+  // Auto default view mode: "grid" jika <= 4 aset, "list" jika > 4 aset
+  useEffect(() => {
+    if (!assetViewToggled && !assetsLoading) {
+      setAssetViewMode(filteredMyAssets.length <= 4 ? "grid" : "list");
+    }
+  }, [filteredMyAssets.length, assetsLoading, assetViewToggled]);
+
+  useEffect(() => {
+    if (!loanViewToggled && data?.my_assets) {
+      setLoanViewMode(data.my_assets.length <= 4 ? "grid" : "list");
+    }
+  }, [data?.my_assets?.length, loanViewToggled]);
 
   const employeeId = data?.employee?.id;
 
@@ -314,15 +330,24 @@ function PortalContent() {
   }, [employeeId]);
 
   const fetchAssets = useCallback(async () => {
+    setAssetsLoading(true);
     try {
       const respMy = await api.get("/me/assets");
-      setMyAssets(respMy.data.data || []);
+      const list = respMy.data?.data ?? (Array.isArray(respMy.data) ? respMy.data : []);
+      setMyAssets(list);
     } catch {
       // Keep existing list on background error
     } finally {
       setAssetsLoading(false);
     }
   }, []);
+
+  // Fetch assets whenever navigating to the 'aset' tab
+  useEffect(() => {
+    if (activeNavTab === "aset") {
+      fetchAssets();
+    }
+  }, [activeNavTab, fetchAssets]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
     setStDetailLoading(true);
@@ -793,7 +818,14 @@ function PortalContent() {
                     </div>
                   ) : activeNavTab === "pinjaman" ? (
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm">
-                      <ActiveLoansTab assets={data.my_assets as BorrowedAssetItem[]} />
+                      <ActiveLoansTab
+                        assets={data.my_assets as BorrowedAssetItem[]}
+                        viewMode={loanViewMode}
+                        setViewMode={(mode) => {
+                          setLoanViewToggled(true);
+                          setLoanViewMode(mode);
+                        }}
+                      />
                     </div>
                   ) : activeNavTab === "aset" ? (
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm">
@@ -801,7 +833,10 @@ function PortalContent() {
                         assetsLoading={assetsLoading}
                         filteredMyAssets={filteredMyAssets as AssetItem[]}
                         assetViewMode={assetViewMode}
-                        setAssetViewMode={setAssetViewMode}
+                        setAssetViewMode={(mode) => {
+                          setAssetViewToggled(true);
+                          setAssetViewMode(mode);
+                        }}
                       />
                     </div>
                   ) : activeNavTab === "surat_tugas" ? (
