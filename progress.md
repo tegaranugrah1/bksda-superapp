@@ -1,5 +1,7 @@
 # Progress Development - BKSDA SuperApp
 
+**Status terbaru Portal (8 November 2026):** audit dan perbaikan lokal ditutup pada bagian36. Perbaikan, tes, laporan dan progress disatukan dalam commit lokal penutupan; belum di-push atau deploy. Rekap temuan lama/baru, perubahan dan bukti tes ada di [laporan penutupan Portal](docs/security/portal-security-review-2026-11-08.md). Catatan putaran sebelumnya di bawah adalah riwayat, bukan daftar celah yang semuanya masih terbuka.
+
 ## Status Update: 2 November 2026
 
 ### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB) - SELESAI PENUH (33/33 Tasks 100%)
@@ -894,6 +896,8 @@
 
 ### 26. Audit Keamanan Menyeluruh (`/security-audit`) & Simplifikasi Kode (`/ponytail-review`) Modul Portal Pegawai — Selesai ✅
 
+> Penutupan terkini dan batas verifikasinya dicatat pada bagian36 serta laporan8November2026; bagian ini mencatat pekerjaan pada snapshot sebelumnya.
+
 - **Latar Belakang & Tujuan**:
   - Melakukan audit keamanan defensif menyeluruh (`/security-audit`) dan perampingan kompleksitas/duplikasi kode (`/ponytail-review`) pada seluruh halaman, komponen, serta controller backend pendukung **Modul Portal Pegawai (`/portal`)**.
 
@@ -927,3 +931,94 @@
   - `php backend/tests/portal_security_check.php`: **PASS (200+ security invariants)**.
   - `PortalPersonalSecurityTest.php`: **34 tests, 90 assertions PASS (100% Hijau)**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+### 27. Review Terfokus Portal: Kepemilikan Aset Ambigu, Challenge 2FA setelah Reset Kredensial, dan Simplifikasi Draf (8 November 2026)
+
+- **Bukti sebelum perbaikan**: 5 dari 6 skenario regresi baru gagal pada source `b677713b` (ditambah tes baru): pembacaan BPKB nama ganda/kolom pemilik bertentangan mendapat HTTP 200; impor nama dasar ambigu memilih pegawai pertama; challenge 2FA lama tetap menerbitkan token setelah reset password atau penggantian authenticator. Kontrol positif pemilik dengan `employee_id` eksplisit sudah lulus.
+- **Perbaikan kepemilikan aset**: `Employee::resolveIdByName()` sekarang memerlukan satu identitas unik di seluruh kolom nama yang cocok. Nama dasar yang dimiliki beberapa pegawai dan kolom yang menunjuk pegawai berbeda menghasilkan `null`. `Asset::isOwnedByEmployee()` memakai resolver tersebut tanpa fallback pencocokan nama kedua. `employee_id` eksplisit tetap menjadi acuan utama. Aset legacy ambigu tanpa ID perlu ditetapkan pemiliknya oleh admin; relasi historis eksplisit dan data operasional tidak diubah massal.
+- **Perbaikan challenge 2FA**: challenge diikat pada fingerprint hash password dan secret authenticator saat faktor pertama berhasil. Penyelesaian challenge menolak perubahan kredensial atau 2FA yang sudah dinonaktifkan sebelum recovery code dikonsumsi/token diterbitkan. Challenge dari versi lama tanpa fingerprint meminta login ulang.
+- **Ponytail**: kalkulator dinas memuat satu snapshot draf untuk tujuh field; helper pembaca draf yang hanya memiliki satu caller di-inline. Fallback otorisasi nama yang berulang di model aset dihapus. Total kode implementasi empat file berkurang **22 baris**, di luar penambahan tes/dokumentasi.
+- **Verifikasi lokal terisolasi**:
+  - Regresi baru: **6 tes, 27 assertions lulus** setelah perbaikan.
+  - Regresi portal personal/auth, 2FA, email, broadcast, Surat Tugas dan Drive: **100 tes, 521 assertions lulus**.
+  - `frontend/tests/portal-review-check.cjs`: lulus; satu pembacaan storage, tujuh field tersimpan dipulihkan, fallback data kosong/rusak, dan SSR tanpa storage.
+  - TypeScript seluruh source frontend (`tsc --noEmit --incremental false`) dan ESLint komponen kalkulator (`--max-warnings=0`): **lulus, 0 error/warning**. Dependensi memakai image lokal dengan overlay read-only dua paket ekspor dokumen yang sudah terpasang; tidak mengunduh paket.
+  - Semua kode target dijalankan dalam container `--network none`, source/toolchain read-only, environment allowlist, SQLite dummy, scratch tmpfs 128 MiB, CPU 1, RAM maksimum 1536 MiB, pids 64, serta batas waktu/file. Tidak memakai database atau identitas operasional.
+- **Cakupan**: review terfokus source dan regresi portal; bukan penutupan audit seluruh aplikasi atau verifikasi deployment. Perubahan belum di-commit/push/deploy oleh sesi ini.
+
+### 28. Review Lanjutan Portal: Batas Modul pada Ringkasan Persetujuan dan Simplifikasi Middleware (8 November 2026)
+
+- **Temuan tambahan terkonfirmasi — pengungkapan metadata terbatas**: `GET /api/mobile/dashboard` sebelumnya menghitung semua Surat Tugas pending untuk setiap admin, termasuk admin Inventory tanpa akses Surat Tugas/Kepegawaian. Permission `surat_tugas.approve` yang masih tersimpan juga cukup walau akses modul tidak ada. Tes dummy sebelum perbaikan mendapat jumlah `1` untuk admin modul lain, padahal hasil yang diharapkan `0`.
+- **Perbaikan**: ringkasan global kini mensyaratkan super admin, atau akses Surat Tugas/Kepegawaian beserta role admin/permission approve. Predicate mengikuti batas modul yang digunakan persetujuan Surat Tugas. Tes mencakup tujuh kombinasi role/module/permission dengan kontrol positif untuk pihak yang berwenang.
+- **Ponytail**:
+  - `CheckModuleAccess.php`: loop pencarian irisan modul dan flag sementara diganti native `array_intersect`.
+  - `CheckModuleAccess.php` dan `CheckPermission.php`: wrapper `isAssetOwner` yang hanya meneruskan satu panggilan dihapus; kedua jalur langsung memakai `Asset::isOwnedByEmployee` setelah model dipastikan tersedia. Pengecualian hanya untuk GET serta pembatasan foto peminjam tetap diterapkan.
+  - Net kode implementasi pada pemeriksaan lanjutan: **-25 baris**, di luar tes/dokumentasi dan perubahan sesi sebelumnya.
+- **Verifikasi**: tiga tes tambahan **26 assertions lulus**; suite regresi terkait keseluruhan **103 tes, 547 assertions lulus** dalam sandbox Docker yang sama tanpa jaringan/data operasional. Tes tambahan membuktikan scoping notifikasi pada list/read/mark-all-read, serta penolakan mutasi aset/foto/dokumen oleh pemilik aset tanpa izin pengelolaan BMN.
+- **Batas pemeriksaan**: review source terfokus; metadata jumlah merupakan dampak yang terbukti. QR 2FA lokal dan pemeriksaan hash password sesi Sanctum terkonfirmasi dari source; tidak dilaporkan sebagai celah baru. Tidak menjalankan ulang build/frontend karena tidak ada perubahan frontend pada pemeriksaan lanjutan. Perubahan tetap lokal, belum di-commit/push/deploy.
+
+### 29. Review Lanjutan Portal: Pratinjau Dokumen dan Isolasi Cache/Sesi (8 November 2026)
+
+- **Cakupan source**: profil kontak/foto portal, viewer dokumen cuti beserta seluruh caller, unduhan Surat Tugas personal, penyimpanan draf kalkulator, RouteGuard/useAuth, dan cache API/auth-store. Tidak ada celah keamanan tambahan yang terkonfirmasi dalam pemeriksaan terfokus ini; tidak menyatakan seluruh aplikasi atau seluruh perilaku browser telah diaudit.
+- **Ponytail — `ScanViewerModal.tsx`**: dua state `dataUrl`/`blobUrl` selalu disetel bersamaan ke nilai identik. Diganti satu state `previewUrl` untuk tampilan PDF/gambar, unduhan dan buka tab baru. Fallback URL streaming dihapus karena tombolnya hanya tersedia saat kedua state lama sudah terisi dan cabang pertama selalu dijalankan. Cleanup object URL serta aturan MIME dan flag `noopener,noreferrer` dipertahankan. Komponen bersama ini dipakai tab cuti Portal, halaman cuti/detail pegawai, dan inbox Surat Tugas.
+- **Dampak**: net **-13 baris kode implementasi** pada putaran ini; tidak mengubah kontrak API, tata letak, atau dependensi.
+- **Verifikasi terisolasi tanpa jaringan**: `portal-review-check.cjs` lulus; `cache-security.cjs` **8/8 lulus** dengan source API/auth-store aktual dan adapter Axios dummy (pergantian identitas, logout, respons lama, deduplikasi, serta refresh profil); TypeScript seluruh source frontend dan ESLint viewer `--max-warnings=0` lulus. Pemeriksaan statis `git diff --check` bersih. Belum melakukan uji visual/interaksi viewer di browser pada putaran ini; tes cache tidak mengklaim kebijakan keamanan browser.
+- **Status**: perubahan tetap lokal, belum di-commit/push/deploy. Perbaikan dan hasil pengujian dua putaran sebelumnya tetap tercatat di bagian 27–28.
+
+### 30. Review Lanjutan Portal: Percobaan Salah Memperpanjang Masa Berlaku Challenge 2FA (8 November 2026)
+
+- **Temuan terkonfirmasi dengan dampak terbatas**: `login2Fa()` sebelumnya menulis ulang seluruh challenge dengan TTL lima menit setiap kali kode salah. Satu kegagalan pada menit ke-4 membuat challenge yang seharusnya berakhir pada menit ke-5 masih dapat diselesaikan pada menit ke-6. Penyelesaian tetap memerlukan kode TOTP/recovery yang sah; batas waktu faktor pertama yang dilanggar merupakan dampak yang dibuktikan.
+- **Bukti lokal sebelum perbaikan**: tes HTTP-kernel dengan akun dummy dan waktu Carbon mendapat HTTP 200 pada menit ke-6, ketika expected result adalah HTTP 422 untuk challenge kedaluwarsa. Kontrol batas lima kegagalan sudah lulus sebelum perbaikan.
+- **Perbaikan/Ponytail native**: counter manual di payload challenge diganti `RateLimiter::hit()` Laravel pada key percobaan terpisah. Payload challenge tidak ditulis ulang sehingga TTL penerbitannya tetap. Percobaan dibatasi lima kali, counter dibersihkan setelah sukses atau pembatalan akibat batas percobaan, tanpa dependensi/helper baru.
+- **Verifikasi**: dua regresi baru **37 assertions lulus**; keseluruhan suite terkait **105 tes, 584 assertions lulus** dalam sandbox Docker tanpa jaringan dengan data dummy. Tes membuktikan expiry, recovery code tidak terkonsumsi setelah expiry, penghentian challenge setelah lima kegagalan, serta keberhasilan login baru dan tokennya. Tidak menjalankan ulang frontend karena source frontend tidak berubah pada putaran ini.
+- **Ukuran perubahan**: putaran ini menambah satu baris implementasi bersih; total delapan file implementasi sejak awal rangkaian review tetap berkurang **59 baris**, di luar tes dan dokumentasi.
+- **Cakupan/status**: review terfokus siklus 2FA, bukan klaim audit menyeluruh atau validasi concurrency/deployment. Seluruh perubahan masih lokal, belum di-commit/push/deploy.
+
+### 31. Review Lanjutan Portal: Pembacaan Saldo Menghapus Pemakaian Cuti Historis (8 November 2026)
+
+- **Temuan terkonfirmasi**: `EmployeeLeaveController::show()` menulis ulang `cuti_terpakai_n0` dari jumlah permohonan online yang disetujui setiap kali saldo dibaca dan ada permohonan tahunan. Pemakaian historis/manual yang dicatat admin dapat hilang ketika pegawai biasa membuat permohonan pending lalu memanggil GET saldo.
+- **Bukti sebelum perbaikan**: admin mencatat 8 hari terpakai dari jatah 12 hari; pegawai mengajukan 1 hari dan membaca saldo; pemakaian berubah menjadi 0. Pengajuan berikutnya 8 hari yang melebihi sisa kuota diterima HTTP 201, padahal seharusnya HTTP 422. Dua dari tiga regresi baru gagal sebelum perubahan; kontrol saldo belum tersimpan sudah lulus.
+- **Perbaikan terkecil pada fungsi bersama**: hapus penulisan/sinkronisasi otomatis dari GET untuk saldo yang sudah tersimpan. Saldo tetap diperbarui melalui aksi admin/persetujuan yang berwenang. Agregasi riwayat disetujui hanya dipakai menyusun draft in-memory jika saldo belum ada. Perbaikan berlaku untuk `/api/me/leave-balance` dan `/api/kepegawaian/employees/{employee}/leaves` karena memakai fungsi yang sama.
+- **Verifikasi**: tiga regresi baru **21 assertions lulus**; suite diperluas dengan `EmployeeLeaveTest` dan `EmployeeLeaveRequestTest`, total **116 tes, 634 assertions lulus** dalam sandbox Docker tanpa jaringan dan dengan data dummy. Kontrol mencakup pembacaan dua endpoint, pemakaian 8 menjadi 9 setelah persetujuan sah, penolakan pengajuan melebihi kuota, serta draft riwayat dua hari tanpa pembuatan record saldo.
+- **Ponytail/dampak**: menghapus query dan penulisan redundan saat membaca saldo tersimpan; net **-9 baris implementasi** pada putaran ini, tanpa dependensi atau migrasi. Saldo operasional tidak diperiksa/direkonsiliasi massal; source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Cakupan/status**: source email pemulihan/perubahan profil dan alur cuti dibaca dalam review terfokus; temuan tambahan yang dibuktikan berada pada saldo cuti. Bukan klaim audit menyeluruh atau verifikasi produksi. Seluruh perubahan tetap lokal, belum di-commit/push/deploy.
+
+### 32. Review Lanjutan Portal: Kredensial Terekam di Audit Log (8 November 2026)
+
+- **Temuan terkonfirmasi pada sink logging bersama**: payload audit menyensor nama key token/password, tetapi URL memakai `fullUrl()` sehingga query bearer token tetap tersimpan dalam bentuk URL-encoded. Token tautan berbagi Drive di path juga terekam. Field `code` pada konfirmasi 2FA/login recovery disimpan tanpa sensor.
+- **Bukti sebelum perbaikan**: empat skenario HTTP-kernel gagal pada ekspektasi redaksi. Token dummy yang diambil dan di-decode dari URL audit berhasil mengakses `/api/me` melalui klien bearer terpisah. Konfirmasi authenticator menyimpan kode TOTP; login recovery menyimpan `AUDITCODE1`; unduhan share yang sah dengan signer storage fake menyimpan capability token di path. Tidak menghubungi provider/storage nyata.
+- **Perbaikan pada `AuditLogMiddleware`**: URL audit disimpan tanpa query karena parameter query sudah tersedia dalam payload yang disanitasi. Rute dengan parameter bernama sensitif memakai pola URI (`{token}`) sebagai URL audit. `code` disensor khusus pada dua endpoint autentikasi 2FA, sehingga field kode bisnis di endpoint lain tetap tercatat. Identitas actor, metode, status, aksi, serta metadata query non-rahasia tetap tersedia.
+- **Ponytail**: hapus guard konversi payload non-array yang tidak dapat dicapai; input `Request::all()` berupa array dan cabang array sanitizer mengembalikan array. Tidak menambah helper atau dependency. Perubahan keamanan dan simplifikasi pada putaran ini net **+6 baris implementasi**.
+- **Verifikasi**: empat skenario terfokus **33 assertions lulus**; keseluruhan regresi terkait **119 tes, 657 assertions lulus** dalam sandbox tanpa jaringan/data operasional. Tes memastikan redaksi query token, path capability, recovery/TOTP, serta pemeliharaan metadata non-rahasia dan kode bisnis. Source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Batas/status**: perbaikan berlaku untuk log baru; log historis dan kredensial operasional tidak diperiksa, dibersihkan, atau dicabut pada sesi ini. Review tetap terfokus, bukan audit menyeluruh atau verifikasi deployment. Semua perubahan masih lokal, belum di-commit/push/deploy.
+
+### 33. Review Lanjutan Portal: Pencabutan Akses Foto dan Kedaluwarsa Token Berkas (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada jalur yang diperiksa. Dua regresi baru menggunakan HTTP kernel dan file/akun dummy: peminjam aktif mendapat foto HTTP 200, setelah pengembalian view/download ditolak 403, dan pemilik tetap mendapat 200. Query token untuk BPKB pribadi ditolak 401 saat `expires_at` lewat maupun saat usia token melewati `sanctum.expiration`; akun nonaktif mendapat 403 dan token dicabut.
+- **Ponytail — `EnsureAccountSecure::isAllowedRoute()`**: dua cabang `return true` dan fallback `return false` digabung menjadi satu ekspresi OR. Daftar rute dan pemeriksaan prefix tetap sama; penolakan akun nonaktif tetap berjalan sebelum pengecualian. Net **-8 baris implementasi** pada putaran ini.
+- **Verifikasi**: dua regresi baru **12 assertions lulus**, lalu suite terkait **121 tes, 669 assertions lulus** dalam sandbox Docker tanpa jaringan dengan storage/database dummy. Source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Cakupan/status**: pemeriksaan terfokus akses berkas dan status kredensial, bukan audit menyeluruh atau uji deployment. Semua perubahan tetap lokal, belum di-commit/push/deploy. Tidak mengubah atau membersihkan data/log operasional.
+
+### 34. Review Lanjutan Portal: Deduplikasi Perubahan Email dan Isolasi Data Pegawai (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada alur yang diperiksa. Regresi baru menguji kedua pintu perubahan email (`PUT /api/me/email`, `POST /api/me/update-profile`) dengan credential HTTP nyata dan fixture dummy. Password salah ditolak tanpa mengganti email atau menghapus token reset yang masih sah. Penggantian sah menyinkronkan email user/pegawai, menghapus status verifikasi serta token reset lama, dan menolak tautan verifikasi untuk email lama. Penyisipan `user_id`/`employee_id` pihak lain tidak mengubah data atau token reset pihak tersebut.
+- **Ponytail — `AuthController`**: kedua endpoint sebelumnya menyalin assignment/save email, sinkronisasi pegawai, cooldown dan pemanggilan notifikasi. Helper notifikasi yang sudah dipakai keduanya diperluas dan dinamai `updateAccountEmail(User, ?Employee, string)`, sehingga hanya ada satu implementasi proses penyimpanan tersebut. Validasi dan respons masing-masing endpoint dipertahankan; helper tetap private dan tidak menambah lookup pegawai/dependensi baru. Net **-16 baris implementasi** pada putaran ini.
+- **Verifikasi**: regresi email baru **40 assertions lulus** sebelum dan sesudah refaktor; suite terkait **122 tes, 709 assertions lulus** dalam sandbox Docker tanpa jaringan dengan database dummy, fake mail dan fake notification. `git diff --check` bersih. Tidak melakukan uji provider email/produksi atau menguji ulang frontend yang tidak berubah.
+- **Cakupan/status**: review terfokus, bukan penutupan audit seluruh aplikasi. Semua perubahan tetap lokal, belum di-commit/push/deploy; data operasional dan log historis tidak dimodifikasi.
+
+### 35. Review Lanjutan Portal: Reset Kredensial dan Deduplikasi Autentikasi Permission (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada jalur yang diuji. Regresi HTTP dengan akun dummy membuktikan sesi browser dan cookie remember-me dapat dipakai sebelum reset password, kemudian keduanya serta bearer token lama ditolak 401 sesudah reset. Bearer lama dihapus dari database; login dengan password baru berhasil. Replay token reset yang sudah dipakai ditolak 422 tanpa membatalkan token login baru.
+- **Ponytail — `CheckPermission::handle()` L21**: hapus fallback autentikasi query token yang mengulang lookup `PersonalAccessToken` dan pengaturan user resolver. Seluruh rute yang memakai `permission:` sudah melewati `auth:sanctum` lebih dahulu, dibuktikan oleh tes kontrak rute. Penanganan query token tetap melalui middleware yang ada dan Sanctum; guard 401 di pemeriksa permission dipertahankan. Jalur yang dihapus tidak dilaporkan sebagai celah yang dapat dieksploitasi pada rute saat ini. Net **-10 baris implementasi** pada putaran ini, tanpa dependency/helper baru.
+- **Verifikasi**: suite terkait **124 tes, 991 assertions lulus** dalam sandbox Docker tanpa jaringan, database/storage dummy dan fake mail/notification. Mencakup dua tes baru serta regresi token berkas valid/kedaluwarsa, akses pribadi, 2FA, Surat Tugas, Drive dan cuti. `git diff --check` bersih. Frontend tidak berubah pada putaran ini dan tidak diuji ulang.
+- **Cakupan/status**: review terfokus alur pemulihan akun dan middleware otorisasi bersama, bukan audit menyeluruh atau verifikasi deployment. Semua perubahan tetap lokal, belum di-commit/push/deploy. Data operasional dan log historis tidak dimodifikasi.
+
+### 36. Penutupan Audit Portal: Rekonsiliasi Temuan Lama, Lima Akar Baru dan Regresi Menyeluruh (8 November 2026)
+
+- **Cakupan:** workflow standard security-audit lengkap dalam lingkup Portal, bersama ponytail-review. Empat reconnaissance, hunter berdasarkan ledger, verifier temuan dan pemeriksa record baru, post-wave critic serta final-clean critic terpisah. Ledger33unit:22covered,8unit bertaut lima temuan yang sudah diperbaiki,3out_of_scope; tidak ada kandidat belum diputuskan atau unit deferred/blocked dalam cakupan.
+- **Rekonsiliasi:**16temuan historis run-2/3/4 dan perbaikan tambahan progress26–35 dicocokkan dengan kode sekarang; status lengkap di [laporan](docs/security/portal-security-review-2026-11-08.md). Satu klaim admin-signal yang sebelumnya ditolak tetap ditolak. Temuan lama tidak dibatalkan oleh jawaban putaran kecil sebelumnya.
+- **Lima akar baru, semuanya diperbaiki:** konsumsi recovery2FA dari snapshot lama kini CAS ciphertext dan kredensial, TOTP memakai Cache::add; GET aset tidak menulis kepemilikan; GET visum menggabungkan default tanpa menyimpan; seluruh pembaca/initializer saldo memakai EmployeeLeave::forEmployeeYear sehingga CPNS/history/carryover konsisten; state pemilik data portal/detailST diberi key user.id. Masing-masing mempunyai bukti sebelum/sesudah dan pemeriksaan independen; laporan membatasi klaim interleaving serta dummy adapter secara tepat.
+- **Ponytail dan fungsi:** hapus delete token berulang, wrapper disk foto, apiExport, variabel AuthSync dan status raw/alias yang redundan. Tambahkan download=1 pada unduhan detailST dan nama TabLoading agar ESLint lulus. Net **-93baris implementasi** terhadap awalrun-6, tanpa dependency baru. Draf kalkulator, viewer dan helper email dari putaran sebelumnya tetap dipertahankan.
+- **Tes gabungan:**220tes,3022assertions,217lulus dan3skip platform;0gagal. Dua skipPG dijalankan terpisah:2tes10assertions lulus. Lima kasus konkurensi cuti dan satu rename/create lulus dengan dua worker nativePostgreSQL15. Tes ChromeWindows lama tetap skip; diganti bukti komponenST/React nyata dalam ChromiumLinux untuk account-switch dan markup/print-media, bukan diklaim sebagai eksekusi tesWindows yang sama.
+- **Sesudah cleanup terakhir:**90tes1194assertions lulus;8skenario cacheAPI/auth nyata, draft smoke, TypeScript noEmit dan Chromium account-switch/markup lulus. ESLint file yang diperiksa0error/0warning. Validator5record dan33unit lulus;git diff--check bersih.
+- **Artefak/status:** laporan lengkap di docs/security/portal-security-review-2026-11-08.md; record, ledger, snapshot, hash dan receipt sandbox di C:/Users/USER/security-audit-skill/bksda-superapp/run-6. Perbaikan, tes dan dokumentasi disatukan dalam commit lokal penutupan sesuai permintaan pengguna; belum di-push atau deploy. Data operasional, log historis dan konfigurasi provider/deployment tidak diperiksa atau diubah. Audit ini parsial terhadap seluruh repo dan produksi.

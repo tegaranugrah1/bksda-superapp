@@ -25,7 +25,7 @@ interface ActiveLoansTabProps {
 
 function isLoanOverdue(asset: BorrowedAssetItem): boolean {
   const cleanStatus = (asset.status || "").toLowerCase();
-  const isBorrowedStatus = cleanStatus === "dipinjam" || cleanStatus === "terlambat" || asset.status === "dipinjam" || asset.status === "terlambat";
+  const isBorrowedStatus = cleanStatus === "dipinjam" || cleanStatus === "terlambat";
   const dueDateTs = asset.due_date ? new Date(asset.due_date).getTime() : NaN;
   return isBorrowedStatus && (cleanStatus === "terlambat" || (!Number.isNaN(dueDateTs) && dueDateTs < Date.now()));
 }

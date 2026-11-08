@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Calendar, MapPin, Users, Printer, Download } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatNIP, formatDateRangeIndonesian } from "@/lib/letter-utils";
 
@@ -61,7 +62,7 @@ function parseItems(value: unknown): string[] {
   return [];
 }
 
-export default function SuratTugasPreviewPage() {
+function SuratTugasPreviewContent() {
   const params = useParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const cleanId = rawId ? encodeURIComponent(String(rawId)) : "";
@@ -75,7 +76,7 @@ export default function SuratTugasPreviewPage() {
     if (!cleanId || downloading) return;
     setDownloading(true);
     try {
-      const resp = await api.get(`/surat-tugas/my/${cleanId}/download`, {
+      const resp = await api.get(`/surat-tugas/my/${cleanId}/download?download=1`, {
         responseType: "blob",
         timeout: 30000,
       });
@@ -349,4 +350,9 @@ export default function SuratTugasPreviewPage() {
       </div>
     </RouteGuard>
   );
+}
+
+export default function SuratTugasPreviewPage() {
+  const { user } = useAuth();
+  return <SuratTugasPreviewContent key={user?.id ?? "guest"} />;
 }

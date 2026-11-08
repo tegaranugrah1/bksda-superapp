@@ -44,13 +44,19 @@ class AuditLogMiddleware
         // 3. Sensor Data Sensitif (Best Practice Security)
         // Kita tidak mau password, token, atau isi file terekam secara mentah di tabel logs.
         $payload = $this->sanitizePayload($request->all());
+        if ($request->is('api/login/2fa', 'api/me/2fa/confirm') && array_key_exists('code', $payload)) {
+            $payload['code'] = '[redacted]';
+        }
+
+        // Query parameters are already captured in the sanitized payload.
+        $route = $request->route();
+        $url = $route && array_filter($route->parameterNames(), fn ($key) => $this->isSensitiveKey(strtolower($key)))
+            ? $request->root().'/'.$route->uri()
+            : $request->url();
 
         // 4. Tentukan Aksi Deskriptif (Observability Hardening)
         $action = $this->determineAction($request, $response);
         if ($action) {
-            if (! is_array($payload)) {
-                $payload = ['_raw_payload' => $payload];
-            }
             $payload['_action'] = $action;
         }
 
@@ -58,7 +64,7 @@ class AuditLogMiddleware
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'method' => $request->method(),
-            'url' => $request->fullUrl(),
+            'url' => $url,
             'ip_address' => $request->ip(),
             'status_code' => $response->getStatusCode(),
             'payload' => empty($payload) ? null : $payload,

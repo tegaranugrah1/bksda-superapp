@@ -84,29 +84,31 @@ class Employee extends Model
      */
     public static function resolveIdByName(?string ...$names): ?int
     {
+        $resolvedIds = [];
         foreach ($names as $raw) {
             $target = trim((string) $raw);
             if ($target === '' || $target === '-') {
                 continue;
             }
             $lower = mb_strtolower($target);
-            $exact = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$lower])->value('id');
-            if ($exact) {
-                return (int) $exact;
-            }
+            $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$lower])->limit(2)->pluck('id');
             $clean = trim((string) preg_replace('/,.*$/', '', $target));
-            if (mb_strlen($clean) >= 3) {
+            if (mb_strlen($clean) >= 3 && ($matches->isEmpty() || $clean === $target)) {
                 $escaped = addcslashes(mb_strtolower($clean), '%_');
-                $byBase = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($clean)])
+                $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($clean)])
                     ->orWhereRaw('LOWER(nama_lengkap) LIKE ?', [$escaped . ',%'])
-                    ->value('id');
-                if ($byBase) {
-                    return (int) $byBase;
-                }
+                    ->limit(2)->pluck('id');
+            }
+            foreach ($matches as $id) {
+                $resolvedIds[(int) $id] = true;
+            }
+            // Names authorize only when every matching column identifies one employee.
+            if (count($resolvedIds) > 1) {
+                return null;
             }
         }
 
-        return null;
+        return $resolvedIds ? array_key_first($resolvedIds) : null;
     }
 
     public function replaceProfilePhoto(UploadedFile $file): string

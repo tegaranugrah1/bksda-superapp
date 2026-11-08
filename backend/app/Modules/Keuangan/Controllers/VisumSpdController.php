@@ -75,40 +75,29 @@ class VisumSpdController extends Controller
             ],
         ];
 
-        if (! $setting) {
-            $setting = VisumSpdSetting::create([
-                'key' => 'officials_and_ppk',
-                'value' => $default,
-            ]);
-        } else {
-            $currentVal = $setting->value ?? [];
-            $merged = array_merge($default, $currentVal);
+        $merged = array_merge($default, $setting?->value ?? []);
 
-            foreach (['samarinda', 'berau', 'tenggarong', 'balikpapan'] as $regKey) {
-                if (isset($merged[$regKey])) {
-                    if (empty($merged[$regKey]['depart_position_dipa'])) {
-                        $merged[$regKey]['depart_position_dipa'] = $default[$regKey]['depart_position_dipa'];
-                    }
-                    if (empty($merged[$regKey]['depart_position_folu'])) {
-                        $merged[$regKey]['depart_position_folu'] = $merged[$regKey]['depart_position'] ?? $default[$regKey]['depart_position_folu'];
-                    }
+        foreach (['samarinda', 'berau', 'tenggarong', 'balikpapan'] as $regKey) {
+            if (isset($merged[$regKey])) {
+                if (empty($merged[$regKey]['depart_position_dipa'])) {
+                    $merged[$regKey]['depart_position_dipa'] = $default[$regKey]['depart_position_dipa'];
+                }
+                if (empty($merged[$regKey]['depart_position_folu'])) {
+                    $merged[$regKey]['depart_position_folu'] = $merged[$regKey]['depart_position'] ?? $default[$regKey]['depart_position_folu'];
                 }
             }
+        }
 
-            if (empty($merged['ppk_dipa'])) {
-                $merged['ppk_dipa'] = $default['ppk_dipa'];
-            }
-            if (empty($merged['ppk_folu'])) {
-                $merged['ppk_folu'] = $merged['ppk'] ?? $default['ppk_folu'];
-            }
-            if ($merged !== $currentVal) {
-                $setting->update(['value' => $merged]);
-            }
+        if (empty($merged['ppk_dipa'])) {
+            $merged['ppk_dipa'] = $default['ppk_dipa'];
+        }
+        if (empty($merged['ppk_folu'])) {
+            $merged['ppk_folu'] = $merged['ppk'] ?? $default['ppk_folu'];
         }
 
         return response()->json([
             'success' => true,
-            'data' => $setting->value,
+            'data' => $merged,
         ]);
     }
 

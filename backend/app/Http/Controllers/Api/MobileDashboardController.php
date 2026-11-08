@@ -126,9 +126,10 @@ class MobileDashboardController extends Controller
             });
         }
 
-        // Check if user has permission or admin role for Surat Tugas approval
-        $hasSuratTugasAccess = $user->hasPermission('surat_tugas.approve')
-            || in_array($user->role, ['super_admin', 'admin']);
+        // Global approval counts require the same module boundary as assignment approval.
+        $hasSuratTugasAccess = $user->role === 'super_admin'
+            || (array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])
+                && ($user->role === 'admin' || $user->hasPermission('surat_tugas.approve')));
 
         if ($hasSuratTugasAccess) {
             $pendingApprovalsCount = AssignmentLetter::whereIn('status', ['pending', 'PENDING'])->count();

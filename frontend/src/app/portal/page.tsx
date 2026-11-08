@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import type { LeaveRequestPrintData } from "./_components/FormulirCutiPrint";
@@ -33,11 +34,13 @@ import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components
 
 const VALID_PORTAL_TABS = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
 
-const renderTabLoading = (color = "text-emerald-600") => () => (
-  <div className="flex h-64 items-center justify-center">
-    <Loader2 className={cn("h-6 w-6 animate-spin", color)} />
-  </div>
-);
+const renderTabLoading = (color = "text-emerald-600") => function TabLoading() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <Loader2 className={cn("h-6 w-6 animate-spin", color)} />
+    </div>
+  );
+};
 
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
@@ -930,9 +933,10 @@ function PortalContent() {
 }
 
 export default function PersonalDashboard() {
+  const { user } = useAuth();
   return (
     <RouteGuard>
-      <PortalContent />
+      <PortalContent key={user?.id ?? "guest"} />
     </RouteGuard>
   );
 }

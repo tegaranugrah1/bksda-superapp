@@ -33,18 +33,8 @@ class CheckModuleAccess
             return $next($request);
         }
 
-        $accessModules = $user->access_modules ?? [];
-
         // Check if user has access to ANY of the specified modules (OR logic)
-        $hasAccess = false;
-        foreach ($moduleNames as $moduleName) {
-            if (in_array($moduleName, $accessModules)) {
-                $hasAccess = true;
-                break;
-            }
-        }
-
-        if (! $hasAccess) {
+        if (! array_intersect($moduleNames, $user->access_modules ?? [])) {
             // Special exception for Kepegawaian module: Allow regular employees to see their own leave balance & details (GET only)
             if (in_array('kepegawaian', $moduleNames) && $request->isMethod('GET')) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
@@ -73,7 +63,7 @@ class CheckModuleAccess
                         $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
                         $isPublicPhoto = $request->is('api/bmn/assets/*/photo/*')
                             && in_array($request->route('type'), ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'geotag'], true);
-                        if ($asset && ($this->isAssetOwner($asset, $employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
+                        if ($asset && ($asset->isOwnedByEmployee($employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
                             return $next($request);
                         }
                     }
@@ -100,14 +90,6 @@ class CheckModuleAccess
         }
 
         return $next($request);
-    }
-
-    /**
-     * Helper to verify if an asset belongs to the employee.
-     */
-    private function isAssetOwner($asset, $employee): bool
-    {
-        return $asset instanceof \App\Modules\Bmn\Models\Asset && $asset->isOwnedByEmployee($employee);
     }
 
     private function hasActiveLoan(\App\Modules\Bmn\Models\Asset $asset, $employee): bool

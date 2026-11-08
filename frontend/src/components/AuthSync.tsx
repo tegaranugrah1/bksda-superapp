@@ -35,7 +35,6 @@ export function AuthSync() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const isLoginRoute = pathname === "/login" || pathname.startsWith("/login/");
   
   // Menggunakan ref untuk melacak state sebelumnya agar kita tahu kapan terjadi TRANSISI
   const prevAuth = useRef<boolean | null>(null);

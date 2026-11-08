@@ -16,13 +16,7 @@ class SuratTugasPostgresConcurrencyTest extends TestCase
     {
         parent::setUp();
 
-        config([
-            'database.connections.pgsql.host' => '127.0.0.1',
-            'database.connections.pgsql.port' => 5435,
-            'database.connections.pgsql.database' => 'bksda_superapp',
-            'database.connections.pgsql.username' => 'postgres',
-            'database.connections.pgsql.password' => 'postgres',
-        ]);
+        // Use the configured isolated test database instead of a developer's fixed server.
         DB::purge('pgsql');
 
         if ($this->canConnectPgsql()) {

@@ -80,17 +80,6 @@ const getStorageKey = (userName?: string) => {
   return safeUser ? `bksda_kalkulator_panjar_${safeUser}` : STORAGE_KEY;
 };
 
-const getInitialDraft = (userName?: string) => {
-  if (typeof window === "undefined") return null;
-  try {
-    const key = getStorageKey(userName);
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-};
-
 export function KalkulatorDinasTab({
   suratTugasList = [],
   currentUserName = "Pegawai BKSDA",
@@ -104,28 +93,23 @@ export function KalkulatorDinasTab({
   const storageKey = useMemo(() => getStorageKey(currentUserName), [currentUserName]);
 
   // Synchronous hydration to prevent data loss on F5
+  const [initialDraft] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [selectedStId, setSelectedStId] = useState<string>(initialSelectedStId || "");
-  const [namaKegiatan, setNamaKegiatan] = useState(
-    () => getInitialDraft(currentUserName)?.namaKegiatan ?? "Perjalanan Dinas"
-  );
-  const [lokasiTujuan, setLokasiTujuan] = useState(
-    () => getInitialDraft(currentUserName)?.lokasiTujuan ?? ""
-  );
-  const [pemegangPanjar, setPemegangPanjar] = useState(
-    () => getInitialDraft(currentUserName)?.pemegangPanjar ?? currentUserName
-  );
-  const [tanggalMulai, setTanggalMulai] = useState(
-    () => getInitialDraft(currentUserName)?.tanggalMulai ?? new Date().toISOString().split("T")[0]
-  );
-  const [tanggalSelesai, setTanggalSelesai] = useState(
-    () => getInitialDraft(currentUserName)?.tanggalSelesai ?? new Date().toISOString().split("T")[0]
-  );
-  const [uangPanjar, setUangPanjar] = useState<number>(
-    () => getInitialDraft(currentUserName)?.uangPanjar ?? 0
-  );
-  const [pengeluaranList, setPengeluaranList] = useState<PengeluaranItem[]>(
-    () => getInitialDraft(currentUserName)?.pengeluaranList ?? []
-  );
+  const [namaKegiatan, setNamaKegiatan] = useState(initialDraft?.namaKegiatan ?? "Perjalanan Dinas");
+  const [lokasiTujuan, setLokasiTujuan] = useState(initialDraft?.lokasiTujuan ?? "");
+  const [pemegangPanjar, setPemegangPanjar] = useState(initialDraft?.pemegangPanjar ?? currentUserName);
+  const [tanggalMulai, setTanggalMulai] = useState(initialDraft?.tanggalMulai ?? new Date().toISOString().split("T")[0]);
+  const [tanggalSelesai, setTanggalSelesai] = useState(initialDraft?.tanggalSelesai ?? new Date().toISOString().split("T")[0]);
+  const [uangPanjar, setUangPanjar] = useState<number>(initialDraft?.uangPanjar ?? 0);
+  const [pengeluaranList, setPengeluaranList] = useState<PengeluaranItem[]>(initialDraft?.pengeluaranList ?? []);
 
 
   // New expense form inline state

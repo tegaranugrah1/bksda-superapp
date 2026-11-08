@@ -118,25 +118,7 @@ class Asset extends Model
             return (int) $this->employee_id === (int) $employee->id;
         }
 
-        $resolvedId = Employee::resolveIdByName($this->pengguna, $this->nama_pengguna);
-        if ($resolvedId !== null) {
-            return $resolvedId === (int) $employee->id;
-        }
-
-        $empName = trim($employee->nama_lengkap ?? '');
-        if (mb_strlen($empName) >= 3) {
-            $cleanName = trim((string) preg_replace('/,.*$/', '', $empName));
-            $lowerPengguna = mb_strtolower(trim((string) ($this->pengguna ?? '')));
-            $lowerNamaPengguna = mb_strtolower(trim((string) ($this->nama_pengguna ?? '')));
-            $lowerEmp = mb_strtolower($empName);
-            $lowerClean = mb_strtolower($cleanName);
-
-            return $lowerPengguna === $lowerEmp
-                || $lowerNamaPengguna === $lowerEmp
-                || (mb_strlen($cleanName) >= 3 && ($lowerPengguna === $lowerClean || $lowerNamaPengguna === $lowerClean));
-        }
-
-        return false;
+        return Employee::resolveIdByName($this->pengguna, $this->nama_pengguna) === (int) $employee->id;
     }
 
     protected static function booted()

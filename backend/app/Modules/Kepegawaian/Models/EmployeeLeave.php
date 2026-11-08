@@ -48,6 +48,33 @@ class EmployeeLeave extends Model
         'sisa_cuti_dapat_diajukan',
     ];
 
+    public static function forEmployeeYear(int $employeeId, int $year): self
+    {
+        $leave = static::where('employee_id', $employeeId)->where('year', $year)->first();
+        if ($leave) {
+            return $leave;
+        }
+
+        $employee = Employee::findOrFail($employeeId);
+        $previous = static::where('employee_id', $employeeId)->where('year', $year - 1)->first();
+        $previous2 = static::where('employee_id', $employeeId)->where('year', $year - 2)->first();
+        $approvedDays = (int) EmployeeLeaveRequest::where('employee_id', $employeeId)
+            ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
+            ->annual()->whereYear('tanggal_mulai', $year)->sum('jumlah_hari');
+
+        return new static([
+            'employee_id' => $employeeId,
+            'year' => $year,
+            'hak_cuti_n' => $employee->is_cpns2025 && $year === 2025 ? 0 : 12,
+            'sisa_cuti_n1' => $employee->is_cpns2025 && $year === 2026 ? 0 : ($previous ? $previous->sisa_cuti_tersedia : 0),
+            'cuti_terpakai_n1' => $previous ? (int) $previous->cuti_terpakai_n0 : 0,
+            'sisa_cuti_n2' => $previous2 ? $previous2->sisa_cuti_tersedia : 0,
+            'cuti_terpakai_n2' => $previous2 ? (int) $previous2->cuti_terpakai_n0 : 0,
+            'cuti_terpakai_n0' => $approvedDays,
+            'catatan' => null,
+        ]);
+    }
+
     /**
      * Sisa cuti N-1 yang diakui di tahun berjalan N (Maksimal 6 Hari Sesuai PerBKN 24/2017)
      */

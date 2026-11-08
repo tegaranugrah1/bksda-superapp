@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -52,6 +53,7 @@ class AuthController extends Controller
             \Illuminate\Support\Facades\Cache::put("2fa_challenge:{$challengeToken}", [
                 'user_id' => $user->id,
                 'ip' => $request->ip(),
+                'credentials' => hash('sha256', $user->password.$user->two_factor_secret),
             ], now()->addMinutes(5));
 
             return response()->json([
@@ -194,13 +196,9 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Login keeps one bearer; revoke it safely guarding against TransientToken
+        // Revoke persistent bearers even when Sanctum selected a cookie session.
         $user = $request->user();
         if ($user) {
-            $token = $user->currentAccessToken();
-            if ($token && method_exists($token, 'delete')) {
-                $token->delete();
-            }
             $user->tokens()->delete();
         }
 
@@ -298,21 +296,8 @@ class AuthController extends Controller
                     ]);
                 }
 
-                $oldEmail = $user->email;
-                $wasDeliverable = $user->hasDeliverableEmail();
-
-                $user->email = $cleanEmail;
-                $user->email_verified_at = null;
-                $user->saveOrFail();
-                if ($employee) {
-                    $employee->update(['email' => $cleanEmail]);
-                }
+                $this->updateAccountEmail($user, $employee, $cleanEmail);
                 $emailChanged = true;
-
-                // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
-                Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
-
-                $this->dispatchEmailChangeNotifications($user, $wasDeliverable, $oldEmail, $cleanEmail);
             }
         }
 
@@ -377,13 +362,7 @@ class AuthController extends Controller
         ->latest()->limit(50)->get()
         ->filter(fn ($asset) => $asset->isOwnedByEmployee($employee))
         ->values()
-        ->map(function ($asset) use ($request, $employee) {
-            // Auto-heal relational link if employee_id was null
-            if (is_null($asset->employee_id)) {
-                \App\Modules\Bmn\Models\Asset::where('id', $asset->id)
-                    ->update(['employee_id' => $employee->id]);
-                $asset->employee_id = $employee->id;
-            }
+        ->map(function ($asset) use ($request) {
             unset($asset->pengguna, $asset->nama_pengguna);
 
             $token = $request->bearerToken() ?: $request->query('token');
@@ -440,23 +419,8 @@ class AuthController extends Controller
             ]);
         }
 
-        $oldEmail = $user->email;
-        $wasDeliverable = $user->hasDeliverableEmail();
-
-        $newEmail = strtolower(trim((string) $request->email));
-        $user->email = $newEmail;
-        $user->email_verified_at = null;
-        $user->saveOrFail();
-
         $employee = Employee::where('nip', $user->username)->first();
-        if ($employee) {
-            $employee->update(['email' => $newEmail]);
-        }
-
-        // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
-        Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
-
-        $this->dispatchEmailChangeNotifications($user, $wasDeliverable, $oldEmail, $newEmail);
+        $this->updateAccountEmail($user, $employee, strtolower(trim((string) $request->email)));
 
         return response()->json([
             'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
@@ -465,8 +429,20 @@ class AuthController extends Controller
         ]);
     }
 
-    private function dispatchEmailChangeNotifications(User $user, bool $wasDeliverable, ?string $oldEmail, string $newEmail): void
+    private function updateAccountEmail(User $user, ?Employee $employee, string $newEmail): void
     {
+        $oldEmail = $user->email;
+        $wasDeliverable = $user->hasDeliverableEmail();
+
+        $user->email = $newEmail;
+        $user->email_verified_at = null;
+        $user->saveOrFail();
+        if ($employee) {
+            $employee->update(['email' => $newEmail]);
+        }
+
+        Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
+
         dispatch(function () use ($user, $wasDeliverable, $oldEmail, $newEmail) {
             if ($wasDeliverable && $oldEmail && NotificationSetting::emailEnabled('mail.security_alert')) {
                 try {
@@ -804,16 +780,23 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // A password reset or authenticator replacement invalidates the first factor.
+        if ($user->two_factor_confirmed_at === null
+            || ! hash_equals($data['credentials'] ?? '', hash('sha256', $user->password.$user->two_factor_secret))) {
+            Cache::forget($challengeKey);
+            throw ValidationException::withMessages([
+                'challenge_token' => ['Kredensial akun telah berubah. Silakan login kembali.'],
+            ]);
+        }
+
         $rawCode = trim(str_replace([' ', '-'], '', (string) $request->code));
+        $attemptKey = $challengeKey.':attempts';
         $valid = false;
 
         // 1. Cek kode 6-digit TOTP dengan anti-replay 90 detik
         $replayKey = "totp_used:{$user->id}:{$rawCode}";
-        if (! \Illuminate\Support\Facades\Cache::has($replayKey)) {
-            if ($user->two_factor_secret && \App\Support\Security\Totp::verify($user->two_factor_secret, $rawCode)) {
-                \Illuminate\Support\Facades\Cache::put($replayKey, true, 90);
-                $valid = true;
-            }
+        if ($user->two_factor_secret && \App\Support\Security\Totp::verify($user->two_factor_secret, $rawCode)) {
+            $valid = Cache::add($replayKey, true, 90);
         }
 
         // 2. Cek Recovery Code jika TOTP tidak cocok (hanya bisa dipakai sekali)
@@ -824,18 +807,19 @@ class AuthController extends Controller
             if ($idx !== false) {
                 unset($recoveryCodes[$idx]);
                 $user->two_factor_recovery_codes = array_values($recoveryCodes);
-                $user->save();
-                $valid = true;
+                $valid = User::whereKey($user->id)
+                    ->where('password', $user->getRawOriginal('password'))
+                    ->where('two_factor_secret', $user->getRawOriginal('two_factor_secret'))
+                    ->where('two_factor_recovery_codes', $user->getRawOriginal('two_factor_recovery_codes'))
+                    ->update(['two_factor_recovery_codes' => $user->getAttributes()['two_factor_recovery_codes']]) === 1;
             }
         }
 
         if (! $valid) {
-            $attempts = (int) ($data['attempts'] ?? 0) + 1;
-            if ($attempts >= 5) {
+            // Count failures separately so the original challenge TTL never slides.
+            if (RateLimiter::hit($attemptKey, 300) >= 5) {
                 \Illuminate\Support\Facades\Cache::forget($challengeKey);
-            } else {
-                $data['attempts'] = $attempts;
-                \Illuminate\Support\Facades\Cache::put($challengeKey, $data, now()->addMinutes(5));
+                RateLimiter::clear($attemptKey);
             }
             throw ValidationException::withMessages([
                 'code' => ['Kode verifikasi 2FA atau recovery code tidak valid.'],
@@ -844,6 +828,7 @@ class AuthController extends Controller
 
         // Hapus token challenge agar tidak bisa dipakai ulang
         \Illuminate\Support\Facades\Cache::forget($challengeKey);
+        RateLimiter::clear($attemptKey);
 
         // Terbitkan token Sanctum baru
         $user->tokens()->delete();

@@ -193,16 +193,11 @@ class EmployeeLeaveRequestController extends Controller
 
             $year = $start->year;
 
-            // Fetch current leave balance for snapshot
-            $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
-                ->where('year', $year)
-                ->first();
-
-            $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
-            $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
-            $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
-
-            $totalQuota = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employee->id, $year);
+            $sisaN0 = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - (int) $leaveBalance->cuti_terpakai_n0);
+            $sisaN1 = $leaveBalance->hak_n1_diakui;
+            $sisaN2 = $leaveBalance->hak_n2_diakui;
+            $totalQuota = $leaveBalance->sisa_cuti_tersedia;
 
             $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
                 ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
@@ -386,15 +381,7 @@ class EmployeeLeaveRequestController extends Controller
             'catatan_atasan' => 'nullable|string|max:1000',
         ]);
 
-        $statusMap = [
-            'PENGAJUAN' => 'PENGAJUAN',
-            'PENDING' => 'PENGAJUAN',
-            'DISETUJUI' => 'DISETUJUI',
-            'APPROVED' => 'DISETUJUI',
-            'DITOLAK' => 'DITOLAK',
-            'REJECTED' => 'DITOLAK',
-        ];
-        $newStatus = $statusMap[strtoupper($validated['status'])] ?? strtoupper($validated['status']);
+        $newStatus = strtoupper($validated['status']);
 
         DB::beginTransaction();
         try {
@@ -407,17 +394,10 @@ class EmployeeLeaveRequestController extends Controller
 
             if ($isTahunan && $isNewApproved && ! $isOldApproved) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
                 if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
                     return response()->json([
@@ -526,17 +506,10 @@ class EmployeeLeaveRequestController extends Controller
 
             if ($isTahunan && !$isOldApproved) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
 
                 if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
@@ -937,12 +910,8 @@ class EmployeeLeaveRequestController extends Controller
 
             if ($oldIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $oldYear = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)
-                    ->where('year', $oldYear)
-                    ->first();
-                if ($leaveBalance) {
-                    $leaveBalance->update(['cuti_terpakai_n0' => max(0, (int) $leaveBalance->cuti_terpakai_n0 - $oldJumlahHari)]);
-                }
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $oldYear);
+                $leaveBalance->fill(['cuti_terpakai_n0' => max(0, (int) $leaveBalance->cuti_terpakai_n0 - $oldJumlahHari)])->save();
             }
 
             $updateFields = [
@@ -959,21 +928,12 @@ class EmployeeLeaveRequestController extends Controller
                 $updateFields['nomor_pengajuan'] = !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null;
             }
 
-            $leaveReq->update($updateFields);
-
             if ($newIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $newYear = Carbon::parse($validated['tanggal_mulai'])->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $newYear],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $newYear);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
                 if ($newJumlahHari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
                     return response()->json([
@@ -983,6 +943,8 @@ class EmployeeLeaveRequestController extends Controller
                 }
                 $leaveBalance->increment('cuti_terpakai_n0', $newJumlahHari);
             }
+
+            $leaveReq->update($updateFields);
 
             DB::commit();
 
@@ -1220,17 +1182,10 @@ class EmployeeLeaveRequestController extends Controller
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
 
             $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-            $leaveBalance = EmployeeLeave::firstOrCreate(
-                ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                [
-                    'hak_cuti_n' => 12,
-                    'sisa_cuti_n1' => 0,
-                    'cuti_terpakai_n1' => 0,
-                    'sisa_cuti_n2' => 0,
-                    'cuti_terpakai_n2' => 0,
-                    'cuti_terpakai_n0' => 0,
-                ]
-            );
+            $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+            if (! $leaveBalance->exists) {
+                $leaveBalance->save();
+            }
 
             // If not already approved and is Cuti Tahunan, deduct quota
             if ($isTahunan && !$isOldApproved) {
