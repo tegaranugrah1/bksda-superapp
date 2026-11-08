@@ -204,15 +204,19 @@ function AssetDetail({ assetId }: { assetId: string }) {
         payload.pengguna = payload.nama_pengguna;
       }
 
-      if (payload.pengguna || payload.nama_pengguna) {
+      if ("pengguna" in payload || "nama_pengguna" in payload) {
         const empName = payload.pengguna || payload.nama_pengguna;
-        const matched = employees.find(
-          (e: any) =>
-            (e.nama_lengkap && e.nama_lengkap.toLowerCase() === empName.toLowerCase()) ||
-            (e.name && e.name.toLowerCase() === empName.toLowerCase())
-        );
-        if (matched) {
-          payload.employee_id = matched.id;
+        if (!empName) {
+          payload.employee_id = null;
+        } else {
+          const matched = employees.find(
+            (e: any) =>
+              (e.nama_lengkap && e.nama_lengkap.toLowerCase() === empName.toLowerCase()) ||
+              (e.name && e.name.toLowerCase() === empName.toLowerCase())
+          );
+          if (matched) {
+            payload.employee_id = matched.id;
+          }
         }
       }
 

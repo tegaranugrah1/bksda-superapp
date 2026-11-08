@@ -5,7 +5,13 @@ import { Megaphone, BookOpen, HelpCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boolean }) {
+export function PortalInfoSidebar({
+  isHorizontal = false,
+  onOpenReport,
+}: {
+  isHorizontal?: boolean;
+  onOpenReport?: () => void;
+}) {
   return (
     <aside
       className={cn(
@@ -65,13 +71,21 @@ export function PortalInfoSidebar({ isHorizontal = false }: { isHorizontal?: boo
           Setiap Surat Tugas wajib dibuatkan Laporan Pelaksanaan paling lambat <span className="text-emerald-400 font-bold">7 hari kerja</span> setelah selesai kegiatan.
         </p>
         <div className="pt-1">
-          <a
-            href="#laporan-st"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:translate-x-1"
-          >
-            <span>Format Laporan Resmi</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+          {onOpenReport ? (
+            <button
+              type="button"
+              onClick={onOpenReport}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:translate-x-1 cursor-pointer"
+            >
+              <span>Format Laporan Resmi</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+              <span>Format Laporan Resmi</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          )}
         </div>
       </motion.div>
 

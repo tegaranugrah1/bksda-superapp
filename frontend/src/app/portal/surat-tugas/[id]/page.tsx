@@ -316,7 +316,7 @@ export default function SuratTugasPreviewPage() {
                         </tr>
                       ))}
                       {Boolean(data.jumlah_buruh && data.jumlah_buruh > 0) &&
-                        Array.from({ length: data.jumlah_buruh! }).map((_, bIdx) => (
+                        Array.from({ length: Math.min(Math.max(0, Number(data.jumlah_buruh) || 0), 100) }).map((_, bIdx) => (
                           <tr key={`pm-${bIdx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                             <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
                               {(data.employees?.length || 0) + bIdx + 1}

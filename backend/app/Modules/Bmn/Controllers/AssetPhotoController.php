@@ -380,7 +380,8 @@ class AssetPhotoController extends Controller
 
             if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
                 $file = $this->disk()->get($asset->foto_geotag_path);
-                $mime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
+                $rawMime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
+                $mime = in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? $rawMime : 'image/jpeg';
                 return response($file, 200)
                     ->header('Content-Type', $mime)
                     ->header('X-Content-Type-Options', 'nosniff');
@@ -405,7 +406,8 @@ class AssetPhotoController extends Controller
         }
 
         $file = $this->disk()->get($asset->$column);
-        $mime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
+        $rawMime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
+        $mime = in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? $rawMime : 'image/jpeg';
 
         return response($file, 200)
             ->header('Content-Type', $mime)

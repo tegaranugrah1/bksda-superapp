@@ -51,12 +51,20 @@ export function ChangePasswordModal({
     e.preventDefault();
     setErrorMsg(null);
 
+    if (!currentPassword) {
+      setErrorMsg("Password saat ini wajib diisi.");
+      return;
+    }
     if (newPassword.length < 8) {
       setErrorMsg("Kata sandi baru minimal harus terdiri dari 8 karakter.");
       return;
     }
     if (newPassword !== confirmation) {
       setErrorMsg("Konfirmasi kata sandi baru tidak cocok.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setErrorMsg("Password baru tidak boleh sama dengan password saat ini.");
       return;
     }
 
@@ -230,6 +238,7 @@ export function TwoFactorSetupModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     if (open) {
       setStep("loading");
       setErrorMsg(null);
@@ -237,15 +246,20 @@ export function TwoFactorSetupModal({
       api
         .post("/me/2fa/enable")
         .then((res) => {
+          if (!active) return;
           setSecret(res.data.secret);
           setQrUri(res.data.qr_uri);
           setStep("scan");
         })
         .catch(() => {
+          if (!active) return;
           toast.error("Gagal memulai proses setup 2FA.");
           onOpenChange(false);
         });
     }
+    return () => {
+      active = false;
+    };
   }, [open, onOpenChange]);
 
   const handleConfirm = async (e: React.FormEvent) => {
@@ -268,7 +282,7 @@ export function TwoFactorSetupModal({
   };
 
   const copyRecoveryCodes = () => {
-    navigator.clipboard.writeText(recoveryCodes.join("\n"));
+    navigator.clipboard.writeText(recoveryCodes.join("\n")).catch(() => {});
     setCopied(true);
     toast.success("8 kode pemulihan berhasil disalin!");
     setTimeout(() => setCopied(false), 2000);

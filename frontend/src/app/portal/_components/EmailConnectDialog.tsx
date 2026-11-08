@@ -88,13 +88,19 @@ export function EmailConnectDialog({
       );
       setOpen(false);
       onSuccess?.();
-    } catch (err: any) {
-      if (err?.response?.status === 429 && err?.response?.data?.retry_after) {
-        setCooldown(err.response.data.retry_after);
+    } catch (err: unknown) {
+      const errorObj = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; error?: string; retry_after?: number };
+        };
+      };
+      if (errorObj?.response?.status === 429 && errorObj?.response?.data?.retry_after) {
+        setCooldown(errorObj?.response?.data?.retry_after);
       }
       const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
+        errorObj?.response?.data?.message ||
+        errorObj?.response?.data?.error ||
         "Gagal mengirim ulang email verifikasi.";
       setErrorMsg(msg);
       toast.error(msg);
@@ -113,6 +119,7 @@ export function EmailConnectDialog({
       setErrorMsg("Alamat email wajib diisi.");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) { setErrorMsg("Format alamat email tidak valid."); return; }
     if (emailTrimmed.endsWith(".local")) {
       setErrorMsg("Alamat email tidak boleh menggunakan domain internal .local.");
       return;
@@ -137,10 +144,16 @@ export function EmailConnectDialog({
       setNewEmail("");
       setCurrentPassword("");
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorObj = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; error?: string; retry_after?: number };
+        };
+      };
       const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
+        errorObj?.response?.data?.message ||
+        errorObj?.response?.data?.error ||
         "Gagal memperbarui email akun.";
       setErrorMsg(msg);
       toast.error(msg);

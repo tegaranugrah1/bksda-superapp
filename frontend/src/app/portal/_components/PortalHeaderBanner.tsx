@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 interface PortalHeaderBannerProps {
   displayName: string;
-  activeSuratTugasCount?: number;
   onOpenVisum?: () => void;
   onOpenKalkulator?: () => void;
   className?: string;
@@ -33,7 +32,6 @@ function formatDate(): string {
 
 export function PortalHeaderBanner({
   displayName,
-  activeSuratTugasCount,
   onOpenVisum,
   onOpenKalkulator,
   className,

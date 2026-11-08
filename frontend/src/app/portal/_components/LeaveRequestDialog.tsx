@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -71,15 +73,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
             setLeaveTypes(res.data.data);
           }
         })
-        .catch(() => {
-          api.get("/kepegawaian/leave-types")
-            .then((res) => {
-              if (res?.data?.data && Array.isArray(res.data.data)) {
-                setLeaveTypes(res.data.data);
-              }
-            })
-            .catch(() => {});
-        });
+        .catch(() => {});
     }
   }, [open, currentYear]);
 
@@ -386,7 +380,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
             <Button
               type="submit"
               size="sm"
-              disabled={submitMutation.isPending || calculatedDays <= 0 || calculatedDays > 365 || (form.jenis_cuti === "Cuti Tahunan" && leaveBalance !== null && calculatedDays > (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia))}
+              disabled={submitMutation.isPending || calculatedDays <= 0 || calculatedDays > 365 || ((selectedLeaveType ? selectedLeaveType.potong_kuota_tahunan : form.jenis_cuti.toLowerCase().includes("tahunan")) && leaveBalance !== null && calculatedDays > (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia))}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl gap-1.5"
             >
               <Send className="w-3.5 h-3.5" />

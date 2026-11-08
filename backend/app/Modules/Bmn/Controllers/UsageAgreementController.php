@@ -177,10 +177,12 @@ class UsageAgreementController extends Controller
         $this->applyEmployeeAssetFilter($query, $employee);
 
         if ($assetIds !== null) {
-            return $query->whereIn('id', $assetIds)->orderBy('nama_barang')->get();
+            $query->whereIn('id', $assetIds);
         }
 
-        return $query->orderBy('nama_barang')->get();
+        return $query->orderBy('nama_barang')->get()
+            ->filter(fn (Asset $asset) => $asset->isOwnedByEmployee($employee))
+            ->values();
     }
 
     private function applyEmployeeAssetFilter($query, Employee $employee): void
@@ -191,22 +193,27 @@ class UsageAgreementController extends Controller
             $rawFullName = trim((string) $employee->nama_lengkap);
             if ($rawFullName !== '') {
                 $fullName = addcslashes($rawFullName, '%_');
-                $q->orWhere('pengguna', 'LIKE', '%' . $fullName . '%')
-                    ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
+                $q->orWhere(function ($fallback) use ($rawFullName, $fullName) {
+                    $fallback->whereNull('employee_id')
+                        ->where(function ($sub) use ($rawFullName, $fullName) {
+                            $sub->where('pengguna', 'LIKE', '%' . $fullName . '%')
+                                ->orWhere('nama_pengguna', 'LIKE', '%' . $fullName . '%');
 
-                if (str_contains($rawFullName, ',')) {
-                    $baseName = addcslashes(trim(explode(',', $rawFullName)[0]), '%_');
-                    if (strlen($baseName) > 2) {
-                        $q->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
-                            ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
-                    }
-                }
+                            if (str_contains($rawFullName, ',')) {
+                                $baseName = addcslashes(trim(explode(',', $rawFullName)[0]), '%_');
+                                if (strlen($baseName) > 2) {
+                                    $sub->orWhere('pengguna', 'LIKE', '%' . $baseName . '%')
+                                        ->orWhere('nama_pengguna', 'LIKE', '%' . $baseName . '%');
+                                }
+                            }
 
-                $words = preg_split('/\s+/', $rawFullName) ?: [];
-                if (count($words) >= 2) {
-                    $twoWords = addcslashes($words[0] . ' ' . $words[1], '%_');
-                    $q->orWhere('pengguna', 'LIKE', '%' . $twoWords . '%');
-                }
+                            $words = preg_split('/\s+/', $rawFullName) ?: [];
+                            if (count($words) >= 2) {
+                                $twoWords = addcslashes($words[0] . ' ' . $words[1], '%_');
+                                $sub->orWhere('pengguna', 'LIKE', '%' . $twoWords . '%');
+                            }
+                        });
+                });
             }
         });
     }

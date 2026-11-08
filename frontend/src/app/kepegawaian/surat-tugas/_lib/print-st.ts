@@ -139,7 +139,7 @@ export function printSuratTugas(stNumber: string, namaKegiatan: string) {
   printWindow.document.write(`
     <html>
     <head>
-      <title>ST.${stNumber}-${safeKegiatan}</title>
+      <title>ST.${stNumber.replace(/[<>&"']/g, "")}-${safeKegiatan}</title>
       <style>${PRINT_STYLE}</style>
     </head>
     <body>${container.innerHTML}</body>

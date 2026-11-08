@@ -112,12 +112,15 @@ class PowerOfAttorneyController extends Controller
             $file = $request->file('ktp_image');
             $firstPartyName = $validated['first_party']['name'];
             $sanitizedName = \Illuminate\Support\Str::slug($firstPartyName, '_');
-            $ext = $file->getClientOriginalExtension() ?: 'jpeg';
+            $ext = $file->extension() ?: 'jpeg';
             $filename = 'KTP-' . strtoupper($sanitizedName) . '.' . $ext;
 
             $ktpPath = \Illuminate\Support\Facades\Storage::putFileAs('bmn/power-of-attorneys/ktp', $file, $filename);
         } elseif ($request->filled('existing_ktp_path')) {
-            $ktpPath = $request->input('existing_ktp_path');
+            $candidatePath = (string) $request->input('existing_ktp_path');
+            if (str_starts_with($candidatePath, 'bmn/power-of-attorneys/ktp/') && !str_contains($candidatePath, '..')) {
+                $ktpPath = $candidatePath;
+            }
         }
 
         $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);
@@ -212,12 +215,15 @@ class PowerOfAttorneyController extends Controller
             $file = $request->file('ktp_image');
             $firstPartyName = $validated['first_party']['name'];
             $sanitizedName = \Illuminate\Support\Str::slug($firstPartyName, '_');
-            $ext = $file->getClientOriginalExtension() ?: 'jpeg';
+            $ext = $file->extension() ?: 'jpeg';
             $filename = 'KTP-' . strtoupper($sanitizedName) . '.' . $ext;
 
             $ktpPath = \Illuminate\Support\Facades\Storage::putFileAs('bmn/power-of-attorneys/ktp', $file, $filename);
         } elseif ($request->filled('existing_ktp_path')) {
-            $ktpPath = $request->input('existing_ktp_path');
+            $candidatePath = (string) $request->input('existing_ktp_path');
+            if (str_starts_with($candidatePath, 'bmn/power-of-attorneys/ktp/') && !str_contains($candidatePath, '..')) {
+                $ktpPath = $candidatePath;
+            }
         }
 
         $status = $this->determineStatus($validated['number'] ?? null, $validated['status'] ?? null);

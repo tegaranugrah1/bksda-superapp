@@ -587,13 +587,7 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
                     <div>
                       <h3 className="font-bold text-[12pt]">A. Latar Belakang</h3>
                       <div className="pl-4 pt-1 text-[12pt] leading-normal text-justify">
-                        {renderContent(data.latarBelakang || `Suaka Margasatwa Kelian Lestari adalah salah satu kawasan konservasi yang memiliki nilai strategis dalam menjaga keseimbangan ekosistem serta kelestarian keanekaragaman hayati di Kalimantan Timur. Kawasan ini menyimpan berbagai potensi biodiversitas, baik flora maupun fauna, termasuk jenis satwa liar dilindungi yang berperan penting dalam menjaga kestabilan rantai ekologi. Tidak hanya itu, keberadaan kawasan ini juga memberikan manfaat nyata bagi masyarakat sekitar, mulai dari fungsi tata air, penyediaan jasa ekosistem, hingga nilai sosial budaya yang melekat.
-
-Namun, kondisi Suaka Margasatwa Kelian Lestari tidak terlepas dari berbagai ancaman serius. Bekas aktivitas pertambangan emas yang pernah berlangsung di dalam kawasan meninggalkan kerusakan ekologis yang cukup besar, seperti lubang tambang terbuka, degradasi habitat, serta perubahan bentang alam. Dampak tersebut tidak hanya mengganggu fungsi ekologis kawasan, tetapi juga memicu kerentanan baru, seperti perambahan hutan, penambangan tanpa izin, hingga pembalakan liar. Selain itu, perburuan satwa liar menjadi ancaman lain yang mengikis keberadaan spesies kunci dan berpotensi menurunkan keanekaragaman hayati kawasan.
-
-Meski demikian, berbagai upaya rehabilitasi yang dilakukan sejak tahun 1992 telah menunjukkan hasil yang positif. Program revegetasi, pengendalian aktivitas manusia, dan pemulihan ekosistem pascatambang mulai mengembalikan fungsi ekologis kawasan. Pulihnya vegetasi menjadi habitat baru bagi satwa liar serta mendukung kegiatan pelepasliaran satwa dilindungi yang telah beberapa kali dilakukan. Pelepasliaran tersebut menjadi bukti nyata bahwa kawasan ini berpotensi kembali menjadi habitat yang layak sekaligus menjadi model keberhasilan pemulihan kawasan konservasi.
-
-Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Margasatwa Kelian Lestari perlu terus ditingkatkan. Ancaman yang masih ada harus dikelola dengan langkah strategis, sementara keberhasilan yang telah diraih harus dipertahankan dan dikembangkan. Melalui patroli rutin, pengawasan intensif, serta pemanfaatan teknologi seperti SMART Patrol, diharapkan kawasan ini tetap lestari dan mampu menjalankan fungsinya sebagai penyangga kehidupan serta warisan alam yang berharga bagi generasi yang akan datang.`)}
+                        {renderContent(data.latarBelakang)}
                       </div>
                     </div>
 
@@ -785,7 +779,7 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
           <h2 className="text-[12pt] font-bold text-center uppercase tracking-wider mb-8">TALLY SHEET</h2>
           <img src="/header-paling-baru.png" alt="Kop Surat" className="w-full mb-6" />
           
-          {tallySheetFile.type.startsWith('image/') && tallySheetUrl ? (
+          {["image/jpeg", "image/png", "image/webp"].includes(tallySheetFile.type) && tallySheetUrl ? (
             <img 
               src={tallySheetUrl} 
               alt="Tally Sheet" 

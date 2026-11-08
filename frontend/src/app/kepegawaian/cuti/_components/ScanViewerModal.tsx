@@ -18,17 +18,15 @@ function base64ToBlobUrl(base64DataUrl: string): string {
   try {
     const parts = base64DataUrl.split(",");
     const mimeMatch = parts[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
-    const byteCharacters = atob(parts[1]);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mime });
-    return URL.createObjectURL(blob);
+    const rawMime = (mimeMatch ? mimeMatch[1] : "application/pdf").toLowerCase();
+    const mime =
+      rawMime === "application/pdf" || /^image\/(jpeg|jpg|png|webp|gif)$/.test(rawMime)
+        ? rawMime
+        : "application/pdf";
+    const byteArray = Uint8Array.from(atob(parts[1]), (c) => c.charCodeAt(0));
+    return URL.createObjectURL(new Blob([byteArray], { type: mime }));
   } catch {
-    return base64DataUrl;
+    return "";
   }
 }
 
@@ -79,13 +77,21 @@ export function ScanViewerModal({
           (!mimeType.includes("image") && !effectiveName.match(/\.(jpe?g|png|webp)$/i));
 
         setIsPdf(detectedIsPdf);
-        setDataUrl(resDataUrl);
 
         if (resDataUrl && typeof resDataUrl === "string" && resDataUrl.startsWith("data:")) {
           localBlobUrl = base64ToBlobUrl(resDataUrl);
-          setBlobUrl(localBlobUrl);
+          setDataUrl(localBlobUrl || null);
+          setBlobUrl(localBlobUrl || null);
+        } else if (
+          resDataUrl &&
+          typeof resDataUrl === "string" &&
+          (resDataUrl.startsWith("http://") || resDataUrl.startsWith("https://") || resDataUrl.startsWith("/"))
+        ) {
+          setDataUrl(resDataUrl);
+          setBlobUrl(resDataUrl);
         } else {
-          setBlobUrl(resDataUrl || null);
+          setDataUrl(null);
+          setBlobUrl(null);
         }
       })
       .catch((err) => {
@@ -124,13 +130,13 @@ export function ScanViewerModal({
 
   const handleOpenExternal = () => {
     if (blobUrl) {
-      window.open(blobUrl, "_blank", "noopener");
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
       return;
     }
     if (!scanUrl) return;
     const separator = scanUrl.includes("?") ? "&" : "?";
     const streamUrl = `/api${scanUrl.replace(/^\/api/, "")}${separator}stream=1`;
-    window.open(streamUrl, "_blank", "noopener");
+    window.open(streamUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -210,6 +216,7 @@ export function ScanViewerModal({
                 className="w-full h-[72vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white shadow-xs"
               />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={blobUrl || dataUrl || undefined}
                 alt={title}

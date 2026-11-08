@@ -103,6 +103,12 @@ class AssignmentLetterController extends Controller
             ], 403);
         }
 
+        if (! $isAdmin && ! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
+            return response()->json([
+                'message' => 'Dokumen Surat Tugas belum diterbitkan secara resmi.',
+            ], 403);
+        }
+
         return response()->json([
             'data' => $this->isMobileRequest($request)
                 ? $this->toMobileDetailItem($surat, personal: true)
@@ -152,7 +158,8 @@ class AssignmentLetterController extends Controller
             $filename = preg_replace('/[\r\n\/\\\\:*?"<>|]/', '_', $filename);
 
             if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
-                $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+                $rawMime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+                $mime = in_array($rawMime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true) ? $rawMime : 'application/pdf';
                 return response()->json([
                     'mime_type' => $mime,
                     'file_name' => $filename,
@@ -284,30 +291,8 @@ class AssignmentLetterController extends Controller
             'jumlah_buruh' => (int) ($letter->jumlah_buruh ?? 0),
             'personel_summary' => $personelSummary ?: null,
             'personel_count' => $employees->count(),
-            'employees' => $employees->map(fn ($e) => [
-                'id' => $e->id,
-                'nama_lengkap' => $e->nama_lengkap,
-                'name' => $e->nama_lengkap,
-                'nip' => $e->nip,
-                'jabatan' => $e->jabatan,
-                'pangkat_golongan' => $e->pangkat_golongan,
-                'unit_kerja' => $e->satuan_kerja,
-                'peran' => $e->pivot?->peran,
-                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->toDateString()) : null,
-                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->toDateString()) : null,
-            ])->values(),
-            'personel' => $employees->map(fn ($e) => [
-                'id' => $e->id,
-                'nama_lengkap' => $e->nama_lengkap,
-                'name' => $e->nama_lengkap,
-                'nip' => $e->nip,
-                'jabatan' => $e->jabatan,
-                'pangkat_golongan' => $e->pangkat_golongan,
-                'unit_kerja' => $e->satuan_kerja,
-                'peran' => $e->pivot?->peran,
-                'tanggal_mulai' => $e->pivot?->tanggal_mulai ? (is_string($e->pivot->tanggal_mulai) ? substr($e->pivot->tanggal_mulai, 0, 10) : $e->pivot->tanggal_mulai->toDateString()) : null,
-                'tanggal_selesai' => $e->pivot?->tanggal_selesai ? (is_string($e->pivot->tanggal_selesai) ? substr($e->pivot->tanggal_selesai, 0, 10) : $e->pivot->tanggal_selesai->toDateString()) : null,
-            ])->values(),
+            'employees' => $mappedEmployees = $this->mapMobileEmployees($employees),
+            'personel' => $mappedEmployees,
             'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path ? basename($letter->file_surat_path) : null,
             'file' => [
@@ -326,6 +311,7 @@ class AssignmentLetterController extends Controller
         $downloadUrl = $personal
             ? "/api/surat-tugas/my/{$letter->id}/download"
             : "/api/surat-tugas/{$letter->id}/download";
+        $mappedEmployees = $this->mapMobileEmployees($letter->employees);
 
         return [
             'id' => $letter->id,
@@ -353,32 +339,8 @@ class AssignmentLetterController extends Controller
             'penandatangan_nip' => $letter->penandatangan_nip,
             'has_file' => ! empty($letter->file_surat_path),
             'file_surat_path' => $letter->file_surat_path ? basename($letter->file_surat_path) : null,
-            'employees' => $letter->employees->map(fn ($employee) => [
-                'id' => $employee->id,
-                'name' => $employee->nama_lengkap,
-                'nama_lengkap' => $employee->nama_lengkap,
-                'nip' => $employee->nip,
-                'jabatan' => $employee->jabatan,
-                'unit_kerja' => $employee->satuan_kerja,
-                'satuan_kerja' => $employee->satuan_kerja,
-                'pangkat_golongan' => $employee->pangkat_golongan,
-                'peran' => $employee->pivot?->peran,
-                'tanggal_mulai' => $employee->pivot?->tanggal_mulai ? (is_string($employee->pivot->tanggal_mulai) ? substr($employee->pivot->tanggal_mulai, 0, 10) : $employee->pivot->tanggal_mulai->toDateString()) : null,
-                'tanggal_selesai' => $employee->pivot?->tanggal_selesai ? (is_string($employee->pivot->tanggal_selesai) ? substr($employee->pivot->tanggal_selesai, 0, 10) : $employee->pivot->tanggal_selesai->toDateString()) : null,
-            ])->values(),
-            'personel' => $letter->employees->map(fn ($employee) => [
-                'id' => $employee->id,
-                'name' => $employee->nama_lengkap,
-                'nama_lengkap' => $employee->nama_lengkap,
-                'nip' => $employee->nip,
-                'jabatan' => $employee->jabatan,
-                'unit_kerja' => $employee->satuan_kerja,
-                'satuan_kerja' => $employee->satuan_kerja,
-                'pangkat_golongan' => $employee->pangkat_golongan,
-                'peran' => $employee->pivot?->peran,
-                'tanggal_mulai' => $employee->pivot?->tanggal_mulai ? (is_string($employee->pivot->tanggal_mulai) ? substr($employee->pivot->tanggal_mulai, 0, 10) : $employee->pivot->tanggal_mulai->toDateString()) : null,
-                'tanggal_selesai' => $employee->pivot?->tanggal_selesai ? (is_string($employee->pivot->tanggal_selesai) ? substr($employee->pivot->tanggal_selesai, 0, 10) : $employee->pivot->tanggal_selesai->toDateString()) : null,
-            ])->values(),
+            'employees' => $mappedEmployees,
+            'personel' => $mappedEmployees,
             'file' => [
                 'available' => ! empty($letter->file_surat_path),
                 'filename' => $letter->nomor_surat ? "ST-{$letter->nomor_surat}.pdf" : "Surat-Tugas-{$letter->id}.pdf",
@@ -393,6 +355,38 @@ class AssignmentLetterController extends Controller
                 'can_delete' => ! $personal,
             ],
         ];
+    }
+
+    private function mapMobileEmployees($employees)
+    {
+        return $employees->map(fn ($employee) => [
+            'id' => $employee->id,
+            'name' => $employee->nama_lengkap,
+            'nama_lengkap' => $employee->nama_lengkap,
+            'nip' => $employee->nip,
+            'jabatan' => $employee->jabatan,
+            'unit_kerja' => $employee->satuan_kerja,
+            'satuan_kerja' => $employee->satuan_kerja,
+            'pangkat_golongan' => $employee->pangkat_golongan,
+            'peran' => $employee->pivot?->peran,
+            'tanggal_mulai' => $employee->pivot?->tanggal_mulai ? (is_string($employee->pivot->tanggal_mulai) ? substr($employee->pivot->tanggal_mulai, 0, 10) : $employee->pivot->tanggal_mulai->toDateString()) : null,
+            'tanggal_selesai' => $employee->pivot?->tanggal_selesai ? (is_string($employee->pivot->tanggal_selesai) ? substr($employee->pivot->tanggal_selesai, 0, 10) : $employee->pivot->tanggal_selesai->toDateString()) : null,
+        ])->values();
+    }
+
+    private function syncAssignedEmployees(AssignmentLetter $surat, array $employees): void
+    {
+        $pivotData = [];
+        foreach ($employees as $emp) {
+            if (isset($emp['id'])) {
+                $pivotData[$emp['id']] = [
+                    'peran' => $emp['peran'] ?? null,
+                    'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
+                    'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
+                ];
+            }
+        }
+        $surat->employees()->sync($pivotData);
     }
 
     private function isMobileRequest(Request $request): bool
@@ -517,17 +511,7 @@ class AssignmentLetterController extends Controller
             ]);
 
             if (isset($validated['employees']) && is_array($validated['employees'])) {
-                $pivotData = [];
-                foreach ($validated['employees'] as $emp) {
-                    if (isset($emp['id'])) {
-                        $pivotData[$emp['id']] = [
-                            'peran' => $emp['peran'] ?? null,
-                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
-                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
-                        ];
-                    }
-                }
-                $surat->employees()->sync($pivotData);
+                $this->syncAssignedEmployees($surat, $validated['employees']);
             }
 
             if ($request->hasFile('file_surat')) {
@@ -572,26 +556,6 @@ class AssignmentLetterController extends Controller
                     Log::warning('Gagal mengirim portal notification pada store SuratTugas: '.$e->getMessage());
                 }
             }
-
-            // [DISABLED] Google Sheets sync — dimatikan sementara (lihat HANDOFF.md)
-            // try {
-            //     $sheetsService = new \App\Services\GoogleSheetsService();
-            //     $sheetsService->appendSuratTugas([
-            //         'id' => $surat->id,
-            //         'unit_kerja' => $surat->employees->first()?->satuan_kerja ?? '',
-            //         'employees' => $surat->employees->map(fn($e) => ['nama_lengkap' => $e->nama_lengkap])->toArray(),
-            //         'nama_plh' => $surat->nama_plh ?? '',
-            //         'nama_kegiatan' => $surat->maksud_tujuan ?? '',
-            //         'tanggal_mulai' => $surat->tanggal_mulai?->format('Y-m-d') ?? '',
-            //         'tanggal_selesai' => $surat->tanggal_selesai?->format('Y-m-d') ?? '',
-            //         'sumber_dana' => $surat->sumber_dana ?? '',
-            //         'file_path' => $surat->file_surat_path ?? '',
-            //         'keterangan' => $surat->keterangan ?? '',
-            //         'tanda_setuju' => $surat->tanda_setuju ?? '',
-            //     ]);
-            // } catch (\Exception $e) {
-            //     \Illuminate\Support\Facades\Log::warning('GoogleSheets sync failed: ' . $e->getMessage());
-            // }
 
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
@@ -691,17 +655,7 @@ class AssignmentLetterController extends Controller
             $surat->update($updateData);
 
             if (array_key_exists('employees', $validated)) {
-                $pivotData = [];
-                foreach ($validated['employees'] ?? [] as $emp) {
-                    if (isset($emp['id'])) {
-                        $pivotData[$emp['id']] = [
-                            'peran' => $emp['peran'] ?? null,
-                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
-                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
-                        ];
-                    }
-                }
-                $surat->employees()->sync($pivotData);
+                $this->syncAssignedEmployees($surat, $validated['employees'] ?? []);
             }
 
             if ($request->hasFile('file_surat')) {
@@ -1069,7 +1023,8 @@ class AssignmentLetterController extends Controller
 
         // Mode pratinjau JSON base64 data_url (mencegah IDM hook & error CORS XHR)
         if ($request->query('preview') || ($request->wantsJson() && ! $request->has('download'))) {
-            $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+            $rawMime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+            $mime = in_array($rawMime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true) ? $rawMime : 'application/pdf';
             return response()->json([
                 'mime_type' => $mime,
                 'file_name' => $filename,
@@ -1078,7 +1033,8 @@ class AssignmentLetterController extends Controller
         }
 
         if ($request->query('stream') || $request->query('inline')) {
-            $mime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+            $rawMime = Storage::disk('local')->mimeType($surat->file_surat_path) ?: 'application/pdf';
+            $mime = in_array($rawMime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true) ? $rawMime : 'application/pdf';
             return response(Storage::disk('local')->get($surat->file_surat_path), 200, [
                 'Content-Type' => $mime,
                 'Content-Disposition' => 'inline; filename="' . $filename . '"',
@@ -1179,17 +1135,7 @@ class AssignmentLetterController extends Controller
             $surat->update($updateData);
 
             if (array_key_exists('employees', $validated)) {
-                $pivotData = [];
-                foreach ($validated['employees'] ?? [] as $emp) {
-                    if (isset($emp['id'])) {
-                        $pivotData[$emp['id']] = [
-                            'peran' => $emp['peran'] ?? null,
-                            'tanggal_mulai' => $emp['tanggal_mulai'] ?? null,
-                            'tanggal_selesai' => $emp['tanggal_selesai'] ?? null,
-                        ];
-                    }
-                }
-                $surat->employees()->sync($pivotData);
+                $this->syncAssignedEmployees($surat, $validated['employees'] ?? []);
             }
 
             DB::commit();
@@ -1229,29 +1175,6 @@ class AssignmentLetterController extends Controller
                     Log::warning('Gagal mengirim portal notification pada approve SuratTugas: '.$e->getMessage());
                 }
             }
-
-            // [DISABLED] Google Sheets update sync — dimatikan sementara (lihat HANDOFF.md)
-            // dispatch(function () use ($surat) {
-            //     try {
-            //         $surat->load('employees');
-            //         $sheetsService = new \App\Services\GoogleSheetsService();
-            //         $sheetsService->updateSuratTugas([
-            //             'id' => $surat->id,
-            //             'unit_kerja' => $surat->employees->first()?->satuan_kerja ?? '',
-            //             'employees' => $surat->employees->map(fn($e) => ['nama_lengkap' => $e->nama_lengkap])->toArray(),
-            //             'nama_plh' => $surat->nama_plh ?? '',
-            //             'nama_kegiatan' => $surat->maksud_tujuan ?? '',
-            //             'tanggal_mulai' => $surat->tanggal_mulai?->format('Y-m-d') ?? '',
-            //             'tanggal_selesai' => $surat->tanggal_selesai?->format('Y-m-d') ?? '',
-            //             'sumber_dana' => $surat->sumber_dana ?? '',
-            //             'file_path' => $surat->file_surat_path ?? '',
-            //             'keterangan' => $surat->keterangan ?? '',
-            //             'tanda_setuju' => $surat->tanda_setuju ?? '',
-            //         ]);
-            //     } catch (\Exception $e) {
-            //         \Illuminate\Support\Facades\Log::warning('GoogleSheets update sync failed: ' . $e->getMessage());
-            //     }
-            // })->afterResponse();
 
             $statusLabel = $targetStatus === 'pending' ? 'diajukan untuk persetujuan' : ($targetStatus === 'approved' ? 'berhasil diterbitkan' : 'berhasil disimpan');
 

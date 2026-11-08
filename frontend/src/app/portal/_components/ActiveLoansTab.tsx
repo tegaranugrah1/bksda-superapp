@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Package, List, LayoutGrid, Camera, ZoomIn, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -9,7 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatMerkTipe, getAssetPhotos, AssetItem, AssetPhotoLightbox } from "./MyAssetsTab";
 import { formatDateIndonesian } from "@/lib/letter-utils";
 
-export interface BorrowedAssetItem extends AssetItem {
+export interface BorrowedAssetItem extends Omit<AssetItem, "id"> {
+  id: number | string;
   loan_id?: number | string;
   loan_date: string;
   due_date: string;
@@ -20,6 +21,13 @@ interface ActiveLoansTabProps {
   assets: BorrowedAssetItem[];
   viewMode?: "list" | "grid";
   setViewMode?: (mode: "list" | "grid") => void;
+}
+
+function isLoanOverdue(asset: BorrowedAssetItem): boolean {
+  const cleanStatus = (asset.status || "").toLowerCase();
+  const isBorrowedStatus = cleanStatus === "dipinjam" || cleanStatus === "terlambat" || asset.status === "dipinjam" || asset.status === "terlambat";
+  const dueDateTs = asset.due_date ? new Date(asset.due_date).getTime() : NaN;
+  return isBorrowedStatus && (cleanStatus === "terlambat" || (!Number.isNaN(dueDateTs) && dueDateTs < Date.now()));
 }
 
 export function ActiveLoansTab({
@@ -127,19 +135,11 @@ export function ActiveLoansTab({
             /* List View */
             <div className="divide-y divide-slate-100 dark:divide-zinc-800">
           {assets.map((asset) => {
-            const photos = getAssetPhotos(asset as unknown as AssetItem);
+            const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasThumb = Boolean(primaryPhoto?.url && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const hasThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
             const cleanStatus = (asset.status || "").toLowerCase();
-            const isOverdue =
-              asset.status === "terlambat" ||
-              cleanStatus === "terlambat" ||
-              Boolean(
-                (asset.status === "dipinjam" || cleanStatus === "dipinjam") &&
-                  asset.due_date &&
-                  !Number.isNaN(new Date(asset.due_date).getTime()) &&
-                  new Date(asset.due_date) < new Date()
-              );
+            const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (
@@ -252,19 +252,11 @@ export function ActiveLoansTab({
         /* Grid View */
         <div className="p-3 sm:p-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           {assets.map((asset) => {
-            const photos = getAssetPhotos(asset as unknown as AssetItem);
+            const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasValidThumb = Boolean(primaryPhoto?.url && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const hasValidThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
             const cleanStatus = (asset.status || "").toLowerCase();
-            const isOverdue =
-              asset.status === "terlambat" ||
-              cleanStatus === "terlambat" ||
-              Boolean(
-                (asset.status === "dipinjam" || cleanStatus === "dipinjam") &&
-                  asset.due_date &&
-                  !Number.isNaN(new Date(asset.due_date).getTime()) &&
-                  new Date(asset.due_date) < new Date()
-              );
+            const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (

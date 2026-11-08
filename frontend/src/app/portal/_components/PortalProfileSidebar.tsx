@@ -2,12 +2,12 @@
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+
 import {
   Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
   Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
   FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
-  Camera, Cloud,
+  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -119,7 +119,7 @@ export function PortalProfileSidebar({
     const isEmailChanging = cleanEmail.toLowerCase() !== currentRegisteredEmail;
 
     if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      toast.error("Format email tidak valid.");
+      toast.error("Format email tidak valid."); return; } if (cleanEmail && cleanEmail.toLowerCase().endsWith(".local")) { toast.error("Gunakan alamat email aktif yang valid (bukan domain .local).");
       return;
     }
     if (cleanPhone && !/^[0-9+\-\s()]+$/.test(cleanPhone)) {
@@ -158,7 +158,7 @@ export function PortalProfileSidebar({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       e.target.value = "";
       toast.error("File harus berupa gambar (JPG, PNG, atau WEBP).");
       return;
@@ -229,7 +229,7 @@ export function PortalProfileSidebar({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
               onChange={handlePhotoSelect}
             />
@@ -462,7 +462,6 @@ export function PortalProfileSidebar({
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <Input
                   type="email"
-                  required
                   placeholder="contoh@ksdae.go.id"
                   value={editData.email}
                   onChange={(e) => setEditData({ ...editData, email: e.target.value })}

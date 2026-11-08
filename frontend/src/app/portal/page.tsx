@@ -9,11 +9,10 @@ import {
   Boxes, FileText, LayoutGrid, Mail, Banknote, Cloud, ShieldCheck,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
-import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { api, getApiSessionSnapshot } from "@/lib/api";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,49 +31,33 @@ import { NotificationBell } from "./_components/NotificationBell";
 import { EmailConnectDialog } from "./_components/EmailConnectDialog";
 import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components/SecurityModals";
 
+const VALID_PORTAL_TABS = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
+
+const renderTabLoading = (color = "text-emerald-600") => () => (
+  <div className="flex h-64 items-center justify-center">
+    <Loader2 className={cn("h-6 w-6 animate-spin", color)} />
+  </div>
+);
+
 // Lazy-loaded heavy components for optimal initial bundle performance
 const VisumSpdTab = dynamic(
   () => import("@/app/keuangan/_components/VisumSpdTab").then((mod) => mod.VisumSpdTab),
-  {
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
-      </div>
-    ),
-  }
+  { loading: renderTabLoading("text-amber-600") }
 );
 
 const KalkulatorDinasTab = dynamic(
   () => import("./_components/KalkulatorDinasTab").then((mod) => mod.KalkulatorDinasTab),
-  {
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-      </div>
-    ),
-  }
+  { loading: renderTabLoading() }
 );
 
 const SmartPatrolInlineForm = dynamic(
   () => import("./_components/SmartPatrolInlineForm").then((mod) => mod.SmartPatrolInlineForm),
-  {
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-      </div>
-    ),
-  }
+  { loading: renderTabLoading() }
 );
 
 const GeneralReportInlineForm = dynamic(
   () => import("./_components/GeneralReportInlineForm").then((mod) => mod.GeneralReportInlineForm),
-  {
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-      </div>
-    ),
-  }
+  { loading: renderTabLoading() }
 );
 
 const LeaveRequestDialog = dynamic(
@@ -104,7 +87,7 @@ interface DashboardData {
     email_cooldown_remaining?: number;
   };
   employee: { id: number; nip: string; name: string; position: string; department: string; email: string | null; phone: string | null; photo: string | null; rank: string | null; rank_level: number; is_active: boolean } | null;
-  my_assets: BorrowedAssetItem[];
+  my_assets: Array<{ id: number | string; [key: string]: unknown }> | BorrowedAssetItem[];
 }
 
 interface SuratTugasItem {
@@ -233,10 +216,7 @@ function PortalContent() {
   const [activeNavTab, setActiveNavTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const savedTab = localStorage.getItem("bksda_portal_nav_tab");
-      if (
-        savedTab &&
-        ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"].includes(savedTab)
-      ) {
+      if (savedTab && VALID_PORTAL_TABS.includes(savedTab)) {
         return savedTab;
       }
     }
@@ -271,7 +251,7 @@ function PortalContent() {
   const filteredMyAssets = useMemo(() => {
     if (!data?.my_assets) return myAssets;
     const borrowedIds = new Set(data.my_assets.map(a => String(a.id)));
-    return myAssets.filter(a => !borrowedIds.has(a.id));
+    return myAssets.filter(a => !borrowedIds.has(String(a.id)));
   }, [myAssets, data]);
 
   // Auto default view mode: "grid" jika <= 4 aset, "list" jika > 4 aset
@@ -365,8 +345,7 @@ function PortalContent() {
   const [activeLeaveId, setActiveLeaveId] = useState<string | number | null>(null);
 
   const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
-    const validTabs = ["dashboard", "pinjaman", "aset", "surat_tugas", "cuti", "visum", "kalkulator_dinas"];
-    const targetTab = validTabs.includes(tabKey) ? tabKey : "dashboard";
+    const targetTab = VALID_PORTAL_TABS.includes(tabKey) ? tabKey : "dashboard";
     setActiveNavTab(targetTab);
 
     if (targetTab === "surat_tugas" && referenceId) {
@@ -546,7 +525,7 @@ function PortalContent() {
     if (!data) return [];
     return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
       ? ["kepegawaian", "keuangan", "bmn", "inventory", "dereporting", "cms", "surat", "drive"]
-      : (data.user.access_modules || []).includes("drive") ? (data.user.access_modules || []) : [...(data.user.access_modules || []), "drive"];
+      : Array.from(new Set([...(data.user.access_modules || []), "drive"]));
   }, [data]);
 
   const moduleCards = useMemo(
@@ -696,7 +675,6 @@ function PortalContent() {
                     <div className="space-y-6">
                       <PortalHeaderBanner
                         displayName={data.employee?.name || data.user.name}
-                        activeSuratTugasCount={suratTugas.length}
                         onOpenVisum={() => {
                           setInlineFormType(null);
                           setActiveNavTab("visum");
@@ -740,7 +718,7 @@ function PortalContent() {
                                     href={mod.href}
                                     className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-2.5 sm:p-3 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
                                   >
-                                    <div className={cn("w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5 group-hover:shadow-xs border", mod.bg, mod.color, (mod as any).border)}>
+                                    <div className={cn("w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5 group-hover:shadow-xs border", mod.bg, mod.color, (mod).border)}>
                                       <mod.icon className="w-5 h-5" />
                                     </div>
                                     <div className="space-y-0.5 w-full">
@@ -769,7 +747,7 @@ function PortalContent() {
                                       href={mod.href}
                                       className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-3.5 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 transition-all duration-200 flex items-center gap-3 cursor-pointer"
                                     >
-                                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xs border shrink-0", mod.bg, mod.color, (mod as any).border)}>
+                                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xs border shrink-0", mod.bg, mod.color, (mod).border)}>
                                         <mod.icon className="w-5 h-5" />
                                       </div>
                                       <div className="space-y-0.5 min-w-0 flex-1">
@@ -898,10 +876,10 @@ function PortalContent() {
             {activeNavTab !== "visum" && activeNavTab !== "kalkulator_dinas" && (
               <>
                 <div className="hidden 2xl:block 2xl:col-span-3 shrink-0 print:hidden font-sans">
-                  <PortalInfoSidebar />
+                  <PortalInfoSidebar onOpenReport={() => setInlineFormType("general")} />
                 </div>
                 <div className="col-span-1 lg:col-span-12 block 2xl:hidden pt-1 print:hidden">
-                  <PortalInfoSidebar isHorizontal={true} />
+                  <PortalInfoSidebar isHorizontal={true} onOpenReport={() => setInlineFormType("general")} />
                 </div>
               </>
             )}
@@ -952,7 +930,6 @@ function PortalContent() {
 }
 
 export default function PersonalDashboard() {
-  const { user } = useAuth();
   return (
     <RouteGuard>
       <PortalContent />

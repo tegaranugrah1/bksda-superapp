@@ -94,7 +94,7 @@ export function SuratTugasTab({
             </DropdownMenu>
           )}
 
-          <Link href="/surat-tugas/usulan">
+          <Link href="/surat-tugas">
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-xs gap-1.5 cursor-pointer transition-all active:scale-97">
               <Plus className="w-4 h-4" />
               Ajukan Surat Tugas

@@ -112,8 +112,51 @@ class Asset extends Model
             ->withTimestamps();
     }
 
+    public function isOwnedByEmployee(Employee $employee): bool
+    {
+        if ($this->employee_id !== null) {
+            return (int) $this->employee_id === (int) $employee->id;
+        }
+
+        $resolvedId = Employee::resolveIdByName($this->pengguna, $this->nama_pengguna);
+        if ($resolvedId !== null) {
+            return $resolvedId === (int) $employee->id;
+        }
+
+        $empName = trim($employee->nama_lengkap ?? '');
+        if (mb_strlen($empName) >= 3) {
+            $cleanName = trim((string) preg_replace('/,.*$/', '', $empName));
+            $lowerPengguna = mb_strtolower(trim((string) ($this->pengguna ?? '')));
+            $lowerNamaPengguna = mb_strtolower(trim((string) ($this->nama_pengguna ?? '')));
+            $lowerEmp = mb_strtolower($empName);
+            $lowerClean = mb_strtolower($cleanName);
+
+            return $lowerPengguna === $lowerEmp
+                || $lowerNamaPengguna === $lowerEmp
+                || (mb_strlen($cleanName) >= 3 && ($lowerPengguna === $lowerClean || $lowerNamaPengguna === $lowerClean));
+        }
+
+        return false;
+    }
+
     protected static function booted()
     {
+        static::saving(function (self $asset) {
+            if (! $asset->isDirty('employee_id') && ($asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna') || ! $asset->exists)) {
+                $hasName = (trim((string) ($asset->pengguna ?? '')) !== '' && trim((string) $asset->pengguna) !== '-')
+                    || (trim((string) ($asset->nama_pengguna ?? '')) !== '' && trim((string) $asset->nama_pengguna) !== '-');
+
+                if ($hasName) {
+                    $resolvedId = Employee::resolveIdByName($asset->pengguna, $asset->nama_pengguna);
+                    if ($resolvedId !== null || $asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna')) {
+                        $asset->employee_id = $resolvedId;
+                    }
+                } elseif ($asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna')) {
+                    $asset->employee_id = null;
+                }
+            }
+        });
+
         static::forceDeleted(function ($asset) {
             $paths = [
                 $asset->foto_geotag_path,

@@ -20,19 +20,9 @@ class AssetService
         return DB::transaction(function () use ($assetId, $data, $userId) {
             $asset = Asset::lockForUpdate()->findOrFail($assetId);
 
-            // Auto-resolve employee_id if not explicitly provided but pengguna/nama_pengguna is given
-            if (!array_key_exists('employee_id', $data) && (!empty($data['pengguna']) || !empty($data['nama_pengguna']))) {
-                $targetName = trim($data['pengguna'] ?? $data['nama_pengguna'] ?? '');
-                if ($targetName && $targetName !== '-') {
-                    $clean = trim(preg_replace('/,.*$/', '', $targetName));
-                    $matchedEmp = \App\Modules\Kepegawaian\Models\Employee::where('nama_lengkap', 'ILIKE', '%' . $targetName . '%')->first();
-                    if (!$matchedEmp && mb_strlen($clean) >= 3) {
-                        $matchedEmp = \App\Modules\Kepegawaian\Models\Employee::where('nama_lengkap', 'ILIKE', '%' . $clean . '%')->first();
-                    }
-                    if ($matchedEmp) {
-                        $data['employee_id'] = $matchedEmp->id;
-                    }
-                }
+            // Auto-resolve employee_id dari modul Kepegawaian jika pengguna/nama_pengguna diubah
+            if (!array_key_exists('employee_id', $data) && (array_key_exists('pengguna', $data) || array_key_exists('nama_pengguna', $data))) {
+                $data['employee_id'] = \App\Modules\Kepegawaian\Models\Employee::resolveIdByName($data['pengguna'] ?? null, $data['nama_pengguna'] ?? null);
             }
 
             // Track all changed fields

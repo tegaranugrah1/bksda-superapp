@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export interface AssetItem {
-  id: string;
+  id: number | string;
   nama_barang: string;
   kode_barang: string;
   nup: string;
@@ -59,12 +59,12 @@ export function resolvePhotoUrl(rawUrl?: string | null): string | null {
         const origin = new URL(apiBase).origin;
         return `${origin}${rawUrl}`;
       } catch {
-        return rawUrl;
+        return /^https?:\/\//i.test(rawUrl) || (rawUrl.startsWith("/") && !rawUrl.startsWith("//")) ? rawUrl : null;
       }
     }
   }
 
-  return rawUrl;
+  return /^https?:\/\//i.test(rawUrl) || (rawUrl.startsWith("/") && !rawUrl.startsWith("//")) ? rawUrl : null;
 }
 
 /**
@@ -78,52 +78,19 @@ export function resolvePhotoUrl(rawUrl?: string | null): string | null {
  * 7. Foto Dokumentasi Umum
  */
 export function getAssetPhotos(asset: AssetItem): PhotoItem[] {
-  const photos: PhotoItem[] = [];
-
-  // 1. Geotag
-  const geotag = asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null);
-  if (geotag) {
-    const directUrl = resolvePhotoUrl(geotag);
-    if (directUrl) photos.push({ key: "geotag", label: "Foto Geotag", url: directUrl });
-  }
-
-  // 2. Tampak Depan
-  if (asset.foto_depan_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_depan_url);
-    if (directUrl) photos.push({ key: "depan", label: "Tampak Depan", url: directUrl });
-  }
-
-  // 3. Tampak Belakang
-  if (asset.foto_belakang_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_belakang_url);
-    if (directUrl) photos.push({ key: "belakang", label: "Tampak Belakang", url: directUrl });
-  }
-
-  // 4. Tampak Kiri
-  if (asset.foto_kiri_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_kiri_url);
-    if (directUrl) photos.push({ key: "kiri", label: "Tampak Kiri", url: directUrl });
-  }
-
-  // 5. Tampak Kanan
-  if (asset.foto_kanan_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_kanan_url);
-    if (directUrl) photos.push({ key: "kanan", label: "Tampak Kanan", url: directUrl });
-  }
-
-  // 6. Foto Lokasi
-  if (asset.foto_lokasi_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_lokasi_url);
-    if (directUrl) photos.push({ key: "lokasi", label: "Foto Lokasi", url: directUrl });
-  }
-
-  // 7. Foto Dokumentasi Umum
-  if (asset.foto_url) {
-    const directUrl = resolvePhotoUrl(asset.foto_url);
-    if (directUrl) photos.push({ key: "foto_url", label: "Foto Dokumentasi", url: directUrl });
-  }
-
-  return photos;
+  const entries: Array<[string, string, string | null | undefined]> = [
+    ["geotag", "Foto Geotag", asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null)],
+    ["depan", "Tampak Depan", asset.foto_depan_url],
+    ["belakang", "Tampak Belakang", asset.foto_belakang_url],
+    ["kiri", "Tampak Kiri", asset.foto_kiri_url],
+    ["kanan", "Tampak Kanan", asset.foto_kanan_url],
+    ["lokasi", "Foto Lokasi", asset.foto_lokasi_url],
+    ["foto_url", "Foto Dokumentasi", asset.foto_url],
+  ];
+  return entries.flatMap(([key, label, raw]) => {
+    const url = resolvePhotoUrl(raw);
+    return url ? [{ key, label, url }] : [];
+  });
 }
 
 interface MyAssetsTabProps {
@@ -366,7 +333,10 @@ export function MyAssetsTab({
           {filteredMyAssets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasThumb = Boolean(primaryPhoto?.url && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const thumbUrl = asset.foto_geotag_url || (primaryPhoto?.url ?? null);
+            const isSafeThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")));
+            const hasThumb = Boolean(isSafeThumb && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
+            const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (
               <div
@@ -381,7 +351,7 @@ export function MyAssetsTab({
                     {hasThumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={primaryPhoto!.url}
+                        src={thumbUrl!}
                         alt={asset.nama_barang}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         referrerPolicy="no-referrer"
@@ -409,8 +379,8 @@ export function MyAssetsTab({
                         </span>
                       )}
                     </div>
-                    {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
-                      <p className="text-xs text-slate-500 mb-0.5 truncate">{formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}</p>
+                    {merkDisplay && (
+                      <p className="text-xs text-slate-500 mb-0.5 truncate">{merkDisplay}</p>
                     )}
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">{asset.kode_barang}</span>
@@ -453,7 +423,10 @@ export function MyAssetsTab({
           {filteredMyAssets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasValidThumb = Boolean(primaryPhoto?.url && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const thumbUrl = asset.foto_geotag_url || (primaryPhoto?.url ?? null);
+            const isSafeThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")));
+            const hasValidThumb = Boolean(isSafeThumb && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
+            const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (
               <div
@@ -467,7 +440,7 @@ export function MyAssetsTab({
                   {hasValidThumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={primaryPhoto!.url}
+                      src={thumbUrl!}
                       alt={asset.nama_barang}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
@@ -521,9 +494,9 @@ export function MyAssetsTab({
                         </span>
                       )}
                     </div>
-                    {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe) && (
+                    {merkDisplay && (
                       <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                        {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}
+                        {merkDisplay}
                       </p>
                     )}
 

@@ -886,3 +886,44 @@
      - Menggunakan endpoint streaming JSON/Base64 (`/surat-tugas/${id}/download?preview=1`) untuk menghindari double download dan mencegah gangguan download manager eksternal (IDM).
   4. **Pembersihan Kartu Teks Redundan**:
      - Menghapus kartu ringkasan teks permohonan di atas viewer sesuai instruksi pengguna, sehingga 100% tinggi panel didedikasikan untuk pratinjau dokumen asli beresolusi penuh.
+
+
+---
+
+## Status Update: 8 November 2026
+
+### 26. Audit Keamanan Menyeluruh (`/security-audit`) & Simplifikasi Kode (`/ponytail-review`) Modul Portal Pegawai — Selesai ✅
+
+- **Latar Belakang & Tujuan**:
+  - Melakukan audit keamanan defensif menyeluruh (`/security-audit`) dan perampingan kompleksitas/duplikasi kode (`/ponytail-review`) pada seluruh halaman, komponen, serta controller backend pendukung **Modul Portal Pegawai (`/portal`)**.
+
+- **Temuan Keamanan (`/security-audit`) & Remediasi Langsung**:
+  1. **Single Source of Truth Kepemilikan Aset BMN (`Employee::resolveIdByName` & `Asset::isOwnedByEmployee`)**:
+     - Menghubungkan kolom teks hasil impor Excel BMN (`pengguna` dan `nama_pengguna`) langsung ke daftar pegawai resmi di Modul Kepegawaian (`kpg_employees`) melalui `Employee::resolveIdByName()` dan hook `Asset::saving`, serta mencegah kebocoran pencocokan nama parsial di `Asset::isOwnedByEmployee()`.
+  2. **Proteksi RBAC Konfigurasi Email Admin & Batas Brute-Force 2FA (`AuthController` & `routes/api.php`)**:
+     - Memasang middleware `role:super_admin` pada rute `/api/admin/email/*` dan membatasi percobaan `challenge_token` pada `login2Fa()` maksimal 5 kali percobaan sebelum token hangus otomatis.
+  3. **Pembatasan Foto Dokumen Rahasia (STNK/BPKB) untuk Peminjam Aktif & Allowlist MIME Inline**:
+     - Membatasi akses foto bagi peminjam aset aktif di `CheckModuleAccess` dan `CheckPermission` hanya pada sudut pandang fisik (`depan`, `belakang`, `kiri`, `kanan`, `lokasi`, `geotag`), menutup akses ke foto dokumen `stnk`/`bpkb`, serta memvalidasi masa berlaku token Sanctum dan status aktif akun pada query `?token=...`.
+     - Menerapkan allowlist MIME ketat (`application/pdf`, `image/jpeg`, `image/png`, `image/webp`) pada streaming inline di `AssetPhotoController`, `AssetDocumentController`, dan `AssignmentLetterController`.
+  4. **Penutupan Celah BOLA/IDOR pada BKSDA Drive (`DriveController` & `DriveShareController`)**:
+     - Menegakkan otorisasi tulis (`DriveAccess::canWriteFolder` / `canWriteFile`) pada operasi `toggleStar()`, `restore()`, dan `forceDelete()` melalui helper terpusat `resolveWritableItem()`.
+     - Mengganti password statis pembuatan akun manajer resor dengan `Str::random(64)` + `is_active = false` + `must_change_password = true`.
+     - Memuat relasi `file` dengan `withTrashed()` pada `DriveShareController::deleteShare()` agar pencabutan share pada berkas di tempat sampah tidak memicu HTTP 500 `TypeError` dan tetap terproteksi HTTP 403 bagi non-pemilik.
+  5. **Validasi Hari Kerja Cuti Tahunan & Sinkronisasi Profil Kontak (`EmployeeLeaveRequestController` & `AuthController`)**:
+     - Menolak permohonan cuti tahunan yang hanya mencakup hari akhir pekan/libur (`$jumlahHari < 1`) agar tidak mengurangi atau memanipulasi kuota 0 hari.
+     - Memperbaiki penyimpanan nomor telepon di `AuthController::updateProfile()` ke kolom `telepon` dengan accessor/mutator `no_telepon` di model `Employee`, serta mendukung pengosongan alamat email pegawai.
+     - Menghentikan pembuatan notifikasi portal (`PortalNotificationService::notifyEmployee`) untuk akun pengguna yang sudah dinonaktifkan (`! $user->is_active`).
+  6. **Hardening Sisi Klien Portal (`MyAssetsTab`, `PortalProfileSidebar`, `KalkulatorDinasTab`, `GeneralReportInlineForm`, `SmartPatrolInlineForm`, `print-st.ts`)**:
+     - Memperketat `resolvePhotoUrl()` di `MyAssetsTab.tsx` agar hanya mengizinkan skema `http://`, `https://`, atau path relatif `/` (menolak `javascript:`, `data:`, dan `//`).
+     - Membatasi upload gambar di seluruh form Portal (Foto Profil, Nota Kalkulator Dinas, Cover & Dokumentasi Laporan Umum/Smart Patrol) hanya pada MIME raster `["image/jpeg", "image/png", "image/webp"]` (menolak `image/svg+xml`).
+     - Menambahkan sanitasi karakter HTML (`[<>&"']`) pada `<title>` jendela cetak Surat Tugas (`print-st.ts`).
+
+- **Simplifikasi Kode (`/ponytail-review`)**:
+  - **Refaktor `VisumSpdController.php`**: Mengganti 7 array template default yang disalin berulang (289 baris) dan kueri N+1 `exists()` menjadi satu builder `buildDefaultTemplate()` (**-183 baris**).
+  - **Deduplikasi `EmployeeLeaveRequestController.php`**: Menyatukan kalkulasi hari cuti, penyimpanan berkas scan, dan streaming berkas scan ke 4 helper bersama (`calculateLeaveDays`, `storeLeaveScanFiles`, `respondLeaveScan`, `findMyLeaveRequest`).
+  - **Deduplikasi Komponen Frontend Portal**: Menyatukan kartu metrik di `PortalQuickStats.tsx`, helper `isLoanOverdue()` di `ActiveLoansTab.tsx`, pemformatan `merkDisplay` di `MyAssetsTab.tsx`, dan kalkulasi 1-pass `totalPengeluaran`/`totalSpj`/`totalNonSpj` di `KalkulatorDinasTab.tsx`.
+
+- **Verifikasi Kualitas**:
+  - `php backend/tests/portal_security_check.php`: **PASS (200+ security invariants)**.
+  - `PortalPersonalSecurityTest.php`: **34 tests, 90 assertions PASS (100% Hijau)**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.

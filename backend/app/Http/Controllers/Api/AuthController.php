@@ -194,8 +194,15 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Login keeps one bearer; revoke it even when Sanctum selected a cookie session.
-        $request->user()?->tokens()->delete();
+        // Login keeps one bearer; revoke it safely guarding against TransientToken
+        $user = $request->user();
+        if ($user) {
+            $token = $user->currentAccessToken();
+            if ($token && method_exists($token, 'delete')) {
+                $token->delete();
+            }
+            $user->tokens()->delete();
+        }
 
         // Logout dari guard session dan invalidate session cookie
         \Illuminate\Support\Facades\Auth::guard('web')->logout();
@@ -276,7 +283,9 @@ class AuthController extends Controller
         $emailChanged = false;
         if ($request->has('email')) {
             $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
-            if ($cleanEmail !== null && $cleanEmail !== $user->email) {
+            if ($cleanEmail === null && $employee && $employee->email !== null) {
+                $employee->update(['email' => null]);
+            } elseif ($cleanEmail !== null && $cleanEmail !== $user->email) {
                 if (str_ends_with($cleanEmail, '.local')) {
                     throw ValidationException::withMessages([
                         'email' => ['Alamat email tidak boleh menggunakan domain .local.'],
@@ -303,35 +312,14 @@ class AuthController extends Controller
                 // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
                 Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
 
-                dispatch(function () use ($user, $wasDeliverable, $oldEmail, $cleanEmail) {
-                    if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
-                        try {
-                            Mail::raw(
-                                "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$cleanEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
-                                function ($m) use ($oldEmail) {
-                                    $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
-                                }
-                            );
-                        } catch (\Throwable $e) {
-                            \Illuminate\Support\Facades\Log::warning('Security alert email failed: '.$e->getMessage());
-                        }
-                    }
-
-                    if (NotificationSetting::emailEnabled('email_master_enabled')) {
-                        try {
-                            $user->sendEmailVerificationNotification();
-                        } catch (\Throwable $e) {
-                            \Illuminate\Support\Facades\Log::warning('Verification email failed: '.$e->getMessage());
-                        }
-                    }
-                })->afterResponse();
+                $this->dispatchEmailChangeNotifications($user, $wasDeliverable, $oldEmail, $cleanEmail);
             }
         }
 
         if ($request->has('phone')) {
             $cleanPhone = $request->filled('phone') ? trim((string) $request->input('phone')) : null;
             if ($employee) {
-                $employee->update(['no_telepon' => $cleanPhone]);
+                $employee->update(['telepon' => $cleanPhone]);
             }
         }
 
@@ -365,23 +353,30 @@ class AuthController extends Controller
 
         $assets = \App\Modules\Bmn\Models\Asset::where(function ($query) use ($employee, $fullName, $escapedName, $cleanName, $escapedClean) {
             $query->where('employee_id', $employee->id);
-            if (mb_strlen($fullName) >= 3) {
-                $query->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
-            }
-            if (mb_strlen($cleanName) >= 3 && $cleanName !== $fullName) {
-                $query->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedClean . '%'])
-                      ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedClean . '%']);
-            }
+            $query->orWhere(function ($fallback) use ($fullName, $escapedName, $cleanName, $escapedClean) {
+                $fallback->whereNull('employee_id')
+                    ->where(function ($q) use ($fullName, $escapedName, $cleanName, $escapedClean) {
+                        if (mb_strlen($fullName) >= 3) {
+                            $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
+                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                        }
+                        if (mb_strlen($cleanName) >= 3 && $cleanName !== $fullName) {
+                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedClean . '%'])
+                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedClean . '%']);
+                        }
+                    });
+            });
         })
         ->select([
             'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
             'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
             'foto_geotag_url', 'foto_geotag_path',
             'foto_depan_path', 'foto_belakang_path', 'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path', 'foto_url',
-            'employee_id', 'updated_at',
+            'employee_id', 'pengguna', 'nama_pengguna', 'updated_at',
         ])
         ->latest()->limit(50)->get()
+        ->filter(fn ($asset) => $asset->isOwnedByEmployee($employee))
+        ->values()
         ->map(function ($asset) use ($request, $employee) {
             // Auto-heal relational link if employee_id was null
             if (is_null($asset->employee_id)) {
@@ -389,6 +384,7 @@ class AuthController extends Controller
                     ->update(['employee_id' => $employee->id]);
                 $asset->employee_id = $employee->id;
             }
+            unset($asset->pengguna, $asset->nama_pengguna);
 
             $token = $request->bearerToken() ?: $request->query('token');
             $tokenParam = $token ? "&token=" . urlencode($token) : "";
@@ -452,13 +448,27 @@ class AuthController extends Controller
         $user->email_verified_at = null;
         $user->saveOrFail();
 
+        $employee = Employee::where('nip', $user->username)->first();
+        if ($employee) {
+            $employee->update(['email' => $newEmail]);
+        }
+
         // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
         Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
 
-        // Kirim notifikasi email secara non-blocking setelah respons HTTP dikirim ke browser
+        $this->dispatchEmailChangeNotifications($user, $wasDeliverable, $oldEmail, $newEmail);
+
+        return response()->json([
+            'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
+            'email_changed' => true,
+            'cooldown_seconds' => 60,
+        ]);
+    }
+
+    private function dispatchEmailChangeNotifications(User $user, bool $wasDeliverable, ?string $oldEmail, string $newEmail): void
+    {
         dispatch(function () use ($user, $wasDeliverable, $oldEmail, $newEmail) {
-            // Beritahu email lama jika sebelumnya sudah terverifikasi
-            if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
+            if ($wasDeliverable && $oldEmail && NotificationSetting::emailEnabled('mail.security_alert')) {
                 try {
                     Mail::raw(
                         "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$newEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
@@ -471,7 +481,6 @@ class AuthController extends Controller
                 }
             }
 
-            // Kirim link verifikasi ke email baru
             if (NotificationSetting::emailEnabled('email_master_enabled')) {
                 try {
                     $user->sendEmailVerificationNotification();
@@ -480,12 +489,6 @@ class AuthController extends Controller
                 }
             }
         })->afterResponse();
-
-        return response()->json([
-            'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
-            'email_changed' => true,
-            'cooldown_seconds' => 60,
-        ]);
     }
 
     /**
@@ -701,6 +704,10 @@ class AuthController extends Controller
      */
     public function getEmailSettings(Request $request): JsonResponse
     {
+        if ($request->user()?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya super admin yang berhak melihat konfigurasi email.'], 403);
+        }
+
         $settings = NotificationSetting::all();
         $todayLogs = EmailLog::whereDate('created_at', today())->get();
         $todayCounts = [
@@ -751,6 +758,10 @@ class AuthController extends Controller
      */
     public function sendTestEmail(Request $request): JsonResponse
     {
+        if ($request->user()?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya super admin yang berhak mengirim email uji coba.'], 403);
+        }
+
         $request->validate(['email' => ['required', 'email']]);
 
         Mail::raw(
@@ -819,6 +830,13 @@ class AuthController extends Controller
         }
 
         if (! $valid) {
+            $attempts = (int) ($data['attempts'] ?? 0) + 1;
+            if ($attempts >= 5) {
+                \Illuminate\Support\Facades\Cache::forget($challengeKey);
+            } else {
+                $data['attempts'] = $attempts;
+                \Illuminate\Support\Facades\Cache::put($challengeKey, $data, now()->addMinutes(5));
+            }
             throw ValidationException::withMessages([
                 'code' => ['Kode verifikasi 2FA atau recovery code tidak valid.'],
             ]);

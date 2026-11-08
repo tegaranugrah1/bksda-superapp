@@ -10,10 +10,10 @@ import {
   Package,
   Info,
   Clock,
-  ExternalLink,
   Loader2,
   ChevronRight,
   ChevronLeft,
+  ExternalLink,
 } from "lucide-react";
 import {
   Popover,
@@ -686,83 +686,54 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
 
             {/* Filter Tabs with animated sliding pill */}
             <div className="flex items-center p-1 bg-slate-200/70 dark:bg-slate-800 rounded-xl mt-3 w-fit">
-              <button
-                type="button"
-                onClick={() => handleSelectHistoryFilter("all")}
-                className={cn(
-                  "relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
-                  historyFilter === "all"
-                    ? "text-slate-900 dark:text-white font-bold"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                )}
-              >
-                {historyFilter === "all" && (
-                  <motion.div
-                    layoutId="activeHistoryFilterTab"
-                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs"
-                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-20">Semua</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSelectHistoryFilter("unread")}
-                className={cn(
-                  "relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
-                  historyFilter === "unread"
-                    ? "text-slate-900 dark:text-white font-bold"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                )}
-              >
-                {historyFilter === "unread" && (
-                  <motion.div
-                    layoutId="activeHistoryFilterTab"
-                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs"
-                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-20 flex items-center gap-1.5">
-                  Belum Dibaca
-                  <AnimatePresence>
-                    {unreadCount > 0 && (
-                      <motion.span
-                        key="history-tab-unread-count"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        className={cn(
-                          "px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors",
-                          historyFilter === "unread"
-                            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
-                            : "bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+              {([
+                ["all", "Semua"],
+                ["unread", "Belum Dibaca"],
+                ["read", "Sudah Dibaca"],
+              ] as const).map(([tabKey, tabLabel]) => (
+                <button
+                  key={tabKey}
+                  type="button"
+                  onClick={() => handleSelectHistoryFilter(tabKey)}
+                  className={cn(
+                    "relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
+                    historyFilter === tabKey
+                      ? "text-slate-900 dark:text-white font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  )}
+                >
+                  {historyFilter === tabKey && (
+                    <motion.div
+                      layoutId="activeHistoryFilterTab"
+                      className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs"
+                      transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-20 flex items-center gap-1.5">
+                    {tabLabel}
+                    {tabKey === "unread" && (
+                      <AnimatePresence>
+                        {unreadCount > 0 && (
+                          <motion.span
+                            key="history-tab-unread-count"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className={cn(
+                              "px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors",
+                              historyFilter === "unread"
+                                ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                                : "bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                            )}
+                          >
+                            {unreadCount}
+                          </motion.span>
                         )}
-                      >
-                        {unreadCount}
-                      </motion.span>
+                      </AnimatePresence>
                     )}
-                  </AnimatePresence>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSelectHistoryFilter("read")}
-                className={cn(
-                  "relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
-                  historyFilter === "read"
-                    ? "text-slate-900 dark:text-white font-bold"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                )}
-              >
-                {historyFilter === "read" && (
-                  <motion.div
-                    layoutId="activeHistoryFilterTab"
-                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs"
-                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-20">Sudah Dibaca</span>
-              </button>
+                  </span>
+                </button>
+              ))}
             </div>
           </DialogHeader>
 

@@ -67,11 +67,13 @@ class CheckModuleAccess
                         return $next($request);
                     }
 
-                    // 2. Detail/photo asset endpoint: check if the asset belongs to them
+                    // 2. Detail/photo asset endpoint: check if the asset belongs to them (or active loan for public documentation photos only)
                     $assetId = $request->route('asset');
                     if ($request->isMethod('GET') && $assetId) {
                         $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
-                        if ($asset && $this->isAssetOwner($asset, $employee)) {
+                        $isPublicPhoto = $request->is('api/bmn/assets/*/photo/*')
+                            && in_array($request->route('type'), ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'geotag'], true);
+                        if ($asset && ($this->isAssetOwner($asset, $employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
                             return $next($request);
                         }
                     }
@@ -105,25 +107,14 @@ class CheckModuleAccess
      */
     private function isAssetOwner($asset, $employee): bool
     {
-        if ($asset->employee_id !== null && (int) $asset->employee_id === (int) $employee->id) {
-            return true;
-        }
+        return $asset instanceof \App\Modules\Bmn\Models\Asset && $asset->isOwnedByEmployee($employee);
+    }
 
-        $empName = trim($employee->nama_lengkap ?? '');
-        if (mb_strlen($empName) >= 3) {
-            $cleanName = trim(preg_replace('/,.*$/', '', $empName));
-            $lowerPengguna = mb_strtolower((string) ($asset->pengguna ?? ''));
-            $lowerNamaPengguna = mb_strtolower((string) ($asset->nama_pengguna ?? ''));
-            if (str_contains($lowerPengguna, mb_strtolower($empName)) ||
-                str_contains($lowerNamaPengguna, mb_strtolower($empName)) ||
-                (mb_strlen($cleanName) >= 3 && (
-                    str_contains($lowerPengguna, mb_strtolower($cleanName)) ||
-                    str_contains($lowerNamaPengguna, mb_strtolower($cleanName))
-                ))) {
-                return true;
-            }
-        }
-
-        return false;
+    private function hasActiveLoan(\App\Modules\Bmn\Models\Asset $asset, $employee): bool
+    {
+        return $asset->loans()
+            ->where('employee_id', $employee->id)
+            ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
+            ->exists();
     }
 }

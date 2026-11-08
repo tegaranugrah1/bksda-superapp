@@ -1,6 +1,9 @@
 "use client";
 
 import React from "react";
+import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
+import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
+
 
 export interface LeaveRequestPrintData {
   id?: number;
@@ -45,8 +48,8 @@ interface FormulirCutiPrintProps {
   data: LeaveRequestPrintData;
 }
 
-import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
-import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
+
+
 
 
 const formatDateIndo = (dateStr?: string | null): string => (dateStr ? formatDateIndonesian(dateStr) : "-");

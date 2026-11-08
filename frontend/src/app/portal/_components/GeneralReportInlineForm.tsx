@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -98,23 +98,8 @@ function formatWaktuDanTempatPelaksanaan(
   const tglMulaiStr = formatDateIndonesian(tanggalMulai);
   const tglSelesaiStr = formatDateIndonesian(tanggalSelesai);
 
-  let cleaned = (rawMaksud || "").split(";")[0].trim();
-  cleaned = cleaned.replace(/[,;]?\s*selama\s+\d+.*$/i, "").trim();
-
   const isPerjalananDinas = /perjalanan\s+dinas/i.test(rawMaksud);
-
-  // Extract short activity title
-  let shortActivity = cleaned;
-  const matchDalamRangka = cleaned.match(/dalam\s+rangka\s+(.+)$/i);
-  if (matchDalamRangka && matchDalamRangka[1]) {
-    shortActivity = matchDalamRangka[1].trim();
-  } else {
-    shortActivity = shortActivity.replace(
-      /^(melaksanakan\s+perjalanan\s+dinas\s+dari\s+[^\s]+\s+ke\s+[^\s]+|melaksanakan\s+kegiatan|melaksanakan\s+perjalanan\s+dinas|menugaskan\s+staf|melaksanakan)\s+/i,
-      ""
-    );
-  }
-  shortActivity = shortActivity.replace(/^(dari\s+[^\s]+\s+ke\s+[^\s]+\s+)/i, "").trim();
+  let shortActivity = extractShortActivity(rawMaksud);
 
   // Handle prepositions "di Seksi KSDA...", "pada Balai KSDA...", "di KPKNL..." in activity title
   let locationClause = "";
@@ -198,7 +183,6 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const [customCoverFooter, setCustomCoverFooter] = useState(
     "BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR"
   );
-  const [uploadingCover, setUploadingCover] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -212,7 +196,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast.error("File cover harus berupa gambar (JPG, PNG, WebP).");
       e.target.value = "";
       return;
@@ -334,7 +318,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     }
 
     const validFiles = Array.from(files).filter((file) => {
-      if (!file.type.startsWith("image/")) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         toast.error(`File ${file.name} bukan format gambar.`);
         return false;
       }
@@ -575,7 +559,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                           </div>
                         </div>
                       ))}
-                    {stOptions.filter(st => st.nomor_surat?.toLowerCase().includes(stSearch.toLowerCase()) || st.maksud_tujuan.toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
+                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
                       <div className="py-6 text-center text-sm text-slate-500">
                         Tidak ada Surat Tugas yang cocok.
                       </div>
@@ -678,7 +662,6 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                     onChange={handleCoverImageUpload}
                     className="text-xs rounded-xl"
                   />
-                  {uploadingCover && <Loader2 className="w-4 h-4 animate-spin text-emerald-600 shrink-0" />}
                 </div>
                 {customCoverImageUrl && (
                   <div className="flex items-center gap-3 pt-2">

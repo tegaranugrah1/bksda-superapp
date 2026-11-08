@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Events\AdminInboxChanged;
 use App\Events\PortalNotificationCreated;
 use App\Jobs\ArchiveOfficialDocument;
+use App\Models\DriveFile;
+use App\Models\DriveFolder;
 use App\Models\User;
 use App\Modules\Bmn\Models\Asset;
+use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
@@ -163,6 +166,35 @@ class PortalPersonalSecurityTest extends TestCase
         $this->assertNotContains($asset->id, array_column($response->json('data'), 'id'));
     }
 
+    public function test_portal_employee_cannot_read_foreign_bpkb_even_if_pengguna_text_matches_their_name(): void
+    {
+        [$a, $employeeA] = $this->actor('Dummy Alpha');
+        [, $employeeB] = $this->actor('Dummy Beta');
+        $asset = $this->asset($employeeB, ['pengguna' => $employeeA->nama_lengkap, 'nama_pengguna' => null]);
+        Sanctum::actingAs($a);
+        $this->getJson("/api/bmn/assets/{$asset->id}/document/bpkb/view")
+            ->assertStatus(403);
+    }
+
+    public function test_excel_pengguna_resolves_to_kepegawaian_employee_and_prevents_substring_hijack(): void
+    {
+        [$userAdi] = $this->actor('Adi');
+        [, $empSuryadi] = $this->actor('Suryadi, S.Hut.');
+        $asset = Asset::create([
+            'kode_barang' => 'EXCEL-BMN',
+            'nup' => '99',
+            'nama_barang' => 'Laptop Dinas Excel',
+            'jenis_bmn' => 'Peralatan',
+            'pengguna' => 'Suryadi',
+            'nama_pengguna' => 'Suryadi',
+        ]);
+        $this->assertSame($empSuryadi->id, (int) $asset->fresh()->employee_id);
+
+        Sanctum::actingAs($userAdi);
+        $response = $this->getJson('/api/me/assets')->assertOk();
+        $this->assertNotContains($asset->id, array_column($response->json('data'), 'id'));
+    }
+
     public function test_unrelated_module_admin_cannot_read_foreign_personal_assignment(): void
     {
         [$admin] = $this->actor('Dummy Inventory Admin', 'admin', ['inventory']);
@@ -190,6 +222,18 @@ class PortalPersonalSecurityTest extends TestCase
         Sanctum::actingAs($owner);
         $this->getJson("/api/surat-tugas/my/{$letter->id}")->assertOk();
         $this->getJson("/api/surat-tugas/my/{$letter->id}/download")->assertOk()->assertJsonStructure(['data_url']);
+    }
+
+    public function test_non_creator_assigned_employee_cannot_read_unapproved_draft_assignment(): void
+    {
+        [$creator] = $this->actor('Dummy Draft Creator');
+        [$assigneeUser, $assigneeEmployee] = $this->actor('Dummy Draft Assignee');
+        $letter = $this->letter($creator, $assigneeEmployee);
+        $letter->update(['status' => 'draft']);
+
+        Sanctum::actingAs($assigneeUser);
+        $this->getJson("/api/surat-tugas/my/{$letter->id}")->assertStatus(403);
+        $this->getJson("/api/surat-tugas/my/{$letter->id}/download")->assertStatus(403);
     }
 
     public function test_non_admin_finance_member_cannot_change_global_visum_settings(): void
@@ -426,5 +470,137 @@ class PortalPersonalSecurityTest extends TestCase
             'status' => 'PENGAJUAN',
         ])->assertOk();
         $this->assertSame(0, $balance->fresh()->cuti_terpakai_n0);
+    }
+
+    public function test_non_super_admin_cannot_access_email_settings_or_trigger_test_email(): void
+    {
+        [$regularUser] = $this->actor('Dummy Portal Regular User', 'user');
+        [$moduleAdmin] = $this->actor('Dummy Module Admin', 'admin', ['kepegawaian']);
+
+        foreach ([$regularUser, $moduleAdmin] as $actor) {
+            Sanctum::actingAs($actor);
+            $this->getJson('/api/admin/email/settings')->assertStatus(403);
+            $this->putJson('/api/admin/email/settings', ['settings' => ['email_master_enabled' => false]])->assertStatus(403);
+            $this->postJson('/api/admin/email/test', ['recipient' => 'victim@example.com'])->assertStatus(403);
+        }
+    }
+
+    public function test_active_borrower_cannot_access_private_bpkb_or_stnk_photo_slots(): void
+    {
+        [, $ownerEmp] = $this->actor('Dummy Vehicle Owner', 'user');
+        [$borrowerUser, $borrowerEmp] = $this->actor('Dummy Vehicle Borrower', 'user');
+        $asset = $this->asset($ownerEmp);
+
+        AssetLoan::create([
+            'asset_id' => $asset->id,
+            'employee_id' => $borrowerEmp->id,
+            'purpose' => 'Dummy patroli',
+            'tanggal_pinjam' => '2026-11-01',
+            'due_date' => '2026-11-10',
+            'status' => 'dipinjam',
+        ]);
+
+        Sanctum::actingAs($borrowerUser);
+        // Public photo slot passes middleware authorization (returns 404 when no file exists)
+        $this->getJson("/api/bmn/assets/{$asset->id}/photo/depan/view")->assertStatus(404);
+        // Private BPKB/STNK photo slots must be blocked by middleware for borrowers
+        $this->getJson("/api/bmn/assets/{$asset->id}/photo/bpkb_1/view")->assertStatus(403);
+        $this->getJson("/api/bmn/assets/{$asset->id}/photo/stnk_1/download")->assertStatus(403);
+    }
+
+    public function test_drive_star_restore_and_force_delete_block_unauthorized_users(): void
+    {
+        [$owner] = $this->actor('Dummy Drive Owner', 'user');
+        [$attacker] = $this->actor('Dummy Drive Attacker', 'user');
+
+        $folder = DriveFolder::create([
+            'user_id' => $owner->id,
+            'name' => 'Folder Pribadi Owner',
+        ]);
+        $file = DriveFile::create([
+            'user_id' => $owner->id,
+            'folder_id' => $folder->id,
+            'name' => 'dokumen_pribadi.pdf',
+            's3_key' => 'personal/' . $owner->id . '/dokumen_pribadi.pdf',
+            'size_bytes' => 1024,
+            'mime_type' => 'application/pdf',
+        ]);
+
+        Sanctum::actingAs($attacker);
+        $this->putJson("/api/drive/file/{$file->id}/star")->assertStatus(403);
+        $this->putJson("/api/drive/folder/{$folder->id}/star")->assertStatus(403);
+
+        $file->delete();
+        $folder->delete();
+
+        $this->postJson("/api/drive/file/{$file->id}/restore")->assertStatus(403);
+        $this->postJson("/api/drive/folder/{$folder->id}/restore")->assertStatus(403);
+        $this->deleteJson("/api/drive/file/{$file->id}/force")->assertStatus(403);
+        $this->deleteJson("/api/drive/folder/{$folder->id}/force")->assertStatus(403);
+
+        $this->assertNotNull(DriveFile::withTrashed()->find($file->id));
+        $this->assertNotNull(DriveFolder::withTrashed()->find($folder->id));
+    }
+
+    public function test_weekend_only_annual_leave_request_is_rejected_with_zero_working_days(): void
+    {
+        [$user] = $this->actor('Dummy Weekend Leave User', 'user');
+        Sanctum::actingAs($user);
+
+        // 2026-11-07 is Saturday, 2026-11-08 is Sunday (0 working days)
+        $this->postJson('/api/me/leave-requests', $this->leavePayload('Cuti Tahunan', '2026-11-07', '2026-11-08'))
+            ->assertStatus(422);
+    }
+
+    public function test_notify_employee_skips_inactive_user_and_drive_share_delete_handles_trashed_file(): void
+    {
+        [$inactiveUser, $inactiveEmployee] = $this->actor('Dummy Inactive Employee', 'user');
+        $inactiveUser->update(['is_active' => false]);
+
+        $notif = app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+            $inactiveEmployee,
+            'Judul Uji',
+            'Pesan Uji'
+        );
+        $this->assertNull($notif);
+
+        [$owner] = $this->actor('Dummy Share Owner', 'user');
+        [$attacker] = $this->actor('Dummy Share Attacker', 'user');
+
+        $file = DriveFile::create([
+            'user_id' => $owner->id,
+            'name' => 'berkas_sampah.pdf',
+            's3_key' => 'personal/' . $owner->id . '/berkas_sampah.pdf',
+            'size_bytes' => 512,
+            'mime_type' => 'application/pdf',
+        ]);
+        $share = \App\Models\DriveShare::create([
+            'file_id' => $file->id,
+            'share_type' => 'public',
+            'role' => 'viewer',
+            'token' => bin2hex(random_bytes(16)),
+            'created_by' => $owner->id,
+        ]);
+        $file->delete(); // Soft-delete file to trash
+
+        Sanctum::actingAs($attacker);
+        $this->deleteJson("/api/drive/shares/{$share->id}")->assertStatus(403);
+    }
+
+    public function test_update_profile_clears_employee_email_when_passed_empty_string(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Profile Email User', 'user');
+        $employee->update(['email' => 'lama@bksda-kaltim.id', 'telepon' => '0811111111']);
+
+        Sanctum::actingAs($user);
+        $this->postJson('/api/me/update-profile', [
+            'email' => '',
+            'phone' => '0822222222',
+        ])->assertOk();
+
+        $employee->refresh();
+        $this->assertNull($employee->email);
+        $this->assertSame('0822222222', $employee->no_telepon);
+        $this->assertSame('0822222222', $employee->telepon);
     }
 }

@@ -1199,10 +1199,11 @@ assert(
     str_contains($leaveCtrlCheck68, "strip_tags(trim(\$validated['alamat_menjalankan_cuti']))"),
     'EmployeeLeaveRequestController must normalize dates to startOfDay and strip tags on user input'
 );
+$securityModalsCheck = file_get_contents(__DIR__ . '/../../frontend/src/app/portal/_components/SecurityModals.tsx');
 assert(
-    str_contains($profileSidebarCheck68, '!pwData.current_password') &&
-    str_contains($profileSidebarCheck68, 'Password saat ini wajib diisi.'),
-    'PortalProfileSidebar must validate current_password before dispatching change password request'
+    (str_contains($profileSidebarCheck68, '!pwData.current_password') && str_contains($profileSidebarCheck68, 'Password saat ini wajib diisi.')) ||
+    (str_contains($securityModalsCheck, '!currentPassword') && str_contains($securityModalsCheck, 'Password saat ini wajib diisi.')),
+    'Portal change password modal must validate current_password before dispatching change password request'
 );
 
 // 191. Assignment Letter show and downloadPdf Numeric ID Guard Invariant
@@ -1280,8 +1281,9 @@ assert(
     'ChangePasswordRequest must enforce different:current_password rule to prevent password reuse'
 );
 assert(
-    str_contains($profileSidebarCheck71, "pwData.new_password === pwData.current_password"),
-    'PortalProfileSidebar must validate that new password is not identical to current password'
+    str_contains($profileSidebarCheck71, "pwData.new_password === pwData.current_password") ||
+    str_contains($securityModalsCheck, "newPassword === currentPassword"),
+    'Change password modal must validate that new password is not identical to current password'
 );
 
 // 198. Portal & Auth Route Throttling and Numeric Parameter Route Invariants

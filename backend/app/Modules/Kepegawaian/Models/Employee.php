@@ -78,6 +78,37 @@ class Employee extends Model
         return static::withTrashed()->lockForUpdate()->findOrFail($employeeId);
     }
 
+    /**
+     * Single source of truth: resolve employee_id dari Daftar Pegawai (kpg_employees)
+     * berdasarkan kolom teks pengguna / nama_pengguna hasil import Excel BMN.
+     */
+    public static function resolveIdByName(?string ...$names): ?int
+    {
+        foreach ($names as $raw) {
+            $target = trim((string) $raw);
+            if ($target === '' || $target === '-') {
+                continue;
+            }
+            $lower = mb_strtolower($target);
+            $exact = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$lower])->value('id');
+            if ($exact) {
+                return (int) $exact;
+            }
+            $clean = trim((string) preg_replace('/,.*$/', '', $target));
+            if (mb_strlen($clean) >= 3) {
+                $escaped = addcslashes(mb_strtolower($clean), '%_');
+                $byBase = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($clean)])
+                    ->orWhereRaw('LOWER(nama_lengkap) LIKE ?', [$escaped . ',%'])
+                    ->value('id');
+                if ($byBase) {
+                    return (int) $byBase;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function replaceProfilePhoto(UploadedFile $file): string
     {
         $oldPath = $this->foto_profil;
@@ -112,6 +143,16 @@ class Employee extends Model
     public function getFotoUrlAttribute(): ?string
     {
         return $this->foto_profil ? Storage::url($this->foto_profil) : null;
+    }
+
+    public function getNoTeleponAttribute(): ?string
+    {
+        return $this->attributes['no_telepon'] ?? $this->attributes['telepon'] ?? null;
+    }
+
+    public function setNoTeleponAttribute(?string $value): void
+    {
+        $this->attributes['telepon'] = $value;
     }
 
     /**
