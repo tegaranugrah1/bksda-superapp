@@ -2,11 +2,22 @@
 
 import { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
-
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  ArrowRight,
+  Sparkles,
+  Trees,
+  CheckCircle2,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -19,6 +30,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import axios from "axios";
 import { authStore, parseAuthSnapshot } from "@/lib/auth-store";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Schema Validation
 const formSchema = z.object({
@@ -135,51 +147,61 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 min-h-screen flex items-center justify-center">
-      <div className="flex min-h-screen w-full overflow-hidden">
-        {/* Left Side: Login Form */}
-        <div className="w-full lg:w-[45%] flex flex-col items-center justify-center p-8 md:p-16 bg-white dark:bg-zinc-900 relative z-10 shadow-2xl">
-          <div className="w-full max-w-md">
-            {/* Branding Header */}
-            <div className="flex items-center gap-6 mb-12">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 bg-contain bg-no-repeat bg-left"
-                  style={{
-                    backgroundImage:
-                      "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCzoN_QzAUpJ28JER1CrRMq1krN-1-LCARS2OqUhmuAENWtXkb1uzAizMV68A3kzXRsuX8NRyFCQS_0fd08sQ3iFskE0K3AOS3xPfUSEIJ5DygEIB8QLbRCit--5HUb0qZeVxoAKFO7y6NntfUIW4dJod-C09PU46npLGA2P-3m06AHkgP3Z_0n5G1r2xm9zH3lu3bcOyNH98GjmBakC-1MadgVVuYEY8zTvaH-3G3068Bnezc2JRxCp_qhADJZfItLNZ8XuckQ2Bo')",
-                  }}
-                ></div>
-                <div className="flex flex-col">
-                  <span className="text-zinc-900 dark:text-white text-xl font-black leading-none tracking-tight">
-                    BKSDA
-                  </span>
-                  <span className="text-emerald-600 dark:text-emerald-500 text-sm font-bold leading-none tracking-tighter">
-                    KALTIM
-                  </span>
-                </div>
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 flex overflow-hidden relative">
+      {/* Floating Theme Toggle (Top Right) */}
+      <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-30">
+        <ThemeToggle size="sm" />
+      </div>
+
+      <div className="flex min-h-screen w-full">
+        {/* Left Side: Form Container */}
+        <div className="w-full lg:w-[48%] xl:w-[44%] flex flex-col justify-between p-6 sm:p-10 md:p-14 bg-white dark:bg-zinc-900/90 backdrop-blur-md relative z-10 shadow-2xl border-r border-zinc-200/70 dark:border-zinc-800/80">
+          <div className="w-full max-w-md mx-auto my-auto py-6">
+            {/* Branding Header with Official Kemenhut Logo & Hierarchy */}
+            <div className="flex items-center gap-3.5 mb-8">
+              <div className="p-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 shadow-xs shrink-0">
+                <Image
+                  src="/kemenhutlogo.png"
+                  alt="Logo Kementerian Kehutanan"
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 object-contain"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col justify-center min-w-0">
+                <span className="text-xs sm:text-sm font-black tracking-wide text-emerald-800 dark:text-emerald-400 uppercase leading-snug">
+                  KEMENTERIAN KEHUTANAN
+                </span>
+                <span className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase leading-snug tracking-tight">
+                  BALAI KONSERVASI SUMBER DAYA ALAM
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest leading-snug">
+                  KALIMANTAN TIMUR
+                </span>
               </div>
             </div>
 
             {is2FaStep ? (
-              <div className="space-y-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold mb-3">
+              <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                    <ShieldCheck className="w-3.5 h-3.5" />
                     Autentikasi 2 Langkah
                   </div>
-                  <h1 className="text-2xl font-black text-zinc-900 dark:text-white mb-2">
+                  <h1 className="text-2xl font-black text-zinc-900 dark:text-white">
                     {isRecoveryMode ? "Masukkan Recovery Code" : "Kode Verifikasi Authenticator"}
                   </h1>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm font-normal leading-relaxed">
                     {isRecoveryMode
-                      ? "Gunakan salah satu dari 8 kode pemulihan darurat yang Anda simpan saat aktivasi."
+                      ? "Gunakan salah satu dari kode pemulihan darurat yang Anda simpan saat mengaktifkan 2FA."
                       : "Buka aplikasi authenticator Anda (Google Authenticator / 1Password) dan masukkan 6-digit kode."}
                   </p>
                 </div>
 
                 <form onSubmit={onSubmit2Fa} className="space-y-5">
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                       {isRecoveryMode ? "Recovery Code (10 Karakter)" : "Kode 6-Digit"}
                     </label>
                     <input
@@ -190,18 +212,30 @@ export default function LoginPage() {
                       maxLength={isRecoveryMode ? 20 : 8}
                       autoFocus
                       required
-                      className={`w-full px-4 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-mono ${
-                        isRecoveryMode ? "text-base tracking-wider uppercase" : "text-2xl tracking-[0.3em] text-center font-bold"
+                      className={`w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-mono ${
+                        isRecoveryMode
+                          ? "text-base tracking-wider uppercase"
+                          : "text-2xl tracking-[0.3em] text-center font-bold"
                       }`}
                     />
                   </div>
 
                   <button
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-50"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
                     type="submit"
                     disabled={loading}
                   >
-                    {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Verifikasi & Masuk"}
+                    {loading ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4" />
+                        <span>Memverifikasi Kode...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Verifikasi & Masuk</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
 
                   <div className="flex items-center justify-between pt-2">
@@ -211,9 +245,9 @@ export default function LoginPage() {
                         setIsRecoveryMode(!isRecoveryMode);
                         setTotpCode("");
                       }}
-                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition-colors"
+                      className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer"
                     >
-                      {isRecoveryMode ? "Gunakan Kode Authenticator" : "Gunakan Recovery Code"}
+                      {isRecoveryMode ? "← Gunakan Kode Authenticator" : "Gunakan Recovery Code →"}
                     </button>
                     <button
                       type="button"
@@ -222,7 +256,7 @@ export default function LoginPage() {
                         setChallengeToken("");
                         setTotpCode("");
                       }}
-                      className="text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                      className="text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
                     >
                       Kembali ke Login NIP
                     </button>
@@ -230,119 +264,185 @@ export default function LoginPage() {
                 </form>
               </div>
             ) : (
-              <>
-            <div className="mb-10">
-              <h1 className="text-3xl font-black text-zinc-900 dark:text-white mb-2">
-                Selamat Datang
-              </h1>
-              <p className="text-zinc-500 dark:text-zinc-400 font-medium">
-                Silakan login untuk mengakses portal manajemen BKSDA Kalimantan Timur.
-              </p>
-            </div>
+              <div className="space-y-6">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold mb-1">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Portal Layanan Terpadu Pegawai & Persuratan</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                    Selamat Datang
+                  </h1>
+                  <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal leading-relaxed">
+                    Silakan masukkan NIP atau akun resmi Anda untuk mengakses portal BKSDA Kalimantan Timur.
+                  </p>
+                </div>
 
-            <Form {...form}>
-              <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
-                        Username atau Email
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <input
-                            {...field}
-                            className="w-full px-4 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none"
-                            placeholder="Masukkan NIP anda"
-                            type="text"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
+                <Form {...form}>
+                  <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                    <FormField
+                      control={form.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                            NIP / Username
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative group">
+                              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                                <User className="h-4 w-4" />
+                              </div>
+                              <input
+                                {...field}
+                                className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                placeholder="Contoh: 19850101... atau username"
+                                type="text"
+                                autoComplete="username"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-xs text-rose-500" />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest">
-                        Password
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <input
-                            {...field}
-                            className="w-full pr-12 pl-4 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none"
-                            placeholder="••••••••"
-                            type={showPassword ? "text" : "password"}
-                          />
-                          <button
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-zinc-400 hover:text-emerald-500 font-medium"
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? "Sembunyikan" : "Tampilkan"}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <div className="flex justify-end pt-1">
-                        <Link
-                          href="/forgot-password"
-                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition-colors"
-                        >
-                          Lupa kata sandi?
-                        </Link>
-                      </div>
-                      <FormMessage className="text-xs text-red-500" />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <FormLabel className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                              Kata Sandi
+                            </FormLabel>
+                            <Link
+                              href="/forgot-password"
+                              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition-colors"
+                            >
+                              Lupa kata sandi?
+                            </Link>
+                          </div>
+                          <FormControl>
+                            <div className="relative group">
+                              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                                <Lock className="h-4 w-4" />
+                              </div>
+                              <input
+                                {...field}
+                                className="w-full pl-10 pr-12 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                placeholder="••••••••"
+                                type={showPassword ? "text" : "password"}
+                                autoComplete="current-password"
+                              />
+                              <button
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-xs text-rose-500" />
+                        </FormItem>
+                      )}
+                    />
 
-                <button
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-50"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Login"}
-                </button>
-              </form>
-            </Form>
-            </>
+                    <button
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer mt-2"
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="animate-spin w-4 h-4" />
+                          <span>Memverifikasi Kredensial...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Masuk ke Akun</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </Form>
+              </div>
             )}
+          </div>
 
-            <div className="mt-12 pt-8 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-4">
-              <p className="text-xs text-center text-zinc-400 font-medium">
-                &copy; {new Date().getFullYear()} Balai Konservasi Sumber Daya Alam Kalimantan Timur
-              </p>
-            </div>
+          {/* Copyright Footer */}
+          <div className="w-full max-w-md mx-auto pt-6 border-t border-zinc-100 dark:border-zinc-800/80 text-center">
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium leading-relaxed">
+              &copy; {new Date().getFullYear()} Balai Konservasi Sumber Daya Alam Kalimantan Timur
+              <br />
+              <span className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80">Kementerian Kehutanan Republik Indonesia</span>
+            </p>
           </div>
         </div>
 
-        {/* Right Side: Visual Branding */}
-        <div className="hidden lg:block lg:w-[55%] relative overflow-hidden bg-zinc-900">
+        {/* Right Side: Visual Hero Branding Showcase */}
+        <div className="hidden lg:flex lg:w-[52%] xl:w-[56%] relative overflow-hidden bg-zinc-950 flex-col justify-between p-12 xl:p-16 text-white">
+          {/* Local Conservation Photo with Deep Emerald-Dark Gradient */}
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-80 mix-blend-overlay"
+            className="absolute inset-0 bg-cover bg-center opacity-70 mix-blend-luminosity scale-105 transition-transform duration-1000"
             style={{
-              backgroundImage:
-                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDlo-JpVGBaoUwLf0K7HW1CHye6SJdYgvXAvRyMkHSNG82DZ4ZJrmIbEY_VrllF4PXw2YmLcZKF8cdDBpLq57KOw06fN20fGGd7p3sBFDIsOh1YvGdl6og1WT7_Kqo5d69l56dPWxV_eSjp8WHPczKGmngvIWISopr8DHTGdojGaiHk6nkvKPVsh9pHo-pVoyqX6pUMABERWNYd1aa5jX4yGpYAEoP20DM5XP1j5V3QVpPURqWgumcBtzM6FtfM8PfEugSVTrQ3hks')",
+              backgroundImage: "url('/assets/images/background/sangalaki.png')",
             }}
-          >
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent"></div>
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/75 to-emerald-950/50" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-600/20 via-transparent to-transparent" />
+
+          {/* Top Meta Indicator */}
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-emerald-300 shadow-xs">
+              <Trees className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Sistem Administrasi Konservasi Sumber Daya Alam</span>
+            </div>
+            <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-[11px] font-bold text-emerald-300 tracking-wider shadow-2xs">
+              BKSDA KALTIM
+            </div>
           </div>
-          <div className="absolute bottom-16 left-16 right-16 text-white max-w-xl z-10">
-            <div className="bg-emerald-500 h-1 w-12 mb-6"></div>
-            <h2 className="text-4xl font-black mb-4 leading-tight">
-              Melindungi Warisan Alam Untuk Generasi Masa Depan
-            </h2>
-            <p className="text-lg text-white/80 font-medium italic">
-              &quot;Konservasi adalah upaya pelestarian lingkungan dengan tetap memperhatikan manfaat
-              yang bisa didapat pada saat itu.&quot;
-            </p>
+
+          {/* Bottom Feature & Quote Showcase */}
+          <div className="relative z-10 max-w-xl space-y-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                <Sparkles className="w-3.5 h-3.5" />
+                Kementerian Kehutanan Republik Indonesia
+              </div>
+              <h2 className="text-3xl xl:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-xs">
+                Melindungi Warisan Alam Untuk Generasi Masa Depan
+              </h2>
+              <p className="text-sm xl:text-base text-zinc-300 leading-relaxed font-normal">
+                Platform terpadu tata kelola kepegawaian, administrasi naskah dinas, inventarisasi aset, dan perlindungan keanekaragaman hayati Balai Konservasi Sumber Daya Alam Kalimantan Timur.
+              </p>
+            </div>
+
+            {/* Feature Highlights Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-3.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 space-y-1">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>Keamanan Terenkripsi</span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-snug">
+                  Otorisasi granular dengan proteksi Autentikasi 2 Langkah (TOTP).
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 space-y-1">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Layanan Terpadu</span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-snug">
+                  Sinkronisasi surat masuk, surat keluar, cuti, dan surat tugas dinas.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

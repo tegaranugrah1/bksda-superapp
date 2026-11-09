@@ -1374,5 +1374,32 @@
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
 
+---
+
+## 53. Redesign Halaman Login Resmi Kementerian Kehutanan & BKSDA Kaltim (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta perancangan ulang (*redesign*) antarmuka halaman login (`http://localhost:3000/login`) menggunakan logo resmi `kemenhutlogo.png` dengan tipografi hierarki tiga baris resmi:
+    1. **KEMENTERIAN KEHUTANAN**
+    2. **BALAI KONSERVASI SUMBER DAYA ALAM**
+    3. **KALIMANTAN TIMUR**
+- **Implementasi Solusi Visual & Interaksi**:
+  1. **Identitas & Branding Resmi**:
+     - Memasang logo resmi Kementerian Kehutanan (`/kemenhutlogo.png`) dalam kontainer rounded-2xl berelevasi dengan border emerald halus.
+     - Menyusun tipografi hierarki baku: Baris 1 (*KEMENTERIAN KEHUTANAN*, emerald bold), Baris 2 (*BALAI KONSERVASI SUMBER DAYA ALAM*, slate-900 / dark:white), dan Baris 3 (*KALIMANTAN TIMUR*, emerald uppercase tracking-widest).
+  2. **Interaktivitas & Kenyamanan Pengguna (UX)**:
+     - Menghadirkan `ThemeToggle` terintegrasi di pojok kanan atas halaman login dengan animasi sapuan radial (*radial wave view transition*) Light $\leftrightarrow$ Dark mode.
+     - Formulir login diperkaya dengan ikon input (`User` untuk NIP/Username dan `Lock` untuk Password) serta tombol interaktif `Eye`/`EyeOff` untuk visibilitas kata sandi.
+     - Tombol aksi utama dengan efek hover slide panah (`ArrowRight`) dan status pemuatan dinamis (`Loader2` dengan teks memverifikasi kredensial).
+     - Antarmuka Autentikasi 2 Langkah (2FA TOTP & Recovery Code) diselaraskan ke tema modern dengan font monospace tabular yang rapi.
+  3. **Visual Showcase Hero Mandiri (Lokal Asset)**:
+     - Menghapus dependensi URL eksternal gambar lambat (`googleusercontent`), menggantikannya dengan aset fotografi konservasi lokal resolusi tinggi (`/assets/images/background/sangalaki.png` - Suaka Margasatwa Pulau Sangalaki BKSDA Kaltim).
+     - Diperkaya gradien atmosferik `linear-to-t` dan kartu sorotan fitur (*Keamanan Terenkripsi TOTP* & *Layanan Terpadu Naskah Dinas & Kepegawaian*).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+
 
 
