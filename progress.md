@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru Portal (8 November 2026):** audit dan perbaikan lokal ditutup pada bagian36. Perbaikan, tes, laporan dan progress disatukan dalam commit lokal penutupan; belum di-push atau deploy. Rekap temuan lama/baru, perubahan dan bukti tes ada di [laporan penutupan Portal](docs/security/portal-security-review-2026-11-08.md). Catatan putaran sebelumnya di bawah adalah riwayat, bukan daftar celah yang semuanya masih terbuka.
+**Status terbaru (09 November 2026):** Penegakan kebijakan masa kerja cuti CPNS & PPPK, pembatasan hak fasilitas MMP (tanpa cuti, tanpa rekening bank, tanpa uang makan), serta perbaikan visualisasi kredensial login portal dan kode identitas personil MMP pada modul Kepegawaian (Bagian 45 & 46). Seluruh automated check backend (`EmployeeLeaveSnapshotCheck.php`) dan kompilasi TypeScript (`tsc --noEmit`) lulus 100%.
 
 ## Status Update: 2 November 2026
 
@@ -1162,3 +1162,28 @@
   - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+---
+
+## 46. Visualisasi Username Login Portal & Kode Identitas Personil MMP (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Personil MMP (Masyarakat Mitra Polhut) login ke Portal BKSDA menggunakan kode sekuensial unik `MMP-xxx` (misal: `MMP-006` untuk Abdul Farij, ID 133).
+  - Sebelumnya di antarmuka detail pegawai dan dialog Reset Password, identitas MMP sengaja disamarkan sebagai `"MMP • Tanpa NIP"` dan `"- (Tanpa NIP)"`, sehingga administrator kesulitan mengetahui username yang harus dibagikan ke personil ketika menerbitkan atau mereset password akun.
+  - Selain itu, saat pendaftaran pegawai baru di `employees/create`, notifikasi keberhasilan belum menampilkan username yang diterbitkan secara otomatis oleh sistem.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Cockpit Card Detail Pegawai (`employees/[id]/page.tsx`)**:
+     - Menampilkan label `Username: MMP-xxx` untuk personil MMP (atau NIP/NIPPPK untuk PNS/PPPK) dilengkapi tombol 1-klik Salin (Copy) langsung.
+  2. **Tab Biodata (`employees/[id]/page.tsx`)**:
+     - Mengubah label identitas menjadi `Username Portal (Kode MMP)` dengan nilai kode MMP pegawai untuk personil MMP.
+  3. **Dialog Reset Password (`employees/[id]/page.tsx`)**:
+     - Menambahkan baris informasi `Username Login: {employee.nip}` sehingga admin langsung mengetahui username terkait sebelum menyerahkan password baru.
+  4. **Dialog IAM (`EmployeeAccessSheet.tsx`)**:
+     - Menampilkan `Username Portal: MMP-xxx` untuk personil MMP agar konsisten.
+  5. **Formulir Tambah Pegawai Baru (`employees/create/page.tsx`)**:
+     - Memperjelas info banner kategori MMP bahwa sistem otomatis menerbitkan kode unik yang berfungsi sebagai Username Login Portal.
+     - Memperbarui toast keberhasilan pendaftaran agar langsung menampilkan username yang berhasil diterbitkan: `"Pegawai berhasil ditambahkan! Username: {createdNip}"`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `graphify update .`: Sukses tersinkronisasi (14.623 nodes, 27.352 edges, 1.008 communities).

@@ -598,19 +598,19 @@ export default function EmployeeDetailPage() {
                 </span>
               </div>
 
-              {/* NIP with 1-click Copy */}
+              {/* NIP / Username with 1-click Copy */}
               <div className="mt-2.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-100 dark:border-slate-800">
                 <span>
                   {empCategory === "MMP"
-                    ? "MMP • Tanpa NIP"
+                    ? `Username: ${employee.nip}`
                     : `${formatNipLabel(employee, true)} ${employee.nip}`}
                 </span>
-                {empCategory !== "MMP" && employee.nip && (
+                {employee.nip && (
                   <button
                     type="button"
                     onClick={() => handleCopy(employee.nip, "nip")}
                     className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-0.5 rounded cursor-pointer"
-                    title="Salin NIP"
+                    title={empCategory === "MMP" ? "Salin Username Portal" : "Salin NIP"}
                   >
                     <CopyIcon copied={copiedField === "nip"} />
                   </button>
@@ -1181,8 +1181,8 @@ export default function EmployeeDetailPage() {
                         }
                       />
                       <BioItem
-                        label={empCategory === "PPPK" ? "NIPPPK" : "NIP"}
-                        value={empCategory === "MMP" ? "- (Tanpa NIP)" : employee.nip}
+                        label={empCategory === "PPPK" ? "NIPPPK" : empCategory === "MMP" ? "Username Portal (Kode MMP)" : "NIP"}
+                        value={employee.nip || "-"}
                       />
                       <BioItem label="Nama Lengkap" value={employee.nama_lengkap} />
                       <BioItem label="Jabatan Resmi" value={employee.jabatan || "-"} />
@@ -1734,6 +1734,10 @@ export default function EmployeeDetailPage() {
                 {employee.nama_lengkap}
               </span>.
             </p>
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500">{empCategory === "MMP" ? "Username Portal:" : "Username / NIP:"}</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{employee.nip}</span>
+            </div>
             <input
               type="password"
               value={resetPassword}

@@ -207,10 +207,15 @@ export default function EmployeeCreatePage() {
       const { data } = await api.post("/kepegawaian/employees", payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       queryClient.invalidateQueries({ queryKey: ["kepegawaian-dashboard-stats"] });
-      toast.success("Pegawai berhasil ditambahkan!");
+      const createdNip = res?.data?.nip;
+      toast.success(
+        createdNip
+          ? `Pegawai berhasil ditambahkan! Username: ${createdNip}`
+          : "Pegawai berhasil ditambahkan!"
+      );
       router.push("/kepegawaian/employees");
     },
     onError: (error: { response?: { data?: { message?: string } } }) => {
@@ -424,12 +429,12 @@ export default function EmployeeCreatePage() {
 
           {jenisPegawai === "MMP" && (
             <div className="px-4 py-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-medium">
-              Personil <strong>MMP (Masyarakat Mitra Polhut)</strong> tidak memiliki NIP maupun
-              Pangkat/Golongan. Sistem akan otomatis membuat kode internal unik yang tampil sebagai{" "}
+              Personil <strong>MMP (Masyarakat Mitra Polhut)</strong> tidak memiliki NIP resmi ASN.
+              Sistem akan otomatis menerbitkan kode internal unik (contoh:{" "}
               <code className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 font-mono font-bold">
-                -
-              </code>{" "}
-              pada daftar pegawai dan Surat Tugas.
+                MMP-xxx
+              </code>
+              ) yang sekaligus berfungsi sebagai <strong>Username Login Portal</strong>.
             </div>
           )}
 

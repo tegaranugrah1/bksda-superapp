@@ -163,7 +163,10 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
             </div>
             <div>
               <p className="font-semibold text-sm text-slate-900 dark:text-zinc-100 leading-tight">{employee.nama_lengkap}</p>
-              <p className="text-xs text-slate-500 mt-0.5 font-mono">NIP: {employee.nip}</p>
+              <p className="text-xs text-slate-500 mt-0.5 font-mono">
+                {employee.nip.toUpperCase().startsWith("MMP-") ? "Username Portal: " : "NIP: "}
+                <span className="font-semibold text-slate-700 dark:text-zinc-300">{employee.nip}</span>
+              </p>
             </div>
           </div>
         )}
