@@ -72,4 +72,4 @@ RUN echo "upload_max_filesize=20M" >> "$PHP_INI_DIR/conf.d/uploads.ini" && \
 
 EXPOSE 80 9000
 
-CMD ["sh", "-c", "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force || exit 1; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & exec nginx -g 'daemon off;'"]

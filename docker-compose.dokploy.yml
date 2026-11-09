@@ -29,7 +29,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     command: >
-      sh -c "sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm -F"
+      sh -c "sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && exec php-fpm -F"
     depends_on:
       db:
         condition: service_healthy
