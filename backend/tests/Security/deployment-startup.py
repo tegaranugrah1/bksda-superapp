@@ -1,6 +1,6 @@
 """Parse startup commands without running migrations or touching a database."""
 from pathlib import Path
-import json,shlex,subprocess
+import json,re,shlex,subprocess
 
 dockerfile=Path('/deployment/Dockerfile').read_text()
 compose=Path('/deployment/docker-compose.dokploy.yml').read_text()
@@ -15,4 +15,11 @@ for argv in commands:
     subprocess.run(['sh','-n','-c',command],check=True)
 assert 'migrate --force &&' in commands[1][2] and 'exec php-fpm -F' in commands[1][2]
 assert 'migrate --force || exit 1' in commands[0][2]
-print('PASS: both deployment startup commands parse, avoid account reseeding, and stop on migration failure.')
+prefixes={}
+for line in compose.splitlines():
+    match=re.fullmatch(r'  ([a-z][a-z0-9-]*):',line)
+    if match:service=match[1]
+    if line.strip().startswith('CACHE_PREFIX:'):prefixes[service]=line.split(':',1)[1].strip()
+assert set(prefixes)=={'backend','queue','scheduler','reverb'}
+assert set(prefixes.values())=={'${CACHE_PREFIX:-bksda-superapp-cache-}'}, 'Queue heartbeat and locks must share the existing backend cache namespace.'
+print('PASS: startup parses, avoids account reseeding, stops on migration failure, and shares the backend cache namespace across all runtime services.')
