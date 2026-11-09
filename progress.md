@@ -1481,3 +1481,23 @@
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 57. Redesain Tata Letak Dashboard BMN: 3 Kolom Seimbang & Chart Donut Megah (09 November 2026)
+
+- **Latar Belakang & Alignment (/grill-me)**:
+  - Pengguna merasa kartu Peringatan STNK sebelumnya memakan ruang horizontal terlalu besar (full-width) dan menanyakan bagaimana jika baris utama dijadikan 3 bagian: Peringatan STNK, Chart Kondisi yang lebih besar, dan Distribusi per jenis BMN.
+  - Melalui klarifikasi terstruktur `/grill-me`, disepakati:
+    1. *Kapasitas & Overflow STNK*: Tinggi kartu dikunci rata seimbang (`h-[350px]`) dengan *custom scrollbar* internal halus jika terdapat banyak kendaraan, dilengkapi *counter badge* darurat di header.
+    2. *Kondisi 0 Alert*: Ditampilkan status aman estetik berwarna hijau lembut (*ShieldCheck* dan pesan "Semua Pajak & Plat Terkendali") agar susunan 3 kolom tetap kokoh tanpa pergeseran layout.
+    3. *Chart Donut Megah*: Diameter SVG Donut diperbesar dari `w-14` menjadi `w-36` (diameter ~144px) dengan counter total unit aset di tengah lubang donut, serta 3 kartu metrik ringkasan persentase (Baik, Rusak Ringan, Rusak Berat) di dasar kartu.
+    4. *Reposisi Akses Cepat*: Dipindahkan ke baris bawah membentuk baris kedua yang seimbang 3 kolom (*Top Lokasi Ruang*, *Aktivitas Terbaru*, dan *Akses Cepat Modul*).
+- **Implementasi Berkas**:
+  - `frontend/src/app/bmn/page.tsx`:
+    - Mengintegrasikan penghitungan `totalAlerts`.
+    - Merestrukturisasi grid tengah menjadi `grid-cols-1 lg:grid-cols-3 gap-4`.
+    - Merestrukturisasi grid bawah menjadi `grid-cols-1 md:grid-cols-3 gap-4`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
