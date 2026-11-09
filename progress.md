@@ -1,5 +1,7 @@
 # Progress Development - BKSDA SuperApp
 
+**Status terbaru Portal (8 November 2026):** audit dan perbaikan lokal ditutup pada bagian36. Perbaikan, tes, laporan dan progress disatukan dalam commit lokal penutupan; belum di-push atau deploy. Rekap temuan lama/baru, perubahan dan bukti tes ada di [laporan penutupan Portal](docs/security/portal-security-review-2026-11-08.md). Catatan putaran sebelumnya di bawah adalah riwayat, bukan daftar celah yang semuanya masih terbuka.
+
 ## Status Update: 2 November 2026
 
 ### 1. Inisiatif Hermes Agent (WhatsApp Assistant 24/7 & Coding Sandbox 16 GB) - SELESAI PENUH (33/33 Tasks 100%)
@@ -498,3 +500,556 @@
      - **Tabel Kredensial Awal**: Super Admin NIP (`198001012005011001`), Super Admin Username (`superadmin`), Admin Persuratan (`magang`), pgAdmin, dan RustFS Console.
      - **Troubleshooting FAQ**: Solusi untuk error PDO driver, connection refused, symlink storage, dan CORS frontend.
      - **Status VM 108 Hermes**: Memperbarui status VM Hermes Agent (`192.168.100.205`) menjadi aktif 🟢.
+
+
+---
+
+### 14. Redesain & Penyelarasan Penuh Mobile Portal & Modul Kepegawaian BKSDA SuperApp — Selesai ✅
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  1. Penyelarasan menyeluruh antara antarmuka FigCraft (`docs/bksda-superapp-mobile-portal.figcraft`) dan implementasi kode React Native (`mobile/src/features/dashboard/PortalDashboardScreen.tsx`).
+  2. Implementasi arsitektur **5-Item Unified Bottom Navigation Bar**:
+     - **Nav 1 (Beranda)**: MODUL AKSES SYSTEM (Grid 4x2 seimbang dengan 8 Modul Terotorisasi: Kepegawaian, Keuangan, BMN, Persediaan, DeReporting, CMS, Persuratan, dan BKSDA Drive [BARU]), Salam Eksekutif Soft, 2 Metrik Cepat (Pangkat/Golongan & Sisa Cuti), Kartu Tugas Dinas Berjalan (Sedang Dinas dengan rincian Visum/SPD di-hide karena modul keuangan dikerjakan tim lain), dan Strip Helpdesk TU.
+     - **Nav 2 (Surat Tugas)**: Layar tersendiri untuk daftar riwayat Surat Tugas Saya dengan filter segmented (Semua, Berjalan, Selesai), tombol Pratinjau Mata (Eye Preview Modal), dan prompt pembuatan SPT baru.
+     - **Nav 3 (Center Elevated FAB +)**: Tombol aksi cepat di tengah bawah yang memunculkan Bottom Sheet Modal dengan 2 pilihan: `+ Buat Surat Tugas (SPT) Baru` (menuju ST Builder) dan `+ Pengajuan Cuti Online` (menuju Formulir Cuti BKN).
+     - **Nav 4 (Layanan Terpadu ASN)**: 4 kartu layanan kedinasan mandiri: Pinjaman BMN Aktif, Aset Saya, Riwayat Pengajuan Cuti, dan Kalkulator Dinas (SBM).
+     - **Nav 5 (Profil Pegawai ASN)**: Profil identitas ASN 360, NIP, Golongan, Jabatan, Unit Kerja, Metrik Cuti/Aset, Pengaturan Akun, dan Logout resmi.
+  3. Mengadopsi prinsip **Zero Clutter**: Menghilangkan seluruh tampilan rekening uang makan di mobile (sesuai arahan pengguna), namun tetap mempertahankan riwayat perubahan audit (*audit change history with diffs*).
+  4. Menerapkan tema warna **Soft Executive Government Modern**: Menghilangkan warna kontras yang terlalu tajam, menggantinya dengan palet `#F8FAFC`, `#064E3B`, `#059669`, `#ECFDF5`, dan border lembut `#E2E8F0`.
+
+- **Hasil Desain FigCraft (`docs/bksda-superapp-mobile-portal.figcraft`)**:
+  - **Halaman 1 (`01. Portal & Bottom Navigation`)**: 7 layar lengkap (`01. Portal Beranda`, `02. List Surat Tugas ASN`, `03. Modal Center FAB`, `04. Layanan Terpadu ASN`, `05. Profil Pegawai ASN`, `06. Inventaris BMN Pribadi Sub-Screen`, `07. Riwayat Pengajuan Cuti ASN Sub-Screen`).
+  - **Halaman 2 (`02. Pengajuan Surat Tugas`)**: 3 layar alur pengajuan SPT standar.
+  - **Halaman 3 (`03. Modul Kepegawaian Mobile`)**: 7 layar lengkap termasuk ST Builder Premium 4-step (Template Dasar, Menimbang/Dasar, Diktum/Biaya/Laporan, Penandatangan/Tembusan), Otorisasi Nomor ST, dan Preview PDF resmi.
+  - **Halaman 4 (`04. Menu Kepegawaian (Cuti & SDM)`)**: 5 layar lengkap termasuk Inbox & Approval Cuti, Formulir Cuti BKN, Detail Pegawai Biodata (tanpa uang makan), Riwayat Perubahan (Audit History Diff), dan Kalender Penugasan Lapangan.
+
+- **Implementasi Kode, Evolusi Navigasi Sub-Screen Layanan & Verifikasi Kualitas**:
+  - File: `mobile/src/features/dashboard/PortalDashboardScreen.tsx`.
+  - **Peningkatan UX Lapangan dari Modal Pop-up ke Sub-Screen Khusus**:
+    1. Mengatasi kendala data lapangan (riwayat cuti bertahun-tahun & inventaris BMN 10+ aset) yang sebelumnya sesak di modal pop-up kecil, dengan mengubahnya menjadi **Dedicated Sub-Screen (dengan tombol `← Kembali`)**:
+       - **Layar Inventaris BMN Saya**: Mengintegrasikan Aset Tetap dan Pinjaman Berjalan dalam 1 layar via Segmented Control `[ Aset Tetap (12) | Pinjaman Berjalan (3) ]`, Search Bar live, Filter Kategori chip (`Semua`, `Kendaraan`, `IT & PC`, `Peralatan`), serta rincian lengkap BMN (NUP, kondisi, plat nomor).
+       - **Layar Riwayat Pengajuan Cuti ASN**: Banner Ringkasan Kuota Hero (Soft Emerald), **Filter Pill Horisontal per Tahun** (`2026`, `2025`, `2024`, `Semua`), kartu riwayat terperinci, tombol cetak formulir cuti BKN resmi, dan tombol aksi `+ Ajukan Permohonan Cuti Baru`.
+       - **Kalkulator Dinas (SBM)**: Tetap dipertahankan sebagai **Bottom Sheet Modal** cepat karena merupakan alat simulasi kalkulasi tanpa arsip data panjang.
+    2. **Floating Bottom Navigation Bar**: Tetap terlihat secara persisten di bagian bawah layar saat membuka sub-layar BMN maupun Cuti, memberikan fleksibilitas navigasi instan kembali ke Beranda atau Surat Tugas tanpa perlu menekan tombol Back berkali-kali.
+    3. **Koreksi & Konsolidasi Endpoint REST API**:
+       - `GET /me/assets` (AuthController::myAssets) untuk inventaris BMN personal.
+       - `GET /me/dashboard` (properti `my_assets`) untuk pinjaman aktif berjalan.
+       - `GET /me/leave-requests` dan `GET /me/leave-balance?year=2026` untuk kuota dan riwayat cuti.
+       - `GET /surat-tugas/my` untuk penugasan SPT dinas.
+     4. **Penataan Ulang Menu Layanan Terpadu & Spacing Helpdesk TU**:
+        - **Urutan Kartu Diperbarui**: Kartu **"Aset Saya"** dipindahkan ke posisi paling atas (Card 1), diikuti berturut-turut oleh **"Pinjaman BMN Aktif"** (Card 2), **"Riwayat Pengajuan Cuti"** (Card 3), dan **"Kalkulator Dinas (SBM)"** (Card 4).
+        - **Spacing & Estetika Helpdesk TU**: Strip *"Butuh bantuan administrasi & TU?"* diberikan breathing space yang lega (`marginTop: 22`, `marginBottom: 95`, `paddingVertical: 14`, `paddingHorizontal: 16`), dilengkapi badge lingkaran hijau lembut (`#DCFCE7`) dan teks konsultasi SPPD, BMN & Cuti yang mudah dibaca tanpa terpotong oleh floating bottom navigation.
+  - Dokumentasi arsitektur terbit: `docs/mobile-portal-architecture.md`.
+  - Verifikasi TypeScript: **0 errors (100% Lulus)** via `npx tsc --noEmit`.
+  - Verifikasi Metro Bundler: Berjalan aktif dan hot reload mulus tanpa runtime crash.
+  - Artefak visual visualizer: `page1_screen4_layanan_aset_top_and_helpdesk_space.png`, `page1_screen4_and_dedicated_subscreens.png`, dan `page1_all_7_screens_portal.png`.
+
+---
+
+### 15. Integrasi Foto Dokumentasi Aset Portal Web & Lightbox Modal — Selesai ✅
+
+- **Kebutuhan & Permintaan Pengguna**:
+  1. Pada tampilan **Grid View** tab "Aset Saya" di modul Portal Web, foto aset wajib diambil dari foto dokumentasi dengan urutan prioritas:
+     - **Prioritas 1**: Foto Geotag (`foto_geotag_url` / `foto_geotag_path`).
+     - **Prioritas 2**: Tampak Depan (`foto_depan_url` / `foto_depan_path`).
+     - **Prioritas 3**: Tampak Belakang (`foto_belakang_url` / `foto_belakang_path`).
+     - **Prioritas 4**: Tampak Kiri (`foto_kiri_url` / `foto_kiri_path`).
+     - **Prioritas 5**: Tampak Kanan (`foto_kanan_url` / `foto_kanan_path`).
+     - **Prioritas 6**: Foto Lokasi / Foto URL Umum.
+  2. Menghapus tombol *"Buka Detail Aset"* pada kartu aset.
+  3. Mengubah interaksi kartu: Saat kartu aset di-klik, sistem membuka **Lightbox Photo Preview Modal** yang menampilkan foto resolusi tinggi, navigasi galeri (*slider* foto), label sudut pandang dokumentasi, dan tautan gambar asli.
+
+- **Implementasi Solusi**:
+  1. **Backend `AuthController.php` (`GET /api/me/assets`)**:
+     - Memperluas kueri select untuk memuat seluruh 5 titik dokumentasi audit BMN (`foto_geotag`, `depan`, `belakang`, `kiri`, `kanan`, `lokasi`, `foto_url`).
+     - Menghasilkan URL inline view dengan token dan timestamp cache-busting.
+  2. **Frontend `MyAssetsTab.tsx`**:
+     - Menambahkan fungsi `resolvePhotoUrl()` untuk otomatis mentransformasi tautan Google Drive (*share link*) menjadi gambar *high-res direct image* (`lh3.googleusercontent.com/d/...`), menghindari error CORS dan gambar pecah.
+     - Mengimplementasikan `getAssetPhotos()` dan `getPrimaryAssetPhoto()` dengan urutan prioritas resmi (Geotag -> Tampak Depan -> Tampak Belakang -> Tampak Kiri -> Tampak Kanan).
+     - Menghapus tombol detail dan menjadikan seluruh kartu interaktif (*cursor-pointer* dengan efek hover zoom & badge sumber foto).
+     - Membangun Lightbox Photo Modal dengan dukungan keyboard (`Esc`, `ArrowLeft`, `ArrowRight`), tombol navigasi geser, indikator pill foto ganda, dan toast notifikasi ramah jika aset belum memiliki dokumentasi foto.
+  3. **Verifikasi Kualitas**:
+     - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+     - HTTP Status Endpoint Portal: 200 OK.
+
+---
+
+### 16. Redesain Seleksi Peminjaman Aset BMN (Modal Katalog Visual & Non-AI Professional UI) — Selesai ✅
+
+- **Kebutuhan & Hasil Diskusi `/grill-me`**:
+  1. Penggantian Popover sempit pada `http://localhost:3000/bmn/loans/create` menjadi **Modal Dialog Katalog Aset Visual** yang luas (`max-w-5xl`).
+  2. **Filter Otomatis Layak Pinjam**: Mengecualikan aset tak bergerak/infrastruktur (Tanah, Bangunan/Gedung/Pagar, Rumah Negara) dan aset rusak berat.
+  3. **Filter Tab Kategori Cepat**:
+     - `Semua Layak Pinjam` (`Layers`)
+     - `Kendaraan Bermotor` (`Car`)
+     - `IT & Komputer` (`Laptop`)
+     - `Peralatan Lapangan` (`Compass`)
+  4. **Dual View Switcher**: Pilihan tampilan Grid kartu visual berfoto (16:10) vs List kompak.
+  5. **Prinsip UI/UX Pro Max & Ponytail**:
+     - **Tanpa Ikon AI**: Tidak menggunakan ikon `Sparkles` / sihir AI; menggunakan ikon domain logistik/BMN resmi (`Boxes`, `Layers`, `Car`, `Laptop`, `Compass`).
+     - Desain flat eksekutif yang bersih, kontras tinggi, border tegas, tanpa gradien mencolok (*zero bloat*).
+     - Multi-select dengan Sticky Floating Bottom Bar: *"X barang dipilih"* dan tombol *"Masukkan ke Form Pinjam (X)"*.
+  6. **Dek Barang Terpilih di Step 1**: Kartu berfoto terstruktur rapi dengan tombol hapus merah lembut (`✕`).
+  7. **Ekspansi Ukuran Modal Katalog (Lega & Responsif Desktop)**:
+     - Mengatasi pembatasan default `DialogContent` shadcn (`sm:max-w-sm`) dengan menetapkan `w-[96vw] max-w-full sm:max-w-[95vw] md:max-w-[92vw] lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] h-[92vh] max-h-[92vh]`.
+     - Tampilan Grid ditingkatkan menjadi multi-kolom responsif (`grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4`) dengan kartu foto luas, teks multi-line tanpa truncate terpotong (`line-clamp-2`), badge NUP monospace jelas, dan thumbnail list view besar (`w-16 h-16`).
+     - Header pencarian lebih tinggi (`h-11`) dan counter real-time aset layak pinjam.
+  8. **Transparansi Pengguna & Status Pinjam Aktif (Backend + Frontend)**:
+     - Backend `AssetController.php`: Kueri pencarian diperluas untuk mencakup `pengguna`, `nama_pengguna`, penanggung jawab (`penanggungJawab.nama_lengkap`), dan peminjam aktif (`loans.borrower.nama_lengkap`). Mencari nama pegawai kini langsung menemukan aset terkait.
+     - Frontend `AssetCatalogModal.tsx` & `page.tsx`: Menampilkan badge pengguna pegawai (`👤 Pengguna: [Nama]`) dan penanda aset sedang dipinjam (`🔄 Sedang Dipinjam: [Nama Peminjam] s.d. [Tanggal]`).
+     - Aset yang sedang dipinjam otomatis dinonaktifkan dari seleksi permohonan pinjam baru dengan notifikasi toast protektif.
+  9. **Optimasi Kinerja & Memori RAM (Prinsip Ponytail)**:
+     - Mengurangi beban initial render dari 100 aset sekaligus menjadi **10 aset per batch** (`per_page: 10`) dengan grid 5 kolom (`lg:grid-cols-5`).
+     - Tepat 2 baris kartu pada desktop tanpa perlu scroll vertikal.
+     - Pemuatan cepat, konsumsi RAM browser minimal, decoding foto langsung responsif, dilengkapi tombol *"Muat Lebih Banyak (+10 Aset)"* dan indikator counter real-time (`X dari Total Aset`).
+
+- **Verifikasi Kualitas**:
+  - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+  - HTTP Status: 200 OK.
+
+---
+
+### 17. Perbaikan HTTP 500 Endpoint `/api/bmn/loans` (PostgreSQL Constraint Violation) — Selesai ✅
+
+- **Root Cause**:
+  - Pada tabel `bmn_asset_loans`, constraint PostgreSQL bawaan `bmn_asset_loans_status_check` hanya mengizinkan `('dipinjam', 'dikembalikan')`.
+  - Ketika `LoanService@listLoans` memeriksa pinjaman yang telah melewati `due_date` (misal permohonan pinjam Oktober 2026 yang jatuh tempo 2026-10-11), sistem memperbarui status ke `terlambat`.
+  - PostgreSQL menolak pembaruan tersebut dengan exception: `SQLSTATE[23514]: Check violation: 7 ERROR: new row for relation "bmn_asset_loans" violates check constraint "bmn_asset_loans_status_check"` sehingga menyebabkan HTTP 500 Internal Server Error saat membuka daftar peminjaman.
+
+- **Solusi & Implementasi**:
+  1. **Migration Baru**: `backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php`.
+  2. Memperbarui check constraint PostgreSQL menjadi:
+     `CHECK (status::text = ANY (ARRAY['dipinjam'::text, 'dikembalikan'::text, 'terlambat'::text]))`.
+  3. Migration berhasil dijalankan dan status HTTP `GET /api/bmn/loans?page=1&per_page=10` pulih menjadi **200 OK**.
+
+---
+
+### 18. Redesain Tab Pinjaman Aktif di Portal Pegawai (`/portal`) — Selesai ✅
+
+- **Latar Belakang & Kebutuhan**:
+  - Tampilan tab **Pinjaman Aktif** di Portal Pegawai (`http://localhost:3000/portal`) sebelumnya hanya berupa daftar teks sederhana tanpa foto dan tanpa opsi tampilan grid visual, berbeda dengan tab **Aset Saya** (`MyAssetsTab`) yang sudah memiliki pratinjau foto dokumentasi dan modal lightbox interaktif.
+  - Pengguna meminta agar tampilan pinjaman aktif dibuat serupa dan setara dengan tampilan Aset Saya, tetap menerapkan prinsip **Ponytail** (kode minimal, reuse helper yang ada) dan standar **UI/UX Pro Max** (tanpa ikon AI).
+
+- **Perubahan Backend (`AuthController.php`)**:
+  - Memperbarui pemetaan `my_assets` pada endpoint `GET /api/me/dashboard` agar tidak hanya mengirimkan teks dasar, melainkan juga menyertakan seluruh atribut foto dokumentasi lengkap:
+    - `foto_geotag_url`, `foto_geotag_path`
+    - `foto_depan_url`, `foto_belakang_url`, `foto_kiri_url`, `foto_kanan_url`, `foto_lokasi_url`, `foto_url`
+  - Menyertakan token bearer dan parameter cache-busting timestamp `v` untuk URL foto dinamis.
+  - Menambahkan data `kondisi`, `tipe`, `merk_tipe`, dan `lokasi_ruang`.
+
+- **Perubahan Frontend (`ActiveLoansTab.tsx` & `page.tsx`)**:
+  1. **Dual View Switcher (List vs Grid)**:
+     - Header daftar pinjaman aktif dilengkapi tombol toggle tampilan **List** (`List`) dan **Grid** (`LayoutGrid`).
+     - Tampilan Grid menampilkan foto dokumentasi dengan rasio aspek video, badge jenis foto (`GEOTAG`, `TAMPAK DEPAN`), badge plat nomor kendaraan bermotor, badge status pinjaman (`Dipinjam` biru / `Terlambat` merah), strip jadwal tanggal pinjam & batas kembali, serta badge kondisi fisik aset (`Baik`, `Rusak Ringan`, `Rusak Berat`).
+     - Tampilan List menampilkan thumbnail foto dengan hover zoom overlay, rincian NUP, kode barang, spesifikasi merk, tanggal pinjam & batas kembali, badge status, dan indikator kamera.
+  2. **Modal Lightbox Foto Dokumentasi Interaktif**:
+     - Mengklik aset (baik pada tampilan list maupun grid) akan membuka modal foto resolusi penuh berlatar gelap blur (`fixed inset-0 z-50 bg-black/85 backdrop-blur-md`).
+     - Navigasi keyboard terintegrasi: tombol `Escape` untuk menutup modal, `Panah Kiri` dan `Panah Kanan` untuk berpindah foto.
+     - Pill selector sudut foto di bagian bawah modal jika aset memiliki beberapa foto dokumentasi.
+     - Tombol eksternal untuk membuka foto asli di tab peramban baru.
+  3. **Zero AI Bloat & Ponytail Code Reuse**:
+     - Tidak menggunakan ikon sihir / AI (`Sparkles`), murni menggunakan ikon domain logistik/portal (`Package`, `Camera`, `List`, `LayoutGrid`, `ZoomIn`, `Clock`, `ExternalLink`).
+     - Menggunakan kembali (*reuse*) helper `formatMerkTipe`, `resolvePhotoUrl`, dan `getAssetPhotos` dari `MyAssetsTab.tsx`.
+
+- **Verifikasi Kualitas**:
+  - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+  - PHP Lint: `php -l backend/app/Http/Controllers/Api/AuthController.php` **No syntax errors detected**.
+  - HTTP Status: `http://localhost:3000/portal` **200 OK**.
+
+---
+
+### 19. Integrasi Basis Pengetahuan & Dokumentasi Menyeluruh di Obsidian — Selesai ✅
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna menghendaki seluruh dokumentasi arsitektur, fitur modul, dan basis pengetahuan codebase Graphify dicatat dan dapat dijelajahi secara visual di aplikasi **Obsidian** (pada vault lokal `E:\bksda-superapp\bksda-superapp-vault`).
+  - Menu Portal Pegawai (`/portal`) yang sangat kaya fitur (7 layanan mandiri staf + 7 modul sistem terotorisasi + widget operasional) memerlukan dokumentasi komprehensif terstruktur.
+
+- **Struktur & Implementasi Vault Obsidian (13.682 Dokumen)**:
+  1. **Dasbor Sentral MOC (`00 - Beranda dan Indeks Utama (MOC).md`)**:
+     - Map of Content lengkap dengan tautan timbal balik (`[[...]]`), ringkasan status sistem, dan status port layanan.
+  2. **Arsitektur & Infrastruktur (`01 - Arsitektur dan Teknologi`)**:
+     - Gambaran Umum Arsitektur (Next.js 16, Laravel 11, Hermes VM 108, Postgres 16).
+     - Skema Database & Relasi Model (BMN, Kepegawaian, Cuti PerBKN, Surat Tugas, Audit Trail).
+     - Autentikasi & Keamanan (Sanctum, RBAC, dan hasil pengujian 6 attack surface pentest).
+     - Hermes WhatsApp Assistant VM 108 (Spesifikasi VM Proxmox, Evolution API v2, Baileys, Redis mutex & debounce).
+  3. **Dokumentasi Mendalam Menu Portal & Modul Sistem (`02 - Modul BKSDA SuperApp`)**:
+     - **7 Layanan Mandiri Portal**: Surat Tugas & SPPD, Visum & SMART Patrol, Kalkulator Dinas (SBM Kaltim), Cuti Online (PerBKN 24/2017), Aset Saya, Pinjaman Aktif & Overdue, Profil Pegawai & Kartu ASN Digital, serta Helpdesk & Pengumuman.
+     - **7 Modul Sistem**: Kepegawaian (`/kepegawaian`), Keuangan (`/keuangan`), BMN (`/bmn`), Persediaan (`/inventory`), DeReporting (`/dereporting`), CMS Portal (`/cms`), dan Persuratan (`/surat`).
+  4. **Riwayat Progres & Changelog (`03 - Riwayat Progres dan Changelog`)**:
+     - Rangkuman lengkap 18 inisiatif pengembangan yang telah terselesaikan.
+     - Milestone khusus Hermes Agent VM 108 dan Redesain BMN & Portal.
+  5. **Panduan Operasional & Standar Rekayasa (`04 - Panduan Operasional dan Setup`)**:
+     - Panduan start server dev & prod (Port 3000, 8000, 8080).
+     - Pemetaan port dan konfigurasi `.env`.
+     - 7 tingkatan rekayasa *Ponytail* (Lazy Senior Dev) dan aturan UI/UX Pro Max (tanpa ikon AI).
+  6. **Papan Tulis Kanvas Visual (`05 - Visual Canvas dan Graph`)**:
+     - Berkas interaktif `BKSDA SuperApp Architecture.canvas` dengan diagram alur berwarna per layer sistem.
+  7. **Wiki Komunitas & God Nodes (`06 - Wiki Codebase (Graphify)`)**:
+     - 864 artikel Wikipedia-style Markdown dengan indeks induk `index.md` dan `GRAPH_REPORT.md`.
+  8. **Graf Simpul Kode Penuh (`07 - Graph Node Codebase (Graphify)`)**:
+     - 12.785 simpul kode AST dengan resolusi tautan dua arah (`[[...]]`) lengkap yang langsung terhubung di Obsidian Graph View (`Ctrl + G`).
+
+---
+
+### 20. Sinkronisasi Data Kendaraan & Visibilitas No Mesin/No Rangka BMN — Selesai ✅
+
+- **Gejala Permasalahan**:
+  - Pada halaman detail aset `https://bksdakaltim.web.id/bmn/assets/0a904007-4d04-4a70-a0c5-d7419e4a9f23` (Sepeda Motor Patroli), nomor mesin dan nomor rangka tidak ditampilkan, sedangkan pada peramban localhost data tersebut muncul.
+
+- **Akar Masalah (Root Cause)**:
+  1. **Disparitas Data Database Produksi**:
+     - Pada database produksi (`bksdakaltim.web.id` / `192.168.100.203`), record aset tersebut masih berupa data lama per 17 Juni 2026 dengan `no_polisi = '-'`, `no_mesin = NULL`, dan `no_rangka = NULL`.
+     - Pembaruan nomor polisi (`KT 5422 M`), nomor mesin (`KD11E1427846`), dan nomor rangka (`MH1KD1115PK428603`) sebelumnya tersimpan di basis data lokal (`localhost:5435`).
+  2. **Kondisi Guard Frontend Terlalu Ketat**:
+     - Di `frontend/src/app/bmn/assets/[id]/page.tsx` line 817, terdapat syarat: `currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!currentData.no_polisi && currentData.no_polisi.trim() !== "-"`.
+     - Karena nilai `no_polisi` di server produksi adalah `"-"`, maka baris input/tampilan No Mesin dan No Rangka otomatis disembunyikan oleh antarmuka, sehingga staf tidak dapat melihat maupun mengisinya saat mode edit aktif.
+
+- **Solusi & Hasil Verifikasi**:
+  1. **Sinkronisasi Langsung ke Database Produksi**:
+     - Menjalankan kueri pembaruan data langsung pada container database produksi (`bksdasuperapp-bksdasuperapp-einhoc-db-1`):
+       `no_polisi = 'KT 5422 M'`, `no_mesin = KD11E1427846`, `no_rangka = MH1KD1115PK428603`.
+     - Verifikasi live response backend produksi via tinker:
+       `{"id":"0a904007-4d04-4a70-a0c5-d7419e4a9f23","nama_barang":"Sepeda Motor Patroli","no_polisi":"KT 5422 M","no_mesin":"KD11E1427846","no_rangka":"MH1KD1115PK428603"}` (**100% Cocok**).
+  2. **Penyederhanaan Guard Tampilan Frontend**:
+     - Mengubah kondisi menjadi `currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR"` murni, sehingga nomor mesin dan nomor rangka selalu dapat dilihat dan disunting untuk seluruh armada kendaraan operasional BMN.
+  3. **Verifikasi Frontend**:
+     - TypeScript Next.js: `npx tsc --noEmit` **0 Errors (100% Pass)**.
+
+
+
+
+
+---
+
+### 21. Auto-Kapitalisasi Kalimat Tugas Resmi & Pratinjau Diktum Surat Tugas Sesuai Tata Naskah Dinas KSDAE — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada formulir publik Surat Tugas (`http://localhost:3000/surat-tugas`), kotak **Pratinjau Kalimat Tugas Resmi** harus secara otomatis memformat huruf depan setiap kata penting menjadi kapital (Title Case resmi) sesuai kaidah tata naskah dinas.
+  - Contoh kasus: Kalimat mentah pengguna berupa:
+    `Melaksanakan Perjalanan Dinas dari Samarinda ke kabupaten kutai barat dalam rangka inventarisasi bmn di suaka badak kelian;`
+    Harus otomatis diformat menjadi:
+    `Melaksanakan Perjalanan Dinas dari Samarinda ke Kabupaten Kutai Barat dalam rangka Inventarisasi BMN di Suaka Badak Kelian;`
+
+- **Implementasi Tingkat Akar (*Ponytail Principle: Single Source of Truth*)**:
+  1. **Fungsi Bersama `capitalizeOfficialText(text)` (`frontend/src/app/kepegawaian/surat-tugas/_lib/activity-helpers.ts`)**:
+     - Mengubah huruf depan setiap kata penting menjadi huruf kapital (Title Case), dan menormalkan input yang ditulis dengan Caps Lock/UPPERCASE penuh.
+     - Otomatis mengubah singkatan/akronim kedinasan dan kehutanan menjadi huruf kapital penuh (`BMN`, `SKW`, `TSL`, `TWR`, `KPG`, `SPPD`, `GPS`, `BKSDA`, `KSDAE`, `KLHK`, `UPT`, `PEH`, `ASN`, `PNS`, `PPNPN`, `PPPK`, `ATK`, `DIPA`, `SBM`, `SIMAN`, `SPD`, `SP2D`, `WRU`, `SMART`, `TN`, `TWA`, `SM`, `CA`, `SATS-DN`, `SATS-LN`, `KPA`, `PPK`, `BPP`, `BPK`, `BKN`, `SDM`, `TU`, `KPH`, `KPHP`, `KPHL`, `BPKH`, `KAK`, `TOR`, `PNBP`, `SK`, `SOP`, `MOU`, `PKS`, `TIK`, `IT`, `BPJS`, `SIMPEG`, `SIASN`, dan angka Romawi `I` s.d. `XX`).
+     - Mempertahankan kata hubung/preposisi tetap huruf kecil saat berada di tengah frasa (`dan`, `atau`, `serta`, `dengan`, `di`, `ke`, `dari`, `pada`, `dalam`, `rangka`, `untuk`, `tentang`, `oleh`, `sebagai`, `yang`, `terhadap`, `hingga`, `sampai`, `antar`, `secara`, `terkait`).
+     - Mendukung format teks miring markdown (`*bekantan*` $\rightarrow$ `*Bekantan*`).
+  2. **Penyempurnaan `buildKegiatanDiktumText(...)`**:
+     - Seluruh komponen dinamis (`capAsal`, `capTujuan`, `capKota`, `capTempat`, `capNama`, `capUntuk`) otomatis diformat melalui `capitalizeOfficialText`.
+     - *Smart Raw Sentence Parser*: Jika pengguna menyalin-tempel kalimat utuh penugasan (misal: `Melaksanakan Perjalanan Dinas dari Samarinda ke kabupaten kutai barat dalam rangka inventarisasi bmn di suaka badak kelian;`) langsung ke kolom kegiatan, sistem cerdas memilah asal (`Samarinda`), tujuan (`Kabupaten Kutai Barat`), kegiatan (`Inventarisasi BMN`), dan tempat spesifik (`Suaka Badak Kelian`) tanpa menghasilkan teks dobel atau `ke ...`.
+  3. **Integrasi Reaktif & On-Blur (`frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx`)**:
+     - Kotak biru **Pratinjau Kalimat Tugas Resmi** secara reaktif dan instan merefleksikan huruf depan kapital saat pengguna mengetik.
+     - Event `onBlur` dipasang pada 15 kolom input formulir (`kotaAsal`, `kotaTujuan`, `namaKegiatanText`, `tempatSpesifik`, `untukKegiatanText`), sehingga saat pengguna berpindah kolom, nilai di dalam kolom input otomatis rapi bertata naskah dinas.
+  4. **Suite Pengujian Otomatis (`frontend/tests/diktum-capitalization-check.cjs`)**:
+     - 5/5 invariant assertion lulus (100% PASS): verifikasi title case, akronim BMN/SKW/KPHP, huruf kecil preposisi, teks miring markdown, serta pemformatan diktum baik dari kolom terpisah maupun kalimat mentah utuh.
+  5. **Verifikasi Kompilasi & Graphify**:
+     - `npx tsc --noEmit` di `frontend`: **0 Error (100% Pass)**.
+     - `graphify update .`: 11.948 nodes, 21.852 edges, 853 communities ter-update.
+
+---
+
+### 22. Modernisasi Katalog Tata Naskah Dinas Favorit & Template Nota Dinas Resmi Ber-KOP Alamat — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada halaman `http://localhost:3000/surat/keluar/dinas`:
+    1. Pada Katalog Tata Naskah Dinas Resmi (`TemplatePickerModal.tsx`), berikan penanda **favorit** pada **Surat Dinas**, **Nota Dinas**, dan **Memorandum**.
+    2. Format dan tata letak **Nota Dinas** diubah sesuai naskah dinas resmi Permen Kehutanan No. 1/2025:
+       - Menggunakan KOP Balai resmi ber-alamat lengkap (`kop-bksda-alamat.png`).
+       - Judul naskah `NOTA DINAS` dan format nomor `Nomor: ND...`.
+       - Format Yth tersusun rapi multi-line di bawah titik dua (`:`).
+       - Default naskah menggunakan data dinas Surat Edaran KARIS/KARSU MyASN BKN ke 3 Kepala SKW dengan 4 poin kegiatan.
+       - Tanda tangan TTE/QR Code langsung di atas nama dan NIP Kepala Balai tanpa baris jabatan duplikat di atasnya (karena jabatan "Dari: Kepala Balai KSDA Kalimantan Timur" sudah ada di kepala nota dinas).
+    3. Pada batang tubuh naskah dinas, sediakan tombol **Tambah Poin** di samping tombol **Tambah Paragraf** untuk menyisipkan butir kegiatan bernomor (`1. `, `2. `, `3. `, dst.) dengan hanging indent rapi (`poin-item`).
+
+- **Implementasi (Ponytail Principle: Minimal, Native, Robust)**:
+  1. **Aset KOP Resmi (`frontend/public/kop-bksda-alamat.png`)**:
+     - Menyediakan citra KOP Balai resmi beresolusi tinggi dengan alamat lengkap kantor Samarinda dan Call Center di direktori publik agar dapat dimuat baik pada live preview Next.js maupun jendela cetak fisik (`window.print()`).
+  2. **Katalog Template Favorit (`frontend/src/app/surat/_components/TemplatePickerModal.tsx`)**:
+     - Menambahkan tab kategori `⭐ Favorit (3)` dan filter berbasis atribut `isFavorite: true` untuk Surat Dinas, Nota Dinas, dan Memorandum.
+     - Menyematkan badge bintang emas `⭐ Favorit` pada kartu naskah.
+     - Urutan cerdas pada tab `Semua`: memprioritaskan template favorit berada di urutan teratas.
+  3. **Dokumen & KOP Nota Dinas (`frontend/src/app/surat/_components/SuratDinasDocument.tsx`)**:
+     - Mengubah sumber KOP `nota_dinas` ke `/kop-bksda-alamat.png`.
+     - Styling hanging indent `.pkpknl-body p.poin-item` (`text-indent: -1.5rem !important; padding-left: 1.5rem !important; text-align: justify;`) untuk tampilan cetak A4 dan editor.
+     - Memperbarui `getDefaultDataForTemplate("nota_dinas")` dengan nomor edaran `ND.246/K.18/TU/PEG.09.01/B/05/2026`, perihal KARIS/KARSU virtual, penerima 3 Seksi KSDA Wilayah, dan 4 poin edaran.
+  4. **Editor Naskah Dinas (`frontend/src/app/surat/keluar/dinas/page.tsx`)**:
+     - Menambahkan tombol `[+ Tambah Poin]` dengan ikon list bernomor di samping `[+ Tambah Paragraf]`.
+     - Logika `handleAddPoint`: mendeteksi penomoran terakhir dan menyisipkan butir baru tepat sebelum paragraf penutup.
+     - Badge cerdas pada kartu textarea: mendeteksi format butir dan memberi penanda `Poin X (Poin Bernomor)` berlatar indigo.
+  5. **Verifikasi & Runnable Checks**:
+     - Runnable test suite `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS**.
+     - TypeScript compiler `npx tsc --noEmit`: **0 Errors**.
+     - Graphify AST knowledge graph: `graphify update .` **11.974 nodes, 21.879 edges**.
+
+---
+
+### 23. Pengelolaan Sub-Poin Bertingkat (Hierarki 4 Level), Smart Text Parser & Fitur Button Yth Nota Dinas/Memorandum — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada halaman `http://localhost:3000/surat/keluar/dinas`:
+    1. Penerima **Yth.** dapat ditambah menggunakan button (tombol), dengan pilihan cepat pejabat/unit internal (SKW I Berau, SKW II Tenggarong, SKW III Balikpapan, Kasubag TU, Kepala Balai) tanpa harus mengetik manual.
+    2. Mendukung naskah dinas dengan **sub-poin bertingkat kompleks** sesuai spesimen resmi Surat Edaran Manajemen Talenta Simata BKN (Keputusan Kepala BKN No. 411/2025):
+       - **Level 1 (Angka Utama)**: `1. `, `2. `, `3. `, dst.
+       - **Level 2 (Sub-Poin Huruf)**: `a. `, `b. `, `c. `, dst.
+       - **Level 3 (Sub-Sub Poin Romawi / Kurung)**: `i. `, `ii. `, `iii. ` atau `1) `, `2) `, `3) `
+       - **Level 4 (Sub-Butir Kurung)**: `a) `, `b) `, `c) `
+       - Setiap tingkat memiliki indentasi bertingkat resmi (*stepped hanging indent*) yang proporsional dan rata kiri-kanan (*justified*).
+    3. Fitur **Tempel Teks Utuh (Smart Text Parser)** yang memungkinkan staf menyalin teks naskah dinas lengkap (termasuk pembuka, 31 butir poin bersarang, dan penutup) lalu memecahnya secara otomatis menjadi array terstruktur dengan satu klik.
+    4. Catatan kaki (*footnote*) resmi sertifikasi TTE elektronik: "Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN)".
+
+- **Implementasi Tingkat Teknis**:
+  1. **Manajemen Yth Berbasis Tombol & Pilihan Cepat (`dinas/page.tsx`, `SuratDinasDocument.tsx`)**:
+     - Fungsi `parseYthList` & `formatYthList`: jika 1 penerima diformat tanpa nomor (`Kepala Balai ...`), jika 2+ penerima otomatis diberi penomoran berurutan (`1. ...\n2. ...`).
+     - Tombol `[+ Tambah Penerima]` dan chip pill pilihan cepat (`+ SKW I Berau`, `+ SKW II Tenggarong`, `+ SKW III Balikpapan`, `+ Kasubag TU`, `+ Kepala Balai`).
+     - Setiap baris penerima memiliki input mandiri dan tombol hapus (`Trash2`).
+  2. **Deteksi Hierarki 4 Level & Styling CSS (`SuratDinasDocument.tsx`)**:
+     - Fungsi `detectPointLevel(text)`: mengklasifikasikan teks ke dalam Level 0 (paragraf biasa), Level 1 (`1. `), Level 2 (`a. `), Level 3 (`i. ` / `1) `), dan Level 4 (`a) `).
+     - Aturan CSS naskah dinas:
+       - `.poin-level-1`: `padding-left: 1.5rem; text-indent: -1.5rem;`
+       - `.poin-level-2`: `padding-left: 3.25rem; text-indent: -1.5rem;`
+       - `.poin-level-3`: `padding-left: 5rem; text-indent: -1.5rem;`
+       - `.poin-level-4`: `padding-left: 6.75rem; text-indent: -1.5rem;`
+     - Catatan kaki `.pkpknl-footer-bsre` di bagian bawah naskah.
+  3. **Smart Parser Teks Mentah (`parseRawDocumentText`)**:
+     - Menggabungkan baris terpotong ke butir sebelumnya dan memisahkan setiap nomor/huruf/butir baru secara akurat.
+     - Drawer **[📋 Tempel Teks Utuh]** di antarmuka editor dilengkapi tombol **Muat Contoh Simata BKN (31 Butir)** untuk demonstrasi instan.
+  4. **Peralihan Level Interaktif pada Editor (`dinas/page.tsx`)**:
+     - Tombol cepat pada header: `[+ Paragraf]`, `[+ Poin 1.]`, `[+ Sub a.]`, `[+ Butir i.]`, `[+ Butir 1)]`.
+     - Badge warna level pada setiap kartu paragraf dengan visual margin indentasi yang merefleksikan kedalaman poin.
+     - Tombol konversi level instan (`1.`, `a.`, `i.`, `1)`, `Teks`) pada setiap kartu paragraf tanpa perlu mengetik ulang prefix.
+  5. **Verifikasi Kualitas**:
+     - Test suite `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (pengujian helper Yth, 4 level hierarki, ekstraksi 31 butir Simata BKN, dan catatan kaki BSrE BSSN).
+     - TypeScript compile check: `npx tsc --noEmit` $\rightarrow$ **0 Errors**.
+
+---
+
+### 24. Ekspor Word/PDF Presisi Tinggi, Smart Pagination, dan Siklus Hidup Nomor Naskah (${nomor_naskah}) Tata Naskah Dinas — Selesai ✅
+
+- **Kebutuhan Pengguna**:
+  - Pada generator naskah dinas (`http://localhost:3000/surat/keluar/dinas`):
+    1. **Ekspor Microsoft Word (.doc) Editable & Presisi Cetak**:
+       - KOP naskah pada hasil Word memiliki penataan simetris (sisi kiri sedikit lebih menjorok ke kiri dari teks naskah, dan sisi kanan sejajar dengan tepi teks naskah kanan, sesuai konfigurasi Surat Tugas).
+       - Judul naskah (*NOTA DINAS* / *MEMORANDUM*) dan Nomor berada tepat di tengah dengan spasi yang lega dari KOP.
+       - Nomor surat diletakkan lebih dekat dengan judul naskah.
+       - Baris *Perihal* tidak di-bold pada Word sesuai kaidah naskah resmi.
+       - Tembusan ditempatkan di bawah blok tanda tangan pimpinan pada sisi kiri.
+       - Spasi Yth (1, 2, 3) dan jarak dari tanggal ke paragraf pertama serta paragraf penutup diberi jeda lega (*spacing*) yang proporsional tanpa *stretched justification*.
+    2. **Ekspor PDF Fisik Presisi A4 & Smart Pagination**:
+       - Clearance KOP pada pratinjau web, cetak fisik (@media print), dan unduhan PDF diseragamkan tepat 2.5mm dari tepi kertas atas (tidak terpotong dan tidak turun terlalu jauh).
+       - *Smart Pagination*: Pada dokumen multi-halaman (>1 halaman), paragraf terakhir/penutup, tanda tangan, dan tembusan tetap menjadi satu kesatuan (*keep-together*) pindah bersama ke halaman berikutnya, dan halaman 1 memiliki sisa margin bawah yang bersih (~60mm).
+       - Pada naskah 1 halaman, dicegah agar tidak memicu halaman ke-2 kosong (*zero orphan page*).
+    3. **Penyelarasan Spasi Poin Bertingkat**:
+       - Spasi antar poin utama (`1.`), sub-poin (`a.`), butir romawi (`i.`), dan butir kurung (`1)`) dibuat rapat dan dekat sesuai acuan spesimen fisik resmi.
+    4. **Siklus Hidup Nomor Naskah Fleksibel (${nomor_naskah})**:
+       - Pada Card 1 (Identitas & Meta Dokumen), disediakan toggle switcher antara **Pola Nomor Baku** (format resmi Balai) dan **Nomor Naskah (${nomor_naskah})**.
+       - Posisi label `NOMOR :` / `Nomor: ` pada pratinjau, Word, PDF, dan cetak tetap terkunci pada koordinat yang sama tanpa bergeser saat diganti dengan ${nomor_naskah}.
+       - Naskah dapat disimpan sebagai Draf, diekspor ke Word/PDF, atau dicetak untuk diajukan ke pimpinan / sistem luar untuk proses verifikasi/ACC.
+       - Di Daftar Surat Keluar (`/surat/keluar`), naskah dengan ${nomor_naskah} ditandai dengan badge khusus amber **`Perlu Nomor Definitif`**.
+       - Setelah naskah di-ACC dan memiliki nomor resmi, operator cukup membuka kembali (klik Edit) untuk memasukkan nomor definitif dan mendaftarkannya ke Agenda Resmi.
+
+- **Implementasi Tingkat Teknis (Ponytail Principle: Minimal, Native, Robust)**:
+  1. **Helper Ekspor Cerdas (`frontend/src/app/surat/_lib/export-surat-dinas.ts`)**:
+     - `exportSuratDinasWord(nomor, templateType, perihal)`: Membangun dokumen Word berbasis MHTML table layout yang 100% kompatibel dengan MS Word. Mengonversi gambar KOP menjadi inline base64, merender baris Yth multi-baris tanpa forced justification, menata KOP dengan offset simetris (lebar 189.4mm, posisi 11.0mm dari tepi), menyematkan spacer pemisah sebelum batang tubuh, dan menyusun tembusan tepat di bawah tanda tangan.
+     - `exportSuratDinasPdf(nomor, templateType, perihal)`: Mengintegrasikan `jspdf` dan `html2canvas-pro` dengan algoritma *smart pagination*. Mengukur koordinat elemen `.penutup-ttd-group`; jika melebihi batas aman halaman 1 (270mm), seluruh grup penutup, tanda tangan, dan tembusan digeser bersama ke halaman 2 dengan margin atas 22mm.
+  2. **Clearance KOP & Layout Seragam (`SuratDinasDocument.tsx`)**:
+     - `SURAT_DINAS_BASE_CSS` dan `@media print`: Clearance KOP diatur tepat `2.5mm auto 4mm auto !important` dan padding atas root diatur `0`, menjamin konsistensi 1:1 antara tampilan live preview layar, jendela dialog Cetak browser, dan berkas fisik PDF.
+  3. **Penataan Butir Bertingkat Rapat**:
+     - `poin-marker` memiliki lebar 1.35rem, `poin-level-2` memiliki margin kiri 1.35rem dan jarak bawah 0.15rem, menghasilkan perataan vertikal yang rapat dan rapi persis seperti spesimen naskah dinas resmi.
+     - Di `export-surat-dinas.ts`, tabel 2 kolom list diatur dengan cell padding bawah 2pt untuk sub-butir.
+  4. **Penguncian Posisi Label `NOMOR :` (`.nota-dinas-nomor-wrapper`)**:
+     - Membungkus label `NOMOR : ` / `Nomor: ` dan nomor naskah ke dalam elemen ber-anchor tetap (`display: inline-block; min-width: 78mm; text-align: left;`).
+     - Mengeliminasi pergeseran teks horizontal saat berganti antara nomor panjang (`M.015/K.18/TU/KSA.01.05/B/11/2026`) dan nomor pendek (`${nomor_naskah}`).
+  5. **Antarmuka Form & Daftar Surat Keluar (`dinas/page.tsx` & `keluar/page.tsx`)**:
+     - Card 1 formulir menyematkan tombol tab toggle: `[ Pola Nomor Baku ]` dan `[ Nomor Naskah (${nomor_naskah}) ]`.
+     - Tabel Surat Keluar menampilkan penanda visual badge amber `Perlu Nomor Definitif` jika nomor surat memuat `${nomor_naskah}`.
+  6. **Verifikasi Kualitas**:
+     - Test suite ekspor naskah dinas `frontend/tests/test-export-transform.cjs`: **100% PASS** (8 invariant checks mencakup Yth multi-line, perihal non-bold, posisi tembusan di bawah TTD, threshold single page 305mm, geometri KOP 189.4mm, spasi poin rapat 4pt, smart pagination multi-halaman, dan clearance KOP 2.5mm).
+     - Test suite template naskah dinas `frontend/tests/nota-dinas-template-check.cjs`: **100% PASS** (20 invariant checks).
+     - Kompilasi TypeScript `npx tsc --noEmit`: **0 Errors**.
+
+### 25. Modul Kepegawaian - Fitur Pratinjau Dokumen Dasar di Surat Tugas Builder (5 November 2026)
+- **Konteks & Kebutuhan Pengguna**:
+  - Pada pengajuan Surat Tugas Publik (`/surat-tugas`), pegawai melampirkan berkas fisik acuan tugas (surat undangan, nota dinas rujukan, disposisi, dsb.) dalam format PDF atau gambar (JPG/PNG).
+  - Operator/Admin di halaman **Surat Tugas Builder** (`/kepegawaian/surat-tugas/builder/[id]`) membutuhkan akses visual cepat untuk melihat berkas dasar penugasan tersebut tanpa harus berpindah halaman atau membuka tab unduhan terpisah, guna membaca dan menyalin (*copy*) perihal, nomor surat rujukan, tanggal, dan maksud penugasan langsung ke kolom form builder.
+- **Solusi & Fitur yang Diimplementasikan**:
+  1. **Tombol Pemicu Terintegrasi (*Integrated Trigger Buttons*)**:
+     - *Sticky Top Preview Toolbar*: Ditambahkan tombol `Dasar Surat` dengan ikon klip berkas dan indikator hijau aktif (`animate-pulse`) saat permohonan memiliki berkas lampiran.
+     - *Seksi Dasar Hukum & Anggaran*: Ditambahkan tombol kontekstual `Lihat Dokumen Dasar` tepat di atas daftar butir dasar hukum, memungkinkan operator langsung membuka berkas saat menyusun konsideran rujukan.
+  2. **Panel Samping Dokumen Dasar Non-Blocking (`DokumenDasarDrawer.tsx`)**:
+     - Panel meluncur dari sisi kanan layar (`fixed top-14 right-0 bottom-0 z-30`) dengan lebar lega (`w-[640px] xl:w-[750px] 2xl:w-[850px]`) dan batas aman `max-w-[calc(100vw-32rem)]`.
+     - **Non-blocking & Zero Overlay**: Tidak ada backdrop gelap yang menutupi formulir, sehingga formulir *ST Builder Premium* di sebelah kiri tetap **100% terbuka, aktif, dan dapat diketik/diisi langsung**.
+     - **Header Natural & Elegan**: Latar putih bersih (`bg-white dark:bg-zinc-900`) dengan tipografi standar sans-serif, badge netral abu-abu, tombol outline yang konsisten dengan desain BKSDA SuperApp, serta tombol `Tab Baru` dan `Unduh`.
+  3. **Optimasi Native PDF Engine (*Fit Width & No Thumbnails*)**:
+     - URL berkas PDF dilengkapi parameter engine PDFium: `#navpanes=0&view=FitH&pagemode=none`.
+     - Bilah *thumbnail* halaman samping (ukuran kecil) otomatis disembunyikan.
+     - Halaman naskah otomatis diskalakan penuh pas selebar panel (*Fit to Width* / ~100% zoom fisik), menghasilkan teks tajam dan nyaman dibaca langsung tanpa perlu zoom manual.
+     - Menggunakan endpoint streaming JSON/Base64 (`/surat-tugas/${id}/download?preview=1`) untuk menghindari double download dan mencegah gangguan download manager eksternal (IDM).
+  4. **Pembersihan Kartu Teks Redundan**:
+     - Menghapus kartu ringkasan teks permohonan di atas viewer sesuai instruksi pengguna, sehingga 100% tinggi panel didedikasikan untuk pratinjau dokumen asli beresolusi penuh.
+
+
+---
+
+## Status Update: 8 November 2026
+
+### 26. Audit Keamanan Menyeluruh (`/security-audit`) & Simplifikasi Kode (`/ponytail-review`) Modul Portal Pegawai — Selesai ✅
+
+> Penutupan terkini dan batas verifikasinya dicatat pada bagian36 serta laporan8November2026; bagian ini mencatat pekerjaan pada snapshot sebelumnya.
+
+- **Latar Belakang & Tujuan**:
+  - Melakukan audit keamanan defensif menyeluruh (`/security-audit`) dan perampingan kompleksitas/duplikasi kode (`/ponytail-review`) pada seluruh halaman, komponen, serta controller backend pendukung **Modul Portal Pegawai (`/portal`)**.
+
+- **Temuan Keamanan (`/security-audit`) & Remediasi Langsung**:
+  1. **Single Source of Truth Kepemilikan Aset BMN (`Employee::resolveIdByName` & `Asset::isOwnedByEmployee`)**:
+     - Menghubungkan kolom teks hasil impor Excel BMN (`pengguna` dan `nama_pengguna`) langsung ke daftar pegawai resmi di Modul Kepegawaian (`kpg_employees`) melalui `Employee::resolveIdByName()` dan hook `Asset::saving`, serta mencegah kebocoran pencocokan nama parsial di `Asset::isOwnedByEmployee()`.
+  2. **Proteksi RBAC Konfigurasi Email Admin & Batas Brute-Force 2FA (`AuthController` & `routes/api.php`)**:
+     - Memasang middleware `role:super_admin` pada rute `/api/admin/email/*` dan membatasi percobaan `challenge_token` pada `login2Fa()` maksimal 5 kali percobaan sebelum token hangus otomatis.
+  3. **Pembatasan Foto Dokumen Rahasia (STNK/BPKB) untuk Peminjam Aktif & Allowlist MIME Inline**:
+     - Membatasi akses foto bagi peminjam aset aktif di `CheckModuleAccess` dan `CheckPermission` hanya pada sudut pandang fisik (`depan`, `belakang`, `kiri`, `kanan`, `lokasi`, `geotag`), menutup akses ke foto dokumen `stnk`/`bpkb`, serta memvalidasi masa berlaku token Sanctum dan status aktif akun pada query `?token=...`.
+     - Menerapkan allowlist MIME ketat (`application/pdf`, `image/jpeg`, `image/png`, `image/webp`) pada streaming inline di `AssetPhotoController`, `AssetDocumentController`, dan `AssignmentLetterController`.
+  4. **Penutupan Celah BOLA/IDOR pada BKSDA Drive (`DriveController` & `DriveShareController`)**:
+     - Menegakkan otorisasi tulis (`DriveAccess::canWriteFolder` / `canWriteFile`) pada operasi `toggleStar()`, `restore()`, dan `forceDelete()` melalui helper terpusat `resolveWritableItem()`.
+     - Mengganti password statis pembuatan akun manajer resor dengan `Str::random(64)` + `is_active = false` + `must_change_password = true`.
+     - Memuat relasi `file` dengan `withTrashed()` pada `DriveShareController::deleteShare()` agar pencabutan share pada berkas di tempat sampah tidak memicu HTTP 500 `TypeError` dan tetap terproteksi HTTP 403 bagi non-pemilik.
+  5. **Validasi Hari Kerja Cuti Tahunan & Sinkronisasi Profil Kontak (`EmployeeLeaveRequestController` & `AuthController`)**:
+     - Menolak permohonan cuti tahunan yang hanya mencakup hari akhir pekan/libur (`$jumlahHari < 1`) agar tidak mengurangi atau memanipulasi kuota 0 hari.
+     - Memperbaiki penyimpanan nomor telepon di `AuthController::updateProfile()` ke kolom `telepon` dengan accessor/mutator `no_telepon` di model `Employee`, serta mendukung pengosongan alamat email pegawai.
+     - Menghentikan pembuatan notifikasi portal (`PortalNotificationService::notifyEmployee`) untuk akun pengguna yang sudah dinonaktifkan (`! $user->is_active`).
+  6. **Hardening Sisi Klien Portal (`MyAssetsTab`, `PortalProfileSidebar`, `KalkulatorDinasTab`, `GeneralReportInlineForm`, `SmartPatrolInlineForm`, `print-st.ts`)**:
+     - Memperketat `resolvePhotoUrl()` di `MyAssetsTab.tsx` agar hanya mengizinkan skema `http://`, `https://`, atau path relatif `/` (menolak `javascript:`, `data:`, dan `//`).
+     - Membatasi upload gambar di seluruh form Portal (Foto Profil, Nota Kalkulator Dinas, Cover & Dokumentasi Laporan Umum/Smart Patrol) hanya pada MIME raster `["image/jpeg", "image/png", "image/webp"]` (menolak `image/svg+xml`).
+     - Menambahkan sanitasi karakter HTML (`[<>&"']`) pada `<title>` jendela cetak Surat Tugas (`print-st.ts`).
+
+- **Simplifikasi Kode (`/ponytail-review`)**:
+  - **Refaktor `VisumSpdController.php`**: Mengganti 7 array template default yang disalin berulang (289 baris) dan kueri N+1 `exists()` menjadi satu builder `buildDefaultTemplate()` (**-183 baris**).
+  - **Deduplikasi `EmployeeLeaveRequestController.php`**: Menyatukan kalkulasi hari cuti, penyimpanan berkas scan, dan streaming berkas scan ke 4 helper bersama (`calculateLeaveDays`, `storeLeaveScanFiles`, `respondLeaveScan`, `findMyLeaveRequest`).
+  - **Deduplikasi Komponen Frontend Portal**: Menyatukan kartu metrik di `PortalQuickStats.tsx`, helper `isLoanOverdue()` di `ActiveLoansTab.tsx`, pemformatan `merkDisplay` di `MyAssetsTab.tsx`, dan kalkulasi 1-pass `totalPengeluaran`/`totalSpj`/`totalNonSpj` di `KalkulatorDinasTab.tsx`.
+
+- **Verifikasi Kualitas**:
+  - `php backend/tests/portal_security_check.php`: **PASS (200+ security invariants)**.
+  - `PortalPersonalSecurityTest.php`: **34 tests, 90 assertions PASS (100% Hijau)**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+### 27. Review Terfokus Portal: Kepemilikan Aset Ambigu, Challenge 2FA setelah Reset Kredensial, dan Simplifikasi Draf (8 November 2026)
+
+- **Bukti sebelum perbaikan**: 5 dari 6 skenario regresi baru gagal pada source `b677713b` (ditambah tes baru): pembacaan BPKB nama ganda/kolom pemilik bertentangan mendapat HTTP 200; impor nama dasar ambigu memilih pegawai pertama; challenge 2FA lama tetap menerbitkan token setelah reset password atau penggantian authenticator. Kontrol positif pemilik dengan `employee_id` eksplisit sudah lulus.
+- **Perbaikan kepemilikan aset**: `Employee::resolveIdByName()` sekarang memerlukan satu identitas unik di seluruh kolom nama yang cocok. Nama dasar yang dimiliki beberapa pegawai dan kolom yang menunjuk pegawai berbeda menghasilkan `null`. `Asset::isOwnedByEmployee()` memakai resolver tersebut tanpa fallback pencocokan nama kedua. `employee_id` eksplisit tetap menjadi acuan utama. Aset legacy ambigu tanpa ID perlu ditetapkan pemiliknya oleh admin; relasi historis eksplisit dan data operasional tidak diubah massal.
+- **Perbaikan challenge 2FA**: challenge diikat pada fingerprint hash password dan secret authenticator saat faktor pertama berhasil. Penyelesaian challenge menolak perubahan kredensial atau 2FA yang sudah dinonaktifkan sebelum recovery code dikonsumsi/token diterbitkan. Challenge dari versi lama tanpa fingerprint meminta login ulang.
+- **Ponytail**: kalkulator dinas memuat satu snapshot draf untuk tujuh field; helper pembaca draf yang hanya memiliki satu caller di-inline. Fallback otorisasi nama yang berulang di model aset dihapus. Total kode implementasi empat file berkurang **22 baris**, di luar penambahan tes/dokumentasi.
+- **Verifikasi lokal terisolasi**:
+  - Regresi baru: **6 tes, 27 assertions lulus** setelah perbaikan.
+  - Regresi portal personal/auth, 2FA, email, broadcast, Surat Tugas dan Drive: **100 tes, 521 assertions lulus**.
+  - `frontend/tests/portal-review-check.cjs`: lulus; satu pembacaan storage, tujuh field tersimpan dipulihkan, fallback data kosong/rusak, dan SSR tanpa storage.
+  - TypeScript seluruh source frontend (`tsc --noEmit --incremental false`) dan ESLint komponen kalkulator (`--max-warnings=0`): **lulus, 0 error/warning**. Dependensi memakai image lokal dengan overlay read-only dua paket ekspor dokumen yang sudah terpasang; tidak mengunduh paket.
+  - Semua kode target dijalankan dalam container `--network none`, source/toolchain read-only, environment allowlist, SQLite dummy, scratch tmpfs 128 MiB, CPU 1, RAM maksimum 1536 MiB, pids 64, serta batas waktu/file. Tidak memakai database atau identitas operasional.
+- **Cakupan**: review terfokus source dan regresi portal; bukan penutupan audit seluruh aplikasi atau verifikasi deployment. Perubahan belum di-commit/push/deploy oleh sesi ini.
+
+### 28. Review Lanjutan Portal: Batas Modul pada Ringkasan Persetujuan dan Simplifikasi Middleware (8 November 2026)
+
+- **Temuan tambahan terkonfirmasi — pengungkapan metadata terbatas**: `GET /api/mobile/dashboard` sebelumnya menghitung semua Surat Tugas pending untuk setiap admin, termasuk admin Inventory tanpa akses Surat Tugas/Kepegawaian. Permission `surat_tugas.approve` yang masih tersimpan juga cukup walau akses modul tidak ada. Tes dummy sebelum perbaikan mendapat jumlah `1` untuk admin modul lain, padahal hasil yang diharapkan `0`.
+- **Perbaikan**: ringkasan global kini mensyaratkan super admin, atau akses Surat Tugas/Kepegawaian beserta role admin/permission approve. Predicate mengikuti batas modul yang digunakan persetujuan Surat Tugas. Tes mencakup tujuh kombinasi role/module/permission dengan kontrol positif untuk pihak yang berwenang.
+- **Ponytail**:
+  - `CheckModuleAccess.php`: loop pencarian irisan modul dan flag sementara diganti native `array_intersect`.
+  - `CheckModuleAccess.php` dan `CheckPermission.php`: wrapper `isAssetOwner` yang hanya meneruskan satu panggilan dihapus; kedua jalur langsung memakai `Asset::isOwnedByEmployee` setelah model dipastikan tersedia. Pengecualian hanya untuk GET serta pembatasan foto peminjam tetap diterapkan.
+  - Net kode implementasi pada pemeriksaan lanjutan: **-25 baris**, di luar tes/dokumentasi dan perubahan sesi sebelumnya.
+- **Verifikasi**: tiga tes tambahan **26 assertions lulus**; suite regresi terkait keseluruhan **103 tes, 547 assertions lulus** dalam sandbox Docker yang sama tanpa jaringan/data operasional. Tes tambahan membuktikan scoping notifikasi pada list/read/mark-all-read, serta penolakan mutasi aset/foto/dokumen oleh pemilik aset tanpa izin pengelolaan BMN.
+- **Batas pemeriksaan**: review source terfokus; metadata jumlah merupakan dampak yang terbukti. QR 2FA lokal dan pemeriksaan hash password sesi Sanctum terkonfirmasi dari source; tidak dilaporkan sebagai celah baru. Tidak menjalankan ulang build/frontend karena tidak ada perubahan frontend pada pemeriksaan lanjutan. Perubahan tetap lokal, belum di-commit/push/deploy.
+
+### 29. Review Lanjutan Portal: Pratinjau Dokumen dan Isolasi Cache/Sesi (8 November 2026)
+
+- **Cakupan source**: profil kontak/foto portal, viewer dokumen cuti beserta seluruh caller, unduhan Surat Tugas personal, penyimpanan draf kalkulator, RouteGuard/useAuth, dan cache API/auth-store. Tidak ada celah keamanan tambahan yang terkonfirmasi dalam pemeriksaan terfokus ini; tidak menyatakan seluruh aplikasi atau seluruh perilaku browser telah diaudit.
+- **Ponytail — `ScanViewerModal.tsx`**: dua state `dataUrl`/`blobUrl` selalu disetel bersamaan ke nilai identik. Diganti satu state `previewUrl` untuk tampilan PDF/gambar, unduhan dan buka tab baru. Fallback URL streaming dihapus karena tombolnya hanya tersedia saat kedua state lama sudah terisi dan cabang pertama selalu dijalankan. Cleanup object URL serta aturan MIME dan flag `noopener,noreferrer` dipertahankan. Komponen bersama ini dipakai tab cuti Portal, halaman cuti/detail pegawai, dan inbox Surat Tugas.
+- **Dampak**: net **-13 baris kode implementasi** pada putaran ini; tidak mengubah kontrak API, tata letak, atau dependensi.
+- **Verifikasi terisolasi tanpa jaringan**: `portal-review-check.cjs` lulus; `cache-security.cjs` **8/8 lulus** dengan source API/auth-store aktual dan adapter Axios dummy (pergantian identitas, logout, respons lama, deduplikasi, serta refresh profil); TypeScript seluruh source frontend dan ESLint viewer `--max-warnings=0` lulus. Pemeriksaan statis `git diff --check` bersih. Belum melakukan uji visual/interaksi viewer di browser pada putaran ini; tes cache tidak mengklaim kebijakan keamanan browser.
+- **Status**: perubahan tetap lokal, belum di-commit/push/deploy. Perbaikan dan hasil pengujian dua putaran sebelumnya tetap tercatat di bagian 27–28.
+
+### 30. Review Lanjutan Portal: Percobaan Salah Memperpanjang Masa Berlaku Challenge 2FA (8 November 2026)
+
+- **Temuan terkonfirmasi dengan dampak terbatas**: `login2Fa()` sebelumnya menulis ulang seluruh challenge dengan TTL lima menit setiap kali kode salah. Satu kegagalan pada menit ke-4 membuat challenge yang seharusnya berakhir pada menit ke-5 masih dapat diselesaikan pada menit ke-6. Penyelesaian tetap memerlukan kode TOTP/recovery yang sah; batas waktu faktor pertama yang dilanggar merupakan dampak yang dibuktikan.
+- **Bukti lokal sebelum perbaikan**: tes HTTP-kernel dengan akun dummy dan waktu Carbon mendapat HTTP 200 pada menit ke-6, ketika expected result adalah HTTP 422 untuk challenge kedaluwarsa. Kontrol batas lima kegagalan sudah lulus sebelum perbaikan.
+- **Perbaikan/Ponytail native**: counter manual di payload challenge diganti `RateLimiter::hit()` Laravel pada key percobaan terpisah. Payload challenge tidak ditulis ulang sehingga TTL penerbitannya tetap. Percobaan dibatasi lima kali, counter dibersihkan setelah sukses atau pembatalan akibat batas percobaan, tanpa dependensi/helper baru.
+- **Verifikasi**: dua regresi baru **37 assertions lulus**; keseluruhan suite terkait **105 tes, 584 assertions lulus** dalam sandbox Docker tanpa jaringan dengan data dummy. Tes membuktikan expiry, recovery code tidak terkonsumsi setelah expiry, penghentian challenge setelah lima kegagalan, serta keberhasilan login baru dan tokennya. Tidak menjalankan ulang frontend karena source frontend tidak berubah pada putaran ini.
+- **Ukuran perubahan**: putaran ini menambah satu baris implementasi bersih; total delapan file implementasi sejak awal rangkaian review tetap berkurang **59 baris**, di luar tes dan dokumentasi.
+- **Cakupan/status**: review terfokus siklus 2FA, bukan klaim audit menyeluruh atau validasi concurrency/deployment. Seluruh perubahan masih lokal, belum di-commit/push/deploy.
+
+### 31. Review Lanjutan Portal: Pembacaan Saldo Menghapus Pemakaian Cuti Historis (8 November 2026)
+
+- **Temuan terkonfirmasi**: `EmployeeLeaveController::show()` menulis ulang `cuti_terpakai_n0` dari jumlah permohonan online yang disetujui setiap kali saldo dibaca dan ada permohonan tahunan. Pemakaian historis/manual yang dicatat admin dapat hilang ketika pegawai biasa membuat permohonan pending lalu memanggil GET saldo.
+- **Bukti sebelum perbaikan**: admin mencatat 8 hari terpakai dari jatah 12 hari; pegawai mengajukan 1 hari dan membaca saldo; pemakaian berubah menjadi 0. Pengajuan berikutnya 8 hari yang melebihi sisa kuota diterima HTTP 201, padahal seharusnya HTTP 422. Dua dari tiga regresi baru gagal sebelum perubahan; kontrol saldo belum tersimpan sudah lulus.
+- **Perbaikan terkecil pada fungsi bersama**: hapus penulisan/sinkronisasi otomatis dari GET untuk saldo yang sudah tersimpan. Saldo tetap diperbarui melalui aksi admin/persetujuan yang berwenang. Agregasi riwayat disetujui hanya dipakai menyusun draft in-memory jika saldo belum ada. Perbaikan berlaku untuk `/api/me/leave-balance` dan `/api/kepegawaian/employees/{employee}/leaves` karena memakai fungsi yang sama.
+- **Verifikasi**: tiga regresi baru **21 assertions lulus**; suite diperluas dengan `EmployeeLeaveTest` dan `EmployeeLeaveRequestTest`, total **116 tes, 634 assertions lulus** dalam sandbox Docker tanpa jaringan dan dengan data dummy. Kontrol mencakup pembacaan dua endpoint, pemakaian 8 menjadi 9 setelah persetujuan sah, penolakan pengajuan melebihi kuota, serta draft riwayat dua hari tanpa pembuatan record saldo.
+- **Ponytail/dampak**: menghapus query dan penulisan redundan saat membaca saldo tersimpan; net **-9 baris implementasi** pada putaran ini, tanpa dependensi atau migrasi. Saldo operasional tidak diperiksa/direkonsiliasi massal; source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Cakupan/status**: source email pemulihan/perubahan profil dan alur cuti dibaca dalam review terfokus; temuan tambahan yang dibuktikan berada pada saldo cuti. Bukan klaim audit menyeluruh atau verifikasi produksi. Seluruh perubahan tetap lokal, belum di-commit/push/deploy.
+
+### 32. Review Lanjutan Portal: Kredensial Terekam di Audit Log (8 November 2026)
+
+- **Temuan terkonfirmasi pada sink logging bersama**: payload audit menyensor nama key token/password, tetapi URL memakai `fullUrl()` sehingga query bearer token tetap tersimpan dalam bentuk URL-encoded. Token tautan berbagi Drive di path juga terekam. Field `code` pada konfirmasi 2FA/login recovery disimpan tanpa sensor.
+- **Bukti sebelum perbaikan**: empat skenario HTTP-kernel gagal pada ekspektasi redaksi. Token dummy yang diambil dan di-decode dari URL audit berhasil mengakses `/api/me` melalui klien bearer terpisah. Konfirmasi authenticator menyimpan kode TOTP; login recovery menyimpan `AUDITCODE1`; unduhan share yang sah dengan signer storage fake menyimpan capability token di path. Tidak menghubungi provider/storage nyata.
+- **Perbaikan pada `AuditLogMiddleware`**: URL audit disimpan tanpa query karena parameter query sudah tersedia dalam payload yang disanitasi. Rute dengan parameter bernama sensitif memakai pola URI (`{token}`) sebagai URL audit. `code` disensor khusus pada dua endpoint autentikasi 2FA, sehingga field kode bisnis di endpoint lain tetap tercatat. Identitas actor, metode, status, aksi, serta metadata query non-rahasia tetap tersedia.
+- **Ponytail**: hapus guard konversi payload non-array yang tidak dapat dicapai; input `Request::all()` berupa array dan cabang array sanitizer mengembalikan array. Tidak menambah helper atau dependency. Perubahan keamanan dan simplifikasi pada putaran ini net **+6 baris implementasi**.
+- **Verifikasi**: empat skenario terfokus **33 assertions lulus**; keseluruhan regresi terkait **119 tes, 657 assertions lulus** dalam sandbox tanpa jaringan/data operasional. Tes memastikan redaksi query token, path capability, recovery/TOTP, serta pemeliharaan metadata non-rahasia dan kode bisnis. Source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Batas/status**: perbaikan berlaku untuk log baru; log historis dan kredensial operasional tidak diperiksa, dibersihkan, atau dicabut pada sesi ini. Review tetap terfokus, bukan audit menyeluruh atau verifikasi deployment. Semua perubahan masih lokal, belum di-commit/push/deploy.
+
+### 33. Review Lanjutan Portal: Pencabutan Akses Foto dan Kedaluwarsa Token Berkas (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada jalur yang diperiksa. Dua regresi baru menggunakan HTTP kernel dan file/akun dummy: peminjam aktif mendapat foto HTTP 200, setelah pengembalian view/download ditolak 403, dan pemilik tetap mendapat 200. Query token untuk BPKB pribadi ditolak 401 saat `expires_at` lewat maupun saat usia token melewati `sanctum.expiration`; akun nonaktif mendapat 403 dan token dicabut.
+- **Ponytail — `EnsureAccountSecure::isAllowedRoute()`**: dua cabang `return true` dan fallback `return false` digabung menjadi satu ekspresi OR. Daftar rute dan pemeriksaan prefix tetap sama; penolakan akun nonaktif tetap berjalan sebelum pengecualian. Net **-8 baris implementasi** pada putaran ini.
+- **Verifikasi**: dua regresi baru **12 assertions lulus**, lalu suite terkait **121 tes, 669 assertions lulus** dalam sandbox Docker tanpa jaringan dengan storage/database dummy. Source frontend tidak berubah dan tidak diuji ulang pada putaran ini.
+- **Cakupan/status**: pemeriksaan terfokus akses berkas dan status kredensial, bukan audit menyeluruh atau uji deployment. Semua perubahan tetap lokal, belum di-commit/push/deploy. Tidak mengubah atau membersihkan data/log operasional.
+
+### 34. Review Lanjutan Portal: Deduplikasi Perubahan Email dan Isolasi Data Pegawai (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada alur yang diperiksa. Regresi baru menguji kedua pintu perubahan email (`PUT /api/me/email`, `POST /api/me/update-profile`) dengan credential HTTP nyata dan fixture dummy. Password salah ditolak tanpa mengganti email atau menghapus token reset yang masih sah. Penggantian sah menyinkronkan email user/pegawai, menghapus status verifikasi serta token reset lama, dan menolak tautan verifikasi untuk email lama. Penyisipan `user_id`/`employee_id` pihak lain tidak mengubah data atau token reset pihak tersebut.
+- **Ponytail — `AuthController`**: kedua endpoint sebelumnya menyalin assignment/save email, sinkronisasi pegawai, cooldown dan pemanggilan notifikasi. Helper notifikasi yang sudah dipakai keduanya diperluas dan dinamai `updateAccountEmail(User, ?Employee, string)`, sehingga hanya ada satu implementasi proses penyimpanan tersebut. Validasi dan respons masing-masing endpoint dipertahankan; helper tetap private dan tidak menambah lookup pegawai/dependensi baru. Net **-16 baris implementasi** pada putaran ini.
+- **Verifikasi**: regresi email baru **40 assertions lulus** sebelum dan sesudah refaktor; suite terkait **122 tes, 709 assertions lulus** dalam sandbox Docker tanpa jaringan dengan database dummy, fake mail dan fake notification. `git diff --check` bersih. Tidak melakukan uji provider email/produksi atau menguji ulang frontend yang tidak berubah.
+- **Cakupan/status**: review terfokus, bukan penutupan audit seluruh aplikasi. Semua perubahan tetap lokal, belum di-commit/push/deploy; data operasional dan log historis tidak dimodifikasi.
+
+### 35. Review Lanjutan Portal: Reset Kredensial dan Deduplikasi Autentikasi Permission (8 November 2026)
+
+- **Hasil keamanan**: tidak ada celah tambahan terkonfirmasi pada jalur yang diuji. Regresi HTTP dengan akun dummy membuktikan sesi browser dan cookie remember-me dapat dipakai sebelum reset password, kemudian keduanya serta bearer token lama ditolak 401 sesudah reset. Bearer lama dihapus dari database; login dengan password baru berhasil. Replay token reset yang sudah dipakai ditolak 422 tanpa membatalkan token login baru.
+- **Ponytail — `CheckPermission::handle()` L21**: hapus fallback autentikasi query token yang mengulang lookup `PersonalAccessToken` dan pengaturan user resolver. Seluruh rute yang memakai `permission:` sudah melewati `auth:sanctum` lebih dahulu, dibuktikan oleh tes kontrak rute. Penanganan query token tetap melalui middleware yang ada dan Sanctum; guard 401 di pemeriksa permission dipertahankan. Jalur yang dihapus tidak dilaporkan sebagai celah yang dapat dieksploitasi pada rute saat ini. Net **-10 baris implementasi** pada putaran ini, tanpa dependency/helper baru.
+- **Verifikasi**: suite terkait **124 tes, 991 assertions lulus** dalam sandbox Docker tanpa jaringan, database/storage dummy dan fake mail/notification. Mencakup dua tes baru serta regresi token berkas valid/kedaluwarsa, akses pribadi, 2FA, Surat Tugas, Drive dan cuti. `git diff --check` bersih. Frontend tidak berubah pada putaran ini dan tidak diuji ulang.
+- **Cakupan/status**: review terfokus alur pemulihan akun dan middleware otorisasi bersama, bukan audit menyeluruh atau verifikasi deployment. Semua perubahan tetap lokal, belum di-commit/push/deploy. Data operasional dan log historis tidak dimodifikasi.
+
+### 36. Penutupan Audit Portal: Rekonsiliasi Temuan Lama, Lima Akar Baru dan Regresi Menyeluruh (8 November 2026)
+
+- **Cakupan:** workflow standard security-audit lengkap dalam lingkup Portal, bersama ponytail-review. Empat reconnaissance, hunter berdasarkan ledger, verifier temuan dan pemeriksa record baru, post-wave critic serta final-clean critic terpisah. Ledger33unit:22covered,8unit bertaut lima temuan yang sudah diperbaiki,3out_of_scope; tidak ada kandidat belum diputuskan atau unit deferred/blocked dalam cakupan.
+- **Rekonsiliasi:**16temuan historis run-2/3/4 dan perbaikan tambahan progress26–35 dicocokkan dengan kode sekarang; status lengkap di [laporan](docs/security/portal-security-review-2026-11-08.md). Satu klaim admin-signal yang sebelumnya ditolak tetap ditolak. Temuan lama tidak dibatalkan oleh jawaban putaran kecil sebelumnya.
+- **Lima akar baru, semuanya diperbaiki:** konsumsi recovery2FA dari snapshot lama kini CAS ciphertext dan kredensial, TOTP memakai Cache::add; GET aset tidak menulis kepemilikan; GET visum menggabungkan default tanpa menyimpan; seluruh pembaca/initializer saldo memakai EmployeeLeave::forEmployeeYear sehingga CPNS/history/carryover konsisten; state pemilik data portal/detailST diberi key user.id. Masing-masing mempunyai bukti sebelum/sesudah dan pemeriksaan independen; laporan membatasi klaim interleaving serta dummy adapter secara tepat.
+- **Ponytail dan fungsi:** hapus delete token berulang, wrapper disk foto, apiExport, variabel AuthSync dan status raw/alias yang redundan. Tambahkan download=1 pada unduhan detailST dan nama TabLoading agar ESLint lulus. Net **-93baris implementasi** terhadap awalrun-6, tanpa dependency baru. Draf kalkulator, viewer dan helper email dari putaran sebelumnya tetap dipertahankan.
+- **Tes gabungan:**220tes,3022assertions,217lulus dan3skip platform;0gagal. Dua skipPG dijalankan terpisah:2tes10assertions lulus. Lima kasus konkurensi cuti dan satu rename/create lulus dengan dua worker nativePostgreSQL15. Tes ChromeWindows lama tetap skip; diganti bukti komponenST/React nyata dalam ChromiumLinux untuk account-switch dan markup/print-media, bukan diklaim sebagai eksekusi tesWindows yang sama.
+- **Sesudah cleanup terakhir:**90tes1194assertions lulus;8skenario cacheAPI/auth nyata, draft smoke, TypeScript noEmit dan Chromium account-switch/markup lulus. ESLint file yang diperiksa0error/0warning. Validator5record dan33unit lulus;git diff--check bersih.
+- **Artefak/status:** laporan lengkap di docs/security/portal-security-review-2026-11-08.md; record, ledger, snapshot, hash dan receipt sandbox di C:/Users/USER/security-audit-skill/bksda-superapp/run-6. Perbaikan, tes dan dokumentasi disatukan dalam commit lokal penutupan sesuai permintaan pengguna; belum di-push atau deploy. Data operasional, log historis dan konfigurasi provider/deployment tidak diperiksa atau diubah. Audit ini parsial terhadap seluruh repo dan produksi.
+## 37. Audit Surat Tugas dan Kepegawaian — Selesai (9 November 2026)
+
+- **Source, perbaikan dan regresi selesai.** Audit standard/scoped run-7 menutup 44 unit in-scope dari 47 unit; 3 unit di luar cakupan. Critic pascawave 3 dan final-clean independen sama-sama 0 missing/0 reassignment.23 kandidat selesai Phase 3; 21 record retained selesai Phase 5 terpisah termasuk 3 replacement material dengan verifier baru.
+- **Putusan final:**18 temuan historis terkonfirmasi sudah diperbaiki dan regresinya diverifikasi (15 medium, 3 low); 2 dugaan ditolak; 3 needs_validation tanpa severity dijelaskan terbuka. Ini bukan 18 celah aktif sekarang.31 observasi prior-record/89 prior-unit direkonsiliasi; hasil lama tidak disalin sebagai proof baru. Commit Portal `fc610d1d` tetap terpisah.
+- **Perubahan utama dan alasannya:** proyeksi submit dan riwayat pending membatasi data pribadi; otorisasi ST setelah rowlock/guard revisi bersama menutup race dan alternate writer; pending/restore memeriksa jadwal dan mixed batch rollback; foto bersama terlindungi; batch rekening menolak target Super Admin sebelum write; IAM status eksplisit/token revocation; uang makan memakai status resmi dan metadata tarif/Excel/FK benar; parser XLSX native bounded dan tanggal/periode valid; katalog soft-delete/default transaksional; Agent memakai saldo/jenis/hari kerja kanonik, gate socket/key eksplisit, telepon aktif unik; asisten mengautentikasi producer/operator, merevalidasi telepon per pesan dan mengonsumsi draf YA/BATAL atomik.
+- **Tes final:**304 tes backend/4.086 assertions, 301 lulus 3 skip 0 gagal (`php-98873fe9c6cc`); 42 filePHP syntax lulus; fullfrontend TypeScript noEmit/helper/API-cache dan ESLint 0 error 0 warning; asisten actual TS/Express 15 skenario 270 assertions. Subset tumpang tindih tidak dijumlahkan. Dua PG lama dan satu Windows synthetic test skip, tidak dihitung lulus; nativePGdua-worker dan actualLinuxChromium menjadi bukti terpisah.
+- **Bukti end-to-end aktual:**Next/PHP/SQLite/Chromium untuk public/Builder/publish/two recipient/foreign, kedua print handler; KPGpegawai/IAM, suratmasuk/importpresensi, masterbiaya, cuti/cancel/overlap/reject/delete/quota. NativePGmemakai dua worker primed/lockwait/inverseemployeeorder dan delete-versus-approve. Restore mengamati safe row aktif di transaction 1 lalu exactsnapshot pulih saat conflict 422; fresh verifier mengulang 15 assertions. Joined asisten/nativePHP membentuk sesi baseline organik, mengubah telepon lewat adminHTTP nyata, membuktikan oldphoneGET 200/dummybalance vs current 404/GET 0 dan newphonepositive. Tidak memakai provider/data operasional.
+- **Ponytail diterapkan:**hapus komponenhistory 275 baris dan request 38 baris tak dipakai, variabeldead; reuse aturan saldo/jenis/hari dan satu normalizer 15 alias simpan/ekspor. Netimplementasi-162 baris terhadapbase, di luar tests/docs/contohconfig; tanpa dependencybaru.
+- **Batas yang tetap dicatat:**historical pairing exposure/provider effect belum teramati; dampakZIP lintas request perlu config-only owner review; kausalitas historicaldeparture-only snapshot belum dapat diisolasi karena automaticapproval menolak dynamicverification (possible cybersecurityrisk). Sourceguard tersedia diuji; tidak ada replay yang ditolak diulang. Fullassistanttypecheck/ioredis, realRedis/provider, productionworker/storage/printerfisik tidak diklaim.
+- **Laporan final:**[audit dan perubahan](docs/security/surat-tugas-kepegawaian-security-review-2026-11-09.md),[record JSON](docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-findings.json),[detail](docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-findings-detail.md),[needs-validation](docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-needs-validation.md), coverage/rekonsiliasi/executionindex/manifest pada bundle yang sama. Rawrun:`C:/Users/USER/security-audit-skill/bksda-superapp/run-7/`.
+- **Penutupan:**source, tests, laporan dan progress disertakan bersama pada commit lokal penutupan ST/KPG (hash melalui Gitlog; file di dalam commit tidak menyimpan hash dirinya). Tidak push/deploy. Cakupan scoped selesai dengan 3 lead batas validasi di atas; tidak menyatakan seluruh produksi aman.
+
+## 38. Tindak Lanjut Tiga Lead ST/Kepegawaian — Pemeriksaan Aman Selesai (9 November 2026)
+
+- **Hasil:** tiga pemeriksa independen baru memverifikasi ulang record tanpa mengubah verdict. Tetap 18 temuan historis diperbaiki, 3 needs_validation tanpa severity, 2 dugaan ditolak. Kode aplikasi/tes tidak berubah; tidak ada fakta baru yang membenarkan klaim tiga celah aktif atau penutupan tanpa bukti.
+- **Operator asisten:** guard kedua route sudah selesai dan uji ulang current actual TS/Express lulus 1 skenario/84 assertions (`assistant-6eac30a1c741`). Sisa lead menyangkut konfigurasi ingress/otoritas dan konsekuensi provider pada deployment lama; mapping port/source bukan bukti exposure aktual. Tidak meminta/menghasilkan QR atau pairing.
+- **ZIP presensi:** current tiny native filter/basename/cutoff lulus 1 tes/3 assertions (`php-d67a7ee18cd2`). Kontrol auth/role/module/throttle, 200 entri, 5 MiB/anggota, nginx/PHP body limit, FPM dan restart diperiksa. Dampak terhadap pengguna lain belum terbukti dan perlu konfigurasi efektif/isolasi kapasitas dari owner; tidak dilakukan stress/OOM. Budget agregat adalah hardening opsional sampai boundary impact/batas produk jelas.
+- **Snapshot ST:** source dan tiga approved raw receipts dibaca ulang; hash/size cocok. Bukti lama mencampur null.text, invalid React child dan trim tembusan sehingga departure-only belum terisolasi. Guard writer/reader current dan receipt HTTP 1 tes/60 assertions serta legacy reader yang lulus tetap berlaku pada fixture masing-masing; tidak dijalankan ulang. Automatic approval sebelumnya menolak dynamic verification karena possible cybersecurity risk; tidak ada input/replay/varian atau eksekusi snapshot baru.
+- **Pelaporan:** [tindak lanjut tiga lead](docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md); laporan utama/needs-validation diberi tautan, ledger dan execution index diperbarui dengan bukti yang tepat serta manifest diselaraskan. Validator findings 23 record dan coverage 47 unit lulus. Suite 304 tes lama tidak diklaim dijalankan ulang; subset tidak dijumlahkan. Hasil disertakan dalam commit lokal tindak lanjut; tanpa push/deploy/data operasional.
+
+
+## 39. Lifecycle Notifikasi Portal/ST/BMN/Kepegawaian — Source dan Tes Selesai (9 November 2026)
+
+- **31 skenario dilaksanakan:**30 PASS lokal dan1 diagnosis konfigurasi/status deployment (RV-01). Ini regresi fungsional terfokus, bukan audit keamanan menyeluruh baru. Semua skenario memiliki mapping tes/lapisan/batas bukti; tiga lead historis ST/KPG tidak diubah verdict-nya.
+- **Reverb terdiagnosis lewat pemeriksaan server read-only yang diizinkan pengguna:**192.168.100.11 adalah Proxmox; aplikasi VM106 beralamat192.168.100.203, port3000 panel Dokploy. Compose aktif memiliki Reverb/network/alias yang sesuai, tetapi container restart exit1 dengan error SIGINT. CLI backend membuktikan pcntl=no/SIGINT=no; DNS reverb gagal saat diperiksa. Dockerfile kini memasang pcntl dan menjalankan guard signal native saat build. Guard/daemon lokal lulus; image produksi BELUM dibangun ulang/deploy dan server belum dinyatakan pulih.
+- **Perbaikan:**event personal/admin memakai native after-commit/rescue; notice ST trash/restore/update/roster dan bulk konsisten; retry identik ST/cuti tidak menggandakan notice; NIP string dipetakan benar; loan legacy memakai employee integer, koreksi peminjam menyelaraskan aset dan return/delete lama menjaga pemegang baru; pagination notifikasi deterministic; badge/dedup/history/read error kembali ke DB; detail ST/cuti/scan/cetak tidak menggunakan isi lama atau respons request yang terlambat. Nama pegawai pada inbox cuti diperbaiki. Health membedakan DNS/TCP dan mendeteksi heartbeat pertama yang tidak pernah diproses.
+- **Kebijakan pengguna dipertahankan:**ST resmi di sampah keluar dari konflik jadwal dan PD; fixture hadir menjadi H, restore mengembalikan konflik/history/PD. Trash bukan pembatalan resmi, riwayat notice/read_at tetap. Jadwal baru dapat lolos ketika surat di sampah dan restore kemudian bisa konflik. Batch uang makan tersimpan tidak diasumsikan otomatis direkalkulasi.
+- **Verifikasi akhir:**407tes/4.745assertions,404lulus3skip0gagal (`php-715e7c502639`); sesudah tambahan assertion dedup/inbox38tes454assertions lulus (`php-d6b6a976914f`). Subset tidak dijumlahkan.12kasus callback/effect aktual,8kasus API/auth cache, draft/legacy reader, fullTypeScript,15filePHP syntax dan ESLint0error0warning lulus. Dua PG dan satu Windows legacy skip tidak dihitung lulus; tidak mengklaim racePG baru.
+- **E2E aktual:**Next/Laravel/SQLite/native databasequeue/Reverb/proxy/Chromium lulus (`e2e-b85fa428ecf7`), mencakup duplicate/read/history, approved-trash-oldlink-restore-force, worker gate approval pertama terlambat, polling35s saat daemon mati, resubscribe plus frame BARU sesudah pulih dan dua-tabA→C. Native transport/key salah/private auth/foreign403/queue/outage/retry/logout401 juga lulus (`e2e-7525e75da854`). Hidden→visible dan print timer diuji melalui effect/callback terkontrol, bukan perpindahan tab native atau printerfisik.
+- **Review dan artefak:**review akhir independen tidak menemukan bug aplikasi tambahan; assertion reconnect yang semula bisa memakai frame lama diperketat dan diuji ulang. Tanpa dependency baru. [Laporan lengkap](docs/security/portal-notification-lifecycle-report-2026-11-09.md),[hasil31kasus/hash/receipt](docs/security/portal-notification-lifecycle-results-2026-11-09.json),[rencana diperbarui](docs/security/portal-notification-lifecycle-test-plan-2026-11-09.md). Raw/runner:`C:/Users/USER/security-audit-skill/bksda-superapp/run-8/`; fixture sumber ikut repository dan parity SHA diverifikasi.
+- **Penutupan lokal:**kode,tes,laporan,hasil dan progress disertakan pada commit lokal yang sama. Tanpa push/deploy, install dependency, provider eksternal atau perubahan data operasional. Sisa langkah produksi adalah penerapan image baru dan verifikasi operasional, terpisah dari kelulusan tes lokal.

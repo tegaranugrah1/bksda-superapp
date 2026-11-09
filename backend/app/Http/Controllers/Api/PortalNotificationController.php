@@ -22,13 +22,17 @@ class PortalNotificationController extends Controller
 
         $perPage = min(max((int) $request->input('per_page', 10), 1), 50);
         $unreadOnly = filter_var($request->input('unread_only', false), FILTER_VALIDATE_BOOLEAN);
+        $readOnly = filter_var($request->input('read_only', false), FILTER_VALIDATE_BOOLEAN);
         $type = $request->input('type');
 
         $query = PortalNotification::where('user_id', $user->id)
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         if ($unreadOnly) {
             $query->whereNull('read_at');
+        } elseif ($readOnly) {
+            $query->whereNotNull('read_at');
         }
 
         if ($type && in_array($type, ['surat_tugas', 'cuti', 'bmn', 'system'], true)) {

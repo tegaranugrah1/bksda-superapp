@@ -1,0 +1,607 @@
+{
+  "prior_record_observations": 31,
+  "prior_unit_observations": 89,
+  "not_unique_findings": true,
+  "hunter_reconciliations": [
+    {
+      "fingerprint": "portal/api-get-cache/auth-generation",
+      "current_source_refs": [
+        "frontend/src/lib/api.ts:33",
+        "frontend/src/lib/api.ts:173",
+        "frontend/src/lib/api.ts:241"
+      ],
+      "why": "The old URL-only cache/unconditional late response defect is superseded by identity+credential keys, auth/cache generation and stale-response rejection. Do not reopen that old finding from the current QueryClient candidate.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "fe_kpg",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/browser-state/completed-react-state-not-bound-to-identity",
+      "current_source_refs": [
+        "frontend/src/components/providers.tsx:13",
+        "frontend/src/app/kepegawaian/employees/page.tsx:181"
+      ],
+      "why": "Prior record describes repaired personal portal wrappers. This review neither reopens their repaired source nor inherits prior mocked-router proof as real Next E2E; Kepegawaian's separate root QueryClient and unkeyed state remain a new source-grounded variant needing local validation.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "fe_kpg",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "Bank-name XSS R6 / legacy UM-PW-08",
+      "current_source_refs": [
+        "frontend/src/app/kepegawaian/uang-makan/page.tsx:624",
+        "frontend/src/app/kepegawaian/settings/page.tsx:88"
+      ],
+      "why": "Accepting markup-looking text or stripping tags is not XSS without an executing sink. Current assigned React text rendering is escaping; legacy manually-created textContent test is not current app proof. Master-bank consistency and accounting correctness belong to backend/business units.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "fe_kpg",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "portal/api-get-cache/auth-generation",
+      "refs": [
+        "frontend/src/lib/api.ts:36",
+        "frontend/src/lib/api.ts:137",
+        "frontend/src/lib/api.ts:223"
+      ],
+      "why": "Current request/response and GET cache generations reject stale-session work; the old URL-only cache root is absent. Re-read current source; no reuse of old pre-fix claim as a new finding.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "fe_st",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan": "ST-12",
+      "refs": [
+        "frontend/src/lib/letter-utils.ts:213",
+        "frontend/src/components/SuratTugasLetterPreview.tsx:160",
+        "frontend/src/app/kepegawaian/surat-tugas/_lib/print-st.ts:142"
+      ],
+      "why": "Raw stored text-to-print XSS hypothesis is prevented by React text escaping, title metacharacter filtering and DOM serialization. Old handoff/remediation statements about complete Chromium coverage are not treated as proof of actual app E2E. Parent must supply current native browser evidence for its acceptance run.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "fe_st",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "portal/browser-state/completed-react-state-not-bound-to-identity",
+      "refs": [
+        "frontend/src/app/portal/page.tsx",
+        "frontend/src/app/portal/surat-tugas/[id]/page.tsx",
+        "frontend/src/components/RouteGuard.tsx"
+      ],
+      "why": "Prior personal-state isolation fix is retained; this review does not infer a new breach merely from unkeyed module React Query data. Module state differs from owner-scoped personal data and normal login/logout use full navigation. Shared identity lifecycle validation remains parent-owned.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "fe_st",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "docs/kepegawaian/alokasi-bank-dan-biodata/test-plan.md R3, R4, R6, R7",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php:606",
+        "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php:658",
+        "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php:738",
+        "backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php:110"
+      ],
+      "why": "Current source validates existing employee IDs and registered bank names, normalizes placeholder contacts, records each mutation in EmployeeHistory within a transaction, rejects bank registration markup via regex, escapes wildcard search and uses PostgreSQL ilike. Old progress/security prose still describes the previous defects; these source changes were not runtime revalidated by this hunter.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_bank",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "portal/employee-photo/nonunique-storage-object",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:113",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php:224"
+      ],
+      "why": "The relevant prior run-4 record establishes the protected-super-admin employee policy. Current source uses generated employee-ID photo storage and reference-aware cleanup. The new bank candidate concerns an independent database writer and does not reopen the repaired photo root cause.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_bank",
+      "final_fingerprint": "portal/employee-photo/nonunique-storage-object",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "portal/auth/inactive-account-credential-lifecycle",
+      "current_source_refs": [
+        "backend/app/Http/Middleware/EnsureAccountSecure.php:26",
+        "backend/app/Http/Controllers/Api/AuthController.php:774"
+      ],
+      "why": "Inactive identity rejected on every API request before allowlist and pending MFA completion. No old defect reopened.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_identity",
+      "final_fingerprint": "portal/employee-photo/nonunique-storage-object",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "portal/employee-photo/nonunique-storage-object",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:114",
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:122",
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:326",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php:433"
+      ],
+      "why": "Historical deterministic display-name overwrite fixed across all four writers; remaining shared cleanup variants require fresh bounded validation and retain historical root fingerprint.",
+      "initial_hunter_status": "open",
+      "review_owner": "kpg_identity",
+      "final_fingerprint": "portal/employee-photo/nonunique-storage-object",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "progress2-7/employee-password-history-minimization",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php:510",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php:204",
+        "backend/app/Modules/Kepegawaian/Routes/api.php:97"
+      ],
+      "why": "Minimum8 reset policy, removed user relation on detail, role-protected histories and own GET-only exception remain source-visible. Old green/synthetic E2E claims are not fresh execution evidence.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_identity",
+      "final_fingerprint": "portal/employee-photo/nonunique-storage-object",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fp": "incoming-letter-formula-guard",
+      "oldplan": "docs/progress.md:9506-9511",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php",
+        "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetter.php",
+        "backend/app/Modules/Kepegawaian/Routes/api.php"
+      ],
+      "why": "Current safeCell is applied to all user-text and filename export cells. Historical narrative names CsvFormulaGuard::sanitizeRow/exportSelected max:500, neither of which exists in this current incoming-letter implementation; do not copy those claims as evidence.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_incoming",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "prior-assigned-boundaries",
+      "oldplan": "run7/prior-records.json and prior-units.json",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeIncomingLetterController.php",
+        "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php",
+        "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetter.php"
+      ],
+      "why": "Relevant-root searches of both supplied prior ledgers found no incoming-letter-specific record/unit to carry forward. Current source was reviewed independently; no unchanged pre-fix claim was assumed open.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "kpg_incoming",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/leave/raw-type-code-policy-drift",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:149",
+        "backend/app/Modules/Kepegawaian/Models/LeaveType.php:54",
+        "backend/app/Modules/Kepegawaian/Models/EmployeeLeaveRequest.php:73",
+        "backend/app/Modules/Kepegawaian/Models/EmployeeLeaveRequest.php:79"
+      ],
+      "why": "Main personal/admin paths resolve and persist canonical active master, PPPK eligibility is master-based, annual legacy codes count. Agent sibling has a different currently surviving path recorded under agent/leave/raw-type-policy-drift; this does not reopen the fixed portal trace.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_leave",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/leave-state/check-before-lock",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:74",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:108",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:149",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:388",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:500",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:862",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php:69"
+      ],
+      "why": "Catalog then employee serialization precedes decisions and request mutation paths reload under row lock. This source-only review does not represent old sequential-worker fixtures as current native concurrency evidence.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_leave",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/leave-type/rename-race",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Models/LeaveType.php:35",
+        "backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php:125",
+        "backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php:155",
+        "backend/app/Modules/Kepegawaian/Models/Employee.php:74",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:149"
+      ],
+      "why": "Main request and catalog writer lock protocol plus withTrashed rename backfill protect current portal/admin trace. Agent resolves before lock and saves raw label; that sibling variant is included in its type-policy candidate.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_leave",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/leave/missing-balance-policy-drift",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php:51",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:196",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:397",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:509",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php:1185"
+      ],
+      "why": "All main personal reads/submission and approval initializers use shared derived balance, preserving stored administrative values. Agent duplicated12-day fallback remains separately recorded under agent/leave/missing-balance-policy-drift.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_leave",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "historical/progress2-meal-formula",
+      "oldplan_case": "progress.md section2 Formula Injection",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:229",
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:249",
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:383",
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:389",
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:438"
+      ],
+      "why": "Names/status/rank/signers use safeCell; NIP explicit string; financial operands numerically cast. Direct raw working-day value is same-authority hardening. The current legacy test fails before checking cells due to obsolete grouped-sheet name.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_meal",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "historical/progress2-sikadir-resource",
+      "oldplan_case": "progress.md section2 Zip Bomb & Memory Exhaustion",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php:75",
+        "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php:92",
+        "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php:97"
+      ],
+      "why": "200-member and5MiB per-member bounds exist, but they do not supply a cumulative retained-byte budget. Linked candidate remains needs_validation for bounded growth and shared impact.",
+      "initial_hunter_status": "open",
+      "review_owner": "kpg_meal",
+      "final_fingerprint": "kpg/meal/zip-cumulative-metadata-retention",
+      "final_verdict": "needs_validation",
+      "closure": "See final record; no confirmed-vulnerability claim"
+    },
+    {
+      "fp": "historical/progress3-golden-checksum",
+      "oldplan_case": "progress.md section3 and docs/progress.md feature11 Golden Checksum validation",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php:152",
+        "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php:274",
+        "backend/app/Modules/Kepegawaian/Services/AttendanceReconcilerService.php:235"
+      ],
+      "why": "Current code parses and returns the checksum; it does not enforce equality. This rejects the historical claim of enforced validation, not a security policy itself.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "kpg_meal",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fp": "historical/alokasi-root8-classification",
+      "oldplan_case": "docs/kepegawaian/alokasi-bank-dan-biodata/test-plan.md TC-ROOT-14",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php:77",
+        "backend/app/Modules/Kepegawaian/Services/AttendanceReconcilerService.php:39"
+      ],
+      "why": "Reconciler derives Employee jenis_pegawai and exporter accepts explicit PPPK/P3K/GOLONGAN forms. Bank master mutation and frontend normalization remain peer-owned, not duplicated.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_meal",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "KPG settings authorization and configuration-length claims, docs/progress.md Phase224 item6",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Routes/api.php:54",
+        "backend/app/Modules/Kepegawaian/Requests/StoreStTemplateRequest.php:11",
+        "backend/app/Modules/Kepegawaian/Requests/UpdateStTemplateRequest.php:11"
+      ],
+      "why": "Current source carries matching-module/admin server gates and named configuration string limits; unknown JSON configuration fields alone lack an executing/disclosing sink.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_templates",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "KPG public expense internal actor masking, KepegawaianSecurityAuditTest::test_public_expense_templates_masks_user_ids",
+      "current_source_refs": [
+        "backend/app/Modules/Kepegawaian/Resources/StExpenseTemplateResource.php:23",
+        "backend/app/Modules/Kepegawaian/Controllers/StExpenseTemplateController.php:20"
+      ],
+      "why": "Anonymous catalog resource nulls created_by/updated_by and enforces active_only; prior records/units contain no directly matching template fingerprint requiring reopening.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "kpg_templates",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "ST-12 historical browser closure claims",
+      "current_source_refs": [
+        "frontend/src/components/SuratTugasLetterPreview.tsx:162",
+        "frontend/src/app/kepegawaian/surat-tugas/_lib/print-st.ts:138",
+        "frontend/src/lib/letter-utils.ts:213"
+      ],
+      "why": "These statements cannot supply current actual-app runtime evidence. This assigned source pass establishes React/DOM serialization controls only and makes no browser/native-Word execution claim.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "kpg_templates",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "R-ST-01",
+      "oldplan_case": "ST-10/ST-13",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php:73",
+        "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php:98",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:518",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:662",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:855",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:963"
+      ],
+      "why": "Generated per-model upload namespace and shared withTrashed reference-aware cleanup replace the historic display-number collision. Current source and regression source were reread; historical execution is not claimed as new evidence.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_files",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/assignment-personal-cross-module-admin",
+      "oldplan_case": "ST-11 personal alternative",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:132",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:135",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:146"
+      ],
+      "why": "Personal admin bypass is restricted to relevant module admins or superadmin before attachment lookup; unrelated global admin no longer bypasses current participant/creator scope.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_files",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "archive-retention-after-st-trash",
+      "oldplan_case": "ST-14 lifecycle hypothesis",
+      "current_source_refs": [
+        "backend/app/Jobs/ArchiveOfficialDocument.php:49",
+        "backend/app/Support/Security/DriveAccess.php:207",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:798"
+      ],
+      "why": "Archives have independent tombstones/ACLs; no source-backed deletion guarantee requires destroying all archive copies on ST soft-delete. Retention alone does not establish unauthorized access.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "st_files",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "surat-tugas/restore-bypasses-scheduling-validation",
+      "oldplan_case": "ST-13",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:829",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:928",
+        "backend/app/Modules/SuratTugas/Services/AssignmentLetterConflictService.php:75"
+      ],
+      "why": "Prior run6 source coverage established creator scope but did not check restoration against an intervening accepted conflicting schedule.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_files",
+      "final_fingerprint": "surat-tugas/restore-bypasses-scheduling-validation",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "surat-tugas/delete-publication-stale-authorization",
+      "oldplan_case": "ST-13",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:779",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:793",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:798",
+        "backend/vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletes.php:153"
+      ],
+      "why": "Existing source tests cover static role/status decisions but do not demonstrate that the decision remains true at the final concurrent mutation.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_files",
+      "final_fingerprint": "surat-tugas/delete-publication-stale-authorization",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "portal/assignment-personal-cross-module-admin",
+      "old_plan_case": "ST-03",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:95-106",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:132-146"
+      ],
+      "why": "Both personal administrator bypasses now require superadmin or matching-module admin; list remains participant/creator scoped.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_management",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/auth/inactive-account-credential-lifecycle",
+      "old_plan_case": "ST-04",
+      "current_source_refs": [
+        "backend/app/Http/Middleware/EnsureAccountSecure.php:18-37",
+        "backend/app/Http/Controllers/Api/AuthController.php:774"
+      ],
+      "why": "Global request guard checks inactive accounts including public Sanctum credentials; pending challenge completion independently rejects inactive.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_management",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/auth/logout-transient-token-bearer-retention",
+      "old_plan_case": "ST-04",
+      "current_source_refs": [
+        "backend/app/Http/Controllers/Api/AuthController.php:197-209"
+      ],
+      "why": "Logout deletes all persistent token rows regardless of Sanctum TransientToken and invalidates current web session.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_management",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/browser-state/completed-react-state-not-bound-to-identity",
+      "old_plan_case": "ST-03",
+      "current_source_refs": [
+        "frontend/src/app/portal/surat-tugas/[id]/page.tsx:357"
+      ],
+      "why": "The state-owning personal page is keyed by current user.id; this is source revalidation, not fresh browser execution.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_management",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "R-ST-03-retained-permission",
+      "old_plan_case": "ST-04 / old handoff R-ST-03",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1311-1326",
+        "backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php:141"
+      ],
+      "why": "Current conflict-detail helper requires current ST/Kepegawaian membership plus authority; actual IAM/relogin fixture exists and was source-read.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_management",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "surat-tugas/publication/approve-revision-bypasses-admin",
+      "old_plan_case": "ST-05 / full parallel writer matrix",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:612",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1095",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1135",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:700"
+      ],
+      "why": "Prior tests omitted the nonadmin explicit approver acting on existing official content; reported as needs-validation candidate.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_management",
+      "final_fingerprint": "surat-tugas/publication/approve-revision-bypasses-admin",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "fingerprint": "surat-tugas/update/authorization-before-record-lock",
+      "old_plan_case": "ST-04/ST-05 resource lifecycle during mutation",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:608",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:618",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:655"
+      ],
+      "why": "Prior sources rechecked status after lock but not resource ownership; reported as needs-validation candidate.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_management",
+      "final_fingerprint": "surat-tugas/update/authorization-before-record-lock",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "oldplan_case": "ST-01 public auto-approval / forged identity",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:425",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:507",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:510",
+        "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php:140"
+      ],
+      "why": "Public path always pending and actor fields are server-derived; retained submitted number alone does not publish a letter.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_public",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "R-ST-02 forced private conflict flag in update",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:628",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:632",
+        "backend/app/Modules/SuratTugas/Services/AssignmentLetterConflictService.php:109",
+        "backend/app/Modules/SuratTugas/Services/AssignmentLetterConflictService.php:150"
+      ],
+      "why": "Update now derives flag from actual user helper; all five parallel caller paths use helper and generic message never incorporates reason/purpose.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_public",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "R-ST-03 retained permission without module",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1311",
+        "backend/app/Http/Middleware/EnsureAccountSecure.php:19",
+        "backend/bootstrap/app.php:58",
+        "backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php:281"
+      ],
+      "why": "Relevant membership is tested before role/permission except intended super_admin bypass; global account middleware also resolves public Sanctum credentials.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_public",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "R-ST-01 public upload namespace",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php:75"
+      ],
+      "why": "Store calls shared replacement storing under generated surat-tugas/{model-id}; full files unit remains parent/peer-owned.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_public",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "oldplan_case": "ST-06 aliases and delete/restore projection",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1059",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1068",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1078",
+        "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php:21",
+        "backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php:176"
+      ],
+      "why": "Default soft-delete scope and case-insensitive official allowlist remain; no employee model is serialized here.",
+      "initial_hunter_status": "fixed",
+      "review_owner": "st_public",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    },
+    {
+      "fingerprint": "portal/assignment-personal-cross-module-admin",
+      "oldplan_case": "run2/3 personal endpoint historical finding",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1311"
+      ],
+      "why": "Personal list/detail/download is peer-owned ST-03. Its historical blanket admin bug does not recur in this public conflict helper; no personal closure claim made.",
+      "initial_hunter_status": "not_owned",
+      "review_owner": "st_public",
+      "closure": "Peer ST-03 current creator/participant/personal representations reviewed and exercised by native actor acceptance;old blanket-admin claim not reopened",
+      "final_coverage": "ST-03"
+    },
+    {
+      "oldplan_case": "run6 hunt_letters broad public pass",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:529",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:562",
+        "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php:447"
+      ],
+      "why": "Prior broad covered result checked public status/conflict/verify but did not account for full employees relation in successful public submit. New private-field response candidate requires independent native validation.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_public",
+      "final_fingerprint": "surat-tugas/public-submit/full-employee-response",
+      "final_verdict": "confirmed",
+      "closure": "Historical defect repaired and current regression verified"
+    },
+    {
+      "oldplan_case": "ST-07",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php:119",
+        "backend/app/Modules/SuratTugas/Services/AssignmentLetterConflictService.php:42"
+      ],
+      "why": "Existing source tests establish intended inclusive overlap/self exclusion and valid per-person schedules only. Reversed effective ranges remain an unvalidated new candidate; old green counts do not close this acceptance gap.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_schedule",
+      "final_fingerprint": "surat-tugas/scheduling/inverted-effective-employee-range",
+      "final_verdict": "rejected",
+      "closure": "See final record; no confirmed-vulnerability claim"
+    },
+    {
+      "oldplan_case": "ST-08",
+      "current_source_refs": [
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1295",
+        "backend/tests/Feature/SuratTugasPostgresConcurrencyTest.php:200"
+      ],
+      "why": "Current sorted locking source is present. Historical reports claim real concurrency proof, but reviewed test commits the first worker before opening the second and does not execute native controller requests. Treat the test's concurrency claim as rejected evidence and perform the planned native parent test; no unchanged pre-fix race is invented.",
+      "initial_hunter_status": "open",
+      "review_owner": "st_schedule",
+      "closure": "Current native PostgreSQL two-worker store/approval fixtures pass;historical sequential test is not counted as concurrency proof",
+      "final_coverage": "ST-08"
+    },
+    {
+      "oldplan_case": "ST-09",
+      "current_source_refs": [
+        "docs/security/surat-tugas-security-pentest-plan.md:51",
+        "backend/tests/Feature/SuratTugasFullSchemaSecurityTest.php:278",
+        "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php:1197"
+      ],
+      "why": "The claim that equal suggestions or duplicate display numbers violate an allocation guarantee is rejected: no such guarantee exists in the current source contract.",
+      "initial_hunter_status": "rejected",
+      "review_owner": "st_schedule",
+      "closure": "Historical hunter disposition retained with cited current source;full final ledger and records govern current scope"
+    }
+  ],
+  "scope_note": "Prior Portal results remain in fc610d1d. Native mobile,standalone BMN/Visum/Drive/CMS and deployed infrastructure are not newly fully audited by this scoped run."
+}

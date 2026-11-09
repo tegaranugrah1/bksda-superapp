@@ -26,54 +26,7 @@ class EmployeeLeaveController extends Controller
             $rawYear = (int) $request->input('year', date('Y'));
             $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
 
-            $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-                ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
-                ->annual()
-                ->whereYear('tanggal_mulai', $year)
-                ->sum('jumlah_hari');
-
-            $leave = EmployeeLeave::where('employee_id', $employeeId)
-                ->where('year', $year)
-                ->first();
-
-            if ($leave) {
-                $hasOnlineRequests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
-                    ->annual()
-                    ->whereYear('tanggal_mulai', $year)
-                    ->exists();
-                if ($hasOnlineRequests && (int) $leave->cuti_terpakai_n0 !== $approvedDays) {
-                    $leave->update(['cuti_terpakai_n0' => $approvedDays]);
-                    $leave->refresh();
-                }
-            } else {
-                // Check previous year record if any to prefill defaults
-                $prevLeave = EmployeeLeave::where('employee_id', $employeeId)
-                    ->where('year', $year - 1)
-                    ->first();
-
-                $prev2Leave = EmployeeLeave::where('employee_id', $employeeId)
-                    ->where('year', $year - 2)
-                    ->first();
-
-                $isCpns2025 = $employee->is_cpns2025;
-                $defaultHakN = ($isCpns2025 && $year === 2025) ? 0 : 12;
-                $defaultSisaN1 = ($isCpns2025 && $year === 2026)
-                    ? 0
-                    : ($prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0);
-
-                // Create in-memory draft if not saved in DB yet
-                $leave = new EmployeeLeave([
-                    'employee_id' => $employeeId,
-                    'year' => $year,
-                    'hak_cuti_n' => $defaultHakN,
-                    'sisa_cuti_n1' => $defaultSisaN1,
-                    'cuti_terpakai_n1' => $prevLeave ? (int) $prevLeave->cuti_terpakai_n0 : 0,
-                    'sisa_cuti_n2' => $prev2Leave ? max(0, $prev2Leave->sisa_cuti_tersedia) : 0,
-                    'cuti_terpakai_n2' => $prev2Leave ? (int) $prev2Leave->cuti_terpakai_n0 : 0,
-                    'cuti_terpakai_n0' => $approvedDays,
-                    'catatan' => null,
-                ]);
-            }
+            $leave = EmployeeLeave::forEmployeeYear($employeeId, $year);
 
             $requests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
                 ->orderBy('tanggal_mulai', 'desc')
@@ -239,23 +192,8 @@ class EmployeeLeaveController extends Controller
                 ->whereYear('tanggal_mulai', $year)
                 ->sum('jumlah_hari');
 
-            $leave = EmployeeLeave::where('employee_id', $employeeId)->where('year', $year)->first();
-            if (!$leave) {
-                $prevLeave = EmployeeLeave::where('employee_id', $employeeId)->where('year', $year - 1)->first();
-                $prev2Leave = EmployeeLeave::where('employee_id', $employeeId)->where('year', $year - 2)->first();
-                $leave = EmployeeLeave::create([
-                    'employee_id' => $employeeId,
-                    'year' => $year,
-                    'hak_cuti_n' => 12,
-                    'sisa_cuti_n1' => $prevLeave ? max(0, $prevLeave->sisa_cuti_tersedia) : 0,
-                    'cuti_terpakai_n1' => $prevLeave ? (int) $prevLeave->cuti_terpakai_n0 : 0,
-                    'sisa_cuti_n2' => $prev2Leave ? max(0, $prev2Leave->sisa_cuti_tersedia) : 0,
-                    'cuti_terpakai_n2' => $prev2Leave ? (int) $prev2Leave->cuti_terpakai_n0 : 0,
-                    'cuti_terpakai_n0' => $approvedDays,
-                ]);
-            } else {
-                $leave->update(['cuti_terpakai_n0' => $approvedDays]);
-            }
+            $leave = EmployeeLeave::forEmployeeYear($employeeId, $year);
+            $leave->fill(['cuti_terpakai_n0' => $approvedDays])->save();
 
             DB::commit();
 

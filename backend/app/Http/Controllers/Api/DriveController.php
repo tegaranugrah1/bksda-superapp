@@ -97,8 +97,9 @@ class DriveController extends Controller
                 $fileQuery->whereNull('folder_id');
             }
         } elseif ($search !== '') {
-            $folderQuery->where('name', 'like', "%{$search}%");
-            $fileQuery->where('name', 'like', "%{$search}%");
+            $escapedSearch = addcslashes($search, '%_');
+            $folderQuery->where('name', 'like', "%{$escapedSearch}%");
+            $fileQuery->where('name', 'like', "%{$escapedSearch}%");
         }
 
         // Anti-Search Leak: saring hanya folder dan berkas yang berhak dibaca user
@@ -226,6 +227,28 @@ class DriveController extends Controller
     }
 
     /**
+     * Resolve folder/file and enforce write permission (Anti-BOLA / CWE-639).
+     */
+    private function resolveWritableItem(?\App\Models\User $user, string $type, int $id, bool $trashed = false): DriveFolder|DriveFile|JsonResponse
+    {
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if ($type === 'folder') {
+            $folder = ($trashed ? DriveFolder::onlyTrashed() : DriveFolder::query())->findOrFail($id);
+            return DriveAccess::canWriteFolder($user, $folder)
+                ? $folder
+                : response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $file = ($trashed ? DriveFile::onlyTrashed() : DriveFile::query())->findOrFail($id);
+        return DriveAccess::canWriteFile($user, $file)
+            ? $file
+            : response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    /**
      * PUT /api/drive/{type}/{id}/rename
      */
     public function rename(Request $request, string $type, int $id): JsonResponse
@@ -234,21 +257,12 @@ class DriveController extends Controller
             'name' => ['required', 'string', 'max:255'],
         ]);
 
-        $user = $request->user();
-        if ($type === 'folder') {
-            $model = DriveFolder::findOrFail($id);
-            if (! DriveAccess::canWriteFolder($user, $model)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-            $cleanName = $this->sanitizeFilesystemName($validated['name'], 'folder');
-        } else {
-            $model = DriveFile::findOrFail($id);
-            if (! DriveAccess::canWriteFile($user, $model)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-            $cleanName = $this->sanitizeFilesystemName($validated['name'], 'file');
+        $model = $this->resolveWritableItem($request->user(), $type, $id);
+        if ($model instanceof JsonResponse) {
+            return $model;
         }
 
+        $cleanName = $this->sanitizeFilesystemName($validated['name'], $type === 'folder' ? 'folder' : 'file');
         $model->update(['name' => $cleanName]);
 
         return response()->json(['message' => 'Nama berhasil diperbarui.', 'item' => $model]);
@@ -259,7 +273,11 @@ class DriveController extends Controller
      */
     public function toggleStar(Request $request, string $type, int $id): JsonResponse
     {
-        $model = $type === 'folder' ? DriveFolder::findOrFail($id) : DriveFile::findOrFail($id);
+        $model = $this->resolveWritableItem($request->user(), $type, $id);
+        if ($model instanceof JsonResponse) {
+            return $model;
+        }
+
         $model->update(['is_starred' => ! $model->is_starred]);
 
         return response()->json(['message' => 'Status bintang diperbarui.', 'is_starred' => $model->is_starred]);
@@ -270,17 +288,9 @@ class DriveController extends Controller
      */
     public function trash(Request $request, string $type, int $id): JsonResponse
     {
-        $user = $request->user();
-        if ($type === 'folder') {
-            $model = DriveFolder::findOrFail($id);
-            if (! DriveAccess::canWriteFolder($user, $model)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-        } else {
-            $model = DriveFile::findOrFail($id);
-            if (! DriveAccess::canWriteFile($user, $model)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
+        $model = $this->resolveWritableItem($request->user(), $type, $id);
+        if ($model instanceof JsonResponse) {
+            return $model;
         }
 
         $model->delete();
@@ -293,9 +303,10 @@ class DriveController extends Controller
      */
     public function restore(Request $request, string $type, int $id): JsonResponse
     {
-        $model = $type === 'folder'
-            ? DriveFolder::onlyTrashed()->findOrFail($id)
-            : DriveFile::onlyTrashed()->findOrFail($id);
+        $model = $this->resolveWritableItem($request->user(), $type, $id, trashed: true);
+        if ($model instanceof JsonResponse) {
+            return $model;
+        }
 
         $model->restore();
 
@@ -307,12 +318,12 @@ class DriveController extends Controller
      */
     public function forceDelete(Request $request, string $type, int $id): JsonResponse
     {
-        $user = $request->user();
-        $model = $type === 'folder'
-            ? DriveFolder::onlyTrashed()->findOrFail($id)
-            : DriveFile::onlyTrashed()->findOrFail($id);
+        $model = $this->resolveWritableItem($request->user(), $type, $id, trashed: true);
+        if ($model instanceof JsonResponse) {
+            return $model;
+        }
 
-        if ($type === 'file') {
+        if ($model instanceof DriveFile) {
             // Hapus berkas fisik dari storage RustFS
             try {
                 Storage::disk('drive')->delete($model->s3_key);
@@ -544,7 +555,11 @@ class DriveController extends Controller
                     ],
                 ]);
             } catch (\Throwable $e) {
-                return response()->json(['message' => 'Gagal menyelesaikan multipart upload: '.$e->getMessage()], 500);
+                return response()->json([
+                    'message' => config('app.debug')
+                        ? 'Gagal menyelesaikan multipart upload: ' . $e->getMessage()
+                        : 'Gagal menyelesaikan multipart upload.',
+                ], 500);
             }
         }
 
@@ -903,8 +918,10 @@ class DriveController extends Controller
                     'name' => $emp->nama_lengkap,
                     'username' => $emp->nip,
                     'email' => strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $emp->nip)) . '@bksda.local',
-                    'password' => \Illuminate\Support\Facades\Hash::make('Bksda123!'),
+                    'password' => \Illuminate\Support\Facades\Hash::make(Str::random(64)),
                     'role' => 'user',
+                    'is_active' => false,
+                    'must_change_password' => true,
                 ]);
             }
         }

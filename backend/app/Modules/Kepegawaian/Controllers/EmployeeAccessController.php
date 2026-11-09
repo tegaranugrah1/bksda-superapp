@@ -44,6 +44,7 @@ class EmployeeAccessController extends Controller
             'data' => [
                 'username' => $user->username,
                 'role' => $user->role,
+                'is_active' => $user->is_active,
                 'access_modules' => $user->access_modules,
                 'permissions' => $user->permissions,
             ],
@@ -67,15 +68,19 @@ class EmployeeAccessController extends Controller
             }
 
             $validated = $request->validated();
+            if (array_key_exists('is_active', $validated)) {
+                $validated['is_active'] = (bool) $validated['is_active'];
+            }
 
             // Try to find user by NIP (trim whitespace for safety)
             $user = User::where('username', $nip)->first();
 
             // Prevent self-demotion / lockout
-            if ($user && $user->id === $request->user()?->id && $validated['role'] !== 'super_admin') {
+            if ($user && $user->id === $request->user()?->id
+                && ($validated['role'] !== 'super_admin' || ($validated['is_active'] ?? true) === false)) {
                 return response()->json([
                     'error' => 'Forbidden',
-                    'message' => 'Anda tidak dapat menurunkan peran (role) akun Anda sendiri.',
+                    'message' => 'Anda tidak dapat menurunkan peran atau menonaktifkan akun Anda sendiri.',
                 ], 403);
             }
 
@@ -94,6 +99,7 @@ class EmployeeAccessController extends Controller
                 'name' => $employee->nama_lengkap,
                 'password' => $validated['password'],
                 'role' => $validated['role'],
+                'is_active' => $validated['is_active'] ?? true,
                 'access_modules' => $validated['access_modules'] ?? [],
                 'permissions' => $validated['permissions'] ?? [],
             ]);
@@ -105,6 +111,7 @@ class EmployeeAccessController extends Controller
                 'action' => 'CREATE_IAM_ACCOUNT',
                 'changes' => [
                     'role' => ['old' => null, 'new' => $validated['role']],
+                    'is_active' => ['old' => null, 'new' => $user->is_active],
                     'access_modules' => ['old' => [], 'new' => $validated['access_modules'] ?? []],
                 ],
                 'notes' => 'Penerbitan akun akses aplikasi (IAM) oleh Super Admin',
@@ -119,9 +126,11 @@ class EmployeeAccessController extends Controller
             $oldRole = $user->role;
             $oldModules = $user->access_modules ?? [];
             $oldPerms = $user->permissions ?? [];
+            $oldActive = $user->is_active;
 
             $updateData = [
                 'role' => $validated['role'],
+                'is_active' => $validated['is_active'] ?? $oldActive,
                 'access_modules' => $validated['access_modules'] ?? [],
                 'permissions' => $validated['permissions'] ?? [],
             ];
@@ -134,6 +143,7 @@ class EmployeeAccessController extends Controller
 
             // Jika role, access_modules, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
             if ($user->role !== $validated['role']
+                || $oldActive !== $updateData['is_active']
                 || $user->access_modules !== ($validated['access_modules'] ?? [])
                 || $user->permissions !== ($validated['permissions'] ?? [])) {
                 $user->tokens()->delete();
@@ -148,6 +158,7 @@ class EmployeeAccessController extends Controller
                 'action' => 'UPDATE_IAM_ACCESS',
                 'changes' => [
                     'role' => ['old' => $oldRole, 'new' => $validated['role']],
+                    'is_active' => ['old' => $oldActive, 'new' => $user->is_active],
                     'access_modules' => ['old' => $oldModules, 'new' => $validated['access_modules'] ?? []],
                     'permissions' => ['old' => $oldPerms, 'new' => $validated['permissions'] ?? []],
                 ],
@@ -163,6 +174,7 @@ class EmployeeAccessController extends Controller
             'data' => [
                 'username' => $user->username,
                 'role' => $user->role,
+                'is_active' => $user->is_active,
                 'access_modules' => $user->access_modules,
                 'permissions' => $user->permissions,
             ],

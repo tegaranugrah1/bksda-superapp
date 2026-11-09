@@ -24,9 +24,10 @@ class DispatchSuratTugasWebhook implements ShouldQueue
 
     public function handle(): void
     {
-        $webhookUrl = config('services.agent.webhook_url', env('AGENT_WEBHOOK_URL', 'http://192.168.100.205:8080/webhook/st-published'));
+        $webhookUrl = config('services.agent.webhook_url');
+        $internalKey = config('services.agent.internal_key');
 
-        if (empty($webhookUrl)) {
+        if (empty($webhookUrl) || empty($internalKey)) {
             return;
         }
 
@@ -54,7 +55,7 @@ class DispatchSuratTugasWebhook implements ShouldQueue
         try {
             Http::timeout(3)
                 ->withHeaders([
-                    'X-Agent-Internal-Key' => config('services.agent.internal_key', env('AGENT_INTERNAL_KEY', 'bksda-hermes-agent-secure-token-2026')),
+                    'X-Agent-Internal-Key' => $internalKey,
                 ])
                 ->post($webhookUrl, $payload);
         } catch (\Throwable $e) {

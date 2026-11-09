@@ -11,6 +11,15 @@ class StExpenseTemplate extends Model
 {
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $template): void {
+            if ($template->is_default && !$template->is_active) {
+                throw new \DomainException('Template biaya default harus tetap aktif atau ganti default terlebih dahulu.');
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'code',

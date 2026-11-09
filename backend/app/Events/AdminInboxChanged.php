@@ -5,9 +5,11 @@ namespace App\Events;
 use App\Models\User;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Queue\SerializesModels;
 
-class AdminInboxChanged implements ShouldBroadcast
+class AdminInboxChanged implements ShouldBroadcast, ShouldDispatchAfterCommit, ShouldRescue
 {
     use SerializesModels;
 

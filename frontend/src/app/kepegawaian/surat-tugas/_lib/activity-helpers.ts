@@ -126,6 +126,71 @@ export interface BuildKegiatanDiktumParams {
  * Single source of truth untuk membangun kalimat penugasan diktum utama ("Untuk" Poin 1).
  * Mendukung pola kustom dari Master Jenis Tugas (`contohFormat`) maupun formula bawaan.
  */
+
+const OFFICIAL_ACRONYMS = new Set([
+  "BMN", "SKW", "TSL", "TWR", "KPG", "SPPD", "GPS", "BKSDA", "KSDAE", "KLHK",
+  "UPT", "PEH", "ASN", "PNS", "PPNPN", "PPPK", "ATK", "DIPA", "SBM", "SIMAN", "SPD",
+  "SP2D", "WRU", "SMART", "TN", "TWA", "SM", "CA", "SATS", "DN", "LN", "SATS-DN", "SATS-LN",
+  "KPA", "PPK", "BPP", "BPK", "BKN", "SDM", "TU", "KPH", "KPHP", "KPHL", "BPKH",
+  "KAK", "TOR", "PNBP", "SK", "SOP", "MOU", "PKS", "TIK", "IT", "BPJS", "SIMPEG", "SIASN",
+  "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
+  "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+]);
+
+const ACRONYM_MAP = new Map<string, string>();
+for (const a of OFFICIAL_ACRONYMS) {
+  ACRONYM_MAP.set(a.toLowerCase(), a);
+}
+
+const SPECIAL_OFFICIAL_WORDS = new Map<string, string>([
+  ["polhut", "Polhut"],
+  ["kasubag", "Kasubag"],
+  ["kasi", "Kasi"],
+  ["kabalai", "Kabalai"],
+  ["itjen", "Itjen"],
+  ["gakkum", "Gakkum"],
+  ["pj", "Pj"],
+  ["plh", "Plh"],
+  ["plt", "Plt"],
+]);
+
+const LOWERCASE_CONNECTING_WORDS = new Set([
+  "dan", "atau", "serta", "dengan", "di", "ke", "dari", "pada", "dalam", "rangka",
+  "untuk", "tentang", "oleh", "sebagai", "yang", "terhadap", "hingga", "sampai",
+  "antar", "secara", "terkait",
+]);
+
+/**
+ * Otomatis membuat huruf depan kapital (Title Case resmi) sesuai kaidah tata naskah dinas:
+ * - Mengkapitalisasi setiap kata penting (e.g. "kabupaten kutai barat" -> "Kabupaten Kutai Barat", "suaka badak kelian" -> "Suaka Badak Kelian")
+ * - Mengubah akronim/singkatan umum menjadi huruf kapital penuh (e.g. "bmn" -> "BMN", "skw" -> "SKW")
+ * - Mempertahankan preposisi/kata hubung huruf kecil jika berada di tengah frasa (e.g. "dan", "di", "ke", "dalam", "rangka")
+ * - Mendukung format teks miring (*kata*)
+ */
+export function capitalizeOfficialText(text?: string | null): string {
+  if (!text) return "";
+  return text.replace(/([^\s\-\/,\.;:\(\)]+)/g, (word, _p1, offset) => {
+    let prefix = "";
+    let suffix = "";
+    let core = word;
+    while (core.startsWith("*")) {
+      prefix += "*";
+      core = core.slice(1);
+    }
+    while (core.endsWith("*")) {
+      suffix += "*";
+      core = core.slice(0, -1);
+    }
+    if (!core) return word;
+
+    const lower = core.toLowerCase();
+    if (ACRONYM_MAP.has(lower)) return prefix + ACRONYM_MAP.get(lower)! + suffix;
+    if (SPECIAL_OFFICIAL_WORDS.has(lower)) return prefix + SPECIAL_OFFICIAL_WORDS.get(lower)! + suffix;
+    if (offset > 0 && LOWERCASE_CONNECTING_WORDS.has(lower)) return prefix + lower + suffix;
+    return prefix + core.charAt(0).toUpperCase() + core.slice(1).toLowerCase() + suffix;
+  });
+}
+
 export function buildKegiatanDiktumText({
   modeLokasi,
   jenisTugas = "",
@@ -136,7 +201,32 @@ export function buildKegiatanDiktumText({
   untukKegiatanText = "",
   contohFormat = null,
 }: BuildKegiatanDiktumParams): string {
-  let cleanNama = cleanMelaksanakanKegiatanPrefix(namaKegiatanText);
+  let effKotaAsal = kotaAsal;
+  let effKotaTujuan = kotaTujuan;
+  let effTempatSpesifik = tempatSpesifik;
+  let rawNama = namaKegiatanText;
+
+  // Cek apakah rawNama adalah kalimat lengkap penugasan (misal hasil copy-paste kalimat SK / DIPA):
+  const fullSentenceMatch = rawNama.trim().match(
+    /^Melaksanakan\s+Perjalanan\s+Dinas\s+dari\s+(.+?)\s+ke\s+(.+?)\s+dalam\s+rangka\s+(.+)$/i
+  );
+  if (fullSentenceMatch) {
+    if (!effKotaAsal || effKotaAsal === "Samarinda") {
+      effKotaAsal = fullSentenceMatch[1].trim();
+    }
+    if (!effKotaTujuan) {
+      effKotaTujuan = fullSentenceMatch[2].trim();
+    }
+    let restOfActivity = fullSentenceMatch[3].trim().replace(/;$/, "");
+    const diTempatMatch = restOfActivity.match(/^(.*?)\s+di\s+([^,;]+)$/i);
+    if (diTempatMatch && !effTempatSpesifik) {
+      restOfActivity = diTempatMatch[1].trim();
+      effTempatSpesifik = diTempatMatch[2].trim();
+    }
+    rawNama = restOfActivity;
+  }
+
+  let cleanNama = cleanMelaksanakanKegiatanPrefix(rawNama);
 
   // Strip custom static prefix from contohFormat if present in cleanNama
   if (contohFormat && contohFormat.includes("{kegiatan}")) {
@@ -150,14 +240,14 @@ export function buildKegiatanDiktumText({
     }
   }
 
-  // Strip trailing kotaTujuan or tempatSpesifik if already appended to cleanNama to prevent duplication
+  // Strip trailing effKotaTujuan or effTempatSpesifik if already appended to cleanNama to prevent duplication
   for (let i = 0; i < 2; i++) {
-    if (kotaTujuan && kotaTujuan.trim()) {
-      const escapedK = kotaTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (effKotaTujuan && effKotaTujuan.trim()) {
+      const escapedK = effKotaTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       cleanNama = cleanNama.replace(new RegExp(`\\s+di\\s+${escapedK}$`, "i"), "").trim();
     }
-    if (tempatSpesifik && tempatSpesifik.trim()) {
-      const escapedT = tempatSpesifik.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (effTempatSpesifik && effTempatSpesifik.trim()) {
+      const escapedT = effTempatSpesifik.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       cleanNama = cleanNama.replace(new RegExp(`\\s+(?:pada|di)\\s+${escapedT}$`, "i"), "").trim();
     }
   }
@@ -172,23 +262,31 @@ export function buildKegiatanDiktumText({
     ? ""
     : (untukKegiatanText || "").trim();
 
+  // Format capitalized components for official letter
+  const capAsal = capitalizeOfficialText(effKotaAsal.trim()) || "...";
+  const capTujuan = capitalizeOfficialText(effKotaTujuan.trim()) || "...";
+  const capKota = capitalizeOfficialText((effKotaTujuan || effKotaAsal || "").trim()) || "...";
+  const capTempat = capitalizeOfficialText(effTempatSpesifik.trim());
+  const capNama = capitalizeOfficialText(cleanNama);
+  const capUntuk = capitalizeOfficialText(cleanUntuk);
+
   // Jika Master Jenis Tugas memiliki contohFormat kustom yang menggunakan placeholder:
   if (
     contohFormat &&
     contohFormat.trim() &&
     /\{(asal|tujuan|kota|tempat|kegiatan|untuk|jenis_kegiatan|paket)\}/i.test(contohFormat)
   ) {
-    const asal = kotaAsal.trim() || "...";
-    const tujuan = kotaTujuan.trim() || "...";
-    const kota = (kotaTujuan || kotaAsal || "").trim() || "...";
-    let untukVal = cleanUntuk;
-    let kegiatanVal = cleanNama || "...";
+    const asal = capAsal;
+    const tujuan = capTujuan;
+    const kota = capKota;
+    let untukVal = capUntuk;
+    let kegiatanVal = capNama || "...";
 
     if (isJenisKegiatan && !untukVal && cleanNama) {
       const match = cleanNama.match(/^(?:untuk\s+)?(.*?)\s+dalam\s+rangka\s+(.*)$/i);
       if (match) {
-        untukVal = match[1].trim();
-        kegiatanVal = match[2].trim() || "...";
+        untukVal = capitalizeOfficialText(match[1].trim());
+        kegiatanVal = capitalizeOfficialText(match[2].trim()) || "...";
       } else {
         untukVal = "Pengawasan Pekerjaan Konstruksi";
       }
@@ -213,8 +311,8 @@ export function buildKegiatanDiktumText({
         .replace(/\{kegiatan\}/gi, kegiatanVal);
     }
 
-    if (tempatSpesifik.trim()) {
-      built = built.replace(/\{tempat\}/gi, tempatSpesifik.trim());
+    if (capTempat) {
+      built = built.replace(/\{tempat\}/gi, capTempat);
     } else {
       built = built.replace(/(?:\s+(?:di|pada))?\s*\{tempat\}/gi, "");
     }
@@ -245,53 +343,53 @@ export function buildKegiatanDiktumText({
 
   if (isJenisKegiatan) {
     // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {kegiatan} dalam rangka {paket} di {tempat}
-    const asal = kotaAsal.trim() || "...";
-    const tujuan = kotaTujuan.trim() || "...";
-    let kegiatan = (untukKegiatanText || "").trim();
-    let paket = cleanNama;
+    const asal = capAsal;
+    const tujuan = capTujuan;
+    let kegiatan = capUntuk;
+    let paket = capNama;
 
     if (!kegiatan) {
       const match = cleanNama.match(/^(?:untuk\s+)?(.*?)\s+dalam\s+rangka\s+(.*)$/i);
       if (match) {
-        kegiatan = match[1].trim();
-        paket = match[2].trim();
+        kegiatan = capitalizeOfficialText(match[1].trim());
+        paket = capitalizeOfficialText(match[2].trim());
       } else {
         kegiatan = "Pengawasan Pekerjaan Konstruksi";
       }
     }
 
-    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    const spesifik = capTempat ? ` di ${capTempat}` : "";
     const paketStr = paket ? ` dalam rangka ${paket}` : "";
     return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan} untuk ${kegiatan}${paketStr}${spesifik}`;
   }
 
   if (isDalamKawasan) {
     // Formula: Melaksanakan perjalanan dinas di {kota/kabupaten} dalam rangka {kegiatan} di {kawasan/tempat spesifik}
-    const kota = (kotaTujuan || kotaAsal || "").trim() || "...";
-    const kegiatan = cleanNama || "...";
-    const kawasan = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
-    return `Melaksanakan perjalanan dinas di ${kota} dalam rangka ${kegiatan}${kawasan}`;
+    const kota = capKota;
+    const kegiatan = capNama || "...";
+    const kawasan = capTempat ? ` di ${capTempat}` : "";
+    return `Melaksanakan Perjalanan Dinas di ${kota} dalam rangka ${kegiatan}${kawasan}`;
   }
 
   if (isLuarWilayah) {
     // Formula: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} dalam rangka {kegiatan} di {tempat}
-    const asal = kotaAsal.trim() || "...";
-    const tujuan = kotaTujuan.trim() || "...";
-    const rangka = cleanNama ? ` dalam rangka ${cleanNama}` : "";
-    const spesifik = tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : "";
+    const asal = capAsal;
+    const tujuan = capTujuan;
+    const rangka = capNama ? ` dalam rangka ${capNama}` : "";
+    const spesifik = capTempat ? ` di ${capTempat}` : "";
     return `Melaksanakan Perjalanan Dinas dari ${asal} ke ${tujuan}${rangka}${spesifik}`;
   }
 
   if (isMelaksanakanKegiatan) {
-    const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
-    const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
-    return `Melaksanakan Kegiatan ${cleanNama || "..."}${tempat}${kota}`;
+    const tempat = capTempat ? ` pada ${capTempat}` : "";
+    const kota = kotaTujuan.trim() ? ` di ${capTujuan}` : "";
+    return `Melaksanakan Kegiatan ${capNama || "..."}${tempat}${kota}`;
   }
 
   // Default / Menugaskan Staf
-  const tempat = tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : "";
-  const kota = kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : "";
-  return `Menugaskan Staf untuk ${cleanNama || "..."}${tempat}${kota}`;
+  const tempat = capTempat ? ` pada ${capTempat}` : "";
+  const kota = kotaTujuan.trim() ? ` di ${capTujuan}` : "";
+  return `Menugaskan Staf untuk ${capNama || "..."}${tempat}${kota}`;
 }
 
 /**

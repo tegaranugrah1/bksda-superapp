@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -52,6 +53,7 @@ class AuthController extends Controller
             \Illuminate\Support\Facades\Cache::put("2fa_challenge:{$challengeToken}", [
                 'user_id' => $user->id,
                 'ip' => $request->ip(),
+                'credentials' => hash('sha256', $user->password.$user->two_factor_secret),
             ], now()->addMinutes(5));
 
             return response()->json([
@@ -147,19 +149,37 @@ class AuthController extends Controller
                 'rank_level' => 0,
                 'is_active' => $employee->is_active,
             ] : null,
-            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) {
+            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) use ($request) {
+                $asset = $loan->asset;
+                $token = $request->bearerToken() ?: $request->query('token');
+                $tokenParam = $token ? "&token=" . urlencode($token) : "";
+                $v = $asset->updated_at?->timestamp ?: time();
+
                 return [
-                    'id' => $loan->asset->id,
-                    'nama_barang' => $loan->asset->nama_barang,
-                    'kode_barang' => $loan->asset->kode_barang,
-                    'nup' => $loan->asset->nup,
-                    'nup_lama' => $loan->asset->nup_lama,
+                    'id' => $asset->id,
+                    'loan_id' => $loan->id,
+                    'nama_barang' => $asset->nama_barang,
+                    'kode_barang' => $asset->kode_barang,
+                    'nup' => $asset->nup,
+                    'nup_lama' => $asset->nup_lama,
                     'loan_date' => $loan->tanggal_pinjam?->toIso8601String(),
                     'due_date' => ($loan->due_date ?? $loan->tanggal_kembali)?->toIso8601String(),
                     'status' => $loan->status,
-                    'merk' => $loan->asset->merk_tipe ?? $loan->asset->merk,
-                    'jenis_bmn' => $loan->asset->jenis_bmn,
-                    'no_polisi' => $loan->asset->no_polisi,
+                    'kondisi' => $asset->kondisi,
+                    'merk' => $asset->merk,
+                    'tipe' => $asset->tipe,
+                    'merk_tipe' => $asset->merk_tipe ?? $asset->merk,
+                    'jenis_bmn' => $asset->jenis_bmn,
+                    'no_polisi' => $asset->no_polisi,
+                    'lokasi_ruang' => $asset->lokasi_ruang,
+                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}" : $asset->foto_geotag_url,
+                    'foto_geotag_path' => $asset->foto_geotag_path && str_starts_with($asset->foto_geotag_path, 'http') ? $asset->foto_geotag_path : null,
+                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
+                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
+                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
+                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
+                    'foto_lokasi_url' => $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null,
+                    'foto_url' => $asset->foto_url,
                 ];
             })->values(),
         ];
@@ -176,12 +196,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Login keeps one bearer; revoke it even when Sanctum selected a cookie session.
-        $token = $request->user()?->currentAccessToken();
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
-        } else {
-            $request->user()?->tokens()->delete();
+        // Revoke persistent bearers even when Sanctum selected a cookie session.
+        $user = $request->user();
+        if ($user) {
+            $user->tokens()->delete();
         }
 
         // Logout dari guard session dan invalidate session cookie
@@ -263,7 +281,9 @@ class AuthController extends Controller
         $emailChanged = false;
         if ($request->has('email')) {
             $cleanEmail = $request->filled('email') ? trim(strtolower((string) $request->input('email'))) : null;
-            if ($cleanEmail !== null && $cleanEmail !== $user->email) {
+            if ($cleanEmail === null && $employee && $employee->email !== null) {
+                $employee->update(['email' => null]);
+            } elseif ($cleanEmail !== null && $cleanEmail !== $user->email) {
                 if (str_ends_with($cleanEmail, '.local')) {
                     throw ValidationException::withMessages([
                         'email' => ['Alamat email tidak boleh menggunakan domain .local.'],
@@ -276,49 +296,15 @@ class AuthController extends Controller
                     ]);
                 }
 
-                $oldEmail = $user->email;
-                $wasDeliverable = $user->hasDeliverableEmail();
-
-                $user->email = $cleanEmail;
-                $user->email_verified_at = null;
-                $user->saveOrFail();
-                if ($employee) {
-                    $employee->update(['email' => $cleanEmail]);
-                }
+                $this->updateAccountEmail($user, $employee, $cleanEmail);
                 $emailChanged = true;
-
-                // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
-                Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
-
-                dispatch(function () use ($user, $wasDeliverable, $oldEmail, $cleanEmail) {
-                    if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
-                        try {
-                            Mail::raw(
-                                "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$cleanEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
-                                function ($m) use ($oldEmail) {
-                                    $m->to($oldEmail)->subject('[Keamanan Akun] Alamat Email Akun Portal BKSDA Anda Diubah');
-                                }
-                            );
-                        } catch (\Throwable $e) {
-                            \Illuminate\Support\Facades\Log::warning('Security alert email failed: '.$e->getMessage());
-                        }
-                    }
-
-                    if (NotificationSetting::emailEnabled('email_master_enabled')) {
-                        try {
-                            $user->sendEmailVerificationNotification();
-                        } catch (\Throwable $e) {
-                            \Illuminate\Support\Facades\Log::warning('Verification email failed: '.$e->getMessage());
-                        }
-                    }
-                })->afterResponse();
             }
         }
 
         if ($request->has('phone')) {
             $cleanPhone = $request->filled('phone') ? trim((string) $request->input('phone')) : null;
             if ($employee) {
-                $employee->update(['no_telepon' => $cleanPhone]);
+                $employee->update(['telepon' => $cleanPhone]);
             }
         }
 
@@ -345,23 +331,58 @@ class AuthController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $assets = \App\Modules\Bmn\Models\Asset::where('employee_id', $employee->id)
+        $fullName = trim($employee->nama_lengkap ?? '');
+        $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+        $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
+        $escapedClean = addcslashes(mb_strtolower($cleanName), '%_');
+
+        $assets = \App\Modules\Bmn\Models\Asset::where(function ($query) use ($employee, $fullName, $escapedName, $cleanName, $escapedClean) {
+            $query->where('employee_id', $employee->id);
+            $query->orWhere(function ($fallback) use ($fullName, $escapedName, $cleanName, $escapedClean) {
+                $fallback->whereNull('employee_id')
+                    ->where(function ($q) use ($fullName, $escapedName, $cleanName, $escapedClean) {
+                        if (mb_strlen($fullName) >= 3) {
+                            $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
+                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                        }
+                        if (mb_strlen($cleanName) >= 3 && $cleanName !== $fullName) {
+                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedClean . '%'])
+                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedClean . '%']);
+                        }
+                    });
+            });
+        })
         ->select([
             'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
             'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
-            'foto_geotag_url', 'foto_geotag_path', 'updated_at',
+            'foto_geotag_url', 'foto_geotag_path',
+            'foto_depan_path', 'foto_belakang_path', 'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path', 'foto_url',
+            'employee_id', 'pengguna', 'nama_pengguna', 'updated_at',
         ])
         ->latest()->limit(50)->get()
+        ->filter(fn ($asset) => $asset->isOwnedByEmployee($employee))
+        ->values()
         ->map(function ($asset) use ($request) {
+            unset($asset->pengguna, $asset->nama_pengguna);
+
+            $token = $request->bearerToken() ?: $request->query('token');
+            $tokenParam = $token ? "&token=" . urlencode($token) : "";
+            $v = $asset->updated_at?->timestamp ?: time();
+
             if ($asset->foto_geotag_path && ! $asset->foto_geotag_url) {
-                $token = $request->bearerToken() ?: $request->query('token');
-                $tokenParam = $token ? "&token=" . urlencode($token) : "";
-                $v = $asset->updated_at?->timestamp ?: time();
                 $asset->foto_geotag_url = "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}";
             }
             if ($asset->foto_geotag_path && ! str_starts_with($asset->foto_geotag_path, 'http')) {
                 $asset->foto_geotag_path = null;
             }
+
+            // Provide URLs for all 5-point audit photos
+            $asset->foto_depan_url = $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_belakang_url = $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_kiri_url = $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_kanan_url = $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_lokasi_url = $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null;
+
             return $asset;
         });
 
@@ -398,21 +419,32 @@ class AuthController extends Controller
             ]);
         }
 
+        $employee = Employee::where('nip', $user->username)->first();
+        $this->updateAccountEmail($user, $employee, strtolower(trim((string) $request->email)));
+
+        return response()->json([
+            'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
+            'email_changed' => true,
+            'cooldown_seconds' => 60,
+        ]);
+    }
+
+    private function updateAccountEmail(User $user, ?Employee $employee, string $newEmail): void
+    {
         $oldEmail = $user->email;
         $wasDeliverable = $user->hasDeliverableEmail();
 
-        $newEmail = strtolower(trim((string) $request->email));
         $user->email = $newEmail;
         $user->email_verified_at = null;
         $user->saveOrFail();
+        if ($employee) {
+            $employee->update(['email' => $newEmail]);
+        }
 
-        // Pasang cooldown 60 detik agar tidak terjadi pengiriman email ganda
         Cache::put('email_verify_cooldown:'.$user->id, now()->addSeconds(60)->timestamp, 60);
 
-        // Kirim notifikasi email secara non-blocking setelah respons HTTP dikirim ke browser
         dispatch(function () use ($user, $wasDeliverable, $oldEmail, $newEmail) {
-            // Beritahu email lama jika sebelumnya sudah terverifikasi
-            if ($wasDeliverable && NotificationSetting::emailEnabled('mail.security_alert')) {
+            if ($wasDeliverable && $oldEmail && NotificationSetting::emailEnabled('mail.security_alert')) {
                 try {
                     Mail::raw(
                         "Halo {$user->name},\n\nAlamat email akun Portal BKSDA Kaltim Anda baru saja diubah menjadi {$newEmail}. Jika Anda tidak merasa melakukan perubahan ini, segera hubungi Administrator SIM BKSDA.",
@@ -425,7 +457,6 @@ class AuthController extends Controller
                 }
             }
 
-            // Kirim link verifikasi ke email baru
             if (NotificationSetting::emailEnabled('email_master_enabled')) {
                 try {
                     $user->sendEmailVerificationNotification();
@@ -434,12 +465,6 @@ class AuthController extends Controller
                 }
             }
         })->afterResponse();
-
-        return response()->json([
-            'message' => 'Alamat email berhasil diperbarui. Tautan verifikasi telah dikirim ke kotak masuk email baru Anda.',
-            'email_changed' => true,
-            'cooldown_seconds' => 60,
-        ]);
     }
 
     /**
@@ -655,6 +680,10 @@ class AuthController extends Controller
      */
     public function getEmailSettings(Request $request): JsonResponse
     {
+        if ($request->user()?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya super admin yang berhak melihat konfigurasi email.'], 403);
+        }
+
         $settings = NotificationSetting::all();
         $todayLogs = EmailLog::whereDate('created_at', today())->get();
         $todayCounts = [
@@ -705,6 +734,10 @@ class AuthController extends Controller
      */
     public function sendTestEmail(Request $request): JsonResponse
     {
+        if ($request->user()?->role !== 'super_admin') {
+            return response()->json(['message' => 'Hanya super admin yang berhak mengirim email uji coba.'], 403);
+        }
+
         $request->validate(['email' => ['required', 'email']]);
 
         Mail::raw(
@@ -747,16 +780,23 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // A password reset or authenticator replacement invalidates the first factor.
+        if ($user->two_factor_confirmed_at === null
+            || ! hash_equals($data['credentials'] ?? '', hash('sha256', $user->password.$user->two_factor_secret))) {
+            Cache::forget($challengeKey);
+            throw ValidationException::withMessages([
+                'challenge_token' => ['Kredensial akun telah berubah. Silakan login kembali.'],
+            ]);
+        }
+
         $rawCode = trim(str_replace([' ', '-'], '', (string) $request->code));
+        $attemptKey = $challengeKey.':attempts';
         $valid = false;
 
         // 1. Cek kode 6-digit TOTP dengan anti-replay 90 detik
         $replayKey = "totp_used:{$user->id}:{$rawCode}";
-        if (! \Illuminate\Support\Facades\Cache::has($replayKey)) {
-            if ($user->two_factor_secret && \App\Support\Security\Totp::verify($user->two_factor_secret, $rawCode)) {
-                \Illuminate\Support\Facades\Cache::put($replayKey, true, 90);
-                $valid = true;
-            }
+        if ($user->two_factor_secret && \App\Support\Security\Totp::verify($user->two_factor_secret, $rawCode)) {
+            $valid = Cache::add($replayKey, true, 90);
         }
 
         // 2. Cek Recovery Code jika TOTP tidak cocok (hanya bisa dipakai sekali)
@@ -767,12 +807,20 @@ class AuthController extends Controller
             if ($idx !== false) {
                 unset($recoveryCodes[$idx]);
                 $user->two_factor_recovery_codes = array_values($recoveryCodes);
-                $user->save();
-                $valid = true;
+                $valid = User::whereKey($user->id)
+                    ->where('password', $user->getRawOriginal('password'))
+                    ->where('two_factor_secret', $user->getRawOriginal('two_factor_secret'))
+                    ->where('two_factor_recovery_codes', $user->getRawOriginal('two_factor_recovery_codes'))
+                    ->update(['two_factor_recovery_codes' => $user->getAttributes()['two_factor_recovery_codes']]) === 1;
             }
         }
 
         if (! $valid) {
+            // Count failures separately so the original challenge TTL never slides.
+            if (RateLimiter::hit($attemptKey, 300) >= 5) {
+                \Illuminate\Support\Facades\Cache::forget($challengeKey);
+                RateLimiter::clear($attemptKey);
+            }
             throw ValidationException::withMessages([
                 'code' => ['Kode verifikasi 2FA atau recovery code tidak valid.'],
             ]);
@@ -780,6 +828,7 @@ class AuthController extends Controller
 
         // Hapus token challenge agar tidak bisa dipakai ulang
         \Illuminate\Support\Facades\Cache::forget($challengeKey);
+        RateLimiter::clear($attemptKey);
 
         // Terbitkan token Sanctum baru
         $user->tokens()->delete();

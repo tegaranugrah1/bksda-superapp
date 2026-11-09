@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const contentSecurityPolicy = [
     "default-src 'self'",
@@ -40,7 +41,9 @@ const nextConfig: NextConfig = {
         return config;
     },
 
-    turbopack: {},
+    turbopack: {
+        root: path.resolve(__dirname),
+    },
 
     async redirects() {
         return [

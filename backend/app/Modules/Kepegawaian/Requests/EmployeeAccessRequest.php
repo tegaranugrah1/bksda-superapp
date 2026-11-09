@@ -16,6 +16,7 @@ class EmployeeAccessRequest extends FormRequest
         return [
             // Jabatan sistemik (Bukan jabatan fungsional instansi)
             'role' => 'required|string|in:super_admin,admin,user,pegawai',
+            'is_active' => 'sometimes|required|boolean',
 
             // Modul akses (bisa kosong untuk super_admin)
             'access_modules' => 'nullable|array',

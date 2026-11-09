@@ -218,7 +218,7 @@ class DriveAccess
 
         // Anti-IDOR: Jika berkas berada di dalam folder, wajib memvalidasi izin folder induknya!
         if ($file->folder_id) {
-            $folder = $file->folder ?? DriveFolder::find($file->folder_id);
+            $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
             if ($folder) {
                 if (! self::canReadFolder($user, $folder)) {
                     return false;
@@ -249,7 +249,7 @@ class DriveAccess
         }
 
         if ($file->folder_id) {
-            $folder = $file->folder ?? DriveFolder::find($file->folder_id);
+            $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
             if ($folder) {
                 return self::canWriteFolder($user, $folder);
             }

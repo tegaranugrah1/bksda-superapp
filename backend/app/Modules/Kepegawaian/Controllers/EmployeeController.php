@@ -410,7 +410,7 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        $filesToDelete = array_filter([$employee->foto_profil]);
+        $filesToDelete = [];
         $leaveRequests = EmployeeLeaveRequest::withTrashed()
             ->where('employee_id', $employee->id)
             ->get(['scan_surat_path', 'scan_formulir_path', 'scan_surat_izin_path']);
@@ -430,6 +430,7 @@ class EmployeeController extends Controller
             $employee->forceDelete();
         });
 
+        Employee::deleteUnreferencedProfilePhoto($employee->foto_profil);
         foreach (array_unique($filesToDelete) as $path) {
             if (Storage::exists($path)) {
                 Storage::delete($path);
@@ -616,9 +617,17 @@ class EmployeeController extends Controller
         $employee = Employee::findOrFail($id);
         $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
 
-        $letters = $employee->assignmentLetters()
-            ->latest()
-            ->paginate($perPage);
+        $query = $employee->assignmentLetters();
+        $user = $request->user();
+        $isAdmin = $user->role === 'super_admin'
+            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
+        if (! $isAdmin) {
+            $query->where(function ($q) use ($user) {
+                $q->whereIn(DB::raw('LOWER(status)'), \App\Modules\SuratTugas\Models\AssignmentLetter::OFFICIAL_STATUSES)
+                    ->orWhere('created_by', $user->id);
+            });
+        }
+        $letters = $query->latest()->paginate($perPage);
 
         return response()->json([
             'message' => 'Riwayat penugasan berhasil diambil.',

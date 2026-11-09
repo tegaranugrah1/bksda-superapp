@@ -28,6 +28,9 @@ assert.equal(new Set(requested).size, 3, 'Use three different dummy NIPs.');
 
 const { chromium } = require('playwright');
 const marker = `TEST-E2E-ST-${Date.now()}`;
+// Inert markup-looking text only: no script, executable URL, handler or network payload.
+const printMarker = `${marker} <audit-st12-marker title="inert">literal & \"quoted\"</audit-st12-marker>`;
+const sinkMarkers = ['MAKSUD', 'MENIMBANG', 'DASAR', 'TEMBUSAN'].map(field => `${marker}-${field}`);
 const date = process.env.ST_E2E_DATE || '2099-12-01';
 let browser;
 let admin;
@@ -41,10 +44,8 @@ function report(status, check, detail = '') {
 
 async function newContext(viewport) {
   const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
-  await context.route('**/*', route => {
-    const url = new URL(route.request().url());
-    return localHosts.has(url.hostname) ? route.continue() : route.abort('blockedbyclient');
-  });
+  // The trusted runner enforces network:none. Do not install Playwright routing:
+  // it disables the native HTTP cache used by cloned print-window images.
   return context;
 }
 
@@ -70,31 +71,115 @@ async function openActor(username, password, label) {
   // Wait for the destination UI rather than a navigation that can be superseded.
   await page.getByRole('button', { name: 'Lihat Notifikasi', exact: true }).waitFor({ timeout: 45000 });
   assert.equal(new URL(page.url()).pathname, '/portal');
+  actor.token = await page.evaluate(() => localStorage.getItem('bksda_token'));
   report('PASS', `${label}: real UI login`);
   return actor;
 }
 
 async function api(actor, path, method = 'GET', body) {
-  return actor.page.evaluate(async ({ url, method, body }) => {
-    const headers = { Accept: 'application/json' };
-    const token = localStorage.getItem('bksda_token');
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
-    if (xsrf) headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrf.slice('XSRF-TOKEN='.length));
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
-    const response = await fetch(url, {
-      method, headers, credentials: 'include',
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    });
-    const json = await response.json().catch(() => ({}));
-    return { status: response.status, json };
-  }, { url: `${actor.apiBase}${path}`, method, body });
+  const headers = { Accept: 'application/json', Origin: new URL(base).origin, Referer: `${base}/portal` };
+  if (actor.token) headers.Authorization = `Bearer ${actor.token}`;
+  const xsrf = (await actor.context.cookies(actor.apiBase)).find(cookie => cookie.name === 'XSRF-TOKEN');
+  if (xsrf) headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrf.value);
+  const response = await actor.context.request.fetch(`${actor.apiBase}${path}`, {
+    method, headers, ...(body !== undefined ? { data: body } : {}),
+  });
+  return { status: response.status(), json: await response.json().catch(() => ({})) };
 }
 
 async function listContains(actor, expected) {
   const response = await api(actor, `/surat-tugas/my?search=${encodeURIComponent(marker)}`);
   assert.equal(response.status, 200, `${actor.label}: personal list failed.`);
   assert.equal(response.json.data.some(item => item.id === letterId), expected);
+}
+
+async function openMarkedInboxRow() {
+  stage = 'locate marked inbox row';
+  // The responsive row can truncate its subject to zero width. Its personnel span
+  // is a visible child of the same real click handler; use a normal pointer click.
+  const subject = admin.page.locator('span[title]')
+    .filter({ hasText: new RegExp(marker, 'i') }).filter({ hasText: /dummy sandbox/i });
+  await subject.waitFor({ state: 'attached' });
+  const personnel = subject.locator('../..').locator('span[title]').first();
+  await personnel.scrollIntoViewIfNeeded();
+  const geometry = await personnel.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    const target = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return { tag: el.tagName, width: Math.round(rect.width), height: Math.round(rect.height), hitInside: Boolean(target && el.contains(target)) };
+  });
+  report('DIAGNOSTIC', 'marked row normal-click target', geometry);
+  stage = 'click visible marked row personnel';
+  await personnel.click();
+}
+
+async function checkNativePrint(actor, button, path) {
+  stage = `${path}: actual UI native print`;
+  const headerControl = await actor.context.request.get(`${base}/header-st.png`);
+  report('DIAGNOSTIC', `${path}: static kop control`, { status: headerControl.status(), bytes: (await headerControl.body()).length });
+  assert.equal(headerControl.status(), 200, 'The disposable app must serve its real letterhead.');
+  const resourceLog = [];
+  const relevant = request => new URL(request.url()).pathname === '/header-st.png';
+  const requested = request => { if (relevant(request)) resourceLog.push({ event: 'request', type: request.resourceType() }); };
+  const failed = request => { if (relevant(request)) resourceLog.push({ event: 'failed', reason: request.failure()?.errorText }); };
+  const responded = response => { if (relevant(response.request())) resourceLog.push({ event: 'response', status: response.status() }); };
+  actor.context.on('request', requested);
+  actor.context.on('requestfailed', failed);
+  actor.context.on('response', responded);
+  // Observe the actual application-created popup and forward its native print call.
+  // No document methods or HTML are replaced; this is telemetry, not a print stub.
+  await actor.page.evaluate(expected => {
+    const owner = window;
+    const originalOpen = owner.open;
+    owner.__st12NativePrint = { calls: 0, returns: 0, literal: false, elementCreated: false, textFieldsPresent: false };
+    owner.__st12RestoreOpen = () => { owner.open = originalOpen; };
+    owner.open = function (...args) {
+      const popup = Reflect.apply(originalOpen, this, args);
+      if (!popup) return popup;
+      const nativePrint = popup.print;
+      popup.print = function (...args) {
+        const evidence = owner.__st12NativePrint;
+        evidence.calls++;
+        evidence.literal = popup.document.body.textContent.includes(expected);
+        evidence.elementCreated = Boolean(popup.document.querySelector('audit-st12-marker'));
+        evidence.textFieldsPresent = owner.__st12ExpectedFields.every(text => popup.document.body.textContent.toLowerCase().includes(text.toLowerCase()));
+        const result = Reflect.apply(nativePrint, this, args);
+        evidence.returns++;
+        return result;
+      };
+      return popup;
+    };
+  }, printMarker);
+  await actor.page.evaluate(fields => { window.__st12ExpectedFields = fields; }, sinkMarkers);
+  let popup;
+  try {
+    const opened = actor.page.waitForEvent('popup', { timeout: 20000 });
+    await button.click();
+    popup = await opened;
+    try {
+      await actor.page.waitForFunction(() => window.__st12NativePrint?.returns >= 1, null, { timeout: 20000 });
+    } catch (error) {
+      report('DIAGNOSTIC', `${path}: native print observation`, await actor.page.evaluate(() => window.__st12NativePrint));
+      report('DIAGNOSTIC', `${path}: image requests`, resourceLog);
+      if (popup && !popup.isClosed()) report('DIAGNOSTIC', `${path}: actual popup state`, await popup.evaluate(expected => ({
+        ready: document.readyState, base: document.baseURI, visibility: document.visibilityState, literal: document.body.textContent.includes(expected),
+        images: [...document.images].map(image => ({ complete: image.complete, width: image.naturalWidth, loading: image.loading, src: image.getAttribute('src') })),
+      }), printMarker));
+      throw error;
+    }
+    const evidence = await actor.page.evaluate(() => window.__st12NativePrint);
+    assert.equal(evidence.calls, 1, `${path}: actual application did not call native print.`);
+    assert.equal(evidence.returns, 1, `${path}: native print did not return.`);
+    assert(evidence.literal, `${path}: persisted inert text missing from actual print popup.`);
+    assert(!evidence.elementCreated, `${path}: inert text became a DOM element.`);
+    assert(evidence.textFieldsPresent, `${path}: a stored text field is missing from actual print output.`);
+    report('PASS', `ST12 ${path}: actual popup and native print preserve persisted inert text`, evidence);
+  } finally {
+    actor.context.off('request', requested);
+    actor.context.off('requestfailed', failed);
+    actor.context.off('response', responded);
+    await actor.page.evaluate(() => { window.__st12RestoreOpen?.(); delete window.__st12RestoreOpen; }).catch(() => {});
+    if (popup && !popup.isClosed()) await popup.close();
+  }
 }
 
 async function main() {
@@ -105,6 +190,15 @@ async function main() {
   });
 
   admin = await openActor(process.env.ST_E2E_ADMIN_USERNAME, process.env.ST_E2E_ADMIN_PASSWORD, 'admin');
+  // Compile the actual dev routes before retaining form state across tabs.
+  // Next Fast Refresh can otherwise reload every open page when a new route compiles.
+  for (const path of ['/surat-tugas', '/kepegawaian/surat-tugas/inbox',
+    '/kepegawaian/surat-tugas/builder/00000000-0000-4000-8000-000000000000',
+    '/portal/surat-tugas/00000000-0000-4000-8000-000000000000']) {
+    const warmed = await admin.context.request.get(`${base}${path}`, { timeout: 45000 });
+    assert.equal(warmed.status(), 200, 'Actual dummy route did not compile.');
+  }
+  await admin.page.goto(`${base}/portal`, { waitUntil: 'networkidle', timeout: 45000 });
   const choices = await api(admin, '/kepegawaian/employees/select?limit=500');
   assert.equal(choices.status, 200);
   const employees = Array.isArray(choices.json.data) ? choices.json.data : choices.json;
@@ -124,6 +218,8 @@ async function main() {
     const role = await actor.page.evaluate(() => JSON.parse(localStorage.getItem('bksda_user') || 'null')?.role);
     assert(role && !['admin', 'super_admin'].includes(role), 'Employee test must have a known non-admin role.');
     staff.push(actor);
+    // Keep each isolated login session, with no idle portal renderer or polling.
+    await actor.page.close();
   }
 
   stage = 'public mobile form and keyboard search';
@@ -139,7 +235,8 @@ async function main() {
     report('PASS', check, widths);
   }
   await noOverflow('public 375px: initial layout');
-  await search.fill(candidates[0].nip);
+  // Anonymous catalog masks NIP; search the name actually visible to this actor.
+  await search.fill(candidates[0].name || candidates[0].nama_lengkap);
   await search.focus();
   await page.locator('#personnel-search-results button').first().waitFor();
   assert.equal(await search.getAttribute('aria-expanded'), 'true');
@@ -151,7 +248,8 @@ async function main() {
   report('PASS', 'public: labelled search, ArrowDown and Escape focus');
   for (const [index, employee] of candidates.slice(0, 2).entries()) {
     stage = `select participant ${index + 1}`;
-    await search.fill(employee.nip);
+    await search.fill('');
+    await search.fill(employee.name || employee.nama_lengkap);
     await search.focus();
     const result = page.locator('#personnel-search-results button').filter({ hasText: employee.name || employee.nama_lengkap });
     await result.waitFor();
@@ -183,6 +281,7 @@ async function main() {
   assert(letterId, 'Missing created letter ID.');
   await page.getByRole('heading', { name: 'Berhasil Disubmit!' }).waitFor();
   report('PASS', 'anonymous real UI submission', { marker, letterId });
+  await publicContext.close();
 
   const pending = await api(admin, `/surat-tugas/${letterId}`);
   assert.equal(pending.status, 200);
@@ -208,7 +307,8 @@ async function main() {
   stage = 'find test letter in admin inbox';
   await admin.page.goto(`${base}/kepegawaian/surat-tugas/inbox`, { waitUntil: 'networkidle', timeout: 45000 });
   await admin.page.getByPlaceholder('Cari nomor surat, maksud perjalanan, nama pegawai, atau tujuan...').fill(marker);
-  await admin.page.getByText(new RegExp(marker)).first().click();
+  await openMarkedInboxRow();
+  stage = 'open reader Builder action';
   await admin.page.getByRole('button', { name: 'Lengkapi di Builder', exact: true }).click();
   await admin.page.waitForURL(`**/kepegawaian/surat-tugas/builder/${letterId}`);
   report('PASS', 'incomplete inbox action routes to actual Builder');
@@ -226,14 +326,36 @@ async function main() {
   assert.equal(payload.nomor_surat, number);
   assert.equal(payload.employees.length, 2);
   assert.equal(payload.employee_ids.length, 2);
-  assert(payload.maksud_tujuan.includes(marker));
+  assert(payload.maksud_tujuan.toLowerCase().includes(marker.toLowerCase()));
   assert(payload.template_snapshot?.configuration);
   assert(payload.menimbang?.length && payload.dasar?.length);
+  const fromBuilder = await api(admin, `/surat-tugas/${letterId}`);
+  for (const field of ['maksud_tujuan', 'tempat_tujuan', 'sumber_dana', 'menimbang', 'dasar']) {
+    assert.deepEqual(fromBuilder.json.data[field], payload[field], `Canonical ${field} differs from Builder payload.`);
+  }
+  // Exercise a persisted renderer-text field through the real update endpoint. The
+  // Builder exposes no penutup editor; keep its other canonical payload unchanged.
+  payload.template_snapshot.configuration.penutup_text = printMarker;
+  const inert = text => `${text} <audit-st12-marker>literal</audit-st12-marker>`;
+  payload.maksud_tujuan = payload.maksud_tujuan.replace(new RegExp(marker, 'i'), match => `${match} ${inert(sinkMarkers[0])}`);
+  payload.menimbang[0].text += ` ${inert(sinkMarkers[1])}`;
+  payload.dasar[0].text += ` ${inert(sinkMarkers[2])}`;
+  payload.tembusan = [inert(sinkMarkers[3])];
+  // This supported type preserves its stored snapshot during native edit hydration;
+  // the default template reconciliation otherwise replaces penutup with its catalog.
+  payload.template_type = 'beda-hari';
+  const marked = await api(admin, `/surat-tugas/${letterId}`, 'PUT', payload);
+  assert.equal(marked.status, 200);
   const canonical = await api(admin, `/surat-tugas/${letterId}`);
+  assert.equal(canonical.json.data.template_snapshot.configuration.penutup_text, printMarker);
   assert.equal(canonical.json.data.status, 'pending');
   assert.equal(canonical.json.data.nomor_surat, number);
-  for (const field of ['maksud_tujuan', 'tempat_tujuan', 'sumber_dana', 'menimbang', 'dasar']) {
-    assert.deepEqual(canonical.json.data[field], payload[field], `Canonical ${field} differs from Builder payload.`);
+  for (const field of ['tempat_tujuan', 'sumber_dana']) assert.deepEqual(canonical.json.data[field], payload[field]);
+  for (const [text, expected] of [[canonical.json.data.maksud_tujuan, sinkMarkers[0]],
+    [canonical.json.data.menimbang[0].text, sinkMarkers[1]], [canonical.json.data.dasar[0].text, sinkMarkers[2]],
+    [canonical.json.data.tembusan[0], sinkMarkers[3]]]) {
+    assert(text.includes(expected));
+    assert(!text.includes('<audit-st12-marker>'), 'Validated native writer must sanitize these four text fields.');
   }
   for (const field of ['tanggal_mulai', 'tanggal_selesai']) {
     assert.equal(canonical.json.data[field]?.slice(0, 10), payload[field]);
@@ -244,11 +366,17 @@ async function main() {
   await admin.page.waitForFunction(expected => document.querySelector('[aria-label="Nomor naskah"]')?.value === expected, number);
   assert.deepEqual(await api(admin, `/surat-tugas/${letterId}`), canonical, 'Reload mutated the saved document.');
   report('PASS', 'real Builder UI saves canonical payload and number survives reload');
+  const builderPreview = admin.page.locator('#surat-preview-doc');
+  assert((await builderPreview.innerText()).includes(printMarker));
+  for (const text of sinkMarkers) assert((await builderPreview.innerText()).toLowerCase().includes(text.toLowerCase()));
+  assert.equal(await builderPreview.locator('audit-st12-marker').count(), 0);
+  await checkNativePrint(admin, admin.page.getByRole('button', { name: 'Preview Cetak', exact: true }), 'Builder printSuratTugas');
 
   stage = 'cancel then confirm publication in inbox';
   await admin.page.goto(`${base}/kepegawaian/surat-tugas/inbox`, { waitUntil: 'networkidle', timeout: 45000 });
   await admin.page.getByPlaceholder('Cari nomor surat, maksud perjalanan, nama pegawai, atau tujuan...').fill(marker);
-  await admin.page.getByText(new RegExp(marker)).first().click();
+  await openMarkedInboxRow();
+  stage = 'open publication confirmation';
   const publish = admin.page.getByRole('button', { name: 'Setujui & Terbitkan', exact: true });
   const beforeCancelNotices = await Promise.all(notificationActors.map(actor => api(actor, '/portal/notifications?per_page=50')));
   await publish.click();
@@ -266,6 +394,7 @@ async function main() {
   assert(approved.json.data.approved_by);
   report('PASS', 'real admin UI approval publishes the test letter');
   assert.equal(approved.json.data.nomor_surat, number);
+  await admin.page.close();
 
   for (const actor of staff.slice(0, 2)) {
     await listContains(actor, true);
@@ -273,17 +402,26 @@ async function main() {
     assert.equal(detail.status, 200);
     assert.equal(detail.json.data.status, 'approved');
     stage = `${actor.label}: notification and preview`;
-    await actor.page.reload({ waitUntil: 'networkidle' });
+    actor.page = await actor.context.newPage();
+    actor.page.on('pageerror', () => errors.push(actor.label));
+    await actor.page.goto(`${base}/portal`, { waitUntil: 'networkidle', timeout: 45000 });
     await actor.page.getByRole('button', { name: 'Lihat Notifikasi', exact: true }).click();
     const notice = actor.page.locator('div.cursor-pointer').filter({ has: actor.page.locator('p', { hasText: /^Surat Tugas Diterbitkan$/ }) }).filter({ hasText: marker });
     await notice.first().waitFor({ timeout: 15000 });
     await notice.first().click();
     await actor.page.locator('#print-letter-area').waitFor({ timeout: 20000 });
     const preview = await actor.page.locator('#print-letter-area').innerText();
-    assert(preview.includes(marker));
+    assert(preview.toLowerCase().includes(marker.toLowerCase()));
     assert(preview.includes(number));
     for (const employee of candidates.slice(0, 2)) assert(preview.includes(employee.name || employee.nama_lengkap));
+    assert(preview.includes(printMarker));
+    for (const text of sinkMarkers) assert(preview.toLowerCase().includes(text.toLowerCase()));
+    assert.equal(await actor.page.locator('#print-letter-area audit-st12-marker').count(), 0);
     report('PASS', `${actor.label}: issued list, notification click, actual formal preview`);
+    if (actor === staff[0]) {
+      await checkNativePrint(actor, actor.page.getByRole('button', { name: 'Cetak Surat Tugas (A4)', exact: true }), 'shared SuratTugasLetterPreview');
+    }
+    await actor.page.close();
   }
   await listContains(staff[2], false);
   const unrelatedNotices = await api(staff[2], '/portal/notifications?per_page=50');
@@ -295,13 +433,17 @@ async function main() {
   report('PASS', 'browser unhandled errors', { count: errors.length });
 }
 
-main().catch(error => {
+main().catch(async error => {
   // Omit call logs and redact credentials/NIPs from the diagnostic line.
-  let message = error.message.split('\n')[0].replace(/\b\d{18}\b/g, '[employee]');
+  let message = error.message.slice(0, 3500).replace(/\b\d{18}\b/g, '[employee]');
   for (const key of ['ST_E2E_ADMIN_PASSWORD', 'ST_E2E_EMPLOYEE_PASSWORD']) {
     if (process.env[key]) message = message.split(process.env[key]).join('[redacted]');
   }
   report('FAIL', 'flow interrupted', { stage, type: error.name, message });
+  if (admin?.page && !admin.page.isClosed()) {
+    const text = await admin.page.locator('body').innerText().catch(() => 'Dummy page unavailable');
+    report('DIAGNOSTIC', 'dummy admin UI', text.replace(/\b\d{18}\b/g, '[employee]').slice(0, 4000));
+  }
   process.exitCode = 1;
 }).finally(async () => {
   try {

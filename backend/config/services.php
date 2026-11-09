@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'agent' => [
+        'internal_key' => env('AGENT_INTERNAL_KEY'),
+        'webhook_url' => env('AGENT_WEBHOOK_URL'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -34,7 +34,7 @@ services:
       - SERVER_URL=http://192.168.100.205:8080
       - DOCKER_ENV=true
       - LOG_LEVEL=ERROR,WARN,INFO
-      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-bksda_hermes_secret_api_key_2026}
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:?Set a unique gateway API key}
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://evolution:evolution_secret_2026@postgres:5432/evolution?schema=public
       - DATABASE_CLIENT_NAME=evolution_exchange
@@ -69,9 +69,12 @@ services:
       - PORT=3000
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - SUPERAPP_API_URL=http://192.168.100.203
-      - SUPERAPP_INTERNAL_KEY=${SUPERAPP_INTERNAL_KEY:-bksda-hermes-agent-secure-token-2026}
+      - SUPERAPP_INTERNAL_KEY=${SUPERAPP_INTERNAL_KEY:?Set the matching backend service key}
       - EVOLUTION_API_URL=http://evolution-api:8080
-      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY:-bksda_hermes_secret_api_key_2026}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY:?Set a unique gateway API key}
+      - EVOLUTION_WEBHOOK_KEY=${EVOLUTION_WEBHOOK_KEY:?Set a separate producer webhook key}
+      - ASSISTANT_ADMIN_USERNAME=${ASSISTANT_ADMIN_USERNAME:-admin}
+      - ASSISTANT_ADMIN_PASSWORD=${ASSISTANT_ADMIN_PASSWORD:-}
       - EVOLUTION_INSTANCE_NAME=bksda-assistant
       - REDIS_HOST=redis
       - REDIS_PORT=6379

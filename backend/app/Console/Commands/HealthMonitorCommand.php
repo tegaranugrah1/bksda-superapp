@@ -33,10 +33,15 @@ class HealthMonitorCommand extends Command
         // 1. Cek Queue Worker via Heartbeat
         $lastHeartbeat = Cache::get('queue:heartbeat');
         if ($lastHeartbeat === null) {
-            // Heartbeat belum ada — dispatch perdana
+            Cache::add('queue:heartbeat-first-dispatched-at', now()->timestamp, now()->addDay());
+            if (now()->timestamp - (int) Cache::get('queue:heartbeat-first-dispatched-at') > 900) {
+                $issues[] = 'Queue worker belum merespons heartbeat selama lebih dari 15 menit.';
+                $statusOk = false;
+            }
             QueueHeartbeat::dispatch();
             $this->line('[QUEUE] Heartbeat di-dispatch perdana.');
         } else {
+            Cache::forget('queue:heartbeat-first-dispatched-at');
             $ageSeconds = now()->timestamp - (int) $lastHeartbeat;
             QueueHeartbeat::dispatch(); // Dispatch untuk interval berikutnya
 
@@ -58,12 +63,15 @@ class HealthMonitorCommand extends Command
             
             $socket = @fsockopen($reverbHost, $reverbPort, $errno, $errstr, 2);
             if (! is_resource($socket)) {
-                $issues[] = "Reverb WebSocket di {$reverbHost}:{$reverbPort} tidak merespons ({$errstr}).";
+                $isDnsError = str_contains($errstr, 'getaddrinfo') || str_contains($errstr, 'php_network_getaddresses');
+                $issues[] = $isDnsError
+                    ? "DNS Reverb gagal: nama host {$reverbHost} tidak dapat diresolusi ({$errstr})."
+                    : "Reverb di {$reverbHost}:{$reverbPort} gagal menerima koneksi TCP ({$errstr}).";
                 $statusOk = false;
                 $this->error("[REVERB] Offline: {$reverbHost}:{$reverbPort}");
             } else {
                 fclose($socket);
-                $this->info("[REVERB] Online: {$reverbHost}:{$reverbPort}");
+                $this->info("[REVERB] TCP terjangkau: {$reverbHost}:{$reverbPort}; delivery WebSocket belum diuji oleh probe ini.");
             }
         }
 

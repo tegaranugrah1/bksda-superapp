@@ -29,6 +29,16 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
+  /* Brand Kemenhut Forest Palette */
+  --color-forest: #1e5433;
+  --color-forest-dark: #164227;
+  --color-forest-deep: #153e24;
+  --color-forest-surface: #edf3ee;
+  --color-forest-cardborder: #dce8dd;
+  --color-forest-sage: #d5e8d9;
+  --color-forest-light: #e4f0e6;
+  --color-forest-badge: #dff0e2;
+
   /* Setup Default Border Radius (shadcn style) */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

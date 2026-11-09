@@ -25,6 +25,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     intl \
     mbstring \
     bcmath \
+    pcntl \
     opcache \
     gd
 
@@ -44,7 +45,7 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 COPY . .
 
 # Generate optimized autoload
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev && php tests/Security/reverb-runtime.php
 
 # Copy Nginx config for standalone container
 COPY nginx.conf /etc/nginx/http.d/default.conf
@@ -71,4 +72,4 @@ RUN echo "upload_max_filesize=20M" >> "$PHP_INI_DIR/conf.d/uploads.ini" && \
 
 EXPOSE 80 9000
 
-CMD ["sh", "-c", "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force; php artisan db:seed --class=SuperAdminSeeder --force; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "mkdir -p /run/nginx; sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/g' /usr/local/etc/php-fpm.d/www.conf 2>/dev/null || true; php artisan migrate --force || exit 1; chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache; php-fpm & exec nginx -g 'daemon off;'"]

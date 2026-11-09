@@ -20,16 +20,6 @@ class CheckPermission
     {
         $user = $request->user();
 
-        if (! $user && $request->filled('token')) {
-            $rawToken = urldecode((string) $request->query('token'));
-            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($rawToken)
-                ?: \Laravel\Sanctum\PersonalAccessToken::findToken((string) $request->query('token'));
-            if ($tokenObj) {
-                $user = $tokenObj->tokenable;
-                $request->setUserResolver(fn () => $user);
-            }
-        }
-
         // 1. EARLY RETURN: Pastikan user terautentikasi
         if (! $user) {
             return response()->json([
@@ -59,11 +49,13 @@ class CheckPermission
                         return $next($request);
                     }
 
-                    // 2. Detail asset endpoint: check if the asset belongs to them
+                    // 2. Detail asset endpoint: check if the asset belongs to them (or active loan for public documentation photos only)
                     $assetId = $request->route('asset');
                     if ($request->isMethod('GET') && $assetId) {
                         $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
-                        if ($asset && $this->isAssetOwner($asset, $employee)) {
+                        $isPublicPhoto = $request->is('api/bmn/assets/*/photo/*')
+                            && in_array($request->route('type'), ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'geotag'], true);
+                        if ($asset && ($asset->isOwnedByEmployee($employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
                             return $next($request);
                         }
                     }
@@ -82,12 +74,11 @@ class CheckPermission
         return $next($request);
     }
 
-    /**
-     * Helper to verify if an asset belongs to the employee.
-     */
-    private function isAssetOwner($asset, $employee): bool
+    private function hasActiveLoan(\App\Modules\Bmn\Models\Asset $asset, $employee): bool
     {
-        return $asset->employee_id !== null
-            && (int) $asset->employee_id === (int) $employee->id;
+        return $asset->loans()
+            ->where('employee_id', $employee->id)
+            ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
+            ->exists();
     }
 }

@@ -4,8 +4,12 @@ import React from "react";
 import { Calendar, FileCheck, FileText, Plus, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
 import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
+import { formatDateRangeIndonesian, formatDateIndonesian } from "@/lib/letter-utils";
+import { api, clearGetCache } from "@/lib/api";
+import { toast } from "sonner";
 
 interface MyLeaveTabProps {
   myLeaveRequests: LeaveRequestPrintData[];
@@ -13,6 +17,7 @@ interface MyLeaveTabProps {
   onPrintLeave: (item: LeaveRequestPrintData) => void;
   onCancelLeave?: (id: number) => void;
   activeLeaveId?: number | string | null;
+  onConsumeActiveLeave?: () => void;
 }
 
 function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; className: string } {
@@ -49,14 +54,19 @@ export function MyLeaveTab({
   onPrintLeave,
   onCancelLeave,
   activeLeaveId,
+  onConsumeActiveLeave,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
   const [viewerModal, setViewerModal] = React.useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
 
   React.useEffect(() => {
-    if (!activeLeaveId || !myLeaveRequests.length) return;
-    const target = myLeaveRequests.find((r) => String(r.id) === String(activeLeaveId));
-    if (target) {
+    if (!activeLeaveId) return;
+    let active = true;
+    setViewerModal(null);
+    clearGetCache();
+    void api.get(`/me/leave-requests/${encodeURIComponent(activeLeaveId)}`).then(response => {
+      if (!active) return;
+      const target: LeaveRequestPrintData = response.data.data;
       if (target.scan_surat_izin_path || target.scan_surat_path) {
         setViewerModal({
           url: `/me/leave-requests/${target.id}/scan-surat-izin`,
@@ -66,8 +76,13 @@ export function MyLeaveTab({
       } else {
         onPrintLeave(target);
       }
-    }
-  }, [activeLeaveId, myLeaveRequests, onPrintLeave]);
+    }).catch(() => {
+      if (active) toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+    }).finally(() => {
+      if (active) onConsumeActiveLeave?.();
+    });
+    return () => { active = false; };
+  }, [activeLeaveId, onPrintLeave, onConsumeActiveLeave]);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {
@@ -139,11 +154,27 @@ export function MyLeaveTab({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 }
+            }
+          }}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {filteredRequests.map((item, idx) => (
-            <div
+            <motion.div
               key={item.id ?? `leave-${item.tanggal_pengajuan}-${idx}`}
-              className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-xs"
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }
+              }}
+              whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+              className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-xs hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between border-b border-slate-200/50 dark:border-slate-800 pb-2.5 gap-2">
                 <div>
@@ -184,7 +215,7 @@ export function MyLeaveTab({
                 <div className="text-slate-600 dark:text-slate-400 flex items-center justify-between text-[11px]">
                   <span className="text-slate-400">Periode:</span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {item.tanggal_mulai} s.d. {item.tanggal_selesai}
+                    {formatDateRangeIndonesian(item.tanggal_mulai, item.tanggal_selesai)}
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400 font-medium pt-1">
@@ -204,7 +235,7 @@ export function MyLeaveTab({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200/40 dark:border-slate-800 text-[11px]">
-                <span className="text-slate-400">Tgl: {item.tanggal_pengajuan}</span>
+                <span className="text-slate-400">Tgl: {formatDateIndonesian(item.tanggal_pengajuan)}</span>
                 <div className="flex items-center gap-2">
                   {(item.status?.toUpperCase() === "PENGAJUAN" || item.status?.toUpperCase() === "PENDING") && onCancelLeave && item.id && (
                     <Button
@@ -302,9 +333,9 @@ export function MyLeaveTab({
                   })()}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Modal Pratinjau Berkas Scan Cuti Pegawai */}

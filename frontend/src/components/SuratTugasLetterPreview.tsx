@@ -16,6 +16,7 @@ import {
   splitStoredUntukItems,
   buildOrderedAdditionalUntukItems,
   buildBiayaTextFor,
+  parseLetterItems,
   type StTemplateConfiguration,
 } from "@/app/kepegawaian/surat-tugas/_lib";
 
@@ -77,31 +78,6 @@ interface SuratTugasLetterPreviewProps {
 
 export type SuratTugasPreviewData = SuratTugasLetterPreviewProps["data"];
 
-/** Parse menimbang/dasar field: could be array of {id, text}, array of strings, or a plain string */
-function parseItems(value: DasarItem[] | string | null | undefined): DasarItem[] {
-  if (!value) return [];
-  if (typeof value === "string") {
-    // Try JSON parse
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed.map((item, idx) => {
-        if (typeof item === "string") return { id: String(idx), text: item };
-        return { id: item.id || String(idx), text: item.text || String(item) };
-      });
-    } catch {
-      // Single string - split by semicolons or return as single item
-      return value.split(";").filter(s => s.trim()).map((s, idx) => ({ id: String(idx), text: s.trim() }));
-    }
-  }
-  if (Array.isArray(value)) {
-    return value.map((item, idx) => {
-      if (typeof item === "string") return { id: String(idx), text: item };
-      return { id: item.id || String(idx), text: item.text || String(item) };
-    });
-  }
-  return [];
-}
-
 function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
   const lines = (title || "KEPALA BALAI,").split("\n");
 
@@ -130,15 +106,17 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const headerTitle = typeof config.header_title === "string" ? config.header_title : "KEPALA BALAI,";
   const penutupText = typeof config.penutup_text === "string" ? config.penutup_text : "Demikian untuk dilaksanakan dengan penuh tanggung jawab.";
   const dateFormatStyle = config.date_format_style || "inline";
-  const signerAuthorityMandate = config.signer_authority_mandate || null;
-  const signerTitle = config.signer_title || "Kepala Balai,";
+  const signerAuthorityMandate = typeof config.signer_authority_mandate === "string" ? config.signer_authority_mandate : null;
+  const signerTitle = typeof config.signer_title === "string" ? config.signer_title : "Kepala Balai,";
   const tembusanPosition = config.tembusan_position || "beside";
-  const tembusanLabel = config.tembusan_label || "Tembusan:";
-  const kopImageUrl = config.kop_image_url || null;
-  const signerName = data.penandatangan_nama || data.template_snapshot?.signer?.name ||
-    data.template?.default_signer_name || data.approver?.name || "M. Ari Wibawanto, S.Hut., M.Sc.";
-  const signerNip = data.penandatangan_nip || data.template_snapshot?.signer?.nip ||
-    data.template?.default_signer_nip || data.approver?.nip || "19740514 199903 1 001";
+  const tembusanLabel = typeof config.tembusan_label === "string" ? config.tembusan_label : "Tembusan:";
+  const kopImageUrl = typeof config.kop_image_url === "string" ? config.kop_image_url : null;
+  const signerName = [data.penandatangan_nama, data.template_snapshot?.signer?.name,
+    data.template?.default_signer_name, data.approver?.name]
+    .find((value): value is string => typeof value === "string" && value.trim() !== "") ?? "M. Ari Wibawanto, S.Hut., M.Sc.";
+  const signerNip = [data.penandatangan_nip, data.template_snapshot?.signer?.nip,
+    data.template?.default_signer_nip, data.approver?.nip]
+    .find((value): value is string => typeof value === "string" && value.trim() !== "") ?? "19740514 199903 1 001";
   const isOfficial = ["approved", "completed", "published", "diterbitkan"].includes(data.status.toLowerCase());
 
   const handlePrint = () => {
@@ -182,11 +160,9 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
     };
   };
 
-  const menimbangItems = parseItems(data.menimbang);
-  const dasarItems = parseItems(data.dasar);
-  const tembusanItems = (data.tembusan ?? config.tembusan_items ?? [])
-    .map((t: any) => (typeof t === 'string' ? t.trim() : (t?.text || '').trim()))
-    .filter(Boolean);
+  const menimbangItems = parseLetterItems(data.menimbang);
+  const dasarItems = parseLetterItems(data.dasar);
+  const tembusanItems = parseLetterItems(data.tembusan ?? config.tembusan_items).map(item => item.text);
 
   const employees: Employee[] = data.employees || [];
 

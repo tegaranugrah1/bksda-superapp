@@ -2,17 +2,17 @@
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+
 import {
-  User, Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
+  Key, LayoutDashboard, HandHelping, Briefcase, ClipboardList,
   Calendar, UserCheck, Building, FileText, ChevronDown, FileCheck,
   FileSpreadsheet, Pencil, Loader2, Mail, Phone, Lock, Calculator,
-  Camera, Cloud,
+  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
-import { authStore } from "@/lib/auth-store";
+import { ChangePasswordModal } from "./SecurityModals";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,8 @@ interface PortalProfileSidebarProps {
   onOpenInlineReport: (type: "general" | "smart_patrol") => void;
   isInlineReportOpen: boolean;
   onRefreshDashboard?: () => void;
+  part?: "all" | "profile" | "menu";
+  className?: string;
 }
 
 export function PortalProfileSidebar({
@@ -67,6 +69,8 @@ export function PortalProfileSidebar({
   onOpenInlineReport,
   isInlineReportOpen,
   onRefreshDashboard,
+  part = "all",
+  className,
 }: PortalProfileSidebarProps) {
   const displayName = employee?.name || user?.name || "Pegawai BKSDA";
   const displayNip = employee?.nip || user?.username || "-";
@@ -81,12 +85,6 @@ export function PortalProfileSidebar({
   const [editLoading, setEditLoading] = useState(false);
 
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
-  const [pwData, setPwData] = useState({
-    current_password: "",
-    new_password: "",
-    new_password_confirmation: "",
-  });
-  const [pwLoading, setPwLoading] = useState(false);
 
   // Photo Upload States
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,7 +119,7 @@ export function PortalProfileSidebar({
     const isEmailChanging = cleanEmail.toLowerCase() !== currentRegisteredEmail;
 
     if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      toast.error("Format email tidak valid.");
+      toast.error("Format email tidak valid."); return; } if (cleanEmail && cleanEmail.toLowerCase().endsWith(".local")) { toast.error("Gunakan alamat email aktif yang valid (bukan domain .local).");
       return;
     }
     if (cleanPhone && !/^[0-9+\-\s()]+$/.test(cleanPhone)) {
@@ -156,48 +154,11 @@ export function PortalProfileSidebar({
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pwData.current_password) {
-      toast.error("Password saat ini wajib diisi.");
-      return;
-    }
-    if (!pwData.new_password || pwData.new_password.length < 8) {
-      toast.error("Password baru minimal 8 karakter.");
-      return;
-    }
-    if (pwData.new_password !== pwData.new_password_confirmation) {
-      toast.error("Konfirmasi password baru tidak cocok.");
-      return;
-    }
-    if (pwData.new_password === pwData.current_password) {
-      toast.error("Password baru tidak boleh sama dengan password saat ini.");
-      return;
-    }
-    setPwLoading(true);
-    try {
-      await api.post("/me/change-password", pwData);
-      toast.success("Password berhasil diubah! Silakan login kembali dengan password baru.");
-      setPwDialogOpen(false);
-      setPwData({ current_password: "", new_password: "", new_password_confirmation: "" });
-      authStore.logout();
-      window.location.href = "/login";
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-      const serverMsg = err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join(" ")
-        : err.response?.data?.message;
-      toast.error(serverMsg || "Gagal mengubah password.");
-    } finally {
-      setPwLoading(false);
-    }
-  };
-
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       e.target.value = "";
       toast.error("File harus berupa gambar (JPG, PNG, atau WEBP).");
       return;
@@ -249,259 +210,244 @@ export function PortalProfileSidebar({
     }
   };
 
-  return (
-    <>
-      <aside className="w-full lg:w-72 shrink-0 space-y-4">
-        {/* PROFILE CARD */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm space-y-4 relative">
-          {/* Edit Profile Icon (Top Right Pencil) */}
-          <button
-            type="button"
-            onClick={openEditDialog}
-            title="Edit Informasi Kontak Profil"
-            className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+    const profileCard = (
+    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 sm:p-4.5 shadow-xs space-y-4 relative flex flex-col justify-between", part === "profile" && "h-full", className)}>
+      {/* Edit Profile Icon (Top Right Pencil) */}
+      <button
+        type="button"
+        onClick={openEditDialog}
+        title="Edit Informasi Kontak Profil"
+        className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-[#16a34a] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      >
+        <Pencil className="w-4 h-4" />
+      </button>
 
-          {/* Avatar Header */}
-          <div className="flex flex-col items-center text-center space-y-3">
-            <div className="relative group">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoSelect}
-              />
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-emerald-500/20 shadow-md bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center">
-                {employee?.photo ? (
-                  <Image
-                    src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
-                    alt={displayName}
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full bg-emerald-600 flex items-center justify-center text-white text-2xl font-bold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              {/* Camera Action Button */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                title="Ganti Foto Profil"
-                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
-              >
-                <Camera className="w-3.5 h-3.5" />
-              </button>
-              {/* Status Pill */}
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-20">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                AKTIF
-              </div>
+      <div className="space-y-4">
+        {/* Avatar Header */}
+        <div className="flex flex-col items-center text-center space-y-3">
+          <div className="relative group">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handlePhotoSelect}
+            />
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#1e5433]/20 shadow-md bg-[#e4f0e6] dark:bg-emerald-950 flex items-center justify-center">
+              {employee?.photo ? (
+                <Image
+                  src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
+                  alt={displayName}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-full bg-[#1e5433] flex items-center justify-center text-white text-2xl font-bold">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-
-            <div className="space-y-1 pt-1">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
-                {displayName}
-              </h3>
-              <p className="text-xs font-mono font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded inline-block">
-                {displayNip}
-              </p>
-            </div>
-          </div>
-
-          {/* Info Details List */}
-          <div className="space-y-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-              <UserCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{displayPosition}</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-              <Building className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{displayDept}</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-              <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div className="min-w-0 flex-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
-                  {displayEmail}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-              <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {displayPhone}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Single Ganti Password Button */}
-          <div className="pt-1">
+            {/* Camera Action Button */}
             <button
               type="button"
-              onClick={() => setPwDialogOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              title="Ganti Foto Profil"
+              className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#164227] hover:bg-[#153e24] text-white shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
             >
-              <Key className="w-3.5 h-3.5 text-slate-500" />
-              <span>Ganti Password</span>
+              <Camera className="w-3.5 h-3.5" />
             </button>
+            {/* Status Pill */}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1e5433] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-20">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+              AKTIF
+            </div>
+          </div>
+
+          <div className="space-y-1 pt-1">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+              {displayName}
+            </h3>
+            <p className="text-xs font-mono font-medium text-[#1e5433] dark:text-emerald-300 bg-[#e4f0e6] dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-[#dce8dd] inline-block">
+              {displayNip}
+            </p>
           </div>
         </div>
 
-        {/* VERTICAL NAV MENU (MYASN STYLE) */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3 shadow-sm space-y-1">
-          <p className="px-3 py-1 text-[10px] uppercase tracking-wider font-bold text-slate-400">
-            Menu Utama
-          </p>
-
-          {/* 1 s.d. 7: Vertical Nav Items with Sliding Indicator */}
-          {[
-            { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
-            { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
-            { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
-            { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
-            { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
-            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300" },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = activeNavTab === item.id && !isInlineReportOpen;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelectNavTab(item.id)}
-                className={cn(
-                  "relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left select-none cursor-pointer",
-                  isActive
-                    ? "text-white font-bold"
-                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100/70 dark:hover:bg-slate-800/70"
-                )}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="activePortalSidebarIndicator"
-                    className="absolute inset-0 bg-emerald-600 rounded-xl shadow-xs"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                  />
-                )}
-                <div className="flex items-center gap-2.5 relative z-10">
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </div>
-                {item.count !== undefined && item.count > 0 && (
-                  <span
-                    className={cn(
-                      "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                      isActive
-                        ? "bg-emerald-500 text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                    )}
-                  >
-                    {item.count}
-                  </span>
-                )}
-                {item.badgeText && (
-                  <span
-                    className={cn(
-                      "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                      isActive ? "bg-white/20 text-white" : item.badgeClass
-                    )}
-                  >
-                    {item.badgeText}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-                    {/* 8. BKSDA Drive */}
-          <Link
-            href="/drive"
-            className={cn(
-              "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
-              "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-            )}
-          >
-            <div className="flex items-center gap-2.5">
-              <Cloud className="w-4 h-4 text-emerald-600" />
-              <span>BKSDA Drive</span>
+        {/* Info Details List */}
+        <div className="space-y-2.5 pt-2.5 border-t border-[#edf3ee] dark:border-slate-800 text-xs">
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <UserCheck className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayPosition}</span>
             </div>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
-              Baru
-            </span>
-          </Link>
+          </div>
 
-          {/* FAST ACTION: BUAT LAPORAN DROPDOWN */}
-          {onOpenInlineReport && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="w-full flex items-center justify-between px-3.5 py-2.5 font-bold text-xs rounded-xl shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-all focus:outline-none">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-white" />
-                    <span>{isInlineReportOpen ? "Form Laporan Aktif" : "Buat Laporan"}</span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 opacity-80" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-slate-200 shadow-xl bg-white dark:bg-slate-900">
-                  <DropdownMenuItem
-                    onClick={() => onOpenInlineReport("general")}
-                    className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 shrink-0 mt-0.5">
-                      <FileCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">1. Laporan Pelaksanaan ST</p>
-                      <p className="text-[10px] text-slate-500 font-normal">Buka Mode Inline Form Laporan</p>
-                    </div>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem 
-                    onClick={() => onOpenInlineReport("smart_patrol")}
-                    className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
-                      <FileSpreadsheet className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
-                      <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Building className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayDept}</span>
             </div>
-          )}
+          </div>
+
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Mail className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
+                {displayEmail}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+            <Phone className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {displayPhone}
+              </span>
+            </div>
+          </div>
         </div>
-      </aside>
+      </div>
 
+      {/* Single Ganti Password Button pinned to bottom */}
+      <div className="pt-2 mt-auto">
+        <button
+          type="button"
+          onClick={() => setPwDialogOpen(true)}
+          className="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-[#edf3ee] dark:bg-slate-800 hover:bg-[#e4f0e6] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 transition-colors border border-[#dce8dd] dark:border-slate-700 cursor-pointer"
+        >
+          <Key className="w-3.5 h-3.5 text-slate-500" />
+          <span>Ganti Password</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  const menuCard = (
+    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-3.5 shadow-sm flex flex-col justify-between", part === "menu" && "h-full", className)}>
+      <div className="space-y-1">
+        <p className="px-3 py-1 text-[10px] uppercase tracking-wider font-bold text-slate-400">
+          Menu Utama
+        </p>
+
+        {/* 1 s.d. 7: Vertical Nav Items with Sliding Indicator */}
+        {[
+          { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
+          { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
+          { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
+          { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
+          { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
+          { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+          { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd]" },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = activeNavTab === item.id && !isInlineReportOpen;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelectNavTab(item.id)}
+              className={cn(
+                "relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left select-none cursor-pointer",
+                isActive ? "text-[#1e5433] dark:text-emerald-300 font-bold"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-[#edf3ee] dark:hover:bg-slate-800 hover:text-[#1e5433] dark:hover:text-emerald-400"
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="activePortalSidebarIndicator"
+                  className="absolute inset-0 bg-[#d5e8d9] dark:bg-emerald-950/80 rounded-xl shadow-2xs border border-[#b8dabf] dark:border-emerald-800/60"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <div className={cn("flex items-center gap-2.5 relative z-10", isActive && "text-[#1e5433] dark:text-emerald-300")}>
+                <Icon className={cn("w-4 h-4", isActive ? "text-[#1e5433] dark:text-emerald-300" : "text-slate-500 dark:text-slate-400")} />
+                <span>{item.label}</span>
+              </div>
+              {item.count !== undefined && item.count > 0 && (
+                <span
+                  className={cn(
+                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300"
+                      : "bg-[#edf3ee] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#dce8dd] dark:border-slate-700"
+                  )}
+                >
+                  {item.count}
+                </span>
+              )}
+              {item.badgeText && (
+                <span
+                  className={cn(
+                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300" : item.badgeClass
+                  )}
+                >
+                  {item.badgeText}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* FAST ACTION: BUAT LAPORAN DROPDOWN */}
+      {onOpenInlineReport && (
+        <div className="pt-2.5 mt-auto border-t border-[#edf3ee] dark:border-slate-800">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full flex items-center justify-between px-3 py-2 font-bold text-xs rounded-xl shadow-xs bg-[#1e5433] hover:bg-[#164227] text-white transition-all focus:outline-none">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-white" />
+                <span>{isInlineReportOpen ? "Form Laporan Aktif" : "Buat Laporan"}</span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-slate-200 shadow-xl bg-white dark:bg-slate-900">
+              <DropdownMenuItem
+                onClick={() => onOpenInlineReport("general")}
+                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5">
+                  <FileCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">1. Laporan Pelaksanaan ST</p>
+                  <p className="text-[10px] text-slate-500 font-normal">Buka Mode Inline Form Laporan</p>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => onOpenInlineReport("smart_patrol")}
+                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
+                  <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+    </div>
+  );
+
+  const dialogs = (
+    <>
       {/* DIALOG EDIT PROFIL KONTAK */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-emerald-600" />
+              <Pencil className="w-5 h-5 text-[#1e5433]" />
               Edit Informasi Profil Kontak
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
@@ -516,7 +462,6 @@ export function PortalProfileSidebar({
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <Input
                   type="email"
-                  required
                   placeholder="contoh@ksdae.go.id"
                   value={editData.email}
                   onChange={(e) => setEditData({ ...editData, email: e.target.value })}
@@ -549,6 +494,7 @@ export function PortalProfileSidebar({
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <Input
                     type="password"
+                    autoComplete="current-password"
                     required
                     placeholder="Masukkan kata sandi login Anda"
                     value={editData.current_password}
@@ -566,7 +512,7 @@ export function PortalProfileSidebar({
               <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-xl text-xs">
                 Batal
               </Button>
-              <Button type="submit" disabled={editLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs">
+              <Button type="submit" disabled={editLoading} className="bg-[#1e5433] hover:bg-[#164227] text-white rounded-xl text-xs">
                 {editLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan Perubahan"}
               </Button>
             </DialogFooter>
@@ -574,83 +520,18 @@ export function PortalProfileSidebar({
         </DialogContent>
       </Dialog>
 
-      {/* DIALOG GANTI PASSWORD */}
-      <Dialog open={pwDialogOpen} onOpenChange={setPwDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Key className="w-5 h-5 text-emerald-600" />
-              Ganti Password Akun
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
-              Masukkan password lama dan password baru Anda untuk mengamankan akun.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleChangePassword} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Password Saat Ini</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.current_password}
-                  onChange={(e) => setPwData({ ...pwData, current_password: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Password Baru</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.new_password}
-                  onChange={(e) => setPwData({ ...pwData, new_password: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Konfirmasi Password Baru</Label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <Input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={pwData.new_password_confirmation}
-                  onChange={(e) => setPwData({ ...pwData, new_password_confirmation: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setPwDialogOpen(false)} className="rounded-xl text-xs">
-                Batal
-              </Button>
-              <Button type="submit" disabled={pwLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs">
-                {pwLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Perbarui Password"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* DIALOG GANTI PASSWORD (REUSED FROM SecurityModals) */}
+      <ChangePasswordModal
+        open={pwDialogOpen}
+        onClose={() => setPwDialogOpen(false)}
+      />
 
       {/* DIALOG PREVIEW GANTI FOTO */}
       <Dialog open={photoDialogOpen} onOpenChange={(open) => !open && closePhotoDialog()}>
         <DialogContent className="sm:max-w-sm rounded-2xl p-6 text-center">
           <DialogHeader className="text-center sm:text-center">
             <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
-              <Camera className="w-5 h-5 text-emerald-600" />
+              <Camera className="w-5 h-5 text-[#1e5433]" />
               Pratinjau Foto Profil
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
@@ -659,7 +540,7 @@ export function PortalProfileSidebar({
           </DialogHeader>
 
           <div className="py-4 flex flex-col items-center">
-            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-emerald-500/30 shadow-lg bg-slate-100 dark:bg-slate-800">
+            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#1e5433]/30 shadow-lg bg-slate-100 dark:bg-slate-800">
               {photoPreviewUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -690,7 +571,7 @@ export function PortalProfileSidebar({
               type="button"
               onClick={handleUploadPhoto}
               disabled={photoLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs w-full sm:w-auto"
+              className="bg-[#1e5433] hover:bg-[#164227] text-white rounded-xl text-xs w-full sm:w-auto"
             >
               {photoLoading ? (
                 <>
@@ -704,6 +585,29 @@ export function PortalProfileSidebar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+
+  if (part === "profile") {
+    return (
+      <>
+        {profileCard}
+        {dialogs}
+      </>
+    );
+  }
+
+  if (part === "menu") {
+    return menuCard;
+  }
+
+  return (
+    <>
+      <aside className={cn("w-full space-y-4", className)}>
+        {profileCard}
+        {menuCard}
+      </aside>
+      {dialogs}
     </>
   );
 }

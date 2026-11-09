@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { useAuth } from '../../../features/auth/AuthProvider';
 import { useMobileDashboard } from '../useMobileDashboard';
 import { PortalDashboardScreen } from '../PortalDashboardScreen';
@@ -28,6 +29,8 @@ export default function DashboardScreen({ navigation }: any) {
       navigation.navigate('KepegawaianMain');
     } else if (moduleKey === 'profile') {
       navigation.navigate('Profile');
+    } else if (moduleKey === 'drive') {
+      Alert.alert('BKSDA Drive', 'Akses penyimpanan cloud & manajemen berkas digital terintegrasi RustFS / S3 BKSDA Kaltim.');
     }
   };
 

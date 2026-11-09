@@ -78,6 +78,39 @@ class Employee extends Model
         return static::withTrashed()->lockForUpdate()->findOrFail($employeeId);
     }
 
+    /**
+     * Single source of truth: resolve employee_id dari Daftar Pegawai (kpg_employees)
+     * berdasarkan kolom teks pengguna / nama_pengguna hasil import Excel BMN.
+     */
+    public static function resolveIdByName(?string ...$names): ?int
+    {
+        $resolvedIds = [];
+        foreach ($names as $raw) {
+            $target = trim((string) $raw);
+            if ($target === '' || $target === '-') {
+                continue;
+            }
+            $lower = mb_strtolower($target);
+            $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$lower])->limit(2)->pluck('id');
+            $clean = trim((string) preg_replace('/,.*$/', '', $target));
+            if (mb_strlen($clean) >= 3 && ($matches->isEmpty() || $clean === $target)) {
+                $escaped = addcslashes(mb_strtolower($clean), '%_');
+                $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($clean)])
+                    ->orWhereRaw('LOWER(nama_lengkap) LIKE ?', [$escaped . ',%'])
+                    ->limit(2)->pluck('id');
+            }
+            foreach ($matches as $id) {
+                $resolvedIds[(int) $id] = true;
+            }
+            // Names authorize only when every matching column identifies one employee.
+            if (count($resolvedIds) > 1) {
+                return null;
+            }
+        }
+
+        return $resolvedIds ? array_key_first($resolvedIds) : null;
+    }
+
     public function replaceProfilePhoto(UploadedFile $file): string
     {
         $oldPath = $this->foto_profil;
@@ -85,12 +118,18 @@ class Employee extends Model
         abort_if($path === false, 500, 'Foto profil gagal disimpan.');
 
         $this->update(['foto_profil' => $path]);
-        if ($oldPath && ! str_starts_with($oldPath, 'http')
-            && ! static::withTrashed()->where('foto_profil', $oldPath)->exists()) {
-            Storage::delete($oldPath);
-        }
+        static::deleteUnreferencedProfilePhoto($oldPath);
 
         return $path;
+    }
+
+    public static function deleteUnreferencedProfilePhoto(?string $path): void
+    {
+        // Display scopes must not hide an active or archived storage reference.
+        if ($path && ! str_starts_with($path, 'http')
+            && ! static::withoutGlobalScopes()->withTrashed()->where('foto_profil', $path)->exists()) {
+            Storage::delete($path);
+        }
     }
 
     // Konversi otomatis string 0/1 dari database menjadi boolean true/false di PHP
@@ -112,6 +151,16 @@ class Employee extends Model
     public function getFotoUrlAttribute(): ?string
     {
         return $this->foto_profil ? Storage::url($this->foto_profil) : null;
+    }
+
+    public function getNoTeleponAttribute(): ?string
+    {
+        return $this->attributes['no_telepon'] ?? $this->attributes['telepon'] ?? null;
+    }
+
+    public function setNoTeleponAttribute(?string $value): void
+    {
+        $this->attributes['telepon'] = $value;
     }
 
     /**

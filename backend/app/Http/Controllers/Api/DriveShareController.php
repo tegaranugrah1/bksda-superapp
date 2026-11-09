@@ -71,7 +71,7 @@ class DriveShareController extends Controller
         $targetUnitId = null;
 
         if ($validated['target_type'] === 'user') {
-            User::findOrFail($validated['target_id']);
+            User::where('is_active', true)->findOrFail($validated['target_id']);
             $targetUserId = $validated['target_id'];
         } else {
             DriveUnit::findOrFail($validated['target_id']);
@@ -136,9 +136,9 @@ class DriveShareController extends Controller
     public function deleteShare(Request $request, int $shareId): JsonResponse
     {
         $user = $request->user();
-        $share = DriveShare::with('file')->findOrFail($shareId);
+        $share = DriveShare::with(['file' => fn ($q) => $q->withTrashed()])->findOrFail($shareId);
 
-        if ($share->created_by !== $user->id && !DriveAccess::canWriteFile($user, $share->file)) {
+        if ($share->created_by !== $user->id && (!$share->file || !DriveAccess::canWriteFile($user, $share->file))) {
             return response()->json(['message' => 'Anda tidak memiliki izin mencabut akses berbagi ini.'], 403);
         }
 
@@ -152,18 +152,9 @@ class DriveShareController extends Controller
      */
     public function getPublicShareInfo(string $token): JsonResponse
     {
-        if (!config('filesystems.drive_public_share_enabled', env('DRIVE_PUBLIC_SHARE', true))) {
-            return response()->json(['message' => 'Berbagi link publik sedang dinonaktifkan.'], 404);
-        }
-
-        $share = DriveShare::where('token', $token)
-            ->where('share_type', 'public')
-            ->with('file')
-            ->first();
-
-        if (!$share || !$share->file || $share->isExpired()) {
-            return response()->json(['message' => 'Tautan berbagi tidak ditemukan atau sudah kedaluwarsa.'], 404)
-                ->header('X-Robots-Tag', 'noindex, nofollow');
+        $share = $this->resolveActivePublicShare($token);
+        if ($share instanceof JsonResponse) {
+            return $share;
         }
 
         return response()->json([
@@ -182,18 +173,9 @@ class DriveShareController extends Controller
      */
     public function downloadPublicShare(Request $request, string $token): JsonResponse
     {
-        if (!config('filesystems.drive_public_share_enabled', env('DRIVE_PUBLIC_SHARE', true))) {
-            return response()->json(['message' => 'Berbagi link publik sedang dinonaktifkan.'], 404);
-        }
-
-        $share = DriveShare::where('token', $token)
-            ->where('share_type', 'public')
-            ->with('file')
-            ->first();
-
-        if (!$share || !$share->file || $share->isExpired()) {
-            return response()->json(['message' => 'Tautan berbagi tidak ditemukan atau sudah kedaluwarsa.'], 404)
-                ->header('X-Robots-Tag', 'noindex, nofollow');
+        $share = $this->resolveActivePublicShare($token);
+        if ($share instanceof JsonResponse) {
+            return $share;
         }
 
         if ($share->hasPassword()) {
@@ -214,13 +196,14 @@ class DriveShareController extends Controller
 
         $file = $share->file;
         $signerDisk = Storage::disk('drive_signer');
+        $safeFilename = preg_replace('/[\x00-\x1F\x7F"\\\\]/', '_', (string) $file->name);
 
         // Security: safe content disposition attachment
         $downloadUrl = $signerDisk->temporaryUrl(
             $file->s3_key,
             now()->addMinutes(15),
             [
-                'ResponseContentDisposition' => 'attachment; filename="' . addslashes($file->name) . '"',
+                'ResponseContentDisposition' => 'attachment; filename="' . $safeFilename . '"',
             ]
         );
 
@@ -229,5 +212,24 @@ class DriveShareController extends Controller
             'file_name' => $file->name,
             'size_bytes' => $file->size_bytes,
         ])->header('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    private function resolveActivePublicShare(string $token): DriveShare|JsonResponse
+    {
+        if (!config('filesystems.drive_public_share_enabled', env('DRIVE_PUBLIC_SHARE', true))) {
+            return response()->json(['message' => 'Berbagi link publik sedang dinonaktifkan.'], 404);
+        }
+
+        $share = DriveShare::where('token', $token)
+            ->where('share_type', 'public')
+            ->with('file')
+            ->first();
+
+        if (!$share || !$share->file || $share->isExpired()) {
+            return response()->json(['message' => 'Tautan berbagi tidak ditemukan atau sudah kedaluwarsa.'], 404)
+                ->header('X-Robots-Tag', 'noindex, nofollow');
+        }
+
+        return $share;
     }
 }

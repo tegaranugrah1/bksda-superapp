@@ -69,7 +69,7 @@ class StTaskTypeController extends Controller
     {
         $validated = $request->validate([
             'nama' => ['required', 'string', 'max:255'],
-            'kode' => ['nullable', 'string', 'max:100', Rule::unique('st_task_types', 'kode')->whereNull('deleted_at')],
+            'kode' => ['nullable', 'string', 'max:100', Rule::unique('st_task_types', 'kode')],
             'mode_lokasi' => ['required', 'string', 'in:luar_wilayah,dalam_kawasan,tempat_saja'],
             'aturan_durasi' => ['required', 'string', 'in:fleksibel,wajib_1_hari'],
             'default_sertakan_laporan' => ['nullable', 'boolean'],
@@ -83,7 +83,7 @@ class StTaskTypeController extends Controller
             $base = Str::slug($validated['nama'], '_');
             $slug = $base;
             $counter = 1;
-            while (StTaskType::where('kode', $slug)->exists()) {
+            while (StTaskType::withTrashed()->where('kode', $slug)->exists()) {
                 $slug = "{$base}_{$counter}";
                 $counter++;
             }
@@ -115,7 +115,7 @@ class StTaskTypeController extends Controller
 
         $validated = $request->validate([
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
-            'kode' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('st_task_types', 'kode')->ignore($type->id)->whereNull('deleted_at')],
+            'kode' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('st_task_types', 'kode')->ignore($type->id)],
             'mode_lokasi' => ['sometimes', 'required', 'string', 'in:luar_wilayah,dalam_kawasan,tempat_saja'],
             'aturan_durasi' => ['sometimes', 'required', 'string', 'in:fleksibel,wajib_1_hari'],
             'default_sertakan_laporan' => ['nullable', 'boolean'],

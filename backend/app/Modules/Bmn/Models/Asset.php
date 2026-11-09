@@ -112,8 +112,33 @@ class Asset extends Model
             ->withTimestamps();
     }
 
+    public function isOwnedByEmployee(Employee $employee): bool
+    {
+        if ($this->employee_id !== null) {
+            return (int) $this->employee_id === (int) $employee->id;
+        }
+
+        return Employee::resolveIdByName($this->pengguna, $this->nama_pengguna) === (int) $employee->id;
+    }
+
     protected static function booted()
     {
+        static::saving(function (self $asset) {
+            if (! $asset->isDirty('employee_id') && ($asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna') || ! $asset->exists)) {
+                $hasName = (trim((string) ($asset->pengguna ?? '')) !== '' && trim((string) $asset->pengguna) !== '-')
+                    || (trim((string) ($asset->nama_pengguna ?? '')) !== '' && trim((string) $asset->nama_pengguna) !== '-');
+
+                if ($hasName) {
+                    $resolvedId = Employee::resolveIdByName($asset->pengguna, $asset->nama_pengguna);
+                    if ($resolvedId !== null || $asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna')) {
+                        $asset->employee_id = $resolvedId;
+                    }
+                } elseif ($asset->isDirty('pengguna') || $asset->isDirty('nama_pengguna')) {
+                    $asset->employee_id = null;
+                }
+            }
+        });
+
         static::forceDeleted(function ($asset) {
             $paths = [
                 $asset->foto_geotag_path,

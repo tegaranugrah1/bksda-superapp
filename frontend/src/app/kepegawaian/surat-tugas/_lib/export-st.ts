@@ -100,10 +100,11 @@ export async function exportSuratTugasWord(
   if (kopEl) {
     const kopImg = kopEl.querySelector("img");
     if (kopImg) {
-      const src = kopImg.getAttribute("src") || "";
       // Lebar 189.4mm (716px) dengan indent kiri -25.5pt membuat kop surat mulai 9mm di kiri "Menimbang" (1.1cm dari tepi kertas)
       // dan ujung garis hitam kanan sejajar persis dengan batas margin kanan kata-kata teks Dasar (194.5mm).
-      kopImgHtml = `<img src="${src}" width="716" style="width: 189.4mm; max-width: 189.4mm; height: auto; display: block;" />`;
+      kopImg.setAttribute("width", "716");
+      kopImg.setAttribute("style", "width: 189.4mm; max-width: 189.4mm; height: auto; display: block;");
+      kopImgHtml = kopImg.outerHTML;
     }
     kopEl.remove();
   }

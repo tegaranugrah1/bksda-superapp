@@ -6,9 +6,11 @@ use App\Models\PortalNotification;
 use App\Models\User;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Queue\SerializesModels;
 
-class PortalNotificationCreated implements ShouldBroadcast
+class PortalNotificationCreated implements ShouldBroadcast, ShouldDispatchAfterCommit, ShouldRescue
 {
     use SerializesModels;
 

@@ -113,6 +113,10 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'no_identitas' => $row['no_identitas'] ?? null,
             'no_stnk' => $row['no_stnk'] ?? null,
             'nama_pengguna' => $row['nama_pengguna'] ?? null,
+            'employee_id' => \App\Modules\Kepegawaian\Models\Employee::resolveIdByName(
+                $row['pengguna'] ?? null,
+                $row['nama_pengguna'] ?? null
+            ),
             'status_pmk' => $row['status_pmk'] ?? null,
             'foto_geotag_url' => $this->extractUrl($row['foto_ber-geotag'] ?? ($row['foto_bergeotag'] ?? ($row['foto_ber_geotag'] ?? null))),
             'tahun_perolehan' => $this->extractYear($row['tanggal_perolehan'] ?? null),

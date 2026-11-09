@@ -1,10 +1,11 @@
 import Redis from 'ioredis';
+import { randomUUID } from 'node:crypto';
 import { SuperAppClient, EmployeeInfo, LeaveBalanceData } from '../superapp/client';
 import { EvolutionGateway } from '../gateway/evolution';
 import { GeminiNluService, ParsedIntent } from '../nlu/gemini';
 
 export interface UserSession {
-  state: 'IDLE' | 'AWAITING_NIP_LINK' | 'AWAITING_LEAVE_CONFIRMATION' | 'AWAITING_ST_CONFIRMATION';
+  state: 'IDLE' | 'AWAITING_LEAVE_CONFIRMATION' | 'AWAITING_ST_CONFIRMATION';
   employee?: EmployeeInfo;
   pendingData?: any;
   updatedAt: number;
@@ -72,7 +73,8 @@ export class ConversationStateMachine {
 
     // 3. Concurrency Mutex Lock
     const lockKey = `lock:assistant:${phone}`;
-    const acquired = await this.redis.set(lockKey, '1', 'EX', 15, 'NX');
+    const lockOwner = randomUUID();
+    const acquired = await this.redis.set(lockKey, lockOwner, 'EX', 15, 'NX');
     if (!acquired) {
       // Ada thread pemroses yang sedang berjalan untuk nomor ini
       return;
@@ -87,7 +89,7 @@ export class ConversationStateMachine {
         '⚠️ Terjadi kendala saat memproses permohonan Anda. Mohon coba sesaat lagi atau gunakan portal web BKSDA SuperApp.'
       );
     } finally {
-      await this.redis.del(lockKey);
+      await this.compareDelete(lockKey, lockOwner);
     }
   }
 
@@ -96,58 +98,34 @@ export class ConversationStateMachine {
     const rawSession = await this.redis.get(sessionKey);
     let session: UserSession = rawSession ? JSON.parse(rawSession) : { state: 'IDLE', updatedAt: Date.now() };
 
-    // 1. Verifikasi Nomor Pegawai jika belum ada dalam sesi
-    if (!session.employee) {
-      const verifyRes = await this.superapp.verifyPhone(phone);
-      if (verifyRes.success && verifyRes.data) {
-        session.employee = verifyRes.data;
-      }
-    }
-
-    // 2. Jika nomor belum terdaftar, tangani alur NIP linking atau tolak dengan panduan
-    if (!session.employee) {
-      const nipMatch = text.match(/\b(19\d{16}|20\d{16})\b/);
-      if (nipMatch) {
-        const linkRes = await this.superapp.linkPhone(nipMatch[1], phone);
-        if (linkRes.success && linkRes.data) {
-          session.employee = linkRes.data;
-          session.state = 'IDLE';
-          await this.saveSession(sessionKey, session);
-          await this.gateway.sendMessage(
-            remoteJid,
-            `✅ Verifikasi berhasil! Nomor WhatsApp Anda telah ditautkan ke akun *${linkRes.data.nama_lengkap}*.\n\nSekarang Anda dapat mengecek saldo cuti (ketik "cek cuti"), mengajukan cuti, atau memeriksa Surat Tugas aktif.`
-          );
-          return;
-        } else {
-          await this.gateway.sendMessage(
-            remoteJid,
-            `❌ NIP ${nipMatch[1]} tidak ditemukan dalam data pegawai aktif BKSDA Kalimantan Timur. Mohon periksa kembali NIP Anda.`
-          );
-          return;
-        }
-      }
-
+    // A cached conversation is not proof of current phone ownership.
+    const verifyRes = await this.superapp.verifyPhone(phone);
+    if (!verifyRes.success || !verifyRes.data) {
+      await this.redis.del(sessionKey);
       await this.gateway.sendMessage(
         remoteJid,
-        `👋 Halo! Nomor WhatsApp Anda (+${phone}) belum terdaftar di sistem BKSDA SuperApp.\n\nJika Anda pegawai BKSDA Kaltim, silakan balas dengan mengetik *18 digit NIP Anda* untuk verifikasi mandiri.`
+        'Nomor WhatsApp belum dapat diverifikasi. Masuk ke Portal SuperApp untuk memperbarui nomor pada profil, atau hubungi Subbagian Tata Usaha.'
       );
-      session.state = 'AWAITING_NIP_LINK';
-      await this.saveSession(sessionKey, session);
       return;
     }
-
+    if (session.employee?.id !== verifyRes.data.id || session.employee?.nip !== verifyRes.data.nip) {
+      await this.redis.del(sessionKey);
+      session = { state: 'IDLE', updatedAt: Date.now() };
+    }
+    session.employee = verifyRes.data;
     const emp = session.employee;
 
     // 3. Tangani State Mesin Konfirmasi (Gatekeeper)
     if (session.state === 'AWAITING_LEAVE_CONFIRMATION') {
       const parsed = await this.nlu.parseUserMessage(text, emp.nama_lengkap);
+      if (['KONFIRMASI_YA', 'KONFIRMASI_BATAL'].includes(parsed.intent)
+        && (!rawSession || !await this.compareDelete(sessionKey, rawSession))) {
+        await this.gateway.sendMessage(remoteJid, 'Draf telah berubah atau dibatalkan. Silakan periksa kembali pengajuan Anda.');
+        return;
+      }
       if (parsed.intent === 'KONFIRMASI_YA') {
         const pending = session.pendingData;
         const submitRes = await this.superapp.submitLeaveRequest(pending);
-
-        session.state = 'IDLE';
-        session.pendingData = null;
-        await this.saveSession(sessionKey, session);
 
         if (submitRes.success && submitRes.data) {
           const tiket = submitRes.data.nomor_tiket || `CT-${submitRes.data.id}`;
@@ -165,9 +143,6 @@ export class ConversationStateMachine {
       }
 
       if (parsed.intent === 'KONFIRMASI_BATAL') {
-        session.state = 'IDLE';
-        session.pendingData = null;
-        await this.saveSession(sessionKey, session);
         await this.gateway.sendMessage(remoteJid, '🚫 Pengajuan cuti telah dibatalkan.');
         return;
       }
@@ -312,5 +287,12 @@ export class ConversationStateMachine {
   private async saveSession(key: string, session: UserSession): Promise<void> {
     session.updatedAt = Date.now();
     await this.redis.set(key, JSON.stringify(session), 'EX', 1800); // 30 menit TTL
+  }
+
+  private async compareDelete(key: string, expected: string): Promise<boolean> {
+    return await this.redis.eval(
+      "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+      1, key, expected
+    ) === 1;
   }
 }

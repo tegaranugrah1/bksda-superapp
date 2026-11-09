@@ -33,18 +33,8 @@ class CheckModuleAccess
             return $next($request);
         }
 
-        $accessModules = $user->access_modules ?? [];
-
         // Check if user has access to ANY of the specified modules (OR logic)
-        $hasAccess = false;
-        foreach ($moduleNames as $moduleName) {
-            if (in_array($moduleName, $accessModules)) {
-                $hasAccess = true;
-                break;
-            }
-        }
-
-        if (! $hasAccess) {
+        if (! array_intersect($moduleNames, $user->access_modules ?? [])) {
             // Special exception for Kepegawaian module: Allow regular employees to see their own leave balance & details (GET only)
             if (in_array('kepegawaian', $moduleNames) && $request->isMethod('GET')) {
                 $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
@@ -67,11 +57,13 @@ class CheckModuleAccess
                         return $next($request);
                     }
 
-                    // 2. Detail/photo asset endpoint: check if the asset belongs to them
+                    // 2. Detail/photo asset endpoint: check if the asset belongs to them (or active loan for public documentation photos only)
                     $assetId = $request->route('asset');
                     if ($request->isMethod('GET') && $assetId) {
                         $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
-                        if ($asset && $this->isAssetOwner($asset, $employee)) {
+                        $isPublicPhoto = $request->is('api/bmn/assets/*/photo/*')
+                            && in_array($request->route('type'), ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'geotag'], true);
+                        if ($asset && ($asset->isOwnedByEmployee($employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
                             return $next($request);
                         }
                     }
@@ -100,12 +92,11 @@ class CheckModuleAccess
         return $next($request);
     }
 
-    /**
-     * Helper to verify if an asset belongs to the employee.
-     */
-    private function isAssetOwner($asset, $employee): bool
+    private function hasActiveLoan(\App\Modules\Bmn\Models\Asset $asset, $employee): bool
     {
-        return $asset->employee_id !== null
-            && (int) $asset->employee_id === (int) $employee->id;
+        return $asset->loans()
+            ->where('employee_id', $employee->id)
+            ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
+            ->exists();
     }
 }

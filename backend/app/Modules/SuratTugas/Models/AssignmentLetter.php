@@ -19,6 +19,8 @@ class AssignmentLetter extends Model
 {
     use HasUuids, SoftDeletes;
 
+    public const OFFICIAL_STATUSES = ['approved', 'completed', 'published', 'diterbitkan'];
+
     protected $table = 'st_assignment_letters';
 
     protected $fillable = [

@@ -55,13 +55,21 @@ class MobileDashboardController extends Controller
             $assetOwnerScope = function ($query) use ($employeeId, $fullName, $escapedName) {
                 $query->where('employee_id', $employeeId);
                 if (mb_strlen($fullName) >= 3) {
-                    $query->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                          ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                    $query->orWhere(function ($fallback) use ($escapedName) {
+                        $fallback->whereNull('employee_id')
+                            ->where(function ($q) use ($escapedName) {
+                                $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
+                                  ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                            });
+                    });
                 }
             };
 
             // Assigned assets count (consistent with AuthController::myAssets)
-            $assignedAssetsCount = Asset::where($assetOwnerScope)->count();
+            $assignedAssetsCount = Asset::where($assetOwnerScope)
+                ->get(['id', 'employee_id', 'pengguna', 'nama_pengguna'])
+                ->filter(fn (Asset $asset) => $asset->isOwnedByEmployee($employee))
+                ->count();
 
             // Active loans count
             $activeLoansCount = AssetLoan::where('employee_id', $employeeId)
@@ -96,10 +104,16 @@ class MobileDashboardController extends Controller
                         $q->where('employee_id', $employeeId)->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT']);
                     });
             })
+            ->withExists(['loans as has_active_employee_loan' => function ($q) use ($employeeId) {
+                $q->where('employee_id', $employeeId)->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT']);
+            }])
             ->whereNotNull('tanggal_pajak_stnk')
             ->whereBetween('tanggal_pajak_stnk', [$now->copy()->subDays(60)->toDateString(), $thirtyDaysAhead->toDateString()])
+            ->orderByRaw('CASE WHEN employee_id = ? THEN 0 ELSE 1 END, tanggal_pajak_stnk ASC', [$employeeId])
             ->limit(10)
-            ->get();
+            ->get()
+            ->filter(fn (Asset $asset) => $asset->has_active_employee_loan || $asset->isOwnedByEmployee($employee))
+            ->values();
 
             $urgentTaxVehicles = $urgentVehiclesQuery->map(function ($asset) use ($now) {
                 return [
@@ -112,9 +126,10 @@ class MobileDashboardController extends Controller
             });
         }
 
-        // Check if user has permission or admin role for Surat Tugas approval
-        $hasSuratTugasAccess = $user->hasPermission('surat_tugas.approve')
-            || in_array($user->role, ['super_admin', 'admin']);
+        // Global approval counts require the same module boundary as assignment approval.
+        $hasSuratTugasAccess = $user->role === 'super_admin'
+            || (array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])
+                && ($user->role === 'admin' || $user->hasPermission('surat_tugas.approve')));
 
         if ($hasSuratTugasAccess) {
             $pendingApprovalsCount = AssignmentLetter::whereIn('status', ['pending', 'PENDING'])->count();

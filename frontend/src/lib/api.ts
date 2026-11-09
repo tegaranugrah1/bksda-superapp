@@ -274,8 +274,6 @@ api.patch = function (...args: any[]) {
   return (originalPatch as any)(...args);
 };
 
-const apiExport = api;
-
 export function resolveApiUrl(url?: string | null): string | null {
   if (!url) return null;
   if (/^https?:\/\//i.test(url)) return url;
@@ -294,5 +292,5 @@ export function resolveApiUrl(url?: string | null): string | null {
   }
 }
 
-export { apiExport as api };
-export default apiExport;
+export { api };
+export default api;

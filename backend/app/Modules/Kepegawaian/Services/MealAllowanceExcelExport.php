@@ -255,7 +255,7 @@ class MealAllowanceExcelExport
 
             $sheet->setCellValue("{$jmlHariCol}{$row}", $item['jml_hari_kerja'] ?? 22);
             $sheet->setCellValue("{$hadirCol}{$row}", "=COUNTIF({$rangeDinas},\"H\")");
-            $sheet->setCellValue("{$alpaCol}{$row}", "=COUNTIF({$rangeDinas},\"A\")");
+            $sheet->setCellValue("{$alpaCol}{$row}", "=COUNTIF({$rangeDinas},\"TK\")+COUNTIF({$rangeDinas},\"A\")");
             $sheet->setCellValue("{$ijinCol}{$row}", "=COUNTIF({$rangeDinas},\"I\")");
             $sheet->setCellValue("{$sakitCol}{$row}", "=COUNTIF({$rangeDinas},\"S\")");
             $sheet->setCellValue("{$pdCol}{$row}", "=COUNTIF({$rangeDinas},\"PD\")");

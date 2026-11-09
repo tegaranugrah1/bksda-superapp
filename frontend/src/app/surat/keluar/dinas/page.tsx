@@ -22,14 +22,28 @@ import {
   Sparkles,
   ChevronDown,
   UserRound,
+  Users,
+  ClipboardPaste,
+  FileCheck,
+  Download,
+  FileDown,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { formatNipLabel } from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
   SuratDinasDocument,
   SuratDinasData,
@@ -43,8 +57,18 @@ import {
   getTodayIndoDate,
   formatIsoDateToIndo,
   getDefaultNomorSurat,
+  parseYthList,
+  formatYthList,
+  detectPointLevel,
+  getPointLevelClassName,
+  parseRawDocumentText,
+  splitPointMarkerAndText,
+  getNextMarkerForSection,
+  reindexParagraphMarkers,
+  PointLevel,
 } from "../../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
+import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
 
 interface PartySelectorBlockProps {
   label: string;
@@ -177,6 +201,46 @@ function PartySelectorBlock({
   );
 }
 
+const COMMON_YTH_PRESETS = [
+  "Kepala Seksi KSDA Wilayah I Berau",
+  "Kepala Seksi KSDA Wilayah II Tenggarong",
+  "Kepala Seksi KSDA Wilayah III Balikpapan",
+  "Kepala Subbagian Tata Usaha",
+  "Kepala Balai KSDA Kalimantan Timur",
+];
+
+const SAMPLE_SIMATA_BKN_TEXT = `Menindaklanjuti Nota Dinas Sekretaris Direktorat Jenderal KSDAE Nomor: ND.1148/SKSDAE/KSDMOTL/PEG.05.02/B/06/2026 tanggal 18 Juni 2026 Hal seperti pokok surat di atas, disampaikan hal-hal sebagai berikut :
+1. Sesuai Keputusan Kepala BKN Nomor 411 Tahun 2025, Kementerian Kehutanan berkomitmen untuk menggunakan Simata BKN (Sistem Informasi Manajemen Talenta BKN) pada tahun 2026, untuk itu perlu dilakukan percepatan kesediaan data yang diperlukan dalam proses talent pool SIMATA. Adapun parameter dan bobot penilaian manajemen talenta sesuai Keputusan Kepala BKN Nomor 411 Tahun 2025 terdiri dari:
+a. Kinerja (sumbu Y), antara lain:
+i. Kinerja utama, dengan data pendukung berupa penilaian kinerja (hasil evaluasi SKP dan perilaku kerja);
+ii. Kinerja penguat, dengan data pendukung berupa sertifikat penghargaan, keputusan penugasan pegawai dalam tim kerja, dan hasil umpan balik kinerja 360 derajat.
+b. Potensial (sumbu X), antara lain:
+i. Kompetensi, dengan data pendukung berupa hasil penilaian kompetensi, riwayat pengembangan kompetensi, dan riwayat pengalaman jabatan;
+ii. Potensi, dengan data pendukung berupa hasil penilaian potensi;
+iii. Kualifikasi, dengan data pendukung berupa tingkat pendidikan formal terakhir dan kesesuaian bidang ilmu;
+iv. Integritas dan moralitas, dengan data pendukung berupa riwayat hukuman disiplin.
+2. Pemenuhan parameter penilaian kompetensi dan potensi sebagaimana sumbu Y dilakukan melalui kegiatan CACT atau ProASN dan Pemenuhan data umpan balik kinerja 360 derajat telah dilakukan melalui Simpeg Kementerian Kehutanan
+3. Data pendukung sebagaimana poin 1 berupa:
+a. Penilaian Kinerja diunggah melalui SIMPEG;
+b. Penghargaan diunggah melalui MyASN ataupun SIASN BKN;
+c. Keputusan/surat tugas terkait penugasan tim kerja diunggah melalui SIMPEG Kementerian Kehutanan untuk selanjutnya dilakukan validasi dan dipadankan pada Simata BKN;
+d. Penilaian umpan balik 360 derajat yang telah dilakukan akan dilakukan pemadanan pada Simata BKN secara bertahap;
+e. Riwayat pengembangan kompetensi berupa sertifikat pelatihan/sertifikasi/ diklat fungsional diunggah melalui MyASN ataupun SIASN BKN;
+f. Riwayat pengalaman jabatan berupa surat tugas sebagai pelaksana harian/pelaksana tugas diunggah melalui Simpeg Kementerian Kehutanan dan dilakukan pemadanan data melalui API dengan SIASN BKN;
+g. Riwayat pendidikan formal diunggah melalui SIMPEG.
+4. Sehubungan dengan hal tersebut, agar Saudara(i) menyampaikan kepada seluruh ASN diwilayah kerja masing-masing untuk :
+a. Mengunggah dan/atau memperbarui data-data sebagaimana Poin 3 di atas, berupa:
+1) Riwayat penilaian SKP dan perilaku kerja;
+2) Riwayat pemberian penghargaan ASN selama lima (5) tahun terakhir;
+3) Riwayat penugasan dalam tim kerja selama kurun waktu dua (2) tahun terakhir;
+4) Riwayat pelatihan dan pengembangan kompetensi dibuktikan dengan sertifikat kepesertaan dan/atau sertifikat kompetensi selama tiga (3) tahun terakhir;
+5) Riwayat Pelaksana Tugas (Plt.), Pelaksana Harian (Plh.), dan Penjabat (Pj.);
+6) Riwayat pendidikan formal yang telah ditetapkan pencantuman gelarnya;
+7) Riwayat keputusan pengenaan sanksi disiplin selama lima tahun terakhir.
+b. ASN yang belum melakukan penilaian 360 derajat agar segera melakukan penilaian 360 derajat.
+5. Batas waktu pengisian data di atas sampai dengan tanggal 31 Juli 2026 pukul 16.30 WIB.
+Demikian kami sampaikan, atas perhatiannya diucapkan terima kasih`;
+
 function getComputedTujuan(tpl: TemplateType, d: SuratDinasData): string {
   switch (tpl) {
     case "nota_dinas":
@@ -231,6 +295,37 @@ function GenerateSuratDinasContent() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showManualNomor, setShowManualNomor] = useState(false);
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
+  const [showSmartPaste, setShowSmartPaste] = useState(false);
+  const [smartPasteText, setSmartPasteText] = useState("");
+  const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
+
+  const handleExportWord = async () => {
+    try {
+      setIsExporting("word");
+      toast.loading("Menyiapkan dokumen Word...", { id: "export-dinas-doc" });
+      await exportSuratDinasWord(data.nomor || "", activeTemplate, data.perihal || "");
+      toast.success("Dokumen Word (.doc) berhasil diunduh!", { id: "export-dinas-doc" });
+    } catch (err) {
+      console.error("Gagal mengekspor dokumen Word:", err);
+      toast.error("Gagal mengunduh dokumen Word. Silakan coba kembali.", { id: "export-dinas-doc" });
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting("pdf");
+      toast.loading("Menyiapkan berkas fisik PDF...", { id: "export-dinas-pdf" });
+      await exportSuratDinasPdf(data.nomor || "", activeTemplate, data.perihal || "");
+      toast.success("Berkas PDF (.pdf) berhasil diunduh!", { id: "export-dinas-pdf" });
+    } catch (err) {
+      console.error("Gagal mengekspor berkas PDF:", err);
+      toast.error("Gagal mengunduh berkas PDF. Silakan gunakan opsi Cetak.", { id: "export-dinas-pdf" });
+    } finally {
+      setIsExporting(null);
+    }
+  };
 
   // Helper to extract month suffix (MM/YYYY)
   const currentMonthSuffix = useMemo(() => {
@@ -242,6 +337,10 @@ function GenerateSuratDinasContent() {
     const d = new Date();
     return `${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
   }, [data.kotaTanggal]);
+
+  const isAutoNomorNaskah = Boolean(
+    data.nomor && (data.nomor === "${nomor_naskah}" || data.nomor.includes("${nomor_naskah}"))
+  );
 
   // Memoized parsed nomor components: [nomorUrut, kodeKlasifikasi, suffix]
   const nomorSegments = useMemo(() => {
@@ -255,8 +354,10 @@ function GenerateSuratDinasContent() {
       };
     }
     const parts = raw.split("/");
+    const defaultPrefix = getDefaultNomorPrefix(activeTemplate);
+    const hasPlaceholder = parts[0]?.includes("${");
     return {
-      nomorUrut: parts[0] ?? getDefaultNomorPrefix(activeTemplate),
+      nomorUrut: hasPlaceholder || !parts[0] ? defaultPrefix : parts[0],
       kodeKlasifikasi: parts[3] ?? "KSA.01.05",
       suffix: currentMonthSuffix,
     };
@@ -301,6 +402,9 @@ function GenerateSuratDinasContent() {
               ...item.document_payload,
               paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
               tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
+              ythList: Array.isArray(item.document_payload.ythList)
+                ? item.document_payload.ythList
+                : parseYthList(item.document_payload.yth || defData.yth),
             });
           } else {
             const loadedTemplate = (item.template_type as TemplateType) || templateParam || "surat_dinas";
@@ -315,6 +419,7 @@ function GenerateSuratDinasContent() {
               kotaTanggal: item.tanggal_surat ? formatIsoDateToIndo(item.tanggal_surat) : defData.kotaTanggal,
               paragraf: defData.paragraf || [],
               tembusan: defData.tembusan || [],
+              ythList: defData.ythList || parseYthList(defData.yth),
             });
           }
           toast.info(`Memuat Surat Keluar: ${item.no_surat}`);
@@ -327,7 +432,13 @@ function GenerateSuratDinasContent() {
   }, [idParam]);
 
   const updateField = (field: keyof SuratDinasData, value: any) => {
-    setData((prev) => ({ ...prev, [field]: value }));
+    setData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "yth" && typeof value === "string") {
+        next.ythList = parseYthList(value);
+      }
+      return next;
+    });
   };
 
   // Switch template
@@ -360,22 +471,92 @@ function GenerateSuratDinasContent() {
     toast.success(`Pejabat penandatangan dipilih: ${empName}`);
   };
 
-  // Paragraph management: Penutup is ALWAYS the last paragraph
-  const handleAddParagraph = () => {
+  // Ponytail unified helper: Tambah / sisipkan butir dengan auto-scroll dan auto-focus
+  const handleInsertPoint = (
+    type: "plain" | "num" | "letter" | "roman" | "bracket",
+    atIndex?: number
+  ) => {
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
-      const insertAt = Math.max(0, list.length - 1);
-      list.splice(insertAt, 0, "");
-      return { ...prev, paragraf: list };
+      let insertAt = atIndex;
+      if (insertAt === undefined) {
+        // Ponytail: Sisipkan di sebelum penutup jika paragraf terakhir adalah teks penutup biasa (Level 0)
+        const lastItem = list[list.length - 1] || "";
+        const lastLvl = detectPointLevel(lastItem);
+        insertAt = lastLvl === 0 && list.length > 1 ? list.length - 1 : list.length;
+      }
+      const marker = type === "plain" ? "" : getNextMarkerForSection(list, insertAt, type);
+      list.splice(insertAt, 0, marker);
+      return { ...prev, paragraf: reindexParagraphMarkers(list) };
     });
+    setTimeout(() => {
+      const textareas = document.querySelectorAll<HTMLTextAreaElement>(".paragraf-textarea");
+      const targetIdx = atIndex !== undefined ? atIndex : Math.max(0, textareas.length - 2);
+      const target = textareas[targetIdx];
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.focus();
+        const len = target.value.length;
+        target.setSelectionRange(len, len);
+      }
+    }, 60);
+  };
+
+  const handleAddParagraph = () => handleInsertPoint("plain");
+  const handleAddPoint = () => handleInsertPoint("num");
+  const handleAddSubPointLetter = () => handleInsertPoint("letter");
+  const handleAddSubPointRoman = () => handleInsertPoint("roman");
+  const handleAddSubPointBracket = () => handleInsertPoint("bracket");
+
+  // Ubah Level Poin pada Baris Tertentu
+  const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      const current = list[index] || "";
+      const cleaned = current
+        .replace(/^(?:[0-9]+[.)]|[a-z][.)]|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.)\s*/i, "")
+        .trim();
+
+      let prefix = "";
+      if (targetType === "plain") {
+        prefix = "";
+      } else {
+        prefix = getNextMarkerForSection(list, index, targetType);
+      }
+
+      list[index] = prefix + cleaned;
+      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+    });
+  };
+
+  // Terapkan Salin-Tempel Teks Utuh
+  const handleApplySmartPaste = (rawTextToApply?: string) => {
+    const text = rawTextToApply || smartPasteText;
+    if (!text.trim()) {
+      toast.error("Teks naskah dinas masih kosong.");
+      return;
+    }
+    const parsed = parseRawDocumentText(text);
+    if (parsed.length === 0) {
+      toast.error("Gagal memecah teks menjadi paragraf.");
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      paragraf: reindexParagraphMarkers(parsed),
+    }));
+    setShowSmartPaste(false);
+    setSmartPasteText("");
+    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke naskah dinas!`);
   };
 
   const handleRemoveParagraph = (index: number) => {
     setData((prev) => {
       const p = prev.paragraf || [];
+      const updated = p.length > 1 ? p.filter((_, i) => i !== index) : p;
       return {
         ...prev,
-        paragraf: p.length > 1 ? p.filter((_, i) => i !== index) : p,
+        paragraf: reindexParagraphMarkers(updated),
       };
     });
   };
@@ -447,6 +628,58 @@ function GenerateSuratDinasContent() {
     setData((prev) => ({
       ...prev,
       tembusan: (prev.tembusan || []).map((t) => (t.id === id ? { ...t, text } : t)),
+    }));
+  };
+
+  // Yth. (Penerima Nota Dinas & Memorandum) management
+  const currentYthList = useMemo(() => {
+    if (data.ythList && data.ythList.length > 0) return data.ythList;
+    return parseYthList(data.yth);
+  }, [data.ythList, data.yth]);
+
+  const handleAddYth = () => {
+    const next = [...currentYthList, ""];
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
+    }));
+  };
+
+  const handleRemoveYth = (idx: number) => {
+    const next = currentYthList.filter((_, i) => i !== idx);
+    const finalNext = next.length > 0 ? next : [""];
+    setData((prev) => ({
+      ...prev,
+      ythList: finalNext,
+      yth: formatYthList(finalNext),
+    }));
+  };
+
+  const handleYthChange = (idx: number, val: string) => {
+    const next = [...currentYthList];
+    next[idx] = val;
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
+    }));
+  };
+
+  const handleAppendYthPreset = (name: string) => {
+    let next: string[];
+    if (currentYthList.length === 1 && !currentYthList[0].trim()) {
+      next = [name];
+    } else if (!currentYthList.includes(name)) {
+      next = [...currentYthList.filter((s) => s.trim()), name];
+    } else {
+      toast.info(`"${name}" sudah ada dalam daftar Yth.`);
+      return;
+    }
+    setData((prev) => ({
+      ...prev,
+      ythList: next,
+      yth: formatYthList(next),
     }));
   };
 
@@ -537,6 +770,7 @@ function GenerateSuratDinasContent() {
       tujuanKepada: "",
       tujuanDi: "",
       yth: "",
+      ythList: [""],
       dari: "",
       paragraf: [""],
       tembusan: [],
@@ -652,6 +886,49 @@ function GenerateSuratDinasContent() {
             <Send className="w-3.5 h-3.5" />
             {isRegistering ? "Menyimpan..." : editingSuratKeluarId ? "Update Naskah" : "Daftarkan Resmi"}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isExporting !== null}
+                className="rounded-xl text-xs gap-1.5 shadow-sm text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+              >
+                {isExporting ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-0.5 text-blue-600" />
+                ) : (
+                  <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                )}
+                <span>Unduh</span>
+                <ChevronDown className="w-3 h-3 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+              <DropdownMenuItem
+                onClick={handleExportPdf}
+                disabled={isExporting !== null}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+              >
+                <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                <div className="flex flex-col text-left">
+                  <span>Unduh PDF (.pdf)</span>
+                  <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleExportWord}
+                disabled={isExporting !== null}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="flex flex-col text-left">
+                  <span>Unduh Word (.doc)</span>
+                  <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button
             size="sm"
             variant="outline"
@@ -709,7 +986,7 @@ function GenerateSuratDinasContent() {
 
             <div className="space-y-3 text-xs">
               {/* Nomor Surat Editor */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nomor Naskah</label>
                   <span className="font-mono text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 whitespace-pre">
@@ -717,75 +994,124 @@ function GenerateSuratDinasContent() {
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
-                  <div className="grid grid-cols-12 gap-1.5 items-end">
-                    <div className="col-span-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[10px] font-bold text-zinc-500">Awalan/No</label>
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
-                          className="text-[9px] px-1 py-0.2 rounded border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 font-mono"
-                          title="Format baku"
-                        >
-                          {getDefaultNomorPrefix(activeTemplate)}
-                        </button>
-                      </div>
-                      <Input
-                        value={nomorSegments.nomorUrut}
-                        onChange={(e) => handleUpdateNomorUrut(e.target.value)}
-                        placeholder="Contoh: S.888 atau ND.102"
-                        className="h-8 text-xs font-mono font-bold text-left bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-2"
-                      />
-                    </div>
+                {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
+                <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const prefix = getDefaultNomorPrefix(activeTemplate);
+                      const klasifikasi = nomorSegments.kodeKlasifikasi || "KSA.01.05";
+                      updateField("nomor", `${prefix}/K.18/TU/${klasifikasi}/B/${currentMonthSuffix}`);
+                    }}
+                    className={cn(
+                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      !isAutoNomorNaskah
+                        ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    )}
+                  >
+                    Pola Nomor Baku
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateField("nomor", "${nomor_naskah}")}
+                    className={cn(
+                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      isAutoNomorNaskah
+                        ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    )}
+                  >
+                    Nomor Naskah (${"{nomor_naskah}"})
+                  </button>
+                </div>
 
-                    <div className="col-span-3 text-center pb-2">
-                      <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
-                        /K.18/TU/
+                {isAutoNomorNaskah ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700">
+                      <span className="text-slate-500 dark:text-zinc-400 font-semibold text-xs shrink-0 font-mono">
+                        Nomor :
                       </span>
-                    </div>
-
-                    <div className="col-span-3">
-                      <label className="text-[10px] font-bold text-zinc-500 block mb-1">Klasifikasi</label>
                       <Input
-                        value={nomorSegments.kodeKlasifikasi}
-                        onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
-                        placeholder="KSA.01.05"
-                        className="h-8 text-xs font-mono font-bold bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-1.5"
-                      />
-                    </div>
-
-                    <div className="col-span-2 text-center pb-2">
-                      <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
-                        /B/{currentMonthSuffix}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1.5 border-t border-zinc-200 dark:border-zinc-800">
-                    <span className="text-[10.5px]">
-                      Pola: <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/K.18/TU/</strong> ... <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/B/{currentMonthSuffix}</strong>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowManualNomor(!showManualNomor)}
-                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
-                    </button>
-                  </div>
-
-                  {showManualNomor && (
-                    <div className="pt-1">
-                      <Input
+                        type="text"
+                        placeholder="${nomor_naskah}"
                         value={data.nomor}
                         onChange={(e) => updateField("nomor", e.target.value)}
-                        placeholder="Ketik nomor surat lengkap..."
-                        className="h-8 text-xs font-mono bg-white dark:bg-zinc-900"
+                        className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 h-8 border-slate-200 dark:border-zinc-700 text-zinc-900 dark:text-white"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
+                    <div className="grid grid-cols-12 gap-1.5 items-end">
+                      <div className="col-span-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[10px] font-bold text-zinc-500">Awalan/No</label>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
+                            className="text-[9px] px-1 py-0.2 rounded border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 font-mono"
+                            title="Format baku"
+                          >
+                            {getDefaultNomorPrefix(activeTemplate)}
+                          </button>
+                        </div>
+                        <Input
+                          value={nomorSegments.nomorUrut}
+                          onChange={(e) => handleUpdateNomorUrut(e.target.value)}
+                          placeholder="Contoh: S.888 atau ND.102"
+                          className="h-8 text-xs font-mono font-bold text-left bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-2"
+                        />
+                      </div>
+
+                      <div className="col-span-3 text-center pb-2">
+                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                          /K.18/TU/
+                        </span>
+                      </div>
+
+                      <div className="col-span-3">
+                        <label className="text-[10px] font-bold text-zinc-500 block mb-1">Klasifikasi</label>
+                        <Input
+                          value={nomorSegments.kodeKlasifikasi}
+                          onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
+                          placeholder="KSA.01.05"
+                          className="h-8 text-xs font-mono font-bold bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-1.5"
+                        />
+                      </div>
+
+                      <div className="col-span-2 text-center pb-2">
+                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                          /B/{currentMonthSuffix}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1.5 border-t border-zinc-200 dark:border-zinc-800">
+                      <span className="text-[10.5px]">
+                        Pola: <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/K.18/TU/</strong> ... <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/B/{currentMonthSuffix}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowManualNomor(!showManualNomor)}
+                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
+                      </button>
+                    </div>
+
+                    {showManualNomor && (
+                      <div className="pt-1">
+                        <Input
+                          value={data.nomor}
+                          onChange={(e) => updateField("nomor", e.target.value)}
+                          placeholder="Ketik nomor surat lengkap..."
+                          className="h-8 text-xs font-mono bg-white dark:bg-zinc-900"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sifat & Lampiran (Hanya untuk Surat Dinas & Undangan) */}
@@ -888,15 +1214,88 @@ function GenerateSuratDinasContent() {
               {/* NOTA DINAS & MEMORANDUM */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <>
-                  <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Yth. (Penerima)</label>
-                    <Input
-                      value={data.yth || ""}
-                      onChange={(e) => updateField("yth", e.target.value)}
-                      placeholder="Contoh: Kepala Balai KSDA Kalimantan Timur"
-                      className="mt-1 text-xs"
-                    />
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                        Yth. (Penerima)
+                        <span className="text-[10px] text-zinc-400 font-normal">
+                          ({currentYthList.filter((s) => s.trim()).length} penerima)
+                        </span>
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleAddYth}
+                        className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Tambah Penerima
+                      </Button>
+                    </div>
+
+                    {/* Pilihan Cepat / Preset Button Penerima */}
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className="text-[10px] text-zinc-400 font-medium">Pilihan cepat:</span>
+                      {COMMON_YTH_PRESETS.map((preset) => {
+                        const shortLabel = preset
+                          .replace(/^Kepala\s+/, "")
+                          .replace("Balai KSDA Kalimantan Timur", "Kepala Balai")
+                          .replace("Subbagian Tata Usaha", "Kasubag TU");
+                        const isAdded = currentYthList.includes(preset);
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => handleAppendYthPreset(preset)}
+                            disabled={isAdded}
+                            className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${
+                              isAdded
+                                ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
+                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                            }`}
+                            title={isAdded ? "Sudah ada dalam daftar Yth" : `Klik untuk menambah ${preset}`}
+                          >
+                            <span>+</span>
+                            <span>{shortLabel}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Baris Input Interaktif Tiap Penerima */}
+                    <div className="space-y-1.5">
+                      {currentYthList.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-zinc-400 w-5 text-right shrink-0">
+                            {currentYthList.length > 1 ? `${idx + 1}.` : "•"}
+                          </span>
+                          <Input
+                            value={item}
+                            onChange={(e) => handleYthChange(idx, e.target.value)}
+                            placeholder={
+                              idx === 0
+                                ? "Contoh: Kepala Seksi KSDA Wilayah I Berau"
+                                : `Penerima ke-${idx + 1}...`
+                            }
+                            className="h-8 text-xs flex-1"
+                          />
+                          {currentYthList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveYth(idx)}
+                              className="text-zinc-400 hover:text-red-500 p-1 shrink-0 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                              title="Hapus penerima ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
                   <div>
                     <label className="font-semibold text-zinc-700 dark:text-zinc-300">Dari (Pengirim)</label>
                     <Input
@@ -1219,44 +1618,202 @@ function GenerateSuratDinasContent() {
           {/* Card 3: Paragraf Isi */}
           {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
             <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+              {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
+              <div className="sticky top-2 z-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-zinc-100 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
                   <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
-                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Paragraf)
+                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddParagraph}
-                  className="h-7 text-xs text-emerald-600 hover:text-emerald-700 p-1 gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Paragraf
-                </Button>
+                <div className="flex items-center flex-wrap gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleInsertPoint("plain")}
+                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah paragraf biasa ke akhir"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-zinc-500" />
+                    Paragraf
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleInsertPoint("num")}
+                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 gap-1 font-semibold shadow-xs"
+                    title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
+                  >
+                    <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
+                    + Poin 1.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleInsertPoint("letter")}
+                    className="h-7 text-xs border-emerald-300 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
+                  >
+                    + Sub a.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleInsertPoint("roman")}
+                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/60 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
+                  >
+                    + Butir i.
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleInsertPoint("bracket")}
+                    className="h-7 text-xs border-violet-300 text-violet-800 bg-violet-50/60 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-300 dark:bg-violet-950/40 p-1 px-2 gap-1 font-semibold"
+                    title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
+                  >
+                    + Butir 1)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowSmartPaste(!showSmartPaste)}
+                    className="h-7 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 p-1 px-2.5 gap-1 font-semibold"
+                    title="Tempel teks utuh naskah dinas bertingkat"
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5 text-indigo-500" />
+                    Tempel Teks Utuh
+                  </Button>
+                </div>
               </div>
 
-              <div className="space-y-3 text-xs">
+              {/* Smart Paste Drawer */}
+              {showSmartPaste && (
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-indigo-200 dark:border-indigo-900 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                      <ClipboardPaste className="w-3.5 h-3.5" />
+                      Tempel & Parse Naskah Dinas Bertingkat Otomatis
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSmartPaste(false)}
+                      className="text-xs text-zinc-400 hover:text-zinc-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 leading-normal">
+                    Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
+                  </p>
+                  <Textarea
+                    value={smartPasteText}
+                    onChange={(e) => setSmartPasteText(e.target.value)}
+                    rows={6}
+                    placeholder="Tempel teks nota dinas di sini..."
+                    className="text-xs font-mono bg-white dark:bg-zinc-900 leading-relaxed"
+                  />
+                  <div className="flex items-center justify-between pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
+                        handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
+                      }}
+                      className="h-7 text-xs border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 gap-1 font-medium"
+                      title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
+                    >
+                      <Sparkles className="w-3 h-3 text-indigo-500" />
+                      Muat Contoh Simata BKN (31 Butir)
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSmartPaste(false)}
+                        className="h-7 text-xs text-zinc-500"
+                      >
+                        Batal
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleApplySmartPaste()}
+                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1"
+                      >
+                        <FileCheck className="w-3 h-3" />
+                        Terapkan ke Dokumen
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2.5 text-xs">
                 {(data.paragraf || []).map((pText, idx) => {
                   const pList = data.paragraf || [];
                   const isPenutup = idx === pList.length - 1;
                   const isPembuka = idx === 0;
+                  const lvl = detectPointLevel(pText);
+
+                  const indentClass =
+                    lvl === 2
+                      ? "ml-3 sm:ml-5 border-l-2 border-emerald-400"
+                      : lvl === 3
+                      ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
+                      : lvl === 4
+                      ? "ml-9 sm:ml-14 border-l-2 border-violet-400"
+                      : "";
+
                   return (
                     <div
                       key={idx}
-                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${
+                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${indentClass} ${
                         isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
+                          : lvl === 1
+                          ? "border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20"
+                          : lvl === 2
+                          ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20"
+                          : lvl === 3
+                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
+                          : lvl === 4
+                          ? "border-violet-200 dark:border-violet-900/50 bg-violet-50/30 dark:bg-violet-950/20"
                           : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
-                            Paragraf {idx + 1}
+                            {idx + 1}.
                           </span>
                           {isPenutup ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                               Penutup (Bawah)
+                            </Badge>
+                          ) : lvl === 1 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 flex items-center gap-1">
+                              <ListOrdered className="w-2.5 h-2.5" />
+                              Poin Utama (Tingkat 1)
+                            </Badge>
+                          ) : lvl === 2 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                              Sub-Poin (Tingkat 2)
+                            </Badge>
+                          ) : lvl === 3 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                              Sub-Butir (Tingkat 3)
+                            </Badge>
+                          ) : lvl === 4 ? (
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-violet-300 bg-violet-50 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
+                              Sub-Butir (Tingkat 4)
                             </Badge>
                           ) : isPembuka ? (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-500 border-zinc-200">
@@ -1264,27 +1821,165 @@ function GenerateSuratDinasContent() {
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-600 border-blue-200 bg-blue-50/50 dark:text-blue-400">
-                              Isi
+                              Paragraf Biasa
                             </Badge>
                           )}
                         </div>
-                        {!isPenutup && pList.length > 1 && (
+
+                        {/* Quick Level Switchers, Insert Below & Delete */}
+                        <div className="flex items-center gap-1">
+                          {/* Mini Dropdown: + Sisipkan Tepat di Bawah Butir Ini */}
+                          {!isPenutup && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
+                                  title="Sisipkan butir baru tepat di bawah ini"
+                                >
+                                  <Plus className="w-2.5 h-2.5" />
+                                  <span>Sisipkan</span>
+                                  <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-xl p-1 z-50 text-xs">
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold"
+                                >
+                                  <span>↳ + Sub-Butir Anak</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-medium"
+                                >
+                                  <span>= + Poin Setara</span>
+                                </DropdownMenuItem>
+                                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("num", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-indigo-600 w-4">1.</span> Poin Utama
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("letter", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-emerald-600 w-4">a.</span> Sub-Poin Huruf
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("roman", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-amber-600 w-4">i.</span> Butir Romawi
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("bracket", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                >
+                                  <span className="font-mono font-bold text-violet-600 w-4">1)</span> Butir Kurung
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("plain", idx + 1)}
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-500 text-[11px]"
+                                >
+                                  <span className="font-mono w-4">¶</span> Paragraf Biasa
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+
+                          <span className="text-[10px] text-zinc-400">Level:</span>
                           <button
                             type="button"
-                            onClick={() => handleRemoveParagraph(idx)}
-                            className="text-zinc-400 hover:text-red-500 p-0.5 rounded transition-colors"
-                            title="Hapus paragraf ini"
+                            onClick={() => handleChangeParagraphLevel(idx, "num")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 1
+                                ? "bg-indigo-100 text-indigo-700 border-indigo-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-indigo-300"
+                            }`}
+                            title="Jadikan Poin 1."
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            1.
                           </button>
-                        )}
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "letter")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 2
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-emerald-300"
+                            }`}
+                            title="Jadikan Sub-Poin a."
+                          >
+                            a.
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "roman")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(pText.trim())
+                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
+                            }`}
+                            title="Jadikan Romawi i."
+                          >
+                            i.
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "bracket")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 3 && /^[0-9]+\)/.test(pText.trim())
+                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
+                            }`}
+                            title="Jadikan Kurung 1)"
+                          >
+                            1)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChangeParagraphLevel(idx, "plain")}
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
+                              lvl === 0
+                                ? "bg-zinc-200 text-zinc-700 border-zinc-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-zinc-400"
+                            }`}
+                            title="Jadikan Teks Biasa (Hapus Prefix)"
+                          >
+                            Teks
+                          </button>
+
+                          {!isPenutup && pList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveParagraph(idx)}
+                              className="text-zinc-400 hover:text-red-500 p-1 ml-1 rounded transition-colors"
+                              title="Hapus butir ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <Textarea
                         value={pText}
                         onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                        rows={isPembuka ? 4 : isPenutup ? 2 : 3}
-                        placeholder={isPenutup ? "Tulis isi penutup naskah..." : `Tulis isi paragraf ${idx + 1}...`}
-                        className="text-xs bg-white dark:bg-zinc-900 leading-relaxed"
+                        rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
+                        placeholder={
+                          isPenutup
+                            ? "Tulis isi penutup naskah..."
+                            : lvl === 1
+                            ? `Tulis isi poin utama...`
+                            : lvl === 2
+                            ? `Tulis isi sub-poin...`
+                            : lvl === 3
+                            ? `Tulis isi butir...`
+                            : `Tulis isi paragraf...`
+                        }
+                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
                       />
                     </div>
                   );
@@ -1611,15 +2306,60 @@ function GenerateSuratDinasContent() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrintSuratDinas}
-                className="h-7 text-xs gap-1 rounded-lg"
-              >
-                <Printer className="w-3 h-3" />
-                Cetak Dokumen
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isExporting !== null}
+                      className="h-7 text-xs gap-1 rounded-lg text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+                    >
+                      {isExporting ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-0.5 text-blue-600" />
+                      ) : (
+                        <Download className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      )}
+                      <span>Unduh</span>
+                      <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+                    <DropdownMenuItem
+                      onClick={handleExportPdf}
+                      disabled={isExporting !== null}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                    >
+                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                      <div className="flex flex-col text-left">
+                        <span>Unduh PDF (.pdf)</span>
+                        <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleExportWord}
+                      disabled={isExporting !== null}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <div className="flex flex-col text-left">
+                        <span>Unduh Word (.doc)</span>
+                        <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrintSuratDinas}
+                  className="h-7 text-xs gap-1 rounded-lg"
+                >
+                  <Printer className="w-3 h-3" />
+                  Cetak Dokumen
+                </Button>
+              </div>
             </div>
 
             <div className="w-fit mx-auto">

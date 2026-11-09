@@ -13,26 +13,26 @@ class PortalNotificationService
      * Send notification to a specific user by user_id.
      */
     public function notifyUser(
-        int $userId,
+        User|int $userOrId,
         string $title,
         string $message,
         string $type = 'system',
         ?string $actionTab = null,
         ?string $referenceId = null,
-        ?array $data = null
+        ?array $data = null,
+        ?int $employeeId = null
     ): ?PortalNotification {
         try {
-            $user = User::find($userId);
-            if (! $user) {
+            $user = $userOrId instanceof User ? $userOrId : User::find($userOrId);
+            if (! $user || ! $user->is_active) {
                 return null;
             }
 
-            // Optional: resolve employee_id if username matches nip
-            $employeeId = Employee::where('nip', $user->username)->value('id');
+            $resolvedEmployeeId = $employeeId ?? Employee::where('nip', $user->username)->value('id');
 
             return PortalNotification::create([
                 'user_id' => $user->id,
-                'employee_id' => $employeeId,
+                'employee_id' => $resolvedEmployeeId,
                 'title' => strip_tags(trim($title)),
                 'message' => strip_tags(trim($message)),
                 'type' => $type,
@@ -42,7 +42,8 @@ class PortalNotificationService
                 'read_at' => null,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Failed to create portal notification for user '.$userId.': '.$e->getMessage());
+            $uid = $userOrId instanceof User ? $userOrId->id : $userOrId;
+            Log::error('Failed to create portal notification for user '.$uid.': '.$e->getMessage());
             return null;
         }
     }
@@ -61,35 +62,23 @@ class PortalNotificationService
         ?array $data = null
     ): ?PortalNotification {
         try {
-            $employee = null;
-            if ($employeeOrId instanceof Employee) {
-                $employee = $employeeOrId;
-            } elseif (is_numeric($employeeOrId)) {
-                $employee = Employee::find($employeeOrId);
-            } elseif (is_string($employeeOrId)) {
-                $employee = Employee::where('nip', $employeeOrId)->first();
-            }
+            $employee = match (true) {
+                $employeeOrId instanceof Employee => $employeeOrId,
+                is_int($employeeOrId) => Employee::find($employeeOrId),
+                is_string($employeeOrId) => Employee::where('nip', $employeeOrId)->first()
+                    ?? (ctype_digit($employeeOrId) ? Employee::find($employeeOrId) : null),
+                default => null,
+            };
 
             if (! $employee || empty($employee->nip)) {
                 return null;
             }
 
             $user = User::where('username', $employee->nip)->first();
-            if (! $user) {
-                return null;
-            }
 
-            return PortalNotification::create([
-                'user_id' => $user->id,
-                'employee_id' => $employee->id,
-                'title' => strip_tags(trim($title)),
-                'message' => strip_tags(trim($message)),
-                'type' => $type,
-                'action_tab' => $actionTab,
-                'reference_id' => $referenceId ? (string) $referenceId : null,
-                'data' => $data,
-                'read_at' => null,
-            ]);
+            return $user
+                ? $this->notifyUser($user, $title, $message, $type, $actionTab, $referenceId, $data, $employee->id)
+                : null;
         } catch (\Throwable $e) {
             Log::error('Failed to create portal notification for employee: '.$e->getMessage());
             return null;
@@ -139,10 +128,10 @@ class PortalNotificationService
         }
 
         $count = 0;
-        $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
+        $admins = User::whereIn('role', ['admin', 'super_admin'])->where('is_active', true)->get();
         foreach ($admins as $admin) {
             if ($admin->canAccessAdminInbox($module)) {
-                if ($this->notifyUser($admin->id, $title, $message, $type, $actionTab, $referenceId, $data)) {
+                if ($this->notifyUser($admin, $title, $message, $type, $actionTab, $referenceId, $data)) {
                     $count++;
                 }
             }

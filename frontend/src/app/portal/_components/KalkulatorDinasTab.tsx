@@ -10,7 +10,6 @@ import {
   Camera,
   FileText,
   Receipt,
-  Calendar,
   Image as ImageIcon,
   Check,
   X,
@@ -48,6 +47,16 @@ interface PengeluaranItem {
 
 
 const STORAGE_KEY = "bksda_kalkulator_panjar_v2";
+const KATEGORI_OPTIONS = [
+  "BBM / Transport",
+  "Tol & Parkir",
+  "Penginapan / Hotel",
+  "Konsumsi Tim",
+  "Sewa Perahu / Kendaraan",
+  "Honor Pemandu / Porter",
+  "Logistik Patroli",
+  "Lain-lain",
+] as const;
 
 const formatRupiah = (val: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -58,31 +67,17 @@ const formatRupiah = (val: number) => {
 };
 
 const formatRibuan = (val: number | string): string => {
-  if (val === undefined || val === null || val === "") return "";
-  const clean = String(val).replace(/[^0-9]/g, "");
-  if (!clean) return "";
-  return new Intl.NumberFormat("id-ID").format(Number(clean));
+  const clean = String(val ?? "").replace(/\D/g, "");
+  return clean ? new Intl.NumberFormat("id-ID").format(Number(clean)) : "";
 };
 
-const parseRibuan = (val: string | number): number => {
-  const num = Number(String(val).replace(/[^0-9]/g, "")) || 0;
-  return Math.min(num, 10_000_000_000);
-};
+const parseRibuan = (val: string | number): number =>
+  Math.min(Number(String(val ?? "").replace(/\D/g, "")) || 0, 10_000_000_000);
+
 
 const getStorageKey = (userName?: string) => {
   const safeUser = (userName || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "_");
   return safeUser ? `bksda_kalkulator_panjar_${safeUser}` : STORAGE_KEY;
-};
-
-const getInitialDraft = (userName?: string) => {
-  if (typeof window === "undefined") return null;
-  try {
-    const key = getStorageKey(userName);
-    const saved = localStorage.getItem(key) || (key !== STORAGE_KEY ? localStorage.getItem(STORAGE_KEY) : null);
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
 };
 
 export function KalkulatorDinasTab({
@@ -98,28 +93,23 @@ export function KalkulatorDinasTab({
   const storageKey = useMemo(() => getStorageKey(currentUserName), [currentUserName]);
 
   // Synchronous hydration to prevent data loss on F5
+  const [initialDraft] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [selectedStId, setSelectedStId] = useState<string>(initialSelectedStId || "");
-  const [namaKegiatan, setNamaKegiatan] = useState(
-    () => getInitialDraft(currentUserName)?.namaKegiatan ?? "Perjalanan Dinas"
-  );
-  const [lokasiTujuan, setLokasiTujuan] = useState(
-    () => getInitialDraft(currentUserName)?.lokasiTujuan ?? ""
-  );
-  const [pemegangPanjar, setPemegangPanjar] = useState(
-    () => getInitialDraft(currentUserName)?.pemegangPanjar ?? currentUserName
-  );
-  const [tanggalMulai, setTanggalMulai] = useState(
-    () => getInitialDraft(currentUserName)?.tanggalMulai ?? new Date().toISOString().split("T")[0]
-  );
-  const [tanggalSelesai, setTanggalSelesai] = useState(
-    () => getInitialDraft(currentUserName)?.tanggalSelesai ?? new Date().toISOString().split("T")[0]
-  );
-  const [uangPanjar, setUangPanjar] = useState<number>(
-    () => getInitialDraft(currentUserName)?.uangPanjar ?? 0
-  );
-  const [pengeluaranList, setPengeluaranList] = useState<PengeluaranItem[]>(
-    () => getInitialDraft(currentUserName)?.pengeluaranList ?? []
-  );
+  const [namaKegiatan, setNamaKegiatan] = useState(initialDraft?.namaKegiatan ?? "Perjalanan Dinas");
+  const [lokasiTujuan, setLokasiTujuan] = useState(initialDraft?.lokasiTujuan ?? "");
+  const [pemegangPanjar, setPemegangPanjar] = useState(initialDraft?.pemegangPanjar ?? currentUserName);
+  const [tanggalMulai, setTanggalMulai] = useState(initialDraft?.tanggalMulai ?? new Date().toISOString().split("T")[0]);
+  const [tanggalSelesai, setTanggalSelesai] = useState(initialDraft?.tanggalSelesai ?? new Date().toISOString().split("T")[0]);
+  const [uangPanjar, setUangPanjar] = useState<number>(initialDraft?.uangPanjar ?? 0);
+  const [pengeluaranList, setPengeluaranList] = useState<PengeluaranItem[]>(initialDraft?.pengeluaranList ?? []);
 
 
   // New expense form inline state
@@ -223,7 +213,7 @@ export function KalkulatorDinasTab({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast.error("File nota harus berupa gambar (JPG, PNG, atau WEBP).");
       e.target.value = "";
       return;
@@ -379,20 +369,15 @@ export function KalkulatorDinasTab({
   };
 
   // Calculations
-  const totalPengeluaran = useMemo(() => {
-    return pengeluaranList.reduce((sum, item) => sum + (item.nominal || 0), 0);
-  }, [pengeluaranList]);
-
-  const totalSpj = useMemo(() => {
-    return pengeluaranList
-      .filter((item) => item.isSpj !== false)
-      .reduce((sum, item) => sum + (item.nominal || 0), 0);
-  }, [pengeluaranList]);
-
-  const totalNonSpj = useMemo(() => {
-    return pengeluaranList
-      .filter((item) => item.isSpj === false)
-      .reduce((sum, item) => sum + (item.nominal || 0), 0);
+  const { totalPengeluaran, totalSpj, totalNonSpj } = useMemo(() => {
+    let totalPengeluaran = 0, totalSpj = 0, totalNonSpj = 0;
+    for (const item of pengeluaranList) {
+      const nom = item.nominal || 0;
+      totalPengeluaran += nom;
+      if (item.isSpj !== false) totalSpj += nom;
+      else totalNonSpj += nom;
+    }
+    return { totalPengeluaran, totalSpj, totalNonSpj };
   }, [pengeluaranList]);
 
   const sisaPanjar = uangPanjar - totalPengeluaran;
@@ -557,7 +542,7 @@ export function KalkulatorDinasTab({
                 <option value="">-- Input Bebas (Tanpa ST) --</option>
                 {suratTugasList.map((st) => (
                   <option key={st.id} value={st.id}>
-                    {st.nomor_surat || "Draf"} - {st.maksud_tujuan.slice(0, 32)}...
+                    {st.nomor_surat || "Draf"} - {(st.maksud_tujuan || "").slice(0, 32)}...
                   </option>
                 ))}
               </select>
@@ -710,14 +695,9 @@ export function KalkulatorDinasTab({
               onChange={(e) => setNewExp((prev) => ({ ...prev, kategori: e.target.value }))}
               className="w-full h-8.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs font-medium"
             >
-              <option value="BBM / Transport">BBM / Transport</option>
-              <option value="Tol & Parkir">Tol & Parkir</option>
-              <option value="Penginapan / Hotel">Penginapan / Hotel</option>
-              <option value="Konsumsi Tim">Konsumsi Tim</option>
-              <option value="Sewa Perahu / Kendaraan">Sewa Perahu / Kendaraan</option>
-              <option value="Honor Pemandu / Porter">Honor Pemandu / Porter</option>
-              <option value="Logistik Patroli">Logistik Patroli</option>
-              <option value="Lain-lain">Lain-lain</option>
+              {KATEGORI_OPTIONS.map((kat) => (
+                <option key={kat} value={kat}>{kat}</option>
+              ))}
             </select>
           </div>
 
@@ -756,7 +736,7 @@ export function KalkulatorDinasTab({
           <div className="sm:col-span-1 flex items-end gap-1">
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               capture="environment"
               ref={fileInputRef}
               onChange={handlePhotoUpload}
@@ -897,14 +877,9 @@ export function KalkulatorDinasTab({
                       }
                       className="h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
                     >
-                      <option value="BBM / Transport">BBM / Transport</option>
-                      <option value="Tol & Parkir">Tol & Parkir</option>
-                      <option value="Penginapan / Hotel">Penginapan / Hotel</option>
-                      <option value="Konsumsi Tim">Konsumsi Tim</option>
-                      <option value="Sewa Perahu / Kendaraan">Sewa Perahu / Kendaraan</option>
-                      <option value="Honor Pemandu / Porter">Honor Pemandu / Porter</option>
-                      <option value="Logistik Patroli">Logistik Patroli</option>
-                      <option value="Lain-lain">Lain-lain</option>
+                      {KATEGORI_OPTIONS.map((kat) => (
+                        <option key={kat} value={kat}>{kat}</option>
+                      ))}
                     </select>
 
                     {/* Toggle Status SPJ saat Edit */}

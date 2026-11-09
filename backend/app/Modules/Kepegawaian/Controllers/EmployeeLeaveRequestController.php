@@ -168,19 +168,13 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             // Calculate working days or calendar days based on LeaveType configuration
-            $isHariKerja = $leaveType->hitung_hari === 'hari_kerja';
+            $jumlahHari = $leaveType->countDays($start, $end);
 
-            if ($isHariKerja) {
-                $jumlahHari = 0;
-                $curr = $start->copy();
-                while ($curr->lte($end)) {
-                    if (!$curr->isWeekend()) {
-                        $jumlahHari++;
-                    }
-                    $curr->addDay();
-                }
-            } else {
-                $jumlahHari = $start->diffInDays($end) + 1;
+            if ($jumlahHari < 1) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
+                ], 422);
             }
 
             if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
@@ -199,16 +193,11 @@ class EmployeeLeaveRequestController extends Controller
 
             $year = $start->year;
 
-            // Fetch current leave balance for snapshot
-            $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
-                ->where('year', $year)
-                ->first();
-
-            $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
-            $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
-            $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
-
-            $totalQuota = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employee->id, $year);
+            $sisaN0 = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - (int) $leaveBalance->cuti_terpakai_n0);
+            $sisaN1 = $leaveBalance->hak_n1_diakui;
+            $sisaN2 = $leaveBalance->hak_n2_diakui;
+            $totalQuota = $leaveBalance->sisa_cuti_tersedia;
 
             $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
                 ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
@@ -279,7 +268,7 @@ class EmployeeLeaveRequestController extends Controller
                 app(\App\Services\PortalNotificationService::class)->notifyAdmins(
                     'kepegawaian',
                     'Pengajuan Cuti Baru',
-                    "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama}.",
+                    "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama_lengkap}.",
                     'cuti',
                     'cuti',
                     (string) $leaveReq->id
@@ -392,38 +381,24 @@ class EmployeeLeaveRequestController extends Controller
             'catatan_atasan' => 'nullable|string|max:1000',
         ]);
 
-        $statusMap = [
-            'PENGAJUAN' => 'PENGAJUAN',
-            'PENDING' => 'PENGAJUAN',
-            'DISETUJUI' => 'DISETUJUI',
-            'APPROVED' => 'DISETUJUI',
-            'DITOLAK' => 'DITOLAK',
-            'REJECTED' => 'DITOLAK',
-        ];
-        $newStatus = $statusMap[strtoupper($validated['status'])] ?? strtoupper($validated['status']);
+        $newStatus = strtoupper($validated['status']);
 
         DB::beginTransaction();
         try {
             Employee::lockForLeaveUpdate($leaveReq->employee_id);
             $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
             $oldStatus = strtoupper($leaveReq->status);
+            $oldNote = $leaveReq->catatan_atasan;
             $isTahunan = $leaveReq->isAnnual();
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
             $isNewApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
 
             if ($isTahunan && $isNewApproved && ! $isOldApproved) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
                 if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
                     return response()->json([
@@ -470,22 +445,24 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $isApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
-                $statusText = $isApproved ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
-                $notifTitle = "Permohonan Cuti {$statusText}";
-                $notifMsg = $isApproved
-                    ? "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak."
-                    : "Pengajuan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah {$statusText}.".(!empty($catatanUpdate) ? " Catatan: {$catatanUpdate}" : '');
+                if ($oldStatus !== $newStatus || $oldNote !== $catatanUpdate) {
+                    $isApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
+                    $statusText = $isApproved ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
+                    $notifTitle = "Permohonan Cuti {$statusText}";
+                    $notifMsg = $isApproved
+                        ? "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak."
+                        : "Pengajuan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah {$statusText}.".(!empty($catatanUpdate) ? " Catatan: {$catatanUpdate}" : '');
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => $newStatus, 'leave_id' => $leaveReq->id]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => $newStatus, 'leave_id' => $leaveReq->id]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }
@@ -532,17 +509,10 @@ class EmployeeLeaveRequestController extends Controller
 
             if ($isTahunan && !$isOldApproved) {
                 $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
 
                 if ($leaveReq->jumlah_hari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
@@ -568,39 +538,11 @@ class EmployeeLeaveRequestController extends Controller
                 $updateData['catatan_atasan'] = strip_tags(trim($validated['catatan_atasan']));
             }
 
-            $hasUploaded = false;
-            if ($request->hasFile('file_scan_formulir')) {
-                $fileFormulir = $request->file('file_scan_formulir');
-                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
-                }
-                $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
-                $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
-                $hasUploaded = true;
-            }
+            $updateData = array_merge($updateData, $this->storeLeaveScanFiles($request, $leaveReq));
 
-            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
-            if ($suratIzinFile) {
-                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
-                }
-                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
-                }
-                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $updateData['scan_surat_izin_path'] = $path;
-                $updateData['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-                $updateData['scan_surat_path'] = $path;
-                $updateData['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-                $hasUploaded = true;
-            }
-
-            if ($hasUploaded) {
-                $updateData['scan_surat_uploaded_at'] = Carbon::now();
-                $updateData['scan_surat_uploaded_by'] = Auth::id();
-            }
-
-            $leaveReq->update($updateData);
+            $leaveReq->fill($updateData);
+            $notificationChanged = $leaveReq->isDirty(array_keys($updateData));
+            $leaveReq->save();
 
             DB::commit();
 
@@ -612,7 +554,7 @@ class EmployeeLeaveRequestController extends Controller
                     $updateData['scan_surat_izin_path'],
                     $updateData['scan_surat_izin_nama'] ?? null,
                     null,
-                    $leaveReq->user_id ?? Auth::id()
+                    $leaveReq->employee?->user?->id ?? Auth::id()
                 );
             }
 
@@ -623,18 +565,20 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $notifTitle = 'Permohonan Cuti Disetujui';
-                $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.";
+                if ($notificationChanged) {
+                    $notifTitle = 'Permohonan Cuti Disetujui';
+                    $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.";
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }
@@ -676,37 +620,22 @@ class EmployeeLeaveRequestController extends Controller
         try {
             Employee::lockForLeaveUpdate($leaveReq->employee_id);
             $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
-            $updateData = [];
-            if ($request->hasFile('file_scan_formulir')) {
-                $fileFormulir = $request->file('file_scan_formulir');
-                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
-                }
-                $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
-                $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
-            }
-
-            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
-            if ($suratIzinFile) {
-                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
-                }
-                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
-                }
-                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $updateData['scan_surat_izin_path'] = $path;
-                $updateData['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-                $updateData['scan_surat_path'] = $path;
-                $updateData['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-            }
-
-            $updateData['scan_surat_uploaded_at'] = Carbon::now();
-            $updateData['scan_surat_uploaded_by'] = Auth::id();
-
+            $updateData = $this->storeLeaveScanFiles($request, $leaveReq);
             $leaveReq->update($updateData);
 
             DB::commit();
+
+            if (!empty($updateData['scan_surat_izin_path'])) {
+                \App\Jobs\ArchiveOfficialDocument::dispatch(
+                    'cuti',
+                    $leaveReq->id,
+                    'local',
+                    $updateData['scan_surat_izin_path'],
+                    $updateData['scan_surat_izin_nama'] ?? null,
+                    null,
+                    $leaveReq->employee?->user?->id ?? Auth::id()
+                );
+            }
 
             return response()->json([
                 'message' => 'Berkas scan surat cuti berhasil diunggah.',
@@ -722,6 +651,45 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat mengunggah berkas.',
             ], 500);
         }
+    }
+
+    /**
+     * Store uploaded formulir / surat izin scan files and clean up replaced files.
+     */
+    private function storeLeaveScanFiles(Request $request, EmployeeLeaveRequest $leaveReq): array
+    {
+        $updateData = [];
+        if ($request->hasFile('file_scan_formulir')) {
+            $fileFormulir = $request->file('file_scan_formulir');
+            if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
+                Storage::disk('local')->delete($leaveReq->scan_formulir_path);
+            }
+            $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
+            $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
+        }
+
+        $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+        if ($suratIzinFile) {
+            if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
+                Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
+            }
+            if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
+                Storage::disk('local')->delete($leaveReq->scan_surat_path);
+            }
+            $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+            $safeOrigName = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
+            $updateData['scan_surat_izin_path'] = $path;
+            $updateData['scan_surat_izin_nama'] = $safeOrigName;
+            $updateData['scan_surat_path'] = $path;
+            $updateData['scan_surat_nama'] = $safeOrigName;
+        }
+
+        if (! empty($updateData)) {
+            $updateData['scan_surat_uploaded_at'] = Carbon::now();
+            $updateData['scan_surat_uploaded_by'] = Auth::id();
+        }
+
+        return $updateData;
     }
 
     /**
@@ -741,9 +709,13 @@ class EmployeeLeaveRequestController extends Controller
         $safeName = str_replace(['"', "\r", "\n", '/', '\\', ';'], '_', $safeName);
         $safeName = trim($safeName) ?: 'berkas_cuti.pdf';
 
+        $rawMime = strtolower((string) ($disk->mimeType($path) ?: 'application/pdf'));
+        $mime = ($rawMime === 'application/pdf' || in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true))
+            ? $rawMime
+            : 'application/pdf';
+
         // Mode pratinjau (JSON base64 data_url) - mencegah download otomatis & hook IDM
         if ($request && ($request->query('preview') || $request->wantsJson())) {
-            $mime = $disk->mimeType($path) ?: 'application/pdf';
             return response()->json([
                 'mime_type' => $mime,
                 'file_name' => $safeName,
@@ -752,9 +724,49 @@ class EmployeeLeaveRequestController extends Controller
         }
 
         return $disk->response($path, $safeName, [
+            'Content-Type' => $mime,
             'Content-Disposition' => 'inline; filename="' . $safeName . '"',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    private function respondLeaveScan(?Request $request, EmployeeLeaveRequest $leaveReq, string $mode)
+    {
+        if ($mode === 'formulir') {
+            if (! $leaveReq->scan_formulir_path) {
+                return response()->json(['message' => 'Berkas scan formulir cuti belum diunggah atau tidak ditemukan.'], 404);
+            }
+            return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $leaveReq->scan_formulir_nama ?: "Formulir_Cuti_{$leaveReq->id}.pdf");
+        }
+
+        $path = $leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path;
+        $nama = $leaveReq->scan_surat_izin_nama ?: ($leaveReq->scan_surat_nama ?: "Surat_Izin_{$leaveReq->id}.pdf");
+
+        if ($mode === 'surat_izin') {
+            return $path
+                ? $this->respondScanFile($request, $path, $nama)
+                : response()->json(['message' => 'Berkas surat izin cuti resmi belum diunggah atau tidak ditemukan.'], 404);
+        }
+
+        if ($path) {
+            return $this->respondScanFile($request, $path, $nama);
+        }
+        if ($leaveReq->scan_formulir_path) {
+            return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $leaveReq->scan_formulir_nama ?: "Formulir_Cuti_{$leaveReq->id}.pdf");
+        }
+        return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
+    }
+
+    private function findMyLeaveRequest(Request $request, int $id): EmployeeLeaveRequest|JsonResponse
+    {
+        $employee = Employee::where('nip', $request->user()?->username)->first();
+        if (! $employee) {
+            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
+        }
+
+        return EmployeeLeaveRequest::where('id', $id)
+            ->where('employee_id', $employee->id)
+            ->firstOrFail();
     }
 
     /**
@@ -764,15 +776,7 @@ class EmployeeLeaveRequestController extends Controller
     {
         $request = $requestOrId instanceof Request ? $requestOrId : request();
         $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
-
-        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
-
-        if (!$leaveReq->scan_formulir_path) {
-            return response()->json(['message' => 'Berkas scan formulir cuti belum diunggah atau tidak ditemukan.'], 404);
-        }
-
-        $fileName = $leaveReq->scan_formulir_nama ?: 'Formulir_Cuti_' . $leaveReq->id . '.pdf';
-        return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $fileName);
+        return $this->respondLeaveScan($request, EmployeeLeaveRequest::findOrFail($id), 'formulir');
     }
 
     /**
@@ -782,16 +786,7 @@ class EmployeeLeaveRequestController extends Controller
     {
         $request = $requestOrId instanceof Request ? $requestOrId : request();
         $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
-
-        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
-        $path = $leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path;
-        $nama = $leaveReq->scan_surat_izin_nama ?: ($leaveReq->scan_surat_nama ?: 'Surat_Izin_' . $leaveReq->id . '.pdf');
-
-        if (!$path) {
-            return response()->json(['message' => 'Berkas surat izin cuti resmi belum diunggah atau tidak ditemukan.'], 404);
-        }
-
-        return $this->respondScanFile($request, $path, $nama);
+        return $this->respondLeaveScan($request, EmployeeLeaveRequest::findOrFail($id), 'surat_izin');
     }
 
     /**
@@ -801,15 +796,7 @@ class EmployeeLeaveRequestController extends Controller
     {
         $request = $requestOrId instanceof Request ? $requestOrId : request();
         $id = $requestOrId instanceof Request ? (int) $optionalId : (int) $requestOrId;
-
-        $leaveReq = EmployeeLeaveRequest::findOrFail($id);
-        if ($leaveReq->scan_surat_izin_path || $leaveReq->scan_surat_path) {
-            return $this->adminViewScanSuratIzin($request, $id);
-        }
-        if ($leaveReq->scan_formulir_path) {
-            return $this->adminViewScanFormulir($request, $id);
-        }
-        return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
+        return $this->respondLeaveScan($request, EmployeeLeaveRequest::findOrFail($id), 'any');
     }
 
     /**
@@ -817,23 +804,8 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function myViewScanFormulir(Request $request, int $id)
     {
-        $user = $request->user();
-        $employee = Employee::where('nip', $user->username)->first();
-
-        if (!$employee) {
-            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
-        }
-
-        $leaveReq = EmployeeLeaveRequest::where('id', $id)
-            ->where('employee_id', $employee->id)
-            ->firstOrFail();
-
-        if (!$leaveReq->scan_formulir_path) {
-            return response()->json(['message' => 'Berkas scan formulir cuti belum diunggah atau tidak ditemukan.'], 404);
-        }
-
-        $fileName = $leaveReq->scan_formulir_nama ?: 'Formulir_Cuti_' . $leaveReq->id . '.pdf';
-        return $this->respondScanFile($request, $leaveReq->scan_formulir_path, $fileName);
+        $leaveReq = $this->findMyLeaveRequest($request, $id);
+        return $leaveReq instanceof JsonResponse ? $leaveReq : $this->respondLeaveScan($request, $leaveReq, 'formulir');
     }
 
     /**
@@ -841,25 +813,8 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function myViewScanSuratIzin(Request $request, int $id)
     {
-        $user = $request->user();
-        $employee = Employee::where('nip', $user->username)->first();
-
-        if (!$employee) {
-            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
-        }
-
-        $leaveReq = EmployeeLeaveRequest::where('id', $id)
-            ->where('employee_id', $employee->id)
-            ->firstOrFail();
-
-        $path = $leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path;
-        $nama = $leaveReq->scan_surat_izin_nama ?: ($leaveReq->scan_surat_nama ?: 'Surat_Izin_' . $leaveReq->id . '.pdf');
-
-        if (!$path) {
-            return response()->json(['message' => 'Berkas surat izin cuti resmi belum diunggah atau tidak ditemukan.'], 404);
-        }
-
-        return $this->respondScanFile($request, $path, $nama);
+        $leaveReq = $this->findMyLeaveRequest($request, $id);
+        return $leaveReq instanceof JsonResponse ? $leaveReq : $this->respondLeaveScan($request, $leaveReq, 'surat_izin');
     }
 
     /**
@@ -867,24 +822,8 @@ class EmployeeLeaveRequestController extends Controller
      */
     public function myViewScan(Request $request, int $id)
     {
-        $user = $request->user();
-        $employee = Employee::where('nip', $user->username)->first();
-
-        if (!$employee) {
-            return response()->json(['message' => 'Data pegawai tidak ditemukan.'], 403);
-        }
-
-        $leaveReq = EmployeeLeaveRequest::where('id', $id)
-            ->where('employee_id', $employee->id)
-            ->firstOrFail();
-
-        if ($leaveReq->scan_surat_izin_path || $leaveReq->scan_surat_path) {
-            return $this->myViewScanSuratIzin($request, $id);
-        }
-        if ($leaveReq->scan_formulir_path) {
-            return $this->myViewScanFormulir($request, $id);
-        }
-        return response()->json(['message' => 'Berkas scan cuti belum diunggah atau tidak ditemukan.'], 404);
+        $leaveReq = $this->findMyLeaveRequest($request, $id);
+        return $leaveReq instanceof JsonResponse ? $leaveReq : $this->respondLeaveScan($request, $leaveReq, 'any');
     }
 
     /**
@@ -925,20 +864,27 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
-            $isHariKerja = $leaveType->hitung_hari === 'hari_kerja';
+            if ($start->year < 2000 || $start->year > 2100) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Tahun pengajuan cuti tidak valid.',
+                ], 422);
+            }
 
-            if ($isHariKerja) {
-                $newJumlahHari = 0;
-                $curr = $start->copy();
-                while ($curr->lte($end)) {
-                    if (! $curr->isWeekend()) {
-                        $newJumlahHari++;
-                    }
-                    $curr->addDay();
-                }
-                $newJumlahHari = max(1, $newJumlahHari);
-            } else {
-                $newJumlahHari = $start->diffInDays($end) + 1;
+            $newJumlahHari = $leaveType->countDays($start, $end);
+
+            if ($newJumlahHari < 1) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
+                ], 422);
+            }
+
+            if ($leaveType && $leaveType->maks_hari && $newJumlahHari > $leaveType->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$newJumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
+                ], 422);
             }
 
             if ($newJumlahHari > 365) {
@@ -954,12 +900,8 @@ class EmployeeLeaveRequestController extends Controller
 
             if ($oldIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $oldYear = Carbon::parse($leaveReq->tanggal_mulai)->year;
-                $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)
-                    ->where('year', $oldYear)
-                    ->first();
-                if ($leaveBalance) {
-                    $leaveBalance->update(['cuti_terpakai_n0' => max(0, (int) $leaveBalance->cuti_terpakai_n0 - $oldJumlahHari)]);
-                }
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $oldYear);
+                $leaveBalance->fill(['cuti_terpakai_n0' => max(0, (int) $leaveBalance->cuti_terpakai_n0 - $oldJumlahHari)])->save();
             }
 
             $updateFields = [
@@ -976,21 +918,12 @@ class EmployeeLeaveRequestController extends Controller
                 $updateFields['nomor_pengajuan'] = !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null;
             }
 
-            $leaveReq->update($updateFields);
-
             if ($newIsTahunan && in_array(strtoupper($leaveReq->status), ['DISETUJUI', 'APPROVED'], true)) {
                 $newYear = Carbon::parse($validated['tanggal_mulai'])->year;
-                $leaveBalance = EmployeeLeave::firstOrCreate(
-                    ['employee_id' => $leaveReq->employee_id, 'year' => $newYear],
-                    [
-                        'hak_cuti_n' => 12,
-                        'sisa_cuti_n1' => 0,
-                        'cuti_terpakai_n1' => 0,
-                        'sisa_cuti_n2' => 0,
-                        'cuti_terpakai_n2' => 0,
-                        'cuti_terpakai_n0' => 0,
-                    ]
-                );
+                $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $newYear);
+                if (! $leaveBalance->exists) {
+                    $leaveBalance->save();
+                }
                 if ($newJumlahHari > $leaveBalance->sisa_cuti_tersedia) {
                     DB::rollBack();
                     return response()->json([
@@ -1000,6 +933,8 @@ class EmployeeLeaveRequestController extends Controller
                 }
                 $leaveBalance->increment('cuti_terpakai_n0', $newJumlahHari);
             }
+
+            $leaveReq->update($updateFields);
 
             DB::commit();
 
@@ -1226,7 +1161,6 @@ class EmployeeLeaveRequestController extends Controller
         ]);
 
         $nomorSurat = strip_tags(trim($validated['nomor_surat']));
-        $catatan = isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : $leaveReq->catatan_atasan;
 
         DB::beginTransaction();
         try {
@@ -1238,17 +1172,10 @@ class EmployeeLeaveRequestController extends Controller
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
 
             $year = Carbon::parse($leaveReq->tanggal_mulai)->year;
-            $leaveBalance = EmployeeLeave::firstOrCreate(
-                ['employee_id' => $leaveReq->employee_id, 'year' => $year],
-                [
-                    'hak_cuti_n' => 12,
-                    'sisa_cuti_n1' => 0,
-                    'cuti_terpakai_n1' => 0,
-                    'sisa_cuti_n2' => 0,
-                    'cuti_terpakai_n2' => 0,
-                    'cuti_terpakai_n0' => 0,
-                ]
-            );
+            $leaveBalance = EmployeeLeave::forEmployeeYear($leaveReq->employee_id, $year);
+            if (! $leaveBalance->exists) {
+                $leaveBalance->save();
+            }
 
             // If not already approved and is Cuti Tahunan, deduct quota
             if ($isTahunan && !$isOldApproved) {
@@ -1311,15 +1238,7 @@ class EmployeeLeaveRequestController extends Controller
             ];
 
             // Create or update SuratKeluar
-            if ($leaveReq->surat_keluar_id) {
-                $suratKeluar = SuratKeluar::find($leaveReq->surat_keluar_id);
-            } else {
-                $suratKeluar = new SuratKeluar();
-            }
-
-            if (!$suratKeluar) {
-                $suratKeluar = new SuratKeluar();
-            }
+            $suratKeluar = ($leaveReq->surat_keluar_id ? SuratKeluar::find($leaveReq->surat_keluar_id) : null) ?? new SuratKeluar();
 
             $kodeKlasifikasi = !empty($validated['klasifikasi'])
                 ? strip_tags(trim($validated['klasifikasi']))
@@ -1340,6 +1259,7 @@ class EmployeeLeaveRequestController extends Controller
             ]);
             $suratKeluar->save();
 
+            $previousApproval = [$leaveReq->status, $leaveReq->nomor_pengajuan, $leaveReq->catatan_atasan, $leaveReq->surat_keluar_id];
             // Update EmployeeLeaveRequest
             $leaveReq->update([
                 'status' => $newStatus,
@@ -1350,6 +1270,9 @@ class EmployeeLeaveRequestController extends Controller
                 'catatan_atasan' => $catatan,
             ]);
 
+            $notificationChanged = $previousApproval !== [$leaveReq->status, $leaveReq->nomor_pengajuan, $leaveReq->catatan_atasan, $leaveReq->surat_keluar_id]
+                || $suratKeluar->wasRecentlyCreated
+                || $suratKeluar->wasChanged(array_diff(array_keys($suratKeluar->getAttributes()), ['created_at', 'updated_at']));
             DB::commit();
 
             try {
@@ -1359,18 +1282,20 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $notifTitle = 'Permohonan Cuti Disetujui';
-                $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.".($nomorSurat ? " (Nomor: {$nomorSurat})" : '');
+                if ($notificationChanged) {
+                    $notifTitle = 'Permohonan Cuti Disetujui';
+                    $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.".($nomorSurat ? " (Nomor: {$nomorSurat})" : '');
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id, 'nomor_surat' => $nomorSurat]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id, 'nomor_surat' => $nomorSurat]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }

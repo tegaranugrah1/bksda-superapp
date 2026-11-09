@@ -245,7 +245,10 @@ class AssetDocumentController extends Controller
             return response()->json(['message' => 'Dokumen tidak ditemukan.'], 404);
         }
 
-        $mime = $preview ? 'image/jpeg' : ($asset->$mimeColumn ?: $disk->mimeType($path) ?: 'application/octet-stream');
+        $rawMime = $preview ? 'image/jpeg' : ($asset->$mimeColumn ?: $disk->mimeType($path) ?: 'application/octet-stream');
+        $mime = in_array($rawMime, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)
+            ? $rawMime
+            : ($download ? 'application/octet-stream' : 'application/pdf');
         $filename = basename($path);
         $cleanFilename = str_replace(['"', "\r", "\n"], '', $filename);
 

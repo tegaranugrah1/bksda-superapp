@@ -83,4 +83,5 @@ service-account.json
 backups/
 .audit/
 graphify-out/cache/
+bksda-superapp-vault/
 scratch/

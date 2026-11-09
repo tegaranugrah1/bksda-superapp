@@ -6,8 +6,9 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Calendar, MapPin, Users, Printer, Download } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
 import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { formatNIP } from "@/lib/letter-utils";
+import { formatNIP, formatDateRangeIndonesian } from "@/lib/letter-utils";
 
 interface Employee {
   id: number;
@@ -37,11 +38,6 @@ interface SuratTugasDetail {
   approver?: { id: number; name: string };
 }
 
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return Number.isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-}
 
 function parseItems(value: unknown): string[] {
   if (!value) return [];
@@ -66,7 +62,7 @@ function parseItems(value: unknown): string[] {
   return [];
 }
 
-export default function SuratTugasPreviewPage() {
+function SuratTugasPreviewContent() {
   const params = useParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const cleanId = rawId ? encodeURIComponent(String(rawId)) : "";
@@ -80,7 +76,7 @@ export default function SuratTugasPreviewPage() {
     if (!cleanId || downloading) return;
     setDownloading(true);
     try {
-      const resp = await api.get(`/surat-tugas/my/${cleanId}/download`, {
+      const resp = await api.get(`/surat-tugas/my/${cleanId}/download?download=1`, {
         responseType: "blob",
         timeout: 30000,
       });
@@ -270,7 +266,7 @@ export default function SuratTugasPreviewPage() {
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Tanggal</p>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {formatDate(data.tanggal_mulai)} — {formatDate(data.tanggal_selesai)}
+                    {formatDateRangeIndonesian(data.tanggal_mulai, data.tanggal_selesai)}
                   </p>
                 </div>
               </div>
@@ -321,7 +317,7 @@ export default function SuratTugasPreviewPage() {
                         </tr>
                       ))}
                       {Boolean(data.jumlah_buruh && data.jumlah_buruh > 0) &&
-                        Array.from({ length: data.jumlah_buruh! }).map((_, bIdx) => (
+                        Array.from({ length: Math.min(Math.max(0, Number(data.jumlah_buruh) || 0), 100) }).map((_, bIdx) => (
                           <tr key={`pm-${bIdx}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                             <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
                               {(data.employees?.length || 0) + bIdx + 1}
@@ -354,4 +350,9 @@ export default function SuratTugasPreviewPage() {
       </div>
     </RouteGuard>
   );
+}
+
+export default function SuratTugasPreviewPage() {
+  const { user } = useAuth();
+  return <SuratTugasPreviewContent key={user?.id ?? "guest"} />;
 }

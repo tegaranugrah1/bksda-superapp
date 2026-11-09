@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatNipLabel } from "@/lib/letter-utils";
+import { formatNipLabel, formatDateIndonesian } from "@/lib/letter-utils";
 
 export interface TemuanSatwaLiarItem {
   id: string;
@@ -74,38 +74,20 @@ interface SmartPatrolPrintProps {
   tallySheetFile?: File | null;
 }
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
 
 function getMonthYearIndo(dateStr?: string | null): string {
   if (!dateStr) return "JULI 2026";
   try {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "JULI 2026";
-    return d.toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    }).toUpperCase();
-  } catch (e) {
+    return isNaN(d.getTime()) ? "JULI 2026" : d.toLocaleDateString("id-ID", { month: "long", year: "numeric" }).toUpperCase();
+  } catch {
     return "JULI 2026";
   }
 }
 
 export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps) {
   const defaultDate = data.tanggal || new Date().toISOString();
-  const tanggalFormatted = formatDateIndo(defaultDate);
+  const tanggalFormatted = formatDateIndonesian(defaultDate);
   const monthYearUpper = getMonthYearIndo(defaultDate);
 
   const [tallySheetUrl, setTallySheetUrl] = React.useState<string | null>(null);
@@ -605,13 +587,7 @@ export function SmartPatrolPrint({ data, tallySheetFile }: SmartPatrolPrintProps
                     <div>
                       <h3 className="font-bold text-[12pt]">A. Latar Belakang</h3>
                       <div className="pl-4 pt-1 text-[12pt] leading-normal text-justify">
-                        {renderContent(data.latarBelakang || `Suaka Margasatwa Kelian Lestari adalah salah satu kawasan konservasi yang memiliki nilai strategis dalam menjaga keseimbangan ekosistem serta kelestarian keanekaragaman hayati di Kalimantan Timur. Kawasan ini menyimpan berbagai potensi biodiversitas, baik flora maupun fauna, termasuk jenis satwa liar dilindungi yang berperan penting dalam menjaga kestabilan rantai ekologi. Tidak hanya itu, keberadaan kawasan ini juga memberikan manfaat nyata bagi masyarakat sekitar, mulai dari fungsi tata air, penyediaan jasa ekosistem, hingga nilai sosial budaya yang melekat.
-
-Namun, kondisi Suaka Margasatwa Kelian Lestari tidak terlepas dari berbagai ancaman serius. Bekas aktivitas pertambangan emas yang pernah berlangsung di dalam kawasan meninggalkan kerusakan ekologis yang cukup besar, seperti lubang tambang terbuka, degradasi habitat, serta perubahan bentang alam. Dampak tersebut tidak hanya mengganggu fungsi ekologis kawasan, tetapi juga memicu kerentanan baru, seperti perambahan hutan, penambangan tanpa izin, hingga pembalakan liar. Selain itu, perburuan satwa liar menjadi ancaman lain yang mengikis keberadaan spesies kunci dan berpotensi menurunkan keanekaragaman hayati kawasan.
-
-Meski demikian, berbagai upaya rehabilitasi yang dilakukan sejak tahun 1992 telah menunjukkan hasil yang positif. Program revegetasi, pengendalian aktivitas manusia, dan pemulihan ekosistem pascatambang mulai mengembalikan fungsi ekologis kawasan. Pulihnya vegetasi menjadi habitat baru bagi satwa liar serta mendukung kegiatan pelepasliaran satwa dilindungi yang telah beberapa kali dilakukan. Pelepasliaran tersebut menjadi bukti nyata bahwa kawasan ini berpotensi kembali menjadi habitat yang layak sekaligus menjadi model keberhasilan pemulihan kawasan konservasi.
-
-Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Margasatwa Kelian Lestari perlu terus ditingkatkan. Ancaman yang masih ada harus dikelola dengan langkah strategis, sementara keberhasilan yang telah diraih harus dipertahankan dan dikembangkan. Melalui patroli rutin, pengawasan intensif, serta pemanfaatan teknologi seperti SMART Patrol, diharapkan kawasan ini tetap lestari dan mampu menjalankan fungsinya sebagai penyangga kehidupan serta warisan alam yang berharga bagi generasi yang akan datang.`)}
+                        {renderContent(data.latarBelakang)}
                       </div>
                     </div>
 
@@ -803,7 +779,7 @@ Dengan melihat kondisi tersebut, perlindungan dan pengamanan kawasan Suaka Marga
           <h2 className="text-[12pt] font-bold text-center uppercase tracking-wider mb-8">TALLY SHEET</h2>
           <img src="/header-paling-baru.png" alt="Kop Surat" className="w-full mb-6" />
           
-          {tallySheetFile.type.startsWith('image/') && tallySheetUrl ? (
+          {["image/jpeg", "image/png", "image/webp"].includes(tallySheetFile.type) && tallySheetUrl ? (
             <img 
               src={tallySheetUrl} 
               alt="Tally Sheet" 

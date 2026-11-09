@@ -177,6 +177,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
         "penghuni",
         "pengguna",
         "nama_pengguna",
+        "employee_id",
       ];
 
       editableKeys.forEach((key) => {
@@ -201,6 +202,22 @@ function AssetDetail({ assetId }: { assetId: string }) {
       }
       if (payload.nama_pengguna && payload.nama_pengguna !== asset.nama_pengguna) {
         payload.pengguna = payload.nama_pengguna;
+      }
+
+      if ("pengguna" in payload || "nama_pengguna" in payload) {
+        const empName = payload.pengguna || payload.nama_pengguna;
+        if (!empName) {
+          payload.employee_id = null;
+        } else {
+          const matched = employees.find(
+            (e: any) =>
+              (e.nama_lengkap && e.nama_lengkap.toLowerCase() === empName.toLowerCase()) ||
+              (e.name && e.name.toLowerCase() === empName.toLowerCase())
+          );
+          if (matched) {
+            payload.employee_id = matched.id;
+          }
+        }
       }
 
       if (Object.keys(payload).length === 0) {
@@ -801,7 +818,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                     onChange={(val) => updateField("no_stnk", val)}
                     isEditMode={isEditMode}
                   />
-                  {currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!currentData.no_polisi && currentData.no_polisi.trim() !== "-" && (
+                  {currentData.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && (
                     <>
                       <FormInputRow
                         label="No Mesin"

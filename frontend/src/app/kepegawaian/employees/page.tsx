@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Search,
@@ -127,7 +127,7 @@ export default function EmployeeListPage() {
   const handleRestore = async (emp: Employee) => {
     const ok = await confirm({
       title: "Pulihkan Data Pegawai?",
-      description: `Pulihkan data pegawai "${emp.nama_lengkap}" dan aktifkan kembali akun aksesnya?`,
+      description: `Pulihkan data pegawai "${emp.nama_lengkap}"? Aktivasi akun aplikasi diatur terpisah oleh Super Admin melalui Manajemen Hak Akses.`,
       confirmText: "Pulihkan Pegawai",
       variant: "info",
     });
@@ -196,19 +196,13 @@ export default function EmployeeListPage() {
     staleTime: 30000,
   });
 
-  const lastCountsRef = useRef<EmployeeCounts>({
+  const counts: EmployeeCounts = data?.meta?.counts ?? {
     total: 0,
     pns: 0,
     pppk: 0,
     mmp: 0,
     trashed: 0,
-  });
-
-  if (data?.meta?.counts) {
-    lastCountsRef.current = data.meta.counts;
-  }
-
-  const counts = data?.meta?.counts ?? lastCountsRef.current;
+  };
 
   const isTrashedView = canWrite && statusFilter === "trashed";
   const hasActiveFilter =
@@ -365,7 +359,7 @@ export default function EmployeeListPage() {
       {/* 2. Clickable Summary Stat Cards (Data-driven Ponytail + Clean Enterprise Pro Max) */}
       <div
         className={`grid grid-cols-2 sm:grid-cols-3 ${
-          canWrite ? "lg:grid-cols-5" : "lg:grid-cols-4"
+          canWrite ? "xl:grid-cols-5 lg:grid-cols-3" : "xl:grid-cols-4 lg:grid-cols-2"
         } gap-3`}
       >
         {statCards.map((card) => {

@@ -16,14 +16,6 @@ class AssetPhotoController extends Controller
 {
     private const VALID_TYPES = ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2'];
 
-    /** Get the configured storage disk for BMN photos. */
-    private function disk(): \Illuminate\Filesystem\FilesystemAdapter
-    {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk(config('filesystems.default'));
-        return $disk;
-    }
-
     /**
      * Upload a photo for a specific side.
      */
@@ -43,8 +35,8 @@ class AssetPhotoController extends Controller
         $oldPath = $asset->$column;
 
         // Delete old photo if exists
-        if ($oldPath && $this->disk()->exists($oldPath)) {
-            $this->disk()->delete($oldPath);
+        if ($oldPath && Storage::disk()->exists($oldPath)) {
+            Storage::disk()->delete($oldPath);
         }
 
         // Store new photo — organized per asset folder
@@ -79,7 +71,7 @@ class AssetPhotoController extends Controller
 
         $url = $isPrivate 
             ? "/api/bmn/assets/{$asset->id}/photo/{$type}/view" 
-            : $this->disk()->url($path);
+            : Storage::disk()->url($path);
 
         $payload = [
             'path' => $path,
@@ -123,8 +115,8 @@ class AssetPhotoController extends Controller
 
         if ($request->hasFile('photo')) {
             // Delete old local file if exists
-            if ($oldPath && $this->disk()->exists($oldPath)) {
-                $this->disk()->delete($oldPath);
+            if ($oldPath && Storage::disk()->exists($oldPath)) {
+                Storage::disk()->delete($oldPath);
             }
 
             $folder = 'bmn-photos/' . Str::slug($asset->nama_barang) . '-' . $asset->nup;
@@ -151,7 +143,7 @@ class AssetPhotoController extends Controller
             $payload = [
                 'source' => 'upload',
                 'path' => $path,
-                'url' => $this->disk()->url($path),
+                'url' => Storage::disk()->url($path),
                 'latitude' => $asset->fresh()->foto_geotag_latitude !== null ? (float) $asset->fresh()->foto_geotag_latitude : null,
                 'longitude' => $asset->fresh()->foto_geotag_longitude !== null ? (float) $asset->fresh()->foto_geotag_longitude : null,
                 'location_note' => $asset->fresh()->foto_geotag_location_note,
@@ -167,8 +159,8 @@ class AssetPhotoController extends Controller
         }
 
         // External URL mode — delete old local file if switching
-        if ($oldPath && $this->disk()->exists($oldPath)) {
-            $this->disk()->delete($oldPath);
+        if ($oldPath && Storage::disk()->exists($oldPath)) {
+            Storage::disk()->delete($oldPath);
         }
 
         $asset->update([
@@ -215,8 +207,8 @@ class AssetPhotoController extends Controller
             $oldPath = $asset->foto_geotag_path;
             $oldUrl = $asset->foto_geotag_url;
 
-            if ($oldPath && $this->disk()->exists($oldPath)) {
-                $this->disk()->delete($oldPath);
+            if ($oldPath && Storage::disk()->exists($oldPath)) {
+                Storage::disk()->delete($oldPath);
             }
 
             $asset->update([
@@ -247,8 +239,8 @@ class AssetPhotoController extends Controller
         $column = "foto_{$type}_path";
         $oldPath = $asset->$column;
 
-        if ($oldPath && $this->disk()->exists($oldPath)) {
-            $this->disk()->delete($oldPath);
+        if ($oldPath && Storage::disk()->exists($oldPath)) {
+            Storage::disk()->delete($oldPath);
         }
 
         $asset->update([$column => null]);
@@ -275,11 +267,11 @@ class AssetPhotoController extends Controller
         if ($type === 'geotag') {
             $asset = Asset::findOrFail($assetId);
 
-            if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
+            if ($asset->foto_geotag_path && Storage::disk()->exists($asset->foto_geotag_path)) {
                 $ext = pathinfo($asset->foto_geotag_path, PATHINFO_EXTENSION);
                 $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag.{$ext}";
                 return response()->streamDownload(function () use ($asset) {
-                    echo $this->disk()->get($asset->foto_geotag_path);
+                    echo Storage::disk()->get($asset->foto_geotag_path);
                 }, $filename, [
                     'X-Content-Type-Options' => 'nosniff',
                 ]);
@@ -299,7 +291,7 @@ class AssetPhotoController extends Controller
         $asset = Asset::findOrFail($assetId);
         $column = "foto_{$type}_path";
 
-        if (!$asset->$column || !$this->disk()->exists($asset->$column)) {
+        if (!$asset->$column || !Storage::disk()->exists($asset->$column)) {
             return response()->json(['message' => 'Foto tidak ditemukan.'], 404);
         }
 
@@ -307,7 +299,7 @@ class AssetPhotoController extends Controller
         $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}.{$ext}";
 
         return response()->streamDownload(function () use ($asset, $column) {
-            echo $this->disk()->get($asset->$column);
+            echo Storage::disk()->get($asset->$column);
         }, $filename, [
             'X-Content-Type-Options' => 'nosniff',
         ]);
@@ -322,7 +314,7 @@ class AssetPhotoController extends Controller
         $entries = [];
 
         // Include geotag if stored locally
-        if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
+        if ($asset->foto_geotag_path && Storage::disk()->exists($asset->foto_geotag_path)) {
             $ext = pathinfo($asset->foto_geotag_path, PATHINFO_EXTENSION);
             $entries[] = [
                 'storage_path' => $asset->foto_geotag_path,
@@ -332,7 +324,7 @@ class AssetPhotoController extends Controller
 
         foreach (self::VALID_TYPES as $type) {
             $column = "foto_{$type}_path";
-            if ($asset->$column && $this->disk()->exists($asset->$column)) {
+            if ($asset->$column && Storage::disk()->exists($asset->$column)) {
                 $ext = pathinfo($asset->$column, PATHINFO_EXTENSION);
                 $entries[] = [
                     'storage_path' => $asset->$column,
@@ -359,7 +351,7 @@ class AssetPhotoController extends Controller
 
         // Stream each file from storage directly into ZIP without disk leaks
         foreach ($entries as $entry) {
-            $zip->addFromString($entry['name'], $this->disk()->get($entry['storage_path']));
+            $zip->addFromString($entry['name'], Storage::disk()->get($entry['storage_path']));
         }
 
         $zip->close();
@@ -378,9 +370,10 @@ class AssetPhotoController extends Controller
         if ($type === 'geotag') {
             $asset = Asset::findOrFail($assetId);
 
-            if ($asset->foto_geotag_path && $this->disk()->exists($asset->foto_geotag_path)) {
-                $file = $this->disk()->get($asset->foto_geotag_path);
-                $mime = $this->disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
+            if ($asset->foto_geotag_path && Storage::disk()->exists($asset->foto_geotag_path)) {
+                $file = Storage::disk()->get($asset->foto_geotag_path);
+                $rawMime = Storage::disk()->mimeType($asset->foto_geotag_path) ?: 'image/jpeg';
+                $mime = in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? $rawMime : 'image/jpeg';
                 return response($file, 200)
                     ->header('Content-Type', $mime)
                     ->header('X-Content-Type-Options', 'nosniff');
@@ -400,12 +393,13 @@ class AssetPhotoController extends Controller
         $asset = Asset::findOrFail($assetId);
         $column = "foto_{$type}_path";
 
-        if (!$asset->$column || !$this->disk()->exists($asset->$column)) {
+        if (!$asset->$column || !Storage::disk()->exists($asset->$column)) {
             return response()->json(['message' => 'Foto tidak ditemukan.'], 404);
         }
 
-        $file = $this->disk()->get($asset->$column);
-        $mime = $this->disk()->mimeType($asset->$column) ?: 'image/jpeg';
+        $file = Storage::disk()->get($asset->$column);
+        $rawMime = Storage::disk()->mimeType($asset->$column) ?: 'image/jpeg';
+        $mime = in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? $rawMime : 'image/jpeg';
 
         return response($file, 200)
             ->header('Content-Type', $mime)

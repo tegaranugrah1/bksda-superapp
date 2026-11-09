@@ -20,8 +20,13 @@ class AssetService
         return DB::transaction(function () use ($assetId, $data, $userId) {
             $asset = Asset::lockForUpdate()->findOrFail($assetId);
 
+            // Auto-resolve employee_id dari modul Kepegawaian jika pengguna/nama_pengguna diubah
+            if (!array_key_exists('employee_id', $data) && (array_key_exists('pengguna', $data) || array_key_exists('nama_pengguna', $data))) {
+                $data['employee_id'] = \App\Modules\Kepegawaian\Models\Employee::resolveIdByName($data['pengguna'] ?? null, $data['nama_pengguna'] ?? null);
+            }
+
             // Track all changed fields
-            $skipFields = ['keterangan_audit', 'employee_id'];
+            $skipFields = ['keterangan_audit'];
             foreach ($data as $field => $newValue) {
                 if (in_array($field, $skipFields)) continue;
                 

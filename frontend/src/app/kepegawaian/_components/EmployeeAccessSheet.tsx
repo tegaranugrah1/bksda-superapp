@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 
 const accessSchema = z.object({
   role: z.enum(["super_admin", "admin", "user", "pegawai"]),
+  is_active: z.boolean(),
   access_modules: z.array(z.string()),
   permissions: z.array(z.string()).optional(),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
@@ -76,7 +77,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessSchema),
-    defaultValues: { role: "user", access_modules: [], permissions: [], password: "" },
+    defaultValues: { role: "user", is_active: false, access_modules: [], permissions: [], password: "" },
   });
 
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
@@ -104,6 +105,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       const resolvedRole = (currentAccess.role === "pegawai" ? "user" : currentAccess.role) as "super_admin" | "admin" | "user" | "pegawai";
       form.reset({
         role: resolvedRole || "user",
+        is_active: currentAccess.is_active === true,
         access_modules: currentAccess.access_modules || [],
         permissions: currentAccess.permissions || [],
         password: "",
@@ -111,7 +113,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       lastSyncedId.current = employee.id;
     } else if (!isLoading) {
       // No access data (new account)
-      form.reset({ role: "user", access_modules: [], permissions: [], password: "" });
+      form.reset({ role: "user", is_active: false, access_modules: [], permissions: [], password: "" });
       lastSyncedId.current = employee.id;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,6 +124,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
       // Don't send password field if empty (avoid validation issues)
       const payload: Record<string, unknown> = {
         role: values.role,
+        is_active: values.is_active,
         access_modules: values.access_modules,
         permissions: values.permissions || [],
       };
@@ -201,6 +204,17 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                   </FormItem>
                 )}
               />
+
+              <FormField control={form.control} name="is_active" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <FormControl><input type="checkbox" checked={field.value} onChange={event => field.onChange(event.target.checked)} /></FormControl>
+                    Aktifkan akun akses aplikasi
+                  </FormLabel>
+                  <p className="text-xs text-slate-500">Akun nonaktif tidak dapat login. Menonaktifkan akun mencabut sesi aksesnya.</p>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
               {/* Module Access */}
               <div className="space-y-2">

@@ -1,6 +1,9 @@
 "use client";
 
 import React from "react";
+import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
+import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
+
 
 export interface LeaveRequestPrintData {
   id?: number;
@@ -45,16 +48,11 @@ interface FormulirCutiPrintProps {
   data: LeaveRequestPrintData;
 }
 
-import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
-import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
 
-export { calculateMasaKerja };
 
-function formatDateIndo(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const formatted = formatDateIndonesian(dateStr);
-  return formatted === "..." ? "-" : formatted;
-}
+
+
+const formatDateIndo = (dateStr?: string | null): string => (dateStr ? formatDateIndonesian(dateStr) : "-");
 
 function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
   const sk = (satuanKerja || "").toLowerCase();

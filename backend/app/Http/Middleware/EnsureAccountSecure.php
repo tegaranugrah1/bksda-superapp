@@ -78,14 +78,6 @@ class EnsureAccountSecure
             'api/logout',
         ];
 
-        if (in_array($path, $allowed, true)) {
-            return true;
-        }
-
-        if (str_starts_with($path, 'api/me/2fa')) {
-            return true;
-        }
-
-        return false;
+        return in_array($path, $allowed, true) || str_starts_with($path, 'api/me/2fa');
     }
 }

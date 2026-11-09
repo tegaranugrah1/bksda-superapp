@@ -18,17 +18,15 @@ function base64ToBlobUrl(base64DataUrl: string): string {
   try {
     const parts = base64DataUrl.split(",");
     const mimeMatch = parts[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
-    const byteCharacters = atob(parts[1]);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mime });
-    return URL.createObjectURL(blob);
+    const rawMime = (mimeMatch ? mimeMatch[1] : "application/pdf").toLowerCase();
+    const mime =
+      rawMime === "application/pdf" || /^image\/(jpeg|jpg|png|webp|gif)$/.test(rawMime)
+        ? rawMime
+        : "application/pdf";
+    const byteArray = Uint8Array.from(atob(parts[1]), (c) => c.charCodeAt(0));
+    return URL.createObjectURL(new Blob([byteArray], { type: mime }));
   } catch {
-    return base64DataUrl;
+    return "";
   }
 }
 
@@ -39,16 +37,14 @@ export function ScanViewerModal({
   fileName,
   onClose,
 }: ScanViewerModalProps) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resolvedFileName, setResolvedFileName] = useState<string | null>(fileName || null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPdf, setIsPdf] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !scanUrl) {
-      setDataUrl(null);
-      setBlobUrl(null);
+      setPreviewUrl(null);
       setResolvedFileName(fileName || null);
       setIsLoading(false);
       return;
@@ -56,6 +52,7 @@ export function ScanViewerModal({
 
     let active = true;
     let localBlobUrl: string | null = null;
+    setPreviewUrl(null);
     setIsLoading(true);
     setResolvedFileName(fileName || null);
 
@@ -79,13 +76,18 @@ export function ScanViewerModal({
           (!mimeType.includes("image") && !effectiveName.match(/\.(jpe?g|png|webp)$/i));
 
         setIsPdf(detectedIsPdf);
-        setDataUrl(resDataUrl);
 
         if (resDataUrl && typeof resDataUrl === "string" && resDataUrl.startsWith("data:")) {
           localBlobUrl = base64ToBlobUrl(resDataUrl);
-          setBlobUrl(localBlobUrl);
+          setPreviewUrl(localBlobUrl || null);
+        } else if (
+          resDataUrl &&
+          typeof resDataUrl === "string" &&
+          (resDataUrl.startsWith("http://") || resDataUrl.startsWith("https://") || resDataUrl.startsWith("/"))
+        ) {
+          setPreviewUrl(resDataUrl);
         } else {
-          setBlobUrl(resDataUrl || null);
+          setPreviewUrl(null);
         }
       })
       .catch((err) => {
@@ -112,10 +114,9 @@ export function ScanViewerModal({
   const currentDisplayName = resolvedFileName || fileName;
 
   const handleDownload = () => {
-    const targetUrl = blobUrl || dataUrl;
-    if (!targetUrl) return;
+    if (!previewUrl) return;
     const a = document.createElement("a");
-    a.href = targetUrl;
+    a.href = previewUrl;
     a.download = currentDisplayName || "Dokumen_Resmi.pdf";
     document.body.appendChild(a);
     a.click();
@@ -123,14 +124,7 @@ export function ScanViewerModal({
   };
 
   const handleOpenExternal = () => {
-    if (blobUrl) {
-      window.open(blobUrl, "_blank", "noopener");
-      return;
-    }
-    if (!scanUrl) return;
-    const separator = scanUrl.includes("?") ? "&" : "?";
-    const streamUrl = `/api${scanUrl.replace(/^\/api/, "")}${separator}stream=1`;
-    window.open(streamUrl, "_blank", "noopener");
+    if (previewUrl) window.open(previewUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -158,7 +152,7 @@ export function ScanViewerModal({
           </div>
 
           <div className="flex items-center gap-2">
-            {(blobUrl || dataUrl) && (
+            {previewUrl && (
               <>
                 <Button
                   type="button"
@@ -202,16 +196,17 @@ export function ScanViewerModal({
               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
               <p className="text-xs font-semibold text-slate-500">Memuat berkas pratinjau resmi...</p>
             </div>
-          ) : blobUrl || dataUrl ? (
+          ) : previewUrl ? (
             isPdf ? (
               <iframe
-                src={blobUrl || dataUrl || undefined}
+                src={previewUrl}
                 title={title}
                 className="w-full h-[72vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white shadow-xs"
               />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={blobUrl || dataUrl || undefined}
+                src={previewUrl}
                 alt={title}
                 className="max-h-[72vh] max-w-full mx-auto object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800"
               />

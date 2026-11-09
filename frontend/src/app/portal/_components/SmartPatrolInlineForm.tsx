@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +12,6 @@ import {
   Search,
   ChevronsUpDown,
   Check,
-  Image as ImageIcon,
   Plus,
   Trash2,
   Printer,
@@ -50,7 +51,6 @@ export function SmartPatrolInlineForm({ onBack }: SmartPatrolInlineFormProps) {
 
   // === Section I: Cover ===
   const [coverMode, setCoverMode] = useState<"standard" | "custom">("standard");
-  const [customCoverFile, setCustomCoverFile] = useState<File | null>(null);
   const [customCoverPreview, setCustomCoverPreview] = useState<string>("");
 
   useEffect(() => {
@@ -244,14 +244,6 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
     };
   }, [dokumentasiFiles]);
 
-  useEffect(() => {
-    return () => {
-      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(customCoverPreview);
-      }
-    };
-  }, [customCoverPreview]);
-
   // Fetch ST specifically filtered by "patrol"
   const fetchMySuratTugas = useCallback(async () => {
     setLoadingST(true);
@@ -303,7 +295,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   const handleCustomCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (!file.type.startsWith("image/")) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
         e.target.value = "";
         return;
@@ -316,7 +308,6 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
       if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(customCoverPreview);
       }
-      setCustomCoverFile(file);
       setCustomCoverPreview(URL.createObjectURL(file));
       setCoverMode("custom");
       e.target.value = "";
@@ -333,7 +324,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
     const validFiles: File[] = [];
 
     for (const file of incoming) {
-      if (!file.type.startsWith("image/")) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         toast.error(`File ${file.name} bukan format gambar.`);
         continue;
       }
@@ -616,7 +607,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   size="icon"
                   variant="destructive"
                   className="absolute top-2 right-2 w-8 h-8 rounded-full"
-                  onClick={() => { setCustomCoverFile(null); setCustomCoverPreview(""); setCoverMode("standard"); }}
+                  onClick={() => { setCustomCoverPreview(""); setCoverMode("standard"); }}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -863,7 +854,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                     onChange={(e) => { 
                       const f = e.target.files?.[0];
                       if (!f) return;
-                      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+                      if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)) {
                         toast.error("File Tally Sheet harus berupa Gambar atau PDF.");
                         e.target.value = "";
                         return;
@@ -888,7 +879,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                     onChange={(e) => { 
                       const f = e.target.files?.[0];
                       if (!f) return;
-                      if (!f.type.startsWith("image/") && f.type !== "application/pdf") {
+                      if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)) {
                         toast.error("File SPT harus berupa Gambar atau PDF.");
                         e.target.value = "";
                         return;

@@ -3,12 +3,10 @@
 import React, { useState, useEffect } from "react";
 import {
   Mail,
-  CheckCircle2,
   AlertTriangle,
   ShieldCheck,
   ArrowRight,
   Loader2,
-  KeyRound,
   RefreshCw,
   Send,
   Pencil,
@@ -90,13 +88,19 @@ export function EmailConnectDialog({
       );
       setOpen(false);
       onSuccess?.();
-    } catch (err: any) {
-      if (err?.response?.status === 429 && err?.response?.data?.retry_after) {
-        setCooldown(err.response.data.retry_after);
+    } catch (err: unknown) {
+      const errorObj = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; error?: string; retry_after?: number };
+        };
+      };
+      if (errorObj?.response?.status === 429 && errorObj?.response?.data?.retry_after) {
+        setCooldown(errorObj?.response?.data?.retry_after);
       }
       const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
+        errorObj?.response?.data?.message ||
+        errorObj?.response?.data?.error ||
         "Gagal mengirim ulang email verifikasi.";
       setErrorMsg(msg);
       toast.error(msg);
@@ -115,6 +119,7 @@ export function EmailConnectDialog({
       setErrorMsg("Alamat email wajib diisi.");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) { setErrorMsg("Format alamat email tidak valid."); return; }
     if (emailTrimmed.endsWith(".local")) {
       setErrorMsg("Alamat email tidak boleh menggunakan domain internal .local.");
       return;
@@ -139,10 +144,16 @@ export function EmailConnectDialog({
       setNewEmail("");
       setCurrentPassword("");
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorObj = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; error?: string; retry_after?: number };
+        };
+      };
       const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
+        errorObj?.response?.data?.message ||
+        errorObj?.response?.data?.error ||
         "Gagal memperbarui email akun.";
       setErrorMsg(msg);
       toast.error(msg);
@@ -155,19 +166,19 @@ export function EmailConnectDialog({
     <>
       {/* Banner Notifikasi jika email belum aktif/resmi */}
       {needsVerification && (
-        <div className="mb-6 rounded-2xl border border-amber-200/80 bg-linear-to-r from-amber-50 via-amber-50/50 to-orange-50/40 p-4 shadow-sm dark:border-amber-900/40 dark:from-amber-950/30 dark:via-amber-950/20 dark:to-orange-950/10">
+        <div className="w-full rounded-2xl border border-[#fef3c7] bg-[#fffbeb] py-2.5 px-3.5 sm:px-4 shadow-2xs dark:border-amber-900/40 dark:from-amber-950/30 dark:via-amber-950/20 dark:to-orange-950/10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
-                <AlertTriangle className="h-5 w-5" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef3c7] text-[#d97706] dark:bg-amber-400/10 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <h4 className="text-xs font-bold text-[#b45309] dark:text-amber-300">
                   {isLocalEmail
                     ? "Hubungkan Akun Gmail Pribadi Anda"
                     : "Email Anda Belum Terverifikasi"}
                 </h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 max-w-xl">
+                <p className="text-[11px] text-[#92400e]/90 dark:text-amber-200/80 mt-0.5 max-w-xl leading-normal">
                   {isLocalEmail
                     ? "Akun Anda saat ini menggunakan email placeholder sistem. Hubungkan Gmail Anda untuk menerima notifikasi persetujuan cuti, surat tugas, dan pemulihan kata sandi mandiri."
                     : `Tautan verifikasi telah dikirim ke ${currentEmail}. Segera periksa kotak masuk Gmail Anda agar fitur notifikasi aktif.`}
@@ -182,7 +193,7 @@ export function EmailConnectDialog({
                   setOpen(true);
                 }}
                 size="sm"
-                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
+                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
               >
                 <Mail className="w-4 h-4 mr-2" />
                 Hubungkan Gmail
@@ -218,7 +229,7 @@ export function EmailConnectDialog({
                   setOpen(true);
                 }}
                 size="sm"
-                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-sm"
+                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
               >
                 <Mail className="w-4 h-4 mr-2" />
                 Kirim Ulang / Ganti
@@ -232,7 +243,7 @@ export function EmailConnectDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eff5ee] text-[#1e5433] border border-[#dce8dd] dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <DialogTitle className="text-center text-lg font-bold">
@@ -328,6 +339,7 @@ export function EmailConnectDialog({
                 <Input
                   id="current-pw"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Masukkan kata sandi login Anda"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}

@@ -25,6 +25,7 @@ import {
   Handshake,
   Medal,
   CheckCircle2,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
@@ -40,6 +41,7 @@ import { TemplateType } from "./SuratDinasDocument";
 
 export type TemplateCategory =
   | "all"
+  | "favorit"
   | "korespondensi"
   | "administrasi"
   | "regulasi"
@@ -55,6 +57,7 @@ export interface TemplateItem {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   colorClass: string;
+  isFavorite?: boolean;
 }
 
 export const ALL_TEMPLATES: TemplateItem[] = [
@@ -62,6 +65,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
   {
     id: "surat_dinas",
     name: "Surat Dinas",
+    isFavorite: true,
     hal: 50,
     category: "korespondensi",
     categoryLabel: "Korespondensi",
@@ -73,6 +77,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
   {
     id: "nota_dinas",
     name: "Nota Dinas",
+    isFavorite: true,
     hal: 39,
     category: "korespondensi",
     categoryLabel: "Korespondensi",
@@ -95,6 +100,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
   {
     id: "memorandum",
     name: "Memorandum",
+    isFavorite: true,
     hal: 42,
     category: "korespondensi",
     categoryLabel: "Korespondensi",
@@ -300,6 +306,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
 
 const CATEGORY_TABS: { id: TemplateCategory; label: string; activeClass: string }[] = [
   { id: "all", label: `Semua (${ALL_TEMPLATES.length})`, activeClass: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" },
+  { id: "favorit", label: "⭐ Favorit (3)", activeClass: "bg-amber-500 text-white shadow-xs font-bold" },
   { id: "korespondensi", label: `Korespondensi (${ALL_TEMPLATES.filter((t) => t.category === "korespondensi").length})`, activeClass: "bg-blue-600 text-white" },
   { id: "administrasi", label: `Administrasi & Tugas (${ALL_TEMPLATES.filter((t) => t.category === "administrasi").length})`, activeClass: "bg-emerald-600 text-white" },
   { id: "regulasi", label: `Regulatif & Telaah (${ALL_TEMPLATES.filter((t) => t.category === "regulasi").length})`, activeClass: "bg-amber-600 text-white" },
@@ -316,15 +323,27 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredTemplates = ALL_TEMPLATES.filter((tpl) => {
-    const matchCategory = activeCategory === "all" || tpl.category === activeCategory;
-    const matchSearch =
-      searchQuery.trim() === "" ||
-      tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tpl.prefix.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tpl.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCategory && matchSearch;
-  });
+  const filteredTemplates = React.useMemo(() => {
+    let list = ALL_TEMPLATES.filter((tpl) => {
+      const matchCategory =
+        activeCategory === "all"
+          ? true
+          : activeCategory === "favorit"
+          ? Boolean(tpl.isFavorite)
+          : tpl.category === activeCategory;
+      const matchSearch =
+        searchQuery.trim() === "" ||
+        tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tpl.prefix.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tpl.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCategory && matchSearch;
+    });
+
+    if (activeCategory === "all" && searchQuery.trim() === "") {
+      list = [...list].sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0));
+    }
+    return list;
+  }, [activeCategory, searchQuery]);
 
   const handleCardClick = (e: React.MouseEvent, id: string) => {
     if (onSelectTemplate) {
@@ -400,8 +419,16 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
-                      <Icon className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5">
+                      <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      {tpl.isFavorite && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
+                          <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                          Favorit
+                        </span>
+                      )}
                     </div>
                     <span className="text-[10px] font-mono text-zinc-400 font-semibold">
                       Hal. {tpl.hal}
