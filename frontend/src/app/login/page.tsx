@@ -196,7 +196,7 @@ export default function LoginPage() {
           <div className="w-full max-w-md mx-auto my-auto py-6">
             {/* Branding Header with Official Kemenhut Logo & Exact Hierarchy */}
             <div className="flex items-center gap-3.5 mb-8">
-              <div className="p-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 shadow-xs shrink-0">
+              <div className="p-2 rounded-2xl bg-[#edf3ee] dark:bg-emerald-950/40 border border-[#dce8dd] dark:border-emerald-900/50 shadow-xs shrink-0">
                 <Image
                   src="/kemenhutlogo.png"
                   alt="Logo Kementerian Kehutanan"
@@ -207,13 +207,13 @@ export default function LoginPage() {
                 />
               </div>
               <div className="flex flex-col justify-center min-w-0">
-                <span className="text-xs sm:text-sm font-black tracking-wide text-emerald-800 dark:text-emerald-400 uppercase leading-snug">
+                <span className="text-xs sm:text-sm font-black tracking-wide text-[#1e5433] dark:text-emerald-400 uppercase leading-snug">
                   KEMENTERIAN KEHUTANAN
                 </span>
                 <span className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase leading-snug tracking-tight">
                   BALAI KONSERVASI SUMBER DAYA ALAM
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest leading-snug">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-[#164227] dark:text-emerald-400 uppercase tracking-widest leading-snug">
                   KALIMANTAN TIMUR
                 </span>
               </div>
@@ -236,7 +236,7 @@ export default function LoginPage() {
                   {activeView === "2fa" ? (
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#edf3ee] text-[#1e5433] dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-bold border border-[#dce8dd] dark:border-emerald-800/40">
                           <ShieldCheck className="w-3.5 h-3.5" />
                           Autentikasi 2 Langkah
                         </div>
@@ -263,7 +263,7 @@ export default function LoginPage() {
                             maxLength={isRecoveryMode ? 20 : 8}
                             autoFocus
                             required
-                            className={`w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-mono ${
+                            className={`w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none font-mono ${
                               isRecoveryMode
                                 ? "text-base tracking-wider uppercase"
                                 : "text-2xl tracking-[0.3em] text-center font-bold"
@@ -272,7 +272,7 @@ export default function LoginPage() {
                         </div>
 
                         <button
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
+                          className="w-full bg-[#1e5433] hover:bg-[#164227] active:bg-[#153e24] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-[#1e5433]/25 hover:shadow-lg hover:shadow-[#1e5433]/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
                           type="submit"
                           disabled={loading}
                         >
@@ -296,7 +296,7 @@ export default function LoginPage() {
                               setIsRecoveryMode(!isRecoveryMode);
                               setTotpCode("");
                             }}
-                            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer"
+                            className="text-xs font-semibold text-[#1e5433] dark:text-emerald-400 hover:text-[#164227] dark:hover:text-emerald-300 transition-colors cursor-pointer"
                           >
                             {isRecoveryMode ? "← Gunakan Kode Authenticator" : "Gunakan Recovery Code →"}
                           </button>
@@ -328,9 +328,9 @@ export default function LoginPage() {
 
                       {forgotSubmitted ? (
                         <div className="space-y-5">
-                          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 text-center">
-                            <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-                            <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
+                          <div className="rounded-2xl border border-[#dce8dd] bg-[#edf3ee]/80 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20 text-center">
+                            <CheckCircle2 className="h-8 w-8 text-[#1e5433] dark:text-emerald-400 mx-auto mb-2" />
+                            <p className="text-sm font-bold text-[#1e5433] dark:text-emerald-200">
                               Tautan Pemulihan Dikirim
                             </p>
                             <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
@@ -346,7 +346,7 @@ export default function LoginPage() {
                               setForgotSubmitted(false);
                               setForgotError(null);
                             }}
-                            className="w-full py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-200 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-[#edf3ee]/60 dark:hover:bg-zinc-800/60 text-zinc-700 dark:text-zinc-200 font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <ArrowLeft className="w-4 h-4" />
                             <span>Kembali ke Halaman Login</span>
@@ -369,7 +369,7 @@ export default function LoginPage() {
                               Alamat Email Terdaftar
                             </label>
                             <div className="relative group">
-                              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-[#1e5433] dark:group-focus-within:text-emerald-400 transition-colors">
                                 <Mail className="h-4 w-4" />
                               </div>
                               <input
@@ -380,7 +380,7 @@ export default function LoginPage() {
                                 placeholder="nama.pegawai@gmail.com"
                                 autoFocus
                                 required
-                                className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                               />
                             </div>
                           </div>
@@ -388,7 +388,7 @@ export default function LoginPage() {
                           <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
+                            className="w-full bg-[#1e5433] hover:bg-[#164227] active:bg-[#153e24] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-[#1e5433]/25 hover:shadow-lg hover:shadow-[#1e5433]/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
                           >
                             {loading ? (
                               <>
@@ -411,7 +411,7 @@ export default function LoginPage() {
                                 setIsForgotStep(false);
                                 setForgotError(null);
                               }}
-                              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                              className="text-xs font-semibold text-[#1e5433] dark:text-emerald-400 hover:text-[#164227] dark:hover:text-emerald-300 inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <ArrowLeft className="w-3.5 h-3.5" />
                               <span>Kembali ke Halaman Login</span>
@@ -443,12 +443,12 @@ export default function LoginPage() {
                                 </FormLabel>
                                 <FormControl>
                                   <div className="relative group">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-[#1e5433] dark:group-focus-within:text-emerald-400 transition-colors">
                                       <User className="h-4 w-4" />
                                     </div>
                                     <input
                                       {...field}
-                                      className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                      className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                                       placeholder="Contoh: 19850101... atau username"
                                       type="text"
                                       autoComplete="username"
@@ -477,25 +477,25 @@ export default function LoginPage() {
                                       setForgotSubmitted(false);
                                       setIsForgotStep(true);
                                     }}
-                                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:underline transition-colors cursor-pointer"
+                                    className="text-xs font-semibold text-[#1e5433] dark:text-emerald-400 hover:text-[#164227] dark:hover:text-emerald-300 hover:underline transition-colors cursor-pointer"
                                   >
                                     Lupa kata sandi?
                                   </button>
                                 </div>
                                 <FormControl>
                                   <div className="relative group">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 group-focus-within:text-[#1e5433] dark:group-focus-within:text-emerald-400 transition-colors">
                                       <Lock className="h-4 w-4" />
                                     </div>
                                     <input
                                       {...field}
-                                      className="w-full pl-10 pr-12 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                      className="w-full pl-10 pr-12 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
                                       placeholder="••••••••"
                                       type={showPassword ? "text" : "password"}
                                       autoComplete="current-password"
                                     />
                                     <button
-                                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-[#1e5433] dark:hover:text-emerald-400 transition-colors cursor-pointer"
                                       type="button"
                                       onClick={() => setShowPassword(!showPassword)}
                                       aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
@@ -510,7 +510,7 @@ export default function LoginPage() {
                           />
 
                           <button
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer mt-2"
+                            className="w-full bg-[#1e5433] hover:bg-[#164227] active:bg-[#153e24] text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-[#1e5433]/25 hover:shadow-lg hover:shadow-[#1e5433]/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer mt-2"
                             type="submit"
                             disabled={loading}
                           >

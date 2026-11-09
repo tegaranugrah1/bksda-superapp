@@ -1403,6 +1403,8 @@
   4. **Penyatuan Alur Lupa Kata Sandi dengan Efek Push Transition (`/ponytail`)**:
      - Mengintegrasikan alur *Lupa Kata Sandi* (`POST /api/forgot-password`) dan *Verifikasi 2FA* langsung ke dalam halaman `/login` tanpa perpindahan halaman (*no full-page reload*), menggunakan `AnimatePresence` + `motion.div` (*spring push transition* `x: ±100%`).
      - Menyederhanakan `frontend/src/app/forgot-password/page.tsx` dari 132 baris menjadi 5 baris redirect ke `/login`.
+  5. **Harmonisasi Palet Warna Hijau Resmi Kemenhut Portal**:
+     - Menyelaraskan seluruh aksen warna hijau pada halaman `/login` (tombol utama, frame logo, tipografi kementerian, ring focus input, ikon, badge 2FA, dan status sukses) menggunakan kode warna resmi portal BKSDA Kaltim (`#1e5433` - Kemenhut Forest Green, hover `#164227`, active `#153e24`, soft background `#edf3ee`, dan border `#dce8dd`) menggantikan warna generic `emerald-600`.
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
