@@ -248,6 +248,14 @@ export default function EmployeeDetailPage() {
     return list;
   }, [registeredBanksData, editForm.nama_bank]);
 
+  const isMmp = isMmpEmployee(employee);
+
+  useEffect(() => {
+    if (isMmp && (activeTab === "leave" || activeTab === "meal_allowance")) {
+      setActiveTab("biodata");
+    }
+  }, [isMmp, activeTab]);
+
   const handleCopy = (text: string, fieldKey: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldKey);
@@ -440,13 +448,6 @@ export default function EmployeeDetailPage() {
   }
 
   const empCategory = detectEmployeeType(employee);
-  const isMmp = isMmpEmployee(employee);
-
-  useEffect(() => {
-    if (isMmp && (activeTab === "leave" || activeTab === "meal_allowance")) {
-      setActiveTab("biodata");
-    }
-  }, [isMmp, activeTab]);
   const editPangkatOptions = editJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
   const bankTheme = getBankTheme(employee.nama_bank || "BRI");
   const validTelepon = cleanFieldValue(employee.telepon);
