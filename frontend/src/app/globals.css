@@ -144,3 +144,20 @@
 .prose .ql-align-center { text-align: center !important; }
 .prose .ql-align-right { text-align: right !important; }
 .prose .ql-align-justify { text-align: justify !important; }
+
+/* View Transitions API for Animate UI Theme Toggler (Day / Night Wipe) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+:root:active-view-transition-type(animate-ui-theme) body,
+:root:active-view-transition-type(animate-ui-theme) body * {
+  view-transition-name: none !important;
+}

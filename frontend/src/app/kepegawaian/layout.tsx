@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   UserPlus,
@@ -184,31 +185,50 @@ export default function KepegawaianLayout({
                     const isActive = isItemActive(item.href);
 
                     return (
-                      <Link
+                      <motion.div
                         key={item.href}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        title={collapsed ? item.label : undefined}
-                        className={`group relative flex items-center ${
-                          collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
-                        } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
-                          isActive
-                            ? "bg-blue-50/90 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200/70 dark:border-blue-500/20 shadow-2xs"
-                            : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white border border-transparent"
-                        }`}
+                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ x: collapsed ? 0 : 2 }}
+                        transition={{ duration: 0.12 }}
                       >
-                        {isActive && (
-                          <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-blue-600 dark:bg-blue-400" />
-                        )}
-                        <Icon
-                          className={`w-4 h-4 shrink-0 transition-colors ${
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          title={collapsed ? item.label : undefined}
+                          className={`group relative flex items-center ${
+                            collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
+                          } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer select-none ${
                             isActive
-                              ? "text-blue-600 dark:text-blue-400"
-                              : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200"
+                              ? "text-blue-700 dark:text-blue-400 font-bold"
+                              : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white"
                           }`}
-                        />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
-                      </Link>
+                        >
+                          {isActive && (
+                            <motion.span
+                              layoutId="activeKepegawaianSidebarIndicator"
+                              className="absolute inset-0 bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/70 dark:border-blue-500/20 rounded-xl shadow-2xs"
+                              transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                            />
+                          )}
+                          {isActive && (
+                            <motion.span
+                              layoutId="activeKepegawaianSidebarAccent"
+                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-blue-600 dark:bg-blue-400 z-20"
+                              transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                            />
+                          )}
+                          <Icon
+                            className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
+                              isActive
+                                ? "text-blue-600 dark:text-blue-400"
+                                : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200"
+                            }`}
+                          />
+                          {!collapsed && (
+                            <span className="truncate relative z-10">{item.label}</span>
+                          )}
+                        </Link>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -243,7 +263,18 @@ export default function KepegawaianLayout({
         </aside>
 
         <main className="flex-1 h-full overflow-y-auto bg-slate-50/70 dark:bg-zinc-950 [scrollbar-gutter:stable]">
-          {children}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              className="w-full min-h-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </RouteGuard>

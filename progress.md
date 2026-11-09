@@ -1290,9 +1290,37 @@
      - *Modal Entrance*: Modal dialog muncul dengan transisi scale-fade halus (`scale: 0.95` -> `1`).
      - *BMN Clearance Reveal*: Transisi perubahan status pemeriksaan tanggungan aset BMN dari state memuat (`Loader2`), state peringatan aset tertanggung (`AlertTriangle`), hingga state bebas tanggungan (`CheckCircle2`) menggunakan `<AnimatePresence mode="wait">`.
      - *Action Buttons*: Tombol alih status (Nonaktifkan / Pensiun, Batalkan Jadwal, Aktifkan Kembali) dilengkapi mikro-interaksi `whileTap={{ scale: 0.98 }}`.
+  5. **Animasi Perpindahan Tab Sidebar & Transisi Halaman (`kepegawaian/layout.tsx` & `components/layout/sidebar.tsx`)**:
+     - *Sliding Active Pill*: Menambahkan `layoutId="activeKepegawaianSidebarIndicator"` dan aksen vertikal `layoutId="activeKepegawaianSidebarAccent"` dengan spring physics (`stiffness: 420, damping: 32`) sehingga sorotan aktif meluncur mulus saat berpindah antar menu/tab sidebar (Dashboard, Pegawai, Tambah, ST, Cuti, Uang Makan, dsb).
+     - *Taktil Hover & Tap*: Menambahkan `whileHover={{ x: 2 }}` dan `whileTap={{ scale: 0.98 }}` pada setiap item menu sidebar.
+     - *Transisi Halaman Konten*: Membungkus konten `{children}` di dalam tag `<main>` dengan `<AnimatePresence mode="wait" initial={false}>` dan `<motion.div key={pathname}>` (`initial={{ opacity: 0, y: 6 }}` -> `animate={{ opacity: 1, y: 0 }}`) sehingga tampilan halaman mengalir halus saat berganti menu.
+     - *Konsistensi Root Sidebar*: Menerapkan `layoutId="activeRootSidebarIndicator"` pada `components/layout/sidebar.tsx` agar perpindahan menu pada layout utama dashboard juga memiliki efek meluncur yang identik.
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
   - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5 checks lulus).
   - `git status`: Bersih, seluruh perubahan lokal siap di-commit.
+
+---
+
+## 50. Implementasi Animasi Animate UI Theme Toggler (Transisi Siang ke Malam) (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi transisi pergantian tema dari siang ke malam (Light Mode $\leftrightarrow$ Dark Mode) sesuai spesifikasi resmi [Animate UI Theme Toggler](https://animate-ui.com/docs/primitives/animate-ui/theme-toggler).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Primitif `ThemeToggler` (`components/ui/theme-toggler.tsx`)**:
+     - Dibangun menggunakan native browser Web **View Transitions API** (`document.startViewTransition`) tanpa dependensi pihak ketiga baru.
+     - Mendukung animasi sapuan lingkaran radial (`direction: "radial"`) yang mengembang dari titik koordinat klik tombol toggle (`circle(0px at x y)` $\rightarrow$ `circle(maxRadius at x y)`), serta sapuan terarah (`ltr`, `rtl`, `ttb`, `btt`).
+     - Perlindungan aksesibilitas: Deteksi otomatis `prefers-reduced-motion` dan ketiadaan View Transitions API pada browser lawas untuk fallback pergantian tema instan tanpa jeda.
+  2. **Komponen `ThemeToggle` Global (`components/theme-toggle.tsx`)**:
+     - Membungkus tombol toggle tema di seluruh modul aplikasi (Kepegawaian, Portal, Inventory, Drive, BMN, Keuangan, dsb).
+     - Menghadirkan animasi morphing ikon Matahari (Amber) $\leftrightarrow$ Bulan (Emerald) dengan rotasi $\pm 60^\circ$, skala dinamis, dan efek blur transisi halus via Framer Motion.
+     - Mikro-interaksi taktil: `whileTap={{ scale: 0.92 }}` dan `whileHover={{ scale: 1.05 }}`.
+  3. **CSS View Transitions (`globals.css`)**:
+     - Menambahkan aturan isolasi layer `::view-transition-old(root)` dan `::view-transition-new(root)` untuk mencegah kedipan kasar (*crossfade glitch*) dan memastikan layer tema baru selalu mengembang sempurna di atas layer lama.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos typecheck TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - Seluruh tombol tema di aplikasi kini memiliki efek sapuan gelombang siang/malam yang sinematik.
+
 

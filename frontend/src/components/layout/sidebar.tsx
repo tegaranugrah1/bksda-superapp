@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Users, LayoutDashboard, Settings, Menu, FileText, Inbox, Plus } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { LogoutButton } from "@/components/logout-button";
 
 // Daftar Menu (Bisa ditambahkan nanti)
@@ -67,14 +68,21 @@ export function Sidebar() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`
-                    flex items-center gap-3 px-4 py-3.5 rounded-2xl font-medium transition-all duration-300 group
+                    relative flex items-center gap-3 px-4 py-3.5 rounded-2xl font-medium transition-all duration-300 group select-none cursor-pointer
                     ${isActive
-                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
+                      ? "text-emerald-600 dark:text-emerald-400 font-bold"
                       : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100 border border-transparent"}
                   `}
                 >
-                  <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
-                  {item.name}
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeRootSidebarIndicator"
+                      className="absolute inset-0 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl shadow-sm"
+                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    />
+                  )}
+                  <Icon className={`w-5 h-5 transition-transform duration-300 relative z-10 ${isActive ? "scale-110 text-emerald-600 dark:text-emerald-400" : "group-hover:scale-110"}`} />
+                  <span className="relative z-10">{item.name}</span>
                 </Link>
               );
             })}
