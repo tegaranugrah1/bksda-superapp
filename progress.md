@@ -1383,22 +1383,28 @@
     1. **KEMENTERIAN KEHUTANAN**
     2. **BALAI KONSERVASI SUMBER DAYA ALAM**
     3. **KALIMANTAN TIMUR**
-- **Implementasi Solusi Visual & Interaksi**:
+  - Instruksi tegas: Bersihkan ornamen berlebih/dekorasi yang terkesan *AI slop* (hapus ikon-ikon tidak perlu di dalam input, hapus badge pil glitter/sparkles, hapus kartu fitur dummy), serta pastikan foto hero konservasi di samping kanan tampil terang, alami, dan jelas tanpa tertutup bayangan (*shadow*) atau gradien gelap yang berlebihan.
+- **Implementasi Solusi Visual Bersih & Autentik**:
   1. **Identitas & Branding Resmi**:
-     - Memasang logo resmi Kementerian Kehutanan (`/kemenhutlogo.png`) dalam kontainer rounded-2xl berelevasi dengan border emerald halus.
-     - Menyusun tipografi hierarki baku: Baris 1 (*KEMENTERIAN KEHUTANAN*, emerald bold), Baris 2 (*BALAI KONSERVASI SUMBER DAYA ALAM*, slate-900 / dark:white), dan Baris 3 (*KALIMANTAN TIMUR*, emerald uppercase tracking-widest).
-  2. **Interaktivitas & Kenyamanan Pengguna (UX)**:
-     - Menghadirkan `ThemeToggle` terintegrasi di pojok kanan atas halaman login dengan animasi sapuan radial (*radial wave view transition*) Light $\leftrightarrow$ Dark mode.
-     - Formulir login diperkaya dengan ikon input (`User` untuk NIP/Username dan `Lock` untuk Password) serta tombol interaktif `Eye`/`EyeOff` untuk visibilitas kata sandi.
-     - Tombol aksi utama dengan efek hover slide panah (`ArrowRight`) dan status pemuatan dinamis (`Loader2` dengan teks memverifikasi kredensial).
-     - Antarmuka Autentikasi 2 Langkah (2FA TOTP & Recovery Code) diselaraskan ke tema modern dengan font monospace tabular yang rapi.
-  3. **Visual Showcase Hero Mandiri (Lokal Asset)**:
-     - Menghapus dependensi URL eksternal gambar lambat (`googleusercontent`), menggantikannya dengan aset fotografi konservasi lokal resolusi tinggi (`/assets/images/background/sangalaki.png` - Suaka Margasatwa Pulau Sangalaki BKSDA Kaltim).
-     - Diperkaya gradien atmosferik `linear-to-t` dan kartu sorotan fitur (*Keamanan Terenkripsi TOTP* & *Layanan Terpadu Naskah Dinas & Kepegawaian*).
+     - Memasang logo resmi Kementerian Kehutanan (`/kemenhutlogo.png`) secara elegan dan proporsional berdampingan dengan tipografi hierarki baku:
+       - Baris 1: `KEMENTERIAN KEHUTANAN` (Emerald bold/black uppercase).
+       - Baris 2: `BALAI KONSERVASI SUMBER DAYA ALAM` (Zinc-900 / dark:zinc-100 bold uppercase).
+       - Baris 3: `KALIMANTAN TIMUR` (Emerald uppercase tracking-widest).
+  2. **Pembersihan Elemen Form (Bebas AI Slop & Minimalis)**:
+     - Menghapus seluruh ikon dekoratif yang tidak perlu di dalam kolom teks (`User`, `Lock`, `Sparkles`, dsb).
+     - Kolom input NIP dan Kata Sandi kembali ke wujud bersih, nyaman digunakan, dan berstandar portal instansi pemerintah.
+     - Toggle visibilitas kata sandi menggunakan tombol teks sederhana dan bersih (*Tampilkan / Sembunyikan*).
+     - Tombol Login solid dengan warna hijau hutan resmi (`bg-emerald-600`) dan animasi pemuatan teruji (`Loader2`).
+     - Menyediakan toggle tema (`ThemeToggle`) minimalis di pojok kanan atas untuk kemudahan pratinjau Light/Dark mode.
+  3. **Visual Hero Kanan (Terang, Jelas, & Berkarakter)**:
+     - Menggunakan foto aset konservasi lokal BKSDA Kaltim (`/assets/images/background/sangalaki.png` - Pulau Sangalaki).
+     - Menghilangkan *mix-blend mode* dan *shadow* gelap pekat yang sebelumnya menutup gambar. Foto kini tampil 100% jelas, terang, dan berwarna alami.
+     - Hanya ditambahkan gradien lembut tipis di bagian dasar agar teks kutipan resmi konservasi terbaca kontras tanpa meredupkan pemandangan alam di atasnya.
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
   - `php backend/tests/portal_security_check.php`: **PASS**.
+
 
 
 
