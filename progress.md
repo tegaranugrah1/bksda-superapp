@@ -1440,3 +1440,26 @@
 
 
 
+
+---
+
+## 55. Implementasi Animate UI Sidebar Navigasi, Transisi Halaman & Dashboard BMN (09 November 2026)
+
+- **Latar Belakang & Alignment (/grill-me)**:
+  1. Pengguna meminta audit seluruh elemen UI di `http://localhost:3000/bmn` yang membutuhkan animasi (*animate ui*), mulai dari sidebar hingga dashboard dan komponen di dalamnya.
+  2. Melalui klarifikasi terstruktur `/grill-me`, disepakati prioritas Tahap 1:
+     - **Sidebar Navigasi**: Sliding pill indicator pada menu navigasi aktif menggunakan `layoutId="activeBmnNavIndicator"`, transisi spring halus tanpa overshooting, dipadukan palet hijau resmi Kemenhut (`#1e5433` / `#eaf2ec`).
+     - **Transisi Pergantian Halaman BMN**: Transisi halus *subtle fade + slide up 6px* (`opacity: 0, y: 6` -> `1, 0`) menggunakan `AnimatePresence mode="wait"` membungkus `{children}` di `BmnLayout`.
+     - **Dashboard BMN**:
+       - *Stat Cards*: Efek *hover-lift* (`whileHover={{ y: -3 }}`) dengan bayangan lembut dan transisi spring halus.
+       - *Distribusi per Jenis BMN & Top Lokasi*: Batang progres (`BarProgressRow`) mengisi dinamis dari lebar 0% ke persentase target secara smooth (`duration: 0.6s, ease: easeOut`).
+       - *Donut Chart Kondisi Aset*: Animasi *gentle scale & fade* saat dimuat (`scale: 0.88 -> 1, opacity: 0 -> 1`).
+       - *STNK & Plat Alerts*: Hover micro-interaction (`whileHover={{ x: 3 }}`).
+       - *Quick Links*: Hover & tap micro-interaction (`whileHover={{ y: -1.5, scale: 1.01 }}`).
+- **Implementasi Berkas**:
+  - `frontend/src/app/bmn/layout.tsx`: Memasang `motion.span` layout indicator untuk menu aktif dan `AnimatePresence` pada `<main>`.
+  - `frontend/src/app/bmn/_components/BmnDashboardComponents.tsx`: Memasang `motion.div` hover-lift pada `StatCard` dan `QuickLink`.
+  - `frontend/src/app/bmn/page.tsx`: Memasang animasi width progress bar, entrance stagger stat cards, entrance chart kondisi, dan hover alert item.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.

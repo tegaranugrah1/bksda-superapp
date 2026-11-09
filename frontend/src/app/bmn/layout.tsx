@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { RouteGuard } from "@/components/RouteGuard";
+import { motion, AnimatePresence } from "framer-motion";
 
 type BmnSidebarGroup =
   | "Ringkasan"
@@ -190,21 +191,25 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                           collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
                         } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                           isActive
-                            ? "bg-emerald-50/90 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-500/20 shadow-2xs"
-                            : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white border border-transparent"
+                            ? "text-[#1e5433] dark:text-emerald-300 font-bold"
+                            : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-emerald-600 dark:bg-emerald-400" />
+                          <motion.span
+                            layoutId="activeBmnNavIndicator"
+                            className="absolute inset-0 bg-[#eaf2ec] dark:bg-emerald-950/60 border border-[#dce8dd] dark:border-emerald-800/40 rounded-xl shadow-2xs"
+                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                          />
                         )}
                         <Icon
-                          className={`w-4 h-4 shrink-0 transition-colors ${
+                          className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
                             isActive
-                              ? "text-emerald-600 dark:text-emerald-400"
+                              ? "text-[#1e5433] dark:text-emerald-400"
                               : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200"
                           }`}
                         />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
+                        {!collapsed && <span className="truncate relative z-10">{item.label}</span>}
                       </Link>
                     );
                   })}
@@ -268,7 +273,18 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           </header>
 
           <main className="flex-1 overflow-y-auto bg-slate-50/70 dark:bg-zinc-950">
-            {children}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="min-h-full w-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>

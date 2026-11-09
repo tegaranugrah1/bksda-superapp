@@ -7,6 +7,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
 import { StatCard, LegendItem, QuickLink } from "@/app/bmn/_components/BmnDashboardComponents";
+import { motion } from "framer-motion";
 
 interface JenisData { jenis_bmn: string; total: number; total_nilai: number }
 interface LokasiData { lokasi_ruang: string; total: number }
@@ -39,13 +40,15 @@ const JENIS_COLORS: Record<string, string> = {
 
 function AlertItem({ item, label, colorClass, badgeClass }: { item: { id: string; nama_barang: string; merk: string; no_polisi: string }; label: string; colorClass: string; badgeClass: string }) {
   return (
-    <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors", colorClass)}>
-      <div>
-        <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{item.nama_barang} <span className="text-zinc-400">({item.merk})</span></p>
-        <p className="text-[10px] text-zinc-500">{item.no_polisi || "Tanpa Polisi"}</p>
-      </div>
-      <span className={cn("text-[10px] font-bold px-2 py-1 rounded-lg", badgeClass)}>{label}</span>
-    </Link>
+    <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15, ease: "easeOut" }}>
+      <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors", colorClass)}>
+        <div>
+          <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{item.nama_barang} <span className="text-zinc-400">({item.merk})</span></p>
+          <p className="text-[10px] text-zinc-500">{item.no_polisi || "Tanpa Polisi"}</p>
+        </div>
+        <span className={cn("text-[10px] font-bold px-2 py-1 rounded-lg", badgeClass)}>{label}</span>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -54,8 +57,13 @@ function BarProgressRow({ label, count, maxCount, barColor, extra, labelWidth = 
   return (
     <div className="flex items-center gap-2">
       <span className={cn("text-[10px] text-zinc-600 dark:text-zinc-400 truncate shrink-0", labelWidth)}>{label}</span>
-      <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
-        <div className={cn("h-full rounded-full", barColor || "bg-violet-500")} style={{ width: `${pct}%` }} />
+      <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={cn("h-full rounded-full", barColor || "bg-violet-500")}
+        />
       </div>
       <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 text-right">
         {count} {extra}
@@ -96,12 +104,17 @@ export default function BmnDashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
         <StatCard icon={<Package className="w-4 h-4" />} label="Total Aset" value={totalAssets.toLocaleString("id-ID")} color="blue" sub={`${baik} kondisi baik`} />
         <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Nilai Perolehan" value={formatRupiah(data?.total_asset_value || 0)} color="emerald" sub="Total akumulasi" />
         <StatCard icon={<HandCoins className="w-4 h-4" />} label="Sedang Dipinjam" value="-" color="amber" sub="Lihat peminjaman" />
         <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color="red" sub="Perlu perhatian" />
-      </div>
+      </motion.div>
 
       {/* STNK Alerts */}
       {data?.stnk_alerts && (data.stnk_alerts.expired.length > 0 || data.stnk_alerts.expiring_soon.length > 0 || data.stnk_alerts.plat_expired.length > 0) && (
@@ -135,7 +148,12 @@ export default function BmnDashboardPage() {
               <h3 className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 uppercase">Kondisi</h3>
             </div>
             <div className="flex items-center gap-3">
-              <div className="relative w-14 h-14 shrink-0">
+              <motion.div
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="relative w-14 h-14 shrink-0"
+              >
                 <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
                   <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="4" className="text-zinc-200 dark:text-zinc-800" />
                   {totalAssets > 0 && (
@@ -149,7 +167,7 @@ export default function BmnDashboardPage() {
                     </>
                   )}
                 </svg>
-              </div>
+              </motion.div>
               <div className="space-y-1 flex-1">
                 <LegendItem color="bg-emerald-500" label="Baik" count={baik} pct={totalAssets > 0 ? Math.round((baik / totalAssets) * 100) : 0} />
                 <LegendItem color="bg-amber-500" label="R. Ringan" count={rusakRingan} pct={totalAssets > 0 ? Math.round((rusakRingan / totalAssets) * 100) : 0} />
