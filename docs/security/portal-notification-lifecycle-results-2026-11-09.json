@@ -1613,5 +1613,11 @@
       "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
     }
   ],
-  "source_manifest_basis": "Raw working-tree bytes mounted or copied for tests, not Git object hashes; Git may normalize line endings on stage."
+  "source_manifest_basis": "Raw working-tree bytes mounted or copied for tests, not Git object hashes; Git may normalize line endings on stage.",
+  "production_follow_up": {
+    "report": "portal-reverb-deployment-2026-11-09.md",
+    "results": "portal-reverb-deployment-2026-11-09-results.json",
+    "status": "deployed_server_verified_browser_login_required",
+    "original_case_verdicts_are_local_snapshot": true
+  }
 }
