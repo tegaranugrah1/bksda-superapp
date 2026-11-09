@@ -40,10 +40,10 @@ class EmployeeController extends Controller
 
         $counts = [
             'total' => (clone $baseQuery)->count(),
-            'pns' => (clone $baseQuery)->ofJenis('PNS')->count(),
-            'pppk' => (clone $baseQuery)->ofJenis('PPPK')->count(),
-            'mmp' => (clone $baseQuery)->ofJenis('MMP')->count(),
             'active' => (clone $baseQuery)->effectiveActive()->count(),
+            'pns' => (clone $baseQuery)->effectiveActive()->ofJenis('PNS')->count(),
+            'pppk' => (clone $baseQuery)->effectiveActive()->ofJenis('PPPK')->count(),
+            'mmp' => (clone $baseQuery)->effectiveActive()->ofJenis('MMP')->count(),
             'scheduled' => (clone $baseQuery)->scheduledInactive()->count(),
             'pensiun' => (clone $baseQuery)->where('inactive_reason', 'pensiun')->count(),
             'inactive' => (clone $baseQuery)->where('is_active', false)->count(),
@@ -56,16 +56,19 @@ class EmployeeController extends Controller
         $query = clone $baseQuery;
         if ($isTrashedView) {
             $query->onlyTrashed();
-        } elseif ($statusFilter === 'active') {
-            $query->effectiveActive();
+        } elseif ($statusFilter === 'all') {
+            // Tampilkan semua (aktif dan nonaktif) jika diminta eksplisit
         } elseif ($statusFilter === 'scheduled') {
             $query->scheduledInactive();
         } elseif ($statusFilter === 'pensiun') {
             $query->where('inactive_reason', 'pensiun');
         } elseif ($statusFilter === 'inactive') {
             $query->where('is_active', false);
-        } elseif ($request->has('is_active')) {
+        } elseif ($request->has('is_active') && ! $request->has('status')) {
             $query->where('is_active', $request->boolean('is_active'));
+        } else {
+            // Default (tanpa status atau status=active): hanya pegawai efektif aktif
+            $query->effectiveActive();
         }
 
         $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));

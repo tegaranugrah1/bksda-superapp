@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1794209980.798404,
-    "ast_hash": "346aabc1934db07ad62628b833aa2cc6",
+    "mtime": 1794212060.4976304,
+    "ast_hash": "cb7ea6ca69f945576f34234256d0b5a5",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
-    "mtime": 1794209863.965408,
-    "ast_hash": "545a000f18fa85db668ad658b9c09e0f",
+    "mtime": 1794210587.0369363,
+    "ast_hash": "f4fe3b70e7d8baf1afe587cd46a1ca47",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeave.php": {
@@ -2335,8 +2335,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1794209519.8464189,
-    "ast_hash": "159fadde275b368e50dd32c66011640b",
+    "mtime": 1794210912.4906955,
+    "ast_hash": "79b76a15608b55f86dbfd7b14f098e32",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
@@ -5425,8 +5425,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1794209640.6456406,
-    "ast_hash": "2a50949468b88578c270e9faf2879a88",
+    "mtime": 1794212169.0087712,
+    "ast_hash": "3166b9e5a5eb80eaeb500c3adc563277",
     "semantic_hash": ""
   },
   ".agents/AGENTS.md": {
@@ -6140,8 +6140,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794210101.2263732,
-    "ast_hash": "211d0825fd220f54884259a946f389fd",
+    "mtime": 1794212321.4859853,
+    "ast_hash": "13b795da2a59e6323e47b6b93a98add8",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -9000,8 +9000,8 @@
     "semantic_hash": ""
   },
   "backend/tests/EmployeeLifecycleTest.php": {
-    "mtime": 1794209932.4816043,
-    "ast_hash": "98cf5414cca0db4e3cbbd18d677b1176",
+    "mtime": 1794210735.4956048,
+    "ast_hash": "b5953cca937dec4945b6da35ebb82efd",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/_components/EmployeeLifecycleModal.tsx": {

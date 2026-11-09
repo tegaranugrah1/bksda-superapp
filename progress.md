@@ -1237,3 +1237,32 @@
   - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
   - `graphify update .`: Terkini.
+
+---
+
+## 48. Pemisahan Total Pegawai Aktif & List Khusus Purna Tugas / Non-Aktif (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pegawai pensiun/purna tugas (seperti Djunaib Ahmad) sebelumnya masih terhitung di card statistik "Total Pegawai" dan tercampur di daftar utama ketika halaman pertama kali dibuka.
+  - Pengguna menginginkan daftar utama dan card total hanya menampilkan pegawai yang **aktif bertugas**, sedangkan pegawai yang sudah tidak aktif/pensiun memiliki list dan card tersendiri.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Backend (`EmployeeController.php`)**:
+     - Query default `/api/kepegawaian/employees` (tanpa status atau `status=active`) otomatis menggunakan `effectiveActive()`, sehingga pegawai pensiun/non-aktif tidak muncul di daftar kerja utama.
+     - `counts.active`: Jumlah pegawai aktif (150 personil).
+     - `counts.pns`, `pppk`, `mmp`: Diselaraskan untuk menghitung personil yang aktif di masing-masing kategori jenis pegawai.
+     - `counts.inactive` & `counts.pensiun`: Menghitung pegawai purna tugas/keluar.
+     - Menyediakan filter eksplisit `status=inactive` / `status=pensiun` untuk menampilkan arsip purna tugas, dan `status=all` jika ingin menampilkan keseluruhan.
+  2. **Frontend UI/UX (`employees/page.tsx`)**:
+     - `statusFilter` default: `"active"`.
+     - Card 1: **"Pegawai Aktif"** menampilkan `counts.active` (150 personil).
+     - Card Baru: **"Purna / Keluar"** (icon `UserX`, warna slate netral) menampilkan `counts.inactive` (1 personil).
+     - Responsiveness grid card diperbarui: `xl:grid-cols-6 lg:grid-cols-3 sm:grid-cols-3 grid-cols-2`.
+     - Ketika card "Purna / Keluar" diklik, tabel berganti menampilkan daftar pegawai purna tugas/keluar dilengkapi banner konteks informatif dan tombol 1-klik untuk kembali ke daftar pegawai aktif.
+     - Dropdown status diperjelas dengan opsi: *Aktif Bertugas*, *Purna / Non-Aktif*, *Terjadwal Nonaktif*, *Purna Tugas / Pensiun*, *Semua Status*, dan *Data Terhapus*.
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5).
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100%).
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - Query default API: 150 aktif, Djunaib Ahmad tidak masuk di default list.
+  - Query `?status=inactive`: 1 personil (Djunaib Ahmad).

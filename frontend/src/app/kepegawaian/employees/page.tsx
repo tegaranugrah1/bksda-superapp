@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Briefcase,
   UserCheck,
+  UserX,
   Eye,
   X,
 } from "lucide-react";
@@ -76,7 +77,7 @@ export default function EmployeeListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [jenisFilter, setJenisFilter] = useState<string>("");
   const [wilayahFilter, setWilayahFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -213,14 +214,14 @@ export default function EmployeeListPage() {
     Boolean(searchInput) ||
     Boolean(jenisFilter) ||
     Boolean(wilayahFilter) ||
-    statusFilter !== "all";
+    statusFilter !== "active";
 
   const resetFilters = () => {
     setSearchInput("");
     setDebouncedSearch("");
     setJenisFilter("");
     setWilayahFilter("");
-    setStatusFilter("all");
+    setStatusFilter("active");
     setPage(1);
   };
 
@@ -231,18 +232,18 @@ export default function EmployeeListPage() {
 
   const statCards = [
     {
-      key: "TOTAL",
-      label: "Total Pegawai",
+      key: "ACTIVE",
+      label: "Pegawai Aktif",
       subtitle: "Personil Aktif",
-      count: counts.total,
+      count: counts.active ?? counts.total,
       icon: Users,
-      active: !isTrashedView && jenisFilter === "",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "",
       activeClass: "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-zinc-900 dark:border-white shadow-sm",
       hoverClass: "hover:border-slate-300 dark:hover:border-zinc-700",
       iconBadgeClass: "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300",
       onClick: () => {
         setJenisFilter("");
-        setStatusFilter("all");
+        setStatusFilter("active");
         setPage(1);
       },
     },
@@ -252,13 +253,13 @@ export default function EmployeeListPage() {
       subtitle: "ASN pemilik NIP",
       count: counts.pns,
       icon: ShieldCheck,
-      active: !isTrashedView && jenisFilter === "PNS",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "PNS",
       activeClass: "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/20",
       hoverClass: "hover:border-blue-300 dark:hover:border-blue-800",
       iconBadgeClass: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",
       onClick: () => {
         setJenisFilter("PNS");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
         setPage(1);
       },
     },
@@ -268,13 +269,13 @@ export default function EmployeeListPage() {
       subtitle: "ASN pemilik NIPPPK",
       count: counts.pppk,
       icon: Briefcase,
-      active: !isTrashedView && jenisFilter === "PPPK",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "PPPK",
       activeClass: "bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/20",
       hoverClass: "hover:border-amber-300 dark:hover:border-amber-800",
       iconBadgeClass: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
       onClick: () => {
         setJenisFilter("PPPK");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
         setPage(1);
       },
     },
@@ -284,13 +285,29 @@ export default function EmployeeListPage() {
       subtitle: "Masyarakat Mitra Polhut",
       count: counts.mmp,
       icon: UserCheck,
-      active: !isTrashedView && jenisFilter === "MMP",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "MMP",
       activeClass: "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/20",
       hoverClass: "hover:border-emerald-300 dark:hover:border-emerald-800",
       iconBadgeClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
       onClick: () => {
         setJenisFilter("MMP");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
+        setPage(1);
+      },
+    },
+    {
+      key: "INACTIVE",
+      label: "Purna / Keluar",
+      subtitle: "Pensiun & Nonaktif",
+      count: counts.inactive ?? 0,
+      icon: UserX,
+      active: !isTrashedView && (statusFilter === "inactive" || statusFilter === "pensiun"),
+      activeClass: "bg-slate-700 text-white border-slate-700 shadow-sm shadow-slate-700/20",
+      hoverClass: "hover:border-slate-300 dark:hover:border-zinc-700",
+      iconBadgeClass: "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300",
+      onClick: () => {
+        setJenisFilter("");
+        setStatusFilter("inactive");
         setPage(1);
       },
     },
@@ -307,7 +324,7 @@ export default function EmployeeListPage() {
             hoverClass: "hover:border-rose-300 dark:hover:border-rose-800",
             iconBadgeClass: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400",
             onClick: () => {
-              setStatusFilter(isTrashedView ? "all" : "trashed");
+              setStatusFilter(isTrashedView ? "active" : "trashed");
               setPage(1);
             },
           },
@@ -363,7 +380,7 @@ export default function EmployeeListPage() {
       {/* 2. Clickable Summary Stat Cards (Data-driven Ponytail + Clean Enterprise Pro Max) */}
       <div
         className={`grid grid-cols-2 sm:grid-cols-3 ${
-          canWrite ? "xl:grid-cols-5 lg:grid-cols-3" : "xl:grid-cols-4 lg:grid-cols-2"
+          canWrite ? "xl:grid-cols-6 lg:grid-cols-3" : "xl:grid-cols-5 lg:grid-cols-3"
         } gap-3`}
       >
         {statCards.map((card) => {
@@ -490,11 +507,11 @@ export default function EmployeeListPage() {
               }}
               className="w-full px-3 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
             >
-              <option value="all">Semua Status</option>
               <option value="active">Status: Aktif Bertugas ({counts.active ?? counts.total})</option>
+              <option value="inactive">Status: Purna / Non-Aktif ({counts.inactive ?? 0})</option>
               <option value="scheduled">Status: Terjadwal Nonaktif ({counts.scheduled ?? 0})</option>
               <option value="pensiun">Status: Purna Tugas / Pensiun ({counts.pensiun ?? 0})</option>
-              <option value="inactive">Status: Non-Aktif ({counts.inactive ?? 0})</option>
+              <option value="all">Semua Status (Aktif & Nonaktif)</option>
               {canWrite && <option value="trashed">Data Terhapus ({counts.trashed})</option>}
             </select>
 
@@ -522,7 +539,7 @@ export default function EmployeeListPage() {
           transition={{ duration: 0.14, ease: "easeOut" }}
           className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs min-h-[460px] flex flex-col justify-between"
         >
-          {isTrashedView && (
+          {isTrashedView ? (
             <div className="flex items-center justify-between px-4 py-2.5 bg-rose-50 dark:bg-rose-950/30 border-b border-rose-200/60 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-medium">
               <span>
                 Menampilkan <strong>Data Pegawai Terhapus (Soft Delete)</strong>. Anda dapat memulihkan pegawai kembali ke daftar aktif atau menghapusnya secara permanen.
@@ -530,15 +547,31 @@ export default function EmployeeListPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setStatusFilter("all");
+                  setStatusFilter("active");
                   setPage(1);
                 }}
                 className="font-bold underline ml-4 shrink-0 cursor-pointer"
               >
-                Kembali ke Daftar Aktif
+                Kembali ke Pegawai Aktif
               </button>
             </div>
-          )}
+          ) : (statusFilter === "inactive" || statusFilter === "pensiun") ? (
+            <div className="flex items-center justify-between px-4 py-2.5 bg-slate-100 dark:bg-zinc-850 border-b border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 text-xs font-medium">
+              <span>
+                Menampilkan <strong>Daftar Pegawai Purna Tugas / Non-Aktif ({counts.inactive ?? 0} orang)</strong>. Pegawai di daftar ini diarsipkan, tidak aktif dalam operasional baru, dan akun dinonaktifkan.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter("active");
+                  setPage(1);
+                }}
+                className="font-bold underline ml-4 shrink-0 cursor-pointer text-blue-600 dark:text-blue-400"
+              >
+                Kembali ke Pegawai Aktif
+              </button>
+            </div>
+          ) : null}
           <div className="overflow-x-auto flex-1">
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50/80 dark:bg-zinc-800/50 border-b border-slate-200/80 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
