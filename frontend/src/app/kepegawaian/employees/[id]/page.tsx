@@ -635,69 +635,128 @@ export default function EmployeeDetailPage() {
               </div>
             </div>
 
-            {/* Quick Details List */}
-            <div className="py-4 space-y-3 text-xs border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-start gap-2.5">
-                <Briefcase className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+            {/* Info Details List (Mirip Portal, Natural & Terpadu) */}
+            <div className="py-3.5 space-y-3 text-xs border-b border-slate-100 dark:border-slate-800">
+              {/* Jabatan */}
+              <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+                <Briefcase className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Jabatan</p>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
                     {employee.jabatan || "-"}
-                  </p>
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5">
-                <Building2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+              {/* Unit Kerja */}
+              <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+                <Building2 className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Kerja</p>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
                     {employee.satuan_kerja || "-"}
-                  </p>
+                  </span>
                   {employee.resor && (
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                       Resor: {RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5">
-                <Hash className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pangkat & Golongan</p>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
-                    {empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Sub-Card 1: Kontak & Komunikasi (WhatsApp + Email) */}
-            <div className="pt-4 pb-3 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-500" />
-                  Kontak & Komunikasi
-                </span>
-              </div>
-
-              {/* Baris WhatsApp / Telepon */}
-              {validTelepon ? (
-                <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 flex items-center justify-between">
-                  <div className="min-w-0 flex-1 mr-2">
-                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white truncate">
-                      {validTelepon}
-                    </p>
-                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
-                      WhatsApp / HP Resmi
-                    </p>
+              {/* Pangkat & Golongan (Non-MMP) */}
+              {empCategory !== "MMP" && (
+                <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+                  <Hash className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Pangkat & Golongan</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                      {employee.pangkat_golongan || "-"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                </div>
+              )}
+
+              {/* Email Resmi */}
+              <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                  <Mail className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Email Akun Resmi</span>
+                    {validEmail ? (
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                        {validEmail}
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 italic">Belum diatur</span>
+                        {canWrite && (
+                          <button
+                            type="button"
+                            onClick={startEditing}
+                            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                          >
+                            + Tambah
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {validEmail && (
+                  <div className="flex items-center gap-1 shrink-0 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(employee.email!, "email")}
+                      className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Salin Alamat Email"
+                    >
+                      <CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />
+                    </button>
+                    <a
+                      href={`mailto:${validEmail}`}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10.5px] font-bold shadow-2xs transition-colors cursor-pointer"
+                      title="Kirim Email"
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>Kirim</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Telepon / WhatsApp */}
+              <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                  <Phone className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
+                    {validTelepon ? (
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                        {validTelepon}
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 italic">Belum diatur</span>
+                        {canWrite && (
+                          <button
+                            type="button"
+                            onClick={startEditing}
+                            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                          >
+                            + Tambah
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {validTelepon && (
+                  <div className="flex items-center gap-1 shrink-0 mt-1">
                     <button
                       type="button"
                       onClick={() => handleCopy(employee.telepon!, "telepon")}
-                      className="p-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
+                      className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                       title="Salin Nomor HP"
                     >
                       <CopyIcon copied={copiedField === "telepon"} />
@@ -707,161 +766,76 @@ export default function EmployeeDetailPage() {
                         href={waLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#1e5433] hover:bg-[#164227] text-white text-[10.5px] font-bold shadow-2xs transition-colors cursor-pointer"
                         title="Buka Chat WhatsApp Web"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
+                        <MessageCircle className="w-3 h-3" />
                         <span>Chat</span>
                         <ExternalLink className="w-2.5 h-2.5 opacity-80" />
                       </a>
                     )}
                   </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-slate-400 text-xs">
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>WhatsApp belum diatur</span>
-                  </div>
-                  {canWrite && (
-                    <button
-                      type="button"
-                      onClick={startEditing}
-                      className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                    >
-                      + Tambah
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Baris Email Pegawai */}
-              {validEmail ? (
-                <div className="p-3 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between">
-                  <div className="min-w-0 flex-1 mr-2">
-                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white truncate">
-                      {validEmail}
-                    </p>
-                    <p className="text-[10px] text-blue-700 dark:text-blue-400">
-                      Email Akun Resmi
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(employee.email!, "email")}
-                      className="p-1.5 rounded-lg border border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors cursor-pointer"
-                      title="Salin Alamat Email"
-                    >
-                      <CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />
-                    </button>
-                    <a
-                      href={`mailto:${validEmail}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition-colors"
-                      title="Kirim Email"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      <span>Kirim</span>
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-slate-400 text-xs">
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>Email belum diatur</span>
-                  </div>
-                  {canWrite && (
-                    <button
-                      type="button"
-                      onClick={startEditing}
-                      className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                    >
-                      + Tambah
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Sub-Card 2: Rekening Bank Penyalur Uang Makan */}
-            {!isMmp && (
-            <div className="pt-2 pb-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
-                  Rekening Uang Makan
-                </span>
-                {validRekening && (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(validRekening, "rekening")}
-                    className="text-slate-400 hover:text-blue-600 transition-colors cursor-pointer"
-                    title="Salin Nomor Rekening"
-                  >
-                    <CopyIcon copied={copiedField === "rekening"} />
-                  </button>
                 )}
               </div>
 
-              <div
-                className={cn(
-                  "p-3 rounded-2xl border transition-all",
-                  bankTheme.border,
-                  "bg-slate-50/60 dark:bg-slate-800/40"
-                )}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-lg text-[10px] font-black border",
-                      bankTheme.bgBadge
-                    )}
-                  >
-                    {employee.nama_bank || "BRI"}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {employee.nama_bank ? "Penyalur Terdaftar" : "Default"}
-                  </span>
-                </div>
-
-                {validRekening ? (
-                  <div>
-                    <p className="text-xs font-mono font-bold text-slate-900 dark:text-white tracking-wider">
-                      {validRekening}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      a.n {employee.nama_lengkap}
-                    </p>
+              {/* Rekening Penyalur Uang Makan (Non-MMP) */}
+              {!isMmp && (
+                <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <CreditCard className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Rekening Penyalur</span>
+                        <span className={cn("px-1.5 py-0.2 rounded text-[9px] font-black border", bankTheme.bgBadge)}>
+                          {employee.nama_bank || "BRI"}
+                        </span>
+                      </div>
+                      {validRekening ? (
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                          {validRekening}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 italic">Belum diinput</span>
+                          {canWrite && (
+                            <button
+                              type="button"
+                              onClick={startEditing}
+                              className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                            >
+                              + Tambah
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-slate-400">No. Rekening belum diinput</p>
-                    {canWrite && (
+                  {validRekening && (
+                    <div className="flex items-center gap-1 shrink-0 mt-1">
                       <button
                         type="button"
-                        onClick={startEditing}
-                        className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                        onClick={() => handleCopy(validRekening, "rekening")}
+                        className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="Salin Nomor Rekening"
                       >
-                        + Tambah
+                        <CopyIcon copied={copiedField === "rekening"} />
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            )}
 
             {/* Quick Action Button */}
             {canWrite && !isEditing && (
-              <div className="pt-4">
+              <div className="pt-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full rounded-2xl gap-2 font-bold text-xs h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                  className="w-full rounded-xl gap-2 font-bold text-xs h-9 border-[#dce8dd] dark:border-slate-700 hover:bg-[#edf3ee] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 transition-colors cursor-pointer"
                   onClick={startEditing}
                 >
-                  <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                  <Pencil className="w-3.5 h-3.5" />
                   <span>Edit Data Pegawai</span>
                 </Button>
               </div>
@@ -889,7 +863,7 @@ export default function EmployeeDetailPage() {
                   <Award className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+              <div className="text-lg xl:text-xl font-black text-slate-900 dark:text-white truncate">
                 {empCategory === "MMP"
                   ? "-"
                   : employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap)}

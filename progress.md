@@ -1410,6 +1410,30 @@
   - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
   - `php backend/tests/portal_security_check.php`: **PASS**.
 
+---
+
+## 54. Penyelarasan Sidebar Profil Pegawai, Skala Tipografi Metrik & Warna Status Cuti (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  1. Pengguna meminta perbaikan antarmuka sidebar profil pegawai (`http://localhost:3000/kepegawaian/employees/[id]`) agar bagian *Kontak & Komunikasi* dibuat mengalir secara natural seperti pada sidebar portal BKSDA (tanpa kotak sub-card tebal berwarna mencolok), namun tetap mempertahankan tombol aksi salin (copy) dan chat/kirim (WhatsApp & Email).
+  2. Memperbaiki ukuran font pada kartu ringkasan metrik *Masa Kerja* ("2 Tahun 0 Bulan") yang sebelumnya tampak terlalu kecil (`text-xs`) dibandingkan tiga kartu metrik di sampingnya (`text-xl`).
+  3. Menyelaraskan warna status pengajuan cuti pada tab cuti detail pegawai PNS (`EmployeeLeaveTab.tsx`), di mana status *PENGAJUAN* sebelumnya keliru diwarnai hijau solid dengan tanda centang, agar konsisten dengan standar modul persuratan cuti (`/kepegawaian/cuti`) yang menggunakan warna kuning/amber dengan indikator pulsing ping.
+- **Implementasi**:
+  1. **Sidebar Profil Pegawai Alami (`frontend/src/app/kepegawaian/employees/[id]/page.tsx`)**:
+     - Menyatukan informasi Jabatan, Unit Kerja, Pangkat/Golongan, Email Akun Resmi, Telepon/WhatsApp, dan Rekening Penyalur dalam satu daftar detail vertikal yang elegan bergaya portal (`PortalProfileSidebar.tsx`).
+     - Menyematkan tombol aksi cepat yang kompak dan bersih di sebelah kanan: tombol salin 1-klik untuk NIP, Email, Telepon, dan No. Rekening, tombol *Chat* WhatsApp Web resmi, serta tombol *Kirim* Email.
+     - Merapikan tombol *"Edit Data Pegawai"* di dasar kartu cockpit.
+  2. **Harmonisasi Skala Tipografi Metrik**:
+     - Mengubah ukuran teks nilai metrik Masa Kerja dari `text-xs font-black` menjadi `text-lg xl:text-xl font-black`, sejajar proporsional dengan kartu Penugasan, Sisa Cuti, dan Uang Makan.
+  3. **Standardisasi Status Cuti (`frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx`)**:
+     - Status `PENGAJUAN`: Diwarnai Amber/Kuning (`bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800`) lengkap dengan animasi ping amber (`animate-ping`).
+     - Status `DISETUJUI`: Tetap Hijau Emerald (`bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800`) dengan ikon `CheckCircle2`.
+     - Status `DITOLAK`: Tetap Merah Rose (`bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800`).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
 
 
 

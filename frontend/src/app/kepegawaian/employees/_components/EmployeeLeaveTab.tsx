@@ -833,10 +833,36 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                         </td>
                         <td className="py-3 px-3 align-top text-right">
                           <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              {req.status}
-                            </span>
+                            {(() => {
+                              const st = (req.status || "PENGAJUAN").toUpperCase();
+                              const isApproved = st === "DISETUJUI" || st === "APPROVED";
+                              const isRejected = st === "DITOLAK" || st === "REJECTED";
+
+                              return (
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs shrink-0 uppercase tracking-wider",
+                                    isApproved
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                                      : isRejected
+                                      ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800"
+                                      : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+                                  )}
+                                >
+                                  {isApproved ? (
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  ) : isRejected ? (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                  ) : (
+                                    <span className="relative flex h-2 w-2 shrink-0">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                                    </span>
+                                  )}
+                                  <span>{isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Pengajuan"}</span>
+                                </span>
+                              );
+                            })()}
                             {(() => {
                               const hasSuratIzin = !!(req.scan_surat_izin_path || req.scan_surat_path);
                               const hasFormulir = !!req.scan_formulir_path;
