@@ -1501,3 +1501,21 @@
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 58. Penyesuaian Urutan Kolom & Tata Letak Internal Kartu Kondisi Aset BMN (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta agar kartu **Kondisi Aset BMN** dipindahkan ke posisi paling kiri pada baris utama 3 kolom, dan di dalam kartu tersebut posisi chart donut diletakkan di sebelah kiri sedangkan rincian metrik statistiknya (*Baik, R. Ringan, R. Berat*) diletakkan di sebelah kanan.
+- **Implementasi**:
+  1. **Reposisi Urutan Grid 3 Kolom**:
+     - *Kolom 1 (Kiri)*: Kondisi Aset BMN.
+     - *Kolom 2 (Tengah)*: Peringatan STNK & Plat Kendaraan.
+     - *Kolom 3 (Kanan)*: Distribusi per Jenis BMN.
+  2. **Layout Horizontal Internal Kartu Kondisi Aset (`frontend/src/app/bmn/page.tsx`)**:
+     - *Sisi Kiri*: Chart Donut SVG interaktif (`w-32` s.d. `w-36`) dengan counter total unit aset di tengah lubang donut.
+     - *Sisi Kanan*: Stack vertikal kartu metrik (Baik, R. Ringan, R. Berat) dilengkapi jumlah unit dan pill persentase proporsional.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.

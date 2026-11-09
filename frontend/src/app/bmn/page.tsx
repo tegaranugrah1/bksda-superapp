@@ -120,9 +120,93 @@ export default function BmnDashboardPage() {
         <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color="red" sub="Perlu perhatian" />
       </motion.div>
 
-      {/* 3-Bagian Seimbang: Peringatan STNK, Kondisi Chart Besar, Distribusi per Jenis BMN */}
+      {/* 3-Bagian Seimbang: Kondisi Aset (Kiri), Peringatan STNK (Tengah), Distribusi per Jenis BMN (Kanan) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Kolom 1: Peringatan STNK & Plat Kendaraan */}
+        {/* Kolom 1: Kondisi Aset BMN (Chart di Kiri, Stat di Kanan) */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between h-[350px]">
+          <div className="flex items-center justify-between gap-2 mb-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <PieChart className="w-4 h-4 text-emerald-500" />
+              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Kondisi Aset BMN</h3>
+            </div>
+            <span className="text-[10px] text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
+          </div>
+
+          {/* Body: Chart di Kiri, Stat di Kanan */}
+          <div className="flex-1 flex items-center justify-between gap-3 my-auto">
+            {/* Donut Chart Visual (Kiri) */}
+            <div className="flex-1 flex items-center justify-center">
+              <motion.div
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0"
+              >
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3.6" className="text-zinc-100 dark:text-zinc-800" />
+                  {totalAssets > 0 && (
+                    <>
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3.6"
+                        strokeDasharray={`${(baik / totalAssets) * 100} ${100 - (baik / totalAssets) * 100}`} strokeDashoffset="0" />
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3.6"
+                        strokeDasharray={`${(rusakRingan / totalAssets) * 100} ${100 - (rusakRingan / totalAssets) * 100}`} strokeDashoffset={`${-((baik / totalAssets) * 100)}`} />
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" strokeWidth="3.6"
+                        strokeDasharray={`${(rusakBerat / totalAssets) * 100} ${100 - (rusakBerat / totalAssets) * 100}`} strokeDashoffset={`${-(((baik + rusakRingan) / totalAssets) * 100)}`} />
+                    </>
+                  )}
+                </svg>
+                {/* Center Stat */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xl font-black text-zinc-900 dark:text-white leading-none">
+                    {totalAssets.toLocaleString("id-ID")}
+                  </span>
+                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Total Unit</span>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Stat Details (Kanan) */}
+            <div className="w-36 sm:w-40 flex flex-col justify-center gap-2 shrink-0">
+              <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between">
+                <div>
+                  <span className="block text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">Baik</span>
+                  <span className="block text-sm font-black text-emerald-900 dark:text-emerald-100 leading-tight">
+                    {baik.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                  {totalAssets > 0 ? Math.round((baik / totalAssets) * 100) : 0}%
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
+                <div>
+                  <span className="block text-[10px] font-semibold text-amber-800 dark:text-amber-300">R. Ringan</span>
+                  <span className="block text-sm font-black text-amber-900 dark:text-amber-100 leading-tight">
+                    {rusakRingan.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
+                  {totalAssets > 0 ? Math.round((rusakRingan / totalAssets) * 100) : 0}%
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 flex items-center justify-between">
+                <div>
+                  <span className="block text-[10px] font-semibold text-rose-800 dark:text-rose-300">R. Berat</span>
+                  <span className="block text-sm font-black text-rose-900 dark:text-rose-100 leading-tight">
+                    {rusakBerat.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100/80 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
+                  {totalAssets > 0 ? Math.round((rusakBerat / totalAssets) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom 2: Peringatan STNK & Plat Kendaraan (Tengah) */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[350px]">
           <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
             <div className="flex items-center gap-2">
@@ -163,73 +247,6 @@ export default function BmnDashboardPage() {
               </p>
             </div>
           )}
-        </div>
-
-        {/* Kolom 2: Kondisi Aset - Donut Chart Besar */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between h-[350px]">
-          <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-            <div className="flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-emerald-500" />
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Kondisi Aset BMN</h3>
-            </div>
-            <span className="text-[10px] text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
-          </div>
-
-          {/* Donut Chart Visual */}
-          <div className="flex-1 flex items-center justify-center my-1">
-            <motion.div
-              initial={{ scale: 0.88, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-              className="relative w-36 h-36 shrink-0"
-            >
-              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3.6" className="text-zinc-100 dark:text-zinc-800" />
-                {totalAssets > 0 && (
-                  <>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3.6"
-                      strokeDasharray={`${(baik / totalAssets) * 100} ${100 - (baik / totalAssets) * 100}`} strokeDashoffset="0" />
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3.6"
-                      strokeDasharray={`${(rusakRingan / totalAssets) * 100} ${100 - (rusakRingan / totalAssets) * 100}`} strokeDashoffset={`${-((baik / totalAssets) * 100)}`} />
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" strokeWidth="3.6"
-                      strokeDasharray={`${(rusakBerat / totalAssets) * 100} ${100 - (rusakBerat / totalAssets) * 100}`} strokeDashoffset={`${-(((baik + rusakRingan) / totalAssets) * 100)}`} />
-                  </>
-                )}
-              </svg>
-              {/* Center Stat */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl font-black text-zinc-900 dark:text-white leading-none">
-                  {totalAssets.toLocaleString("id-ID")}
-                </span>
-                <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Total Unit</span>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Legend Items */}
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 shrink-0">
-            <div className="p-2 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 text-center">
-              <span className="block text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">Baik</span>
-              <span className="block text-sm font-black text-emerald-900 dark:text-emerald-100">{baik.toLocaleString("id-ID")}</span>
-              <span className="block text-[9px] text-emerald-600 dark:text-emerald-400 font-medium">
-                {totalAssets > 0 ? Math.round((baik / totalAssets) * 100) : 0}%
-              </span>
-            </div>
-            <div className="p-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 text-center">
-              <span className="block text-[10px] font-semibold text-amber-800 dark:text-amber-300">R. Ringan</span>
-              <span className="block text-sm font-black text-amber-900 dark:text-amber-100">{rusakRingan.toLocaleString("id-ID")}</span>
-              <span className="block text-[9px] text-amber-600 dark:text-amber-400 font-medium">
-                {totalAssets > 0 ? Math.round((rusakRingan / totalAssets) * 100) : 0}%
-              </span>
-            </div>
-            <div className="p-2 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 text-center">
-              <span className="block text-[10px] font-semibold text-rose-800 dark:text-rose-300">R. Berat</span>
-              <span className="block text-sm font-black text-rose-900 dark:text-rose-100">{rusakBerat.toLocaleString("id-ID")}</span>
-              <span className="block text-[9px] text-rose-600 dark:text-rose-400 font-medium">
-                {totalAssets > 0 ? Math.round((rusakBerat / totalAssets) * 100) : 0}%
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Kolom 3: Distribusi per Jenis BMN */}
