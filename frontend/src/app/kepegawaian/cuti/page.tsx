@@ -490,7 +490,7 @@ export default function InboxSuratCutiPage() {
       {/* Data Table Container with Motion Glide Transition */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={`${selectedStatus}-${selectedYear}`}
+          key={`${selectedStatus}-${selectedYear}-${page}`}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
@@ -635,16 +635,19 @@ export default function InboxSuratCutiPage() {
                                 : "Menunggu persetujuan — klik untuk menyetujui & terbitkan Surat Izin"
                             }
                           >
-                            <span
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                isApproved
-                                  ? "bg-emerald-600 animate-pulse"
-                                  : isRejected
-                                  ? "bg-rose-500"
-                                  : "bg-amber-500"
-                              )}
-                            />
+                            {st === "PENGAJUAN" ? (
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                              </span>
+                            ) : (
+                              <span
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full shrink-0",
+                                  isApproved ? "bg-emerald-600" : "bg-rose-500"
+                                )}
+                              />
+                            )}
                             {isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Pengajuan"}
                           </button>
                         );

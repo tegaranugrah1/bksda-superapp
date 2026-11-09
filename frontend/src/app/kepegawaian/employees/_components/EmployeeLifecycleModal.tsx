@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -148,7 +149,12 @@ export function EmployeeLifecycleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -197,29 +203,60 @@ export function EmployeeLifecycleModal({
             )}
           </div>
 
-          {bmnData?.unique_asset_count && bmnData.unique_asset_count > 0 ? (
-            <div className="p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
-              <p className="font-semibold flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                Pegawai masih memiliki {bmnData.unique_asset_count} aset BMN yang perlu ditindaklanjuti.
-              </p>
-              <p className="mt-1 text-slate-600 dark:text-slate-400">
-                Penonaktifan akses tetap dapat diproses; penyelesaian pengembalian aset diselesaikan melalui modul BMN.
-              </p>
-              <div className="mt-1.5 space-y-0.5">
-                {bmnData.assets.slice(0, 3).map((ast) => (
-                  <p key={ast.id} className="font-mono text-[10px] text-slate-700 dark:text-slate-300">
-                    • {ast.nama_barang} ({ast.nup ? `NUP ${ast.nup}` : ast.kode_barang}) [{ast.tipe_tanggungan}]
-                  </p>
-                ))}
-                {bmnData.assets.length > 3 && (
-                  <p className="text-[10px] text-slate-500 italic">
-                    +{bmnData.assets.length - 3} aset lainnya...
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : null}
+          <AnimatePresence mode="wait">
+            {bmnLoading ? (
+              <motion.div
+                key="bmn-loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="py-1 text-[11px] text-slate-400 flex items-center gap-1.5"
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Memeriksa status tanggungan BMN...
+              </motion.div>
+            ) : bmnData?.unique_asset_count && bmnData.unique_asset_count > 0 ? (
+              <motion.div
+                key="bmn-assets"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="p-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed"
+              >
+                <p className="font-semibold flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  Pegawai masih memiliki {bmnData.unique_asset_count} aset BMN yang perlu ditindaklanjuti.
+                </p>
+                <p className="mt-1 text-slate-600 dark:text-slate-400">
+                  Penonaktifan akses tetap dapat diproses; penyelesaian pengembalian aset diselesaikan melalui modul BMN.
+                </p>
+                <div className="mt-1.5 space-y-0.5">
+                  {bmnData.assets.slice(0, 3).map((ast) => (
+                    <p key={ast.id} className="font-mono text-[10px] text-slate-700 dark:text-slate-300">
+                      • {ast.nama_barang} ({ast.nup ? `NUP ${ast.nup}` : ast.kode_barang}) [{ast.tipe_tanggungan}]
+                    </p>
+                  ))}
+                  {bmnData.assets.length > 3 && (
+                    <p className="text-[10px] text-slate-500 italic">
+                      +{bmnData.assets.length - 3} aset lainnya...
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            ) : bmnData?.status_check === "ok" ? (
+              <motion.div
+                key="bmn-clear"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900 text-emerald-900 dark:text-emerald-200 text-[11px] leading-relaxed flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Pegawai bersih dari tanggungan BMN aktif. Penonaktifan aman dilanjutkan.</span>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
         {/* Form Action */}
@@ -232,8 +269,9 @@ export function EmployeeLifecycleModal({
             <div className="grid grid-cols-2 gap-2">
               {employee.is_active ? (
                 <>
-                  <button
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setAction("deactivate")}
                     className={`px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
                       action === "deactivate"
@@ -242,10 +280,11 @@ export function EmployeeLifecycleModal({
                     }`}
                   >
                     Nonaktifkan / Pensiun
-                  </button>
+                  </motion.button>
                   {isScheduled && (
-                    <button
+                    <motion.button
                       type="button"
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setAction("cancel_schedule")}
                       className={`px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
                         action === "cancel_schedule"
@@ -254,12 +293,13 @@ export function EmployeeLifecycleModal({
                       }`}
                     >
                       Batalkan Jadwal Nonaktif
-                    </button>
+                    </motion.button>
                   )}
                 </>
               ) : (
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setAction("reactivate")}
                   className={`col-span-2 px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
                     action === "reactivate"
@@ -268,7 +308,7 @@ export function EmployeeLifecycleModal({
                   }`}
                 >
                   Aktifkan Kembali Pegawai
-                </button>
+                </motion.button>
               )}
             </div>
           </div>
@@ -379,7 +419,7 @@ export function EmployeeLifecycleModal({
             </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

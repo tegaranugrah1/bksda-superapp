@@ -185,19 +185,25 @@ export default function KepegawaianDashboardPage() {
 
             {/* Segmented Proportion Bar */}
             <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden flex gap-0.5">
-              <div
-                className="h-full bg-blue-600 transition-all duration-500"
-                style={{ width: `${pnsPct}%` }}
+              <motion.div
+                className="h-full bg-blue-600"
+                initial={{ width: 0 }}
+                animate={{ width: `${pnsPct}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
                 title={`PNS: ${pnsCount} (${pnsPct}%)`}
               />
-              <div
-                className="h-full bg-amber-500 transition-all duration-500"
-                style={{ width: `${pppkPct}%` }}
+              <motion.div
+                className="h-full bg-amber-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${pppkPct}%` }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
                 title={`PPPK: ${pppkCount} (${pppkPct}%)`}
               />
-              <div
-                className="h-full bg-emerald-500 transition-all duration-500"
-                style={{ width: `${mmpPct}%` }}
+              <motion.div
+                className="h-full bg-emerald-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${mmpPct}%` }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
                 title={`MMP: ${mmpCount} (${mmpPct}%)`}
               />
             </div>

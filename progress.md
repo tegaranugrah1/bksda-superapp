@@ -1266,3 +1266,33 @@
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
   - Query default API: 150 aktif, Djunaib Ahmad tidak masuk di default list.
   - Query `?status=inactive`: 1 personil (Djunaib Ahmad).
+
+---
+
+## 49. Penyempurnaan Motion UI & Mikro-Interaksi Animasi Modul Kepegawaian (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi UI pada modul Kepegawaian sesuai rekomendasi audit visual menggunakan prinsip `/ponytail` (minimalis, tanpa overhead, tanpa dependensi baru, memanfaatkan `framer-motion` bawaan).
+- **Implementasi Solusi (4 Area Kunci)**:
+  1. **Formulir Tambah Pegawai Baru (`employees/create/page.tsx`)**:
+     - *Category Selector*: Menambahkan umpan balik taktil `whileHover={{ y: -2 }}` dan `whileTap={{ scale: 0.98 }}` pada kartu pilihan kategori (PNS, PPPK, MMP).
+     - *Dynamic Fields Accordion*: Transisi ekspansi/kolaps mulus menggunakan `<AnimatePresence initial={false}>` dan `motion.div` dengan animasi tinggi & opacity pada kolom NIP, Pangkat/Golongan, serta banner informasi personil MMP.
+     - *Preview Pas Foto*: Transisi kemunculan foto pas unggah dengan efek scale-fade (`initial={{ opacity: 0, scale: 0.95 }}` -> `animate={{ opacity: 1, scale: 1 }}`).
+     - *Toggle Status Keaktifan*: Tombol segmented pegawi aktif/non-aktif ditingkatkan dengan `whileTap={{ scale: 0.98 }}`.
+  2. **Dashboard Kepegawaian (`page.tsx` & `_components/KepegawaianDashboardComponents.tsx`)**:
+     - *Komposisi SDM Segmented Bar*: Menggantikan bilah proporsi statis dengan `<motion.div>` yang terisi mulus dari 0% hingga proporsi aktual (`pnsPct`, `pppkPct`, `mmpPct`) dengan transisi easing staggered.
+     - *Sebaran Satker Breakdown*: Bilah persentase jumlah pegawai per Seksi KSDA Wilayah teranimasi mulus saat dimuat.
+     - *Micro-Interactions*: Efek hover responsif pada kartu riwayat Surat Tugas (`whileHover={{ x: 3 }}`) dan kartu sebaran satker (`whileHover={{ x: 2 }}`).
+  3. **Inbox & Riwayat Cuti (`cuti/page.tsx`)**:
+     - *Table Glide Transition*: Transisi glide tabel via `<AnimatePresence mode="wait">` diperkaya dengan key `${selectedStatus}-${selectedYear}-${page}` sehingga pergantian halaman dan filter terasa mulus tanpa kedipan kasar.
+     - *Live Pending Indicator*: Badge status `PENGAJUAN` pada tabel kini menampilkan pulsating attention beacon (`animate-ping`) yang menunjukkan pengajuan memerlukan respon tindakan atasan/admin.
+  4. **Dialog Status & Pensiun Lifecycle (`EmployeeLifecycleModal.tsx`)**:
+     - *Modal Entrance*: Modal dialog muncul dengan transisi scale-fade halus (`scale: 0.95` -> `1`).
+     - *BMN Clearance Reveal*: Transisi perubahan status pemeriksaan tanggungan aset BMN dari state memuat (`Loader2`), state peringatan aset tertanggung (`AlertTriangle`), hingga state bebas tanggungan (`CheckCircle2`) menggunakan `<AnimatePresence mode="wait">`.
+     - *Action Buttons*: Tombol alih status (Nonaktifkan / Pensiun, Batalkan Jadwal, Aktifkan Kembali) dilengkapi mikro-interaksi `whileTap={{ scale: 0.98 }}`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5 checks lulus).
+  - `git status`: Bersih, seluruh perubahan lokal siap di-commit.
+

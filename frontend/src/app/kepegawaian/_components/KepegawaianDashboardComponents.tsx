@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { TrendingUp, FileText, MapPin, ChevronRight, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export interface RecentActivityItem {
   id: string;
@@ -51,11 +52,15 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
         {activities.slice(0, 4).map((st, idx) => {
           const cleanId = st.id.replace(/^st-/, "");
           return (
-            <Link
+            <motion.div
               key={st.id || idx}
-              href={`/kepegawaian/surat-tugas/builder/${cleanId}`}
-              className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200/60 dark:border-zinc-800/80 hover:border-blue-300/60 transition-colors group cursor-pointer"
+              whileHover={{ x: 3 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
             >
+              <Link
+                href={`/kepegawaian/surat-tugas/builder/${cleanId}`}
+                className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200/60 dark:border-zinc-800/80 hover:border-blue-300/60 transition-colors group cursor-pointer"
+              >
               <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
                 <FileText className="w-4 h-4" />
               </div>
@@ -81,7 +86,8 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 shrink-0 transition-colors" />
-            </Link>
+              </Link>
+            </motion.div>
           );
         })}
         {activities.length === 0 && (
@@ -122,30 +128,37 @@ export function SatkerDistributionCard({ satkerBreakdown }: { satkerBreakdown: S
             ? `/kepegawaian/employees?wilayah=${encodeURIComponent(satker.code)}`
             : `/kepegawaian/employees`;
           return (
-            <Link
+            <motion.div
               key={satker.name}
-              href={href}
-              className="block p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/25 border border-slate-200/60 dark:border-zinc-800/70 hover:border-blue-300/60 transition-colors group cursor-pointer"
+              whileHover={{ x: 2 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
             >
-              <div className="flex items-center justify-between text-xs font-bold mb-2">
-                <span className="text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center gap-2 truncate transition-colors">
-                  <span className={`w-2.5 h-2.5 rounded-full ${satker.dot}`} />
-                  {satker.name}
-                </span>
-                <span className="text-slate-600 dark:text-zinc-400 font-mono text-[11px] shrink-0 ml-2 flex items-center gap-1">
-                  <span>
-                    {satker.count} Personil ({satker.percentage}%)
+              <Link
+                href={href}
+                className="block p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/25 border border-slate-200/60 dark:border-zinc-800/70 hover:border-blue-300/60 transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center justify-between text-xs font-bold mb-2">
+                  <span className="text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center gap-2 truncate transition-colors">
+                    <span className={`w-2.5 h-2.5 rounded-full ${satker.dot}`} />
+                    {satker.name}
                   </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 transition-colors" />
-                </span>
-              </div>
-              <div className="w-full h-2 bg-slate-200/80 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className={`h-full bg-linear-to-r ${satker.gradient} rounded-full transition-all duration-500`}
-                  style={{ width: `${Math.max(5, satker.percentage)}%` }}
-                />
-              </div>
-            </Link>
+                  <span className="text-slate-600 dark:text-zinc-400 font-mono text-[11px] shrink-0 ml-2 flex items-center gap-1">
+                    <span>
+                      {satker.count} Personil ({satker.percentage}%)
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-200/80 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full bg-linear-to-r ${satker.gradient} rounded-full`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(5, satker.percentage)}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  />
+                </div>
+              </Link>
+            </motion.div>
           );
         })}
       </div>

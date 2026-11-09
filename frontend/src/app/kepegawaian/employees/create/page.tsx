@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Save,
@@ -326,7 +327,12 @@ export default function EmployeeCreatePage() {
           </div>
 
           {previewUrl ? (
-            <div className="w-full space-y-3">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full space-y-3"
+            >
               <div className="relative aspect-3/4 w-full max-w-[210px] mx-auto rounded-2xl overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm">
                 <Image src={previewUrl} alt="Preview Foto Pegawai" fill className="object-cover" unoptimized />
               </div>
@@ -348,7 +354,7 @@ export default function EmployeeCreatePage() {
                   <span>Hapus</span>
                 </button>
               </div>
-            </div>
+            </motion.div>
           ) : (
             <button
               type="button"
@@ -391,9 +397,12 @@ export default function EmployeeCreatePage() {
                 const style = CATEGORY_STYLES[opt.value];
                 const Icon = style.icon;
                 return (
-                  <button
+                  <motion.button
                     key={opt.value}
                     type="button"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.12 }}
                     onClick={() => handleJenisChange(opt.value)}
                     className={`flex flex-col items-start p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       isSelected
@@ -421,38 +430,60 @@ export default function EmployeeCreatePage() {
                     <span className="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug">
                       {opt.desc}
                     </span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
           </div>
 
-          {jenisPegawai === "MMP" && (
-            <div className="px-4 py-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-medium">
-              Personil <strong>MMP (Masyarakat Mitra Polhut)</strong> tidak memiliki NIP resmi ASN.
-              Sistem akan otomatis menerbitkan kode internal unik (contoh:{" "}
-              <code className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 font-mono font-bold">
-                MMP-xxx
-              </code>
-              ) yang sekaligus berfungsi sebagai <strong>Username Login Portal</strong>.
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {jenisPegawai === "MMP" && (
+              <motion.div
+                key="mmp-banner"
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 py-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/80 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-medium">
+                  Personil <strong>MMP (Masyarakat Mitra Polhut)</strong> tidak memiliki NIP resmi ASN.
+                  Sistem akan otomatis menerbitkan kode internal unik (contoh:{" "}
+                  <code className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 font-mono font-bold">
+                    MMP-xxx
+                  </code>
+                  ) yang sekaligus berfungsi sebagai <strong>Username Login Portal</strong>.
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {jenisPegawai !== "MMP" && (
-              <InputGroup
-                label={jenisPegawai === "PPPK" ? "NIPPPK" : "NIP"}
-                value={formData.nip}
-                onChange={handleNipChange}
-                placeholder={
-                  jenisPegawai === "PPPK"
-                    ? "Contoh: 19930425 202421 2 053"
-                    : "Contoh: 19800101 200501 1 001"
-                }
-                required
-              />
-            )}
+            <AnimatePresence initial={false}>
+              {jenisPegawai !== "MMP" && (
+                <motion.div
+                  key="nip-field"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <InputGroup
+                    label={jenisPegawai === "PPPK" ? "NIPPPK" : "NIP"}
+                    value={formData.nip}
+                    onChange={handleNipChange}
+                    placeholder={
+                      jenisPegawai === "PPPK"
+                        ? "Contoh: 19930425 202421 2 053"
+                        : "Contoh: 19800101 200501 1 001"
+                    }
+                    required
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className={jenisPegawai === "MMP" ? "md:col-span-2" : ""}>
               <InputGroup
@@ -477,23 +508,34 @@ export default function EmployeeCreatePage() {
               />
             </div>
 
-            {jenisPegawai !== "MMP" && (
-              <SelectGroup
-                label={
-                  jenisPegawai === "PPPK"
-                    ? "Golongan PPPK"
-                    : "Pangkat / Golongan PNS"
-                }
-                value={formData.pangkat_golongan}
-                onChange={(v: string) => setFormData({ ...formData, pangkat_golongan: v })}
-                options={activePangkatOptions}
-                placeholder={
-                  jenisPegawai === "PPPK"
-                    ? "Pilih Golongan PPPK (I–XVII)"
-                    : "Pilih Pangkat/Golongan PNS (I/a–IV/e)"
-                }
-              />
-            )}
+            <AnimatePresence initial={false}>
+              {jenisPegawai !== "MMP" && (
+                <motion.div
+                  key="pangkat-field"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <SelectGroup
+                    label={
+                      jenisPegawai === "PPPK"
+                        ? "Golongan PPPK"
+                        : "Pangkat / Golongan PNS"
+                    }
+                    value={formData.pangkat_golongan}
+                    onChange={(v: string) => setFormData({ ...formData, pangkat_golongan: v })}
+                    options={activePangkatOptions}
+                    placeholder={
+                      jenisPegawai === "PPPK"
+                        ? "Pilih Golongan PPPK (I–XVII)"
+                        : "Pilih Pangkat/Golongan PNS (I/a–IV/e)"
+                    }
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="md:col-span-2">
               <SelectGroup
@@ -558,8 +600,9 @@ export default function EmployeeCreatePage() {
                 Status Kepegawaian
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setFormData({ ...formData, is_active: "1" })}
                   className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     formData.is_active === "1"
@@ -569,9 +612,10 @@ export default function EmployeeCreatePage() {
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span>Pegawai Aktif</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setFormData({ ...formData, is_active: "0" })}
                   className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     formData.is_active === "0"
@@ -581,7 +625,7 @@ export default function EmployeeCreatePage() {
                 >
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Non-Aktif</span>
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
