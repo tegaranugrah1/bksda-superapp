@@ -1390,20 +1390,22 @@
        - Baris 1: `KEMENTERIAN KEHUTANAN` (Emerald bold/black uppercase).
        - Baris 2: `BALAI KONSERVASI SUMBER DAYA ALAM` (Zinc-900 / dark:zinc-100 bold uppercase).
        - Baris 3: `KALIMANTAN TIMUR` (Emerald uppercase tracking-widest).
-  2. **Pembersihan Elemen Form (Bebas AI Slop & Minimalis)**:
-     - Menghapus seluruh ikon dekoratif yang tidak perlu di dalam kolom teks (`User`, `Lock`, `Sparkles`, dsb).
-     - Kolom input NIP dan Kata Sandi kembali ke wujud bersih, nyaman digunakan, dan berstandar portal instansi pemerintah.
-     - Toggle visibilitas kata sandi menggunakan tombol teks sederhana dan bersih (*Tampilkan / Sembunyikan*).
-     - Tombol Login solid dengan warna hijau hutan resmi (`bg-emerald-600`) dan animasi pemuatan teruji (`Loader2`).
-     - Menyediakan toggle tema (`ThemeToggle`) minimalis di pojok kanan atas untuk kemudahan pratinjau Light/Dark mode.
+  2. **Penyempurnaan Copywriting & Eliminasi Elemen Berlebih**:
+     - Menghapus badge pil *"Portal Layanan Terpadu Pegawai & Persuratan"* di atas form Selamat Datang.
+     - Menghapus elemen meta indicator *"Sistem Administrasi Konservasi Sumber Daya Alam"* dan teks *"BKSDA KALTIM"* di bawah area toggle tema hero kanan.
+     - Menghapus pil *"Kementerian Kehutanan Republik Indonesia"* di atas judul *"Melindungi Warisan Alam Untuk Generasi Masa Depan"*.
+     - Menghapus seluruh ikon bintang (*Sparkles*).
+     - Menghapus kartu fitur sorotan ("Keamanan Terenkripsi" & "Layanan Terpadu") pada hero kanan sesuai arahan pengguna agar tampilan lebih bersih, lega, dan gambar alam Pulau Sangalaki tampak lebih luas tanpa tertutup kartu.
   3. **Visual Hero Kanan (Terang, Jelas, & Berkarakter)**:
      - Menggunakan foto aset konservasi lokal BKSDA Kaltim (`/assets/images/background/sangalaki.png` - Pulau Sangalaki).
      - Menghilangkan *mix-blend mode* dan *shadow* gelap pekat yang sebelumnya menutup gambar. Foto kini tampil 100% jelas, terang, dan berwarna alami.
-     - Hanya ditambahkan gradien lembut tipis di bagian dasar agar teks kutipan resmi konservasi terbaca kontras tanpa meredupkan pemandangan alam di atasnya.
+     - Hanya ditambahkan gradien lembut tipis di bagian dasar agar teks kutipan resmi terbaca kontras tanpa meredupkan pemandangan alam di atasnya.
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
   - `php backend/tests/portal_security_check.php`: **PASS**.
+
+
 
 
 
