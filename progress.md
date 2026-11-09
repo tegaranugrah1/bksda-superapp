@@ -1082,3 +1082,19 @@
 - **Akar masalah:** Kolom `foto_geotag_url` pada database BMN menyimpan URL halaman web Google Drive (`https://drive.google.com/file/d/.../view`). Pada `MyAssetsTab.tsx`, penentuan thumbnail sebelumnya memprioritaskan URL mentah `asset.foto_geotag_url` tanpa melalui `resolvePhotoUrl()`, sehingga browser menembakkan event `onError` karena dokumen HTML tidak dapat dirender sebagai gambar dan kartu jatuh ke fallback ("Belum ada foto"). Sebaliknya saat kartu diklik, modal Lightbox memanggil `resolvePhotoUrl()` yang mengubah ID Google Drive menjadi URL CDN langsung (`https://lh3.googleusercontent.com/d/{id}`), sehingga foto muncul di modal.
 - **Perbaikan:** Menyeragamkan penentuan `thumbUrl` pada List View dan Grid View `MyAssetsTab.tsx` agar menggunakan `primaryPhoto?.url` yang sudah diproses oleh `resolvePhotoUrl()`. Memperluas regex `resolvePhotoUrl()` untuk mendukung variasi URL Google Drive dengan parameter `?id=` / `&id=`. Menyelaraskan key `failedImgMap` pada `ActiveLoansTab.tsx` agar null-safe.
 - **Verifikasi:** TypeScript `tsc --noEmit` lolos 0 error; `portal_security_check.php` PASS; PHPUnit `PortalPersonalSecurityTest` (52 tests, 183 assertions) dan `PortalAuthSecurityTest` (21 tests, 481 assertions) lulus 100%.
+
+
+## 43. Perbaikan Sinkronisasi Snapshot Saldo Cuti Form Cetak Penetapan Cuti — Selesai (9 November 2026)
+
+- **Akar Masalah:**
+  Saat admin kepegawaian mencatat surat izin penetapan cuti langsung melalui `/kepegawaian/employees/{id}` (`EmployeeLeaveController::storeRecord` dan `updateRecord`), rekaman dibuat tanpa mengisi kolom `sisa_n0`, `sisa_n1`, dan `sisa_n2` pada tabel `kpg_employee_leave_requests`. Akibatnya, nilai kolom `sisa_n0` mengambil nilai default skema database yaitu `12` (bukan sisa kuota hak cuti riil pegawai pada tahun bersangkutan). Saat pegawai membuka cetak Formulir Cuti (`FormulirCutiPrint.tsx`), tabel V Catatan Cuti menampilkan angka default `12` meskipun pegawai telah menggunakan cuti sebelumnya.
+- **Implementasi Solusi (Prinsip /ponytail):**
+  1. **`EmployeeLeaveController::storeRecord`**: Mengambil `leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year)` dan menghitung `sisa_n0` dinamis (`max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - (int) $leaveBalance->cuti_terpakai_n0)`), serta menyertakan `sisa_n1` (`$leaveBalance->hak_n1_diakui`) dan `sisa_n2` (`$leaveBalance->hak_n2_diakui`) saat `EmployeeLeaveRequest::create()`.
+  2. **`EmployeeLeaveController::updateRecord`**: Menghitung `otherApprovedDays` (total hari cuti disetujui dari permohonan lain di tahun yang sama) dan memperbarui `sisa_n0`, `sisa_n1`, dan `sisa_n2` pada `$updatePayload`.
+  3. **Runnable Check & Data Sync**:
+     - Sinkronisasi data saldo snapshot pada permohonan cuti ID 787 milik pegawai 123 (Tegar Anugrah) dari `12` menjadi `11` (sesuai pemakaian 1 hari sebelumnya pada ID 661).
+     - Menambahkan assert-based self-check `backend/tests/EmployeeLeaveSnapshotCheck.php` untuk memvalidasi `storeRecord` dan `updateRecord` secara otomatis.
+- **Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.

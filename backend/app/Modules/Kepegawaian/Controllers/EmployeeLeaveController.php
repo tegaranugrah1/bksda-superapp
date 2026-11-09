@@ -25,8 +25,9 @@ class EmployeeLeaveController extends Controller
             abort_if($employee->trashed(), 404);
             $rawYear = (int) $request->input('year', date('Y'));
             $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
-
             $leave = EmployeeLeave::forEmployeeYear($employeeId, $year);
+
+
 
             $requests = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
                 ->orderBy('tanggal_mulai', 'desc')
@@ -158,6 +159,9 @@ class EmployeeLeaveController extends Controller
             }
 
             $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
+            $year = (int) date('Y', strtotime($validated['tanggal_mulai']));
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year);
+            $otherApprovedDays = (int) $leaveBalance->cuti_terpakai_n0;
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
@@ -170,6 +174,9 @@ class EmployeeLeaveController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'alamat_menjalankan_cuti' => strip_tags(trim($validated['alamat_menjalankan_cuti'] ?? ($employee->satuan_kerja ?? 'Balikpapan'))),
                 'telepon' => strip_tags(trim($validated['telepon'] ?? ($employee->no_hp ?? '-'))),
+                'sisa_n0' => max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays),
+                'sisa_n1' => $leaveBalance->hak_n1_diakui,
+                'sisa_n2' => $leaveBalance->hak_n2_diakui,
                 'status' => $status,
                 'status_pertimbangan_atasan' => $status,
                 'status_pertimbangan_pejabat' => $status,
@@ -192,8 +199,8 @@ class EmployeeLeaveController extends Controller
                 ->whereYear('tanggal_mulai', $year)
                 ->sum('jumlah_hari');
 
-            $leave = EmployeeLeave::forEmployeeYear($employeeId, $year);
-            $leave->fill(['cuti_terpakai_n0' => $approvedDays])->save();
+
+            $leaveBalance->fill(['cuti_terpakai_n0' => $approvedDays])->save();
 
             DB::commit();
 
@@ -253,6 +260,13 @@ class EmployeeLeaveController extends Controller
             $status = strtoupper($validated['status'] ?? $leaveReq->status);
             $validated['jenis_cuti'] = LeaveType::forEmployee($validated['jenis_cuti'], $employee)->nama;
             $oldYear = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $newYear);
+            $otherApprovedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
+                ->where('id', '!=', $requestId)
+                ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
+                ->annual()
+                ->whereYear('tanggal_mulai', $newYear)
+                ->sum('jumlah_hari');
             $updatePayload = [
                 'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
@@ -263,6 +277,9 @@ class EmployeeLeaveController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'alamat_menjalankan_cuti' => strip_tags(trim($validated['alamat_menjalankan_cuti'] ?? ($employee->satuan_kerja ?? 'Balikpapan'))),
                 'telepon' => strip_tags(trim($validated['telepon'] ?? ($employee->no_hp ?? '-'))),
+                'sisa_n0' => max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays),
+                'sisa_n1' => $leaveBalance->hak_n1_diakui,
+                'sisa_n2' => $leaveBalance->hak_n2_diakui,
                 'status' => $status,
                 'status_pertimbangan_atasan' => $status,
                 'status_pertimbangan_pejabat' => $status,
