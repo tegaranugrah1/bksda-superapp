@@ -137,7 +137,7 @@ export function ActiveLoansTab({
           {assets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const hasThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const cleanStatus = (asset.status || "").toLowerCase();
             const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
@@ -161,7 +161,7 @@ export function ActiveLoansTab({
                       onError={() =>
                         setFailedImgMap((prev) => ({
                           ...prev,
-                          [`${asset.id}-${primaryPhoto!.key}`]: true,
+                          [`${asset.id}-${primaryPhoto?.key || "thumb"}`]: true,
                         }))
                       }
                     />
@@ -254,7 +254,7 @@ export function ActiveLoansTab({
           {assets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const hasValidThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto.key}`]);
+            const hasValidThumb = Boolean(primaryPhoto?.url && (primaryPhoto.url.startsWith("http") || primaryPhoto.url.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const cleanStatus = (asset.status || "").toLowerCase();
             const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
@@ -278,7 +278,7 @@ export function ActiveLoansTab({
                       onError={() =>
                         setFailedImgMap((prev) => ({
                           ...prev,
-                          [`${asset.id}-${primaryPhoto!.key}`]: true,
+                          [`${asset.id}-${primaryPhoto?.key || "thumb"}`]: true,
                         }))
                       }
                     />

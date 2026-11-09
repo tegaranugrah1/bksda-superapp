@@ -46,7 +46,7 @@ export function resolvePhotoUrl(rawUrl?: string | null): string | null {
   if (!rawUrl) return null;
 
   // Google Drive link: parse file ID and convert to direct image URL
-  const gdriveMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const gdriveMatch = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (gdriveMatch) {
     return `https://lh3.googleusercontent.com/d/${gdriveMatch[1]}`;
   }
@@ -333,9 +333,8 @@ export function MyAssetsTab({
           {filteredMyAssets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const thumbUrl = asset.foto_geotag_url || (primaryPhoto?.url ?? null);
-            const isSafeThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")));
-            const hasThumb = Boolean(isSafeThumb && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
+            const thumbUrl = primaryPhoto?.url ?? null;
+            const hasThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (
@@ -355,7 +354,7 @@ export function MyAssetsTab({
                         alt={asset.nama_barang}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         referrerPolicy="no-referrer"
-                        onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${primaryPhoto!.key}`]: true }))}
+                        onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${primaryPhoto?.key || "thumb"}`]: true }))}
                       />
                     ) : (
                       <Package className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -423,9 +422,8 @@ export function MyAssetsTab({
           {filteredMyAssets.map((asset) => {
             const photos = getAssetPhotos(asset);
             const primaryPhoto = photos[0] || null;
-            const thumbUrl = asset.foto_geotag_url || (primaryPhoto?.url ?? null);
-            const isSafeThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")));
-            const hasValidThumb = Boolean(isSafeThumb && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
+            const thumbUrl = primaryPhoto?.url ?? null;
+            const hasValidThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
 
             return (
@@ -444,7 +442,7 @@ export function MyAssetsTab({
                       alt={asset.nama_barang}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
-                      onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${primaryPhoto!.key}`]: true }))}
+                      onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${primaryPhoto?.key || "thumb"}`]: true }))}
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-1 p-2 text-center text-slate-400 dark:text-slate-600">
