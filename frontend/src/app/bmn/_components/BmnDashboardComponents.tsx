@@ -19,12 +19,13 @@ export function StatCard({
   sub: string;
 }) {
   const colors: Record<string, { iconBg: string; text: string }> = {
+    zinc: { iconBg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-600 dark:text-zinc-300" },
     blue: { iconBg: "bg-blue-100 dark:bg-blue-500/10", text: "text-blue-600" },
     emerald: { iconBg: "bg-emerald-100 dark:bg-emerald-500/10", text: "text-emerald-600" },
     amber: { iconBg: "bg-amber-100 dark:bg-amber-500/10", text: "text-amber-600" },
     red: { iconBg: "bg-red-100 dark:bg-red-500/10", text: "text-red-600" },
   };
-  const c = colors[color] || colors.blue;
+  const c = colors[color] || colors.zinc;
   return (
     <motion.div
       whileHover={{ y: -3 }}

@@ -26,22 +26,10 @@ interface DashboardData {
   };
 }
 
-const JENIS_COLORS: Record<string, string> = {
-  "ALAT ANGKUTAN BERMOTOR": "bg-blue-500",
-  "ALAT BESAR": "bg-emerald-500",
-  "TANAH": "bg-amber-500",
-  "BANGUNAN DAN GEDUNG": "bg-violet-500",
-  "RUMAH NEGARA": "bg-pink-500",
-  "MESIN PERALATAN NON TIK": "bg-cyan-500",
-  "MESIN PERALATAN KHUSUS TIK": "bg-indigo-500",
-  "ALAT PERSENJATAAN": "bg-red-500",
-  "BANGUNAN AIR": "bg-teal-500",
-};
-
 function AlertItem({ item, label, colorClass, badgeClass }: { item: { id: string; nama_barang: string; merk: string; no_polisi: string }; label: string; colorClass: string; badgeClass: string }) {
   return (
     <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15, ease: "easeOut" }}>
-      <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors", colorClass)}>
+      <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60", colorClass)}>
         <div>
           <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{item.nama_barang} <span className="text-zinc-400">({item.merk})</span></p>
           <p className="text-[10px] text-zinc-500">{item.no_polisi || "Tanpa Polisi"}</p>
@@ -62,7 +50,7 @@ function BarProgressRow({ label, count, maxCount, barColor, extra, labelWidth = 
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className={cn("h-full rounded-full", barColor || "bg-violet-500")}
+          className={cn("h-full rounded-full", barColor || "bg-emerald-500")}
         />
       </div>
       <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 text-right">
@@ -83,6 +71,9 @@ export default function BmnDashboardPage() {
   const baik = conditionStats["Baik"] || 0;
   const rusakRingan = conditionStats["Rusak Ringan"] || 0;
   const rusakBerat = conditionStats["Rusak Berat"] || 0;
+  const baikPct = totalAssets > 0 ? (baik / totalAssets) * 100 : 0;
+  const rusakRinganPct = totalAssets > 0 ? (rusakRingan / totalAssets) * 100 : 0;
+  const rusakBeratPct = totalAssets > 0 ? (rusakBerat / totalAssets) * 100 : 0;
   const totalAlerts =
     (data?.stnk_alerts?.expired?.length || 0) +
     (data?.stnk_alerts?.expiring_soon?.length || 0) +
@@ -114,92 +105,134 @@ export default function BmnDashboardPage() {
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-3"
       >
-        <StatCard icon={<Package className="w-4 h-4" />} label="Total Aset" value={totalAssets.toLocaleString("id-ID")} color="blue" sub={`${baik} kondisi baik`} />
+        <StatCard icon={<Package className="w-4 h-4" />} label="Total Aset" value={totalAssets.toLocaleString("id-ID")} color="zinc" sub={`${baik} kondisi baik`} />
         <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Nilai Perolehan" value={formatRupiah(data?.total_asset_value || 0)} color="emerald" sub="Total akumulasi" />
-        <StatCard icon={<HandCoins className="w-4 h-4" />} label="Sedang Dipinjam" value="-" color="amber" sub="Lihat peminjaman" />
-        <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color="red" sub="Perlu perhatian" />
+        <StatCard icon={<HandCoins className="w-4 h-4" />} label="Sedang Dipinjam" value="-" color="zinc" sub="Lihat peminjaman" />
+        <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color={rusakBerat > 0 ? "red" : "zinc"} sub={rusakBerat > 0 ? "Perlu perhatian" : "Semua terkendali"} />
       </motion.div>
 
       {/* 3-Bagian Seimbang: Kondisi Aset (Kiri), Peringatan STNK (Tengah), Distribusi per Jenis BMN (Kanan) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Kolom 1: Kondisi Aset BMN (Chart di Kiri, Stat di Kanan) */}
+        {/* Kolom 1: Kondisi Aset BMN (Segmented Progress Pill Bar - Rekomendasi 2) */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between h-[350px]">
-          <div className="flex items-center justify-between gap-2 mb-2 shrink-0">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-emerald-500" />
+              <BarChart3 className="w-4 h-4 text-emerald-500" />
               <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Kondisi Aset BMN</h3>
             </div>
             <span className="text-[10px] text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
           </div>
 
-          {/* Body: Chart di Kiri, Stat di Kanan */}
-          <div className="flex-1 flex items-center justify-between gap-3 my-auto">
-            {/* Donut Chart Visual (Kiri) */}
-            <div className="flex-1 flex items-center justify-center">
-              <motion.div
-                initial={{ scale: 0.88, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-                className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0"
-              >
-                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3.6" className="text-zinc-100 dark:text-zinc-800" />
-                  {totalAssets > 0 && (
-                    <>
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3.6"
-                        strokeDasharray={`${(baik / totalAssets) * 100} ${100 - (baik / totalAssets) * 100}`} strokeDashoffset="0" />
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" strokeWidth="3.6"
-                        strokeDasharray={`${(rusakRingan / totalAssets) * 100} ${100 - (rusakRingan / totalAssets) * 100}`} strokeDashoffset={`${-((baik / totalAssets) * 100)}`} />
-                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" strokeWidth="3.6"
-                        strokeDasharray={`${(rusakBerat / totalAssets) * 100} ${100 - (rusakBerat / totalAssets) * 100}`} strokeDashoffset={`${-(((baik + rusakRingan) / totalAssets) * 100)}`} />
-                    </>
-                  )}
-                </svg>
-                {/* Center Stat */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-xl font-black text-zinc-900 dark:text-white leading-none">
-                    {totalAssets.toLocaleString("id-ID")}
-                  </span>
-                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Total Unit</span>
+          {/* Hero Health Index & Status Pill */}
+          <div className="flex items-end justify-between gap-2 pt-1 shrink-0">
+            <div>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Index Kelaikan</span>
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
+                  {baikPct.toFixed(1)}%
+                </span>
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Siap Operasional</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200/80 dark:border-emerald-800/60">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Kondisi Prima
+              </span>
+            </div>
+          </div>
+
+          {/* Segmented Progress Pill Bar (Gaya Linear & GitHub Storage) */}
+          <div className="space-y-1.5 shrink-0 py-1">
+            <div className="h-3.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full p-0.5 flex gap-1 overflow-hidden">
+              {/* Segment 1: Baik */}
+              {baikPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${baikPct}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full min-w-[8px]"
+                  title={`Baik: ${baik.toLocaleString("id-ID")} (${baikPct.toFixed(1)}%)`}
+                />
+              )}
+              {/* Segment 2: Rusak Ringan */}
+              {rusakRinganPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${rusakRinganPct}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                  className="h-full bg-amber-400 rounded-full min-w-[8px]"
+                  title={`Rusak Ringan: ${rusakRingan.toLocaleString("id-ID")} (${rusakRinganPct.toFixed(1)}%)`}
+                />
+              )}
+              {/* Segment 3: Rusak Berat */}
+              {rusakBeratPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${rusakBeratPct}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                  className="h-full bg-rose-500 rounded-full min-w-[8px]"
+                  title={`Rusak Berat: ${rusakBerat.toLocaleString("id-ID")} (${rusakBeratPct.toFixed(1)}%)`}
+                />
+              )}
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-zinc-400 px-0.5">
+              <span>0%</span>
+              <span className="font-medium text-emerald-600/80 dark:text-emerald-400/80">Standar Prima ≥ 90%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          {/* 3 Detailed Condition Cards */}
+          <div className="grid grid-cols-1 gap-2 flex-1 justify-center my-auto">
+            {/* Baik */}
+            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm shadow-emerald-500/30" />
+                <div>
+                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Baik (Prima)</span>
+                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Siap digunakan untuk operasional</span>
                 </div>
-              </motion.div>
+              </div>
+              <div className="text-right flex items-center gap-2">
+                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{baik.toLocaleString("id-ID")} Unit</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100/90 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                  {baikPct.toFixed(1)}%
+                </span>
+              </div>
             </div>
 
-            {/* Stat Details (Kanan) */}
-            <div className="w-36 sm:w-40 flex flex-col justify-center gap-2 shrink-0">
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between">
+            {/* Rusak Ringan */}
+            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 shadow-sm shadow-amber-500/30" />
                 <div>
-                  <span className="block text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">Baik</span>
-                  <span className="block text-sm font-black text-emerald-900 dark:text-emerald-100 leading-tight">
-                    {baik.toLocaleString("id-ID")}
-                  </span>
+                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Rusak Ringan</span>
+                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Perlu perbaikan atau servis berkala</span>
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
-                  {totalAssets > 0 ? Math.round((baik / totalAssets) * 100) : 0}%
+              </div>
+              <div className="text-right flex items-center gap-2">
+                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{rusakRingan.toLocaleString("id-ID")} Unit</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100/90 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                  {rusakRinganPct.toFixed(1)}%
                 </span>
               </div>
+            </div>
 
-              <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
+            {/* Rusak Berat */}
+            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 shadow-sm shadow-rose-500/30" />
                 <div>
-                  <span className="block text-[10px] font-semibold text-amber-800 dark:text-amber-300">R. Ringan</span>
-                  <span className="block text-sm font-black text-amber-900 dark:text-amber-100 leading-tight">
-                    {rusakRingan.toLocaleString("id-ID")}
-                  </span>
+                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Rusak Berat</span>
+                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Usulan penghapusan / lelang BMN</span>
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
-                  {totalAssets > 0 ? Math.round((rusakRingan / totalAssets) * 100) : 0}%
-                </span>
               </div>
-
-              <div className="p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 flex items-center justify-between">
-                <div>
-                  <span className="block text-[10px] font-semibold text-rose-800 dark:text-rose-300">R. Berat</span>
-                  <span className="block text-sm font-black text-rose-900 dark:text-rose-100 leading-tight">
-                    {rusakBerat.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-rose-100/80 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
-                  {totalAssets > 0 ? Math.round((rusakBerat / totalAssets) * 100) : 0}%
+              <div className="text-right flex items-center gap-2">
+                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{rusakBerat.toLocaleString("id-ID")} Unit</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100/90 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300">
+                  {rusakBeratPct.toFixed(1)}%
                 </span>
               </div>
             </div>
@@ -227,13 +260,13 @@ export default function BmnDashboardPage() {
           {totalAlerts > 0 ? (
             <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
               {data?.stnk_alerts?.expired.map((v) => (
-                <AlertItem key={`exp-${v.id}`} item={v} label={`🚨 Expired (${v.tanggal_pajak_stnk})`} colorClass="bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20" badgeClass="text-red-700 bg-red-100 dark:text-red-300 dark:bg-red-950/50" />
+                <AlertItem key={`exp-${v.id}`} item={v} label={`🚨 Expired (${v.tanggal_pajak_stnk})`} colorClass="border-l-[3px] border-l-red-500" badgeClass="text-red-700 bg-red-100/80 dark:text-red-300 dark:bg-red-950/60" />
               ))}
               {data?.stnk_alerts?.expiring_soon.map((v) => (
-                <AlertItem key={`soon-${v.id}`} item={v} label={`⚠️ Pajak ${v.tanggal_pajak_stnk}`} colorClass="bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20" badgeClass="text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-950/50" />
+                <AlertItem key={`soon-${v.id}`} item={v} label={`⚠️ Pajak ${v.tanggal_pajak_stnk}`} colorClass="border-l-[3px] border-l-amber-500" badgeClass="text-amber-700 bg-amber-100/80 dark:text-amber-300 dark:bg-amber-950/60" />
               ))}
               {data?.stnk_alerts?.plat_expired.map((v) => (
-                <AlertItem key={`plat-${v.id}`} item={v} label={`🔄 Ganti Plat (${v.tanggal_ganti_plat})`} colorClass="bg-orange-50 dark:bg-orange-500/10 hover:bg-orange-100 dark:hover:bg-orange-500/20" badgeClass="text-orange-700 bg-orange-100 dark:text-orange-300 dark:bg-orange-950/50" />
+                <AlertItem key={`plat-${v.id}`} item={v} label={`🔄 Ganti Plat (${v.tanggal_ganti_plat})`} colorClass="border-l-[3px] border-l-orange-500" badgeClass="text-orange-700 bg-orange-100/80 dark:text-orange-300 dark:bg-orange-950/60" />
               ))}
             </div>
           ) : (
@@ -253,7 +286,7 @@ export default function BmnDashboardPage() {
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[350px]">
           <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
             <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-blue-500" />
+              <BarChart3 className="w-4 h-4 text-emerald-500" />
               <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Distribusi per Jenis BMN</h3>
             </div>
             <span className="text-[10px] text-zinc-400 font-semibold">{data?.asset_by_jenis?.length || 0} Jenis</span>
@@ -267,7 +300,7 @@ export default function BmnDashboardPage() {
                   label={item.jenis_bmn}
                   count={item.total}
                   maxCount={data.asset_by_jenis[0]?.total || 1}
-                  barColor={JENIS_COLORS[item.jenis_bmn] || "bg-slate-400"}
+                  barColor="bg-emerald-500"
                   labelWidth="w-[125px]"
                   extra={<span className="text-zinc-400 font-normal text-[9px]">{formatRupiah(item.total_nilai)}</span>}
                 />
@@ -286,7 +319,7 @@ export default function BmnDashboardPage() {
         {/* Kolom 1: Top Lokasi */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[280px]">
           <div className="flex items-center gap-2 mb-3 shrink-0">
-            <MapPin className="w-4 h-4 text-violet-500" />
+            <MapPin className="w-4 h-4 text-emerald-500" />
             <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Top Lokasi Ruang</h3>
           </div>
           {data?.asset_by_lokasi && data.asset_by_lokasi.length > 0 ? (
@@ -297,7 +330,7 @@ export default function BmnDashboardPage() {
                   label={item.lokasi_ruang}
                   count={item.total}
                   maxCount={data.asset_by_lokasi[0]?.total || 1}
-                  barColor="bg-violet-500"
+                  barColor="bg-emerald-500"
                   labelWidth="w-[130px]"
                 />
               ))}
@@ -312,14 +345,14 @@ export default function BmnDashboardPage() {
         {/* Kolom 2: Aktivitas Terbaru */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[280px]">
           <div className="flex items-center gap-2 mb-3 shrink-0">
-            <Calendar className="w-4 h-4 text-violet-500" />
+            <Calendar className="w-4 h-4 text-emerald-500" />
             <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Aktivitas Terbaru</h3>
           </div>
           {data?.recent_transactions && data.recent_transactions.length > 0 ? (
             <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
               {data.recent_transactions.slice(0, 10).map((tx, i) => (
                 <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", tx.type === "loan" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600" : "bg-blue-50 dark:bg-blue-500/10 text-blue-600")}>
+                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", tx.type === "loan" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300" : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600")}>
                     {tx.type === "loan" ? <HandCoins className="w-3.5 h-3.5" /> : <Wrench className="w-3.5 h-3.5" />}
                   </div>
                   <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate flex-1">{tx.asset || "-"}</p>

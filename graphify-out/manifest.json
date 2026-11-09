@@ -2085,8 +2085,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/page.tsx": {
-    "mtime": 1794227834.62791,
-    "ast_hash": "aca1522523e1984f701c3d95e13d754c",
+    "mtime": 1794231195.553603,
+    "ast_hash": "26e93e3644af2566810c5715707f61b6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx": {
@@ -5485,8 +5485,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/BmnDashboardComponents.tsx": {
-    "mtime": 1794219754.3716393,
-    "ast_hash": "16399984d873fd58c4767f481476e15e",
+    "mtime": 1794231164.3310995,
+    "ast_hash": "6ea58d0a9051d242e0afd364d64306fe",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/KepegawaianDashboardComponents.tsx": {
@@ -6140,8 +6140,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794227882.2680066,
-    "ast_hash": "2a681cb00376b2ce6a0db196f05a05a9",
+    "mtime": 1794231244.7095456,
+    "ast_hash": "9c80961e2682b1263a113b5111c9a7ec",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
