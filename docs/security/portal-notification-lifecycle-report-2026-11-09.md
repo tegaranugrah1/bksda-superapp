@@ -2,11 +2,11 @@
 
 Tanggal: 9 November 2026. Run: `run-8`. Base source: `e0e5ef3041efe31e96f17e423f4da6e88289ca51`; hasil berlaku pada perubahan dalam commit yang memuat laporan ini. [Rencana 31 skenario](portal-notification-lifecycle-test-plan-2026-11-09.md).
 
-**Status: perbaikan source dan pengujian lokal selesai; diagnosis deployment selesai, penerapan image produksi belum dilakukan.** Seluruh 31 skenario mempunyai hasil dan bukti sesuai lapisan pada matriks di bawah. RV-01 adalah diagnosis konfigurasi/status server, bukan pernyataan produksi telah sehat. Ini regresi fungsional terfokus dengan panduan `security-audit` dan `ponytail-review`, bukan audit keamanan menyeluruh baru. Tiga lead historis audit ST/Kepegawaian tidak diubah verdict-nya oleh pengujian ini.
+**Status pengujian lokal: selesai pada f7f6b6a8. Tindak lanjut deployment sudah di-merge dan diterapkan melalui PR599/600; runtime/DNS/heartbeat/WSS lulus, uji penerimaan browser menunggu login ulang.** Lihat [laporan deployment terkini](portal-reverb-deployment-2026-11-09.md). Seluruh 31 skenario lokal mempunyai hasil dan bukti sesuai lapisan pada matriks di bawah; status diagnosis awal di matriks tidak ditafsirkan sebagai tes produksi. Ini regresi fungsional terfokus dengan panduan `security-audit` dan `ponytail-review`, bukan audit keamanan menyeluruh baru. Tiga lead historis audit ST/Kepegawaian tidak diubah verdict-nya oleh pengujian ini.
 
 ## 1. Penyebab peringatan Reverb dan lokasi aplikasi
 
-Pemeriksaan administratif read-only dilakukan setelah pengguna memberikan akses server. Tidak ada perubahan database, konfigurasi, container, restart, rebuild atau deploy pada server.
+Pada fase diagnosis awal, pemeriksaan administratif dilakukan read-only setelah pengguna memberikan akses server. Fase tersebut tidak mengubah server. Sesudahnya pengguna secara eksplisit mengotorisasi push/PR/merge/deploy dan smoke test; tindakan serta hasil fase deployment dicatat terpisah pada laporan tindak lanjut di atas.
 
 | Hal yang diperiksa | Hasil yang diamati |
 |---|---|
@@ -24,7 +24,7 @@ Pemeriksaan administratif read-only dilakukan setelah pengguna memberikan akses 
 
 Perbaikan repository menambahkan `pcntl` pada daftar ekstensi image dan menjalankan guard native `tests/Security/reverb-runtime.php` setelah autoload Composer. Guard memeriksa ekstensi, fungsi/konstanta signal dan `StartServer::getSubscribedSignals()` dari Reverb terpasang. Guard lokal dan daemon Reverb aktual lulus di sandbox. Full Docker build belum dilakukan karena membutuhkan pengambilan dependency; tidak ada paket di-install selama pengujian.
 
-**Sisa operasional yang eksplisit:** image baru harus dibangun dan deployment backend/queue/scheduler/Reverb yang memakai image itu diperbarui, lalu status stabil, resolusi alias, queue dan subscription browser diperiksa. Laporan ini tidak menyatakan error server telah hilang. Tidak ada push atau deploy dalam commit ini.
+**Sisa operasional pada penutupan lokal awal:** build/deploy dan verifikasi produksi belum dilakukan saat f7f6b6a8 dibuat. Fase itu kini dilanjutkan melalui PR599/600: image diterapkan, runtime/DNS/queue/WSS diperiksa; status browser dan batas hasil terkini ada pada laporan deployment. Bukti fixture lokal di bawah tidak dipakai untuk menggantikan hasil produksi.
 
 ## 2. Perubahan dan alasan
 
@@ -129,4 +129,4 @@ Runner biasa membatasi 1 CPU, RAM 1,5 GiB, 64 PID, scratch 128 MiB, file 16 MiB 
 
 Lingkungan lokal memakai PHP 8.4.27/PHPUnit 12.5.40 dan Node 22.23.4 dengan dependency/toolchain lokal yang tersedia. Ini bukan pembuktian kesetaraan semua versi image, TLS/ingress, frontend build env dan worker produksi. Font eksternal diganti fixture lokal; API notifikasi dan transport native tidak dimock pada E2E. Tidak ada klaim printer fisik, provider email/TTE/WhatsApp, stress/capacity, atau seluruh fitur superapp telah diaudit.
 
-Source, tes, laporan, hasil terstruktur dan progress disertakan dalam commit lokal yang sama. Tidak push/deploy dan tidak mengubah data operasional. Peringatan lama tetap riwayat; umur “6h lalu” tidak membuktikan keadaan sekarang. Hasil diagnosis baru di atas memperjelas gangguan yang diamati tanpa menghapus riwayat tersebut.
+Source, tes, laporan, hasil terstruktur dan progress awal disertakan pada commit lokal f7f6b6a8 tanpa deployment pada saat penutupan tersebut. Push/PR/merge dan deployment berikutnya diotorisasi terpisah serta dicatat pada laporan tindak lanjut. Peringatan lama tetap riwayat; umur “6h lalu” tidak membuktikan keadaan sekarang. Hasil diagnosis/deployment tidak menghapus riwayat tersebut.

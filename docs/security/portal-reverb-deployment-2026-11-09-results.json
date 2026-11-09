@@ -1,0 +1,399 @@
+{
+  "status": "deployed_server_verified_browser_login_required",
+  "date": "2026-11-09",
+  "timezone": "Asia/Singapore",
+  "main_pr": 599,
+  "main_merge": "3de2ab8a6d95c5abf395a88eca237fe6c3652b43",
+  "cache_pr": 600,
+  "cache_merge": "beccece020d9c9d92a6b4ba45fba33dfae6b6301",
+  "startup_fix": "e112ecdf74e9662e8696df48ccab79b2de3da3c2",
+  "cache_fix": "7cc01448f1cd3af9895e0448dce665ff97ed8178",
+  "deployment_method": "Existing Dokploy On Push; source merge hashes and successful rollout observed in panel and server",
+  "target_branch": "production-server",
+  "predeploy_backup": {
+    "bytes": 2662323,
+    "sha256": "afc2958ebb2eca18e3569ab94dd254d73c4fe90bf24739b8fc38175cf1bb2530",
+    "validation": "pg_restore -l successful; kept only on server; no restore"
+  },
+  "verified": {
+    "production_build": "PASS including native Reverb signal guard",
+    "reverb_runtime": "pcntl=yes SIGINT=yes; running restart_count0",
+    "reverb_stability": "same process start2026-11-09T02:40:13Z, restart0 in snapshots02:43 and02:46UTC; observed running for6minutes",
+    "dns": "PASS from backend",
+    "http_api": "200",
+    "http_portal": "200",
+    "native_ws_internal_and_public_wss": "pusher:connection_established after proxy restart, TLS verification kept",
+    "queue_heartbeat": "native queued pulse10:43:19+08 processed, backend read age53seconds at10:44:13+08; pending0 in that snapshot",
+    "shared_cache_prefix": "backend/queue/scheduler/reverb all bksda-superapp-cache-; existing backend namespace preserved",
+    "nginx_config": "stale bind-mount lacked/app; restart through Dokploy restored route and WSS",
+    "startup_check": "PASS network-none read-only parser; no reseed, fail-on-migration, four shared prefixes"
+  },
+  "browser_delivery": {
+    "status": "LOGIN_REQUIRED",
+    "observed": "public WebSocket101; private auth401 with old browser session; native current private channel count0",
+    "user_question": "Asynchronous login request sent; do not assume login based on elapsed time",
+    "canary_sent": false,
+    "production_identity_or_new_token_created": false
+  },
+  "other_observed_issue": {
+    "job": "ArchiveOfficialDocument",
+    "category": "archive_destination_write",
+    "count_at_2026_11_09T02_42_12Z": 7,
+    "subsequent_activity": "archive jobs still observed failing; live count may increase",
+    "scope": "Drive archive integration outside Reverb/notification deployment scope",
+    "failed_jobs_deleted_or_bulk_retried": false,
+    "document_payloads_or_credentials_retained": false
+  },
+  "local_regression_reference": {
+    "suite_tests": 407,
+    "assertions": 4745,
+    "passed": 404,
+    "skipped": 3,
+    "new_production_reexecution_of407": false,
+    "report": "portal-notification-lifecycle-report-2026-11-09.md"
+  },
+  "evidence_root": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-8\\deployment",
+  "evidence_index": [
+    {
+      "file": "backup-20261109T021423Z.json",
+      "mode": "backup",
+      "observed_at_utc": "2026-11-09T02:14:20.556124+00:00",
+      "bytes": 254,
+      "sha256": "1562e046809a57fc8532f594261db434f5b49fa30e0eb5502853aadcdd222907",
+      "checks": {
+        "backup": 1
+      },
+      "interpretation": "observer_setup_error_stdin_not_forwarded"
+    },
+    {
+      "file": "backup-20261109T021454Z.json",
+      "mode": "backup",
+      "observed_at_utc": "2026-11-09T02:14:52.624363+00:00",
+      "bytes": 459,
+      "sha256": "bedbc12cdae8ebdd61490c16f27b339eb09697d89ff07c96db9f32f16dcf21f7",
+      "checks": {
+        "backup": 0
+      },
+      "interpretation": "verified_backup"
+    },
+    {
+      "file": "failure-types-20261109T024044Z.json",
+      "mode": "failure-types",
+      "observed_at_utc": "2026-11-09T02:40:42.558788+00:00",
+      "bytes": 345,
+      "sha256": "0d311193be3d488169266564a59d696456392785f9e8e96e112e7be2218d6d26",
+      "checks": {
+        "failure-types": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "failure-types-20261109T024215Z.json",
+      "mode": "failure-types",
+      "observed_at_utc": "2026-11-09T02:42:12.700290+00:00",
+      "bytes": 373,
+      "sha256": "da8298e9dade1a2a55f5252f98ce946e21a169bc089e3676ba341bfa24351a14",
+      "checks": {
+        "failure-types": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "frontend-key-20261109T023245Z.json",
+      "mode": "frontend-key",
+      "observed_at_utc": "2026-11-09T02:32:43.303586+00:00",
+      "bytes": 295,
+      "sha256": "b80032588435ac3b603f2a46ceaabe55af915db8b8c6f4d2e5f1b0c564292cfe",
+      "checks": {
+        "frontend_key": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "health-20261109T022915Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T02:29:13.355221+00:00",
+      "bytes": 542,
+      "sha256": "24258cd2f7757c847829355d3651d379d6063fbd6aa8eb5731ddadd14ad9a104",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "observer_setup_error_empty_channel_array_not_application_failure"
+    },
+    {
+      "file": "health-20261109T022958Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T02:29:56.195788+00:00",
+      "bytes": 323,
+      "sha256": "f8559782ddb7143675ff72654166cd6a2532c08324e84624dc5d80e7b45ee686",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "structured_health_observation"
+    },
+    {
+      "file": "health-20261109T023857Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T02:38:55.097101+00:00",
+      "bytes": 323,
+      "sha256": "6b801c2853807087b89be5988676766b411487e61a82cccba9a0407c6fd2a49a",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "structured_health_observation"
+    },
+    {
+      "file": "health-20261109T024416Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T02:44:13.770487+00:00",
+      "bytes": 321,
+      "sha256": "a62b3649c7c7fd0ae59ee7cceacf3c103bd2ad6f4ab30b70212ce2ff4f92a353",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "structured_health_observation"
+    },
+    {
+      "file": "health-20261109T024636Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T02:46:34.064697+00:00",
+      "bytes": 321,
+      "sha256": "6dbd26054fb18a4b4dc9a70e982c53867a403688225ec976840a196667e66cc8",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "structured_health_observation"
+    },
+    {
+      "file": "heartbeat-20261109T022903Z.json",
+      "mode": "heartbeat",
+      "observed_at_utc": "2026-11-09T02:29:00.859076+00:00",
+      "bytes": 273,
+      "sha256": "1599f7fb3c5649481f70974a830f8981243ecefab93e83955e9e0bcb499d275c",
+      "checks": {
+        "heartbeat": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "heartbeat-20261109T024321Z.json",
+      "mode": "heartbeat",
+      "observed_at_utc": "2026-11-09T02:43:19.077483+00:00",
+      "bytes": 273,
+      "sha256": "dfc3c292192b7a9ad8740bd52461feee348d1197b3a77d3682c25a38a3c02113",
+      "checks": {
+        "heartbeat": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "preflight-20261109T021306Z.json",
+      "mode": "preflight",
+      "observed_at_utc": "2026-11-09T02:12:56.890090+00:00",
+      "bytes": 2669,
+      "sha256": "7bc88f429415e947e6f5692db33dc4e3ebd3c9867267d7eb8e98517e34f8765a",
+      "checks": {
+        "source_head": 0,
+        "source_dirty": 0,
+        "source_branch": 0,
+        "disk": 0,
+        "containers": 0,
+        "images": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "proxy-config-20261109T023609Z.json",
+      "mode": "proxy-config",
+      "observed_at_utc": "2026-11-09T02:36:04.626231+00:00",
+      "bytes": 685,
+      "sha256": "72b43efbaeb9f824a150e66eb0d961398f7104c7b65b015dd44a9b49081872e6",
+      "checks": {
+        "source_config_hash": 0,
+        "mounted_config_hash": 0,
+        "loaded_routes": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "proxy-config-20261109T025125Z.json",
+      "mode": "proxy-config",
+      "observed_at_utc": "2026-11-09T02:51:21.189425+00:00",
+      "bytes": 746,
+      "sha256": "0c13c27588872f821192f7ec83d34f72b8a17feb59418dffc657e1ff3af7dc23",
+      "checks": {
+        "source_config_hash": 0,
+        "mounted_config_hash": 0,
+        "loaded_routes": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "proxy-status-20261109T023349Z.json",
+      "mode": "proxy-status",
+      "observed_at_utc": "2026-11-09T02:33:47.887841+00:00",
+      "bytes": 1281,
+      "sha256": "9bf4609db0d264453cd03feb775812fbf20b3a560c69b532be8f0c6de73c8524",
+      "checks": {
+        "proxy_status": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "proxy-status-20261109T023907Z.json",
+      "mode": "proxy-status",
+      "observed_at_utc": "2026-11-09T02:39:05.029018+00:00",
+      "bytes": 1371,
+      "sha256": "5de01540feccc8be435f11fd030d625b181bd973f7cec88c895978d5abe75984",
+      "checks": {
+        "proxy_status": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "runtime-20261109T022729Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T02:27:15.981124+00:00",
+      "bytes": 2351,
+      "sha256": "340220c9026bf0b0e59ba9e0f4a0430a3f1b9c95e12216be33c1fcd85c962046",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 1,
+        "dns": 1,
+        "reverb_log": 0,
+        "signal_guard": 1,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "rollout_transition_not_final_runtime_result"
+    },
+    {
+      "file": "runtime-20261109T022846Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T02:28:32.350669+00:00",
+      "bytes": 2217,
+      "sha256": "7e0ae8124d21b3804452f98d223aa06907243c5aba5090df64dc8a06476c9b8e",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 0,
+        "dns": 0,
+        "reverb_log": 0,
+        "signal_guard": 0,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "runtime-20261109T024318Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T02:43:04.033505+00:00",
+      "bytes": 2217,
+      "sha256": "62c3f886e0e1e24efb73670fee76e8ad187a7b90e2a2fb23e5676bfdef7e470e",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 0,
+        "dns": 0,
+        "reverb_log": 0,
+        "signal_guard": 0,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "runtime-20261109T024633Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T02:46:20.912587+00:00",
+      "bytes": 2217,
+      "sha256": "2cfa1c254a4377c54c25601a0676f1aa0ab4cbfc08764c080340bbc5e4331248",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 0,
+        "dns": 0,
+        "reverb_log": 0,
+        "signal_guard": 0,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "websocket-20261109T023455Z.json",
+      "mode": "websocket",
+      "observed_at_utc": "2026-11-09T02:34:51.545781+00:00",
+      "bytes": 416,
+      "sha256": "81f0e63b26de4112b21bd0470022865432448354cdc387fc5b30c0d20b19b692",
+      "checks": {
+        "internal_ws": 0,
+        "public_wss": 1
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "websocket-20261109T023740Z.json",
+      "mode": "websocket",
+      "observed_at_utc": "2026-11-09T02:37:36.492263+00:00",
+      "bytes": 436,
+      "sha256": "7be047264952cd62529d6c8a59be0f24aa4ddbbd8fcd6c60b4cdcad08896bed3",
+      "checks": {
+        "internal_ws": 0,
+        "public_wss": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "websocket-20261109T024423Z.json",
+      "mode": "websocket",
+      "observed_at_utc": "2026-11-09T02:44:19.244704+00:00",
+      "bytes": 436,
+      "sha256": "307c9d8d2204b3153dcc9bcfcf19ac1bf819975811a4f113dcc5905c37de23ed",
+      "checks": {
+        "internal_ws": 0,
+        "public_wss": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "worker-config-20261109T023216Z.json",
+      "mode": "worker-config",
+      "observed_at_utc": "2026-11-09T02:32:08.033928+00:00",
+      "bytes": 1838,
+      "sha256": "e4708dc5837c3c9b78d82581798f429fd4a2ad15953914561a7b5f073fc8087f",
+      "checks": {
+        "backend": 0,
+        "queue": 0,
+        "scheduler": 0,
+        "worker_command": 0,
+        "worker_log": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "worker-config-20261109T024904Z.json",
+      "mode": "worker-config",
+      "observed_at_utc": "2026-11-09T02:48:54.828046+00:00",
+      "bytes": 2327,
+      "sha256": "60f19dbebac5e23ee8d9df33c846ca5b63c0e9b3390c71fdea41c718ea684033",
+      "checks": {
+        "backend": 0,
+        "queue": 0,
+        "scheduler": 0,
+        "reverb": 0,
+        "worker_command": 0,
+        "worker_log": 0
+      },
+      "interpretation": "administrative_observation_not_an_automatic_pass"
+    }
+  ],
+  "visual_proof": {
+    "file": "dokploy-containers.jpg",
+    "bytes": 171767,
+    "sha256": "9c5c7123d3929491888306b6e4af028971ed7af8c3b7e84b1cd5a1ed3bc3abee",
+    "meaning": "Dokploy Containers shows all services running; no browser-notification-delivery claim"
+  }
+}
