@@ -23,6 +23,19 @@ class EmployeeLeaveController extends Controller
         return DB::transaction(function () use ($request, $employeeId) {
             $employee = Employee::lockForLeaveUpdate($employeeId);
             abort_if($employee->trashed(), 404);
+
+            if ($employee->is_mmp) {
+                return response()->json([
+                    'data' => null,
+                    'requests' => [],
+                    'employee' => [
+                        'id' => $employee->id,
+                        'nip' => $employee->nip,
+                        'nama_lengkap' => $employee->nama_lengkap,
+                    ],
+                    'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.',
+                ]);
+            }
             $rawYear = (int) $request->input('year', date('Y'));
             $year = ($rawYear >= 2000 && $rawYear <= 2100) ? $rawYear : (int) date('Y');
             $leave = EmployeeLeave::forEmployeeYear($employeeId, $year);
@@ -51,6 +64,12 @@ class EmployeeLeaveController extends Controller
     public function store(Request $request, int $employeeId): JsonResponse
     {
         $employee = Employee::findOrFail($employeeId);
+
+        if ($employee->is_mmp) {
+            return response()->json([
+                'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.',
+            ], 422);
+        }
 
         $validated = $request->validate([
             'year' => 'required|integer|min:2000|max:2100',
@@ -110,6 +129,12 @@ class EmployeeLeaveController extends Controller
     {
         $employee = Employee::findOrFail($employeeId);
 
+        if ($employee->is_mmp) {
+            return response()->json([
+                'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'nomor_pengajuan' => 'nullable|string|max:255',
             'tanggal_pengajuan' => 'required|date',
@@ -140,7 +165,18 @@ class EmployeeLeaveController extends Controller
         DB::beginTransaction();
         try {
             $employee = Employee::lockForLeaveUpdate($employeeId);
-            $validated['jenis_cuti'] = LeaveType::forEmployee($validated['jenis_cuti'], $employee)->nama;
+            $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
+            $validated['jenis_cuti'] = $leaveTypeObj->nama;
+
+            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
             $scanFormulirPath = null;
             $scanFormulirNama = null;
             $scanSuratIzinPath = null;
@@ -226,6 +262,12 @@ class EmployeeLeaveController extends Controller
     public function updateRecord(Request $request, int $employeeId, int $requestId): JsonResponse
     {
         $employee = Employee::findOrFail($employeeId);
+
+        if ($employee->is_mmp) {
+            return response()->json([
+                'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.',
+            ], 422);
+        }
         $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->findOrFail($requestId);
 
         $validated = $request->validate([
@@ -258,7 +300,18 @@ class EmployeeLeaveController extends Controller
             $employee = Employee::lockForLeaveUpdate($employeeId);
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->lockForUpdate()->findOrFail($requestId);
             $status = strtoupper($validated['status'] ?? $leaveReq->status);
-            $validated['jenis_cuti'] = LeaveType::forEmployee($validated['jenis_cuti'], $employee)->nama;
+            $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
+            $validated['jenis_cuti'] = $leaveTypeObj->nama;
+
+            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
             $oldYear = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
             $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $newYear);
             $otherApprovedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)

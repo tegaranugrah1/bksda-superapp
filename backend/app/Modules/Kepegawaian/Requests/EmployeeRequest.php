@@ -76,6 +76,8 @@ class EmployeeRequest extends FormRequest
             $this->merge([
                 'nip' => $finalNip,
                 'pangkat_golongan' => null,
+                'nama_bank' => null,
+                'nomor_rekening' => null,
             ]);
         } elseif ($nipInput !== '') {
             $this->merge(['nip' => $nipInput]);

@@ -261,6 +261,60 @@ class Employee extends Model
     /**
      * Accessor: Cek apakah pegawai merupakan CPNS pengangkatan 2025 (NIP mengandung 202506)
      */
+    /**
+     * Tanggal mulai berhak cuti tahunan (1 tahun setelah pengangkatan dari NIP).
+     * CPNS/PNS: digit 9-14 (YYYYMM) + 1 tahun (misal 202506 -> 2026-06-01).
+     * PPPK: digit 9-12 (YYYY) + 1 tahun kalender (misal 2024 -> 2025-01-01).
+     * MMP: null (tidak ada hak cuti).
+     */
+    public function getAnnualLeaveEligibleDateAttribute(): ?Carbon
+    {
+        if ($this->is_mmp || empty($this->nip)) {
+            return null;
+        }
+
+        $cleanNip = preg_replace('/\s+/', '', (string) $this->nip);
+
+        if ($this->is_pppk) {
+            if (strlen($cleanNip) >= 12 && ctype_digit(substr($cleanNip, 8, 4))) {
+                $year = (int) substr($cleanNip, 8, 4);
+                if ($year >= 2000 && $year <= 2100) {
+                    return Carbon::create($year + 1, 1, 1)->startOfDay();
+                }
+            }
+            return null;
+        }
+
+        if (strlen($cleanNip) >= 14 && ctype_digit(substr($cleanNip, 8, 6))) {
+            $ym = substr($cleanNip, 8, 6);
+            $y = (int) substr($ym, 0, 4);
+            $m = (int) substr($ym, 4, 2);
+            if ($y >= 1950 && $y <= 2100 && $m >= 1 && $m <= 12) {
+                return Carbon::create($y, $m, 1)->addYear()->startOfDay();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Cek apakah pegawai sudah memenuhi syarat 1 tahun masa kerja untuk Cuti Tahunan
+     */
+    public function isEligibleForAnnualLeave(?Carbon $asOf = null): bool
+    {
+        if ($this->is_mmp) {
+            return false;
+        }
+
+        $eligibleDate = $this->annual_leave_eligible_date;
+        if (! $eligibleDate) {
+            return true;
+        }
+
+        $target = $asOf ? $asOf->copy()->startOfDay() : Carbon::now()->startOfDay();
+        return $target->gte($eligibleDate);
+    }
+
     public function getIsCpns2025Attribute(): bool
     {
         if (empty($this->nip)) {
@@ -333,6 +387,13 @@ class Employee extends Model
             $builder->where('nip', '!=', '198001012005011001')
                 ->where('nama_lengkap', 'NOT LIKE', '%Administrator Pusat%')
                 ->where('nama_lengkap', 'NOT LIKE', '%administrator%');
+        });
+
+        static::saving(function (Employee $employee) {
+            if ($employee->is_mmp) {
+                $employee->nama_bank = null;
+                $employee->nomor_rekening = null;
+            }
         });
     }
 

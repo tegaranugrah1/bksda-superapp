@@ -51,7 +51,7 @@ import {
   isAutoMmpJabatan,
 } from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -186,7 +186,7 @@ export default function EmployeeDetailPage() {
         return null;
       }
     },
-    enabled: !!id,
+    enabled: !!id && !isMmpEmployee(employee),
   });
 
   // Query Assignment Letters count for metric card
@@ -215,7 +215,7 @@ export default function EmployeeDetailPage() {
         return null;
       }
     },
-    enabled: !!id,
+    enabled: !!id && !isMmpEmployee(employee),
   });
 
   // Query Bank Terdaftar yang tersinkronisasi dari Pengaturan
@@ -266,8 +266,8 @@ export default function EmployeeDetailPage() {
       masa_kerja: cleanFieldValue(employee.masa_kerja) || calculateMasaKerja(employee.nip, employee.nama_lengkap),
       telepon: cleanFieldValue(employee.telepon),
       email: cleanFieldValue(employee.email),
-      nama_bank: employee.nama_bank || "BRI",
-      nomor_rekening: cleanFieldValue(employee.nomor_rekening),
+      nama_bank: detected === "MMP" ? "" : (employee.nama_bank || "BRI"),
+      nomor_rekening: detected === "MMP" ? "" : cleanFieldValue(employee.nomor_rekening),
       is_active: employee.is_active,
     });
     setIsEditing(true);
@@ -365,8 +365,8 @@ export default function EmployeeDetailPage() {
         masa_kerja: editJenis === "MMP" ? null : (editForm.masa_kerja || null),
         telepon: editForm.telepon || null,
         email: editForm.email || null,
-        nama_bank: editForm.nama_bank || null,
-        nomor_rekening: editForm.nomor_rekening || null,
+        nama_bank: editJenis === "MMP" ? null : (editForm.nama_bank || null),
+        nomor_rekening: editJenis === "MMP" ? null : (editForm.nomor_rekening || null),
         is_active: editForm.is_active,
       });
       toast.success("Biodata berhasil diperbarui.");
@@ -437,6 +437,13 @@ export default function EmployeeDetailPage() {
   }
 
   const empCategory = detectEmployeeType(employee);
+  const isMmp = isMmpEmployee(employee);
+
+  useEffect(() => {
+    if (isMmp && (activeTab === "leave" || activeTab === "meal_allowance")) {
+      setActiveTab("biodata");
+    }
+  }, [isMmp, activeTab]);
   const editPangkatOptions = editJenis === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
   const bankTheme = getBankTheme(employee.nama_bank || "BRI");
   const validTelepon = cleanFieldValue(employee.telepon);
@@ -761,6 +768,7 @@ export default function EmployeeDetailPage() {
             </div>
 
             {/* Sub-Card 2: Rekening Bank Penyalur Uang Makan */}
+            {!isMmp && (
             <div className="pt-2 pb-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -825,6 +833,7 @@ export default function EmployeeDetailPage() {
                 )}
               </div>
             </div>
+            )}
 
             {/* Quick Action Button */}
             {canWrite && !isEditing && (
@@ -892,6 +901,7 @@ export default function EmployeeDetailPage() {
             </motion.div>
 
             {/* Metric 3: Sisa Cuti PNS */}
+            {!isMmp && (
             <motion.div
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.98 }}
@@ -911,8 +921,10 @@ export default function EmployeeDetailPage() {
               </div>
               <p className="text-[10px] text-slate-500 mt-0.5 truncate">Tahun {currentYear}</p>
             </motion.div>
+            )}
 
             {/* Metric 4: Uang Makan Terakhir */}
+            {!isMmp && (
             <motion.div
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.98 }}
@@ -933,6 +945,7 @@ export default function EmployeeDetailPage() {
                 {latestAllowance?.batch?.periode_bulan || "Bulan berjalan"}
               </p>
             </motion.div>
+            )}
           </div>
 
           {/* Dynamic Tabs Navigation Bar (WRAP 2-TINGKAT, TANPA SCROLL HORIZONTAL) */}
@@ -993,6 +1006,7 @@ export default function EmployeeDetailPage() {
               </button>
 
               {/* Tab 3: Cuti Pegawai (PNS) */}
+              {!isMmp && (
               <button
                 type="button"
                 onClick={() => setActiveTab("leave")}
@@ -1023,8 +1037,10 @@ export default function EmployeeDetailPage() {
                   {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
                 </span>
               </button>
+              )}
 
               {/* Tab 4: Presensi & Uang Makan */}
+              {!isMmp && (
               <button
                 type="button"
                 onClick={() => setActiveTab("meal_allowance")}
@@ -1055,6 +1071,7 @@ export default function EmployeeDetailPage() {
                   </span>
                 )}
               </button>
+              )}
 
               {/* Tab 5: Riwayat Perubahan (Admin Only) */}
               {isAdmin && (
@@ -1101,7 +1118,9 @@ export default function EmployeeDetailPage() {
                     Identitas & Data Lengkap Pegawai
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Informasi profil resmi, unit kerja penempatan, kontak WhatsApp & Email, serta rekening bank uang makan
+                    {isMmp
+                      ? "Informasi profil resmi, unit kerja penempatan, serta kontak WhatsApp & Email"
+                      : "Informasi profil resmi, unit kerja penempatan, kontak WhatsApp & Email, serta rekening bank uang makan"}
                   </p>
                 </div>
 
@@ -1277,6 +1296,7 @@ export default function EmployeeDetailPage() {
                   </div>
 
                   {/* Bagian 3: Finansial & Rekening Uang Makan */}
+                  {!isMmp && (
                   <div>
                     <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
@@ -1330,6 +1350,7 @@ export default function EmployeeDetailPage() {
                       </div>
                     </div>
                   </div>
+                  )}
                 </div>
               ) : (
                 /* FORM EDIT BIODATA LENGKAP */
@@ -1601,6 +1622,8 @@ export default function EmployeeDetailPage() {
                     </BioField>
 
                     {/* FIELD: Bank Penyalur Uang Makan (Tersinkronisasi dari Pengaturan) */}
+                    {editJenis !== "MMP" && (
+                    <>
                     <BioField label="Bank Penyalur Uang Makan">
                       <div className="relative">
                         <select
@@ -1646,6 +1669,8 @@ export default function EmployeeDetailPage() {
                         Nomor rekening buku tabungan atas nama pegawai yang bersangkutan.
                       </p>
                     </BioField>
+                    </>
+                    )}
 
                     <BioField label="Status Keaktifan">
                       <div className="relative">
@@ -1676,14 +1701,14 @@ export default function EmployeeDetailPage() {
           )}
 
           {/* TAB 3: CUTI PEGAWAI */}
-          {activeTab === "leave" && (
+          {activeTab === "leave" && !isMmp && (
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
               <EmployeeLeaveTab employeeId={employee.id} />
             </div>
           )}
 
           {/* TAB 4: PRESENSI & UANG MAKAN */}
-          {activeTab === "meal_allowance" && (
+          {activeTab === "meal_allowance" && !isMmp && (
             <EmployeeMealAllowanceTab employee={employee} />
           )}
 

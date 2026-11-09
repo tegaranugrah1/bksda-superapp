@@ -24,6 +24,12 @@ import {
 } from "@/components/ui/dialog";
 import { EmployeeSelect, type Employee } from "@/components/ui/employee-select";
 import { api } from "@/lib/api";
+import {
+  isMmpEmployee,
+  detectEmployeeType,
+  isEligibleForAnnualLeave,
+  getAnnualLeaveEligibleDate,
+} from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
 
 interface DynamicLeaveType {
@@ -122,6 +128,33 @@ export function CatatSuratIzinModal({
 
   // Quota Data State
   const [leaveLoading, setLeaveLoading] = useState(false);
+  const isMmp = isMmpEmployee(selectedEmployee);
+  const isPppk = selectedEmployee ? detectEmployeeType(selectedEmployee) === "PPPK" : false;
+
+  const filteredLeaveTypes = useMemo(() => {
+    let list = leaveTypes;
+    if (isPppk) {
+      list = list.filter(
+        (lt) => lt.kode !== "CAP" && !lt.nama.toLowerCase().includes("alasan penting")
+      );
+    }
+    return list;
+  }, [leaveTypes, isPppk]);
+
+  const filteredDefaultOptions = useMemo(() => {
+    if (isPppk) {
+      return DEFAULT_JENIS_CUTI.filter(
+        (opt) => !opt.toLowerCase().includes("alasan penting")
+      );
+    }
+    return DEFAULT_JENIS_CUTI;
+  }, [isPppk]);
+
+  useEffect(() => {
+    if (isPppk && (form.jenis_cuti.toLowerCase().includes("alasan penting") || form.jenis_cuti === "CAP")) {
+      setForm((prev) => ({ ...prev, jenis_cuti: "Cuti Tahunan" }));
+    }
+  }, [isPppk, form.jenis_cuti]);
   const [leaveBalance, setLeaveBalance] = useState<{
     hak_cuti_n?: number;
     sisa_cuti_n1?: number;
@@ -158,7 +191,7 @@ export function CatatSuratIzinModal({
 
   // Load employee leave balance whenever selectedEmployee or leaveYear changes
   useEffect(() => {
-    if (!isOpen || !selectedEmployee?.id) {
+    if (!isOpen || !selectedEmployee?.id || isMmp) {
       setLeaveBalance(null);
       return;
     }
@@ -271,6 +304,12 @@ export function CatatSuratIzinModal({
     ? matchedLeaveType.potong_kuota_tahunan
     : form.jenis_cuti.toLowerCase().includes("tahunan");
 
+  const isEligibleTahunan = useMemo(() => {
+    if (!selectedEmployee || !isTahunan) return true;
+    const start = form.tanggal_mulai ? parseLocalDate(form.tanggal_mulai) : new Date();
+    return isEligibleForAnnualLeave(selectedEmployee, start);
+  }, [selectedEmployee, isTahunan, form.tanggal_mulai]);
+
   const projectedRemaining = calc ? calc.sisaTersedia - form.jumlah_hari : 0;
 
   const handleFileValidate = (file: File | null): boolean => {
@@ -291,6 +330,14 @@ export function CatatSuratIzinModal({
 
     if (!selectedEmployee) {
       toast.error("Pilih pegawai terlebih dahulu.");
+      return;
+    }
+    if (isMmp) {
+      toast.error("Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.");
+      return;
+    }
+    if (isTahunan && !isEligibleTahunan) {
+      toast.error("Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.");
       return;
     }
 
@@ -389,8 +436,16 @@ export function CatatSuratIzinModal({
             />
           </div>
 
+          {/* MMP Notice */}
+          {selectedEmployee && isMmp && (
+            <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 text-xs font-semibold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.</span>
+            </div>
+          )}
+
           {/* Loading Sisa Kuota Cuti */}
-          {selectedEmployee && leaveLoading && (
+          {selectedEmployee && !isMmp && leaveLoading && (
             <div className="flex items-center justify-center gap-2 p-3 rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 text-xs text-blue-600 dark:text-blue-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>Memuat sisa kuota cuti pegawai ({selectedEmployee.name})...</span>
@@ -398,7 +453,7 @@ export function CatatSuratIzinModal({
           )}
 
           {/* Interactive Employee Leave Balance Card */}
-          {selectedEmployee && !leaveLoading && calc && (
+          {selectedEmployee && !isMmp && !leaveLoading && calc && (
             <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 bg-linear-to-r from-blue-50/90 via-indigo-50/40 to-slate-50/80 dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-900/80 p-3 mt-1">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <div>
@@ -425,6 +480,12 @@ export function CatatSuratIzinModal({
               </div>
 
               {/* Live simulation of remaining balance if Cuti Tahunan */}
+              {isTahunan && !isEligibleTahunan && (
+                <div className="mb-2 p-2 rounded-lg bg-rose-50 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/40 text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>Pegawai belum memenuhi syarat 1 tahun masa kerja terhitung sejak pengangkatan untuk mengajukan Cuti Tahunan.</span>
+                </div>
+              )}
               {isTahunan && form.jumlah_hari > 0 && (
                 <div className="mt-2 pt-2 border-t border-blue-100/70 dark:border-slate-700 flex items-center justify-between text-[11px]">
                   <span className="text-slate-600 dark:text-slate-400">
@@ -446,8 +507,8 @@ export function CatatSuratIzinModal({
             </div>
           )}
 
-          {/* Form Fields (Hanya aktif/tampil jika pegawai sudah dipilih) */}
-          {selectedEmployee && (
+          {/* Form Fields (Hanya aktif/tampil jika pegawai sudah dipilih dan bukan MMP) */}
+          {selectedEmployee && !isMmp && (
             <div className="space-y-3.5">
               {/* Row 1: Nomor Surat & Tanggal Terbit */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
@@ -488,13 +549,13 @@ export function CatatSuratIzinModal({
                     onChange={(e) => handleDateChange(form.tanggal_mulai, form.tanggal_selesai, e.target.value)}
                     className="w-full mt-1 h-9 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 focus:bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
                   >
-                    {leaveTypes.length > 0
-                      ? leaveTypes.map((t) => (
+                    {filteredLeaveTypes.length > 0
+                      ? filteredLeaveTypes.map((t) => (
                           <option key={t.id} value={t.nama}>
                             {t.nama}
                           </option>
                         ))
-                      : DEFAULT_JENIS_CUTI.map((opt) => (
+                      : filteredDefaultOptions.map((opt) => (
                           <option key={opt} value={opt}>
                             {opt}
                           </option>
@@ -714,7 +775,7 @@ export function CatatSuratIzinModal({
             <Button
               type="submit"
               size="sm"
-              disabled={isSubmitting || !selectedEmployee}
+              disabled={isSubmitting || !selectedEmployee || isMmp || (isTahunan && !isEligibleTahunan)}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 shadow-xs"
             >
               {isSubmitting ? (

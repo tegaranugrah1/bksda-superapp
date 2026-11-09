@@ -90,6 +90,10 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['error' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
+        if ($employee->is_mmp) {
+            return response()->json(['message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki hak cuti kepegawaian.'], 422);
+        }
+
         return app(EmployeeLeaveController::class)->show($request, $employee->id);
     }
 
@@ -135,6 +139,10 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['error' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
+        if ($employee->is_mmp) {
+            return response()->json(['message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki hak cuti kepegawaian.'], 422);
+        }
+
         $validated = $request->validate([
             'jenis_cuti' => 'required|string|max:150',
             'alasan_cuti' => 'required|string|max:1000',
@@ -152,6 +160,15 @@ class EmployeeLeaveRequestController extends Controller
 
             $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
             $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
 
             if ($start->year !== $end->year) {
                 DB::rollBack();

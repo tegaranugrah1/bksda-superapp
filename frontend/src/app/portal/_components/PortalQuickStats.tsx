@@ -16,6 +16,7 @@ interface PortalQuickStatsProps {
   } | null;
   year?: number;
   onSelectTab?: (tab: "pinjaman" | "aset" | "surat_tugas" | "cuti") => void;
+  isMmp?: boolean;
 }
 
 const containerVariants: Variants = {
@@ -45,6 +46,7 @@ export function PortalQuickStats({
   leaveBalance,
   year,
   onSelectTab,
+  isMmp = false,
 }: PortalQuickStatsProps) {
   return (
     <motion.div
@@ -76,7 +78,7 @@ export function PortalQuickStats({
 
       {/* 2–4. INTERAKTIF STAT CARDS */}
       {([
-        {
+        ...(!isMmp ? [{
           tab: "cuti" as const,
           icon: Calendar,
           iconBoxClass:
@@ -88,7 +90,7 @@ export function PortalQuickStats({
               ? `${leaveBalance.pending_cuti_tahunan} Hari Diajukan`
               : "Cuti Tahunan Ready",
           subtitleClass: "text-[#d97706] dark:text-amber-400",
-        },
+        }] : []),
         {
           tab: "surat_tugas" as const,
           icon: FileCheck,

@@ -61,6 +61,12 @@ class LeaveType extends Model
 
     public static function forEmployee(string $value, Employee $employee): self
     {
+        if ($employee->is_mmp) {
+            throw ValidationException::withMessages([
+                'jenis_cuti' => ['Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.'],
+            ]);
+        }
+
         $type = static::where('is_active', true)->matchingNameOrCode($value)->first();
         if (! $type) {
             throw ValidationException::withMessages([

@@ -1125,3 +1125,40 @@
   - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+## 45. Penegakan Kebijakan Cuti CPNS/PPPK dan Peniadaan Cuti, Bank & Uang Makan Personil MMP — Selesai (9 November 2026)
+
+- **Kebutuhan & Hasil Klarifikasi `/grill-me`**:
+  1. **Personil MMP (Masyarakat Mitra Polhut)**:
+     - Tidak memiliki hak cuti kepegawaian (`is_mmp` tidak boleh mengajukan atau mencatat cuti, saldo cuti = 0, tab Cuti di detail pegawai disembunyikan, menu Cuti di portal pegawai disembunyikan/dinonaktifkan).
+     - Tidak memiliki rekening bank operasional kepegawaian (kartu bank dan input rekening disembunyikan dari UI detail & edit pegawai; kolom `nama_bank` dan `nomor_rekening` selalu diset `null` di level database dan model).
+     - Tidak memiliki fasilitas uang makan & presensi (tab "Presensi & Uang Makan", kartu metrik "Uang Makan", serta query riwayat uang makan disembunyikan/diblokir dari detail pegawai MMP).
+  2. **Pegawai PPPK (P3K)**:
+     - Tidak berhak atas Cuti Karena Alasan Penting (CAP) sesuai regulasi BKN. Opsi CAP otomatis disaring (difilter) dari dropdown jenis cuti di seluruh antarmuka (portal dan admin), serta divalidasi ketat di backend.
+  3. **Masa Kerja 1 Tahun CPNS & PPPK untuk Hak Cuti Tahunan**:
+     - Hak cuti tahunan (12 hari kerja) baru aktif setelah genap 1 tahun masa kerja terhitung sejak NIP/NIPPPK diangkat.
+     - **CPNS**: Digit 9–14 NIP format `YYYYMM` (misal: `199907072025061006` diangkat Juni 2025). Berhak cuti tahunan mulai 1 tahun kemudian: **1 Juni 2026**. Sebelum tanggal ini, kuota cuti tahunan = 0 dan permohonan ditolak.
+     - **PPPK**: Digit 9–12 NIP format `YYYY` dan digit 13–14 adalah `21` (misal: `199601032024212050` kontrak tahun 2024). Berhak cuti tahunan pada tahun kalender berikutnya: **1 Januari 2025**. Pada tahun pengangkatan, kuota cuti tahunan = 0.
+     - Cuti selain tahunan (seperti Cuti Sakit, Cuti Melahirkan) tetap dapat diajukan sesuai ketentuan regulasi.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Database & Model Pegawai (`Employee.php`)**:
+     - Migration `2026_11_09_140000_make_nama_bank_nullable_in_kpg_employees.php` mengubah kolom `nama_bank` menjadi `nullable()` dan membersihkan bank default personil MMP yang sebelumnya terisi otomatis.
+     - Model hook `static::saving` di `Employee.php` menjamin `nama_bank = null` dan `nomor_rekening = null` setiap kali pegawai adalah MMP.
+     - Accessor `annual_leave_eligible_date` dan helper `isEligibleForAnnualLeave(?Carbon $asOf)` pada `Employee.php` menghitung tanggal kelayakan cuti tahunan secara dinamis dari NIP.
+  2. **Model & Saldo Cuti (`EmployeeLeave.php` & `LeaveType.php`)**:
+     - `EmployeeLeave::forEmployeeYear` mengembalikan kuota 0 untuk MMP dan mengecek `annual_leave_eligible_date` untuk CPNS/PPPK (tahun berjalan 0 jika belum genap 1 tahun masa kerja; tidak ada carryover N-1 pada tahun pertama kelayakan).
+     - `LeaveType::forEmployee` memvalidasi dan memblokir permohonan jika pegawai adalah MMP, atau jika PPPK mengajukan Cuti Karena Alasan Penting.
+     - `LeaveTypeController::index` otomatis menyaring jenis cuti berdasarkan target pegawai (`employee_id` atau akun login).
+  3. **Controllers (`EmployeeLeaveRequestController.php` & `EmployeeLeaveController.php`)**:
+     - Guarding endpoint `myStore`, `myBalance`, `show`, `store`, `storeRecord`, dan `updateRecord` untuk memvalidasi syarat 1 tahun masa kerja dan menolak permohonan dari personil MMP.
+  4. **Frontend UI/UX**:
+     - `employee-helpers.ts`: Menambahkan `getAnnualLeaveEligibleDate` dan `isEligibleForAnnualLeave`.
+     - `employees/[id]/page.tsx`: Menyembunyikan Sub-Card Rekening, Card Rekening di Biodata, Metric Sisa Cuti, Metric Uang Makan, Tab Cuti, dan Tab Presensi & Uang Makan untuk personil MMP; menyembunyikan input bank di modal edit MMP.
+     - `PortalProfileSidebar.tsx` & `PortalQuickStats.tsx` & `portal/page.tsx`: Menyembunyikan tab/menu Pengajuan Cuti dan card statistik cuti jika user adalah MMP.
+     - `CatatSuratIzinModal.tsx` & `EmployeeLeaveTab.tsx`: Menampilkan banner larangan untuk MMP, menyaring jenis cuti CAP untuk PPPK, dan memvalidasi syarat 1 tahun masa kerja untuk Cuti Tahunan dengan simulasi real-time.
+  5. **Automated Verification**:
+     - Mengembangkan automated test `backend/tests/EmployeeLeaveSnapshotCheck.php` dengan pengujian menyeluruh (10 skenario) mencakup CPNS 2025, PPPK 2024, MMP bank & cuti blocking, serta aturan CAP PPPK.
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.

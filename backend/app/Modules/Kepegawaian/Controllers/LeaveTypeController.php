@@ -44,10 +44,19 @@ class LeaveTypeController extends Controller
             });
         }
 
-        // Filter out Cuti Karena Alasan Penting untuk pegawai PPPK (P3K)
-        if ($user) {
-            $employee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
-            if ($employee && $employee->is_pppk) {
+        // Filter leave types based on employee type (MMP = none, PPPK = no CAP)
+        $targetEmployee = null;
+        if ($request->filled('employee_id')) {
+            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::find($request->query('employee_id'));
+        } elseif ($user) {
+            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
+        }
+
+        if ($targetEmployee) {
+            if ($targetEmployee->is_mmp) {
+                return response()->json(['data' => []]);
+            }
+            if ($targetEmployee->is_pppk) {
                 $query->where('kode', '!=', 'CAP')
                       ->whereRaw("LOWER(nama) NOT LIKE '%alasan penting%'");
             }

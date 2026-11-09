@@ -272,6 +272,7 @@ function PortalContent() {
   }, [data?.my_assets?.length, loanViewToggled]);
 
   const employeeId = data?.employee?.id;
+  const isMmp = Boolean(data?.employee?.nip && data.employee.nip.toUpperCase().startsWith("MMP-"));
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -410,6 +411,11 @@ function PortalContent() {
   }, [printLeaveData]);
 
   const fetchMyLeaveRequests = useCallback(async () => {
+    if (isMmp) {
+      setMyLeaveRequests([]);
+      setMyLeaveBalance(null);
+      return;
+    }
     try {
       const res = await api.get("/me/leave-requests");
       const list: LeaveRequestPrintData[] = res.data.data || [];
@@ -419,7 +425,7 @@ function PortalContent() {
       const balRes = await api.get(`/me/leave-balance?year=${currentYear}`);
       setMyLeaveBalance(balRes.data.data);
     } catch (e) {}
-  }, [currentYear]);
+  }, [currentYear, isMmp]);
 
   const handleNotificationChange = useCallback((item: PortalNotificationItem) => {
     if (item.type === "surat_tugas") {
@@ -522,6 +528,12 @@ function PortalContent() {
       (r) => (r.status || "").toUpperCase() === "PENGAJUAN"
     );
   }, [myLeaveRequests]);
+
+  useEffect(() => {
+    if (isMmp && activeNavTab === "cuti") {
+      setActiveNavTab("dashboard");
+    }
+  }, [isMmp, activeNavTab]);
 
   // Smart Polling (15s saat ada pengajuan cuti pending, 60s default)
   useEffect(() => {
@@ -746,6 +758,7 @@ function PortalContent() {
                         leaveBalance={myLeaveBalance}
                         year={currentYear}
                         onSelectTab={(t) => setActiveNavTab(t)}
+                        isMmp={isMmp}
                       />
                       {moduleCards.length > 0 && (
                         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 sm:p-5 shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between">

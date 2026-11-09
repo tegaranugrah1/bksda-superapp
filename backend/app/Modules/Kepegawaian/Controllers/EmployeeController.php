@@ -650,6 +650,19 @@ class EmployeeController extends Controller
         $employee = Employee::findOrFail($id);
         $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
 
+        if ($employee->is_mmp) {
+            return response()->json([
+                'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas uang makan.',
+                'data' => [],
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $perPage,
+                    'total' => 0,
+                ],
+            ]);
+        }
+
         $items = MealAllowanceItem::with('batch')
             ->where(function ($q) use ($employee) {
                 $q->where('employee_id', $employee->id);

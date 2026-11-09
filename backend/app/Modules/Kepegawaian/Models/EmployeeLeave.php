@@ -56,19 +56,38 @@ class EmployeeLeave extends Model
         }
 
         $employee = Employee::findOrFail($employeeId);
+
+        if ($employee->is_mmp) {
+            return new static([
+                'employee_id' => $employeeId,
+                'year' => $year,
+                'hak_cuti_n' => 0,
+                'sisa_cuti_n1' => 0,
+                'cuti_terpakai_n1' => 0,
+                'sisa_cuti_n2' => 0,
+                'cuti_terpakai_n2' => 0,
+                'cuti_terpakai_n0' => 0,
+                'catatan' => 'MMP tidak memiliki hak cuti',
+            ]);
+        }
+
         $previous = static::where('employee_id', $employeeId)->where('year', $year - 1)->first();
         $previous2 = static::where('employee_id', $employeeId)->where('year', $year - 2)->first();
         $approvedDays = (int) EmployeeLeaveRequest::where('employee_id', $employeeId)
             ->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
             ->annual()->whereYear('tanggal_mulai', $year)->sum('jumlah_hari');
 
+        $eligibleDate = $employee->annual_leave_eligible_date;
+        $isEligibleInYear = ! $eligibleDate || $eligibleDate->year <= $year;
+        $isFirstYear = $eligibleDate && $eligibleDate->year === $year;
+
         return new static([
             'employee_id' => $employeeId,
             'year' => $year,
-            'hak_cuti_n' => $employee->is_cpns2025 && $year === 2025 ? 0 : 12,
-            'sisa_cuti_n1' => $employee->is_cpns2025 && $year === 2026 ? 0 : ($previous ? $previous->sisa_cuti_tersedia : 0),
+            'hak_cuti_n' => $isEligibleInYear ? 12 : 0,
+            'sisa_cuti_n1' => $isFirstYear ? 0 : ($previous ? $previous->sisa_cuti_tersedia : 0),
             'cuti_terpakai_n1' => $previous ? (int) $previous->cuti_terpakai_n0 : 0,
-            'sisa_cuti_n2' => $previous2 ? $previous2->sisa_cuti_tersedia : 0,
+            'sisa_cuti_n2' => $isFirstYear ? 0 : ($previous2 ? $previous2->sisa_cuti_tersedia : 0),
             'cuti_terpakai_n2' => $previous2 ? (int) $previous2->cuti_terpakai_n0 : 0,
             'cuti_terpakai_n0' => $approvedDays,
             'catatan' => null,
@@ -106,6 +125,9 @@ class EmployeeLeave extends Model
      */
     public function getTotalHakCutiAttribute(): int
     {
+        if ($this->employee && $this->employee->is_mmp) {
+            return 0;
+        }
         $n = $this->hak_cuti_n !== null ? (int) $this->hak_cuti_n : 12;
         return $n + $this->hak_n1_diakui + $this->hak_n2_diakui;
     }

@@ -3,6 +3,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import {
+  detectEmployeeType,
+  isEligibleForAnnualLeave,
+  isMmpEmployee,
+} from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
 import {
   Calendar,
@@ -177,7 +182,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const { data: leaveTypes = [] } = useQuery<DynamicLeaveType[]>({
     queryKey: ["leaveTypes"],
     queryFn: async () => {
-      const res = await api.get("/api/kepegawaian/leave-types");
+      const res = await api.get(`/api/kepegawaian/leave-types?employee_id=${employeeId}`);
       return res.data?.data || [];
     },
   });
@@ -342,6 +347,15 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
         throw new Error("Lintas tahun kalender tidak diperbolehkan");
       }
 
+      const isTahunanForm = selectedLeaveType
+        ? selectedLeaveType.potong_kuota_tahunan
+        : recordForm.jenis_cuti.toLowerCase().includes("tahunan");
+      const startDate = recordForm.tanggal_mulai ? parseLocalDate(recordForm.tanggal_mulai) : new Date();
+      if (isTahunanForm && apiResponse?.employee?.nip && !isEligibleForAnnualLeave({ nip: apiResponse.employee.nip }, startDate)) {
+        toast.error("Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja sejak pengangkatan.");
+        throw new Error("Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan.");
+      }
+
       const formData = new FormData();
       formData.append("nomor_pengajuan", recordForm.nomor_pengajuan);
       formData.append("tanggal_pengajuan", recordForm.tanggal_pengajuan);
@@ -380,6 +394,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
     onError: (err: unknown) => {
       let msg = "Gagal menyimpan penetapan cuti.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
       if (isAxiosError<{ message?: string }>(err)) {
         msg = err.response?.data?.message || msg;
       }
@@ -521,16 +538,31 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     }
   };
 
+  const isPppk = useMemo(() => {
+    return apiResponse?.employee?.nip
+      ? detectEmployeeType({ nip: apiResponse.employee.nip }) === "PPPK"
+      : false;
+  }, [apiResponse?.employee?.nip]);
+
   const availableLeaveTypeNames = useMemo(() => {
-    if (leaveTypes.length > 0) {
-      const names = leaveTypes.map((lt) => lt.nama);
+    let list = leaveTypes;
+    if (isPppk) {
+      list = list.filter(
+        (lt) => lt.kode !== "CAP" && !lt.nama.toLowerCase().includes("alasan penting")
+      );
+    }
+    if (list.length > 0) {
+      const names = list.map((lt) => lt.nama);
       if (recordForm.jenis_cuti && !names.includes(recordForm.jenis_cuti)) {
         names.push(recordForm.jenis_cuti);
       }
       return names;
     }
-    return JENIS_CUTI_OPTIONS;
-  }, [leaveTypes, recordForm.jenis_cuti]);
+    const defaultOptions = isPppk
+      ? JENIS_CUTI_OPTIONS.filter((opt) => !opt.toLowerCase().includes("alasan penting"))
+      : JENIS_CUTI_OPTIONS;
+    return defaultOptions;
+  }, [leaveTypes, recordForm.jenis_cuti, isPppk]);
 
   const selectedLeaveType = leaveTypes.find(
     (lt) => lt.nama.toLowerCase() === recordForm.jenis_cuti.toLowerCase()
