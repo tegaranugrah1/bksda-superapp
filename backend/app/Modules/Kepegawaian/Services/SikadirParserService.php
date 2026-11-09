@@ -6,6 +6,11 @@ use DOMDocument;
 use DOMXPath;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Shared\File;
+use PhpOffice\PhpSpreadsheet\Writer\Html;
 use ZipArchive;
 
 class SikadirParserService
@@ -27,9 +32,10 @@ class SikadirParserService
             return $this->parseZipArchive($filePath);
         }
 
-        // 2. File tunggal .xls / .html
-        $content = file_get_contents($filePath);
-        $parsed = $this->parseHtmlContent($content, $originalName);
+        // .xls exports contain HTML; real .xlsx workbooks use the installed native reader.
+        $parsed = $ext === 'xlsx'
+            ? $this->parseWorkbook($filePath, $originalName)
+            : $this->parseHtmlContent(file_get_contents($filePath), $originalName);
 
         return $parsed ? [$parsed] : [];
     }
@@ -49,14 +55,102 @@ class SikadirParserService
             $parsedList = $this->parse($file);
             foreach ($parsedList as $item) {
                 $cleanNip = $item['clean_nip'] ?? '';
-                if ($cleanNip && !isset($seenNips[$cleanNip])) {
-                    $seenNips[$cleanNip] = true;
+                $key = $cleanNip.'|'.($item['periode_bulan'] ?? '');
+                if ($cleanNip && !isset($seenNips[$key])) {
+                    $seenNips[$key] = true;
                     $allParsed[] = $item;
                 }
             }
         }
 
         return $allParsed;
+    }
+
+    private function parseWorkbook(string $path, string $filename): ?array
+    {
+        $archive = new ZipArchive;
+        if ($archive->open($path) !== true) {
+            throw ValidationException::withMessages(['files' => 'Berkas XLSX tidak valid.']);
+        }
+        try {
+            $expanded = 0;
+            for ($i = 0; $i < $archive->numFiles; $i++) {
+                $expanded += $archive->statIndex($i)['size'];
+                if ($archive->numFiles > 200 || $expanded > 20 * 1024 * 1024) {
+                    throw ValidationException::withMessages(['files' => 'Workbook melebihi batas 200 entri atau 20 MiB data.']);
+                }
+            }
+            // Native reader metadata can undercount sparse cells and omits column ranges.
+            // Resolve worksheet parts from relationships before allocating spreadsheet cells.
+            for ($i = 0; $i < $archive->numFiles; $i++) {
+                $name = $archive->getNameIndex($i);
+                if (!str_ends_with(strtolower($name), '.rels')) continue;
+                $relations = $this->workbookXml($archive->getFromIndex($i));
+                foreach ($relations->getElementsByTagNameNS('*', 'Relationship') as $relation) {
+                    if (!str_ends_with($relation->getAttribute('Type'), '/worksheet')) continue;
+                    $target = $relation->getAttribute('Target');
+                    $part = ltrim(File::realpath(str_starts_with($target, '/') ? $target : dirname(dirname($name)).'/'.$target), '/');
+                    $xml = $archive->getFromName($part, 0, ZipArchive::FL_NOCASE);
+                    if ($xml === false) throw ValidationException::withMessages(['files' => 'Workbook XLSX tidak dapat dibaca.']);
+                    $sheet = $this->workbookXml($xml);
+                    foreach ($sheet->getElementsByTagNameNS('*', 'row') as $row) {
+                        if ((int) $row->getAttribute('r') > 500) $this->rejectWorkbookDimensions();
+                    }
+                    foreach ($sheet->getElementsByTagNameNS('*', 'c') as $cell) {
+                        $reference = $cell->getAttribute('r');
+                        if (!preg_match('/^[A-Z]{1,3}[1-9][0-9]*$/', $reference)) $this->rejectWorkbookDimensions();
+                        [$column, $row] = Coordinate::indexesFromString($reference);
+                        if ($column > 32 || $row > 500) $this->rejectWorkbookDimensions();
+                    }
+                    foreach ($sheet->getElementsByTagNameNS('*', 'col') as $column) {
+                        $min = (int) $column->getAttribute('min');
+                        $max = (int) $column->getAttribute('max');
+                        if ($min < 1 || $max < $min || $max > 32) $this->rejectWorkbookDimensions();
+                    }
+                }
+            }
+        } finally {
+            $archive->close();
+        }
+        $workbook = null;
+        try {
+            $reader = new Xlsx;
+            $reader->setReadDataOnly(true);
+            $names = $reader->listWorksheetNames($path);
+            $reader->setLoadSheetsOnly($names[0] ?? '');
+            $info = $reader->listWorksheetInfo($path)[0] ?? [];
+            if (($info['totalRows'] ?? 0) > 500 || ($info['totalColumns'] ?? 0) > 32) {
+                throw ValidationException::withMessages(['files' => 'Lembar presensi melebihi batas 500 baris atau 32 kolom.']);
+            }
+            $workbook = $reader->load($path);
+            $writer = new Html($workbook);
+            $writer->setSheetIndex(0)->setPreCalculateFormulas(false);
+            return $this->parseHtmlContent($writer->generateSheetData(), $filename);
+        } catch (\PhpOffice\PhpSpreadsheet\Exception $exception) {
+            throw ValidationException::withMessages(['files' => 'Workbook XLSX tidak dapat dibaca.']);
+        } finally {
+            $workbook?->disconnectWorksheets();
+        }
+    }
+
+    private function workbookXml(string $xml): DOMDocument
+    {
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $document = new DOMDocument;
+            if (trim($xml) === '' || !$document->loadXML($xml, LIBXML_NONET) || $document->doctype) {
+                throw ValidationException::withMessages(['files' => 'Workbook XLSX tidak dapat dibaca.']);
+            }
+            return $document;
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+    }
+
+    private function rejectWorkbookDimensions(): never
+    {
+        throw ValidationException::withMessages(['files' => 'Lembar presensi melebihi batas 500 baris atau 32 kolom.']);
     }
 
     /**
@@ -200,6 +294,13 @@ class SikadirParserService
 
             if ($date && $dateColIdx !== null) {
                 $dayNum = (int) substr($date, 0, 2);
+                $month = (int) substr($date, 3, 2);
+                $year = (int) substr($date, 6, 4);
+                $recordPeriod = sprintf('%04d-%02d', $year, $month);
+                if (!checkdate($month, $dayNum, $year) || ($periodeBulan && $recordPeriod !== $periodeBulan) || isset($dailyRecords[$dayNum])) {
+                    throw ValidationException::withMessages(['files' => 'Tanggal presensi tidak valid, berulang, atau berbeda dari periode berkas '.$filename.'.']);
+                }
+                $periodeBulan ??= $recordPeriod;
                 $hariKerja = $cells[$dateColIdx + 1] ?? '';
                 $jamMasuk = $cells[$dateColIdx + 2] ?? '';
                 $jamPulang = $cells[$dateColIdx + 3] ?? '';
@@ -241,22 +342,8 @@ class SikadirParserService
             }
         }
 
-        // Fallback deteksi periode bulan dari baris tanggal absensi harian (format dd/mm/yyyy)
-        if (!$periodeBulan && !empty($dailyRecords)) {
-            $monthNames = [
-                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-                '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-                '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember',
-            ];
-            foreach ($dailyRecords as $rec) {
-                if (!empty($rec['date_dmy']) && preg_match('/^\d{2}\/(\d{2})\/(\d{4})$/', $rec['date_dmy'], $dm)) {
-                    $periodeBulan = "{$dm[2]}-{$dm[1]}";
-                    if (!$bulanText) {
-                        $bulanText = ($monthNames[$dm[1]] ?? $dm[1]) . " " . $dm[2];
-                    }
-                    break;
-                }
-            }
+        if (!$bulanText && $periodeBulan) {
+            $bulanText = Carbon::createFromFormat('!Y-m', $periodeBulan)->locale('id')->translatedFormat('F Y');
         }
 
         return [

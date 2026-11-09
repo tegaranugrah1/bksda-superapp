@@ -5,6 +5,7 @@ namespace App\Modules\SuratTugas\Services;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AssignmentLetterConflictService
 {
@@ -24,6 +25,11 @@ class AssignmentLetterConflictService
         ?string $excludeLetterId = null,
         bool $canViewDetails = false
     ): array {
+        if ($defaultTanggalMulai && $defaultTanggalSelesai) {
+            Validator::make(['tanggal_mulai' => $defaultTanggalMulai, 'tanggal_selesai' => $defaultTanggalSelesai], [
+                'tanggal_mulai' => 'date', 'tanggal_selesai' => 'date|after_or_equal:tanggal_mulai',
+            ])->validate();
+        }
         if (empty($employees)) {
             return ['has_conflict' => false, 'conflicts' => []];
         }
@@ -43,6 +49,10 @@ class AssignmentLetterConflictService
             $selesai = (is_array($item) && !empty($item['tanggal_selesai'])) ? $item['tanggal_selesai'] : ($defaultTanggalSelesai ?: $mulai);
 
             if ($mulai) {
+                Validator::make(['employees' => [$empId => ['tanggal_mulai' => $mulai, 'tanggal_selesai' => $selesai]]], [
+                    'employees.*.tanggal_mulai' => 'required|date',
+                    'employees.*.tanggal_selesai' => 'required|date|after_or_equal:employees.*.tanggal_mulai',
+                ])->validate();
                 $normalizedList[$empId] = [
                     'id' => $empId,
                     'mulai' => substr((string) $mulai, 0, 10),
@@ -97,9 +107,6 @@ class AssignmentLetterConflictService
                     ? $this->formatDateHuman($existingMulai)
                     : $this->formatDateHuman($existingMulai) . ' s/d ' . $this->formatDateHuman($existingSelesai);
 
-                $noSurat = $st->nomor_surat ?: 'Tanpa Nomor';
-                $statusUpper = strtoupper($st->status);
-
                 $conflicts[] = [
                     'employee_id' => $empId,
                     'employee_name' => $empName,
@@ -139,7 +146,6 @@ class AssignmentLetterConflictService
                     ? $this->formatDateHuman($leaveMulai)
                     : $this->formatDateHuman($leaveMulai) . ' s/d ' . $this->formatDateHuman($leaveSelesai);
 
-                $jenisCuti = $leave->jenis_cuti ?: 'Cuti';
 
                 $conflicts[] = [
                     'employee_id' => $empId,

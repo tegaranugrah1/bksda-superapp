@@ -54,7 +54,8 @@ export class SuperAppClient {
 
   constructor() {
     const baseURL = process.env.SUPERAPP_API_URL || 'http://192.168.100.203';
-    const internalKey = process.env.SUPERAPP_INTERNAL_KEY || 'bksda-hermes-agent-secure-token-2026';
+    const internalKey = process.env.SUPERAPP_INTERNAL_KEY;
+    if (!internalKey) throw new Error('SUPERAPP_INTERNAL_KEY must be configured.');
 
     this.api = axios.create({
       baseURL: `${baseURL}/api/agent/v1`,
@@ -74,15 +75,6 @@ export class SuperAppClient {
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message;
       return { success: false, message: msg };
-    }
-  }
-
-  async linkPhone(nip: string, phone: string): Promise<{ success: boolean; data?: EmployeeInfo; message?: string }> {
-    try {
-      const res = await this.api.post('/auth/link-phone', { nip, phone });
-      return { success: true, data: res.data.data, message: res.data.message };
-    } catch (err: any) {
-      return { success: false, message: err.response?.data?.message || err.message };
     }
   }
 

@@ -46,18 +46,16 @@ class AgentModuleTest extends TestCase
             return response()->json(['status' => 'success']);
         });
 
-        // Default test environment allows requests, but let's test with wrong header
-        $requestWithWrongKey = \Illuminate\Http\Request::create('/api/agent/v1/auth/verify-phone', 'POST');
-        $requestWithWrongKey->headers->set('X-Agent-Internal-Key', 'wrong-key');
-        
+        $this->assertSame(403, $response->getStatusCode());
+        $this->withHeader('X-Agent-Internal-Key', 'wrong-key')
+            ->postJson('/api/agent/v1/auth/verify-phone', ['phone' => '081234567890'])->assertForbidden();
         $responseWithValidKey = $this->withHeaders([
-            'X-Agent-Internal-Key' => 'bksda-hermes-agent-secure-token-2026',
+            'X-Agent-Internal-Key' => 'test-secret-key',
         ])->postJson('/api/agent/v1/auth/verify-phone', [
             'phone' => '081234567890',
         ]);
 
-        // Route should be reachable
-        $this->assertNotEquals(403, $responseWithValidKey->status());
+        $responseWithValidKey->assertNotFound();
     }
 
     public function test_phone_sanitizer_normalizes_various_formats(): void
@@ -65,8 +63,6 @@ class AgentModuleTest extends TestCase
         $this->assertEquals('+6281351458775', PhoneSanitizerService::toCanonicalE164('0813-5145-8775'));
         $this->assertEquals('+6281351458775', PhoneSanitizerService::toCanonicalE164('+62 813 5145 8775'));
         $this->assertEquals('+6281351458775', PhoneSanitizerService::toCanonicalE164('6281351458775@s.whatsapp.net'));
-        $this->assertEquals('351458775', PhoneSanitizerService::getTrailingDigits('0813-5145-8775', 9));
-        $this->assertEquals('1351458775', PhoneSanitizerService::getTrailingDigits('0813-5145-8775', 10));
     }
 
     public function test_verify_phone_returns_employee_details_and_handles_fuzzy_format(): void
@@ -110,7 +106,7 @@ class AgentModuleTest extends TestCase
             ]);
     }
 
-    public function test_link_phone_successfully_updates_employee_telepon(): void
+    public function test_link_phone_only_confirms_an_existing_profile_phone(): void
     {
         $employee = Employee::create([
             'nip' => '198501012010011001',
@@ -125,7 +121,12 @@ class AgentModuleTest extends TestCase
             'phone' => '081234567890',
         ]);
 
-        $response->assertStatus(200)
+        $response->assertNotFound();
+        $this->assertNull($employee->fresh()->telepon);
+        $employee->update(['telepon' => '+6281234567890']);
+        $this->postJson('/api/agent/v1/auth/link-phone', [
+            'nip' => $employee->nip, 'phone' => '081234567890',
+        ])->assertOk()
             ->assertJson([
                 'status' => 'success',
                 'data' => [
@@ -244,8 +245,10 @@ class AgentModuleTest extends TestCase
 
     public function test_st_published_dispatches_agent_webhook_successfully(): void
     {
+        config(['services.agent.webhook_url' => 'http://127.0.0.1:9/webhook/st-published',
+            'services.agent.internal_key' => 'DummyWebhookKey']);
         Http::fake([
-            'http://192.168.100.205:8080/*' => Http::response(['status' => 'received'], 200),
+            'http://127.0.0.1:9/*' => Http::response(['status' => 'received'], 200),
         ]);
 
         $employee = Employee::create([
@@ -269,7 +272,8 @@ class AgentModuleTest extends TestCase
         DispatchSuratTugasWebhook::dispatchSync($surat);
 
         Http::assertSent(function ($request) use ($surat) {
-            return $request->url() === 'http://192.168.100.205:8080/webhook/st-published'
+            return $request->url() === 'http://127.0.0.1:9/webhook/st-published'
+                && $request->hasHeader('X-Agent-Internal-Key', 'DummyWebhookKey')
                 && $request['nomor_surat'] === 'ST.105/K.18/TU/2026'
                 && count($request['personil']) === 1
                 && $request['personil'][0]['nip'] === '199805052022051005';

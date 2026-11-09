@@ -559,7 +559,7 @@ class AssignmentLetterController extends Controller
 
             return response()->json([
                 'message' => 'Pengajuan Surat Tugas berhasil direkam.',
-                'data' => $surat,
+                'data' => $isPublicSubmit ? $surat->only(['id', 'status', 'created_by', 'approved_by']) : $surat,
             ], 201);
 
         } catch (\Throwable $e) {
@@ -609,16 +609,11 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk merubah Surat Tugas ini.'], 403);
         }
 
-        if (! $isAdmin && in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
-            return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.'], 403);
-        }
-
         DB::beginTransaction();
         try {
             $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
-            if (! $isAdmin && in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'], true)) {
-                abort(403, 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.');
-            }
+            abort_unless($this->authorizeAccess($surat, $request), 403, 'Anda tidak memiliki otorisasi untuk merubah Surat Tugas ini.');
+            $this->authorizeOfficialRevision($surat, $user);
 
             $employees = array_key_exists('employees', $validated)
                 ? ($validated['employees'] ?? [])
@@ -709,13 +704,14 @@ class AssignmentLetterController extends Controller
         $cleanStatus = strtolower($request->status);
         $surat = DB::transaction(function () use ($cleanId, $cleanStatus, $request, $user) {
             $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            $this->authorizeOfficialRevision($surat, $user);
             $employees = $this->existingEmployees($surat);
             $updateData = ['status' => $cleanStatus];
             if ($request->has('nomor_surat')) {
                 $updateData['nomor_surat'] = $request->input('nomor_surat');
             }
             $this->validatePublication($surat, $updateData, $employees);
-            if (in_array($cleanStatus, ['approved', 'completed'], true)) {
+            if (in_array($cleanStatus, ['pending', 'approved', 'completed'], true)) {
                 $this->lockEmployeesForScheduling($employees);
                 $conflictCheck = $this->conflictService->checkConflicts(
                     $employees, $surat->tanggal_mulai?->format('Y-m-d'), $surat->tanggal_selesai?->format('Y-m-d'),
@@ -727,7 +723,9 @@ class AssignmentLetterController extends Controller
                         'conflicts' => $conflictCheck['conflicts'],
                     ], 422);
                 }
-                $updateData['approved_by'] = (int) $user->id;
+                if (in_array($cleanStatus, AssignmentLetter::OFFICIAL_STATUSES, true)) {
+                    $updateData['approved_by'] = (int) $user->id;
+                }
             }
             $surat->update($updateData);
 
@@ -776,26 +774,22 @@ class AssignmentLetterController extends Controller
         if (! Str::isUuid($cleanId) && ! ctype_digit((string) $cleanId) && ! is_numeric($cleanId)) {
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
-        $surat = AssignmentLetter::findOrFail($cleanId);
-
         $user = $request->user();
         if (! $user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
-        $isCreator = (int) $surat->created_by === (int) $user->id;
-
-        if (! $isAdmin) {
-            if (! $isCreator) {
-                return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk menghapus Surat Tugas ini.'], 403);
+        $surat = DB::transaction(function () use ($cleanId, $user) {
+            $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            if (! in_array($user->role, ['admin', 'super_admin'], true)) {
+                abort_unless((int) $surat->created_by === (int) $user->id, 403,
+                    'Anda tidak memiliki otorisasi untuk menghapus Surat Tugas ini.');
+                abort_if(in_array(strtolower((string) $surat->status), AssignmentLetter::OFFICIAL_STATUSES, true), 403,
+                    'Dokumen Surat Tugas yang telah disetujui hanya dapat dihapus atau diarsipkan oleh Administrator.');
             }
-            if (in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
-                return response()->json(['message' => 'Dokumen Surat Tugas yang telah disetujui hanya dapat dihapus atau diarsipkan oleh Administrator.'], 403);
-            }
-        }
-
-        $surat->delete();
+            $surat->delete();
+            return $surat;
+        });
 
         try {
             event(new \App\Events\AdminInboxChanged('surat_tugas', 'deleted', (string) $surat->id));
@@ -826,7 +820,12 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk memulihkan Surat Tugas ini.'], 403);
         }
 
-        $surat->restore();
+        DB::transaction(function () use ($cleanId, $request) {
+            $surat = AssignmentLetter::onlyTrashed()->lockForUpdate()->findOrFail($cleanId);
+            abort_unless(in_array($request->user()->role, ['admin', 'super_admin'], true)
+                || (int) $surat->created_by === (int) $request->user()->id, 403);
+            $this->restoreScheduledLetters(collect([$surat]), $request);
+        });
 
         try {
             event(new \App\Events\AdminInboxChanged('surat_tugas', 'restored', (string) $surat->id));
@@ -925,11 +924,33 @@ class AssignmentLetterController extends Controller
             if (! $isAdmin) {
                 $query->where('created_by', $user->id);
             }
-            $count = $query->restore();
+            $count = DB::transaction(function () use ($query, $request) {
+                return $this->restoreScheduledLetters($query->orderBy('id')->lockForUpdate()->get(), $request);
+            });
             return response()->json(['message' => $count . ' dokumen berhasil dipulihkan.']);
         }
 
         return response()->json(['message' => '0 dokumen berhasil dipulihkan.']);
+    }
+
+    private function restoreScheduledLetters($letters, Request $request): int
+    {
+        $employeesByLetter = $letters->mapWithKeys(fn ($letter) => [$letter->id => $this->existingEmployees($letter)]);
+        $this->lockEmployeesForScheduling($employeesByLetter->flatten(1)->all());
+        foreach ($letters as $letter) {
+            $employees = $employeesByLetter[$letter->id];
+            $this->validatePublication($letter, [], $employees);
+            if (in_array(strtolower((string) $letter->status), ['pending', ...AssignmentLetter::OFFICIAL_STATUSES], true)) {
+                $conflict = $this->conflictService->checkConflicts($employees,
+                    $letter->tanggal_mulai?->format('Y-m-d'), $letter->tanggal_selesai?->format('Y-m-d'),
+                    $letter->id, $this->canViewConflictDetails($request->user()));
+                if ($conflict['has_conflict']) {
+                    throw ValidationException::withMessages(['employees' => 'Dokumen tidak dapat dipulihkan karena jadwal personel berbenturan dengan penugasan atau cuti aktif.']);
+                }
+            }
+            $letter->restore();
+        }
+        return $letters->count();
     }
 
     public function bulkForceDestroy(Request $request)
@@ -1102,6 +1123,7 @@ class AssignmentLetterController extends Controller
         DB::beginTransaction();
         try {
             $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
+            $this->authorizeOfficialRevision($surat, $user);
             if (! array_key_exists('employees', $validated) && array_key_exists('employee_ids', $validated)) {
                 $validated['employees'] = array_map(fn ($id) => ['id' => $id], $validated['employee_ids'] ?? []);
             }
@@ -1184,7 +1206,8 @@ class AssignmentLetterController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            if ($e instanceof ValidationException || $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+            if ($e instanceof ValidationException || $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException
+                || $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 throw $e;
             }
 
@@ -1268,9 +1291,16 @@ class AssignmentLetterController extends Controller
         return $data;
     }
 
+    private function authorizeOfficialRevision(AssignmentLetter $surat, \App\Models\User $user): void
+    {
+        abort_if(! in_array($user->role, ['admin', 'super_admin'], true)
+            && in_array(strtolower((string) $surat->status), AssignmentLetter::OFFICIAL_STATUSES, true),
+            403, 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.');
+    }
+
     private function validatePublication(?AssignmentLetter $surat, array $changes, array $employees): void
     {
-        $officialStatuses = ['approved', 'completed', 'published', 'diterbitkan'];
+        $officialStatuses = AssignmentLetter::OFFICIAL_STATUSES;
         $status = strtolower((string) ($changes['status'] ?? $surat?->status));
         if (in_array(strtolower((string) $surat?->status), $officialStatuses, true) && ! in_array($status, $officialStatuses, true)) {
             throw ValidationException::withMessages(['status' => 'Surat Tugas yang sudah diterbitkan tidak dapat dikembalikan ke status sebelum penerbitan tanpa pencabutan resmi.']);

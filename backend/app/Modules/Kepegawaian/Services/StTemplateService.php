@@ -83,17 +83,19 @@ class StTemplateService
             throw new \DomainException('Template nonaktif tidak dapat dijadikan default.');
         }
 
-        StTemplate::query()->where('id', '!=', $template->id)->update([
-            'is_default' => false,
-            'updated_by' => $userId,
-        ]);
+        return DB::transaction(function () use ($template, $userId): StTemplate {
+            StTemplate::query()->where('id', '!=', $template->id)->update([
+                'is_default' => false,
+                'updated_by' => $userId,
+            ]);
 
-        $template->update([
-            'is_default' => true,
-            'updated_by' => $userId,
-        ]);
+            $template->update([
+                'is_default' => true,
+                'updated_by' => $userId,
+            ]);
 
-        return $template->fresh('defaultSigner');
+            return $template->fresh('defaultSigner');
+        });
     }
 
     public function toggleActive(StTemplate $template, bool $active, int $userId): StTemplate

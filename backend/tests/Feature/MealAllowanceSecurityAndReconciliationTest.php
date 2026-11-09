@@ -243,6 +243,7 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
             'days_in_month' => 30,
             'items' => [
                 [
+                    'employee_id' => $this->employeeSyafey->id,
                     'nip' => '200009222024211004',
                     'nama' => 'Achmad Syafey N',
                     'jabatan' => 'Polhut Terampil',
@@ -278,6 +279,7 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
 
         $this->assertDatabaseHas('kpg_meal_allowance_items', [
             'batch_id' => $batchId,
+            'employee_id' => $this->employeeSyafey->id,
             'nip' => '200009222024211004',
             'jml_hadir' => 2,
         ]);

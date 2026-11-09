@@ -64,6 +64,8 @@ export function DokumenDasarDrawer({
 
     let active = true;
     let localBlobUrl: string | null = null;
+    setDataUrl(null);
+    setBlobUrl(null);
     setIsLoading(true);
     setResolvedFileName(fileName || null);
 
@@ -237,6 +239,8 @@ export function DokumenDasarDrawer({
                 />
               ) : (
                 <div className="w-full h-full overflow-auto flex items-center justify-center p-3">
+                  {/* Native blob/data preview; the object URL belongs to this browser session. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={blobUrl || dataUrl || undefined}
                     alt="Pratinjau Dokumen Dasar"

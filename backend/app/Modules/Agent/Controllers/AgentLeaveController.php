@@ -31,16 +31,14 @@ class AgentLeaveController extends Controller
 
         $year = (int) Carbon::now()->format('Y');
 
-        $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->first();
+        $leaveBalance = EmployeeLeave::forEmployeeYear($employee->id, $year);
 
-        $hakN = $leaveBalance && $leaveBalance->hak_cuti_n !== null ? (int) $leaveBalance->hak_cuti_n : 12;
-        $cutiTerpakai = $leaveBalance ? (int) $leaveBalance->cuti_terpakai_n0 : 0;
+        $hakN = (int) ($leaveBalance->hak_cuti_n ?? 12);
+        $cutiTerpakai = (int) $leaveBalance->cuti_terpakai_n0;
         $sisaN0 = max(0, $hakN - $cutiTerpakai);
-        $sisaN1 = $leaveBalance ? (int) $leaveBalance->hak_n1_diakui : 0;
-        $sisaN2 = $leaveBalance ? (int) $leaveBalance->hak_n2_diakui : 0;
-        $totalTersedia = $leaveBalance ? (int) $leaveBalance->sisa_cuti_tersedia : $sisaN0;
+        $sisaN1 = (int) $leaveBalance->hak_n1_diakui;
+        $sisaN2 = (int) $leaveBalance->hak_n2_diakui;
+        $totalTersedia = (int) $leaveBalance->sisa_cuti_tersedia;
 
         $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
             ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
@@ -141,18 +139,18 @@ class AgentLeaveController extends Controller
         }
 
         $jenisCuti = $validated['jenis_cuti'] ?? 'Cuti Tahunan';
-        $leaveType = LeaveType::where('nama', $jenisCuti)->first();
-        if (!$leaveType) {
-            $leaveType = LeaveType::where('nama', 'LIKE', '%Tahunan%')->first()
-                ?? LeaveType::first();
-        }
-
-        $jumlahHari = $start->diffInDays($end) + 1;
         $year = $start->year;
 
         // 3. Pessimistic Lock & Transaksi Pembuatan Cuti
-        return DB::transaction(function () use ($employee, $validated, $leaveType, $jenisCuti, $start, $end, $jumlahHari, $year, $idempotencyKey) {
-            Employee::lockForLeaveUpdate($employee->id);
+        return DB::transaction(function () use ($employee, $validated, $jenisCuti, $start, $end, $year, $idempotencyKey) {
+            $employee = Employee::lockForLeaveUpdate($employee->id);
+            abort_unless($employee->is_active, 404, 'Pegawai tidak aktif.');
+            $leaveType = LeaveType::forEmployee($jenisCuti, $employee);
+            $jumlahHari = $leaveType->countDays($start, $end);
+            if ($year < 2000 || $year > 2100 || $jumlahHari < 1 || $jumlahHari > 365
+                || ($leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['tanggal_selesai' => 'Durasi cuti tidak sesuai batas jenis cuti atau tahun pengajuan.']);
+            }
 
             // Validasi overlap jadwal cuti aktif
             $overlap = EmployeeLeaveRequest::where('employee_id', $employee->id)
@@ -174,14 +172,12 @@ class AgentLeaveController extends Controller
             }
 
             // Validasi kuota jika cuti tahunan
-            $leaveBalance = EmployeeLeave::where('employee_id', $employee->id)
-                ->where('year', $year)
-                ->first();
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employee->id, $year);
 
-            $sisaN0 = $leaveBalance ? max(0, ((int) ($leaveBalance->hak_cuti_n !== null ? $leaveBalance->hak_cuti_n : 12)) - (int) $leaveBalance->cuti_terpakai_n0) : 12;
-            $sisaN1 = $leaveBalance ? $leaveBalance->hak_n1_diakui : 0;
-            $sisaN2 = $leaveBalance ? $leaveBalance->hak_n2_diakui : 0;
-            $totalQuota = $leaveBalance ? $leaveBalance->sisa_cuti_tersedia : 12;
+            $sisaN0 = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - (int) $leaveBalance->cuti_terpakai_n0);
+            $sisaN1 = $leaveBalance->hak_n1_diakui;
+            $sisaN2 = $leaveBalance->hak_n2_diakui;
+            $totalQuota = $leaveBalance->sisa_cuti_tersedia;
 
             $pendingDays = (int) EmployeeLeaveRequest::where('employee_id', $employee->id)
                 ->whereIn('status', ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'])
@@ -203,7 +199,7 @@ class AgentLeaveController extends Controller
                 'employee_id' => $employee->id,
                 'nomor_pengajuan' => null,
                 'tanggal_pengajuan' => Carbon::now()->format('Y-m-d'),
-                'jenis_cuti' => $leaveType?->name ?? $jenisCuti,
+                'jenis_cuti' => $leaveType->nama,
                 'alasan_cuti' => strip_tags(trim($validated['alasan_cuti'])),
                 'jumlah_hari' => $jumlahHari,
                 'tanggal_mulai' => $validated['tanggal_mulai'],

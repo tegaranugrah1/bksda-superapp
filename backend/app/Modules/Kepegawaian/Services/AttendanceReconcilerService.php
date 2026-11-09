@@ -3,6 +3,7 @@
 namespace App\Modules\Kepegawaian\Services;
 
 use App\Modules\Kepegawaian\Models\Employee;
+use App\Modules\SuratTugas\Models\AssignmentLetter;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -99,27 +100,24 @@ class AttendanceReconcilerService
             $stId = null;
 
             if ($matchingSt) {
-                $stStatus = strtolower(trim($matchingSt->status ?? ''));
                 $stNomor = $matchingSt->nomor_surat ?? 'Surat Tugas';
                 $stId = $matchingSt->id ?? null;
 
-                if (in_array($stStatus, ['approved', 'terbit'])) {
-                    $finalStatus = 'PD';
-                    if ($statusSikadir === 'H') {
-                        $isOverridden = true;
-                        $overrideReason = "Override otomatis dari Hadir (SIKADIR) ke PD karena memiliki Surat Tugas No. {$stNomor}";
-                        $overrideLogs[] = [
-                            'day' => $day,
-                            'date' => $dateYmd,
-                            'from' => 'H',
-                            'to' => 'PD',
-                            'reason' => $overrideReason,
-                            'st_id' => $stId,
-                            'st_nomor' => $stNomor,
-                            'by' => 'system_reconciliation',
-                            'timestamp' => Carbon::now()->toIso8601String(),
-                        ];
-                    }
+                $finalStatus = 'PD';
+                if ($statusSikadir === 'H') {
+                    $isOverridden = true;
+                    $overrideReason = "Override otomatis dari Hadir (SIKADIR) ke PD karena memiliki Surat Tugas No. {$stNomor}";
+                    $overrideLogs[] = [
+                        'day' => $day,
+                        'date' => $dateYmd,
+                        'from' => 'H',
+                        'to' => 'PD',
+                        'reason' => $overrideReason,
+                        'st_id' => $stId,
+                        'st_nomor' => $stNomor,
+                        'by' => 'system_reconciliation',
+                        'timestamp' => Carbon::now()->toIso8601String(),
+                    ];
                 }
             }
 
@@ -256,6 +254,8 @@ class AttendanceReconcilerService
                 DB::raw("COALESCE(st_emp.tanggal_selesai, st.tanggal_selesai) as tgl_selesai")
             )
             ->whereNull('st.deleted_at')
+            // Keep the historical terbit alias while sharing the current official lifecycle.
+            ->whereIn(DB::raw('LOWER(TRIM(st.status))'), [...AssignmentLetter::OFFICIAL_STATUSES, 'terbit'])
             ->where(function ($dateQ) use ($startOfMonth, $endOfMonth) {
                 $dateQ->whereBetween(DB::raw("COALESCE(st_emp.tanggal_mulai, st.tanggal_mulai)"), [$startOfMonth, $endOfMonth])
                     ->orWhereBetween(DB::raw("COALESCE(st_emp.tanggal_selesai, st.tanggal_selesai)"), [$startOfMonth, $endOfMonth])

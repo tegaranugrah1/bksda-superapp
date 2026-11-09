@@ -1,0 +1,466 @@
+{
+  "base_commit": "fc610d1dd81c5cad74feba71ac182a6825750ad6",
+  "run": "run-7",
+  "scope": "SuratTugas/Kepegawaian and used integrations",
+  "date": "2026-11-09",
+  "hash_kind": "raw working tree bytes before Git EOL normalization",
+  "self_excluded": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-manifest.json",
+  "files": [
+    {
+      "path": "backend/app/Modules/Agent/Controllers/AgentAuthController.php",
+      "state": "present",
+      "bytes": 2810,
+      "worktree_sha256": "579223425f8bb557c089073af3ebeeaff6c146635b8d59055143e8f80b61f0a3"
+    },
+    {
+      "path": "backend/app/Modules/Agent/Controllers/AgentLeaveController.php",
+      "state": "present",
+      "bytes": 10862,
+      "worktree_sha256": "7a3ad2fbf27841f686b96dd6a703b702022ac1f720af0942cff086bfcce7d03c"
+    },
+    {
+      "path": "backend/app/Modules/Agent/Jobs/DispatchSuratTugasWebhook.php",
+      "state": "present",
+      "bytes": 2143,
+      "worktree_sha256": "92e9dd4ea3c9c438cb3a65308209ef66478cd8b69e6ee592174ac0c6134d541f"
+    },
+    {
+      "path": "backend/app/Modules/Agent/Middleware/RestrictAgentClientIp.php",
+      "state": "present",
+      "bytes": 1423,
+      "worktree_sha256": "7ce0e5ebd42cb43f411de23f7e7d3effa4a7152ab7bf2ef65154245eb6fa61d3"
+    },
+    {
+      "path": "backend/app/Modules/Agent/Services/PhoneSanitizerService.php",
+      "state": "present",
+      "bytes": 2113,
+      "worktree_sha256": "ada866bb3926660fec9d2333d77af85b00845629bfc173c1da051d55be4066b0"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Controllers/EmployeeAccessController.php",
+      "state": "present",
+      "bytes": 7376,
+      "worktree_sha256": "237d7c85e9ef8d8d3b9c03be04b41afe751bbd515b1638d048c0eb6d7106446a"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php",
+      "state": "present",
+      "bytes": 33735,
+      "worktree_sha256": "e04106a332ab42950cd978aaaf2c6937eb2a723719dcb03e9de802939251e3a0"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
+      "state": "present",
+      "bytes": 60204,
+      "worktree_sha256": "0a9876353e79938f62c94b8990401a695bd54bb5f871c2bd6c48d5f7051c338e"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php",
+      "state": "present",
+      "bytes": 33602,
+      "worktree_sha256": "545b7852106824ad4b2d2e9485ca0b4e7574eed6372cc0b6a8231a11bbde9125"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Controllers/StTaskTypeController.php",
+      "state": "present",
+      "bytes": 5966,
+      "worktree_sha256": "692b90c1f800f7ca31bb8d29faa21befb82469a6bb7778ce9284703d02988dff"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Models/Employee.php",
+      "state": "present",
+      "bytes": 13961,
+      "worktree_sha256": "6595c67dfd2da5e3254b9977edeef8566021074d00e390b1b3a5d9c8dee28267"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Models/LeaveType.php",
+      "state": "present",
+      "bytes": 2527,
+      "worktree_sha256": "d822495a629e3a5dbab434c5b456b9802c8f4818b77c8de3a4577364a8fc4977"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Models/StExpenseTemplate.php",
+      "state": "present",
+      "bytes": 1212,
+      "worktree_sha256": "d5454647861af8b50186590563b00a0b50c4d57803554e15cc19c57ffcef2c11"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Requests/EmployeeAccessRequest.php",
+      "state": "present",
+      "bytes": 1602,
+      "worktree_sha256": "5e97f29559310776274762c1e3e9998a11bd9e831ebe5ca48775288d563d89ce"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Requests/StoreStExpenseTemplateRequest.php",
+      "state": "present",
+      "bytes": 935,
+      "worktree_sha256": "41fcceee9b4f48dc5a4b91a7e9c48f7b0525265aeacbd87eb946aa7266a1ecb3"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Requests/StoreStTemplateRequest.php",
+      "state": "present",
+      "bytes": 3740,
+      "worktree_sha256": "acaf27a5aee5fda78023fe2963d488c960b79f7aef5f3b4f1ff9069f74e527e5"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Requests/UpdateStExpenseTemplateRequest.php",
+      "state": "present",
+      "bytes": 1006,
+      "worktree_sha256": "4d49e90464c2da2cfd329895027348bf7fd25e3000e025ae89e384d6a0da1901"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Requests/UpdateStTemplateRequest.php",
+      "state": "present",
+      "bytes": 647,
+      "worktree_sha256": "cfe2d6abf044a758f97834b51ace8ad986162c5ae52021eb6b4a6d67e627ac4c"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Services/AdaptiveTariffResolver.php",
+      "state": "present",
+      "bytes": 6836,
+      "worktree_sha256": "deac66a4682eba591c60a1ccb14e254b88bb0bf918762ce88d323d7fe2df70d0"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Services/AttendanceReconcilerService.php",
+      "state": "present",
+      "bytes": 14386,
+      "worktree_sha256": "8b543350207163dec273f5b2e9fb7cbbc2d3b963e00f60e509db5cc1d4558b30"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php",
+      "state": "present",
+      "bytes": 22961,
+      "worktree_sha256": "60cf5f0180a3afe2e4a46dbcbd2f09741387adfd9823407710a4da4779298840"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php",
+      "state": "present",
+      "bytes": 16327,
+      "worktree_sha256": "ca0da8df26d7fe9adbea4923ea0261340835b52ee9aece4991fb25c22e85e2af"
+    },
+    {
+      "path": "backend/app/Modules/Kepegawaian/Services/StTemplateService.php",
+      "state": "present",
+      "bytes": 8568,
+      "worktree_sha256": "353d2ece946eac87edc9296221710fe134293d3f8c9e97330c61e1d410f5c430"
+    },
+    {
+      "path": "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php",
+      "state": "present",
+      "bytes": 67247,
+      "worktree_sha256": "da1acdd70783830fb8f00cbe847f5e1bd0495c8eeeef899970d0975f6b5f3151"
+    },
+    {
+      "path": "backend/app/Modules/SuratTugas/Models/AssignmentLetter.php",
+      "state": "present",
+      "bytes": 4309,
+      "worktree_sha256": "3217bdf64e85b6ce17a8d5b339a0400619750283ab1f8ecf12446053da13638f"
+    },
+    {
+      "path": "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php",
+      "state": "present",
+      "bytes": 8932,
+      "worktree_sha256": "61fc40d70e111fc2fdd0d43e6266c8415534eb618f50b38cf5889c74fbad2f6a"
+    },
+    {
+      "path": "backend/app/Modules/SuratTugas/Requests/PublicSuratTugasRequest.php",
+      "state": "deleted",
+      "bytes": 0,
+      "worktree_sha256": null
+    },
+    {
+      "path": "backend/app/Modules/SuratTugas/Services/AssignmentLetterConflictService.php",
+      "state": "present",
+      "bytes": 8310,
+      "worktree_sha256": "0f6a51c5a30e759f1d7defd55f797cf87ef0414f9fe65b518a35ca9080c9d52a"
+    },
+    {
+      "path": "backend/config/services.php",
+      "state": "present",
+      "bytes": 1391,
+      "worktree_sha256": "3c92a51a598a7ecd2520bc9af1f3820b06f211af47a1d91094bafcfc96b524ef"
+    },
+    {
+      "path": "backend/tests/Feature/AgentModuleTest.php",
+      "state": "present",
+      "bytes": 10120,
+      "worktree_sha256": "6558f4e363cdadbb8af6cc865c1291c3d6b8d2a55d676a2053cc340575b02eed"
+    },
+    {
+      "path": "backend/tests/Feature/EmployeeAccessLifecycleTest.php",
+      "state": "present",
+      "bytes": 3676,
+      "worktree_sha256": "5347d46901ad0908868ddc2a60ec427a614602cc09ede75c54151636fc3db1f0"
+    },
+    {
+      "path": "backend/tests/Feature/KepegawaianCatalogContractTest.php",
+      "state": "present",
+      "bytes": 4357,
+      "worktree_sha256": "164cd023a638c0d391f1a336909d5da9df3030e920a1ba8c7cb7f9d336259763"
+    },
+    {
+      "path": "backend/tests/Feature/KepegawaianSecurityAuditTest.php",
+      "state": "present",
+      "bytes": 8433,
+      "worktree_sha256": "c4a877909e7b9843b5bedee1f3b1e699eb0e0b7d060e0d6149ace63dd0203cff"
+    },
+    {
+      "path": "backend/tests/Feature/MealAllowanceContractRegressionTest.php",
+      "state": "present",
+      "bytes": 5374,
+      "worktree_sha256": "f710b10ba002c4f0257eb0280ebbf28252b12900a3c27f74f89efac251730f8f"
+    },
+    {
+      "path": "backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php",
+      "state": "present",
+      "bytes": 27437,
+      "worktree_sha256": "546dde6d855a36810b7d14accf73fe1225393f33d2ee9dfd02e73570fe84b76b"
+    },
+    {
+      "path": "backend/tests/Feature/StActorAcceptanceTest.php",
+      "state": "present",
+      "bytes": 13972,
+      "worktree_sha256": "60411e8cc1211fbf1d26ffc81d6ded396b7e3b5ad9b1079782c18099a3928a88"
+    },
+    {
+      "path": "backend/tests/Feature/StKepegawaianNotificationQueueTest.php",
+      "state": "present",
+      "bytes": 3163,
+      "worktree_sha256": "b4ced6f2f464d2b5358e2ffaa7e14d38c29c2dc19637020a02d58fb0dc01a36f"
+    },
+    {
+      "path": "backend/tests/Feature/StKepegawaianSecurityClosureTest.php",
+      "state": "present",
+      "bytes": 24816,
+      "worktree_sha256": "592dd87c3f2bbf18dcb1aa0cd3d48d4d061e7f7c7850c8fe0d1dbd2682d0254d"
+    },
+    {
+      "path": "backend/tests/Feature/StLifecycleAcceptanceTest.php",
+      "state": "present",
+      "bytes": 14198,
+      "worktree_sha256": "e4844c4a705a511db8c72cb04cab3b622029274ce1ede60df69383a1825cd7df"
+    },
+    {
+      "path": "backend/tests/Feature/Wave3SikadirNativeParserTest.php",
+      "state": "present",
+      "bytes": 9236,
+      "worktree_sha256": "5b1c74cf3d342f2e96167fe3bf84a24e8c32f96cbf6297fe24bc1f2161709a0f"
+    },
+    {
+      "path": "backend/tests/Security/assistant-native-seed.php",
+      "state": "present",
+      "bytes": 568,
+      "worktree_sha256": "3eaa5cb2fd24097132fd59086a0824b8cfe0522a0edadb5f159bb45ecdeac1a2"
+    },
+    {
+      "path": "backend/tests/Security/assistant-native-supervisor.py",
+      "state": "present",
+      "bytes": 3162,
+      "worktree_sha256": "f2f595e5e36713884f42dc381c9084381d84cce9e77bd3fb5fd296a60d06a65e"
+    },
+    {
+      "path": "backend/tests/Security/st-concurrency.php",
+      "state": "present",
+      "bytes": 17562,
+      "worktree_sha256": "25d4a8caa9334ece69f5fea56de5fd0c54148040bc4f39b0f5fd62628f921813"
+    },
+    {
+      "path": "backend/tests/Security/st-delete-race.php",
+      "state": "present",
+      "bytes": 16923,
+      "worktree_sha256": "de5f7a0ad5a90b0101b61a79ea48b082e46eb2562bfefd175a85fe94d76f7d0d"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-coverage.json",
+      "state": "present",
+      "bytes": 619369,
+      "worktree_sha256": "18126a1754ed6879f6be37fdbdaed67e6e9d1cdc3b0cc7f1a642e1b7d7592066"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-execution-index.json",
+      "state": "present",
+      "bytes": 34830,
+      "worktree_sha256": "71520ad34083af38b9a88819ed22aee92fe89b42679cee41956e4b930b613039"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-findings-detail.md",
+      "state": "present",
+      "bytes": 179210,
+      "worktree_sha256": "8c46330325e7b70f14f004bfce04c6d442a66b691ef50ca11885d00c992ee0bf"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-findings.json",
+      "state": "present",
+      "bytes": 283960,
+      "worktree_sha256": "337fccb8ee4eac847f35696fac9336fd93438523589e54d3069ce0310d565710"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-needs-validation.md",
+      "state": "present",
+      "bytes": 25201,
+      "worktree_sha256": "bc763613ed548ec02a02550dba8fdcb6e33419ebaf0ba67ff27bf6240c0ea665"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-prior-reconciliation.json",
+      "state": "present",
+      "bytes": 38685,
+      "worktree_sha256": "89c53153f7148bb990c33a6dbb88561309e5fab560705e464edf2665a16a2909"
+    },
+    {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09.md",
+      "state": "present",
+      "bytes": 247741,
+      "worktree_sha256": "f2fe3e35a9b49b5958f42258894592f78ff6c4c9d387b7796e480c03c12eb70a"
+    },
+    {
+      "path": "docs/security/surat-tugas-security-pentest-2026-10-31.md",
+      "state": "present",
+      "bytes": 14338,
+      "worktree_sha256": "1a7e9e9d8b530bdb11c79a7fd4f4157c2b95def01c337172b5811e109802b83d"
+    },
+    {
+      "path": "docs/security/surat-tugas-security-pentest-plan.md",
+      "state": "present",
+      "bytes": 27826,
+      "worktree_sha256": "d268675dcd7aa847b41e100dc9eb5824c8cc8b98089f97ee15d9b7d2f320369d"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx",
+      "state": "present",
+      "bytes": 16046,
+      "worktree_sha256": "60bd9f7c880a0bcb632d9ccbda1a2453ac36740cee1a7cc60d5b363d8b5cb22c"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/employees/page.tsx",
+      "state": "present",
+      "bytes": 35439,
+      "worktree_sha256": "62dcf4ad4ede51947e31d534c584c4349e957d969f7900daa37e1a137502a838"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-masuk/page.tsx",
+      "state": "present",
+      "bytes": 85637,
+      "worktree_sha256": "acf9b9a572fe7b3c6a347627e7df4daf81b80184ea96cac00f4825553b0ac6a4"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-tugas/_components/DokumenDasarDrawer.tsx",
+      "state": "present",
+      "bytes": 10928,
+      "worktree_sha256": "b77b12780f77c07584632566067d11434314cdeb2f004b8a686c814a6f058908"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx",
+      "state": "present",
+      "bytes": 194440,
+      "worktree_sha256": "9ee4ee3ebc3e0b486d6b860730dd9fb8bb6d8c6db5fc1fdf10bd4a2c223ffe4e"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-tugas/_lib/export-st.ts",
+      "state": "present",
+      "bytes": 15154,
+      "worktree_sha256": "1b54f8eeadffb0dde378dadd20e944d71218dd6d0ab2b395a9d6d698a744046f"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-tugas/_lib/untuk-helpers.ts",
+      "state": "present",
+      "bytes": 6421,
+      "worktree_sha256": "0aac63cc57b4db4d4110ba3fcc49e6028996bf0eb773fd6e6d507d0b97a11949"
+    },
+    {
+      "path": "frontend/src/app/kepegawaian/surat-tugas/history/_components/AssignmentHistoryTab.tsx",
+      "state": "deleted",
+      "bytes": 0,
+      "worktree_sha256": null
+    },
+    {
+      "path": "frontend/src/components/SuratTugasLetterPreview.tsx",
+      "state": "present",
+      "bytes": 27934,
+      "worktree_sha256": "fd7bee7e7acc6ca0253d23e540e0888905b5e8f1586114cb557d801b0d741f6a"
+    },
+    {
+      "path": "frontend/tests/kpg-flow.actual-app.cjs",
+      "state": "present",
+      "bytes": 31882,
+      "worktree_sha256": "56c869d8463954956dc4eff395cf221cb6af750082a8eef6c3cbdc1aeb33166b"
+    },
+    {
+      "path": "frontend/tests/kpg-identity.actual-app.cjs",
+      "state": "present",
+      "bytes": 8326,
+      "worktree_sha256": "7353897b274fc5fe9a2cd69756bfa5d773afe0b9cc0353ca663d96cee643e700"
+    },
+    {
+      "path": "frontend/tests/st-legacy-items.cjs",
+      "state": "present",
+      "bytes": 1674,
+      "worktree_sha256": "774a43e019ffa0b5346a12d8bd9b14af23fbe85268486efa5ce8c90aefa51798"
+    },
+    {
+      "path": "frontend/tests/st-public-snapshot.actual-app.cjs",
+      "state": "present",
+      "bytes": 11401,
+      "worktree_sha256": "987eb4d5cf286bcd21ced49ad69bd62ba81b79ac61455b78403d358135a337a9"
+    },
+    {
+      "path": "frontend/tests/surat-tugas-flow.playwright.cjs",
+      "state": "present",
+      "bytes": 29151,
+      "worktree_sha256": "ff551824a2eb78c1ade818390cb754fdd30db4b9f6538981e7dbf00a6f3eccab"
+    },
+    {
+      "path": "hermes-agent/.env.example",
+      "state": "present",
+      "bytes": 882,
+      "worktree_sha256": "5ff46e48e87539237261bbd8985d51d22bef44547cad2a41c8bfc08e75e77e7e"
+    },
+    {
+      "path": "hermes-agent/assistant/src/conversation/stateMachine.ts",
+      "state": "present",
+      "bytes": 12619,
+      "worktree_sha256": "a0aa44b926177d46300ecfb484ba8f3b208e329ab5d23074fff24088bf06bd4c"
+    },
+    {
+      "path": "hermes-agent/assistant/src/gateway/evolution.ts",
+      "state": "present",
+      "bytes": 3203,
+      "worktree_sha256": "c7afedbea215399d2f4c66538c4f834fb7fe1a4aed537416bf6d7962ebf699fa"
+    },
+    {
+      "path": "hermes-agent/assistant/src/index.ts",
+      "state": "present",
+      "bytes": 12168,
+      "worktree_sha256": "b03f4cd8b341594266cc3ee8f0b555926c05d6e0fbd6423fac12b54c93b4344b"
+    },
+    {
+      "path": "hermes-agent/assistant/src/superapp/client.ts",
+      "state": "present",
+      "bytes": 3632,
+      "worktree_sha256": "94b7ba01aa2000b9f0bfd7b7273630dc0b93d05e13298d220edda8836b46ec87"
+    },
+    {
+      "path": "hermes-agent/assistant/tests/native-boundary.cjs",
+      "state": "present",
+      "bytes": 13062,
+      "worktree_sha256": "3a76a6364e52aa61957df6aad761a8aa158fd6c02dba681c1273b7c859aaef04"
+    },
+    {
+      "path": "hermes-agent/assistant/tests/security-boundary.cjs",
+      "state": "present",
+      "bytes": 28915,
+      "worktree_sha256": "c615ddef2cb72d88e0fa295500ce3a64ad61f293ea240ef85bb83a52d9891194"
+    },
+    {
+      "path": "hermes-agent/docker-compose.yml",
+      "state": "present",
+      "bytes": 2918,
+      "worktree_sha256": "ed45f6a765dc88a420fce54e6010c8fa40b02af98a81b7a63ece7680747890a5"
+    },
+    {
+      "path": "progress.md",
+      "state": "present",
+      "bytes": 114233,
+      "worktree_sha256": "aa8e91f9fb0ddbc87384413b9452808d283868cd1803603b437d3b86ff729e74"
+    }
+  ]
+}

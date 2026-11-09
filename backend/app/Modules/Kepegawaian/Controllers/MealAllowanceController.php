@@ -185,24 +185,7 @@ class MealAllowanceController extends Controller
             $input['nama_batch'] = $input['title'];
         }
         if (isset($input['items']) && is_array($input['items'])) {
-            foreach ($input['items'] as &$it) {
-                if (empty($it['nama_lengkap']) && !empty($it['nama'])) $it['nama_lengkap'] = $it['nama'];
-                if (!isset($it['tarif_harian']) && isset($it['tarif'])) $it['tarif_harian'] = $it['tarif'];
-                if (!isset($it['persen_pph21']) && isset($it['pph_rate'])) $it['persen_pph21'] = $it['pph_rate'];
-                if (!isset($it['jml_hadir']) && isset($it['total_hadir'])) $it['jml_hadir'] = $it['total_hadir'];
-                if (!isset($it['jml_pd']) && isset($it['total_pd'])) $it['jml_pd'] = $it['total_pd'];
-                if (!isset($it['jml_cuti']) && isset($it['total_cuti'])) $it['jml_cuti'] = $it['total_cuti'];
-                if (!isset($it['jml_sakit']) && isset($it['total_sakit'])) $it['jml_sakit'] = $it['total_sakit'];
-                if (!isset($it['jml_izin']) && isset($it['total_izin'])) $it['jml_izin'] = $it['total_izin'];
-                if (!isset($it['jml_alpa']) && isset($it['total_alpa'])) $it['jml_alpa'] = $it['total_alpa'];
-                if (!isset($it['uang_makan_bruto']) && isset($it['total_bruto'])) $it['uang_makan_bruto'] = $it['total_bruto'];
-                if (!isset($it['potongan_pph21']) && isset($it['total_pph'])) $it['potongan_pph21'] = $it['total_pph'];
-                if (!isset($it['uang_makan_netto']) && isset($it['total_netto'])) $it['uang_makan_netto'] = $it['total_netto'];
-                if (!isset($it['jml_hari_kerja'])) $it['jml_hari_kerja'] = $it['total_working_days'] ?? 22;
-                if (!isset($it['nama_bank']) && isset($it['bank'])) $it['nama_bank'] = $it['bank'];
-                if (!isset($it['nomor_rekening']) && isset($it['rekening'])) $it['nomor_rekening'] = $it['rekening'];
-            }
-            unset($it);
+            $input['items'] = $this->normalizeItems($input['items']);
         }
         $request->merge($input);
 
@@ -213,6 +196,7 @@ class MealAllowanceController extends Controller
             'penandatangan_nip' => 'nullable|string|max:50',
             'penandatangan_jabatan' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',
+            'items.*.employee_id' => 'nullable|integer|exists:kpg_employees,id',
             'items.*.nip' => 'required|string',
             'items.*.nama_lengkap' => 'required|string|max:255',
             'items.*.jabatan' => 'nullable|string|max:255',
@@ -397,24 +381,7 @@ class MealAllowanceController extends Controller
             $periode = sprintf('%04d-%02d', (int)$request->input('year'), (int)$request->input('month'));
         }
 
-        foreach ($items as &$it) {
-            if (empty($it['nama_lengkap']) && !empty($it['nama'])) $it['nama_lengkap'] = $it['nama'];
-            if (!isset($it['tarif_harian']) && isset($it['tarif'])) $it['tarif_harian'] = $it['tarif'];
-            if (!isset($it['persen_pph21']) && isset($it['pph_rate'])) $it['persen_pph21'] = $it['pph_rate'];
-            if (!isset($it['jml_hadir']) && isset($it['total_hadir'])) $it['jml_hadir'] = $it['total_hadir'];
-            if (!isset($it['jml_pd']) && isset($it['total_pd'])) $it['jml_pd'] = $it['total_pd'];
-            if (!isset($it['jml_cuti']) && isset($it['total_cuti'])) $it['jml_cuti'] = $it['total_cuti'];
-            if (!isset($it['jml_sakit']) && isset($it['total_sakit'])) $it['jml_sakit'] = $it['total_sakit'];
-            if (!isset($it['jml_izin']) && isset($it['total_izin'])) $it['jml_izin'] = $it['total_izin'];
-            if (!isset($it['jml_alpa']) && isset($it['total_alpa'])) $it['jml_alpa'] = $it['total_alpa'];
-            if (!isset($it['uang_makan_bruto']) && isset($it['total_bruto'])) $it['uang_makan_bruto'] = $it['total_bruto'];
-            if (!isset($it['potongan_pph21']) && isset($it['total_pph'])) $it['potongan_pph21'] = $it['total_pph'];
-            if (!isset($it['uang_makan_netto']) && isset($it['total_netto'])) $it['uang_makan_netto'] = $it['total_netto'];
-            if (!isset($it['jml_hari_kerja'])) $it['jml_hari_kerja'] = $it['total_working_days'] ?? 22;
-            if (!isset($it['nama_bank']) && isset($it['bank'])) $it['nama_bank'] = $it['bank'];
-            if (!isset($it['nomor_rekening']) && isset($it['rekening'])) $it['nomor_rekening'] = $it['rekening'];
-        }
-        unset($it);
+        $items = $this->normalizeItems($items);
 
         $periode = $periode ?: Carbon::now()->format('Y-m');
         $spreadsheet = $this->excelExport->generate($items, $periode, $signatory);
@@ -656,8 +623,13 @@ class MealAllowanceController extends Controller
         }
 
         DB::transaction(function () use ($ids, $updateData, $request) {
-            $employees = Employee::whereIn('id', $ids)->get();
+            $employees = Employee::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
             $userId = $request->user()?->id;
+            if ($request->user()?->role !== 'super_admin') {
+                abort_if(\App\Models\User::withTrashed()->where('role', 'super_admin')
+                    ->whereIn('username', $employees->pluck('nip'))->exists(), 403,
+                    'Hanya Super Admin yang dapat mengubah data pegawai Super Admin.');
+            }
 
             foreach ($employees as $emp) {
                 $changes = [];
@@ -813,4 +785,27 @@ class MealAllowanceController extends Controller
             'message' => "Bank {$cleanBank} berhasil dihapus dari pengaturan alokasi rekening.",
         ]);
     }
+    private function normalizeItems(array $items): array
+    {
+        foreach ($items as &$it) {
+            if (empty($it['nama_lengkap']) && !empty($it['nama'])) $it['nama_lengkap'] = $it['nama'];
+            if (!isset($it['tarif_harian']) && isset($it['tarif'])) $it['tarif_harian'] = $it['tarif'];
+            if (!isset($it['persen_pph21']) && isset($it['pph_rate'])) $it['persen_pph21'] = $it['pph_rate'];
+            if (!isset($it['jml_hadir']) && isset($it['total_hadir'])) $it['jml_hadir'] = $it['total_hadir'];
+            if (!isset($it['jml_pd']) && isset($it['total_pd'])) $it['jml_pd'] = $it['total_pd'];
+            if (!isset($it['jml_cuti']) && isset($it['total_cuti'])) $it['jml_cuti'] = $it['total_cuti'];
+            if (!isset($it['jml_sakit']) && isset($it['total_sakit'])) $it['jml_sakit'] = $it['total_sakit'];
+            if (!isset($it['jml_izin']) && isset($it['total_izin'])) $it['jml_izin'] = $it['total_izin'];
+            if (!isset($it['jml_alpa']) && isset($it['total_alpa'])) $it['jml_alpa'] = $it['total_alpa'];
+            if (!isset($it['uang_makan_bruto']) && isset($it['total_bruto'])) $it['uang_makan_bruto'] = $it['total_bruto'];
+            if (!isset($it['potongan_pph21']) && isset($it['total_pph'])) $it['potongan_pph21'] = $it['total_pph'];
+            if (!isset($it['uang_makan_netto']) && isset($it['total_netto'])) $it['uang_makan_netto'] = $it['total_netto'];
+            if (!isset($it['jml_hari_kerja'])) $it['jml_hari_kerja'] = $it['total_working_days'] ?? 22;
+            if (!isset($it['nama_bank']) && isset($it['bank'])) $it['nama_bank'] = $it['bank'];
+            if (!isset($it['nomor_rekening']) && isset($it['rekening'])) $it['nomor_rekening'] = $it['rekening'];
+        }
+        unset($it);
+        return $items;
+    }
+
 }

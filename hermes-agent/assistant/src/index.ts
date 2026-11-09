@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import dotenv from 'dotenv';
 import { ConversationStateMachine } from './conversation/stateMachine';
 import { EvolutionGateway } from './gateway/evolution';
@@ -13,6 +14,20 @@ app.use(express.json());
 const stateMachine = new ConversationStateMachine();
 const gateway = new EvolutionGateway();
 
+function requireServiceKey(variable: string, header: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const expected = process.env[variable];
+    if (!expected) return res.status(503).json({ error: 'Webhook authentication is not configured.' });
+    const provided = req.get(header);
+    const secret = Buffer.from(expected);
+    const candidate = Buffer.from(provided || '');
+    if (candidate.length !== secret.length || !timingSafeEqual(candidate, secret)) {
+      return res.status(403).json({ error: 'Invalid webhook credential.' });
+    }
+    next();
+  };
+}
+
 // Healthcheck
 app.get('/health', async (req: Request, res: Response) => {
   const waState = await gateway.getConnectionStatus();
@@ -24,14 +39,29 @@ app.get('/health', async (req: Request, res: Response) => {
   });
 });
 
+// Pairing belongs to an operator, independently of webhook producer authority.
+function requireOperator(req: Request, res: Response, next: NextFunction) {
+  res.set('Cache-Control', 'no-store');
+  const password = process.env.ASSISTANT_ADMIN_PASSWORD;
+  if (!password) return res.status(503).json({ error: 'Operator authentication is not configured.' });
+  const authorization = req.get('Authorization') || '';
+  const candidate = Buffer.from(/^Basic /i.test(authorization) ? authorization.slice(6) : '', 'base64');
+  const expected = Buffer.from(`${process.env.ASSISTANT_ADMIN_USERNAME || 'admin'}:${password}`);
+  if (candidate.length !== expected.length || !timingSafeEqual(candidate, expected)) {
+    res.set('WWW-Authenticate', 'Basic realm="Hermes operator", charset="UTF-8"');
+    return res.status(401).json({ error: 'Operator authentication required.' });
+  }
+  next();
+}
+
 // Endpoint data JSON live QR code
-app.get('/api/qr-live', async (req: Request, res: Response) => {
+app.get('/api/qr-live', requireOperator, async (req: Request, res: Response) => {
   const data = await gateway.getLiveQrCode();
   res.json(data);
 });
 
 // Halaman web live scan QR khusus BKSDA Kaltim (Auto Refresh)
-app.get('/qr', (req: Request, res: Response) => {
+app.get('/qr', requireOperator, (req: Request, res: Response) => {
   const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -233,7 +263,7 @@ app.get('/qr', (req: Request, res: Response) => {
 });
 
 // Webhook dari Evolution API (Pesan WhatsApp masuk)
-app.post('/webhook/evolution', async (req: Request, res: Response) => {
+app.post('/webhook/evolution', requireServiceKey('EVOLUTION_WEBHOOK_KEY', 'X-Evolution-Webhook-Key'), async (req: Request, res: Response) => {
   res.status(200).json({ received: true });
 
   const body = req.body;
@@ -279,7 +309,7 @@ app.post('/webhook/evolution', async (req: Request, res: Response) => {
 });
 
 // Webhook dari SuperApp (Surat Tugas Diterbitkan -> Siaran WhatsApp)
-app.post('/webhook/st-published', async (req: Request, res: Response) => {
+app.post('/webhook/st-published', requireServiceKey('SUPERAPP_INTERNAL_KEY', 'X-Agent-Internal-Key'), async (req: Request, res: Response) => {
   const payload = req.body;
   res.status(200).json({ status: 'processing' });
 

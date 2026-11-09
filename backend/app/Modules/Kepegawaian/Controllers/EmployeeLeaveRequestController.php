@@ -168,7 +168,7 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             // Calculate working days or calendar days based on LeaveType configuration
-            $jumlahHari = $this->calculateLeaveDays($start, $end, $leaveType->hitung_hari === 'hari_kerja');
+            $jumlahHari = $leaveType->countDays($start, $end);
 
             if ($jumlahHari < 1) {
                 DB::rollBack();
@@ -647,23 +647,6 @@ class EmployeeLeaveRequestController extends Controller
     }
 
     /**
-     * Calculate working days (excluding weekends) or calendar days for a date range.
-     */
-    private function calculateLeaveDays(Carbon $start, Carbon $end, bool $isHariKerja): int
-    {
-        if (! $isHariKerja) {
-            return $start->diffInDays($end) + 1;
-        }
-        $days = 0;
-        for ($curr = $start->copy(); $curr->lte($end); $curr->addDay()) {
-            if (! $curr->isWeekend()) {
-                $days++;
-            }
-        }
-        return $days;
-    }
-
-    /**
      * Store uploaded formulir / surat izin scan files and clean up replaced files.
      */
     private function storeLeaveScanFiles(Request $request, EmployeeLeaveRequest $leaveReq): array
@@ -881,7 +864,7 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
-            $newJumlahHari = $this->calculateLeaveDays($start, $end, $leaveType->hitung_hari === 'hari_kerja');
+            $newJumlahHari = $leaveType->countDays($start, $end);
 
             if ($newJumlahHari < 1) {
                 DB::rollBack();

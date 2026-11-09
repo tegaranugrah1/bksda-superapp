@@ -2,7 +2,9 @@
 
 namespace App\Modules\SuratTugas\Requests;
 
+use App\Modules\Kepegawaian\Requests\StoreStTemplateRequest;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AssignmentLetterRequest extends FormRequest
 {
@@ -21,7 +23,9 @@ class AssignmentLetterRequest extends FormRequest
         $clean = [];
         foreach ($fields as $field) {
             if ($this->has($field)) {
-                $val = trim((string) $this->input($field));
+                $raw = $this->input($field);
+                if ($raw !== null && ! is_string($raw)) continue;
+                $val = trim((string) $raw);
                 $clean[$field] = $val !== '' ? strip_tags($val) : null;
             }
         }
@@ -30,10 +34,10 @@ class AssignmentLetterRequest extends FormRequest
             if ($this->has($listField) && is_array($this->input($listField))) {
                 $clean[$listField] = array_map(function ($item) {
                     if (is_array($item)) {
-                        if (isset($item['text'])) {
+                        if (isset($item['text']) && is_string($item['text'])) {
                             $item['text'] = strip_tags(trim((string) $item['text']));
                         }
-                        if (isset($item['id'])) {
+                        if (isset($item['id']) && is_string($item['id'])) {
                             $item['id'] = strip_tags(trim((string) $item['id']));
                         }
                     }
@@ -45,7 +49,7 @@ class AssignmentLetterRequest extends FormRequest
         if ($this->has('tembusan') && is_array($this->input('tembusan'))) {
             $clean['tembusan'] = array_map(function ($item) {
                 if (is_array($item)) {
-                    if (isset($item['text'])) {
+                    if (isset($item['text']) && is_string($item['text'])) {
                         $item['text'] = strip_tags(trim((string) $item['text']));
                     }
                     return $item;
@@ -60,17 +64,17 @@ class AssignmentLetterRequest extends FormRequest
                 if (isset($snapshot['configuration']['untuk']) && is_array($snapshot['configuration']['untuk'])) {
                     $snapshot['configuration']['untuk'] = array_map(function ($item) {
                         if (is_array($item)) {
-                            if (isset($item['text'])) {
+                            if (isset($item['text']) && is_string($item['text'])) {
                                 $item['text'] = strip_tags(trim((string) $item['text']));
                             }
-                            if (isset($item['id'])) {
+                            if (isset($item['id']) && is_string($item['id'])) {
                                 $item['id'] = strip_tags(trim((string) $item['id']));
                             }
                         }
                         return $item;
                     }, $snapshot['configuration']['untuk']);
                 }
-                if (isset($snapshot['configuration']['custom_nomor_naskah'])) {
+                if (isset($snapshot['configuration']['custom_nomor_naskah']) && is_string($snapshot['configuration']['custom_nomor_naskah'])) {
                     $snapshot['configuration']['custom_nomor_naskah'] = strip_tags(
                         trim((string) $snapshot['configuration']['custom_nomor_naskah'])
                     );
@@ -110,7 +114,11 @@ class AssignmentLetterRequest extends FormRequest
             'dasar' => 'nullable|array|max:50',
             'dasar.*.id' => 'required_with:dasar|string|max:100',
             'dasar.*.text' => 'required_with:dasar|string|max:5000',
-            'tembusan' => 'nullable|array',
+            'tembusan' => 'nullable|array|max:50',
+            'tembusan.*' => [function ($attribute, $value, $fail) {
+                $text = is_array($value) ? ($value['text'] ?? null) : $value;
+                if (! is_string($text) || mb_strlen($text) > 500) $fail('Tembusan harus berupa teks maksimal 500 karakter.');
+            }],
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'employees' => 'nullable|array',
@@ -124,6 +132,22 @@ class AssignmentLetterRequest extends FormRequest
             'tanda_setuju' => 'nullable|string|max:50',
             'keterangan' => 'nullable|string',
             'template_snapshot' => 'nullable|array',
+            'template_snapshot.id' => 'nullable|integer',
+            'template_snapshot.code' => 'nullable|string|max:100',
+            'template_snapshot.name' => 'nullable|string|max:255',
+            'template_snapshot.version' => 'nullable|integer',
+            'template_snapshot.type' => 'nullable|string|max:100',
+            'template_snapshot.menimbang' => 'nullable|array|max:50',
+            'template_snapshot.menimbang.*.id' => 'required|string|max:100',
+            'template_snapshot.menimbang.*.text' => 'required|string|max:5000',
+            'template_snapshot.dasar' => 'nullable|array|max:50',
+            'template_snapshot.dasar.*.id' => 'required|string|max:100',
+            'template_snapshot.dasar.*.text' => 'required|string|max:5000',
+            'template_snapshot.signer' => 'nullable|array:employee_id,name,nip',
+            'template_snapshot.signer.*' => Rule::forEach(fn ($value, $attribute) =>
+                str_ends_with($attribute, '.employee_id') ? ['nullable', 'integer']
+                    : ['nullable', 'string', str_ends_with($attribute, '.nip') ? 'max:50' : 'max:255']),
+            ...StoreStTemplateRequest::configurationRules('template_snapshot.configuration'),
         ];
 
         if (! $isDraft) {

@@ -1,0 +1,829 @@
+{
+  "status": "complete",
+  "counts_overlap": true,
+  "raw_root": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7",
+  "jobs": [
+    {
+      "job": "php-lint-d263763601f7",
+      "exit_code": 0,
+      "interpretation": "Historical41-file lint;superseded by final42-file syntax check.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-lint-d263763601f7\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 3600,
+          "sha256": "0e948458bf67b5cfc121e6c231f73361ab1d27986cb317ad7b99dc52fb9da072"
+        }
+      ]
+    },
+    {
+      "job": "php-9423362db640",
+      "exit_code": 0,
+      "interpretation": "19MealAllowance tests103assertions after pure duplicate-loop cleanup;included by final combined304suite.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-9423362db640\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 275,
+          "sha256": "1a9c0ead4ddc74e104ffbaba73c4cd89106712c25233f284f17093a09d8ab745"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 6798,
+          "sha256": "5a3790fc4e3c16ca5d7b06398a8dd4996ddb1643d7a717a8df6dae3337baab29"
+        }
+      ]
+    },
+    {
+      "job": "e2e-46b1cd1fae16",
+      "exit_code": 0,
+      "interpretation": "Latest actual current fullST public/Builder/publication/two-recipient/foreign flow;both nativepopup print calls1returns1literaltrue elementCreatedfalse textFieldsPresenttrue;zero page errors.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-46b1cd1fae16\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 7989,
+          "sha256": "1ce369e8fbb76e34ed538f677350191bb818faf6599c3b441a860e61ae4876ed"
+        },
+        {
+          "path": "results.json",
+          "bytes": 167,
+          "sha256": "25e4edb9ac94fe7f04b6c3bdaa190b87c77e154a6dd6f8e2ff78cd10f5127d9a"
+        }
+      ]
+    },
+    {
+      "job": "php-33423dc1dfdd",
+      "exit_code": 0,
+      "interpretation": "Historical intermediate304tests4085assertions301pass3skip;superseded by php-98873fe9c6cc.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-33423dc1dfdd\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 726,
+          "sha256": "8ed030a86d6253c1e1bd3cd35902c6636161da0c740ce4633f0b3ee77b580ea7"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 99133,
+          "sha256": "3f5e67ffe4194a9a1f2b25b404de2318e222c728ccc3685f05bdfece8a43a044"
+        }
+      ]
+    },
+    {
+      "job": "php-090234fca59e",
+      "exit_code": 0,
+      "interpretation": "Broader combined PHP before wave3:286tests3462assertions,283pass3skip.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-090234fca59e\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 726,
+          "sha256": "2724fbee7ec5ab12a9d3f31c1f3b52370e0f12b8c7b738f1222a028c57cab7dc"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 92957,
+          "sha256": "705ae5eacc31a1a784d054cbdd049d371ce90bee5978370046f5750747cf0794"
+        }
+      ]
+    },
+    {
+      "job": "e2e-05b57ade17f4",
+      "exit_code": 0,
+      "interpretation": "Actual full ST flow and both native print handlers with five stored-input sinks; no physical printer claim.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-05b57ade17f4\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 7989,
+          "sha256": "d9e2f66b4b09ca2a3b85e38fa8f59eec3b8b5a7bafef8bf29852971c7ed703d2"
+        },
+        {
+          "path": "results.json",
+          "bytes": 167,
+          "sha256": "25e4edb9ac94fe7f04b6c3bdaa190b87c77e154a6dd6f8e2ff78cd10f5127d9a"
+        }
+      ]
+    },
+    {
+      "job": "e2e-7f1252da7572",
+      "exit_code": 0,
+      "interpretation": "Actual KPG people UI:edit and IAM deactivate/login-denial/reactivate controls.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-7f1252da7572\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 6991,
+          "sha256": "50bef0dfeaf5b1dc9198ff44d8dfce73653c187008a4c6941f99a0d3e4ceb614"
+        },
+        {
+          "path": "results.json",
+          "bytes": 159,
+          "sha256": "062e83c7d3ae22c2192dc27668c11c079fe90422a4ea2d895539f5236b8df1a5"
+        }
+      ]
+    },
+    {
+      "job": "e2e-25141dc2bd50",
+      "exit_code": 0,
+      "interpretation": "Actual KPG incoming CRUD/search/delete and attendance import UI with stored employee FK.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-25141dc2bd50\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 6448,
+          "sha256": "6f2509dead7d1c1a9d604dd28a65653785291c90c01ae48eee902bb5bae3e54c"
+        },
+        {
+          "path": "results.json",
+          "bytes": 159,
+          "sha256": "062e83c7d3ae22c2192dc27668c11c079fe90422a4ea2d895539f5236b8df1a5"
+        }
+      ]
+    },
+    {
+      "job": "e2e-8a9cf328911f",
+      "exit_code": 0,
+      "interpretation": "Actual KPG marked nondefault expense template CRUD/reload.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-8a9cf328911f\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 6171,
+          "sha256": "12d6521a415e738c740048dcbc74ea79945a4feba538cd782a9761d819fe5145"
+        },
+        {
+          "path": "results.json",
+          "bytes": 159,
+          "sha256": "062e83c7d3ae22c2192dc27668c11c079fe90422a4ea2d895539f5236b8df1a5"
+        }
+      ]
+    },
+    {
+      "job": "e2e-b8050f932669",
+      "exit_code": 0,
+      "interpretation": "Actual KPG personal leave/cancel/conflict/admin rejection/delete and quota restoration.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-b8050f932669\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 7299,
+          "sha256": "8f4960880daef7aba834de116e7c24d689676b6ae7f2cfa8dd54e9bf520482a4"
+        },
+        {
+          "path": "results.json",
+          "bytes": 159,
+          "sha256": "062e83c7d3ae22c2192dc27668c11c079fe90422a4ea2d895539f5236b8df1a5"
+        }
+      ]
+    },
+    {
+      "job": "e2e-323a7152caf5",
+      "exit_code": 0,
+      "interpretation": "Actual legacy backend producer accepted malformed unchecked config lists; repaired current Builder and shared recipient preview render with zero page errors.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-323a7152caf5\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 5513,
+          "sha256": "159038638557a6b3b949fcbc5b48b66bb50ce0dda42482ea8df576ed6d383487"
+        },
+        {
+          "path": "results.json",
+          "bytes": 169,
+          "sha256": "45d7dffea4d464abb579adf8de68f45527700aa8d23760c8c3ef2f783f2b5ecb"
+        }
+      ]
+    },
+    {
+      "job": "frontend-d6dbe7ec279b",
+      "exit_code": 0,
+      "interpretation": "Current full frontend noEmit plus API/cache/draft and shared legacy-list parser checks.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\frontend-d6dbe7ec279b\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2906,
+          "sha256": "81be71582acda2698dbba65a53ad46bd6683b39e4433fdab321e2e3799bf6dcc"
+        }
+      ]
+    },
+    {
+      "job": "lint-111660d7cc2e",
+      "exit_code": 0,
+      "interpretation": "Current all changed frontend source:0errors0warnings.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\lint-111660d7cc2e\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "job": "php-bf12b9664b01",
+      "exit_code": 1,
+      "interpretation": "9ST actor/lifecycle acceptance cases pass;2parser cases fail on absent malformed/sparse-cell validation.17tests617assertions combined.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-bf12b9664b01\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 924,
+          "sha256": "3f6f78d4655d8d64fedfd97103b79050326355a86285558c55218ac7c9fe8686"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 6784,
+          "sha256": "8d15487317c3f1edb1f0d4ebd31a64ad459f6a6302db283c415ce1341228f7db"
+        }
+      ]
+    },
+    {
+      "job": "php-28f646a4557b",
+      "exit_code": 0,
+      "interpretation": "9nativeparser+5meal contract tests57assertions pass, including malformed/empty XML,cell501 and column33 structural rejection.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-28f646a4557b\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 274,
+          "sha256": "67a9070d1948869c374403c00b5020dfc17522001e3494b50c2902e4a48f8ac4"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 4853,
+          "sha256": "c0ac4a2b3403cbbe80cb560f7c4ff767dc4ea3dcc9c1a69f087a6c0daa71dcf3"
+        }
+      ]
+    },
+    {
+      "job": "assistant-19421a06d1e6",
+      "exit_code": 1,
+      "interpretation": "Original wave3 source accepts operator view200 instead of configured-auth503; no provider pairing or QR material used.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-19421a06d1e6\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2534,
+          "sha256": "039a186b40b6e8fd0a8e040f9615350a3e8d3492e89534a3b01c53282776c7e9"
+        }
+      ]
+    },
+    {
+      "job": "assistant-df72a8fbc66b",
+      "exit_code": 1,
+      "interpretation": "Actual full incoming handler+nativeNLU deferred response records own pending submission after BATAL acknowledgement beyond fake Redis16s lease.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-df72a8fbc66b\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 3129,
+          "sha256": "c48bccb615ebb5b75638aa860cd8b5309f4cf2a89e312fb1b3a1d8a93be60f94"
+        }
+      ]
+    },
+    {
+      "job": "assistant-95916e20441b",
+      "exit_code": 0,
+      "interpretation": "Historical15scenarios270assertions;superseded by assistant-ddb8a42519f5.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-95916e20441b\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2993,
+          "sha256": "71fc068cdb327f47c71aa376d829693d1855e925936af0ad9eda9a1fe689af5c"
+        }
+      ]
+    },
+    {
+      "job": "php-d14e1bb00587",
+      "exit_code": 1,
+      "interpretation": "Before financial fixes: 3 failures demonstrate parser/tariff metadata drift, TK Excel count and dropped employee_id.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-d14e1bb00587\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 1460,
+          "sha256": "8580cc7408ee29a2ae2285bcec8c12ddae90a39990de29aeb2c668a13d14f3c3"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 2935,
+          "sha256": "ffd972b31a061c3df02e406a37f2219d7772e6460515e782633c9af6376bd0c3"
+        }
+      ]
+    },
+    {
+      "job": "php-7e9df6fdaefe",
+      "exit_code": 0,
+      "interpretation": "After financial fixes: 3 tests,15 assertions.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-7e9df6fdaefe\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 273,
+          "sha256": "3e80f8249eb00c6938551b957df14a126f91f3e22a672e4554ec944f0b1a14d5"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 1603,
+          "sha256": "4d30ad7b7df00188d4970adeb48abafc3e852e12ea568d26f4476c846b3bd8a3"
+        }
+      ]
+    },
+    {
+      "job": "php-14247c9a042a",
+      "exit_code": 0,
+      "interpretation": "Combined PHP:185 tests,2108 assertions,3 skips;182 passed. Predates later IAM/catalog/XLSX additions; not summed with subsets.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-14247c9a042a\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 563,
+          "sha256": "26cdcf46b7fe2b8f21ce9ae61347d832bb9c38a72fedbd3056f28838c27c3eea"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 62221,
+          "sha256": "4f274b54fa8f39b428879a3080f82ecf96f31aa639d65c26cffc43c3062d3d10"
+        }
+      ]
+    },
+    {
+      "job": "php-6f9eceab3e0d",
+      "exit_code": 1,
+      "interpretation": "Before date/period fixes: invalid date accepted; same-NIP mixed-period check bypassed and processing errored. Not an accepted payroll result.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-6f9eceab3e0d\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 1151,
+          "sha256": "8ebfaa9804b05402cd8ecc1f6c5ec666481aae94de1ecb7760bddab6695deb0a"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 1995,
+          "sha256": "d07171c8ff71127da020087e4a929b80491ab2330cfdea73bfd205ad9610ce10"
+        }
+      ]
+    },
+    {
+      "job": "php-20a35f6df975",
+      "exit_code": 0,
+      "interpretation": "Date/period plus meal regression:18 tests,98 assertions.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-20a35f6df975\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 274,
+          "sha256": "8f2720c104cecd378ca40bf7f1b4d2efbfe7ee4f22b27c4868a71da1fd7bd732"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 6480,
+          "sha256": "f6ab120510abf2ba388d3aec73990e75639bb6dac3beb2a004ea0c50247e9ff4"
+        }
+      ]
+    },
+    {
+      "job": "php-cd74e5a65962",
+      "exit_code": 1,
+      "interpretation": "Before catalog fixes:4 failures for deleted code collision, generated-code collision, inactive expense default and failed document-default rollback.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-cd74e5a65962\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2195,
+          "sha256": "0b747fb3e4fb0ca16c9477124e3599ee5367c5e5d1dab8449f9b85807e7900c8"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 3743,
+          "sha256": "5e06c1bfeb8555b8b25280a68d98c356132a749e227c7f990c65cdb08e2d11b1"
+        }
+      ]
+    },
+    {
+      "job": "php-52deae83d68b",
+      "exit_code": 0,
+      "interpretation": "Catalog/shared template suite after fixes:13 tests,78 assertions.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-52deae83d68b\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 274,
+          "sha256": "e5c418cb3e18de39a1bf01fedf7ea8657da2578dd178429c76f79608b699e6a3"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 4337,
+          "sha256": "9a5090747ecec9fb2b8fb5a8c5b637a5e07e997786e29c4ee7387ad4409c9540"
+        }
+      ]
+    },
+    {
+      "job": "php-16820bcfdf3d",
+      "exit_code": 1,
+      "interpretation": "Before explicit IAM status support:2 failed contract checks. Ignored self-deactivation field is not an old security vulnerability.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-16820bcfdf3d\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 1301,
+          "sha256": "2a617e97440f2d51f0348a168ee27d10dc8139fca8f086b62472d9f6729b2779"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 2121,
+          "sha256": "d10c6a30802a35f9b2c6ebf2ce5334da8f226d3c69157f6e53cbec38a4c9113a"
+        }
+      ]
+    },
+    {
+      "job": "php-0809c27ffcaa",
+      "exit_code": 0,
+      "interpretation": "IAM after explicit activation/deactivation:2 tests,23 assertions,including false/0/string0 self-lockout guards and token revocation.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-0809c27ffcaa\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 273,
+          "sha256": "9f183cadf9df4c460f2bd3019c338c361f82528b90800814537002b060855411"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 1028,
+          "sha256": "362ed8d367180591d6738e0c6650be772674bc2f4d586e75425499d881537c7c"
+        }
+      ]
+    },
+    {
+      "job": "php-e448e819b9e2",
+      "exit_code": 1,
+      "interpretation": "Real XLSX workbook returned zero parsed attendance records before reader support.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-e448e819b9e2\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 619,
+          "sha256": "4917dcba2bea3c58debc0a4d0e3d610456850744ddc6bc7fe8e0b6154ce47b01"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 1079,
+          "sha256": "14c5b248189e18d40329c6c8a5b1b093c65eb54212ea994e186cefec33370c96"
+        }
+      ]
+    },
+    {
+      "job": "php-1953641b9246",
+      "exit_code": 0,
+      "interpretation": "Real XLSX workbook preserves NIP/month/H contract after installed native reader support.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-1953641b9246\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 271,
+          "sha256": "131bec54e49f0972ad09f5f46689377e9760642642944cccd651d4cf730b5128"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 743,
+          "sha256": "481d82469c0452fedb192b4f24c2abb662ed9d4621a6a6f16dab26c807f56592"
+        }
+      ]
+    },
+    {
+      "job": "php-2856084dbe29",
+      "exit_code": 0,
+      "interpretation": "Current business contracts subset:11 tests,77 assertions;includes XLSX500-row bound rejection,IAM and catalog checks.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-2856084dbe29\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 274,
+          "sha256": "a6b4e59860e50a95fbf72a5983b4dcb772e9df409257818c11ae86d0d85c5624"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 4238,
+          "sha256": "2077b47c6743983d8b1361cd2160db90c228a0b3d75c7bf88feeed527c833803"
+        }
+      ]
+    },
+    {
+      "job": "assistant-87e3a93238e5",
+      "exit_code": 1,
+      "interpretation": "Actual old TypeScript/Express: producer requests accepted without credentials; cached old identity attempted balance/ST requests,leave submission and ST draft. External transports are recording adapters; no actual provider effect claimed.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-87e3a93238e5\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 4296,
+          "sha256": "cdabe23285ef5c1159a28972dc67ad2ffb8ed8ed0f69f4c063cae128b56f063e"
+        }
+      ]
+    },
+    {
+      "job": "assistant-f1e24cc65e70",
+      "exit_code": 0,
+      "interpretation": "Actual current TypeScript/Express:11 scenarios,144 assertions;unauthorized/missing key gates,revoked/changed phone identity and legitimate capabilities.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-f1e24cc65e70\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2249,
+          "sha256": "57f92643c09d5f4733ba8db7b58c8abc00e97be039eb9b2d0741bab46ef6f7c7"
+        }
+      ]
+    },
+    {
+      "job": "e2e-c00ac68d79a8",
+      "exit_code": 0,
+      "interpretation": "Actual current Next/PHP/Chromium: valid-string public record renders admin Builder;malformed snapshot is422 at nested field.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-c00ac68d79a8\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 5444,
+          "sha256": "f394f0c9a3ae19e2c29c1c5d21bf43d3232c5700a55cc2db8d7f1dc3bf84871e"
+        },
+        {
+          "path": "results.json",
+          "bytes": 169,
+          "sha256": "45d7dffea4d464abb579adf8de68f45527700aa8d23760c8c3ef2f783f2b5ecb"
+        }
+      ]
+    },
+    {
+      "job": "e2e-f969c16b6788",
+      "exit_code": 2,
+      "interpretation": "Historical two-tab schedule did not demonstrate retained reader exposure;final independent Phase3 rejects the supported-lifecycle cache claim.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\e2e-f969c16b6788\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 11442,
+          "sha256": "5afcd1af532d8e95f62b83330725f5a345da1ae4e0746d760b964487fc7880cb"
+        },
+        {
+          "path": "results.json",
+          "bytes": 163,
+          "sha256": "3337e2dab64ec026c730dae35126998fd1ac5226dfabd6738a5e5b3c7cc449ad"
+        }
+      ]
+    },
+    {
+      "job": "frontend-4cbb48329ea4",
+      "exit_code": 0,
+      "interpretation": "Full frontend TypeScript noEmit,8 native API/auth cache cases and draft smoke;predates last lint-only cleanups.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\frontend-4cbb48329ea4\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 2778,
+          "sha256": "a5d6f391d9f9dceb91b8ff6471e87048773146de035bdae3d724eab7e3427d39"
+        }
+      ]
+    },
+    {
+      "job": "lint-7c14aa8c378a",
+      "exit_code": 0,
+      "interpretation": "ESLint all changed frontend source files:0 errors and0 warnings.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\lint-7c14aa8c378a\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "job": "php-98873fe9c6cc",
+      "exit_code": 0,
+      "interpretation": "Final combined backend:304 tests/4086 assertions;301 passed,3 documented skipped,0 failed. Includes strengthened actual intermediate restore rollback.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-98873fe9c6cc\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 953,
+          "sha256": "54c1cd2174177c59fc8d047fa14375e722a5842de50788c90a5b91ff5e4c7e24"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 99133,
+          "sha256": "7f4947e8cae58170b6fddf3a8f25e7975d3f5278fefc96c03dd69124a35d5bf7"
+        }
+      ]
+    },
+    {
+      "job": "php-lint-a99ec9422c6f",
+      "exit_code": 0,
+      "interpretation": "Final native PHP syntax:42 changed/new files passed.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-lint-a99ec9422c6f\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 3675,
+          "sha256": "97a66c1550b8de6a78367b797fa0006cb7a5a5606326f5abf3c0dd67875cecf4"
+        }
+      ]
+    },
+    {
+      "job": "assistant-ddb8a42519f5",
+      "exit_code": 0,
+      "interpretation": "Final actual assistant TypeScript/Express/NLU:15 scenarios/270 assertions passed; Redis/model/gateway recording adapters.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-ddb8a42519f5\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 4182,
+          "sha256": "cadd5c395e9dfb28d0038b750502bde64360984bbd59ca0dbbce4c4d1317adab"
+        }
+      ]
+    },
+    {
+      "job": "assistant-native-37d6087c75a2",
+      "exit_code": 0,
+      "interpretation": "Original joined native assistant/PHP:organic cached session,authorized native phone replacement,obsolete-phone real balance GET200/private marker recorded; observational exit0 establishes historical defect,not a current pass.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-native-37d6087c75a2\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 5107,
+          "sha256": "45a1a854fe71cde78e2cceaa09924c35e304f89bca30730f40d5e2eb13d7a51a"
+        },
+        {
+          "path": "results.json",
+          "bytes": 414,
+          "sha256": "a3d1ca88413eb733da84595c8628d5542ce328139c2e5af3cee294e3a6807784"
+        }
+      ]
+    },
+    {
+      "job": "assistant-native-9d0f21185789",
+      "exit_code": 0,
+      "interpretation": "Current joined native assistant/PHP:exact organically captured historical session replay explicitly labeled;old-phone verification404,zero balance GET/no private marker,new-phone positive200;no leave/ST rows.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-native-9d0f21185789\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 5542,
+          "sha256": "63a2546175aead866f0c8943d41e4cb3e1627b3aad448e39980f700218f7df37"
+        },
+        {
+          "path": "results.json",
+          "bytes": 414,
+          "sha256": "a3d1ca88413eb733da84595c8628d5542ce328139c2e5af3cee294e3a6807784"
+        }
+      ]
+    },
+    {
+      "job": "php-39be527538f2",
+      "exit_code": 0,
+      "interpretation": "Current actual mixed restore:1test15assertions;safe row active in transaction1,then conflict422 and exact batch rows/pivots/files restored.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-39be527538f2\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 499,
+          "sha256": "86b4afe76e1c2264553659f384495773174269180919b102ee036e469f63d2b1"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 701,
+          "sha256": "daee1c7d6bc8977dfd74fffd5387b0a4a24bd73c34a5f4c582f80c52a1b292b9"
+        }
+      ]
+    },
+    {
+      "job": "validate-7e5286ef51ac",
+      "exit_code": 0,
+      "interpretation": "Final findings23records and coverage47units validators both PASS after all accepted replacements and current native archive/numbering evidence linkage;format/consistency only.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\validate-7e5286ef51ac\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 54,
+          "sha256": "3a92850a63ab56978a378ae92adf55000c02ef82a871d5f6c994c7b3b184e0c9"
+        }
+      ]
+    }
+  ],
+  "final_record_verifications": {
+    "agent/auth/committed-default-service-key": {
+      "owner": "phase5_01",
+      "status": "verified",
+      "record_sha256": "af4f1992a41454dec8581cac2c742139c65497bcb9b5a58ab03a6107253a9d71"
+    },
+    "agent/auth/forwarded-ip-allowlist-bypass": {
+      "owner": "phase5_02",
+      "status": "verified",
+      "record_sha256": "1c6cd11567eefdd089f71c75200410dfdc4d12ee83aca8a7ad3a0022f41179e5"
+    },
+    "agent/leave/missing-balance-policy-drift": {
+      "owner": "phase5_03",
+      "status": "verified",
+      "record_sha256": "209ad9b503d48b2e3316209193670e48ea06b20a16bcc7906fa61ccc546f3f1b"
+    },
+    "agent/leave/raw-type-policy-drift": {
+      "owner": "phase5_04",
+      "status": "verified",
+      "record_sha256": "70ec124c6c7f0bce3c002f92450f1ba6ee31ee1b611a43851d7c7012a2d48c58"
+    },
+    "assistant/phone-auth/noncurrent-contact-match": {
+      "owner": "phase5_06",
+      "status": "verified",
+      "record_sha256": "12373f2e2a126f92a3093dcbd6ae87676cd6b368c3d216087cc5f0341c84e42e"
+    },
+    "assistant/phone-link/nip-only-employee-binding": {
+      "owner": "phase5_07",
+      "status": "verified",
+      "record_sha256": "e36cdf3343f1d7b212ea2b45637df0cd4047bd52f3f28f497616ce94d2e1b75c"
+    },
+    "assistant/webhooks/unverified-producer-authority": {
+      "owner": "phase5_09",
+      "status": "verified",
+      "record_sha256": "532f669c07e0e028eec0c85a61fa51073cd5f5d8f8fda310bb6fea99e3c72bb9"
+    },
+    "kepegawaian/bank-allocation/superadmin-target-authorization": {
+      "owner": "phase5_10",
+      "status": "verified",
+      "record_sha256": "27cc57ac1e75622794ee82356048565807b7c16ec923930071ecb9461b7d4db0"
+    },
+    "kpg/employee-assignment-history/unpublished-participant-read": {
+      "owner": "phase5_11",
+      "status": "verified",
+      "record_sha256": "281d67a6256f3a21777808f0212d3eafb287a6a009cdcd8059cabd297ead6765"
+    },
+    "kpg/meal/official-st-status-reconciliation": {
+      "owner": "phase5_12",
+      "status": "verified",
+      "record_sha256": "7ab78737c023a1cae0e5a8261791030becfc1ef9cda8dd82516b41338d267155"
+    },
+    "portal/employee-photo/nonunique-storage-object": {
+      "owner": "phase5_14",
+      "status": "verified",
+      "record_sha256": "bf65aa51a16cabbb52e59768230502e6ef72dbf5c160e93702f25680076b56c5"
+    },
+    "surat-tugas/delete-publication-stale-authorization": {
+      "owner": "phase5_15",
+      "status": "verified",
+      "record_sha256": "0c94cc3b53862749cf86d416a09711dc0873dbb9f10dd8037e939a15a85d26a0"
+    },
+    "surat-tugas/public-submit/full-employee-response": {
+      "owner": "phase5_17",
+      "status": "verified",
+      "record_sha256": "b53b801cb70ab00316f8747a54f070ebf837148557a5999eca3fced6ad9c78ad"
+    },
+    "surat-tugas/publication/approve-revision-bypasses-admin": {
+      "owner": "phase5_18",
+      "status": "verified",
+      "record_sha256": "479e7667db5582d9d8922e422dec29e37415d4ea7fa068ffa828b3dcbad88f40"
+    },
+    "surat-tugas/status/pending-reactivation-conflict-bypass": {
+      "owner": "phase5_20",
+      "status": "verified",
+      "record_sha256": "0ee013885a0a2e97dc5281b6ff1ccbc9c17bb4e2a0824f724e3bc6974ef6797a"
+    },
+    "surat-tugas/update/authorization-before-record-lock": {
+      "owner": "phase5_21",
+      "status": "verified",
+      "record_sha256": "7a58afd71eb8ca926d6b338e4038ec7318b54597a263417edd4f057fd41a106d"
+    },
+    "assistant/operator/unauthenticated-management-route": {
+      "owner": "phase5_05",
+      "status": "verified",
+      "correction_kind": "nonmaterial",
+      "record_sha256": "fb7e7f80fbd2468e6ffa286bc3641fb13fa322033061c7b51b672278996db503"
+    },
+    "surat-tugas/public-snapshot/untyped-render-state": {
+      "owner": "phase5_16",
+      "status": "verified",
+      "correction_kind": "nonmaterial",
+      "record_sha256": "48c453bb9b739d37bd1f39e298539820d887e18b972dd3a3b84f8cb9a4353a5a"
+    },
+    "kpg/meal/zip-cumulative-metadata-retention": {
+      "owner": "phase5r_13_01",
+      "status": "verified",
+      "correction_kind": "independently_verified_material",
+      "record_sha256": "d4e0669a5553cfa4ee419789b6bac72cd3f7922f63395b1dca67e5cf81afbd1b"
+    },
+    "assistant/session/cached-employee-binding-after-revocation": {
+      "owner": "phase5r_08_native",
+      "status": "verified",
+      "correction_kind": "independently_verified_material",
+      "record_sha256": "a0b7e12eff78511ceb614ed5a1bf8d6520b9521c3c41dcb8396b8cf876833011"
+    },
+    "surat-tugas/restore-bypasses-scheduling-validation": {
+      "owner": "phase5r_19_01",
+      "status": "verified",
+      "correction_kind": "independently_verified_material_with_consistency_wording",
+      "record_sha256": "67628f2d3edb30cc1b5ffbe0b92fa5eadd8d159e0f90ffc8f831172e3f80df8d"
+    }
+  },
+  "source_note": "Snapshot-specific source and fixture hashes are in raw execution receipts/baseline manifests;see audit report limitations."
+}

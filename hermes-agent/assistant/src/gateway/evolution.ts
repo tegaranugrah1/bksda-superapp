@@ -6,7 +6,8 @@ export class EvolutionGateway {
 
   constructor() {
     const baseURL = process.env.EVOLUTION_API_URL || 'http://localhost:8080';
-    const apiKey = process.env.EVOLUTION_API_KEY || 'bksda_hermes_secret_api_key_2026';
+    const apiKey = process.env.EVOLUTION_API_KEY;
+    if (!apiKey) throw new Error('EVOLUTION_API_KEY must be configured.');
     this.instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'bksda-assistant';
 
     this.api = axios.create({

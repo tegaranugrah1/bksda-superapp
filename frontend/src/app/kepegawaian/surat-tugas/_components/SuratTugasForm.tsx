@@ -59,6 +59,7 @@ import {
 } from "@/lib/letter-utils";
 import {
   DEFAULT_KEPALA_BALAI,
+  parseLetterItems,
   DEFAULT_LAPORAN_TEXT,
   DEFAULT_PLH_PRINSIP_TEXT,
   PLH_WILAYAH_PLACEHOLDER,
@@ -446,7 +447,7 @@ export function SuratTugasForm({
   // Helper formatting items
   const formatYearInItems = useCallback(
     (items: DasarItem[]) =>
-      (items || []).map((item) => ({
+      parseLetterItems(items).map((item) => ({
         ...item,
         text: (item.text || "").replace(/{tahun}/gi, currentYear),
       })),
@@ -462,7 +463,7 @@ export function SuratTugasForm({
           ? `${actTrim} di ${placeTrim}`
           : actTrim;
 
-      return (items || []).map((item) => {
+      return parseLetterItems(items).map((item) => {
         let text = (item.text || "").replace(/{tahun}/gi, currentYear);
         if (fullActivity && /\{(nama\s*kegiatan|kegiatan)\}/i.test(text)) {
           text = text.replace(/\{(nama\s*kegiatan|kegiatan)\}/gi, fullActivity);
@@ -494,7 +495,7 @@ export function SuratTugasForm({
       const manualLayer: DasarItem[] = [];
       let fundingItem: DasarItem | null = null;
 
-      items.forEach((item) => {
+      parseLetterItems(items).forEach((item) => {
         const isFunding =
           item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates);
         if (isFunding) {
@@ -682,7 +683,7 @@ export function SuratTugasForm({
         Array.isArray(configuration.tembusan_items) &&
         configuration.tembusan_items.length > 0
       ) {
-        setTembusanItems(configuration.tembusan_items);
+        setTembusanItems(parseLetterItems(configuration.tembusan_items).map(item => item.text));
       }
       setTembusanPosition(configuration.tembusan_position === "bottom" ? "bottom" : "beside");
       setTembusanLabel(
@@ -711,6 +712,16 @@ export function SuratTugasForm({
       orderDasarLayers,
       taskTypes,
       tempatKegiatan,
+      setNamaKegiatan,
+      setTembusanItems,
+      setKepalaBalai,
+      setMenimbangItems,
+      setDasarItems,
+      setUntukItems,
+      setActivityPrefix,
+      setTaskTypeId,
+      setSertakanLaporan,
+      setInputModeKegiatan,
     ]
   );
 
@@ -932,21 +943,13 @@ export function SuratTugasForm({
         setKotaTujuan(data.tempat_tujuan || "");
 
         if (data.menimbang && Array.isArray(data.menimbang) && data.menimbang.length > 0) {
-          setMenimbangItems(data.menimbang);
+          setMenimbangItems(parseLetterItems(data.menimbang));
         }
         if (data.dasar && Array.isArray(data.dasar) && data.dasar.length > 0) {
-          setDasarItems(data.dasar);
+          setDasarItems(parseLetterItems(data.dasar));
         }
         if (data.tembusan && Array.isArray(data.tembusan) && data.tembusan.length > 0) {
-          const parsedTembusan = data.tembusan
-            .map((t: unknown) => {
-              if (typeof t === "string") return t.trim();
-              if (t && typeof t === "object" && "text" in t && typeof (t as any).text === "string")
-                return (t as any).text.trim();
-              return "";
-            })
-            .filter(Boolean);
-          setTembusanItems(parsedTembusan);
+          setTembusanItems(parseLetterItems(data.tembusan).map(item => item.text));
         }
 
         const snapshotConfig = (data.template_snapshot?.configuration || {}) as Record<
@@ -956,23 +959,33 @@ export function SuratTugasForm({
         if (typeof snapshotConfig.judul_lampiran_beda_hari === "string") {
           setJudulLampiranBedaHari(snapshotConfig.judul_lampiran_beda_hari);
         }
+        const snapshotDates = snapshotConfig.employee_dates;
         if (
-          snapshotConfig.employee_dates &&
-          typeof snapshotConfig.employee_dates === "object" &&
-          !Array.isArray(snapshotConfig.employee_dates)
+          snapshotDates &&
+          typeof snapshotDates === "object" &&
+          !Array.isArray(snapshotDates)
         ) {
           setEmployeeDates((prev) => ({
-            ...snapshotConfig.employee_dates as Record<string, { mulai: string; selesai: string }>,
+            ...Object.fromEntries(Object.entries(snapshotDates).filter(
+              (entry): entry is [string, { mulai: string; selesai: string }] => {
+                const range = entry[1] as { mulai?: unknown; selesai?: unknown } | null;
+                return Boolean(range && typeof range === "object"
+                  && typeof range.mulai === "string" && typeof range.selesai === "string");
+              }
+            )),
             ...prev,
           }));
         }
+        const snapshotDepartures = snapshotConfig.employee_departures;
         if (
-          snapshotConfig.employee_departures &&
-          typeof snapshotConfig.employee_departures === "object" &&
-          !Array.isArray(snapshotConfig.employee_departures)
+          snapshotDepartures &&
+          typeof snapshotDepartures === "object" &&
+          !Array.isArray(snapshotDepartures)
         ) {
           setEmployeeDepartures((prev) => ({
-            ...snapshotConfig.employee_departures as Record<string, string>,
+            ...Object.fromEntries(Object.entries(snapshotDepartures).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string"
+            )),
             ...prev,
           }));
         }

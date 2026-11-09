@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -153,15 +153,7 @@ export default function EmployeeIncomingLettersPage() {
     replied: 0,
     this_month: 0,
   });
-  const lastSummaryCountsRef = useRef(summaryCounts);
-  const isFirstLoadRef = useRef(true);
-
-  const displaySummaryCounts = {
-    all: summaryCounts.all || lastSummaryCountsRef.current.all,
-    pending: summaryCounts.pending || lastSummaryCountsRef.current.pending,
-    replied: summaryCounts.replied || lastSummaryCountsRef.current.replied,
-    this_month: summaryCounts.this_month || lastSummaryCountsRef.current.this_month,
-  };
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<IncomingLetter | null>(null);
@@ -211,13 +203,12 @@ export default function EmployeeIncomingLettersPage() {
       setTotal(response.data?.meta?.total || 0);
       if (response.data?.meta?.summary_counts) {
         setSummaryCounts(response.data.meta.summary_counts);
-        lastSummaryCountsRef.current = response.data.meta.summary_counts;
       }
     } catch {
       toast.error("Gagal memuat arsip surat.");
     } finally {
       setLoading(false);
-      isFirstLoadRef.current = false;
+      setIsFirstLoad(false);
     }
   }, [debouncedSearch, endDate, kategori, page, perPage, startDate, statusBalasan]);
 
@@ -520,7 +511,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "all",
             label: "Total Arsip Surat",
-            count: displaySummaryCounts.all || total,
+            count: summaryCounts.all,
             icon: Inbox,
             isActive: !statusBalasan && !isThisMonthFilter,
             onClick: () => {
@@ -535,7 +526,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "pending",
             label: "Menunggu Balasan",
-            count: displaySummaryCounts.pending,
+            count: summaryCounts.pending,
             icon: Clock,
             isActive: statusBalasan === "pending",
             onClick: () => {
@@ -548,7 +539,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "replied",
             label: "Sudah Dibalas",
-            count: displaySummaryCounts.replied,
+            count: summaryCounts.replied,
             icon: CheckCircle2,
             isActive: statusBalasan === "replied",
             onClick: () => {
@@ -561,7 +552,7 @@ export default function EmployeeIncomingLettersPage() {
           {
             key: "this_month",
             label: "Arsip Bulan Ini",
-            count: displaySummaryCounts.this_month,
+            count: summaryCounts.this_month,
             icon: Calendar,
             isActive: isThisMonthFilter,
             onClick: () => {
@@ -740,7 +731,7 @@ export default function EmployeeIncomingLettersPage() {
           className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900 min-h-[460px] flex flex-col justify-between"
         >
           <div className="overflow-x-auto flex-1 flex flex-col">
-            {loading && isFirstLoadRef.current ? (
+            {loading && isFirstLoad ? (
               <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-xs text-zinc-500 space-y-2">
                 <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                 <p>Memuat arsip surat masuk...</p>
@@ -1587,6 +1578,8 @@ export default function EmployeeIncomingLettersPage() {
                   className="h-[70vh] w-full rounded-lg bg-white"
                 />
               ) : preview.dataUrl ? (
+                // Native blob/data preview; sending this to the Next image optimizer is unnecessary.
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={preview.dataUrl}
                   alt={preview.attachment.original_name}

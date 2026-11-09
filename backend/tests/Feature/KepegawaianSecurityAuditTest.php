@@ -69,27 +69,31 @@ class KepegawaianSecurityAuditTest extends TestCase
             ],
         ];
 
-        $spreadsheet = $export->generate($maliciousItems, '2026-06', [
+        $spreadsheet = $export->generate($maliciousItems, '2026-09', [
             'nama' => '=ALERT("XSS")',
             'nip' => '19750314 199903 1 004',
             'jabatan' => '@ADMIN',
         ]);
 
         // Sheet 1 checks
-        $sheet1 = $spreadsheet->getSheetByName('Matriks Presensi');
+        $sheet1 = $spreadsheet->getSheetByName('PNS_BRI');
+        $this->assertNotNull($sheet1);
         $namaCell = $sheet1->getCell('B6')->getValue();
         $this->assertStringStartsWith("'", $namaCell, 'Employee name in sheet 1 must be escaped if starting with =');
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $sheet1->getCell('B6')->getDataType());
 
         $statusCell = $sheet1->getCell('C6')->getValue();
         $this->assertStringStartsWith("'", $statusCell, 'Status cell in sheet 1 must be escaped if starting with -@');
 
         // Sheet 2 checks
-        $sheet2 = $spreadsheet->getSheetByName('Nominatif Uang Makan');
+        $sheet2 = $spreadsheet->getSheetByName('Nominatif BRI');
+        $this->assertNotNull($sheet2);
         $namaNomCell = $sheet2->getCell('B6')->getValue();
         $this->assertStringStartsWith("'", $namaNomCell, 'Employee name in sheet 2 must be escaped if starting with =');
 
         $golNomCell = $sheet2->getCell('D6')->getValue();
         $this->assertStringStartsWith("'", $golNomCell, 'Golongan in sheet 2 must be escaped if starting with +');
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $sheet2->getCell('D6')->getDataType());
 
         // Check PPh formula is mathematically safe and does not execute arbitrary string concatenation
         $pphFormula = $sheet2->getCell('I6')->getValue();

@@ -24,7 +24,7 @@ class AgentAuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'code' => 'UNREGISTERED_PHONE',
-                'message' => 'Nomor WhatsApp Anda belum terdaftar di sistem BKSDA SuperApp. Silakan balas dengan mengetik NIP 18 digit Anda untuk verifikasi identitas, atau hubungi Subbagian Tata Usaha.',
+                'message' => 'Nomor WhatsApp belum terdaftar atau belum memiliki pemilik yang unik. Perbarui nomor melalui profil Portal setelah login, atau hubungi Subbagian Tata Usaha.',
             ], 404);
         }
 
@@ -46,7 +46,7 @@ class AgentAuthController extends Controller
     }
 
     /**
-     * Mengaitkan nomor WhatsApp baru dengan NIP pegawai (self-service linking dari WA).
+     * Konfirmasi nomor yang sudah tercatat pada profil; perubahan dilakukan setelah login Portal.
      */
     public function linkPhone(Request $request): JsonResponse
     {
@@ -61,7 +61,7 @@ class AgentAuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'code' => 'EMPLOYEE_NOT_FOUND',
-                'message' => 'NIP tidak ditemukan dalam daftar pegawai aktif BKSDA Kalimantan Timur.',
+                'message' => 'Nomor belum cocok dengan profil pegawai aktif. Perbarui nomor melalui profil Portal setelah login.',
             ], 404);
         }
 

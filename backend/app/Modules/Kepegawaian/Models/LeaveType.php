@@ -2,6 +2,7 @@
 
 namespace App\Modules\Kepegawaian\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -49,6 +50,13 @@ class LeaveType extends Model
             $match->whereRaw('LOWER(TRIM(nama)) = ?', [$normalized])
                 ->orWhereRaw('LOWER(TRIM(kode)) = ?', [$normalized]);
         });
+    }
+
+    public function countDays(Carbon $start, Carbon $end): int
+    {
+        return $this->hitung_hari === 'hari_kerja'
+            ? (int) $start->diffInWeekdays($end->copy()->addDay())
+            : (int) $start->diffInDays($end) + 1;
     }
 
     public static function forEmployee(string $value, Employee $employee): self

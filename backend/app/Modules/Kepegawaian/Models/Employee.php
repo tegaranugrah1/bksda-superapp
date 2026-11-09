@@ -118,12 +118,18 @@ class Employee extends Model
         abort_if($path === false, 500, 'Foto profil gagal disimpan.');
 
         $this->update(['foto_profil' => $path]);
-        if ($oldPath && ! str_starts_with($oldPath, 'http')
-            && ! static::withTrashed()->where('foto_profil', $oldPath)->exists()) {
-            Storage::delete($oldPath);
-        }
+        static::deleteUnreferencedProfilePhoto($oldPath);
 
         return $path;
+    }
+
+    public static function deleteUnreferencedProfilePhoto(?string $path): void
+    {
+        // Display scopes must not hide an active or archived storage reference.
+        if ($path && ! str_starts_with($path, 'http')
+            && ! static::withoutGlobalScopes()->withTrashed()->where('foto_profil', $path)->exists()) {
+            Storage::delete($path);
+        }
     }
 
     // Konversi otomatis string 0/1 dari database menjadi boolean true/false di PHP

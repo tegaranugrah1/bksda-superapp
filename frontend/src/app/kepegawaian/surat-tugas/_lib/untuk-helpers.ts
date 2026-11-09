@@ -8,6 +8,22 @@
  */
 import type { DasarItem, StExpenseTemplate } from "./types";
 
+/** Read legacy JSON/plain-text lists without passing malformed children to renderers. */
+export function parseLetterItems(value: unknown): DasarItem[] {
+  if (typeof value === "string") {
+    const text = value;
+    try { value = JSON.parse(value); }
+    catch { value = text.split(";"); }
+  }
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item, index) => {
+    const text = typeof item === "string" ? item : item && typeof item.text === "string" ? item.text : "";
+    if (!text.trim()) return [];
+    const id = item && (typeof item.id === "string" || typeof item.id === "number") ? String(item.id) : String(index);
+    return [{ id, text: text.trim() }];
+  });
+}
+
 export const DEFAULT_LAPORAN_TEXT =
   "Membuat laporan tertulis paling lambat 7 (tujuh) hari kerja setelah selesainya kegiatan tersebut.";
 export const DEFAULT_LAPORAN_BMN_TEXT =
@@ -98,8 +114,9 @@ export function buildOrderedAdditionalUntukItems({
   const items: DasarItem[] = [];
 
   // 1. Poin 2 dst.: Butir Tambahan dari Template ST atau ditambah manual di Builder
-  if (customTemplateItems && customTemplateItems.length > 0) {
-    customTemplateItems.forEach((c, idx) => {
+  const customItems = parseLetterItems(customTemplateItems);
+  if (customItems.length > 0) {
+    customItems.forEach((c, idx) => {
       const text = c.text?.trim() || "";
       if (!text) return;
       if (isGeneratedBiayaItem(text, expenseTemplates)) return;

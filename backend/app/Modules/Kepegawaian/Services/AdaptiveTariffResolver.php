@@ -91,8 +91,7 @@ class AdaptiveTariffResolver
         }
 
         // 3. Fallback: Menggunakan metadata SIKADIR (Kelas Jabatan)
-        $kelasJabatan = isset($sikadirMeta['KELAS JABATAN']) ? (int) $sikadirMeta['KELAS JABATAN'] : 0;
-        $ketLain = strtoupper($sikadirMeta['KETERANGAN LAIN'] ?? '');
+        $kelasJabatan = (int) ($sikadirMeta['kelas_jabatan'] ?? $sikadirMeta['KELAS JABATAN'] ?? 0);
 
         if ($kelasJabatan > 0) {
             // Jenjang PPPK KLHK:
