@@ -191,25 +191,28 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                           collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
                         } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                           isActive
-                            ? "text-[#1e5433] dark:text-emerald-300 font-bold"
+                            ? "text-emerald-800 dark:text-emerald-300 font-bold"
                             : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {isActive && (
                           <motion.span
                             layoutId="activeBmnNavIndicator"
-                            className="absolute inset-0 bg-[#eaf2ec] dark:bg-emerald-950/60 border border-[#dce8dd] dark:border-emerald-800/40 rounded-xl shadow-2xs"
+                            className="absolute inset-0 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 rounded-xl shadow-2xs"
                             transition={{ type: "spring", stiffness: 450, damping: 35 }}
                           />
                         )}
                         <Icon
                           className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
                             isActive
-                              ? "text-[#1e5433] dark:text-emerald-400"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200"
                           }`}
                         />
-                        {!collapsed && <span className="truncate relative z-10">{item.label}</span>}
+                        {!collapsed && <span className="truncate relative z-10 flex-1">{item.label}</span>}
+                        {!collapsed && isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 relative z-10" />
+                        )}
                       </Link>
                     );
                   })}

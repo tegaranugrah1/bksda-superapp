@@ -1448,7 +1448,7 @@
 - **Latar Belakang & Alignment (/grill-me)**:
   1. Pengguna meminta audit seluruh elemen UI di `http://localhost:3000/bmn` yang membutuhkan animasi (*animate ui*), mulai dari sidebar hingga dashboard dan komponen di dalamnya.
   2. Melalui klarifikasi terstruktur `/grill-me`, disepakati prioritas Tahap 1:
-     - **Sidebar Navigasi**: Sliding pill indicator pada menu navigasi aktif menggunakan `layoutId="activeBmnNavIndicator"`, transisi spring halus tanpa overshooting, dipadukan palet hijau resmi Kemenhut (`#1e5433` / `#eaf2ec`).
+     - **Sidebar Navigasi**: Sliding pill indicator pada menu navigasi aktif menggunakan `layoutId="activeBmnNavIndicator"`, transisi spring halus tanpa overshooting, diselaraskan dengan warna khas modul BMN (`bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800/60`, teks `text-emerald-800 dark:text-emerald-300`, ikon `text-emerald-600 dark:text-emerald-400`, dan indikator titik `bg-emerald-500` persis seperti pada menu BMN & Aset di Module Switcher).
      - **Transisi Pergantian Halaman BMN**: Transisi halus *subtle fade + slide up 6px* (`opacity: 0, y: 6` -> `1, 0`) menggunakan `AnimatePresence mode="wait"` membungkus `{children}` di `BmnLayout`.
      - **Dashboard BMN**:
        - *Stat Cards*: Efek *hover-lift* (`whileHover={{ y: -3 }}`) dengan bayangan lembut dan transisi spring halus.
