@@ -2,7 +2,7 @@
 
 Tanggal: 9 November 2026. Run: `run-8`. Base source: `e0e5ef3041efe31e96f17e423f4da6e88289ca51`; hasil berlaku pada perubahan dalam commit yang memuat laporan ini. [Rencana 31 skenario](portal-notification-lifecycle-test-plan-2026-11-09.md).
 
-**Status pengujian lokal: selesai pada f7f6b6a8. Tindak lanjut deployment sudah di-merge dan diterapkan melalui PR599/600; runtime/DNS/heartbeat/WSS lulus, uji penerimaan browser menunggu login ulang.** Lihat [laporan deployment terkini](portal-reverb-deployment-2026-11-09.md). Seluruh 31 skenario lokal mempunyai hasil dan bukti sesuai lapisan pada matriks di bawah; status diagnosis awal di matriks tidak ditafsirkan sebagai tes produksi. Ini regresi fungsional terfokus dengan panduan `security-audit` dan `ponytail-review`, bukan audit keamanan menyeluruh baru. Tiga lead historis audit ST/Kepegawaian tidak diubah verdict-nya oleh pengujian ini.
+**Status pengujian lokal: selesai pada f7f6b6a8. Tindak lanjut deployment melalui PR599/600 dan smoke test notifikasi produksi sudah selesai, termasuk private auth200, toast realtime serta read/history setelah login ulang terbaru.** Lihat [laporan deployment terkini](portal-reverb-deployment-2026-11-09.md). Seluruh 31 skenario lokal mempunyai hasil dan bukti sesuai lapisan pada matriks di bawah; status diagnosis awal di matriks tidak ditafsirkan sebagai tes produksi. Ini regresi fungsional terfokus dengan panduan `security-audit` dan `ponytail-review`, bukan audit keamanan menyeluruh baru. Tiga lead historis audit ST/Kepegawaian tidak diubah verdict-nya oleh pengujian ini.
 
 ## 1. Penyebab peringatan Reverb dan lokasi aplikasi
 

@@ -2,7 +2,7 @@
 
 Tanggal: 9 November 2026. Acuan source: `e0e5ef3041efe31e96f17e423f4da6e88289ca51`.
 
-**Status: 31 skenario lokal telah dilaksanakan sesuai lapisan bukti pada [laporan hasil](portal-notification-lifecycle-report-2026-11-09.md).** Source/tes/laporan awal ditutup pada f7f6b6a8. Pengguna kemudian mengotorisasi deployment melalui PR599/600; runtime/DNS/heartbeat/WSS sudah lulus, uji penerimaan browser menunggu login ulang. Status terbaru ada pada [laporan deployment](portal-reverb-deployment-2026-11-09.md). Dokumen ini mempertahankan rancangan dan observasi baseline agar alasan setiap tes tetap dapat ditelusuri; hasil lokal tidak ditulis ulang sebagai seluruhnya tes produksi.
+**Status: 31 skenario lokal telah dilaksanakan sesuai lapisan bukti pada [laporan hasil](portal-notification-lifecycle-report-2026-11-09.md).** Source/tes/laporan awal ditutup pada f7f6b6a8. Deployment melalui PR599/600 dan smoke test notifikasi produksi selesai, termasuk private auth, toast realtime, bel/riwayat dan read_at pada login terbaru. Status serta batasnya ada pada [laporan deployment](portal-reverb-deployment-2026-11-09.md). Dokumen ini mempertahankan rancangan dan observasi baseline; hasil lokal tidak ditulis ulang sebagai seluruhnya tes produksi.
 
 ## 1. Tujuan dan batas cakupan
 
