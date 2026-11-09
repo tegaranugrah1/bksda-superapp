@@ -214,4 +214,13 @@ class SuratModuleTest extends TestCase
             'no_surat' => 'S.500/K.18/TU/2026',
         ]);
     }
+
+    public function test_can_fetch_surat_masuk_locations_with_surat_view(): void
+    {
+        $response = $this->actingAs($this->regularUser)
+            ->getJson('/api/surat-masuk/locations');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['data']);
+    }
 }

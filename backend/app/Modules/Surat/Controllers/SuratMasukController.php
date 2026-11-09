@@ -113,6 +113,18 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    public function locations(): JsonResponse
+    {
+        $locations = DB::table('bmn_locations')
+            ->select('id', 'name', 'unit_kerja')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'data' => $locations,
+        ]);
+    }
+
     public function store(SuratMasukRequest $request): JsonResponse
     {
         $validated = $request->validated();

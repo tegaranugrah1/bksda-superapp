@@ -1347,7 +1347,32 @@
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
   - `php backend/tests/portal_security_check.php`: **PASS** (100% lulus).
-  - Popover "Arahan Pimpinan (Sifat & Penerus Balai)" dan Sifat Surat kini selalu tampil utuh, bebas kliping, dan otomatis membalik ke atas (*flip top*) pada baris bawah tabel.
+  ---
+
+## 52. Resolusi Isolasi Hak Akses Ruangan Balai pada Disposisi Surat (Akun Magang / Staf Non-BMN) (09 November 2026)
+
+- **Latar Belakang & Gejala Masalah**:
+  - Pada halaman `http://localhost:3000/surat/masuk`, saat akun magang atau staf biasa membuka popover "Arahan Pimpinan (Pilih Penerus)", daftar *Pegawai Balai* muncul normal, namun tab *Ruangan Balai* kosong melompong (`Ruangan Balai (0)`).
+- **Akar Penyebab (*Root Cause*)**:
+  1. *Pegawai Balai* diambil dari `GET /api/kepegawaian/employees/select` yang sengaja berstatus *public/open directory lookup* (hanya dibatasi `throttle:120,1`), sehingga akun magang dapat mengaksesnya tanpa syarat permission khusus.
+  2. *Ruangan Balai* sebelumnya langsung memanggil `GET /api/bmn/locations`. Endpoint ini berada di dalam modul BMN yang diproteksi ketat oleh `module.access:bmn` dan `permission:bmn.view`.
+  3. Akun magang/staf umum hanya memiliki hak akses persuratan (`surat.view`) dan tidak memiliki hak akses BMN (`bmn.view`), sehingga pemanggilan ke `/api/bmn/locations` ditolak dengan status **HTTP 403 Forbidden**.
+  4. Karena frontend menangkap error 403 tersebut dengan `.catch(() => ({ data: { data: [] } }))`, daftar ruangan balai ter-set menjadi array kosong tanpa fallback.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Endpoint Khusus Modul Surat (`SuratMasukController::locations`)**:
+     - Menambahkan route `GET /surat-masuk/locations` pada `App\Modules\Surat\Routes\api.php` dengan otorisasi `permission:surat.view`.
+     - Mengambil data id, nama ruangan, dan unit kerja langsung dari tabel `bmn_locations` secara ringan tanpa membutuhkan hak akses lintas modul BMN.
+  2. **Multi-Tier Fallback pada Frontend (`DiteruskanCellPopover.tsx`)**:
+     - Memprioritaskan pemanggilan `api.get("/surat-masuk/locations")` yang sesuai dengan hak akses persuratan pengguna.
+     - Menyediakan fallback sekunder ke `/bmn/locations` (jika user adalah admin BMN).
+     - Menyediakan fallback tersier ke konstanta `DEFAULT_BALAI_ROOMS` (daftar unit baku Balai: *Ka Sub Bag TU, Urusan Umum & Perlengkapan, Urusan Kepegawaian, Urusan Program, Urusan Keuangan, Urusan Evlab, Urusan Teknis, Urusan Perlindungan, Urusan IKN, PPK FOLU NC 2030*) jika server offline.
+  3. **Pengujian Otomatis (`SuratModuleTest.php`)**:
+     - Menambahkan unit test `test_can_fetch_surat_masuk_locations_with_surat_view` yang memverifikasi bahwa staf dengan izin `surat.view` (termasuk magang) dapat mengambil daftar ruangan dengan status HTTP 200.
+- **Hasil Verifikasi**:
+  - `cd backend; php vendor/phpunit/phpunit/phpunit tests/Feature/SuratModuleTest.php`: **10/10 PASS** (30 assertions lulus 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
 
 
 

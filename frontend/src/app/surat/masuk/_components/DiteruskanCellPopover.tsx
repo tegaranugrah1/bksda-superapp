@@ -35,6 +35,19 @@ function sanitizeRecipients(list?: string[] | null): string[] {
   return list.filter((r) => !/^\d+\.\s+/.test(r.trim()));
 }
 
+const DEFAULT_BALAI_ROOMS = [
+  { id: "def-1", name: "Ka Sub Bag TU", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-2", name: "Urusan Umum dan Perlengkapan", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-3", name: "Urusan Kepegawaian", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-4", name: "Urusan Program dan Perencanaan", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-5", name: "Urusan Keuangan", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-6", name: "Urusan Evlab dan Humas", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-7", name: "Urusan Teknis", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-8", name: "Urusan Perlindungan", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-9", name: "Urusan IKN", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+  { id: "def-10", name: "PPK FOLU NC 2030", unit_kerja: "Kantor Balai KSDA Kalimantan Timur" },
+];
+
 export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"ruang" | "pegawai">("ruang");
@@ -76,13 +89,20 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
       setIsLoadingData(true);
       try {
         const [locRes, empRes] = await Promise.all([
-          api.get("/bmn/locations").catch(() => ({ data: { data: [] } })),
+          api
+            .get("/surat-masuk/locations")
+            .catch(() => api.get("/bmn/locations"))
+            .catch(() => ({ data: { data: DEFAULT_BALAI_ROOMS } })),
           api.get("/kepegawaian/employees/select?limit=200").catch(() => ({ data: { data: [] } })),
         ]);
 
         if (!isMounted) return;
 
-        const locData = locRes.data?.data || locRes.data || [];
+        let locData = locRes.data?.data || locRes.data || [];
+        if (!Array.isArray(locData) || locData.length === 0) {
+          locData = DEFAULT_BALAI_ROOMS;
+        }
+
         const empData = empRes.data?.data || empRes.data || [];
 
         // Filter locations belonging to Balai KSDA Kalimantan Timur
