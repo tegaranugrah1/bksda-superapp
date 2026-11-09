@@ -1400,6 +1400,9 @@
      - Menggunakan foto aset konservasi lokal BKSDA Kaltim (`/assets/images/background/sangalaki.png` - Pulau Sangalaki).
      - Menghilangkan *mix-blend mode* dan *shadow* gelap pekat yang sebelumnya menutup gambar. Foto kini tampil 100% jelas, terang, dan berwarna alami.
      - Hanya ditambahkan gradien lembut tipis di bagian dasar agar teks kutipan resmi terbaca kontras tanpa meredupkan pemandangan alam di atasnya.
+  4. **Penyatuan Alur Lupa Kata Sandi dengan Efek Push Transition (`/ponytail`)**:
+     - Mengintegrasikan alur *Lupa Kata Sandi* (`POST /api/forgot-password`) dan *Verifikasi 2FA* langsung ke dalam halaman `/login` tanpa perpindahan halaman (*no full-page reload*), menggunakan `AnimatePresence` + `motion.div` (*spring push transition* `x: ±100%`).
+     - Menyederhanakan `frontend/src/app/forgot-password/page.tsx` dari 132 baris menjadi 5 baris redirect ke `/login`.
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
