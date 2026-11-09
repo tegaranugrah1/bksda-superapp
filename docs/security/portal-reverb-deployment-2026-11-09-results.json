@@ -1,5 +1,5 @@
 {
-  "status": "deployed_server_verified_browser_login_required",
+  "status": "deployed_server_and_personal_notification_verified",
   "date": "2026-11-09",
   "timezone": "Asia/Singapore",
   "main_pr": 599,
@@ -18,7 +18,7 @@
   "verified": {
     "production_build": "PASS including native Reverb signal guard",
     "reverb_runtime": "pcntl=yes SIGINT=yes; running restart_count0",
-    "reverb_stability": "same process start2026-11-09T02:40:13Z, restart0 in snapshots02:43 and02:46UTC; observed running for6minutes",
+    "reverb_stability": "Same process since2026-11-09T02:40:13Z; running restart0 through2026-11-09T03:20:09Z (about40minutes)",
     "dns": "PASS from backend",
     "http_api": "200",
     "http_portal": "200",
@@ -26,14 +26,29 @@
     "queue_heartbeat": "native queued pulse10:43:19+08 processed, backend read age53seconds at10:44:13+08; pending0 in that snapshot",
     "shared_cache_prefix": "backend/queue/scheduler/reverb all bksda-superapp-cache-; existing backend namespace preserved",
     "nginx_config": "stale bind-mount lacked/app; restart through Dokploy restored route and WSS",
-    "startup_check": "PASS network-none read-only parser; no reseed, fail-on-migration, four shared prefixes"
+    "startup_check": "PASS network-none read-only parser; no reseed, fail-on-migration, four shared prefixes",
+    "personal_notification": "PASS native DBqueue/Reverb/browser toast/popover/read/history; exactly one technical record"
   },
   "browser_delivery": {
-    "status": "LOGIN_REQUIRED",
-    "observed": "public WebSocket101; private auth401 with old browser session; native current private channel count0",
-    "user_question": "Asynchronous login request sent; do not assume login based on elapsed time",
-    "canary_sent": false,
-    "production_identity_or_new_token_created": false
+    "status": "PASS",
+    "latest_private_auth_http_status": 200,
+    "private_channels_before_send": 1,
+    "notification_id": 359,
+    "title": "Uji deploy Reverb 3de2ab8a",
+    "created_at_utc": "2026-11-09T03:15:05Z",
+    "canary_sent": true,
+    "canary_row_count": 1,
+    "toast": "Observed visible title and technical body in browser accessibility tree immediately after queued dispatch; no popup/history open at that observation",
+    "realtime_basis": "Only the Echo notification.created handler emits this toast; normal HTTP polling does not emit it",
+    "popover": "Same title/body present; unread168 before read",
+    "read_at_utc": "2026-11-09T03:16:36Z",
+    "unread_before_read": 168,
+    "unread_after_read": 167,
+    "read_history_filter": "One item, same canary, footer Halaman1dari1(1item)",
+    "other_notifications_marked_read": false,
+    "production_identity_or_additional_token_created": false,
+    "business_st_leave_asset_mutations": false,
+    "former_LOGIN_REQUIRED": "Resolved after user latest login; earlier401 observations remain historical evidence"
   },
   "other_observed_issue": {
     "job": "ArchiveOfficialDocument",
@@ -388,6 +403,131 @@
         "worker_log": 0
       },
       "interpretation": "administrative_observation_not_an_automatic_pass"
+    },
+    {
+      "file": "health-20261109T030921Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T03:09:18.602683+00:00",
+      "bytes": 322,
+      "sha256": "d6933608dc59564ddaf8935c02059ffa73fe2738fd784b4ffaf7a901374edfae",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "health-20261109T031417Z.json",
+      "mode": "health",
+      "observed_at_utc": "2026-11-09T03:14:15.181106+00:00",
+      "bytes": 322,
+      "sha256": "b8583587395b8c66949712987675b3106a72e7466188f4c4174564d84b003815",
+      "checks": {
+        "health": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "notice-status-20261109T031631Z.json",
+      "mode": "notice-status",
+      "observed_at_utc": "2026-11-09T03:16:28.773562+00:00",
+      "bytes": 293,
+      "sha256": "2668cad2470ef5853ca4fd68beb0c7c224f866ef0e0e7f4e3314234dbaa438a7",
+      "checks": {
+        "notice-status": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "notice-status-20261109T031802Z.json",
+      "mode": "notice-status",
+      "observed_at_utc": "2026-11-09T03:18:00.023054+00:00",
+      "bytes": 320,
+      "sha256": "2e99c9e17403741773ebd62800b8ee7a8d1255db3b59bd0cf067575ec89ffc9c",
+      "checks": {
+        "notice-status": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "proxy-status-20261109T030953Z.json",
+      "mode": "proxy-status",
+      "observed_at_utc": "2026-11-09T03:09:52.135094+00:00",
+      "bytes": 315,
+      "sha256": "d38ede03a22e2ff748302488ece66cc7e34ad357c351bceba9c06388dabca2c5",
+      "checks": {
+        "proxy_status": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "proxy-status-20261109T031805Z.json",
+      "mode": "proxy-status",
+      "observed_at_utc": "2026-11-09T03:18:03.458906+00:00",
+      "bytes": 429,
+      "sha256": "4242a12da32b93180f8ae8eb8920ad8f58e7a5b967bfb024493efbd5d1e6ad78",
+      "checks": {
+        "proxy_status": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "runtime-20261109T025841Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T02:58:27.696845+00:00",
+      "bytes": 2217,
+      "sha256": "0e1426fdc22b799ee72f25ba496d7fb53c084e81b55bbcfb49f285810b55df70",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 0,
+        "dns": 0,
+        "reverb_log": 0,
+        "signal_guard": 0,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "runtime-20261109T032024Z.json",
+      "mode": "runtime",
+      "observed_at_utc": "2026-11-09T03:20:09.749551+00:00",
+      "bytes": 2217,
+      "sha256": "8417e32cafd44867b43b45e45275556f06b739abd29757543faeff3f518c01e2",
+      "checks": {
+        "source_head": 0,
+        "images": 0,
+        "pcntl": 0,
+        "dns": 0,
+        "reverb_log": 0,
+        "signal_guard": 0,
+        "public_api": 0,
+        "public_portal": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "self-notice-20261109T031506Z.json",
+      "mode": "self-notice",
+      "observed_at_utc": "2026-11-09T03:15:04.073014+00:00",
+      "bytes": 329,
+      "sha256": "1022b6c635348fdbcc0d5ad8223c22b1a76b5364d381ccbd2247481d760dc949",
+      "checks": {
+        "self-notice": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
+    },
+    {
+      "file": "websocket-20261109T025849Z.json",
+      "mode": "websocket",
+      "observed_at_utc": "2026-11-09T02:58:45.019084+00:00",
+      "bytes": 436,
+      "sha256": "054f8acb965a7ce12eb69a4c31ee23b4af8bd37e6c1b734efbda2bbc7245247c",
+      "checks": {
+        "internal_ws": 0,
+        "public_wss": 0
+      },
+      "interpretation": "production_smoke_observation; check content and timestamps, not only command exit"
     }
   ],
   "visual_proof": {
@@ -395,5 +535,17 @@
     "bytes": 171767,
     "sha256": "9c5c7123d3929491888306b6e4af028971ed7af8c3b7e84b1cd5a1ed3bc3abee",
     "meaning": "Dokploy Containers shows all services running; no browser-notification-delivery claim"
-  }
+  },
+  "browser_visual_proof": {
+    "file": "portal-read-confirmed-359.jpg",
+    "bytes": 68819,
+    "sha256": "1335f4d2d09b9528061db85c5854b1f4967d9c620edba503cd73740c85340c82",
+    "meaning": "Actual UI read filter, one canary item,167other unread; not a screenshot of the transient toast"
+  },
+  "excluded_browser_images": [
+    "portal-realtime-canary-359.jpg",
+    "portal-notification-read-359.jpg",
+    "portal-filtered-read-359.jpg"
+  ],
+  "excluded_browser_images_reason": "Toast had already expired or screenshot caught a loading transition/dashboard. They are not used as proof of toast delivery/read-filter result."
 }
