@@ -7,6 +7,7 @@ use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Bmn\Requests\StoreAssetLoanRequest;
 use App\Modules\Bmn\Resources\AssetLoanResource;
 use App\Modules\Bmn\Services\LoanService;
+use App\Modules\Kepegawaian\Models\Employee;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,13 @@ class LoanController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $borrower = Employee::find($request->input('borrower_employee_id'));
+        if ($borrower && ! $borrower->isEffectiveActive()) {
+            return response()->json([
+                'message' => 'Pegawai berstatus nonaktif tidak dapat meminjam aset BMN.',
+            ], 422);
+        }
+
         try {
             $loans = $this->loanService->createLoan($request->all());
 
@@ -64,6 +72,13 @@ class LoanController extends Controller
      */
     public function borrow(StoreAssetLoanRequest $request, string $assetId): JsonResponse
     {
+        $borrower = Employee::find($request->employee_id);
+        if ($borrower && ! $borrower->isEffectiveActive()) {
+            return response()->json([
+                'message' => 'Pegawai berstatus nonaktif tidak dapat diserahi aset BMN.',
+            ], 422);
+        }
+
         try {
             $loan = $this->loanService->borrowAsset($assetId, $request->employee_id, $request->validated());
 

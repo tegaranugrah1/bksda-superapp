@@ -122,7 +122,30 @@ class AssignmentLetterRequest extends FormRequest
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'employees' => 'nullable|array',
-            'employees.*.id' => 'required_with:employees|integer|exists:kpg_employees,id',
+            'employees.*.id' => [
+                'required_with:employees',
+                'integer',
+                'exists:kpg_employees,id',
+                function ($attribute, $value, $fail) {
+                    if (empty($value)) return;
+                    $emp = \App\Modules\Kepegawaian\Models\Employee::find($value);
+                    if (! $emp) return;
+
+                    $tglSelesai = $this->input('tanggal_selesai', $this->input('tanggal_mulai'));
+                    if (! $emp->is_active) {
+                        $fail("Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena berstatus nonaktif.");
+                        return;
+                    }
+
+                    if ($emp->inactive_effective_date && $tglSelesai) {
+                        $tmt = $emp->inactive_effective_date->toDateString();
+                        $endStr = \Illuminate\Support\Carbon::parse($tglSelesai)->toDateString();
+                        if ($endStr >= $tmt) {
+                            $fail("Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena memiliki TMT nonaktif ({$tmt}) di dalam atau sebelum periode dinas.");
+                        }
+                    }
+                },
+            ],
             'employees.*.peran' => 'nullable|string|max:100',
             'employees.*.tanggal_mulai' => 'nullable|date',
             'employees.*.tanggal_selesai' => 'nullable|date',

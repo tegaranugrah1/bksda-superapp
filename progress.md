@@ -1187,3 +1187,53 @@
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
   - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
   - `graphify update .`: Sukses tersinkronisasi (14.623 nodes, 27.352 edges, 1.008 communities).
+
+---
+
+## 47. Implementasi Lifecycle Pegawai Pensiun, Keluar & TMT (09 November 2026)
+
+- **Latar Belakang & Kebutuhan (`doc.md`)**:
+  - Pegawai yang pensiun atau keluar (mengundurkan diri, habis kontrak, mutasi, meninggal, diberhentikan) tidak boleh dihapus atau disoft-delete agar riwayat operasional (SPT, Cuti, Uang Makan, BMN, arsip surat) tetap utuh.
+  - Akses akun login harus dicabut tepat pada batas TMT (Terhitung Mulai Tanggal) pukul 00:00 WITA (`Asia/Makassar`), Sanctum tokens direvoke, dan session web ditutup.
+  - Mendukung penetapan TMT di masa mendatang (`scheduled_inactive`) di mana pegawai dan user tetap aktif sampai TMT tiba, serta pembatalan jadwal sebelum tanggal efektif.
+  - Mengintegrasikan guard lintas modul: pencegahan penugasan baru pada Surat Tugas (`AssignmentLetterConflictService`), pemblokiran izin cuti baru (`EmployeeLeaveController` & `EmployeeLeaveRequestController`), penolakan pinjaman baru BMN (`LoanController`), dan pemfilteran uang makan pada hari nonaktif (`AttendanceReconcilerService` & `MealAllowanceController`).
+  - Menyediakan endpoint pemeriksaan tanggungan BMN unik (`bmnClearance`) sebelum penonaktifan dieksekusi.
+  - Memastikan retensi data operasional di mana `forceDestroy` diblokir jika pegawai memiliki jejak historis (`hasOperationalHistory()`).
+
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Database Migration Additive**:
+     - `backend/database/migrations/2026_11_09_160000_add_lifecycle_columns_to_kpg_employees_table.php`: Menambahkan kolom nullable `inactive_reason` (varchar 50), `inactive_effective_date` (date), `inactive_notes` (text), dan composite index `(is_active, inactive_effective_date)`.
+  2. **Model Pegawai & Akun (`Employee.php` & `User.php`)**:
+     - `User.php`: Menambahkan relasi `employee(): HasOne` via `('nip', 'username')`.
+     - `Employee.php`:
+       - Menetapkan konstanta alasan `ALLOWED_INACTIVE_REASONS` (`pensiun`, `mengundurkan_diri`, `habis_kontrak`, `mutasi`, `meninggal`, `diberhentikan`, `lainnya`) dan labelnya.
+       - Menambahkan helper `isEffectiveActive(?\DateTimeInterface|string $asOf = null)`, `isScheduledInactive()`, query scope `scopeEffectiveActive()`, `scopeScheduledInactive()`, serta accessor `status_badge`.
+       - Menambahkan method atomik `applyLifecycleStatus(action, reason, effectiveDate, notes, actor)` yang mengunci record (`lockForUpdate`), mengupdate lifecycle pegawai, menonaktifkan linked User, mencabut token Sanctum, dan mencatat audit ke `EmployeeHistory`.
+       - Menambahkan `hasOperationalHistory(): bool` untuk melindungi pegawai dengan jejak riwayat SPT, Cuti, Uang Makan, BMN, atau History dari `forceDestroy`.
+  3. **Security Middleware & Auth Guard**:
+     - `EnsureAccountSecure.php`: Memeriksa apakah pegawai terkait berstatus `!isEffectiveActive()`. Jika tidak aktif, otomatis mendonaktifkan akun user, menghapus tokens, logout web session, dan mengembalikan 403 `account_inactive`.
+     - `AuthController::login`: Memblokir percobaan login pegawai yang sudah melewati TMT dengan pesan `"Akun Anda sudah dinonaktifkan."`.
+     - `EmployeeAccessController`: Memblokir pengaktifan akun user via IAM jika data pegawai berstatus non-aktif.
+  4. **Scheduler Idempotent**:
+     - `ApplyEmployeeLifecycleCommand.php` (`employee:apply-lifecycle`): Artisan command idempotent yang mengeksekusi penonaktifan pegawai terjadwal saat TMT tiba, menonaktifkan akun user, menghapus token, dan mencatat audit history.
+     - `backend/routes/console.php`: Didaftarkan untuk berjalan harian pada pukul 00:01 WITA (`Asia/Makassar`).
+  5. **Cross-Module Guards (ST, Cuti, BMN, Uang Makan)**:
+     - `AssignmentLetterConflictService.php` & `AssignmentLetterRequest.php`: Menolak pegawai non-aktif dan pegawai yang TMT-nya jatuh pada atau sebelum tanggal selesai penugasan dinas.
+     - `EmployeeLeaveController.php` & `EmployeeLeaveRequestController.php`: Memblokir pengajuan cuti baru bagi pegawai non-aktif dan menolak permohonan yang tanggal selesainya melintasi TMT.
+     - `EmployeeLeave.php`: Menyetel kuota tahunan = 0 jika pegawai nonaktif sebelum tahun berjalan.
+     - `LoanController.php`: Menolak peminjaman BMN baru bagi pegawai yang tidak `effectiveActive()`.
+     - `MealAllowanceController.php` & `AttendanceReconcilerService.php`: Mengabaikan hari kerja pada atau setelah TMT dari perhitungan uang makan.
+  6. **Frontend UI/UX**:
+     - `EmployeeLifecycleModal.tsx`: Dialog konfirmasi interaktif lengkap dengan pemeriksaan tanggungan BMN unik real-time, pilihan tindakan (`deactivate`, `cancel_schedule`, `reactivate`), pemilih TMT, dropdown alasan resmi, dan validasi catatan backdate.
+     - `employees/[id]/page.tsx`: Tombol aksi "Status & Pensiun", Cockpit badge status cerdas (Emerald untuk Aktif, Amber pulsating untuk Terjadwal Nonaktif dengan TMT, Slate untuk Pensiun/Non-Aktif), dan detail TMT/Alasan di Card Biodata.
+     - `employees/page.tsx`: Filter status lengkap (`all`, `active`, `scheduled`, `pensiun`, `inactive`, `trashed`) beserta badge tabel row adaptif.
+     - `employee-types.ts`: Menambahkan tipe `inactive_reason`, `inactive_effective_date`, `inactive_notes`, dan `status_badge`.
+  7. **Automated Verification**:
+     - `backend/tests/EmployeeLifecycleTest.php`: Dibuat dan dijalankan dengan 10 skenario pengujian komprehensif (EMP-01 s/d EMP-12, BMN clearance & loan guard, ST conflict, Cuti boundary, dan Force delete protection).
+
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus tanpa error).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5 checks lulus).
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `graphify update .`: Terkini.

@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Illuminate\Support\Facades\Schedule::command('app:monitor-health')->everyFiveMinutes()->withoutOverlapping();
 Illuminate\Support\Facades\Schedule::command('drive:cleanup-uploads')->hourly()->withoutOverlapping();
 Illuminate\Support\Facades\Schedule::command('drive:purge-trash')->dailyAt('02:00')->withoutOverlapping();
+Illuminate\Support\Facades\Schedule::command('employee:apply-lifecycle')->dailyAt('00:01')->withoutOverlapping();

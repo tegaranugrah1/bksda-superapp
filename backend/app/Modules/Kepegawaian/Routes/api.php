@@ -99,6 +99,8 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::post('/employees/{employee}/photo', [EmployeeController::class, 'updatePhoto']);
         Route::post('/employees/{employee}/reset-password', [EmployeeController::class, 'resetPassword']);
+        Route::post('/employees/{employee}/lifecycle', [EmployeeController::class, 'updateLifecycle']);
+        Route::get('/employees/{employee}/bmn-clearance', [EmployeeController::class, 'bmnClearance']);
         Route::delete('/employees/{employee}/2fa', [EmployeeController::class, 'reset2Fa']);
         Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore']);
         Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDestroy']);

@@ -240,4 +240,9 @@ class User extends Authenticatable
             && ! empty($this->email)
             && ! str_ends_with(strtolower((string) $this->email), '.local');
     }
+
+    public function employee(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Modules\Kepegawaian\Models\Employee::class, 'nip', 'username');
+    }
 }

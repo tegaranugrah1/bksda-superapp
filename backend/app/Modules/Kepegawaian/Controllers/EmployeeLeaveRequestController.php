@@ -155,6 +155,20 @@ class EmployeeLeaveRequestController extends Controller
         DB::beginTransaction();
         try {
             $employee = Employee::lockForLeaveUpdate($employee->id);
+
+            if (! $employee->is_active) {
+                DB::rollBack();
+                return response()->json(['message' => 'Pegawai berstatus nonaktif tidak dapat mengajukan cuti.'], 422);
+            }
+
+            if ($employee->inactive_effective_date && Carbon::parse($validated['tanggal_selesai'])->toDateString() >= $employee->inactive_effective_date->toDateString()) {
+                $tmt = $employee->inactive_effective_date->toDateString();
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Permohonan cuti tidak dapat diajukan melintasi tanggal TMT nonaktif ({$tmt}).",
+                ], 422);
+            }
+
             $leaveType = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveType->nama;
 

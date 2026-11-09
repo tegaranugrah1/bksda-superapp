@@ -33,6 +33,7 @@ import {
   Building,
   AlertCircle,
   CheckCircle2,
+  UserX,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
@@ -41,6 +42,7 @@ import { EmployeeAccessSheet } from "../../_components/EmployeeAccessSheet";
 import { EmployeeLeaveTab } from "../_components/EmployeeLeaveTab";
 import { EmployeeAuditHistoryTab } from "../_components/EmployeeAuditHistoryTab";
 import { EmployeeMealAllowanceTab } from "../_components/EmployeeMealAllowanceTab";
+import { EmployeeLifecycleModal } from "../_components/EmployeeLifecycleModal";
 import { getBankTheme } from "../../_lib/bank-themes";
 import {
   calculateMasaKerja,
@@ -130,6 +132,7 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
 
   // Tab utama default: Biodata Lengkap
   const [activeTab, setActiveTab] = useState<
@@ -493,6 +496,17 @@ export default function EmployeeDetailPage() {
               <span>Kelola Akses (IAM)</span>
             </Button>
           )}
+          {canWrite && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              onClick={() => setLifecycleModalOpen(true)}
+            >
+              <UserX className="w-3.5 h-3.5 text-rose-500" />
+              <span>Status & Pensiun</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -588,13 +602,15 @@ export default function EmployeeDetailPage() {
                 <span
                   className={cn(
                     "inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full",
-                    employee.is_active
+                    employee.status_badge?.color === "emerald"
                       ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                      : "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                      : employee.status_badge?.color === "amber"
+                      ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                   )}
                 >
                   <BadgeCheck className="w-3 h-3" />
-                  {employee.is_active ? "Aktif Bertugas" : "Non-Aktif"}
+                  {employee.status_badge?.label || (employee.is_active ? "Aktif Bertugas" : "Non-Aktif")}
                 </span>
               </div>
 
@@ -1200,6 +1216,22 @@ export default function EmployeeDetailPage() {
                         }
                       />
                       <BioItem
+                        label="Status Kepegawaian"
+                        value={employee.status_badge?.label || (employee.is_active ? "Aktif Bertugas" : "Non-Aktif")}
+                      />
+                      {employee.inactive_effective_date && (
+                        <BioItem
+                          label="TMT Nonaktif"
+                          value={employee.inactive_effective_date}
+                        />
+                      )}
+                      {employee.inactive_notes && (
+                        <BioItem
+                          label="Catatan / Nomor SK"
+                          value={employee.inactive_notes}
+                        />
+                      )}
+                      <BioItem
                         label="Masa Kerja"
                         value={
                           empCategory === "MMP"
@@ -1776,6 +1808,15 @@ export default function EmployeeDetailPage() {
           employee={employee}
           open={accessSheetOpen}
           onOpenChange={setAccessSheetOpen}
+        />
+      )}
+
+      {/* Employee Lifecycle (Pensiun/Status) Modal */}
+      {canWrite && (
+        <EmployeeLifecycleModal
+          employee={employee}
+          open={lifecycleModalOpen}
+          onOpenChange={setLifecycleModalOpen}
         />
       )}
     </div>

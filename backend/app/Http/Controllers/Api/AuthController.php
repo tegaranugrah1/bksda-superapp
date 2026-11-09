@@ -41,7 +41,14 @@ class AuthController extends Controller
             ]);
         }
 
-        if (! $user->is_active) {
+        $employee = $user->employee;
+        $isInactiveByEmployee = $employee && ! $employee->isEffectiveActive();
+
+        if (! $user->is_active || $isInactiveByEmployee) {
+            if ($user->is_active && $isInactiveByEmployee) {
+                $user->update(['is_active' => false]);
+                $user->tokens()->delete();
+            }
             throw ValidationException::withMessages([
                 'username' => ['Akun Anda sudah dinonaktifkan.'],
             ]);

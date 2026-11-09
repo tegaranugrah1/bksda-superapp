@@ -19,6 +19,18 @@ export interface Employee {
   resor?: string | null;
   masa_kerja?: string | null;
   deleted_at?: string | null;
+  inactive_reason?: string | null;
+  inactive_reason_label?: string | null;
+  inactive_effective_date?: string | null;
+  inactive_notes?: string | null;
+  status_badge?: {
+    state: "active" | "scheduled_inactive" | "inactive";
+    label: string;
+    color: string;
+    is_active: boolean;
+    reason?: string | null;
+    effective_date?: string | null;
+  };
 }
 
 export interface EmployeeSelectOption {

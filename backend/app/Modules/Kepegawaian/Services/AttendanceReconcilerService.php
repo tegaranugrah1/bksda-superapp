@@ -82,6 +82,21 @@ class AttendanceReconcilerService
                 continue;
             }
 
+            // B. Cek TMT Nonaktif Pegawai (UM-01: Hari pada atau setelah TMT tidak dapat dihitung uang makan)
+            if ($employee && $employee->inactive_effective_date && $dateYmd >= $employee->inactive_effective_date->toDateString()) {
+                $tmtStr = $employee->inactive_effective_date->toDateString();
+                $dailyMatrix[$day] = [
+                    'day' => $day,
+                    'date' => $dateYmd,
+                    'status' => '-',
+                    'label' => "Nonaktif (TMT: {$tmtStr})",
+                    'is_holiday' => false,
+                    'is_weekend' => false,
+                    'is_overridden' => false,
+                ];
+                continue;
+            }
+
             // Hari kerja resmi
             $jmlHariKerja++;
 

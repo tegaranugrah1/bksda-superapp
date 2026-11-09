@@ -30,6 +30,10 @@ import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
 
 interface EmployeeCounts {
   total: number;
+  active?: number;
+  scheduled?: number;
+  pensiun?: number;
+  inactive?: number;
   pns: number;
   pppk: number;
   mmp: number;
@@ -48,7 +52,7 @@ interface ApiResponse {
 }
 
 const VALID_JENIS = new Set(["PNS", "PPPK", "MMP"]);
-const VALID_STATUS = new Set(["all", "active", "inactive", "trashed"]);
+const VALID_STATUS = new Set(["all", "active", "scheduled", "pensiun", "inactive", "trashed"]);
 
 function getInitials(name?: string): string {
   if (!name) return "PG";
@@ -486,9 +490,11 @@ export default function EmployeeListPage() {
               }}
               className="w-full px-3 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
             >
-              <option value="all">Semua Pegawai</option>
-              <option value="active">Status: Aktif</option>
-              <option value="inactive">Status: Non-Aktif</option>
+              <option value="all">Semua Status</option>
+              <option value="active">Status: Aktif Bertugas ({counts.active ?? counts.total})</option>
+              <option value="scheduled">Status: Terjadwal Nonaktif ({counts.scheduled ?? 0})</option>
+              <option value="pensiun">Status: Purna Tugas / Pensiun ({counts.pensiun ?? 0})</option>
+              <option value="inactive">Status: Non-Aktif ({counts.inactive ?? 0})</option>
               {canWrite && <option value="trashed">Data Terhapus ({counts.trashed})</option>}
             </select>
 
@@ -649,15 +655,24 @@ export default function EmployeeListPage() {
                           <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/50">
                             Terhapus
                           </span>
-                        ) : (
+                        ) : emp.status_badge?.state === "scheduled_inactive" ? (
                           <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                              emp.is_active
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-800/50"
-                                : "bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-800/50"
-                            }`}
+                            title={`TMT: ${emp.status_badge.effective_date || "-"}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-800/50"
                           >
-                            {emp.is_active ? "Aktif" : "Non-Aktif"}
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            {emp.status_badge.label}
+                          </span>
+                        ) : !emp.is_active ? (
+                          <span
+                            title={emp.inactive_effective_date ? `TMT: ${emp.inactive_effective_date}` : undefined}
+                            className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700"
+                          >
+                            {emp.status_badge?.label || "Non-Aktif"}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-800/50">
+                            Aktif
                           </span>
                         )}
                       </td>

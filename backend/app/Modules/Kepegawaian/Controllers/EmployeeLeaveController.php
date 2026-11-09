@@ -71,6 +71,12 @@ class EmployeeLeaveController extends Controller
             ], 422);
         }
 
+        if (! $employee->is_active) {
+            return response()->json([
+                'message' => 'Pegawai berstatus nonaktif tidak memiliki hak cuti kepegawaian baru.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'year' => 'required|integer|min:2000|max:2100',
             'hak_cuti_n' => 'nullable|integer|min:0|max:30',
@@ -135,6 +141,12 @@ class EmployeeLeaveController extends Controller
             ], 422);
         }
 
+        if (! $employee->is_active) {
+            return response()->json([
+                'message' => 'Pegawai berstatus nonaktif tidak memiliki hak cuti kepegawaian baru.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'nomor_pengajuan' => 'nullable|string|max:255',
             'tanggal_pengajuan' => 'required|date',
@@ -151,6 +163,13 @@ class EmployeeLeaveController extends Controller
             'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
+
+        if ($employee->inactive_effective_date && $validated['tanggal_selesai'] >= $employee->inactive_effective_date->toDateString()) {
+            $tmt = $employee->inactive_effective_date->toDateString();
+            return response()->json([
+                'message' => "Pencatatan cuti tidak dapat diajukan melintasi tanggal TMT nonaktif ({$tmt}).",
+            ], 422);
+        }
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
 
@@ -268,6 +287,12 @@ class EmployeeLeaveController extends Controller
                 'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.',
             ], 422);
         }
+
+        if (! $employee->is_active) {
+            return response()->json([
+                'message' => 'Pegawai berstatus nonaktif tidak memiliki hak cuti kepegawaian baru.',
+            ], 422);
+        }
         $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->findOrFail($requestId);
 
         $validated = $request->validate([
@@ -286,6 +311,13 @@ class EmployeeLeaveController extends Controller
             'file_scan_surat_izin' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
             'file_scan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
         ]);
+
+        if ($employee->inactive_effective_date && $validated['tanggal_selesai'] >= $employee->inactive_effective_date->toDateString()) {
+            $tmt = $employee->inactive_effective_date->toDateString();
+            return response()->json([
+                'message' => "Pencatatan cuti tidak dapat diajukan melintasi tanggal TMT nonaktif ({$tmt}).",
+            ], 422);
+        }
 
         $newYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
         $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));

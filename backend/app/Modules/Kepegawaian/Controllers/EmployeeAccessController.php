@@ -72,6 +72,13 @@ class EmployeeAccessController extends Controller
                 $validated['is_active'] = (bool) $validated['is_active'];
             }
 
+            if (! $employee->isEffectiveActive() && ! empty($validated['is_active'])) {
+                return response()->json([
+                    'error' => 'Unprocessable Entity',
+                    'message' => 'Tidak dapat mengaktifkan akun untuk pegawai yang berstatus nonaktif atau telah melewati TMT.',
+                ], 422);
+            }
+
             // Try to find user by NIP (trim whitespace for safety)
             $user = User::where('username', $nip)->first();
 

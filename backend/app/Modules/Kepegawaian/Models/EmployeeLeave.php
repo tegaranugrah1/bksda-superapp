@@ -71,6 +71,20 @@ class EmployeeLeave extends Model
             ]);
         }
 
+        if (! $employee->is_active && $employee->inactive_effective_date && $employee->inactive_effective_date->year < $year) {
+            return new static([
+                'employee_id' => $employeeId,
+                'year' => $year,
+                'hak_cuti_n' => 0,
+                'sisa_cuti_n1' => 0,
+                'cuti_terpakai_n1' => 0,
+                'sisa_cuti_n2' => 0,
+                'cuti_terpakai_n2' => 0,
+                'cuti_terpakai_n0' => 0,
+                'catatan' => 'Pegawai sudah tidak aktif pada tahun ' . $year,
+            ]);
+        }
+
         $previous = static::where('employee_id', $employeeId)->where('year', $year - 1)->first();
         $previous2 = static::where('employee_id', $employeeId)->where('year', $year - 2)->first();
         $approvedDays = (int) EmployeeLeaveRequest::where('employee_id', $employeeId)
