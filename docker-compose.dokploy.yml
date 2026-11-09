@@ -64,6 +64,7 @@ services:
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-https://storage.bksdakaltim.web.id}
       SESSION_DRIVER: file
       CACHE_STORE: database
+      CACHE_PREFIX: ${CACHE_PREFIX:-bksda-superapp-cache-}
       QUEUE_CONNECTION: database
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: ${REVERB_APP_ID:-bksda-superapp}
@@ -114,6 +115,7 @@ services:
       AWS_URL: ${AWS_URL:-https://storage.bksdakaltim.web.id/bksda}
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-https://storage.bksdakaltim.web.id}
       CACHE_STORE: database
+      CACHE_PREFIX: ${CACHE_PREFIX:-bksda-superapp-cache-}
       QUEUE_CONNECTION: database
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: ${REVERB_APP_ID:-bksda-superapp}
@@ -148,6 +150,7 @@ services:
       DB_USERNAME: bksda_prod
       DB_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
       CACHE_STORE: database
+      CACHE_PREFIX: ${CACHE_PREFIX:-bksda-superapp-cache-}
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: ${REVERB_APP_ID:-bksda-superapp}
       REVERB_APP_KEY: ${REVERB_APP_KEY:-bksda-reverb-key}
@@ -193,6 +196,7 @@ services:
       AWS_URL: ${AWS_URL:-https://storage.bksdakaltim.web.id/bksda}
       STORAGE_PUBLIC_ENDPOINT: ${STORAGE_PUBLIC_ENDPOINT:-https://storage.bksdakaltim.web.id}
       CACHE_STORE: database
+      CACHE_PREFIX: ${CACHE_PREFIX:-bksda-superapp-cache-}
       QUEUE_CONNECTION: database
       BROADCAST_CONNECTION: reverb
       REVERB_APP_ID: ${REVERB_APP_ID:-bksda-superapp}
