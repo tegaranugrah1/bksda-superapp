@@ -1421,7 +1421,7 @@
 - **Implementasi**:
   1. **Sidebar Profil Pegawai Alami (`frontend/src/app/kepegawaian/employees/[id]/page.tsx`)**:
      - Menyatukan informasi Jabatan, Unit Kerja, Pangkat/Golongan, Email Akun Resmi, Telepon/WhatsApp, dan Rekening Penyalur dalam satu daftar detail vertikal yang elegan bergaya portal (`PortalProfileSidebar.tsx`).
-     - Menyematkan tombol aksi cepat yang kompak dan bersih di sebelah kanan: tombol salin 1-klik untuk NIP, Email, Telepon, dan No. Rekening, tombol *Chat* WhatsApp Web resmi, serta tombol *Kirim* Email.
+     - Menyematkan tombol aksi cepat salin 1-klik yang kompak dan bersih di sebelah kanan untuk NIP, Email, Telepon/WhatsApp, dan No. Rekening (tombol tautan Kirim Email dan Chat WA dihapus sesuai arahan pengguna agar antarmuka semakin minimalis dan natural persis seperti portal).
      - Merapikan tombol *"Edit Data Pegawai"* di dasar kartu cockpit.
   2. **Harmonisasi Skala Tipografi Metrik**:
      - Mengubah ukuran teks nilai metrik Masa Kerja dari `text-xs font-black` menjadi `text-lg xl:text-xl font-black`, sejajar proporsional dengan kartu Penugasan, Sisa Cuti, dan Uang Makan.

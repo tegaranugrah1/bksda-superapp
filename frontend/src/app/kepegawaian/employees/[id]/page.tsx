@@ -713,14 +713,6 @@ export default function EmployeeDetailPage() {
                     >
                       <CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />
                     </button>
-                    <a
-                      href={`mailto:${validEmail}`}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10.5px] font-bold shadow-2xs transition-colors cursor-pointer"
-                      title="Kirim Email"
-                    >
-                      <Mail className="w-3 h-3" />
-                      <span>Kirim</span>
-                    </a>
                   </div>
                 )}
               </div>
@@ -761,19 +753,6 @@ export default function EmployeeDetailPage() {
                     >
                       <CopyIcon copied={copiedField === "telepon"} />
                     </button>
-                    {waLink && (
-                      <a
-                        href={waLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#1e5433] hover:bg-[#164227] text-white text-[10.5px] font-bold shadow-2xs transition-colors cursor-pointer"
-                        title="Buka Chat WhatsApp Web"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        <span>Chat</span>
-                        <ExternalLink className="w-2.5 h-2.5 opacity-80" />
-                      </a>
-                    )}
                   </div>
                 )}
               </div>
