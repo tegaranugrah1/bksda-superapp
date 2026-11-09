@@ -1323,4 +1323,31 @@
   - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
   - Seluruh tombol tema di aplikasi kini memiliki efek sapuan gelombang siang/malam yang sinematik.
 
+---
+
+## 51. Perbaikan Popover Arahan Pimpinan & Sifat Surat pada Tabel Surat Masuk (09 November 2026)
+
+- **Latar Belakang & Gejala Masalah**:
+  - Pada halaman `http://localhost:3000/surat/masuk`, ketika pengguna mencari nomor agenda tertentu (contoh: `?search=199`) sehingga tabel hanya menampilkan 1 atau 2 baris data, mengklik tombol `+ Pilih Penerus` atau badge Sifat Surat menyebabkan popover "Arahan Pimpinan (Sifat & Penerus Balai)" terpotong (*clipped*) di bagian bawah pembungkus tabel (`overflow-x-auto` & `overflow-hidden`).
+  - Akibatnya, pengguna hanya melihat bagian judul popover, sementara pilihan Sifat, input pencarian, tab Seksi/Pegawai, checklist penerus, serta tombol Batal/Simpan tersembunyi di luar kontainer tabel.
+- **Akar Penyebab (*Root Cause*)**:
+  - Komponen `DiteruskanCellPopover` dan `SifatCellPopover` sebelumnya menggunakan elemen `div` dengan styling `position: absolute` yang berada langsung di dalam hierarki DOM sel tabel `<td>`.
+  - Pembungkus tabel memiliki batasan CSS `overflow-x-auto` dan `overflow-hidden`, sehingga setiap elemen anak yang tingginya melebihi batas bawah tabel akan terpotong secara visual oleh aturan overflow peramban (*overflow boundary containment*).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Migrasi ke Radix UI Popover Portal (`@/components/ui/popover`)**:
+     - Mengganti elemen inline absolut pada `DiteruskanCellPopover` dan `SifatCellPopover` dengan primitif `Popover`, `PopoverTrigger asChild`, dan `PopoverContent`.
+     - `PopoverContent` memanfaatkan `PopoverPrimitive.Portal` yang merender konten popover langsung ke level `document.body` di luar kontainer overflow tabel. Dengan demikian, popover tidak akan pernah terpotong oleh batasan overflow tabel berapapun jumlah barisnya.
+  2. **Deteksi Tabrakan Cerdas & Auto-Flip**:
+     - Menambahkan konfigurasi `align="end"` (atau `align="start"` pada sifat), `side="bottom"`, `sideOffset={8}`, dan `collisionPadding={16}`.
+     - Radix Floating Engine secara otomatis mendeteksi ketersediaan ruang viewport: apabila baris tabel berada di bagian paling bawah layar dan ruang ke bawah tidak mencukupi, popover secara otomatis membalik arah bukaannya ke atas (`side="top"`).
+  3. **Penyatuan Payload API & Normalisasi Rute**:
+     - Mengeliminasi rute fallback yang salah (`/api/surat-masuk/...` dan `/surat-masuk/.../sifat`), menyatukan update sifat dan penerus langsung ke endpoint resmi `PUT /surat-masuk/{id}` yang memvalidasi seluruh kolom secara atomik tanpa error 404.
+     - Menyinkronkan pembaruan status ke cache offline `localStorage` (`bksda_saved_surat_masuk`) agar antarmuka tetap konsisten dalam kondisi offline/koneksi lambat.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS** (100% lulus).
+  - Popover "Arahan Pimpinan (Sifat & Penerus Balai)" dan Sifat Surat kini selalu tampil utuh, bebas kliping, dan otomatis membalik ke atas (*flip top*) pada baris bawah tabel.
+
+
 

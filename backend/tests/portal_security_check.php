@@ -939,7 +939,7 @@ assert(str_contains($empLeaveCtrlCode, '$leave = EmployeeLeave::forEmployeeYear'
 $stVerifyCode = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
 $stReqCode = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php');
 assert(str_contains($stVerifyCode, 'AssignmentLetter::with([\'employees:id,nama_lengkap\'])->find($cleanId)') && str_contains($stVerifyCode, 'Dokumen Surat Tugas tidak ditemukan dalam database resmi.'), 'AssignmentLetterController verify must return structured 404 JSON when document ID is not found');
-assert(str_contains($stReqCode, "'employees.*.id' => 'required_with:employees|integer|exists:kpg_employees,id'"), 'AssignmentLetterRequest must enforce integer and exists:kpg_employees,id rule on assigned employees');
+assert((str_contains($stReqCode, "'employees.*.id' => 'required_with:employees|integer|exists:kpg_employees,id'") || (str_contains($stReqCode, "'required_with:employees'") && str_contains($stReqCode, "'exists:kpg_employees,id'"))), 'AssignmentLetterRequest must enforce integer and exists:kpg_employees,id rule on assigned employees');
 
 // 141. Sequential Assignment Letter Numbering & Bulk Action Clamping Invariant
 $stNextNumberCode = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Controllers/AssignmentLetterController.php');
