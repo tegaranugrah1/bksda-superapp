@@ -1463,3 +1463,21 @@
 - **Hasil Verifikasi**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
   - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 56. Implementasi Animate UI Tab Pengaturan Master & Dokumen Laporan BMN (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi *animate-ui* pada navigasi tab di halaman `http://localhost:3000/bmn/settings` dan `http://localhost:3000/bmn/reports`.
+- **Implementasi**:
+  1. **Pengaturan Master Data (`frontend/src/app/bmn/settings/page.tsx`)**:
+     - *Sliding Tab Underline*: Memasang `motion.span` dengan `layoutId="activeSettingsTabUnderline"` dan spring physics (`stiffness: 450, damping: 35`) untuk transisi garis aktif antar-tab (*Tag Aset*, *Lokasi & Ruangan*, *Jenis BMN*).
+     - *Tab Content Transition*: Membungkus perpindahan komponen tab dengan `<AnimatePresence mode="wait">` dan `<motion.div>` (*subtle fade & slide up 6px*).
+  2. **Dokumen & Laporan (`frontend/src/app/bmn/reports/page.tsx`)**:
+     - *Sliding Pill Tab Switcher*: Memasang `motion.span` dengan `layoutId="activeReportTabIndicator"` pada tab bar utama (*Export Laporan*, *Generate Dokumen*, *Riwayat Dokumen*).
+     - *Document Type Selection Indicator*: Memasang `motion.span` dengan `layoutId="activeDocTypeIndicator"` pada daftar pemilihan jenis dokumen di panel samping kiri (*BA Pemakaian*, *BA Serah Terima*, *Surat Kuasa*, *Surat Pengantar*).
+     - *Tab & Form Transitions*: Membungkus seluruh perpindahan tab utama dan formulir jenis dokumen dengan `<AnimatePresence mode="wait">` (*180ms easeOut*).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.

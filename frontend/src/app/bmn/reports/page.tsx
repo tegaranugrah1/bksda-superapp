@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { Archive, Download, FileClock, FileText, Handshake } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { ExportReportsTab } from "./_tabs/ExportReportsTab";
 import { UsageAgreementTab } from "./_tabs/UsageAgreementTab";
@@ -165,165 +166,199 @@ export default function BmnReportsPage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${
+              className={`relative flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                 active
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  ? "text-white font-bold"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
               }`}
             >
-              <TabIcon className="w-4 h-4" />
-              {tab.label}
+              {active && (
+                <motion.span
+                  layoutId="activeReportTabIndicator"
+                  className="absolute inset-0 bg-emerald-600 rounded-xl shadow-sm"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <TabIcon className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {activeTab === "exports" && <ExportReportsTab />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
+          {activeTab === "exports" && <ExportReportsTab />}
 
-      {activeTab === "documents" && (
-        <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
-          <aside className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="px-2 pb-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">Jenis Dokumen</p>
-            </div>
-            {documentTypes.map((doc) => {
-              const Icon = doc.icon;
-              const active = activeDocumentType === doc.id;
-              return (
-                <button
-                  key={doc.id}
-                  type="button"
-                  onClick={() => setActiveDocumentType(doc.id)}
-                  className={`mt-2 first:mt-0 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition ${
-                    active
-                      ? "border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10"
-                      : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950">
-                    <Icon className="w-5 h-5" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-bold text-zinc-900 dark:text-white">{doc.title}</span>
-                    <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{doc.desc}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </aside>
-
-          <div className="space-y-5">
-            {editingDocument && (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-                        {editingDocument.isDuplicate
-                          ? `Duplikasi dari: ${editingDocument.titleOrNumber}`
-                          : `Mode Edit Aktif: ${editingDocument.titleOrNumber}`}
-                      </span>
-                      <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                          editingDocument.status === "draft"
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
-                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
-                        }`}
-                      >
-                        {editingDocument.isDuplicate
-                          ? "Dokumen Baru"
-                          : `Status: ${editingDocument.status === "draft" ? "Draf" : "Terbit"}`}
-                      </span>
-                    </div>
-                    <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
-                      {editingDocument.isDuplicate
-                        ? "Data telah disalin ke formulir. Silakan sesuaikan dan simpan sebagai dokumen baru."
-                        : "Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf."}
-                    </p>
-                  </div>
+          {activeTab === "documents" && (
+            <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
+              <aside className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="px-2 pb-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">Jenis Dokumen</p>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl border-amber-300 bg-white text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-600 dark:bg-zinc-800 dark:text-amber-200"
-                  onClick={cancelEditMode}
-                >
-                  {editingDocument.isDuplicate ? "Batal Duplikasi" : "Batal Edit"}
-                </Button>
+                {documentTypes.map((doc) => {
+                  const Icon = doc.icon;
+                  const active = activeDocumentType === doc.id;
+                  return (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      onClick={() => setActiveDocumentType(doc.id)}
+                      className={`relative mt-2 first:mt-0 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors duration-150 cursor-pointer ${
+                        active
+                          ? "border-emerald-300 dark:border-emerald-700/60"
+                          : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="activeDocTypeIndicator"
+                          className="absolute inset-0 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl"
+                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                        />
+                      )}
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950 relative z-10">
+                        <Icon className="w-5 h-5" />
+                      </span>
+                      <span className="relative z-10">
+                        <span className="block text-sm font-bold text-zinc-900 dark:text-white">{doc.title}</span>
+                        <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{doc.desc}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </aside>
+
+              <div className="space-y-5">
+                {editingDocument && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                            {editingDocument.isDuplicate
+                              ? `Duplikasi dari: ${editingDocument.titleOrNumber}`
+                              : `Mode Edit Aktif: ${editingDocument.titleOrNumber}`}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                              editingDocument.status === "draft"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
+                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+                            }`}
+                          >
+                            {editingDocument.isDuplicate
+                              ? "Dokumen Baru"
+                              : `Status: ${editingDocument.status === "draft" ? "Draf" : "Terbit"}`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
+                          {editingDocument.isDuplicate
+                            ? "Data telah disalin ke formulir. Silakan sesuaikan dan simpan sebagai dokumen baru."
+                            : "Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf."}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl border-amber-300 bg-white text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-600 dark:bg-zinc-800 dark:text-amber-200"
+                      onClick={cancelEditMode}
+                    >
+                      {editingDocument.isDuplicate ? "Batal Duplikasi" : "Batal Edit"}
+                    </Button>
+                  </div>
+                )}
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeDocumentType}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    {activeDocumentType === "usage" && (
+                      <UsageAgreementTab
+                        key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
+                        employees={employees}
+                        loadingEmployees={loadingEmployees}
+                        canGenerate={canGenerate}
+                        canWrite={canWrite}
+                        editingDocument={editingDocument}
+                        onSetEditingDocument={setEditingDocument}
+                        onClearEditing={() => setEditingDocument(null)}
+                        onViewHistory={() => setActiveTab("history")}
+                        onRefetchHistory={handleRefetchHistory}
+                      />
+                    )}
+
+                    {activeDocumentType === "handover" && (
+                      <HandoverAgreementTab
+                        key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
+                        employees={employees}
+                        loadingEmployees={loadingEmployees}
+                        canGenerate={canGenerate}
+                        editingDocument={editingDocument}
+                        onClearEditing={() => setEditingDocument(null)}
+                        onRefetchHistory={handleRefetchHistory}
+                      />
+                    )}
+
+                    {activeDocumentType === "power_of_attorney" && (
+                      <PowerOfAttorneyTab
+                        key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
+                        employees={employees}
+                        vehicleAssetOptions={vehicleAssetOptions}
+                        loadingEmployees={loadingEmployees}
+                        canGenerate={canGenerate}
+                        canWrite={canWrite}
+                        editingDocument={editingDocument}
+                        onSetEditingDocument={setEditingDocument}
+                        onClearEditing={() => setEditingDocument(null)}
+                        onViewHistory={() => setActiveTab("history")}
+                        onRefetchHistory={handleRefetchHistory}
+                      />
+                    )}
+
+                    {activeDocumentType === "covering_letter" && (
+                      <CoveringLetterTab
+                        key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
+                        employees={employees}
+                        loadingEmployees={loadingEmployees}
+                        canGenerate={canGenerate}
+                        editingDocument={editingDocument}
+                        onClearEditing={() => setEditingDocument(null)}
+                        onRefetchHistory={handleRefetchHistory}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
-            )}
+            </section>
+          )}
 
-            {activeDocumentType === "usage" && (
-              <UsageAgreementTab
-                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
-                employees={employees}
-                loadingEmployees={loadingEmployees}
-                canGenerate={canGenerate}
-                canWrite={canWrite}
-                editingDocument={editingDocument}
-                onSetEditingDocument={setEditingDocument}
-                onClearEditing={() => setEditingDocument(null)}
-                onViewHistory={() => setActiveTab("history")}
-                onRefetchHistory={handleRefetchHistory}
-              />
-            )}
-
-            {activeDocumentType === "handover" && (
-              <HandoverAgreementTab
-                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
-                employees={employees}
-                loadingEmployees={loadingEmployees}
-                canGenerate={canGenerate}
-                editingDocument={editingDocument}
-                onClearEditing={() => setEditingDocument(null)}
-                onRefetchHistory={handleRefetchHistory}
-              />
-            )}
-
-            {activeDocumentType === "power_of_attorney" && (
-              <PowerOfAttorneyTab
-                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
-                employees={employees}
-                vehicleAssetOptions={vehicleAssetOptions}
-                loadingEmployees={loadingEmployees}
-                canGenerate={canGenerate}
-                canWrite={canWrite}
-                editingDocument={editingDocument}
-                onSetEditingDocument={setEditingDocument}
-                onClearEditing={() => setEditingDocument(null)}
-                onViewHistory={() => setActiveTab("history")}
-                onRefetchHistory={handleRefetchHistory}
-              />
-            )}
-
-            {activeDocumentType === "covering_letter" && (
-              <CoveringLetterTab
-                key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
-                employees={employees}
-                loadingEmployees={loadingEmployees}
-                canGenerate={canGenerate}
-                editingDocument={editingDocument}
-                onClearEditing={() => setEditingDocument(null)}
-                onRefetchHistory={handleRefetchHistory}
-              />
-            )}
-          </div>
-        </section>
-      )}
-
-      {activeTab === "history" && (
-        <DocumentHistoryTab
-          canWrite={canWrite}
-          employees={employees}
-          vehicleAssetOptions={vehicleAssetOptions}
-          onEdit={handleEditFromHistory}
-          onDuplicate={handleDuplicateFromHistory}
-        />
-      )}
+          {activeTab === "history" && (
+            <DocumentHistoryTab
+              canWrite={canWrite}
+              employees={employees}
+              vehicleAssetOptions={vehicleAssetOptions}
+              onEdit={handleEditFromHistory}
+              onDuplicate={handleDuplicateFromHistory}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

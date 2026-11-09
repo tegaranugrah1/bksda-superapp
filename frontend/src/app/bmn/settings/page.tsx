@@ -11,6 +11,7 @@ import {
   MapPin,
   Box,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { type IBmnTag } from "../_lib/tag-utils";
 import { type IBmnLocation, type IBmnAssetType, STANDARD_UNIT_KERJA } from "./_lib/types";
 import { TagManagementTab } from "./_tabs/TagManagementTab";
@@ -76,15 +77,22 @@ export default function BmnSettingsPage() {
         <button
           onClick={() => setActiveTab("tags")}
           className={cn(
-            "pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer",
+            "relative pb-3 text-sm font-semibold transition-colors duration-150 flex items-center gap-2 shrink-0 cursor-pointer",
             activeTab === "tags"
-              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+              ? "text-emerald-600 dark:text-emerald-400 font-bold"
+              : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
           )}
         >
-          <TagIcon className="w-4 h-4" />
-          Tag Aset
-          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold ml-1">
+          {activeTab === "tags" && (
+            <motion.span
+              layoutId="activeSettingsTabUnderline"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            />
+          )}
+          <TagIcon className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">Tag Aset</span>
+          <span className="relative z-10 text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold ml-1">
             {tags.length}
           </span>
         </button>
@@ -92,15 +100,22 @@ export default function BmnSettingsPage() {
         <button
           onClick={() => setActiveTab("locations")}
           className={cn(
-            "pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer",
+            "relative pb-3 text-sm font-semibold transition-colors duration-150 flex items-center gap-2 shrink-0 cursor-pointer",
             activeTab === "locations"
-              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+              ? "text-emerald-600 dark:text-emerald-400 font-bold"
+              : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
           )}
         >
-          <MapPin className="w-4 h-4" />
-          Lokasi & Ruangan
-          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 font-bold ml-1">
+          {activeTab === "locations" && (
+            <motion.span
+              layoutId="activeSettingsTabUnderline"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            />
+          )}
+          <MapPin className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">Lokasi & Ruangan</span>
+          <span className="relative z-10 text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 font-bold ml-1">
             {locations.length}
           </span>
         </button>
@@ -108,45 +123,62 @@ export default function BmnSettingsPage() {
         <button
           onClick={() => setActiveTab("asset-types")}
           className={cn(
-            "pb-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 shrink-0 cursor-pointer",
+            "relative pb-3 text-sm font-semibold transition-colors duration-150 flex items-center gap-2 shrink-0 cursor-pointer",
             activeTab === "asset-types"
-              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+              ? "text-emerald-600 dark:text-emerald-400 font-bold"
+              : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
           )}
         >
-          <Box className="w-4 h-4" />
-          Jenis BMN
-          <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 font-bold ml-1">
+          {activeTab === "asset-types" && (
+            <motion.span
+              layoutId="activeSettingsTabUnderline"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-400 rounded-full"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+            />
+          )}
+          <Box className="w-4 h-4 relative z-10" />
+          <span className="relative z-10">Jenis BMN</span>
+          <span className="relative z-10 text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 font-bold ml-1">
             {assetTypes.length}
           </span>
         </button>
       </div>
 
       {/* Tab Contents */}
-      {activeTab === "tags" && (
-        <TagManagementTab
-          tags={tags}
-          isLoading={isLoadingTags}
-          canManage={canManage}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
+          {activeTab === "tags" && (
+            <TagManagementTab
+              tags={tags}
+              isLoading={isLoadingTags}
+              canManage={canManage}
+            />
+          )}
 
-      {activeTab === "locations" && (
-        <LocationManagementTab
-          locations={locations}
-          isLoading={isLoadingLocations}
-          canManage={canManage}
-          isSuperAdmin={Boolean(isSuperAdmin)}
-        />
-      )}
+          {activeTab === "locations" && (
+            <LocationManagementTab
+              locations={locations}
+              isLoading={isLoadingLocations}
+              canManage={canManage}
+              isSuperAdmin={Boolean(isSuperAdmin)}
+            />
+          )}
 
-      {activeTab === "asset-types" && (
-        <AssetTypeManagementTab
-          assetTypes={assetTypes}
-          isLoading={isLoadingAssetTypes}
-          canManage={canManage}
-        />
-      )}
+          {activeTab === "asset-types" && (
+            <AssetTypeManagementTab
+              assetTypes={assetTypes}
+              isLoading={isLoadingAssetTypes}
+              canManage={canManage}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
