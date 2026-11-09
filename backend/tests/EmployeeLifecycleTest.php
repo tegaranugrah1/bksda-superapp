@@ -133,7 +133,7 @@ try {
     assert($user->is_active === false, 'T3 FAIL: Linked user should be deactivated immediately');
     assert($user->tokens()->count() === 0, 'T3 FAIL: All personal access tokens should be revoked');
 
-    $history = EmployeeHistory::where('employee_id', $employee->id)->latest()->first();
+    $history = EmployeeHistory::where('employee_id', $employee->id)->latest('id')->first();
     assert($history !== null, 'T3 FAIL: EmployeeHistory should be recorded');
     assert($history->action === 'DEACTIVATE_EMPLOYEE', 'T3 FAIL: History action should be DEACTIVATE_EMPLOYEE');
     assert(isset($history->changes['is_active']), 'T3 FAIL: History changes should record is_active');

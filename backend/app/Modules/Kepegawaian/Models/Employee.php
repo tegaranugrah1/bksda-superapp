@@ -590,11 +590,26 @@ class Employee extends Model
             return true;
         }
 
+        $nip = trim((string) $this->nip);
+        if ($nip !== '') {
+            $userId = DB::table('users')->where('username', $nip)->value('id');
+            if ($userId && DB::table('st_assignment_letters')->where('created_by', $userId)->exists()) {
+                return true;
+            }
+        }
+
         if (DB::table('kpg_employee_leave_requests')->where('employee_id', $this->id)->exists()) {
             return true;
         }
 
-        if (DB::table('kpg_employee_leaves')->where('employee_id', $this->id)->exists()) {
+        if (DB::table('kpg_employee_leaves')
+            ->where('employee_id', $this->id)
+            ->where(function ($q) {
+                $q->where('cuti_terpakai_n0', '>', 0)
+                    ->orWhere('cuti_terpakai_n1', '>', 0)
+                    ->orWhere('cuti_terpakai_n2', '>', 0);
+            })
+            ->exists()) {
             return true;
         }
 
