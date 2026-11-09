@@ -97,6 +97,7 @@ export interface SuratDinasData {
   terbilangHari?: string;
   tanggalMulai?: string;
   tanggalSelesai?: string;
+  tahunCutiText?: string | null;
   pegawai?: PersonItem;
 
   // Surat Kuasa
@@ -1460,6 +1461,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     terbilangHari,
     tanggalMulai,
     tanggalSelesai,
+    tahunCutiText,
     pegawai,
   } = data;
 
@@ -1886,7 +1888,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               return (
                 <div className="surat-izin-cuti-body text-justify">
                   <p className="surat-izin-cuti-p">
-                    1. Diberikan Cuti {jenisCutiClean} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
+                    1. Diberikan Cuti {jenisCutiClean}{isTahunan && tahunCutiText ? ` ${tahunCutiText}` : ""} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
                   </p>
 
                   <table className="surat-izin-cuti-table">

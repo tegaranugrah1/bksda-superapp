@@ -1045,6 +1045,46 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Preview Data & Suggested Auto Number for Surat Izin Cuti Resmi
      */
+    /**
+     * Teks tahun akumulasi cuti tahunan (N-2, N-1, N) untuk butir 1 Surat Izin Cuti
+     */
+    private function resolveTahunCutiText(EmployeeLeaveRequest $leaveReq): ?string
+    {
+        if (! $leaveReq->isAnnual()) {
+            return null;
+        }
+
+        $currentN = (int) Carbon::parse($leaveReq->tanggal_mulai)->year;
+        $sisaN1 = (int) ($leaveReq->sisa_n1 ?? 0);
+        $sisaN2 = (int) ($leaveReq->sisa_n2 ?? 0);
+
+        if ($sisaN1 === 0 && $sisaN2 === 0) {
+            $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)->where('year', $currentN)->first();
+            $sisaN1 = (int) ($leaveBalance->hak_n1_diakui ?? 0);
+            $sisaN2 = (int) ($leaveBalance->hak_n2_diakui ?? 0);
+        }
+
+        $years = [];
+        if ($sisaN2 > 0) {
+            $years[] = "tahun " . ($currentN - 2);
+        }
+        if ($sisaN1 > 0) {
+            $years[] = "tahun " . ($currentN - 1);
+        }
+
+        if (empty($years)) {
+            return null;
+        }
+
+        $years[] = "tahun " . $currentN;
+        if (count($years) === 2) {
+            return "untuk " . $years[0] . " dan " . $years[1];
+        }
+
+        $last = array_pop($years);
+        return "untuk " . implode(', ', $years) . " dan " . $last;
+    }
+
     public function previewSuratIzin(int $id): JsonResponse
     {
         $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
@@ -1143,6 +1183,7 @@ class EmployeeLeaveRequestController extends Controller
             'request' => $leaveReq,
             'terbilang_hari' => $terbilangHari,
             'kepala_balai' => $kepalaBalai,
+            'tahun_cuti_text' => $this->resolveTahunCutiText($leaveReq),
         ]);
     }
 
@@ -1223,6 +1264,7 @@ class EmployeeLeaveRequestController extends Controller
                 'terbilangHari' => $terbilangHari,
                 'tanggalMulai' => $tglMulaiFormatted,
                 'tanggalSelesai' => $tglSelesaiFormatted,
+                'tahunCutiText' => $this->resolveTahunCutiText($leaveReq),
                 'pegawai' => [
                     'nama' => $leaveReq->employee ? $leaveReq->employee->nama_lengkap : '-',
                     'nip' => $leaveReq->employee ? $leaveReq->employee->nip : '-',

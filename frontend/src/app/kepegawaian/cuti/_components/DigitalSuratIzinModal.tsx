@@ -31,6 +31,23 @@ export function DigitalSuratIzinModal({
   const payload = item.surat_keluar?.document_payload;
   const nomorSurat = item.nomor_pengajuan || item.surat_keluar?.no_surat || "SI..../K.18/TU/PEG.11.01/B/...";
 
+  // Resolve tahun cuti text if Cuti Tahunan has N-1 / N-2
+  let resolvedTahunCutiText = payload?.tahunCutiText || null;
+  if (!resolvedTahunCutiText && item.jenis_cuti?.toLowerCase().includes("tahunan") && item.tanggal_mulai) {
+    const curYear = new Date(item.tanggal_mulai).getFullYear();
+    const s1 = (item.sisa_n1 || 0) > 0;
+    const s2 = (item.sisa_n2 || 0) > 0;
+    const years: string[] = [];
+    if (s2) years.push(`tahun ${curYear - 2}`);
+    if (s1) years.push(`tahun ${curYear - 1}`);
+    if (years.length > 0) {
+      years.push(`tahun ${curYear}`);
+      resolvedTahunCutiText = years.length === 2
+        ? `untuk ${years[0]} dan ${years[1]}`
+        : `untuk ${years.slice(0, -1).join(", ")} dan ${years[years.length - 1]}`;
+    }
+  }
+
   const docData: SuratDinasData = {
     templateType: "surat_izin_cuti",
     nomor: nomorSurat,
@@ -40,6 +57,7 @@ export function DigitalSuratIzinModal({
     terbilangHari: payload?.terbilangHari || `${item.jumlah_hari}`,
     tanggalMulai: payload?.tanggalMulai || item.tanggal_mulai,
     tanggalSelesai: payload?.tanggalSelesai || item.tanggal_selesai,
+    tahunCutiText: resolvedTahunCutiText,
     pegawai: {
       nama: item.employee?.nama_lengkap || "-",
       nip: item.employee?.nip || "-",

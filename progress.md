@@ -1098,3 +1098,30 @@
   - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+
+## 44. Pencantuman Tahun Akumulasi Cuti N-1 dan N-2 pada Surat Izin Cuti Resmi — Selesai (9 November 2026)
+
+- **Kebutuhan & Hasil Diskusi `/grill-me`**:
+  Saat admin kepegawaian menyetujui atau menerbitkan ulang Surat Izin Cuti resmi (`surat_izin_cuti`) untuk permohonan Cuti Tahunan, jika pegawai masih memiliki sisa hak cuti dari tahun-tahun sebelumnya (N-1 atau N-2), kalimat pembuka butir 1 naskah dinas resmi disesuaikan secara otomatis:
+  - **Hanya Tahun Berjalan (N)**: Tetap default: *"1. Diberikan Cuti Tahunan kepada Pegawai Negeri Sipil :"* (atau PPPK jika bersangkutan).
+  - **Ada Sisa N-1 (misal 2025 & 2026)**: *"1. Diberikan Cuti Tahunan untuk tahun 2025 dan tahun 2026 kepada Pegawai Negeri Sipil :"*.
+  - **Ada Sisa N-2 & N-1 (misal 2024, 2025 & 2026)**: *"1. Diberikan Cuti Tahunan untuk tahun 2024, tahun 2025 dan tahun 2026 kepada Pegawai Negeri Sipil :"*.
+  - **Non-Tahunan**: Tetap tanpa tahun (misal: *"1. Diberikan Cuti Sakit kepada..."*).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Backend `EmployeeLeaveRequestController.php`**:
+     - Menambahkan helper terpadu `resolveTahunCutiText(EmployeeLeaveRequest $leaveReq): ?string` yang mendeteksi sisa `sisa_n1 > 0` dan `sisa_n2 > 0` (dengan fallback aman ke saldo `EmployeeLeave` pegawai).
+     - Menyertakan `'tahun_cuti_text'` pada respons API `previewSuratIzin`.
+     - Menyimpan `'tahunCutiText'` ke dalam `document_payload` tabel `surat_keluar` saat `generateSuratIzin` dipanggil.
+  2. **Frontend `SuratDinasDocument.tsx`**:
+     - Menambahkan properti `tahunCutiText?: string | null` pada antarmuka `SuratDinasData`.
+     - Menjadikan kalimat pembuka butir 1 dinamis: `1. Diberikan Cuti {jenisCutiClean}{isTahunan && tahunCutiText ? ` ${tahunCutiText}` : ""} kepada ...`.
+  3. **Frontend `DigitalSuratIzinModal.tsx` & Modul Persuratan**:
+     - Menyediakan fallback kalkulasi langsung di `DigitalSuratIzinModal` agar tampilan surat izin yang sudah ada langsung memunculkan tahun akumulasi cuti.
+     - Menyediakan input kontrol akumulasi tahun cuti opsional di editor `/surat/keluar/dinas`.
+  4. **Runnable Check**:
+     - Menambahkan pengujian komprehensif pada `backend/tests/EmployeeLeaveSnapshotCheck.php` untuk memvalidasi kasus N-1 (`"untuk tahun 2025 dan tahun 2026"`), kasus N-2 & N-1 (`"untuk tahun 2024, tahun 2025 dan tahun 2026"`), serta kasus N saja (`null`).
+- **Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
