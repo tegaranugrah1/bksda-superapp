@@ -1,3 +1,5 @@
+> Tindak lanjut 9 November 2026: [penjelasan tiga lead, uji ulang aman, dan fakta yang masih dibutuhkan](surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md). Ketiga record diverifikasi ulang oleh pemeriksa independen baru; verdict tetap sama. Pemeriksaan aman yang tersedia selesai.
+
 # NEEDS VALIDATION — Surat Tugas dan Kepegawaian
 
 Tiga lead berikut tidak diberi severity dan tidak dinyatakan sebagai celah aktif yang terkonfirmasi. Perbaikan source yang tersedia sudah diterapkan. Keterbatasan historis atau konfigurasi deployment tetap menentukan kesimpulan keamanan. Semua rencana mengikuti pembatasan pada record final; tidak ada instruksi probe deployment, stress, pairing, atau pengulangan dynamic snapshot yang ditolak.

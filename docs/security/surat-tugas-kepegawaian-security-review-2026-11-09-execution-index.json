@@ -711,6 +711,50 @@
           "sha256": "3a92850a63ab56978a378ae92adf55000c02ef82a871d5f6c994c7b3b184e0c9"
         }
       ]
+    },
+    {
+      "job": "assistant-6eac30a1c741",
+      "exit_code": 0,
+      "interpretation": "Current operator auth-only:1scenario84assertions0fail;actual TS/Express/native HTTP with recording connected-state adapter;no real gateway/provider/pairing.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\assistant-6eac30a1c741\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 585,
+          "sha256": "2905042daea3412e7fff8b30bfa1d962c14dddbea9af98762a10ae2cd9ee1537"
+        }
+      ]
+    },
+    {
+      "job": "php-d67a7ee18cd2",
+      "exit_code": 0,
+      "interpretation": "Current tiny native ZIP member/filter/basename/first200 cutoff:1test3assertions0fail;not aggregate-retention or shared-service availability proof.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\php-d67a7ee18cd2\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 271,
+          "sha256": "f680ce5a367b24b15718b8e65005310131321857f54f4362521a633e7d41b67a"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 693,
+          "sha256": "295edd20c8cd26c42ea9085f9fe55fc26167cf0315de60de6d766cba1390d277"
+        }
+      ]
+    },
+    {
+      "job": "validate-3900b63a0d21",
+      "exit_code": 0,
+      "interpretation": "Focused follow-up final findings/coverage validators PASS:23unchanged records,47units with new verified source/current-control checks;format/consistency only.",
+      "receipt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\parent_checks\\artifacts\\validate-3900b63a0d21\\execution.json",
+      "artifacts": [
+        {
+          "path": "output.txt",
+          "bytes": 54,
+          "sha256": "3a92850a63ab56978a378ae92adf55000c02ef82a871d5f6c994c7b3b184e0c9"
+        }
+      ]
     }
   ],
   "final_record_verifications": {
@@ -825,5 +869,83 @@
       "record_sha256": "67628f2d3edb30cc1b5ffbe0b92fa5eadd8d159e0f90ffc8f831172e3f80df8d"
     }
   },
-  "source_note": "Snapshot-specific source and fixture hashes are in raw execution receipts/baseline manifests;see audit report limitations."
+  "source_note": "Snapshot-specific source and fixture hashes are in raw execution receipts/baseline manifests;see audit report limitations.",
+  "focused_followup": {
+    "date": "2026-11-09",
+    "base_commit": "8578c9f31d0f847a12314ce33cc967ee9eab9a85",
+    "record_changes": false,
+    "fresh_verifiers": [
+      {
+        "owner": "lead_followup_operator",
+        "fingerprint": "assistant/operator/unauthenticated-management-route",
+        "prompt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\lead_followup_operator\\prompt.txt",
+        "result": {
+          "decision": "verified",
+          "fingerprint": "assistant/operator/unauthenticated-management-route"
+        },
+        "reviewed_paths": [
+          "hermes-agent/assistant/src/index.ts",
+          "hermes-agent/assistant/src/gateway/evolution.ts",
+          "hermes-agent/assistant/tests/security-boundary.cjs",
+          "hermes-agent/docker-compose.yml"
+        ],
+        "result_sha256": "3b6f07f7e6fb8a89324c1e5c1c5e65e7e2567e2bacbe8f7ccdef77ce826de97f",
+        "review_sha256": "b4fe008725b8c0c69e7fd2568dc5c9bd753c24740dd028611327122826db3124"
+      },
+      {
+        "owner": "lead_followup_zip",
+        "fingerprint": "kpg/meal/zip-cumulative-metadata-retention",
+        "prompt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\lead_followup_zip\\prompt.txt",
+        "result": {
+          "decision": "verified",
+          "fingerprint": "kpg/meal/zip-cumulative-metadata-retention"
+        },
+        "reviewed_paths": [
+          "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php",
+          "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php",
+          "backend/app/Modules/Kepegawaian/Routes/api.php",
+          "backend/app/Http/Middleware/CheckRole.php",
+          "backend/app/Http/Middleware/CheckModuleAccess.php",
+          "backend/Dockerfile",
+          "backend/nginx.conf",
+          "docker-compose.prod.yml",
+          "deploy/nginx-backend.conf",
+          "backend/bootstrap/app.php",
+          "backend/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php",
+          "backend/vendor/laravel/framework/src/Illuminate/Foundation/Configuration/Middleware.php",
+          "backend/tests/Feature/Wave3SikadirNativeParserTest.php"
+        ],
+        "result_sha256": "9193e040e8bfa1ef0cbad95d6a13e58eef6bef08157ddbdf4d158b8ae397ed84",
+        "review_sha256": "7f480e9f0af56d45833b8eeb049c831719ca1cc09813e1528703da5f01e67401"
+      },
+      {
+        "owner": "lead_followup_snapshot",
+        "fingerprint": "surat-tugas/public-snapshot/untyped-render-state",
+        "prompt": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-7\\agents\\lead_followup_snapshot\\prompt.txt",
+        "result": {
+          "decision": "verified",
+          "fingerprint": "surat-tugas/public-snapshot/untyped-render-state"
+        },
+        "reviewed_paths": [
+          "backend/app/Modules/SuratTugas/Routes/api.php",
+          "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php",
+          "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php",
+          "backend/app/Modules/Kepegawaian/Requests/StoreStTemplateRequest.php",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/STBuilderPreview.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/STLampiranBedaHari.tsx",
+          "frontend/src/components/SuratTugasLetterPreview.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx",
+          "backend/tests/Feature/StKepegawaianSecurityClosureTest.php",
+          "frontend/tests/st-public-snapshot.actual-app.cjs"
+        ],
+        "result_sha256": "d513013f3b4636627f40ea95dc189310c62c4ea6f0747931efba865d6cb515f1",
+        "review_sha256": "bdd4521881f20e2af63715d3b4ce9c0ea77a6bb2df373dbcf43883f3385b9786"
+      }
+    ],
+    "source_changes": false,
+    "safe_local_checks_complete": true,
+    "residual_leads": 3,
+    "final_validator": "validate-3900b63a0d21"
+  }
 }

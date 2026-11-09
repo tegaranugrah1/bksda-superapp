@@ -273,14 +273,14 @@
     {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-coverage.json",
       "state": "present",
-      "bytes": 619369,
-      "worktree_sha256": "18126a1754ed6879f6be37fdbdaed67e6e9d1cdc3b0cc7f1a642e1b7d7592066"
+      "bytes": 624517,
+      "worktree_sha256": "0a3cc3c48d75d2c75d2e0ca201d42fd0da4f0bccab946ce0b42712768eade84d"
     },
     {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-execution-index.json",
       "state": "present",
-      "bytes": 34830,
-      "worktree_sha256": "71520ad34083af38b9a88819ed22aee92fe89b42679cee41956e4b930b613039"
+      "bytes": 40938,
+      "worktree_sha256": "509a79d1132823608b6b01ba71a108f747ee8b06ffc8aa21f9c51d4cbce20067"
     },
     {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-findings-detail.md",
@@ -295,10 +295,16 @@
       "worktree_sha256": "337fccb8ee4eac847f35696fac9336fd93438523589e54d3069ce0310d565710"
     },
     {
+      "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md",
+      "state": "present",
+      "bytes": 10526,
+      "worktree_sha256": "bcfdc20c3241bd2d5a7958bfb2cb80195d4a67d985d01cb62fe84754b6ea092c"
+    },
+    {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-needs-validation.md",
       "state": "present",
-      "bytes": 25201,
-      "worktree_sha256": "bc763613ed548ec02a02550dba8fdcb6e33419ebaf0ba67ff27bf6240c0ea665"
+      "bytes": 25500,
+      "worktree_sha256": "f52c46e6f85a9747890f1cadbd8af2de6d37bc4b2113a8837346112801a74c32"
     },
     {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-prior-reconciliation.json",
@@ -309,8 +315,8 @@
     {
       "path": "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09.md",
       "state": "present",
-      "bytes": 247741,
-      "worktree_sha256": "f2fe3e35a9b49b5958f42258894592f78ff6c4c9d387b7796e480c03c12eb70a"
+      "bytes": 248040,
+      "worktree_sha256": "dbdc8359bd439ac0aaff33fe8654f99c61d4670c200076d477da13431c8c88f7"
     },
     {
       "path": "docs/security/surat-tugas-security-pentest-2026-10-31.md",
@@ -459,8 +465,24 @@
     {
       "path": "progress.md",
       "state": "present",
-      "bytes": 114233,
-      "worktree_sha256": "aa8e91f9fb0ddbc87384413b9452808d283868cd1803603b437d3b86ff729e74"
+      "bytes": 116414,
+      "worktree_sha256": "e0c1c72fbcc033e7c5a38250f6e790cc0e5a69f7ee28d3589903dbc41bdc5b51"
     }
-  ]
+  ],
+  "focused_followup": {
+    "base_commit": "8578c9f31d0f847a12314ce33cc967ee9eab9a85",
+    "scope": "Three unchanged needs_validation records;source/approved receipts and two bounded existing current tests",
+    "changed_paths": [
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-coverage.json",
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-execution-index.json",
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md",
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-manifest.json",
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09-needs-validation.md",
+      "docs/security/surat-tugas-kepegawaian-security-review-2026-11-09.md",
+      "progress.md"
+    ],
+    "source_changes": false,
+    "previous_manifest_preserved_in_commit": "8578c9f31d0f847a12314ce33cc967ee9eab9a85",
+    "final_validator": "validate-3900b63a0d21"
+  }
 }

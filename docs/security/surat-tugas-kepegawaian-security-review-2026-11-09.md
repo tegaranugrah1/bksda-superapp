@@ -1,3 +1,5 @@
+> Tindak lanjut 9 November 2026: [penjelasan tiga lead, uji ulang aman, dan fakta yang masih dibutuhkan](surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md). Ketiga record diverifikasi ulang oleh pemeriksa independen baru; verdict tetap sama. Pemeriksaan aman yang tersedia selesai.
+
 # Audit dan penutupan perbaikan Surat Tugas dan Kepegawaian
 
 Tanggal: 9 November 2026. Run `run-7`; profil **standard**, cakupan dua modul dan integrasi yang dipakai. Pekerjaan source, regresi, seluruh putusan kandidat dan verifikasi record telah selesai. Ini audit **scoped/partial terhadap seluruh superapp dan deployment**; tiga lead dengan batas validasi di bawah tetap terbuka secara eksplisit. Tidak ada jaminan semua kemungkinan cacat di produksi telah dieliminasi.

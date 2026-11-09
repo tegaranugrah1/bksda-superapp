@@ -620,6 +620,30 @@
         "method": "source",
         "result": "nonmaterial: Only operator selector line references changed. Current source corrections and exact historical evidence scope checked; no denied dynamic snapshot action was repeated.",
         "artifact": null
+      },
+      {
+        "agent_id": "lead_followup_operator",
+        "reviewed_paths": [
+          "hermes-agent/assistant/src/index.ts",
+          "hermes-agent/assistant/src/gateway/evolution.ts",
+          "hermes-agent/assistant/tests/security-boundary.cjs",
+          "hermes-agent/docker-compose.yml"
+        ],
+        "invariant": "Focused follow-up verifies unchanged final lead and separates current local controls from unresolved historical/deployment facts.",
+        "method": "source",
+        "artifact": null,
+        "result": "Fresh read-only source and approved-receipt verification returned verified for the unchanged final needs_validation record. No own target execution or new snapshot replay. Current-remediation closure and exact residual facts documented in surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md"
+      },
+      {
+        "agent_id": "parent_checks",
+        "reviewed_paths": [
+          "hermes-agent/assistant/src/index.ts",
+          "hermes-agent/assistant/tests/security-boundary.cjs"
+        ],
+        "invariant": "Recheck the existing safe current control without exercising unresolved provider or shared-capacity effects.",
+        "method": "local",
+        "artifact": "agents/parent_checks/artifacts/assistant-6eac30a1c741/output.txt",
+        "result": "Current operator auth-only:1scenario84assertions0fail;actual TS/Express/native HTTP with recording connected-state adapter;no real gateway/provider/pairing."
       }
     ],
     "result_fingerprints": [
@@ -4413,6 +4437,39 @@
         "method": "source",
         "result": "independently_verified_material: Fresh independent verification of complete proposed record;19 corrects stale denial text and appends its corroborating same-effect receipt. Current source corrections and exact historical evidence scope checked; no denied dynamic snapshot action was repeated.",
         "artifact": null
+      },
+      {
+        "agent_id": "lead_followup_zip",
+        "reviewed_paths": [
+          "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php",
+          "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php",
+          "backend/app/Modules/Kepegawaian/Routes/api.php",
+          "backend/app/Http/Middleware/CheckRole.php",
+          "backend/app/Http/Middleware/CheckModuleAccess.php",
+          "backend/Dockerfile",
+          "backend/nginx.conf",
+          "docker-compose.prod.yml",
+          "deploy/nginx-backend.conf",
+          "backend/bootstrap/app.php",
+          "backend/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php",
+          "backend/vendor/laravel/framework/src/Illuminate/Foundation/Configuration/Middleware.php",
+          "backend/tests/Feature/Wave3SikadirNativeParserTest.php"
+        ],
+        "invariant": "Focused follow-up verifies unchanged final lead and separates current local controls from unresolved historical/deployment facts.",
+        "method": "source",
+        "artifact": null,
+        "result": "Fresh read-only source and approved-receipt verification returned verified for the unchanged final needs_validation record. No own target execution or new snapshot replay. Current-remediation closure and exact residual facts documented in surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md"
+      },
+      {
+        "agent_id": "parent_checks",
+        "reviewed_paths": [
+          "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php",
+          "backend/tests/Feature/Wave3SikadirNativeParserTest.php"
+        ],
+        "invariant": "Recheck the existing safe current control without exercising unresolved provider or shared-capacity effects.",
+        "method": "local",
+        "artifact": "agents/parent_checks/artifacts/php-d67a7ee18cd2/output.txt",
+        "result": "Current tiny native ZIP member/filter/basename/first200 cutoff:1test3assertions0fail;not aggregate-retention or shared-service availability proof."
       }
     ],
     "result_fingerprints": [
@@ -6804,7 +6861,7 @@
             ],
             "invariant": "Retries, cancellation and replays must preserve action ordering and at-most-once consequences before any vulnerability claim.",
             "method": "source",
-            "result": "NLU two10second attempts plus1.5second backoff can exceed Redis lock15second lease; lock has constant owner value and unconditional DEL. Buffer LRANGE/DEL is non-atomic and duplicate webhook IDs are not consumed. A delayed nonliteral affirmative can theoretically resume after another turn accepts BATAL; no deterministic schedule or persisted effect was run, so this is an unresolved acceptance item, not a confirmed or standalone candidate. Exact YA/BATAL fast paths are deterministic. Leave backend overlap under employee lock prevents na\u00efve same-date double-row claims; cache idem and recent-duplicate controls exist. ST has no event/action idempotency and unused AWAITING_ST_CONFIRMATION state, but ordinary intentional same-principal draft creation or model JSON without resource expansion is not alone a security defect. No provider, model, Redis, target test/build or network call was executed.",
+            "result": "NLU two10second attempts plus1.5second backoff can exceed Redis lock15second lease; lock has constant owner value and unconditional DEL. Buffer LRANGE/DEL is non-atomic and duplicate webhook IDs are not consumed. A delayed nonliteral affirmative can theoretically resume after another turn accepts BATAL; no deterministic schedule or persisted effect was run, so this is an unresolved acceptance item, not a confirmed or standalone candidate. Exact YA/BATAL fast paths are deterministic. Leave backend overlap under employee lock prevents naïve same-date double-row claims; cache idem and recent-duplicate controls exist. ST has no event/action idempotency and unused AWAITING_ST_CONFIRMATION state, but ordinary intentional same-principal draft creation or model JSON without resource expansion is not alone a security defect. No provider, model, Redis, target test/build or network call was executed.",
             "artifact": null
           }
         ],
@@ -7486,7 +7543,7 @@
         ],
         "invariant": "Critical KPG workflows must preserve real UI/backend state contracts with legitimate dummy actors.",
         "method": "local",
-        "result": "Actual incoming UI create/edit/search/delete and total0\u21921\u21920;real HTML-XLS upload produces native backend employee FK,September day1H,total1 andmatching DOM cells.",
+        "result": "Actual incoming UI create/edit/search/delete and total0→1→0;real HTML-XLS upload produces native backend employee FK,September day1H,total1 andmatching DOM cells.",
         "artifact": "agents/parent_checks/artifacts/e2e-25141dc2bd50/output.txt"
       },
       {
@@ -7653,7 +7710,8 @@
       "frontend/src/hooks/useAuth.ts",
       "frontend/src/hooks/useRole.ts",
       "frontend/src/lib/api.ts",
-      "frontend/src/lib/auth-store.ts"
+      "frontend/src/lib/auth-store.ts",
+      "frontend/tests/st-public-snapshot.actual-app.cjs"
     ],
     "local_checks": [
       {
@@ -7738,6 +7796,26 @@
         "method": "source",
         "result": "nonmaterial: Only wording distinguishes a TypeScript assertion from runtime conversion. Current source corrections and exact historical evidence scope checked; no denied dynamic snapshot action was repeated.",
         "artifact": null
+      },
+      {
+        "agent_id": "lead_followup_snapshot",
+        "reviewed_paths": [
+          "backend/app/Modules/SuratTugas/Routes/api.php",
+          "backend/app/Modules/SuratTugas/Requests/AssignmentLetterRequest.php",
+          "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php",
+          "backend/app/Modules/Kepegawaian/Requests/StoreStTemplateRequest.php",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/SuratTugasForm.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/STBuilderPreview.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/_components/STLampiranBedaHari.tsx",
+          "frontend/src/components/SuratTugasLetterPreview.tsx",
+          "frontend/src/app/kepegawaian/surat-tugas/builder/[id]/page.tsx",
+          "backend/tests/Feature/StKepegawaianSecurityClosureTest.php",
+          "frontend/tests/st-public-snapshot.actual-app.cjs"
+        ],
+        "invariant": "Focused follow-up verifies unchanged final lead and separates current local controls from unresolved historical/deployment facts.",
+        "method": "source",
+        "artifact": null,
+        "result": "Fresh read-only source and approved-receipt verification returned verified for the unchanged final needs_validation record. No own target execution or new snapshot replay. Current-remediation closure and exact residual facts documented in surat-tugas-kepegawaian-security-review-2026-11-09-follow-up.md"
       }
     ],
     "result_fingerprints": [
