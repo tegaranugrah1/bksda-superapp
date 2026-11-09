@@ -52,6 +52,7 @@ export function ScanViewerModal({
 
     let active = true;
     let localBlobUrl: string | null = null;
+    setPreviewUrl(null);
     setIsLoading(true);
     setResolvedFileName(fileName || null);
 

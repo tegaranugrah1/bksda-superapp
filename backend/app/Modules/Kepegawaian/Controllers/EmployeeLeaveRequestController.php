@@ -268,7 +268,7 @@ class EmployeeLeaveRequestController extends Controller
                 app(\App\Services\PortalNotificationService::class)->notifyAdmins(
                     'kepegawaian',
                     'Pengajuan Cuti Baru',
-                    "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama}.",
+                    "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama_lengkap}.",
                     'cuti',
                     'cuti',
                     (string) $leaveReq->id
@@ -388,6 +388,7 @@ class EmployeeLeaveRequestController extends Controller
             Employee::lockForLeaveUpdate($leaveReq->employee_id);
             $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
             $oldStatus = strtoupper($leaveReq->status);
+            $oldNote = $leaveReq->catatan_atasan;
             $isTahunan = $leaveReq->isAnnual();
             $isOldApproved = in_array($oldStatus, ['DISETUJUI', 'APPROVED'], true);
             $isNewApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
@@ -444,22 +445,24 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $isApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
-                $statusText = $isApproved ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
-                $notifTitle = "Permohonan Cuti {$statusText}";
-                $notifMsg = $isApproved
-                    ? "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak."
-                    : "Pengajuan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah {$statusText}.".(!empty($catatanUpdate) ? " Catatan: {$catatanUpdate}" : '');
+                if ($oldStatus !== $newStatus || $oldNote !== $catatanUpdate) {
+                    $isApproved = in_array($newStatus, ['DISETUJUI', 'APPROVED'], true);
+                    $statusText = $isApproved ? 'Disetujui' : (in_array($newStatus, ['DITOLAK', 'REJECTED'], true) ? 'Ditolak' : $newStatus);
+                    $notifTitle = "Permohonan Cuti {$statusText}";
+                    $notifMsg = $isApproved
+                        ? "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak."
+                        : "Pengajuan {$leaveReq->jenis_cuti} Anda ({$leaveReq->tanggal_mulai} s/d {$leaveReq->tanggal_selesai}) telah {$statusText}.".(!empty($catatanUpdate) ? " Catatan: {$catatanUpdate}" : '');
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => $newStatus, 'leave_id' => $leaveReq->id]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => $newStatus, 'leave_id' => $leaveReq->id]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }
@@ -537,7 +540,9 @@ class EmployeeLeaveRequestController extends Controller
 
             $updateData = array_merge($updateData, $this->storeLeaveScanFiles($request, $leaveReq));
 
-            $leaveReq->update($updateData);
+            $leaveReq->fill($updateData);
+            $notificationChanged = $leaveReq->isDirty(array_keys($updateData));
+            $leaveReq->save();
 
             DB::commit();
 
@@ -560,18 +565,20 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $notifTitle = 'Permohonan Cuti Disetujui';
-                $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.";
+                if ($notificationChanged) {
+                    $notifTitle = 'Permohonan Cuti Disetujui';
+                    $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.";
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }
@@ -1252,6 +1259,7 @@ class EmployeeLeaveRequestController extends Controller
             ]);
             $suratKeluar->save();
 
+            $previousApproval = [$leaveReq->status, $leaveReq->nomor_pengajuan, $leaveReq->catatan_atasan, $leaveReq->surat_keluar_id];
             // Update EmployeeLeaveRequest
             $leaveReq->update([
                 'status' => $newStatus,
@@ -1262,6 +1270,9 @@ class EmployeeLeaveRequestController extends Controller
                 'catatan_atasan' => $catatan,
             ]);
 
+            $notificationChanged = $previousApproval !== [$leaveReq->status, $leaveReq->nomor_pengajuan, $leaveReq->catatan_atasan, $leaveReq->surat_keluar_id]
+                || $suratKeluar->wasRecentlyCreated
+                || $suratKeluar->wasChanged(array_diff(array_keys($suratKeluar->getAttributes()), ['created_at', 'updated_at']));
             DB::commit();
 
             try {
@@ -1271,18 +1282,20 @@ class EmployeeLeaveRequestController extends Controller
             }
 
             try {
-                $notifTitle = 'Permohonan Cuti Disetujui';
-                $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.".($nomorSurat ? " (Nomor: {$nomorSurat})" : '');
+                if ($notificationChanged) {
+                    $notifTitle = 'Permohonan Cuti Disetujui';
+                    $notifMsg = "Pengajuan {$leaveReq->jenis_cuti} Anda telah disetujui resmi. Surat Izin Resmi dapat langsung dilihat atau dicetak.".($nomorSurat ? " (Nomor: {$nomorSurat})" : '');
 
-                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
-                    $leaveReq->employee_id,
-                    $notifTitle,
-                    $notifMsg,
-                    'cuti',
-                    'cuti',
-                    (string) $leaveReq->id,
-                    ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id, 'nomor_surat' => $nomorSurat]
-                );
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $leaveReq->employee_id,
+                        $notifTitle,
+                        $notifMsg,
+                        'cuti',
+                        'cuti',
+                        (string) $leaveReq->id,
+                        ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id, 'nomor_surat' => $nomorSurat]
+                    );
+                }
             } catch (\Throwable $e) {
                 // Log and continue gracefully
             }

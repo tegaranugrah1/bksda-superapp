@@ -64,8 +64,9 @@ class PortalNotificationService
         try {
             $employee = match (true) {
                 $employeeOrId instanceof Employee => $employeeOrId,
-                is_numeric($employeeOrId) => Employee::find($employeeOrId),
-                is_string($employeeOrId) => Employee::where('nip', $employeeOrId)->first(),
+                is_int($employeeOrId) => Employee::find($employeeOrId),
+                is_string($employeeOrId) => Employee::where('nip', $employeeOrId)->first()
+                    ?? (ctype_digit($employeeOrId) ? Employee::find($employeeOrId) : null),
                 default => null,
             };
 

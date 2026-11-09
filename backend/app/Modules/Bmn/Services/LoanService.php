@@ -195,6 +195,13 @@ class LoanService
                 throw new Exception('Tanggal batas kembali (due date) tidak boleh mendahului tanggal peminjaman.');
             }
 
+            if (array_key_exists('employee_id', $updateData) && (int) $updateData['employee_id'] !== (int) $loan->employee_id) {
+                $asset = Asset::lockForUpdate()->findOrFail($loan->asset_id);
+                if ((int) $asset->employee_id !== (int) $loan->employee_id) {
+                    throw new Exception('Penanggung jawab aset sudah berubah. Periksa peminjaman yang masih berlaku.');
+                }
+                $asset->update(['employee_id' => $updateData['employee_id']]);
+            }
             $loan->update($updateData);
             $loan->load(['asset', 'borrower']);
 
@@ -221,8 +228,10 @@ class LoanService
                 'keterangan' => ($loan->keterangan ? $loan->keterangan . ' | ' : '') . ($data['catatan_pengembalian'] ?? 'Telah dikembalikan.'),
             ]);
 
-            $asset = Asset::findOrFail($loan->asset_id);
-            $asset->update(['employee_id' => null]);
+            $asset = Asset::lockForUpdate()->findOrFail($loan->asset_id);
+            if ((int) $asset->employee_id === (int) $loan->employee_id) {
+                $asset->update(['employee_id' => null]);
+            }
 
             // Record asset history
             $borrowerName = Employee::find($loan->employee_id)?->nama_lengkap ?? 'Pegawai';
@@ -264,7 +273,7 @@ class LoanService
 
             // If still active, release the asset
             if (in_array($loan->status, ['dipinjam', 'terlambat'])) {
-                $asset = Asset::find($loan->asset_id);
+                $asset = Asset::lockForUpdate()->find($loan->asset_id);
                 if ($asset && $asset->employee_id == $loan->employee_id) {
                     $asset->update(['employee_id' => null]);
                 }

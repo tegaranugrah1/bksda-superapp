@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { api } from "@/lib/api";
+import { api, clearGetCache } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getEcho, getRealtimeTokenId } from "@/lib/echo";
@@ -51,6 +51,8 @@ export interface PortalNotificationItem {
 
 interface NotificationBellProps {
   onSelectTab?: (tabKey: string, referenceId?: string | null) => void;
+  onNotification?: (item: PortalNotificationItem) => void;
+  onRefresh?: () => void;
 }
 
 function formatRelativeTime(dateString: string): string {
@@ -144,7 +146,7 @@ const tabOrder: Record<"all" | "unread" | "read", number> = {
   read: 2,
 };
 
-export function NotificationBell({ onSelectTab }: NotificationBellProps) {
+export function NotificationBell({ onSelectTab, onNotification, onRefresh }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<PortalNotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -168,29 +170,52 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
   // Cache to prevent jumpy layout & reload flickering
   const historyCacheRef = useRef<Record<string, { items: PortalNotificationItem[]; total: number; totalPages: number }>>({});
   const isMountedRef = useRef(true);
+  const latestRequestRef = useRef(0);
+  const historyRequestRef = useRef(0);
+  const seenIdsRef = useRef(new Set<number>());
+  const initializedRef = useRef(false);
+  const notificationHandlerRef = useRef(onNotification);
+  const refreshHandlerRef = useRef(onRefresh);
+  const historyStateRef = useRef({ open: false, page: 1, filter: "all" as "all" | "unread" | "read" });
+
+  useEffect(() => { notificationHandlerRef.current = onNotification; }, [onNotification]);
+  useEffect(() => { refreshHandlerRef.current = onRefresh; }, [onRefresh]);
+  useEffect(() => {
+    historyStateRef.current = { open: historyOpen, page: historyPage, filter: historyFilter };
+  }, [historyOpen, historyPage, historyFilter]);
 
   // Fetch quick latest notifications for the popover
   const fetchLatest = useCallback(async (isBackground = false) => {
+    const request = ++latestRequestRef.current;
     if (!isBackground) setLoading(true);
     try {
       const resp = await api.get("/portal/notifications", {
         params: { per_page: 8 },
       });
-      if (isMountedRef.current && resp.data) {
-        setNotifications(resp.data.data || []);
-        if (resp.data.meta?.unread_count !== undefined) {
-          setUnreadCount(resp.data.meta.unread_count);
+      if (isMountedRef.current && request === latestRequestRef.current && resp.data) {
+        const items: PortalNotificationItem[] = resp.data.data || [];
+        for (const item of items) {
+          if (initializedRef.current && !seenIdsRef.current.has(item.id)) {
+            historyCacheRef.current = {};
+            notificationHandlerRef.current?.(item);
+          }
+          seenIdsRef.current.add(item.id);
         }
+        initializedRef.current = true;
+        setNotifications(items);
+        if (resp.data.meta?.unread_count !== undefined) setUnreadCount(resp.data.meta.unread_count);
+        refreshHandlerRef.current?.();
       }
     } catch {
       // Background poll failure is silent
     } finally {
-      if (isMountedRef.current && !isBackground) setLoading(false);
+      if (isMountedRef.current && request === latestRequestRef.current) setLoading(false);
     }
   }, []);
 
   // Fetch full history for the modal
-  const fetchHistory = useCallback(async (page = 1, filter = historyFilter) => {
+  const fetchHistory = useCallback(async (page = 1, filter = historyStateRef.current.filter) => {
+    const request = ++historyRequestRef.current;
     const cacheKey = `${filter}-p${page}`;
     const cached = historyCacheRef.current[cacheKey];
     if (cached) {
@@ -211,7 +236,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
           read_only: filter === "read" ? 1 : 0,
         },
       });
-      if (isMountedRef.current && resp.data) {
+      if (isMountedRef.current && request === historyRequestRef.current && resp.data) {
         const items = resp.data.data || [];
         const currentP = resp.data.meta?.current_page || 1;
         const totalP = resp.data.meta?.last_page || 1;
@@ -223,16 +248,18 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
         setHistoryPage(currentP);
         setHistoryTotalPages(totalP);
         setHistoryTotal(tot);
-        if (resp.data.meta?.unread_count !== undefined) {
-          setUnreadCount(resp.data.meta.unread_count);
-        }
       }
     } catch {
-      toast.error("Gagal memuat riwayat notifikasi.");
+      if (isMountedRef.current && request === historyRequestRef.current) toast.error("Gagal memuat riwayat notifikasi.");
     } finally {
-      if (isMountedRef.current) setHistoryLoading(false);
+      if (isMountedRef.current && request === historyRequestRef.current) setHistoryLoading(false);
     }
-  }, [historyFilter]);
+  }, []);
+
+  useEffect(() => {
+    const history = historyStateRef.current;
+    if (history.open) void fetchHistory(history.page, history.filter);
+  }, [notifications, fetchHistory]);
 
   // Tab switch handler with direction tracking
   const handleSelectHistoryFilter = (newFilter: "all" | "unread" | "read") => {
@@ -268,6 +295,8 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
 
     return () => {
       isMountedRef.current = false;
+      latestRequestRef.current++;
+      historyRequestRef.current++;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
@@ -287,12 +316,14 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
     const channel = echo.private(channelName);
 
     const handleCreated = (item: PortalNotificationItem) => {
-      if (!isMountedRef.current) return;
-      // Invalidate cache
+      if (!isMountedRef.current || seenIdsRef.current.has(item.id)) return;
+      seenIdsRef.current.add(item.id);
+      clearGetCache();
       historyCacheRef.current = {};
-      setUnreadCount((c) => c + 1);
-      setNotifications((prev) => [item, ...prev.filter((n) => n.id !== item.id)].slice(0, 8));
-      setHistoryItems((prev) => [item, ...prev.filter((n) => n.id !== item.id)]);
+      void fetchLatest(true);
+      const history = historyStateRef.current;
+      if (history.open) void fetchHistory(history.page, history.filter);
+      notificationHandlerRef.current?.(item);
 
       // UI/UX Pro Max: interactive Sonner toast
       toast(item.title || "Notifikasi Baru", {
@@ -315,7 +346,7 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
         // Safe fallback
       }
     };
-  }, [onSelectTab]);
+  }, [onSelectTab, fetchLatest, fetchHistory]);
 
   // Handle open history modal
   useEffect(() => {
@@ -339,7 +370,11 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
     setUnreadCount((c) => Math.max(0, c - 1));
 
     try {
-      await api.post(`/portal/notifications/${item.id}/read`);
+      const response = await api.post(`/portal/notifications/${item.id}/read`);
+      latestRequestRef.current++;
+      historyRequestRef.current++;
+      if (response.data?.unread_count !== undefined) setUnreadCount(response.data.unread_count);
+      void fetchLatest(true);
     } catch {
       // Revert if error
       fetchLatest(true);
@@ -360,11 +395,14 @@ export function NotificationBell({ onSelectTab }: NotificationBellProps) {
     setIsMarkingAll(true);
     try {
       await api.post("/portal/notifications/mark-all-read");
+      latestRequestRef.current++;
+      historyRequestRef.current++;
       const nowIso = new Date().toISOString();
       setNotifications((prev) => prev.map((n) => ({ ...n, read_at: nowIso })));
       setHistoryItems((prev) => prev.map((n) => ({ ...n, read_at: nowIso })));
       historyCacheRef.current = {};
       setUnreadCount(0);
+      void fetchLatest(true);
       toast.success("Semua notifikasi ditandai dibaca.");
     } catch {
       toast.error("Gagal menandai semua notifikasi.");

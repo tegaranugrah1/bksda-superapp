@@ -14,7 +14,7 @@ class StoreAssetLoanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id' => ['required', 'uuid', 'exists:kpg_employees,id'],
+            'employee_id' => ['required', 'integer', 'exists:kpg_employees,id'],
             'tanggal_pinjam' => ['required', 'date', 'before_or_equal:today'],
             'keterangan' => ['nullable', 'string', 'max:1000'],
         ];

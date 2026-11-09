@@ -1,0 +1,92 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { spawnSync } = require('node:child_process');
+const { chromium, request } = require('/frontend/node_modules/playwright');
+assert.equal(process.env.APP_ENV, 'audit');
+assert.equal(process.env.DB_DATABASE, '/scratch/e2e.sqlite');
+const base = 'http://localhost:14000';
+const pause = ms => new Promise(r => setTimeout(r, ms));
+function control(action, id) {
+  const r = spawnSync('php', ['/fixtures/notification-control.php', action, ...(id ? [String(id)] : [])], { encoding: 'utf8', timeout: 20000 });
+  assert.equal(r.status, 0, 'Native fixture control failed: '+r.stderr.slice(-1500));
+  return JSON.parse(r.stdout.trim());
+}
+async function eventually(check, description, timeout = 10000) {
+  const until = Date.now() + timeout;
+  do { if (await check()) return; await pause(50); } while (Date.now() < until);
+  throw Error(description);
+}
+let browser;
+(async () => {
+  const http = await request.newContext({ baseURL: base });
+  const login = await http.post('/api/login', { data: { username: '900000000000000001', password: process.env.ST_E2E_EMPLOYEE_PASSWORD } });
+  assert.equal(login.status(), 200);
+  const body = await login.json();
+  const token = body.token || body.data?.token;
+  assert(token, 'Actual login bearer required (never printed)');
+  const user = body.data;
+  assert(user?.id);
+  browser = await chromium.launch({ executablePath: '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  const page = await browser.newPage();
+  await page.goto(base+'/api/health');
+  await page.evaluate(() => {
+    window.framesSeen = [];
+    window.nativeSocket = new WebSocket('ws://localhost:14000/app/dummy-notification-key?protocol=7&client=js&version=8.0&flash=false');
+    window.nativeSocket.onmessage = e => window.framesSeen.push(JSON.parse(e.data));
+  });
+  await eventually(() => page.evaluate(() => window.framesSeen.some(e => e.event === 'pusher:connection_established')), 'Native Reverb connection missing');
+  const sid = await page.evaluate(() => JSON.parse(window.framesSeen.find(e => e.event === 'pusher:connection_established').data).socket_id);
+  const channel = `private-App.Models.User.${user.id}.${token.split('|')[0]}`;
+  const auth = await http.post('/api/broadcasting/auth', { headers: { Authorization: 'Bearer '+token }, data: { socket_id: sid, channel_name: channel } });
+  assert.equal(auth.status(), 200, 'Native private auth failed');
+  const authBody = await auth.json();
+  const foreign = await http.post('/api/broadcasting/auth', { headers: { Authorization: 'Bearer '+token }, data: { socket_id: sid, channel_name: `private-App.Models.User.${user.id+1}.${token.split('|')[0]}` } });
+  assert.equal(foreign.status(), 403);
+  await page.evaluate(({ channel, authBody }) => window.nativeSocket.send(JSON.stringify({ event: 'pusher:subscribe', data: { channel, ...authBody } })), { channel, authBody });
+  await eventually(() => page.evaluate(() => window.framesSeen.some(e => e.event === 'pusher_internal:subscription_succeeded')), 'Native subscription missing');
+  console.log(JSON.stringify({ check: 'RV03/RV04:actual handshake/private auth/proxy Upgrade', result: 'PASS', foreign: 403 }));
+  await page.evaluate(() => {
+    window.invalidKeyAccepted = false;
+    window.invalidKeyRejected = false;
+    const socket = new WebSocket('ws://localhost:14000/app/dummy-invalid-key?protocol=7&client=js&version=8.0&flash=false');
+    socket.onmessage = e => {
+      const event = JSON.parse(e.data);
+      if (event.event === 'pusher:connection_established') window.invalidKeyAccepted = true;
+      if (event.event === 'pusher:error') window.invalidKeyRejected = true;
+    };
+    socket.onerror = socket.onclose = () => { window.invalidKeyRejected = true; };
+  });
+  await eventually(() => page.evaluate(() => window.invalidKeyRejected), 'Incorrect app key was not rejected');
+  assert.equal(await page.evaluate(() => window.invalidKeyAccepted), false);
+  console.log(JSON.stringify({ check: 'RV03:open native TCP/valid key positive control does not make wrong app key healthy', result: 'PASS' }));
+  const notice = control('notify');
+  const before = await http.get('/api/portal/notifications', { headers: { Authorization: 'Bearer '+token } });
+  assert((await before.json()).data.some(n => n.id === notice.id));
+  assert.equal(await page.evaluate(() => window.framesSeen.filter(e => e.event === 'notification.created').length), 0);
+  control('work');
+  await eventually(() => page.evaluate(id => window.framesSeen.some(e => e.event === 'notification.created' && JSON.parse(e.data).id === id), notice.id), 'Queued native notification missing');
+  console.log(JSON.stringify({ check: 'RV05:DB persistence before actual queue worker/native broadcast', result: 'PASS' }));
+  control('stop-reverb');
+  await eventually(() => fs.existsSync('/scratch/reverb.stop.done'), 'Daemon did not stop');
+  const offline = control('notify');
+  const offlineList = await http.get('/api/portal/notifications', { headers: { Authorization: 'Bearer '+token } });
+  assert.equal(offlineList.status(), 200);
+  assert((await offlineList.json()).data.some(n => n.id === offline.id));
+  const failed = control('work');
+  assert.equal(failed.failed, 1);
+  control('start-reverb');
+  await eventually(() => fs.existsSync('/scratch/reverb.start.done'), 'Daemon did not recover');
+  control('retry');
+  const retried = control('work');
+  assert.equal(retried.failed, 0);
+  const after = await http.get('/api/portal/notifications', { headers: { Authorization: 'Bearer '+token } });
+  assert.equal((await after.json()).data.filter(n => n.id === offline.id).length, 1);
+  console.log(JSON.stringify({ check: 'RV07:Reverb outage/API persistence and bounded native retry', result: 'PASS', duplicate_rows: 0 }));
+  const logout = await http.post('/api/logout', { headers: { Authorization: 'Bearer '+token } });
+  assert.equal(logout.status(), 200);
+  const revoked = await http.post('/api/broadcasting/auth', { headers: { Authorization: 'Bearer '+token }, data: { socket_id: sid, channel_name: channel } });
+  assert([401,403].includes(revoked.status()));
+  console.log(JSON.stringify({ check: 'PN05:actual HTTP logout revokes native subscription authorization', result: 'PASS', status: revoked.status() }));
+  await http.dispose();
+})().catch(error => { console.error(error.stack); process.exitCode = 1; }).finally(async () => { if (browser) await browser.close(); });

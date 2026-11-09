@@ -25,6 +25,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     intl \
     mbstring \
     bcmath \
+    pcntl \
     opcache \
     gd
 
@@ -44,7 +45,7 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 COPY . .
 
 # Generate optimized autoload
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev && php tests/Security/reverb-runtime.php
 
 # Copy Nginx config for standalone container
 COPY nginx.conf /etc/nginx/http.d/default.conf

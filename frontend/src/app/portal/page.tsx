@@ -12,7 +12,7 @@ import { RouteGuard } from "@/components/RouteGuard";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, clearGetCache } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { authStore } from "@/lib/auth-store";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,7 +28,7 @@ import { PortalProfileSidebar } from "./_components/PortalProfileSidebar";
 import { PortalHeaderBanner } from "./_components/PortalHeaderBanner";
 import { PortalQuickStats } from "./_components/PortalQuickStats";
 import { PortalInfoSidebar } from "./_components/PortalInfoSidebar";
-import { NotificationBell } from "./_components/NotificationBell";
+import { NotificationBell, type PortalNotificationItem } from "./_components/NotificationBell";
 import { EmailConnectDialog } from "./_components/EmailConnectDialog";
 import { MandatoryChangePasswordModal, TwoFactorSetupModal } from "./_components/SecurityModals";
 
@@ -246,6 +246,7 @@ function PortalContent() {
   const [stPreviewOpen, setStPreviewOpen] = useState(false);
   const [stDetail, setStDetail] = useState<SuratTugasDetail | null>(null);
   const [stDetailLoading, setStDetailLoading] = useState(false);
+  const stDetailRequestRef = useRef(0);
 
   // General Report Builder state
   const [inlineFormType, setInlineFormType] = useState<"general" | "smart_patrol" | null>(null);
@@ -333,19 +334,29 @@ function PortalContent() {
   }, [activeNavTab, fetchAssets]);
 
   const fetchSTDetail = useCallback(async (id: string) => {
+    const request = ++stDetailRequestRef.current;
+    clearGetCache();
+    setStDetail(null);
+    setStPreviewOpen(false);
     setStDetailLoading(true);
     try {
       const resp = await api.get(`/surat-tugas/my/${encodeURIComponent(id)}`);
+      if (request !== stDetailRequestRef.current) return;
       setStDetail(resp.data.data || resp.data);
       setStPreviewOpen(true);
-    } catch {
-      toast.error("Gagal memuat detail surat tugas.");
+    } catch (error) {
+      if (request !== stDetailRequestRef.current) return;
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      toast.error(status === 403 || status === 404
+        ? "Surat tugas tidak tersedia atau tidak dapat diakses."
+        : "Gagal memuat detail surat tugas.");
     } finally {
-      setStDetailLoading(false);
+      if (request === stDetailRequestRef.current) setStDetailLoading(false);
     }
   }, []);
 
   const [activeLeaveId, setActiveLeaveId] = useState<string | number | null>(null);
+  const consumeActiveLeave = useCallback(() => setActiveLeaveId(null), []);
 
   const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
     const targetTab = VALID_PORTAL_TABS.includes(tabKey) ? tabKey : "dashboard";
@@ -367,6 +378,25 @@ function PortalContent() {
   const [forcePasswordChangeOpen, setForcePasswordChangeOpen] = useState(false);
   const [setup2FaOpen, setSetup2FaOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
+  const leavePrintRequestRef = useRef(0);
+  const handlePrintLeave = useCallback(async (item: LeaveRequestPrintData) => {
+    const request = ++leavePrintRequestRef.current;
+    setPrintLeaveData(null);
+    if (item.id == null) {
+      toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+      return;
+    }
+    clearGetCache();
+    try {
+      const response = await api.get(`/me/leave-requests/${encodeURIComponent(item.id)}`);
+      if (request !== leavePrintRequestRef.current) return;
+      setPrintLeaveData(response.data.data);
+      setTimeout(() => { if (request === leavePrintRequestRef.current) window.print(); }, 300);
+    } catch {
+      if (request === leavePrintRequestRef.current) toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+    }
+  }, []);
+
 
   useEffect(() => {
     if (!printLeaveData) return;
@@ -390,6 +420,27 @@ function PortalContent() {
       setMyLeaveBalance(balRes.data.data);
     } catch (e) {}
   }, [currentYear]);
+
+  const handleNotificationChange = useCallback((item: PortalNotificationItem) => {
+    if (item.type === "surat_tugas") {
+      void fetchSuratTugas();
+      if (stPreviewOpen && item.reference_id === String(stDetail?.id)) {
+        void fetchSTDetail(item.reference_id);
+      }
+    } else if (item.type === "cuti") {
+      leavePrintRequestRef.current++;
+      setPrintLeaveData(null);
+      void fetchMyLeaveRequests();
+    } else if (item.type === "bmn") {
+      void fetchAssets();
+    }
+  }, [fetchSuratTugas, fetchSTDetail, fetchAssets, fetchMyLeaveRequests, stDetail?.id, stPreviewOpen]);
+
+  const handleNotificationRefresh = useCallback(() => {
+    if (stPreviewOpen && stDetail?.id) void fetchSTDetail(String(stDetail.id));
+    if (activeNavTab === "cuti") void fetchMyLeaveRequests();
+    if (activeNavTab === "aset" || activeNavTab === "pinjaman") void fetchAssets();
+  }, [stPreviewOpen, stDetail, fetchSTDetail, activeNavTab, fetchMyLeaveRequests, fetchAssets]);
 
     // Initial dashboard load with fast cache populate (strictly validated to active user session)
   const initialFetchDoneRef = useRef(false);
@@ -588,7 +639,7 @@ function PortalContent() {
             {/* RIGHT ACTIONS: THEME, BELL, USER PILL, LOGOUT */}
             <div className="col-span-4 sm:col-span-6 lg:col-span-8 xl:col-span-9 2xl:col-span-9 flex items-center justify-end gap-3 min-w-0">
               <ThemeToggle />
-              <NotificationBell onSelectTab={handleNotificationNavigate} />
+              <NotificationBell onSelectTab={handleNotificationNavigate} onNotification={handleNotificationChange} onRefresh={handleNotificationRefresh} />
 
               <div className="flex items-center gap-2 pl-3 border-l border-[#dce8dd] dark:border-slate-800 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-[#1e5433] flex items-center justify-center text-white font-bold text-xs shadow-sm">
@@ -852,10 +903,8 @@ function PortalContent() {
                             toast.error(err.response?.data?.message || "Gagal membatalkan permohonan cuti.");
                           }
                         }}
-                        onPrintLeave={(item) => {
-                          setPrintLeaveData(item);
-                          setTimeout(() => window.print(), 300);
-                        }}
+                        onPrintLeave={handlePrintLeave}
+                        onConsumeActiveLeave={consumeActiveLeave}
                       />
                     </div>
                   ) : activeNavTab === "visum" ? (

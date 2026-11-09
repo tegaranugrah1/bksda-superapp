@@ -26,7 +26,8 @@ class PortalNotificationController extends Controller
         $type = $request->input('type');
 
         $query = PortalNotification::where('user_id', $user->id)
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         if ($unreadOnly) {
             $query->whereNull('read_at');

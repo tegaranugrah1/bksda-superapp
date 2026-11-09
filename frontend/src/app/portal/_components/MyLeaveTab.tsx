@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { LeaveRequestPrintData } from "./FormulirCutiPrint";
 import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 import { formatDateRangeIndonesian, formatDateIndonesian } from "@/lib/letter-utils";
+import { api, clearGetCache } from "@/lib/api";
+import { toast } from "sonner";
 
 interface MyLeaveTabProps {
   myLeaveRequests: LeaveRequestPrintData[];
@@ -15,6 +17,7 @@ interface MyLeaveTabProps {
   onPrintLeave: (item: LeaveRequestPrintData) => void;
   onCancelLeave?: (id: number) => void;
   activeLeaveId?: number | string | null;
+  onConsumeActiveLeave?: () => void;
 }
 
 function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; className: string } {
@@ -51,14 +54,19 @@ export function MyLeaveTab({
   onPrintLeave,
   onCancelLeave,
   activeLeaveId,
+  onConsumeActiveLeave,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
   const [viewerModal, setViewerModal] = React.useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
 
   React.useEffect(() => {
-    if (!activeLeaveId || !myLeaveRequests.length) return;
-    const target = myLeaveRequests.find((r) => String(r.id) === String(activeLeaveId));
-    if (target) {
+    if (!activeLeaveId) return;
+    let active = true;
+    setViewerModal(null);
+    clearGetCache();
+    void api.get(`/me/leave-requests/${encodeURIComponent(activeLeaveId)}`).then(response => {
+      if (!active) return;
+      const target: LeaveRequestPrintData = response.data.data;
       if (target.scan_surat_izin_path || target.scan_surat_path) {
         setViewerModal({
           url: `/me/leave-requests/${target.id}/scan-surat-izin`,
@@ -68,8 +76,13 @@ export function MyLeaveTab({
       } else {
         onPrintLeave(target);
       }
-    }
-  }, [activeLeaveId, myLeaveRequests, onPrintLeave]);
+    }).catch(() => {
+      if (active) toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+    }).finally(() => {
+      if (active) onConsumeActiveLeave?.();
+    });
+    return () => { active = false; };
+  }, [activeLeaveId, onPrintLeave, onConsumeActiveLeave]);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {

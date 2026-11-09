@@ -1,0 +1,1617 @@
+{
+  "run_id": "run-8",
+  "mode": "focused functional regression; not a new full vulnerability audit",
+  "base_source_ref": "e0e5ef3041efe31e96f17e423f4da6e88289ca51",
+  "status": "source/local-tests/report complete; production not deployed",
+  "case_totals": {
+    "total": 31,
+    "PASS_LOCAL": 30,
+    "DIAGNOSED": 1
+  },
+  "report": "portal-notification-lifecycle-report-2026-11-09.md",
+  "external_evidence_root": "C:\\Users\\USER\\security-audit-skill\\bksda-superapp\\run-8",
+  "baseline_manifest_sha256": "33fe5f2c96280340998f1244edb10074230e06a18187734ef0ad84f2b14fca49",
+  "green_receipt_jobs": [
+    "php-715e7c502639",
+    "php-d6b6a976914f",
+    "notification-client-0ed1d4df83e9",
+    "frontend-499a80937ad2",
+    "lint-455cc3bb3acf",
+    "php-lint-e6bebe23e706",
+    "reverb-runtime-e8eb0a62995e",
+    "e2e-7525e75da854",
+    "e2e-b85fa428ecf7"
+  ],
+  "meaningful_red_receipt_jobs": [
+    "php-23897acf81dd",
+    "php-0954b2625129",
+    "php-e85a885e96a1",
+    "php-a6990f89d257",
+    "notification-client-aa2674e4433a",
+    "e2e-3e0d42c4e5c9"
+  ],
+  "execution_index": [
+    {
+      "job": "php-715e7c502639",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "c238d3f1948482abc009ad7ccb16c9a349642fc8a186c690c6a390b8a00a8c18",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter 'SuratTugas|Kepegawaian|Employee|MealAllowance|StTemplateTest|StActorAcceptanceTest|StLifecycleAcceptanceTest|StKepegawaian|Portal|Bmn|Notification' /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 1489,
+          "sha256": "d674daad73eec73c9c07f73f36794fff2bf139cb40896d510c4381e4b360523c"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 130525,
+          "sha256": "7c46b0ab8ecf5cae7562e00e2779568f4bde2120f5533c674db0efe100e14d14"
+        }
+      ]
+    },
+    {
+      "job": "php-d6b6a976914f",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "62030d1e6e7433641b084091f5d8669686f9aa4c7f3013fc0fca73ef451c5eb7",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter 'NotificationBmnLifecycleTest|NotificationHealthMonitorTest|PortalNotificationLifecycleTest' /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 649,
+          "sha256": "91a48e058d34be1c90a3e69efcd84ffa4e2519062b0131f59848c576aa98407a"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 14009,
+          "sha256": "940cc66f83365f105816e0a33d4c41200a548d5b6c6eba3b5a250e43fe48d21e"
+        }
+      ]
+    },
+    {
+      "job": "notification-client-0ed1d4df83e9",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "9f3cb90d3171c6f2c808bd92c1364005dcf04abc60c68ba80ee8033443bff304",
+      "command": "(node tests/portal-notification-callbacks.cjs && node tests/portal-leave-callbacks.cjs && node tests/portal-notification-bell.cjs) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 1607,
+          "sha256": "b15f4c6b3eeb16a2384ea73402dfdfecca64b8ed57a666b8891bd6f5709b534a"
+        }
+      ]
+    },
+    {
+      "job": "frontend-499a80937ad2",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "c4f277f098aa6b1df2d68e06706a662867c8834e9f76f180821641c9d86f9df7",
+      "command": "(node tests/portal-review-check.cjs && node tests/cache-security.cjs && node tests/st-legacy-items.cjs && node --max-old-space-size=1100 node_modules/typescript/bin/tsc -p tsconfig.json --noEmit --incremental false) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 2906,
+          "sha256": "81be71582acda2698dbba65a53ad46bd6683b39e4433fdab321e2e3799bf6dcc"
+        }
+      ]
+    },
+    {
+      "job": "lint-455cc3bb3acf",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "3a5aa7d29c67dc488ae973786966dd8510b1677c1edefdb241646058001bed6d",
+      "command": "(node node_modules/eslint/bin/eslint.js src/app/kepegawaian/cuti/_components/ScanViewerModal.tsx src/app/portal/_components/MyLeaveTab.tsx src/app/portal/_components/NotificationBell.tsx src/app/portal/page.tsx --max-warnings=0) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "job": "php-lint-e6bebe23e706",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "dfb46472041ef95cc040a99522cad3363da1211f33cc58c231d94349609e8e57",
+      "command": "(php -l /app/app/Console/Commands/HealthMonitorCommand.php && php -l /app/app/Events/AdminInboxChanged.php && php -l /app/app/Events/PortalNotificationCreated.php && php -l /app/app/Http/Controllers/Api/PortalNotificationController.php && php -l /app/app/Modules/Bmn/Requests/StoreAssetLoanRequest.php && php -l /app/app/Modules/Bmn/Services/LoanService.php && php -l /app/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php && php -l /app/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php && php -l /app/app/Services/PortalNotificationService.php && php -l /app/tests/Feature/NotificationBmnLifecycleTest.php && php -l /app/tests/Feature/NotificationHealthMonitorTest.php && php -l /app/tests/Feature/PortalNotificationLifecycleTest.php && php -l /app/tests/Security/notification-control.php && php -l /app/tests/Security/notification-seed.php && php -l /app/tests/Security/reverb-runtime.php) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 1216,
+          "sha256": "aa9b2ff77116afe767c599adefb1acdc4cd6cea53b238ccf8e65722c7655651a"
+        }
+      ]
+    },
+    {
+      "job": "reverb-runtime-e8eb0a62995e",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "e36995f41cba463df675552b086b88df58257aa645af066fe5ae6634e9c7be3f",
+      "command": "(php /app/tests/Security/reverb-runtime.php) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 79,
+          "sha256": "cfff9f85279423344328a68ca7914ceef3dea595e0c31c9c55e16b0e77dd8841"
+        }
+      ]
+    },
+    {
+      "job": "e2e-7525e75da854",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "4d7bec9aa0c1b34a3576d10250931b23dd2dc6e75b9c01e530d4b40ed8931941",
+      "command": "(python3 /fixtures/notification-supervisor.py) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 805306368,
+        "cpus": 2,
+        "memory_bytes": 4294967296,
+        "pids": 512,
+        "cpu_seconds": 540,
+        "file_bytes": 67108864,
+        "wall_seconds": 610
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 5104,
+          "sha256": "e8cb75bd956ea030fddf0210a1bb425e7bd37b539d01a457cf2c0c23a7e175c3"
+        },
+        {
+          "path": "results.json",
+          "bytes": 179,
+          "sha256": "c29218c07e400165dc0c2f3b4c0faa319a409f3bc6bd3ece920191226ff35742"
+        }
+      ]
+    },
+    {
+      "job": "e2e-b85fa428ecf7",
+      "purpose": "final_green",
+      "source_variant": "current",
+      "exit_code": 0,
+      "receipt_sha256": "9c394fa8f9a25d40e846f423a812a0aa9f3c4830d5c0253da115038a3135ef5b",
+      "command": "(python3 /fixtures/notification-supervisor.py) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 805306368,
+        "cpus": 2,
+        "memory_bytes": 4294967296,
+        "pids": 512,
+        "cpu_seconds": 540,
+        "file_bytes": 67108864,
+        "wall_seconds": 610
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 12267,
+          "sha256": "c2384ec6b4de5e81382cf3cb2c1c8e57680b15aa33bd030d56fad36948c07c6e"
+        },
+        {
+          "path": "results.json",
+          "bytes": 185,
+          "sha256": "6c333ea65ff05f0fe48e04234ef9e584675488d36b96eabbb3c2e9f4ffb89d4d"
+        }
+      ]
+    },
+    {
+      "job": "php-23897acf81dd",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "current",
+      "exit_code": 1,
+      "receipt_sha256": "f61babe09781708f292829e9aa8a52ab20856ba202c1468de6db01130d1e031b",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter NotificationBmnLifecycleTest /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 2019,
+          "sha256": "f3ccc38d25e06168b334a0a1855e495ef827fa8ff08ea3bd50cc381d629a3d3a"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 4589,
+          "sha256": "22749bb8dc1153e04ca47904de1f82e9d653f7294eb452cd845e2c1ac37b1877"
+        }
+      ]
+    },
+    {
+      "job": "php-0954b2625129",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "baseline",
+      "exit_code": 2,
+      "receipt_sha256": "2c17895eb168ee66124e72020dcbc50d56a8e03bbf2b10fc445a602b8bbc0c36",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter PortalNotificationLifecycleTest /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 3467,
+          "sha256": "ca65ef16f8c6450c6ef9d296a746ebedf59dd7143a4ee94a970e1d2aa56ae2e0"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 10157,
+          "sha256": "1469a72dd3baf555651b869dbc472287567c421149d64c706855ae006f2c0d1c"
+        }
+      ]
+    },
+    {
+      "job": "php-e85a885e96a1",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "current",
+      "exit_code": 1,
+      "receipt_sha256": "b806d7aa66f430577b907d213b70c4422a475b8406f7aae0a3bcb2e79a3fc9a0",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter 'identical_publication_retry|alternate_native_leave|kn_04_native|cancel_and_delete_keep' /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 2409,
+          "sha256": "183fd2b544e308d5c09b02b8332a52858c06266f7b78ab8b8b3f2051e7dcef8d"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 5466,
+          "sha256": "32a6093e00be1ddb65d42d4696b7da4f8a4c8ab1086cfb7303441da6b8c7fd48"
+        }
+      ]
+    },
+    {
+      "job": "php-a6990f89d257",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "baseline",
+      "exit_code": 1,
+      "receipt_sha256": "ed30fd1741f873033e52fe22cd07a907d4f53ecee98b2bd10c28cd6b3e1e16e8",
+      "command": "(mkdir -p /scratch/bootstrap /scratch/storage/framework/{sessions,views,cache} /scratch/storage/logs; php /app/vendor/bin/phpunit --configuration /app/phpunit.xml --do-not-cache-result --log-junit /scratch/results.xml --filter 'history_pagination_filters|employee_nip_change' /app/tests/Feature) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 1091,
+          "sha256": "55aa04828d6cdd5d25e40b6e9f03c1ee4dd8849f742eb6e4544994f22e2f22aa"
+        },
+        {
+          "path": "results.xml",
+          "bytes": 1986,
+          "sha256": "8f1924ee7f4221b9039f0c84d25f196677950fb3e1b98326b4132be788bc71a4"
+        }
+      ]
+    },
+    {
+      "job": "notification-client-aa2674e4433a",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "current",
+      "exit_code": 1,
+      "receipt_sha256": "41700e6736d470f78f87e042012204d9afa1298a188f471feadf829f0d8a3b09",
+      "command": "(node tests/portal-notification-callbacks.cjs) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 134217728,
+        "cpus": 1,
+        "memory_bytes": 1610612736,
+        "pids": 64,
+        "cpu_seconds": 170,
+        "file_bytes": 16777216,
+        "wall_seconds": 185
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 169,
+          "sha256": "0c67192cdb3784ee1c20c64df835508e9547a054738338deb447d0f182784115"
+        }
+      ]
+    },
+    {
+      "job": "e2e-3e0d42c4e5c9",
+      "purpose": "meaningful_baseline_red",
+      "source_variant": "baseline",
+      "exit_code": 1,
+      "receipt_sha256": "6f192b0ea5ea424b46aef655fe59b904391c6dfc7ac374ae5158adb2bf8a5416",
+      "command": "(python3 /fixtures/notification-supervisor.py) > /scratch/output.txt 2>&1",
+      "limits": {
+        "network": "none",
+        "rootfs": "read-only",
+        "scratch_bytes": 805306368,
+        "cpus": 2,
+        "memory_bytes": 4294967296,
+        "pids": 512,
+        "cpu_seconds": 540,
+        "file_bytes": 67108864,
+        "wall_seconds": 610
+      },
+      "promoted": [
+        {
+          "path": "output.txt",
+          "bytes": 14149,
+          "sha256": "0cf01ca0da609965fcfa82bf18ff5a326faf942aa39907b67ec63959bbddadee"
+        },
+        {
+          "path": "results.json",
+          "bytes": 185,
+          "sha256": "c6df2172ddbb8754b725674731d93275a5424962c2d94981e6182e9503be8154"
+        }
+      ]
+    }
+  ],
+  "skipped_tests": [
+    {
+      "file": "backend/tests/Feature/SuratTugasBrowserPreviewPrintSecurityTest.php",
+      "test": "test_st12_stored_markup_remains_inert_in_chromium_browser"
+    },
+    {
+      "file": "backend/tests/Feature/SuratTugasPostgresConcurrencyTest.php",
+      "test": "test_st08_deterministic_employee_lock_order_prevents_deadlock"
+    },
+    {
+      "file": "backend/tests/Feature/SuratTugasPostgresConcurrencyTest.php",
+      "test": "test_st08_concurrent_overlapping_approval_race_is_serialized_and_rejected"
+    }
+  ],
+  "fixture_parity": [
+    {
+      "sandbox_fixture": "notification-supervisor.py",
+      "repository_file": "backend/tests/Security/notification-supervisor.py",
+      "sha256": "eddae4a6510b4de61106215abef645d3243d80f09faaf10bbedfccd9a74bd5a7"
+    },
+    {
+      "sandbox_fixture": "notification-proxy.cjs",
+      "repository_file": "backend/tests/Security/notification-proxy.cjs",
+      "sha256": "464de20bd915ab59909a65b080b8f2ad8a368244f23079310e1f1ea79a0eb5e7"
+    },
+    {
+      "sandbox_fixture": "notification-control.php",
+      "repository_file": "backend/tests/Security/notification-control.php",
+      "sha256": "a5c5edfb2489beb32532f4683bbfdedd4025dd635e0bf1ce07c984e70f52e907"
+    },
+    {
+      "sandbox_fixture": "seed-e2e.php",
+      "repository_file": "backend/tests/Security/notification-seed.php",
+      "sha256": "b44c78c061c6907e18a7f48c4703d13cff001fa9e2fe83e48749888483bb4cd9"
+    },
+    {
+      "sandbox_fixture": "font-responses.cjs",
+      "repository_file": "backend/tests/Security/notification-font-responses.cjs",
+      "sha256": "ec6171d03f4b47de9cd3710a3acbceac6ad929967bea44658b9dde17ef05b477"
+    },
+    {
+      "sandbox_fixture": "notification-flow.actual-app.cjs",
+      "repository_file": "frontend/tests/notification-flow.actual-app.cjs",
+      "sha256": "4e73e9fa308a3e80b39391fea7bb69ed82750b182dff0e650f5ddef27aa376bc"
+    },
+    {
+      "sandbox_fixture": "notification-transport.cjs",
+      "repository_file": "frontend/tests/notification-transport.cjs",
+      "sha256": "f47ce2eb407a46076cd936fec74c96f3c1e99ec6c15329211351630fcc638424"
+    }
+  ],
+  "source_manifest": [
+    {
+      "file": "backend/Dockerfile",
+      "bytes": 2293,
+      "sha256": "371b735699521812bd29522bfcb93dfbadee85a7170f319400ec69e4dbb6aae4"
+    },
+    {
+      "file": "backend/app/Console/Commands/HealthMonitorCommand.php",
+      "bytes": 5997,
+      "sha256": "4be0a2dee93e32420b13eb04ef9aff8fce452ff222f32cd71a7b47f08da76cab"
+    },
+    {
+      "file": "backend/app/Events/AdminInboxChanged.php",
+      "bytes": 1900,
+      "sha256": "1200d925189d1891adce716f98e3fa59d7cb416abd7380208b03a0ec49b4dd56"
+    },
+    {
+      "file": "backend/app/Events/PortalNotificationCreated.php",
+      "bytes": 1706,
+      "sha256": "396f2b8439057e0533fdd94d66c1d55684b2bc649cbeae6dc27e40ad4f1728ef"
+    },
+    {
+      "file": "backend/app/Http/Controllers/Api/PortalNotificationController.php",
+      "bytes": 3566,
+      "sha256": "7881df57f047a80da51475fd51dab46cf0a16f45114ea17dbedc1f7f9fd6d122"
+    },
+    {
+      "file": "backend/app/Modules/Bmn/Requests/StoreAssetLoanRequest.php",
+      "bytes": 685,
+      "sha256": "8808b45c66316b8fd6b091ce1465a23a28b8dfc743d169f6ffe8f1b90ee8ad26"
+    },
+    {
+      "file": "backend/app/Modules/Bmn/Services/LoanService.php",
+      "bytes": 11629,
+      "sha256": "3536437c6f6fff7726236ce41b534a4a45d93af53ffc911ca41954072525705d"
+    },
+    {
+      "file": "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php",
+      "bytes": 61232,
+      "sha256": "1e6283fe2a71bef2db92462a9c7da8263145f866fa437ecf7459bb633aff20d2"
+    },
+    {
+      "file": "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php",
+      "bytes": 70960,
+      "sha256": "fec3e9ec117f01f783d0d4d25734dfc942b231467d45a852eb9757bf75956b53"
+    },
+    {
+      "file": "backend/app/Services/PortalNotificationService.php",
+      "bytes": 4862,
+      "sha256": "16c3796842aed2c161ce0ccb1371ad1187ef29b0106719a8989ad7c3d33a2660"
+    },
+    {
+      "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+      "bytes": 13020,
+      "sha256": "5c4684b7137be92b002debdddf36b5511912ffd7fdc614a79b251202da245556"
+    },
+    {
+      "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+      "bytes": 6044,
+      "sha256": "56c4e682446a7a01027168e36d3592b9b6b2e7d62b702b5b584ac83eafd08949"
+    },
+    {
+      "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+      "bytes": 30726,
+      "sha256": "780eb5d7371bb9cb51ef23a5977698d038f01fd9a873832724d7610758a926f0"
+    },
+    {
+      "file": "backend/tests/Security/notification-control.php",
+      "bytes": 2121,
+      "sha256": "a5c5edfb2489beb32532f4683bbfdedd4025dd635e0bf1ce07c984e70f52e907"
+    },
+    {
+      "file": "backend/tests/Security/notification-font-responses.cjs",
+      "bytes": 224,
+      "sha256": "ec6171d03f4b47de9cd3710a3acbceac6ad929967bea44658b9dde17ef05b477"
+    },
+    {
+      "file": "backend/tests/Security/notification-proxy.cjs",
+      "bytes": 1507,
+      "sha256": "464de20bd915ab59909a65b080b8f2ad8a368244f23079310e1f1ea79a0eb5e7"
+    },
+    {
+      "file": "backend/tests/Security/notification-seed.php",
+      "bytes": 2476,
+      "sha256": "b44c78c061c6907e18a7f48c4703d13cff001fa9e2fe83e48749888483bb4cd9"
+    },
+    {
+      "file": "backend/tests/Security/notification-supervisor.py",
+      "bytes": 4783,
+      "sha256": "eddae4a6510b4de61106215abef645d3243d80f09faaf10bbedfccd9a74bd5a7"
+    },
+    {
+      "file": "backend/tests/Security/reverb-runtime.php",
+      "bytes": 781,
+      "sha256": "d90a942069af391dae44b7f9cffe963dbb308e183581e53f614e885ee14d7ebc"
+    },
+    {
+      "file": "frontend/src/app/kepegawaian/cuti/_components/ScanViewerModal.tsx",
+      "bytes": 7996,
+      "sha256": "26c4fea422d4616f2301a8c476583b9e3867f92b7ce1c0dc3e3645adfab1618b"
+    },
+    {
+      "file": "frontend/src/app/portal/_components/MyLeaveTab.tsx",
+      "bytes": 16371,
+      "sha256": "c853296a6005513e4cdd717c38eb6bff0fe4a8becb952f4f51dbd131f0be7003"
+    },
+    {
+      "file": "frontend/src/app/portal/_components/NotificationBell.tsx",
+      "bytes": 40762,
+      "sha256": "7029b85b994963c0356ab93793d56307f62daf3064aacff134b1ef864224090e"
+    },
+    {
+      "file": "frontend/src/app/portal/page.tsx",
+      "bytes": 49723,
+      "sha256": "5ec78e3bb48634a810ace728eb8002d9a9995376791ed58a616460416ed553fb"
+    },
+    {
+      "file": "frontend/tests/notification-flow.actual-app.cjs",
+      "bytes": 20815,
+      "sha256": "4e73e9fa308a3e80b39391fea7bb69ed82750b182dff0e650f5ddef27aa376bc"
+    },
+    {
+      "file": "frontend/tests/notification-transport.cjs",
+      "bytes": 6502,
+      "sha256": "f47ce2eb407a46076cd936fec74c96f3c1e99ec6c15329211351630fcc638424"
+    },
+    {
+      "file": "frontend/tests/portal-leave-callbacks.cjs",
+      "bytes": 5992,
+      "sha256": "582a2a650ca7efaaaf34651b5f265457a1d0cb0781d9d39e84808377191fa1f3"
+    },
+    {
+      "file": "frontend/tests/portal-notification-bell.cjs",
+      "bytes": 5457,
+      "sha256": "72751810f6ba14a049d0723379953943cf00bec34f7c2f3ba2dbd0c6e59e1302"
+    },
+    {
+      "file": "frontend/tests/portal-notification-callbacks.cjs",
+      "bytes": 4482,
+      "sha256": "4ecbc3390da87ec6a6733e83e853c425d03dbd353ee1b683f61c8c29b45c4c24"
+    }
+  ],
+  "cases": [
+    {
+      "id": "RV-01",
+      "scenario": "Identifikasi konfigurasi yang aktif",
+      "acceptance": "Pisahkan backend publisher, worker, scheduler, daemon dan browser. Catat nama service/network/alias, host/port/scheme, asal build frontend, keberadaan proses dan umur config cache tanpa merekam secret. Source template saja tidak dianggap konfigurasi aktif.",
+      "status": "DIAGNOSED",
+      "checks": [
+        {
+          "files": [
+            "backend/Dockerfile",
+            "backend/tests/Security/reverb-runtime.php"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "reverb-runtime-e8eb0a62995e"
+          ],
+          "result_and_limits": "Authorized server read-only: active Compose/runtime/startup/DNS. pcntl=no SIGINT=no; source fix ready, production redeploy pending.",
+          "administrative_evidence": [
+            "server-initial-readonly.json",
+            "server-inventory-readonly.json",
+            "server-app-containers-readonly.json",
+            "server-app-reverb-readonly.json",
+            "server-app-addresses-readonly.json",
+            "server-app-runtime-readonly.json"
+          ]
+        }
+      ],
+      "blockers": [],
+      "pending_operational_action": "Build/deploy new image and verify production stable Reverb/DNS/queue/browser. No production writes were performed."
+    },
+    {
+      "id": "RV-02",
+      "scenario": "Nama host tidak dapat di-resolve vs port tertutup vs timeout",
+      "acceptance": "Reproduksi lokal terisolasi dengan kegagalan terkendali; klasifikasi error berbeda, batas waktu tercatat. Jangan mematikan service atau DNS deployment.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationHealthMonitorTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv02_health_distinguishes_controlled_dns_failure_from_tcp_refusal"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Controlled DNS/refused/timeout strings; 2-second bound in source, no live DNS outage or elapsed timeout claim."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "RV-03",
+      "scenario": "Socket TCP terbuka tetapi handshake/auth salah",
+      "acceptance": "Monitor TCP dapat terlihat sehat sementara delivery gagal; buktikan secara terpisah probe TCP, handshake, subscription private, dan penerimaan satu event dummy. Tidak menyimpulkan sehat hanya dari port.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationHealthMonitorTest.php",
+            "frontend/tests/notification-transport.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv03_native_open_tcp_is_not_presented_as_end_to_end_websocket_proof"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-7525e75da854"
+          ],
+          "result_and_limits": "Native TCP listener plus actual Reverb handshake/private auth/delivery and wrong-key rejection; foreign auth403."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "RV-04",
+      "scenario": "Publisher internal dan browser melalui proxy",
+      "acceptance": "Nama `reverb` digunakan dalam namespace internal yang sesuai; browser memakai hostname API/ws yang dapat diaksesnya. Uji `/app`, Upgrade, skema/port dan auth endpoint aktual; jangan menyetel browser ke hostname container.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/notification-transport.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-b85fa428ecf7",
+            "e2e-7525e75da854"
+          ],
+          "result_and_limits": "Actual publisher/browser/proxy Upgrade on isolated loopback. Production TLS/ingress/frontend build env not claimed."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "RV-05",
+      "scenario": "Queue worker berhenti/terlambat, lalu dipulihkan",
+      "acceptance": "Notifikasi DB, antrean broadcast dan browser diamati terpisah. Jalankan satu job tertunda lalu retry terbatas; tidak ada event/record bisnis ganda atau penerima asing.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-transport.cjs",
+            "frontend/tests/notification-flow.actual-app.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-7525e75da854",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Native DB queue persistence, worker gate, failed job/retry and first delayed ST approval."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "RV-06",
+      "scenario": "Monitor terjadwal dan dedup",
+      "acceptance": "Jam fake untuk interval lima menit, dedup satu jam, alert hanya penerima aktif yang sah; cek repeat/jenis masalah berubah/pulih/kambuh. Catat jika notifikasi recovery belum menjadi kontrak. Umur “6h lalu” tidak disamakan dengan status sekarang.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+            "backend/tests/Feature/NotificationHealthMonitorTest.php",
+            "backend/routes/console.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_rv06_health_alert_deduplicates_an_hour_and_only_notifies_active_superadmins"
+            },
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv02_health_distinguishes_controlled_dns_failure_from_tcp_refusal"
+            },
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv05_06_first_heartbeat_never_consumed_eventually_alerts_instead_of_resetting_forever"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Fake-clock same/different issue, hour dedup, recovery/recurrence, active superadmin; scheduler five-minute interval source inspection."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "RV-07",
+      "scenario": "Reverb offline, API masih sehat",
+      "acceptance": "Satu mutasi ST/cuti/BMN tetap dievaluasi terhadap keadaan DB; Portal dapat mengambil notifikasi lewat polling, termasuk health alert itu sendiri. Periksa mode queue async/sync yang benar-benar didukung dan kemungkinan exception saat dispatch.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationHealthMonitorTest.php",
+            "frontend/tests/notification-transport.cjs",
+            "frontend/tests/notification-flow.actual-app.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv07_sync_transport_failure_does_not_erase_or_hide_the_committed_notification"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-7525e75da854",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Sync failing native broadcaster persists DB; async native outage/retry and normal35s UI polling."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-01",
+      "scenario": "Approve ST A+B, C bukan peserta",
+      "acceptance": "Status/approver DB benar; notifikasi A+B mengarah ke ID yang sama, C tidak menerima/read/subscription. Uji pembaca Portal biasa, bukan hanya admin.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "backend/tests/Feature/SuratTugasApprovalAndPortalNotificationTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #0"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #1"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #2"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #3"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #4"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #5"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #6"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #7"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "A/B receive, C personal API denied; browser uses regular employee."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-02",
+      "scenario": "Semua pintu penerbitan/perubahan status",
+      "acceptance": "Petakan store, approve, update, updateStatus dan alias resmi yang benar-benar diterima tiap pintu. Hak, penerima, judul, status event dan reference konsisten; validasi 422 tidak membuat notifikasi sukses.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #0"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #1"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #2"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #3"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #4"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #5"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #6"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_01_02_all_native_publication_writers_notify_only_assigned_people with data set #7"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_02_identical_publication_retry_does_not_notify_but_real_number_revision_does with data set #0"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_02_identical_publication_retry_does_not_notify_but_real_number_revision_does with data set #1"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_02_identical_publication_retry_does_not_notify_but_real_number_revision_does with data set #2"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Store/approve/update/status accepted aliases; exact retry versus number revision. Store non-approved publication aliases intentionally pending."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-03",
+      "scenario": "Admin trash surat resmi; A belum membaca, B sudah membaca",
+      "acceptance": "Ambil snapshot notification IDs/read_at/unread sebelum dan sesudah. Riwayat penerbitan tetap historis; usulan notifikasi trash mengikuti kontrak. Daftar/detail/preview/download tidak membuka surat yang sudah trashed.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_03_04_05_approval_history_survives_trash_and_restore_with_precise_personal_notices"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Historical IDs/read_at/status unchanged, accurate trash notice; personal list/detail/download unavailable."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-04",
+      "scenario": "Klik notifikasi lama setelah trash",
+      "acceptance": "Uji dari bel, riwayat dan toast; halaman/detail lama sudah terbuka maupun belum. Tidak ada isi stale atau unduhan file lama; pesan tidak tersedia tepat, badge tidak rusak.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/portal-notification-callbacks.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_03_04_05_approval_history_survives_trash_and_restore_with_precise_personal_notices"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-b85fa428ecf7",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "Actual open preview/old reference plus callback stale/out-of-order success and denial."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-05",
+      "scenario": "Restore tanpa konflik, lalu restore gagal karena konflik",
+      "acceptance": "Sukses memulihkan akses penerima sekarang dan mengikuti kontrak notifikasi pemulihan. Gagal 422 mempertahankan tombstone, rows/pivots/files/kuota dan notification count.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "backend/tests/Feature/StLifecycleAcceptanceTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_03_04_05_approval_history_survives_trash_and_restore_with_precise_personal_notices"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_05_07_failed_mixed_restore_keeps_rows_and_notification_records_atomic"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Successful restore and real transaction-level1 intermediate restore rolled back by later conflict422."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-06",
+      "scenario": "Force delete setelah trash",
+      "acceptance": "Uji stale notification reference dan file; tidak crash/menampilkan isi lama. Riwayat pemberitahuan mengikuti kebijakan retensi yang ditetapkan; bukan menganggap FK notification otomatis menghapus record.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "backend/tests/Feature/SuratTugasSecurityPentestTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_06_force_delete_leaves_historical_notices_but_no_personal_document"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639",
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Force delete retains notification history; missing detail/download; existing shared-file regressions rerun."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-07",
+      "scenario": "Bulk trash/restore/force mixed owned/foreign/missing",
+      "acceptance": "Hanya record yang benar-benar berubah menghasilkan efek yang diizinkan; tidak mengasumsikan query-level mutasi menjalankan event model. Kegagalan transaksi tidak meninggalkan notifikasi sukses parsial.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "backend/tests/Feature/StLifecycleAcceptanceTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_07_bulk_trash_and_restore_notices_follow_changed_rows_and_retry_is_not_a_new_transition"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_05_07_failed_mixed_restore_keeps_rows_and_notification_records_atomic"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Duplicate/missing/no-op bulk trash/restore, restore inbox event, mixed owned/foreign/force and atomic rollback."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-08",
+      "scenario": "Creator/nonadmin mencoba hapus surat resmi",
+      "acceptance": "403 dan keadaan surat/notifikasi tetap; operasi creator pada status yang memang diizinkan tetap bekerja. Negative control harus mencapai guard yang dituju.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "backend/tests/Feature/StActorAcceptanceTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_08_creator_cannot_trash_official_letter_or_notify_anyone"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Nonadmin creator official delete403 with unchanged state; own draft succeeds."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-09",
+      "scenario": "Personel A dikeluarkan, B tetap, C ditambahkan",
+      "acceptance": "Hak personal dan channel dievaluasi ulang. Notifikasi event lama A tidak menjadi capability membuka surat; pemberitahuan perubahan untuk A/B/C mengikuti kontrak penerima yang disepakati.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "backend/tests/Feature/PortalIdentityBoundaryTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_09_roster_changes_revoke_old_personal_access_and_inform_removed_recipient"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Removed A minimal notice and API403; B kept, C added and API200; personal/channel boundaries rerun."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "STN-10",
+      "scenario": "Approve/delete/restore saat broadcast tertunda",
+      "acceptance": "Worker dijeda dengan gate lokal, bukan sleep acak. Event penerbitan tertunda tidak membuat UI seolah dokumen masih tersedia. Catat urutan commit/event dan keadaan akhir; jangan mensyaratkan urutan arrival queue tanpa jaminan source.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-flow.actual-app.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-b85fa428ecf7"
+          ],
+          "result_and_limits": "Worker stop/ACK, create/approve/trash commits, start worker first approval frame arrives, missing reference cannot open; restore reauthorizes."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-01",
+      "scenario": "Realtime event yang sama tiba dua kali, lalu polling",
+      "acceptance": "Satu item per notification ID, unread count sesuai DB, toast sesuai kontrak; tidak hanya dedup list sambil badge tetap bertambah.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/portal-notification-bell.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-b85fa428ecf7",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "Actual duplicate original ID twice after delivery; native badge/list agrees DB; controlled actual callback toast once."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-02",
+      "scenario": "Read/read-all, unread/read filter dan pagination",
+      "acceptance": "Scope milik user, read_at idempotent, total/history/badge konsisten. Error HTTP pada optimistic update dikoreksi; C tidak bisa menandai milik A.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/portal-notification-bell.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_pn_02_read_and_history_are_scoped_and_idempotent"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_pn_02_native_history_pagination_filters_and_equal_timestamp_order"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-b85fa428ecf7",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "20 equal-time rows, pagination/filter/scope/idempotence; UI history/read-all; controlled error reconciliation and old-filter response."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-03",
+      "scenario": "Disconnect/reconnect, tab hidden→visible, koneksi pulih",
+      "acceptance": "Notifikasi terlewat diambil ulang; tidak menggandakan item/event subscription, cache history tidak menahan data yang sudah berubah.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/portal-notification-bell.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-b85fa428ecf7",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "Native disconnect/resubscribe and NEW frame after recovery. Hidden/visible effect uses controlled visibility/time, not native tab switching."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-04",
+      "scenario": "Dua tab dan pergantian akun A→C",
+      "acceptance": "Cache request, state bel/detail, browser storage, dan channel lama tidak membocorkan data A. Ikuti login/logout aktual yang memuat ulang halaman; jangan mengarang pergantian akun in-place.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "backend/tests/Feature/PortalIdentityBoundaryTest.php",
+            "frontend/tests/cache-security.cjs"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-b85fa428ecf7",
+            "php-715e7c502639",
+            "frontend-499a80937ad2"
+          ],
+          "result_and_limits": "Actual normal logout/login reload two-tab A to C; real existing foreign resource denied, cache/auth regression rerun."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-05",
+      "scenario": "Logout/nonaktif/revoke saat queue tertunda",
+      "acceptance": "Subscription baru ditolak dan proses broadcast tidak mengirim ke token yang telah dicabut; positive control token aktif tetap menerima.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "frontend/tests/notification-transport.cjs",
+            "backend/tests/Feature/StKepegawaianNotificationQueueTest.php",
+            "backend/tests/Feature/PortalIdentityBoundaryTest.php"
+          ],
+          "native_testcases": [],
+          "receipts": [
+            "e2e-7525e75da854",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Actual logout auth401; serialized native BroadcastEvent rechecks revoked token/module with recording broadcaster; inactive owner regressions."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "PN-06",
+      "scenario": "Referensi hilang/asing dan action_tab tidak cocok",
+      "acceptance": "ST/cuti tidak ada atau hak dicabut tidak menampilkan detail lama. BMN saat ini menavigasi tab aset; jangan menuntut loan-detail route yang tidak tersedia. Alert system `pengaturan` dinavigasikan sesuai valid tabs, tidak crash.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/notification-flow.actual-app.cjs",
+            "frontend/tests/portal-notification-callbacks.cjs",
+            "frontend/tests/portal-leave-callbacks.cjs",
+            "frontend/tests/portal-notification-bell.cjs",
+            "frontend/src/app/portal/page.tsx"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_06_force_delete_leaves_historical_notices_but_no_personal_document"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_stn_09_roster_changes_revoke_old_personal_access_and_inform_removed_recipient"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_02_cancel_and_delete_keep_historical_notice_but_revoke_the_reference"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-b85fa428ecf7",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "Missing/foreign ST/cuti reference safe, print freshly authorized; action_tab whitelist inspected in source, BMN list navigation contract."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "BN-01",
+      "scenario": "Pinjam aset tunggal dan bulk",
+      "acceptance": "Recipient sesuai pegawai peminjam; notification reference cocok asset/loan menurut writer; DB loan dan penanggung jawab aset benar. Pegawai lain tidak mendapat detail.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationBmnLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn01_bulk_http_loans_notify_only_actual_borrower_and_view_only_user_is_denied"
+            },
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn01_legacy_single_asset_http_accepts_actual_integer_employee_identifier"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Bulk and legacy single integer employee HTTP, recipient/reference/state and own asset API; unauthorized viewer rejected."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "BN-02",
+      "scenario": "Pengembalian yang sah dan retry",
+      "acceptance": "Status loan, pemegang aset dan notifikasi konsisten; request ulang mengikuti kontrak (ditolak atau no-op), tidak membuat kesan pengembalian baru.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationBmnLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn02_return_http_notifies_once_and_repeated_return_does_not_change_state_or_count"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Return once, retry not new transition; owner/status/notices consistent."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "BN-03",
+      "scenario": "Koreksi/penghapusan loan atau pergantian pemegang aset",
+      "acceptance": "Pemberitahuan lama tidak dianggap keadaan terkini. Detail aset/loan memeriksa hak pemegang sekarang; aset tidak dibebaskan bila sudah menjadi tanggung jawab pegawai lain.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationBmnLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn03_borrower_correction_keeps_loan_and_asset_current_owner_consistent"
+            },
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn03_return_and_delete_of_old_loan_cannot_release_another_current_holder"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "Borrower correction asset/loan/personal APIs; old loan return/delete preserves reassigned holder. No new correction/delete notice contract."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "BN-04",
+      "scenario": "Rollback bulk dan kegagalan broadcast",
+      "acceptance": "Mutasi awal yang dibatalkan tidak menghasilkan notifikasi sukses/event prematur. Uji transaksi riil; fake assertion “event dispatched” tidak cukup.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+            "backend/tests/Feature/NotificationHealthMonitorTest.php",
+            "frontend/tests/notification-transport.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/NotificationBmnLifecycleTest.php",
+              "name": "test_bn04_real_mixed_bulk_rollback_does_not_publish_intermediate_notifications"
+            },
+            {
+              "file": "backend/tests/Feature/NotificationHealthMonitorTest.php",
+              "name": "test_rv07_sync_transport_failure_does_not_erase_or_hide_the_committed_notification"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "e2e-7525e75da854"
+          ],
+          "result_and_limits": "Real intermediate first loan/history/owner then rollback, no success events; positive commit dispatch and independent sync/async transport failure."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "KN-01",
+      "scenario": "Ajukan/approve/reject cuti melalui writer aktual",
+      "acceptance": "Inbox admin yang sah dan pegawai yang benar menerima event yang sesuai; pegawai lain tidak mendapat data alasan/detail. Saldo/reservasi cocok keadaan DB.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "backend/tests/Feature/KepegawaianSecurityAuditTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_02_leave_decision_retry_does_not_duplicate_notice_or_debit_then_delete_restores_balance"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_02_cancel_pending_and_reject_release_reservation_without_quota_debit"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_alternate_native_leave_writers_gate_identical_retries_without_losing_real_revisions with data set #0"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_alternate_native_leave_writers_gate_identical_retries_without_losing_real_revisions with data set #1"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Submit/approve/status/generate metadata/reject, admin applicant name, recipient/quota and retry vs real revision. External TTE not called."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "KN-02",
+      "scenario": "Cancel atau delete cuti yang telah menghasilkan notifikasi",
+      "acceptance": "Klik referensi lama aman, saldo/reservasi dipulihkan hanya sesuai aturan, tidak mengirim status sukses palsu atau debit ganda. Notifikasi perubahan mengikuti kontrak yang ditetapkan.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "frontend/tests/portal-leave-callbacks.cjs"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_02_leave_decision_retry_does_not_duplicate_notice_or_debit_then_delete_restores_balance"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_01_02_cancel_pending_and_reject_release_reservation_without_quota_debit"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_02_cancel_and_delete_keep_historical_notice_but_revoke_the_reference"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "notification-client-0ed1d4df83e9"
+          ],
+          "result_and_limits": "Cancel/delete reservations/debit/history/ref access; actual callback fresh print,404,out-of-order and timer gate. No physical printer."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "KN-03",
+      "scenario": "Perubahan NIP/username, akun nonaktif, pegawai tanpa akun",
+      "acceptance": "Mapping employee→user tidak mengirim ke akun salah. Tidak ada exception tersembunyi yang dianggap delivery sukses; kasus tidak ada penerima dilaporkan secara tepat.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+            "backend/tests/Feature/EmployeeAccessLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_03_mapping_supports_documented_nip_input_and_skips_inactive_or_missing_recipients"
+            },
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_03_native_employee_nip_change_preserves_recipient_and_retires_old_mapping"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f",
+            "php-715e7c502639"
+          ],
+          "result_and_limits": "Employee/int/NIP string, inactive/no-account; native NIP update username mapping retires old NIP. Duplicate-NIP fixture not claimed."
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "id": "KN-04",
+      "scenario": "ST trash/restore terhadap jadwal dan proyeksi Kepegawaian",
+      "acceptance": "Daftar penugasan personal, konflik, cuti dan rekonsiliasi terkait membaca state yang benar. Kebijakan trash versus pembatalan dan dampak ke presensi ditetapkan dahulu; source SoftDeletes bukan keputusan bisnis tentang hak uang makan.",
+      "status": "PASS_LOCAL",
+      "checks": [
+        {
+          "files": [
+            "backend/tests/Feature/PortalNotificationLifecycleTest.php"
+          ],
+          "native_testcases": [
+            {
+              "file": "backend/tests/Feature/PortalNotificationLifecycleTest.php",
+              "name": "test_kn_04_native_reconciliation_and_schedule_projection_follow_st_trash_restore"
+            }
+          ],
+          "receipts": [
+            "php-d6b6a976914f"
+          ],
+          "result_and_limits": "User-approved policy: actual reconcile/conflicts/history PD/yes/present -> trash H/no/absent -> restore PD/yes/present. No stored-batch auto-recalculation claim."
+        }
+      ],
+      "blockers": []
+    }
+  ],
+  "administrative_evidence": [
+    {
+      "file": "server-initial-readonly.json",
+      "bytes": 471,
+      "sha256": "bb864457d854b906dd5af13f95d31fba9649228de30e3e7b3be0d826bf578763",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    },
+    {
+      "file": "server-inventory-readonly.json",
+      "bytes": 999,
+      "sha256": "07202f98c350c97edf7a62df89d95b91a0227840a6799b46ad9945ff720d859a",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    },
+    {
+      "file": "server-app-containers-readonly.json",
+      "bytes": 1256,
+      "sha256": "71253e815b510d8263514d1d43c1236665f4a3faf0c85a39037edb06c1ba32b6",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    },
+    {
+      "file": "server-app-reverb-readonly.json",
+      "bytes": 2676,
+      "sha256": "21efc73de5f62dee59cdadc7f83216f2d6fbc6d155e885aa16cba7bd55dcc5b1",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    },
+    {
+      "file": "server-app-addresses-readonly.json",
+      "bytes": 12823,
+      "sha256": "9336e1009152672e30ee371f9abd0f7d9096cafecb0f1cd1b00a9a05ae4a8b3f",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    },
+    {
+      "file": "server-app-runtime-readonly.json",
+      "bytes": 365,
+      "sha256": "0e256e226615d399c8b4b467ea3270fcefbd67fa45df36dd5447e13334a6bcbd",
+      "mode": "user-authorized read-only administrative metadata; no target workload or deployment mutation"
+    }
+  ],
+  "source_manifest_basis": "Raw working-tree bytes mounted or copied for tests, not Git object hashes; Git may normalize line endings on stage."
+}
