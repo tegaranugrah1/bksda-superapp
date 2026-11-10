@@ -1760,4 +1760,37 @@
 - **Token lengkap:** menetapkan hex eksplisit sebagai sumber acuan dan namespace spesifikasi `--ds-*`, karena palet default Tailwind v4 memakai OKLCH dan tidak identik dengan pasangan nama/hex pada panduan awal. Tabel mencakup fondasi, brand/enam modul, teks di atas tombol, hover/pressed, teks aksen, soft background/border, status success/warning/danger/info/neutral, tombol destruktif, focus, selected, loading, dan disabled untuk light/dark. Format HSL shadcn yang masih dipakai aplikasi tidak diubah.
 - **Koreksi teknis:** Sky `#0369a1` terhadap putih menjadi **5,93:1**; Slate `#0f172a` menjadi **17,85:1**. Aturan 60–30–10 dijelaskan sebagai heuristik, bukan standar aksesibilitas/jaminan anti-fatigue. Klaim ketajaman warna setara persis diganti penilaian per pasangan. Ditambahkan ambang WCAG 2.2 AA, kebutuhan label/ikon, batas border dekoratif, kontras grafik, contoh class statis dengan CSS variables, dan perhatian terhadap inheritance token pada Radix portal.
 - **Verifikasi dokumentasi:** validator eksternal membaca tabel token aktual: **180 pemeriksaan pasangan kontras lulus** dan **21 angka rasio cocok**. Nilai minimum teks normal **4,749275:1**; batas kontrol/focus yang diuji **3,081918:1**, kelulusan memakai nilai penuh. Disabled/border dekoratif tidak dihitung sebagai kontrol aktif. Checker: `C:/Users/USER/.codex/visualizations/2026/11/08/01a1badb-82d4-7721-9146-6498f31671a1/validate-design-colors.py`. Ini bukan pengulangan tes keamanan, typecheck, atau bukti tampilan browser aplikasi.
-- **Status:** penerapan token pada source masih menunggu instruksi per modul. Hanya panduan warna dan progress yang berubah; seluruh byte progress sebelum tambahan bagian 67 dipertahankan. Tidak push atau deploy; perubahan dokumentasi revisi ini belum di-commit.
+- **Status:** penerapan token pada source dimulai pada modul BMN (Bagian 68). Komit dokumentasi tercatat pada `c448415d`.
+
+---
+
+## 68. Implementasi Token Desain Sistem BMN & Harmonisasi Module Switcher (10 November 2026)
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  - Menguji coba penerapan token warna desain sistem resmi (`docs/DESIGN_SYSTEM_COLORS.md`) pada modul BMN, mencakup Dashboard BMN dan Sidebar Navigasi.
+  - Memperbaiki ketidaksesuaian warna pada pemilih modul (*Module Switcher*) yang sebelumnya memiliki warna bentrok (Persuratan hijau sama dengan BMN, Keuangan kuning, D-Reporting ungu, dan Surat Tugas belum terdaftar).
+  - Menyempurnakan interaksi hover icon pada mode malam di kartu *Akses Cepat Modul* dan *KpiCard* agar icon tetap menyala putih terang dan tidak menjadi gelap.
+- **Implementasi Token CSS & Layout**:
+  - `frontend/src/app/globals.css`: Menambahkan deklarasi token `--ds-*` tersinkronisasi untuk `[data-module="bmn"]` dan `.dark[data-module="bmn"]` (Emerald 700 `#047857` untuk light mode, Emerald 400 `#34d399` untuk dark mode).
+  - `frontend/src/app/bmn/layout.tsx`: Memasang atribut `data-module="bmn"` pada root container layout; menghubungkan header icon `Building2`, avatar profil, subtitle overline, indikator aktif, dan dot navigasi ke token `--ds-accent-*`.
+  - `frontend/src/app/bmn/page.tsx`:
+    - Mengikat seluruh elemen aksen BMN ke variabel `--ds-accent-solid`, `--ds-accent-fg`, dan `--ds-accent-soft`.
+    - Tombol utama "Peminjaman Aset" menggunakan `--ds-accent-solid` dengan teks putih di light mode dan teks gelap `#0f172a` di dark mode (kontras WCAG AA 9.29:1).
+    - Memperbaiki efek hover icon box pada mode malam: menggunakan `group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white` sehingga icon selalu putih bersih dan kontras tajam.
+- **Harmonisasi Module Switcher (`frontend/src/components/module-switcher.tsx`)**:
+  - Menghapus hack string replace dan hardcoded background hijau pada dropdown.
+  - Menyelaraskan seluruh modul dengan palet resmi desain sistem:
+    - **Portal Utama**: Forest Green (`#1e5433`)
+    - **Kepegawaian**: Royal Blue (`#2563eb`)
+    - **BMN & Aset**: Forest Emerald (`#047857`)
+    - **Keuangan**: Deep Teal (`#0f766e`)
+    - **Surat Tugas**: Sky Tech (`#0369a1`)
+    - **Persuratan**: Indigo (`#4f46e5`)
+    - **D-Reporting**: Amber Earth (`#b45309`)
+    - **Inventory**: Orange (`#ea580c`)
+    - **CMS Panel**: Slate (`#0f172a`)
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+

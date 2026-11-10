@@ -96,7 +96,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <RouteGuard requiredModule="bmn">
-      <div className="flex h-screen bg-slate-50/70 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 relative overflow-hidden">
+      <div data-module="bmn" className="flex h-screen bg-slate-50/70 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 relative overflow-hidden">
         {/* Backdrop saat laci ditarik di layar HP */}
         {isOpen && (
           <div
@@ -115,7 +115,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           <div className={`border-b border-slate-200/80 dark:border-zinc-800/80 ${collapsed ? "p-3" : "p-4"}`}>
             <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-600/20">
+                <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] shadow-sm shadow-emerald-950/10">
                   <Building2 className="w-5 h-5" />
                 </div>
                 {!collapsed && (
@@ -123,7 +123,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                     <h2 className="font-bold text-base text-slate-900 dark:text-white leading-tight truncate">
                       BMN
                     </h2>
-                    <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-0.5 truncate">
+                    <p className="text-[10px] font-bold text-[var(--ds-accent-fg)] uppercase tracking-widest mt-0.5 truncate">
                       Barang Milik Negara
                     </p>
                   </div>
@@ -191,27 +191,27 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                           collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
                         } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                           isActive
-                            ? "text-emerald-800 dark:text-emerald-300 font-bold"
+                            ? "text-[var(--ds-accent-fg)] font-bold"
                             : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/60 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {isActive && (
                           <motion.span
                             layoutId="activeBmnNavIndicator"
-                            className="absolute inset-0 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 rounded-xl shadow-2xs"
+                            className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl shadow-2xs"
                             transition={{ type: "spring", stiffness: 450, damping: 35 }}
                           />
                         )}
                         <Icon
                           className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
                             isActive
-                              ? "text-emerald-600 dark:text-emerald-400"
+                              ? "text-[var(--ds-accent-fg)]"
                               : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200"
                           }`}
                         />
                         {!collapsed && <span className="truncate relative z-10 flex-1">{item.label}</span>}
                         {!collapsed && isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 relative z-10" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)] shrink-0 relative z-10" />
                         )}
                       </Link>
                     );
@@ -225,7 +225,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           <div className="p-3.5 border-t border-slate-200/80 dark:border-zinc-800/80 bg-slate-50/40 dark:bg-zinc-900/50">
             <div className={`flex items-center ${collapsed ? "justify-center mb-2" : "gap-3 mb-3"}`}>
               <div
-                className="w-9 h-9 shrink-0 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-xs"
+                className="w-9 h-9 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] font-bold text-xs shadow-xs"
                 title={user?.name || user?.nama_lengkap || "User"}
               >
                 {(user?.name || user?.nama_lengkap || "U").charAt(0)}

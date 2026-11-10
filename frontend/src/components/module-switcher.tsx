@@ -10,81 +10,95 @@ import {
   Settings,
   Mail,
   Banknote,
+  Send,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
-// Module definitions with paths
+// Module definitions aligned with docs/DESIGN_SYSTEM_COLORS.md
 const moduleDefinitions = [
   {
     name: "Portal Utama",
     slug: "portal",
     icon: LayoutGrid,
     href: "/portal",
-    color: "bg-zinc-100 text-zinc-900",
+    color: "bg-[#edf3ee] text-[#1e5433] dark:bg-[#0d281a] dark:text-[#86efac]",
+    solidColor: "bg-[#1e5433] text-white dark:bg-[#86efac] dark:text-[#0f172a]",
   },
   {
     name: "Kepegawaian",
     slug: "kepegawaian",
     icon: Users,
     href: "/kepegawaian",
-    color: "bg-blue-100 text-blue-700",
+    color: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
+    solidColor: "bg-blue-600 text-white dark:bg-blue-400 dark:text-[#0f172a]",
   },
   {
     name: "BMN & Aset",
     slug: "bmn",
     icon: Box,
     href: "/bmn",
-    color: "bg-emerald-100 text-emerald-700",
+    color: "bg-emerald-50 text-[#047857] dark:bg-emerald-950/60 dark:text-[#6ee7b7]",
+    solidColor: "bg-[#047857] text-white dark:bg-[#34d399] dark:text-[#0f172a]",
   },
   {
     name: "Keuangan",
     slug: "keuangan",
     icon: Banknote,
     href: "/keuangan",
-    color: "bg-amber-100 text-amber-700",
+    color: "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+    solidColor: "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#0f172a]",
   },
   {
-    name: "Inventory",
-    slug: "inventory",
-    icon: Archive,
-    href: "/inventory",
-    color: "bg-orange-100 text-orange-700",
-  },
-  {
-    name: "D-Reporting",
-    slug: "dereporting",
-    icon: FileText,
-    href: "/dereporting",
-    color: "bg-violet-100 text-violet-700",
-  },
-  {
-    name: "CMS Panel",
-    slug: "cms",
-    icon: Settings,
-    href: "/cms",
-    color: "bg-teal-100 text-teal-700",
+    name: "Surat Tugas",
+    slug: "surat-tugas",
+    icon: Send,
+    href: "/surat-tugas",
+    color: "bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300",
+    solidColor: "bg-[#0369a1] text-white dark:bg-[#38bdf8] dark:text-[#0f172a]",
   },
   {
     name: "Persuratan",
     slug: "surat",
     icon: Mail,
     href: "/surat",
-    color: "bg-emerald-100 text-emerald-700",
+    color: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300",
+    solidColor: "bg-[#4f46e5] text-white dark:bg-[#818cf8] dark:text-[#0f172a]",
+  },
+  {
+    name: "D-Reporting",
+    slug: "dereporting",
+    icon: FileText,
+    href: "/dereporting",
+    color: "bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+    solidColor: "bg-[#b45309] text-white dark:bg-[#fbbf24] dark:text-[#0f172a]",
+  },
+  {
+    name: "Inventory",
+    slug: "inventory",
+    icon: Archive,
+    href: "/inventory",
+    color: "bg-orange-50 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300",
+    solidColor: "bg-orange-600 text-white dark:bg-orange-400 dark:text-[#0f172a]",
+  },
+  {
+    name: "CMS Panel",
+    slug: "cms",
+    icon: Settings,
+    href: "/cms",
+    color: "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300",
+    solidColor: "bg-slate-800 text-white dark:bg-zinc-200 dark:text-zinc-900",
   },
 ];
 
 // Get module by pathname
 function getActiveModule(pathname: string) {
-  // Remove trailing slash and get first segment
   const cleanPath = pathname.replace(/\/$/, "");
   const segment = cleanPath.split("/")[1] || "portal";
-
-  // Find matching module
   const foundModule = moduleDefinitions.find((m) => m.slug === segment);
-  return foundModule || moduleDefinitions[0]; // Default to portal
+  return foundModule || moduleDefinitions[0];
 }
 
 export function ModuleSwitcher() {
@@ -95,8 +109,8 @@ export function ModuleSwitcher() {
 
   // Filter modules based on user access
   const visibleModules = moduleDefinitions.filter((mod) => {
-    if (mod.slug === "portal") return true; // Portal always visible
-    if (user?.role === "super_admin") return true; // Super admin sees all
+    if (mod.slug === "portal") return true;
+    if (user?.role === "super_admin") return true;
     return user?.access_modules?.includes(mod.slug);
   });
 
@@ -115,27 +129,25 @@ export function ModuleSwitcher() {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/50 transition-all shadow-sm group"
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 transition-all shadow-2xs group cursor-pointer"
       >
         <div
-          className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform ${activeModule.color}`.replace(
-            "bg-zinc-100 text-zinc-900",
-            "bg-emerald-500",
-          )}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-xs group-hover:scale-105 transition-transform ${activeModule.solidColor || activeModule.color}`}
         >
-          <activeModule.icon className="w-5 h-5" />
+          <activeModule.icon className="w-4 h-4" />
         </div>
         <div className="text-left flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none mb-1">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider leading-none mb-1">
             Modul Aktif
           </p>
-          <p className="text-sm font-bold text-zinc-900 dark:text-white leading-none">
+          <p className="text-xs font-bold text-slate-900 dark:text-white leading-none truncate">
             {activeModule.name}
           </p>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -145,34 +157,39 @@ export function ModuleSwitcher() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-            {visibleModules.map((mod) => (
-              <Link
-                key={mod.slug}
-                href={mod.href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group ${pathname === mod.href || (pathname.startsWith(mod.href + "/") && mod.href !== "/portal") ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" : ""}`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-xl ${mod.color} flex items-center justify-center transition-transform group-hover:scale-110`}
+          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-1">
+            {visibleModules.map((mod) => {
+              const isCurrent = activeModule.slug === mod.slug;
+              return (
+                <Link
+                  key={mod.slug}
+                  href={mod.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition-colors group ${
+                    isCurrent
+                      ? "bg-slate-100/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700"
+                      : "border border-transparent"
+                  }`}
                 >
-                  <mod.icon className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-zinc-900 dark:text-white">
-                    {mod.name}
-                  </p>
-                  <p className="text-[11px] text-zinc-500">
-                    Klik untuk berpindah modul
-                  </p>
-                </div>
-                {pathname === mod.href ||
-                (pathname.startsWith(mod.href + "/") &&
-                  mod.href !== "/portal") ? (
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                ) : null}
-              </Link>
-            ))}
+                  <div
+                    className={`w-9 h-9 rounded-xl ${mod.color} flex items-center justify-center transition-transform group-hover:scale-105 shrink-0`}
+                  >
+                    <mod.icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-bold truncate ${isCurrent ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-300"}`}>
+                      {mod.name}
+                    </p>
+                    <p className="text-[10px] text-slate-400 dark:text-zinc-500 truncate">
+                      {isCurrent ? "Sedang aktif" : "Buka modul"}
+                    </p>
+                  </div>
+                  {isCurrent && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-600 dark:bg-zinc-300 shrink-0" />
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </>
       )}
