@@ -195,3 +195,76 @@
 :root:active-view-transition-type(animate-ui-theme) body * {
   view-transition-name: none !important;
 }
+
+/* BMN action feedback: spatial motion is opt-in to the user's preference. */
+[data-module="bmn"] .bmn-motion-action {
+  transition-property: background-color, color, border-color, box-shadow, transform;
+  transition-duration: 140ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-module="bmn"] .bmn-motion-action:focus-visible {
+  outline: 2px solid var(--ds-accent-fg);
+  outline-offset: 2px;
+}
+
+[data-module="bmn"] .bmn-metric-card {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms ease-out, border-color 150ms ease-out;
+}
+
+/* Stronger feedback for navigation, keeping the quick-action highlight unchanged. */
+[data-module="bmn"] .bmn-hover-link {
+  transition-duration: 150ms;
+}
+
+@keyframes bmn-dashboard-enter {
+  from { opacity: 0.85; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bmn-chart-enter {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-module="bmn"] .bmn-metric-card:hover,
+  [data-module="bmn"] .bmn-metric-card:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px -8px rgb(15 23 42 / 0.24);
+  }
+
+  [data-module="bmn"] .bmn-motion-action:hover {
+    transform: translateY(-1px);
+  }
+
+  [data-module="bmn"] .bmn-hover-link:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-module="bmn"].bmn-dashboard-enter {
+    animation: bmn-dashboard-enter 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-module="bmn"] .bmn-chart-enter {
+    animation: bmn-chart-enter 600ms ease-out;
+  }
+
+  [data-module="bmn"] .bmn-motion-action:active {
+    transform: scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-module="bmn"] .bmn-motion-action,
+  [data-module="bmn"] .bmn-metric-card {
+    transition-duration: 0ms;
+  }
+
+  [data-module="bmn"].bmn-dashboard-enter,
+  [data-module="bmn"] .bmn-chart-enter {
+    animation: none;
+  }
+}

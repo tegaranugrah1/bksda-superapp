@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useId, useState } from "react";
 import {
   Package,
   Wrench,
@@ -27,6 +28,13 @@ import { motion } from "framer-motion";
 
 interface JenisData { jenis_bmn: string; total: number; total_nilai: number }
 interface LokasiData { lokasi_ruang: string; total: number }
+
+const quickActions = [
+  { href: "/bmn/assets", label: "Data Aset", description: "Master inventaris", icon: Package },
+  { href: "/bmn/loans", label: "Peminjaman", description: "Pinjam pakai unit", icon: HandCoins },
+  { href: "/bmn/maintenances", label: "Pemeliharaan", description: "Servis & perawatan", icon: Wrench },
+  { href: "/bmn/reports", label: "Dokumen / Laporan", description: "BAST, DBR & KIB", icon: FileText },
+];
 
 interface DashboardData {
   total_asset: number;
@@ -65,25 +73,25 @@ function KpiCard({
   const colorStyles = {
     emerald: {
       badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
-      iconBox: "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white",
+      iconBox: "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]",
       rightText: "text-[var(--ds-accent-fg)]",
       labelColor: "text-slate-600 dark:text-zinc-400",
     },
     teal: {
       badge: "bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800",
-      iconBox: "bg-teal-50 border-teal-100 text-teal-700 group-hover:bg-teal-700 group-hover:text-white dark:bg-teal-950/60 dark:border-teal-900/40 dark:text-teal-400",
+      iconBox: "bg-teal-50 border-teal-100 text-teal-700 dark:bg-teal-950/60 dark:border-teal-900/40 dark:text-teal-400",
       rightText: "text-teal-700 dark:text-teal-400",
       labelColor: "text-slate-600 dark:text-zinc-400",
     },
     slate: {
       badge: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
-      iconBox: "bg-slate-50 border-slate-200 text-slate-600 group-hover:bg-slate-700 group-hover:text-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400",
+      iconBox: "bg-slate-50 border-slate-200 text-slate-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400",
       rightText: "text-[var(--ds-accent-fg)]",
       labelColor: "text-slate-600 dark:text-zinc-400",
     },
     rose: {
       badge: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
-      iconBox: "bg-rose-50 border-rose-100 text-rose-700 group-hover:bg-rose-700 group-hover:text-white dark:bg-rose-950/60 dark:border-rose-900/40 dark:text-rose-400",
+      iconBox: "bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-950/60 dark:border-rose-900/40 dark:text-rose-400",
       rightText: "text-rose-700 dark:text-rose-400",
       labelColor: "text-rose-700 dark:text-rose-400",
     },
@@ -92,12 +100,10 @@ function KpiCard({
   const style = colorStyles[color];
 
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
+    <div
       className={cn(
-        "relative overflow-hidden bg-white dark:bg-zinc-900 border rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all duration-300 group",
-        color === "rose" ? "border-rose-200/90 dark:border-rose-900/50" : "border-slate-200/90 dark:border-zinc-800"
+        "bmn-metric-card relative overflow-hidden bg-white dark:bg-zinc-900 border rounded-2xl p-5 shadow-2xs",
+        color === "rose" ? "border-rose-200/90 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700" : "border-slate-200/90 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] dark:hover:border-[var(--ds-accent-soft-border)]"
       )}
     >
       <div className="flex items-start justify-between">
@@ -125,7 +131,7 @@ function KpiCard({
             {sub}
           </div>
         </div>
-        <div className={cn("w-11 h-11 shrink-0 rounded-xl border flex items-center justify-center transition-all group-hover:scale-105", style.iconBox)}>
+        <div className={cn("w-11 h-11 shrink-0 rounded-xl border flex items-center justify-center", style.iconBox)}>
           {icon}
         </div>
       </div>
@@ -133,11 +139,15 @@ function KpiCard({
         <span>{footerLeft}</span>
         <span className={cn("font-semibold", style.rightText)}>{footerRight}</span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export default function BmnDashboardPage() {
+  const highlightId = useId();
+  const [hoveredAction, setHoveredAction] = useState<string | null>(null);
+  const [focusedAction, setFocusedAction] = useState<string | null>(null);
+  const highlightedAction = focusedAction ?? hoveredAction;
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["bmn-dashboard-stats"],
     queryFn: async () => (await api.get("/bmn/dashboard/stats")).data,
@@ -159,7 +169,7 @@ export default function BmnDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 space-y-6 animate-pulse max-w-[1600px] mx-auto">
+      <div className="p-6 md:p-8 space-y-6 animate-pulse motion-reduce:animate-none max-w-[1600px] mx-auto" role="status" aria-label="Memuat dashboard BMN">
         <div className="h-20 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />)}
@@ -172,7 +182,7 @@ export default function BmnDashboardPage() {
   }
 
   return (
-    <div data-module="bmn" className="max-w-[1600px] w-full mx-auto p-4 sm:p-6 space-y-6 font-sans">
+    <div data-module="bmn" className="bmn-dashboard-enter max-w-[1600px] w-full mx-auto p-4 sm:p-6 space-y-6 font-sans">
       {/* 1. Unified Clean Enterprise Header Bar (Mirip Dashboard Kepegawaian) */}
       <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start sm:items-center gap-3.5">
@@ -195,14 +205,14 @@ export default function BmnDashboardPage() {
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <Link
             href="/bmn/assets"
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+            className="bmn-motion-action bmn-hover-link flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
           >
             <Package className="w-4 h-4 text-[var(--ds-accent-fg)]" />
             <span>Daftar Aset</span>
           </Link>
           <Link
             href="/bmn/loans"
-            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] active:bg-[var(--ds-accent-active)] text-[color:var(--ds-accent-on-solid)] font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent-fg)]"
+            className="bmn-motion-action bmn-hover-link flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] active:bg-[var(--ds-accent-active)] text-[color:var(--ds-accent-on-solid)] font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent-fg)]"
           >
             <HandCoins className="w-4 h-4" />
             <span>Peminjaman Aset</span>
@@ -211,10 +221,7 @@ export default function BmnDashboardPage() {
       </div>
 
       {/* TOP KPI SUMMARY CARDS */}
-      <motion.section
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
+      <section
         aria-label="Ringkasan Utama Aset"
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
@@ -284,7 +291,7 @@ export default function BmnDashboardPage() {
           footerRight={rusakBerat > 0 ? `${rusakBeratPct.toFixed(1)}% dari Total` : "Nol Rusak"}
           color="rose"
         />
-      </motion.section>
+      </section>
 
       {/* BENTO GRID ROW 1: Kondisi Aset, Peringatan STNK, & Distribusi per Jenis */}
       <section aria-label="Grafik Kondisi dan Peringatan Aset" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -316,30 +323,33 @@ export default function BmnDashboardPage() {
 
             {/* Multi-segment Progress Bar */}
             <div className="mt-4 space-y-1.5">
-              <div className="h-3 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden flex shadow-inner">
+              <div className="bmn-chart-enter h-3 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden flex shadow-inner">
                 {baikPct > 0 && (
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${baikPct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    layout="size"
+                    initial={false}
+                    style={{ width: `${baikPct}%`, originX: 0 }}
+                    transition={{ layout: { duration: 0.6, ease: "easeOut" } }}
                     className="bg-[var(--ds-accent-solid)] h-full"
                     title={`Baik: ${baikPct.toFixed(1)}%`}
                   />
                 )}
                 {rusakRinganPct > 0 && (
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${rusakRinganPct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                    layout="size"
+                    initial={false}
+                    style={{ width: `${rusakRinganPct}%`, originX: 0 }}
+                    transition={{ layout: { duration: 0.6, ease: "easeOut" } }}
                     className="bg-amber-400 h-full"
                     title={`Rusak Ringan: ${rusakRinganPct.toFixed(1)}%`}
                   />
                 )}
                 {rusakBeratPct > 0 && (
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${rusakBeratPct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                    layout="size"
+                    initial={false}
+                    style={{ width: `${rusakBeratPct}%`, originX: 0 }}
+                    transition={{ layout: { duration: 0.6, ease: "easeOut" } }}
                     className="bg-rose-500 h-full"
                     title={`Rusak Berat: ${rusakBeratPct.toFixed(1)}%`}
                   />
@@ -437,14 +447,14 @@ export default function BmnDashboardPage() {
             </div>
 
             {/* Vehicle Warnings Scrollable List */}
-            <div className="mt-4 space-y-2.5 max-h-[340px] overflow-y-auto pr-1 custom-scrollbar">
+            <div className="mt-4 space-y-2.5 max-h-[340px] overflow-y-auto p-1 pt-2 custom-scrollbar">
               {totalAlerts > 0 ? (
                 <>
                   {data?.stnk_alerts?.expired.map((v) => (
-                    <motion.div key={`exp-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                    <div key={`exp-${v.id}`}>
                       <Link
                         href={`/bmn/assets/${v.id}`}
-                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-colors"
+                        className="bmn-motion-action bmn-hover-link p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-rose-50/30 dark:hover:bg-rose-950/20 hover:border-rose-300/80 dark:hover:border-rose-700/80 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
@@ -467,14 +477,14 @@ export default function BmnDashboardPage() {
                           <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
                         </div>
                       </Link>
-                    </motion.div>
+                    </div>
                   ))}
 
                   {data?.stnk_alerts?.expiring_soon.map((v) => (
-                    <motion.div key={`soon-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                    <div key={`soon-${v.id}`}>
                       <Link
                         href={`/bmn/assets/${v.id}`}
-                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-colors"
+                        className="bmn-motion-action bmn-hover-link p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/20 hover:border-amber-300/80 dark:hover:border-amber-700/80 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
@@ -497,14 +507,14 @@ export default function BmnDashboardPage() {
                           <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
                         </div>
                       </Link>
-                    </motion.div>
+                    </div>
                   ))}
 
                   {data?.stnk_alerts?.plat_expired.map((v) => (
-                    <motion.div key={`plat-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                    <div key={`plat-${v.id}`}>
                       <Link
                         href={`/bmn/assets/${v.id}`}
-                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-orange-50/30 dark:hover:bg-orange-950/20 transition-colors"
+                        className="bmn-motion-action bmn-hover-link p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-orange-50/30 dark:hover:bg-orange-950/20 hover:border-orange-300/80 dark:hover:border-orange-700/80 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
@@ -526,7 +536,7 @@ export default function BmnDashboardPage() {
                           <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
                         </div>
                       </Link>
-                    </motion.div>
+                    </div>
                   ))}
                 </>
               ) : (
@@ -591,12 +601,13 @@ export default function BmnDashboardPage() {
                           </span>
                         </div>
                       </div>
-                      <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="bmn-chart-enter h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
+                          initial={false}
+                          animate={{ scaleX: pct / 100 }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
-                          className="bg-[var(--ds-accent-solid)] h-full rounded-full transition-all duration-500"
+                          style={{ originX: 0 }}
+                          className="bg-[var(--ds-accent-solid)] h-full w-full rounded-full"
                         />
                       </div>
                     </div>
@@ -650,12 +661,13 @@ export default function BmnDashboardPage() {
                           {item.total.toLocaleString("id-ID")} <span className="text-xs font-normal text-slate-600 dark:text-zinc-400">Unit</span>
                         </span>
                       </div>
-                      <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="bmn-chart-enter h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${locPct}%` }}
+                          initial={false}
+                          animate={{ scaleX: locPct / 100 }}
                           transition={{ duration: 0.6, ease: "easeOut" }}
-                          className="bg-[var(--ds-accent-solid)] h-full rounded-full"
+                          style={{ originX: 0 }}
+                          className="bg-[var(--ds-accent-solid)] h-full w-full rounded-full"
                         />
                       </div>
                     </div>
@@ -760,71 +772,41 @@ export default function BmnDashboardPage() {
               <span className="text-xs text-slate-600 dark:text-zinc-400 font-medium">Pintasan SIMAK</span>
             </div>
 
-            {/* 4 Grid Buttons */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {/* Button 1: Data Aset */}
-              <Link
-                href="/bmn/assets"
-                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-200 flex flex-col items-start gap-2.5"
-              >
-                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white group-hover:border-transparent transition-colors">
-                  <Package className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
-                    Data Aset
-                  </span>
-                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Master inventaris</span>
-                </div>
-              </Link>
-
-              {/* Button 2: Peminjaman */}
-              <Link
-                href="/bmn/loans"
-                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-200 flex flex-col items-start gap-2.5"
-              >
-                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white group-hover:border-transparent transition-colors">
-                  <HandCoins className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
-                    Peminjaman
-                  </span>
-                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Pinjam pakai unit</span>
-                </div>
-              </Link>
-
-              {/* Button 3: Pemeliharaan */}
-              <Link
-                href="/bmn/maintenances"
-                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-200 flex flex-col items-start gap-2.5"
-              >
-                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white group-hover:border-transparent transition-colors">
-                  <Wrench className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
-                    Pemeliharaan
-                  </span>
-                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Servis & perawatan</span>
-                </div>
-              </Link>
-
-              {/* Button 4: Dokumen / Laporan */}
-              <Link
-                href="/bmn/reports"
-                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-200 flex flex-col items-start gap-2.5"
-              >
-                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white group-hover:border-transparent transition-colors">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
-                    Dokumen / Laporan
-                  </span>
-                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">BAST, DBR & KIB</span>
-                </div>
-              </Link>
+            {/* Shared highlight follows pointer or keyboard focus. */}
+            <div
+              className="mt-4 grid grid-cols-2 gap-3"
+              onMouseLeave={() => setHoveredAction(null)}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setFocusedAction(null);
+              }}
+            >
+              {quickActions.map(({ href, label, description, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onMouseEnter={() => setHoveredAction(href)}
+                  onFocus={() => setFocusedAction(href)}
+                  className="bmn-motion-action relative isolate group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl flex flex-col items-start gap-2.5"
+                >
+                  {highlightedAction === href && (
+                    <motion.span
+                      aria-hidden="true"
+                      layoutId={`${highlightId}-quick-action`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ layout: { type: "spring", stiffness: 500, damping: 40 }, opacity: { duration: 0.12 } }}
+                      className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]"
+                    />
+                  )}
+                  <div className="relative z-10 w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs group-hover:bg-[#047857] group-focus-visible:bg-[#047857] group-hover:text-white group-focus-visible:text-white transition-colors motion-reduce:transition-none">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="relative z-10">
+                    <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 block">{label}</span>
+                    <span className="text-[10px] text-slate-600 dark:text-zinc-400">{description}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
 

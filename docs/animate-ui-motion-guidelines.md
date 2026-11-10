@@ -1,323 +1,185 @@
-# Animate UI & Motion Primitives Design & Implementation Guidelines
-**BKSDA SuperApp Enterprise UI/UX Standard**
-*Prinsip: /ponytail (Zero New Dependencies, Native & Existing Framer Motion, 60fps Hardware Acceleration)*
+# Pedoman Animate UI dan Motion BKSDA SuperApp
 
----
+Revisi: **10 November 2026**. Acuan warna: [DESIGN_SYSTEM_COLORS.md](DESIGN_SYSTEM_COLORS.md).
 
-## 1. Filosofi & Prinsip Gerak (Motion Principles)
+## 1. Status dan ruang lingkup
 
-Antarmuka BKSDA SuperApp adalah sistem enterprise operasional untuk konservasi sumber daya alam. Animasi dalam sistem ini bertujuan untuk **memberikan kejelasan spasial, umpan balik sentuhan (*tactile feedback*), dan kenyamanan visual**, bukan hiasan (*decorative fluff*) yang memperlambat pekerjaan pengguna.
+Pedoman ini membedakan feedback kartu informasi dan navigasi, menjaga angka tetap terbaca, membatasi pulse untuk loading, dan menghindari klaim jaminan 60fps. Targetnya adalah aplikasi operasional: data mudah dibaca, navigasi jelas, serta feedback cepat. Animasi tidak membuktikan data sinkron, valid, atau sudah diaudit.
 
-### Prinsip Utama (The Ponytail Way):
-1. **Zero New Dependencies (YAGNI & Rung 5)**:
-   - Memanfaatkan library yang telah terpasang resmi di `frontend/package.json`: `framer-motion: ^12.38.0`.
-   - Tidak menambahkan package pihak ketiga baru (misal: anime.js, gsap, react-spring, dsb).
-2. **GPU-Accelerated Only (No Jank, No Reflow)**:
-   - Gerakan hanya boleh memanipulasi properti transform hardware (`transform: translate3d/scale/rotate`) dan `opacity`.
-   - Hindari animasi pada `width`, `height`, `top`, `left`, `margin`, atau `padding` kecuali menggunakan `layout` atau `layoutId` yang dioptimasi oleh Framer Motion layout engine.
-3. **Ultra-Snappy Durations (120ms – 240ms)**:
-   - UI enterprise harus terasa instan:
-     - Micro-tap / Hover: `120ms – 160ms`
-     - Tab & Panel Transition: `160ms – 200ms`
-     - Dialog / Modal pop-up: `180ms – 220ms`
-     - Drawer / Sheet slide: `200ms – 260ms`
-4. **Spring Physics Over Linear Easing**:
-   - Gunakan physics spring (`type: "spring", stiffness: 400-500, damping: 25-32`) untuk memberikan bobot organik alami tanpa efek memantul berlebihan.
-5. **Accessibility & Respect `prefers-reduced-motion`**:
-   - Semua transisi otomatis nonaktif atau menjadi instan jika sistem operasi pengguna menyalakan fitur pengurangan gerakan (*reduced motion*).
+**Implementasi saat revisi:** pola Animate UI digunakan melalui `framer-motion` yang sudah terpasang. Paket `@animate-ui/react` belum dipasang dan tidak diperlukan untuk perubahan ini. Jangan mengimpor API paket itu seolah sudah tersedia. Istilah Animate UI di sini menjelaskan referensi pola interaksi, bukan klaim penggunaan seluruh komponen resmi.
 
----
+Perubahan kode mencakup dashboard BMN, kebijakan MotionConfig di layout BMN, dan CSS aksi yang dibatasi oleh `[data-module="bmn"]`. Modul lain tidak dimigrasikan melalui pekerjaan ini.
 
-## 2. Standar Resep Motion Primitives (7 Reusable Recipes)
+## 2. Prinsip gerak
 
-Berikut adalah 7 pola animasi standar yang wajib digunakan secara seragam di seluruh modul BKSDA SuperApp:
+- Gerak menjelaskan aksi, perubahan data, atau perpindahan konteks; jangan memberi kesan dapat diklik pada kartu informasi pasif.
+- Nilai akhir dan teks harus langsung terbaca. Sesuai permintaan pengguna agar pembukaan terasa seperti Kepegawaian, dashboard boleh mempunyai satu entrance singkat dan reveal grafik, tanpa count-up angka, stagger panjang, atau konten tersembunyi sambil menunggu animasi.
+- Interaksi utama adalah highlight yang berpindah antar pintasan. Dashboard masuk selama 280ms dari opacity 0.85 dan offset 6px; grafik memakai reveal 600ms ease-out seperti grafik Personil Kepegawaian. Kartu KPI boleh mendapat hover depth 2px, tetapi tidak diberi cursor pointer, aksi klik palsu, atau efek pressed bila memang bukan kontrol.
+- Utamakan CSS untuk warna/feedback tekan dan library yang sudah ada untuk shared layout serta data dinamis. Tidak menambah dependency, request API, timer polling, atau observer untuk dekorasi.
+- Transform/opacity umumnya lebih murah daripada perubahan layout per frame, tetapi **bukan jaminan GPU atau 60fps**. Klaim performa memerlukan pengukuran pada perangkat dan data representatif.
+- Semua kontrol tetap mempunyai label, fokus keyboard, target sentuh yang memadai, dan semantik aslinya. Animasi tidak menggantikan feedback sukses/error atau kontrol akses.
 
-### Resep 1: Sliding Active Tab / Pill Indicator (`layoutId`)
-Digunakan pada bilah navigasi tab (misal: Biodata, Riwayat, Cuti, Uang Makan). Menggantikan pergantian tab kaku dengan pil hijau zamrud (*BKSDA Emerald*) yang meluncur mulus mengikuti tab yang aktif.
+## 3. Resep dan timing
+
+| Pola | Penerapan BMN | Timing | Reduced motion |
+| --- | --- | --- | --- |
+| Pembukaan dashboard | Satu entrance setelah data pertama tersedia, tidak diputar ulang saat hover/rerender biasa | 280ms, offset Y 6px, opacity 0.85 ke 1 | Tanpa entrance; konten langsung pada posisi akhirnya. |
+| Reveal grafik awal | Mask membuka batang/segmen; data width dan label sudah bernilai akhir | Clip-path 600ms, ease-out | Tanpa reveal; grafik langsung terlihat penuh. |
+| Hover kartu KPI | Kedalaman visual pada kartu informasi, bukan aksi baru | Offset Y -2px, border ringan dan shadow, 150ms | Tidak bergeser atau menganimasikan shadow. |
+| Shared highlight | Pintasan Data Aset/Peminjaman/Pemeliharaan/Laporan; bergerak saat hover atau fokus | Layout spring stiffness 500, damping 40; opacity 120ms | Posisi berpindah langsung, tanpa perjalanan spatial; opacity tetap singkat. |
+| Feedback navigasi | Tautan header dan baris kendaraan (`bmn-hover-link`) | CSS 150ms; hover Y -3px pada pointer yang mendukung hover, pressed scale 0.98; border kendaraan mengikuti warna peringatan | Tidak bergeser atau scale; warna/fokus tetap menunjukkan state secara langsung. |
+| Feedback pintasan | Akses Cepat Modul tetap memakai efek sebelumnya | CSS 140ms, hover Y -1px dan pressed scale 0.98; shared highlight tetap seperti baris di atas | Tanpa pergeseran/scale; warna dan fokus tetap ada. |
+| Navigasi sidebar/tab | Indikator aktif yang sudah ada di BMN, Pengaturan dan Laporan | Spring existing stiffness 450, damping 35 | MotionConfig menonaktifkan animasi layout/transform; indikator state tetap ada. |
+| Perpindahan halaman BMN | Keluar halaman lama dengan opacity; halaman tujuan langsung terbaca | Fade 120ms, tanpa slide halaman atau entrance KPI tambahan | Opacity tetap singkat; tanpa perpindahan spatial. |
+| Grafik distribusi | Panjang batang berubah mengikuti nilai baru | ScaleX 600ms, easeOut | Transform langsung ke nilai akhir. |
+| Grafik kondisi bersegmen | Persentase aktual menjadi width statis; perubahan ukuran melalui FLIP/layout | Layout 600ms, easeOut | Layout animation dinonaktifkan; ukuran akhir langsung berlaku. |
+| Loading dashboard | Skeleton berlabel Memuat dashboard BMN | Pulse CSS hanya selama loading | Pulse dihentikan; skeleton dan label status tetap terlihat. |
+
+Spring ditentukan oleh stiffness/damping, bukan janji selesai tepat pada durasi tertentu. Hindari overshoot/bounce yang mengubah keterbacaan data. Jangan menambahkan delay 0.6–0.8 detik pada setiap baris atau segmen.
+
+## 4. Reduced motion: library dan CSS berbeda
+
+Layout BMN membungkus kontennya dengan:
 
 ```tsx
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-
-interface TabItem {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  badge?: number | string;
-}
-
-export function SlidingTabs({ tabs, activeTab, onChange }: {
-  tabs: TabItem[];
-  activeTab: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-2xs">
-      <div className="flex flex-wrap items-center gap-1.5">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onChange(tab.id)}
-              className={cn(
-                "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
-                isActive
-                  ? "text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-              )}
-            >
-              {isActive && (
-                <motion.span
-                  layoutId="activeTabIndicator"
-                  className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                />
-              )}
-              <Icon className="w-3.5 h-3.5 relative z-10" />
-              <span className="relative z-10">{tab.label}</span>
-              {tab.badge !== undefined && (
-                <span
-                  className={cn(
-                    "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600"
-                  )}
-                >
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+<MotionConfig reducedMotion="user">
+  {children}
+</MotionConfig>
 ```
 
----
+MotionConfig mengikuti preferensi perangkat untuk komponen Motion di bawahnya. Transform dan layout animation dikurangi; opacity/backgroundColor masih dapat bertransisi. **Width, height, CSS animation, dan Web Animations API tidak otomatis dinonaktifkan oleh provider ini.** Jangan menganggap satu provider menyelesaikan semua jalur gerak.
 
-### Resep 2: Tactile Elevation & Micro-Press pada Kartu Metrik (`whileHover` + `whileTap`)
-Digunakan pada kartu ringkasan eksekutif (Top 4 Metrics Cards) di dashboard dan detail halaman.
+Karena itu, dashboard menggunakan:
+
+- `initial={false}` pada grafik: nilai awal sudah merupakan nilai akhir.
+- `scaleX` pada batang distribusi dan `layout="size"` pada segmen kondisi, bukan tween `width` dari nol per frame.
+- `motion-reduce:animate-none` pada skeleton.
+- CSS `prefers-reduced-motion: no-preference` untuk entrance/reveal, hover dan scale saat ditekan. Saat reduce, entrance/reveal dihapus dan `.bmn-motion-action`/`.bmn-metric-card` berganti state tanpa transisi spatial.
+
+Jangan memakai aturan global `* { animation-duration: 0.01ms !important; }`: perubahan seperti itu memengaruhi komponen lain, tidak membuktikan gerak spatial hilang, dan dapat merusak feedback. Gunakan fallback per pola. Theme Toggler global sudah memeriksa media preference dan dukungan View Transitions; jangan memasang implementasi tema kedua di dashboard.
+
+## 5. Highlight untuk mouse, keyboard, dan sentuh
+
+Gunakan tautan asli untuk navigasi, bukan `div` yang dapat diklik atau tombol di dalam tautan. Pada dashboard, empat pintasan dipetakan dari satu array agar perilakunya sama.
+
+**Akses Cepat Modul dipertahankan atas pilihan pengguna.** Jangan menerapkan `bmn-hover-link` pada empat pintasan tersebut: shared highlight, spring 500/40, fade 120ms, hover 1px dan feedback CSS 140ms tetap berlaku. Hover yang lebih tegas hanya untuk tautan header/baris kendaraan: naik 3px selama 150ms. Border kendaraan mengikuti semantik peringatannya (rose/amber/orange). KPI tetap 2px/150ms, dengan border lebih ringan dan shadow, tanpa pressed atau cursor pointer. Sediakan padding pada daftar bergulir agar lift dan outline tidak terpotong.
+
+Aturan state:
+
+1. Hover menunjuk satu pintasan.
+2. Fokus keyboard mengambil prioritas atas hover sehingga pointer tidak memindahkan penanda dari kontrol yang sedang digunakan lewat keyboard.
+3. Pointer meninggalkan grid menghapus hover, tetapi mempertahankan feedback untuk fokus yang masih di dalam grid.
+4. Fokus berpindah ke elemen lain dalam grid tetap ditandai; fokus keluar grid menghapus penanda fokus.
+5. `layoutId` berasal dari `useId()` per instance, bukan konstanta global yang berpotensi bertabrakan.
+6. Highlight memiliki `aria-hidden` dan `pointer-events-none`; nama dan hit area tautan tidak berubah.
+7. Hover bukan syarat mengakses informasi. Layar sentuh mendapat feedback pressed; keyboard mendapat outline focus-visible. Jangan memakai `aria-selected` untuk sekadar hover pada tautan navigasi.
+
+Contoh inti (state dan handler aktual lihat source dashboard):
+
+```tsx
+const highlightId = useId();
+const [hoveredAction, setHoveredAction] = useState<string | null>(null);
+const [focusedAction, setFocusedAction] = useState<string | null>(null);
+const highlightedAction = focusedAction ?? hoveredAction;
+
+// Di dalam tautan aktif/fokus, bukan membungkus label dengan kontrol baru.
+<motion.span
+  aria-hidden="true"
+  layoutId={`${highlightId}-quick-action`}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{
+    layout: { type: "spring", stiffness: 500, damping: 40 },
+    opacity: { duration: 0.12 },
+  }}
+  className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]"
+/>
+```
+
+Contoh ini bukan komponen tabs. Jika membuat tabs sebenarnya, reuse komponen aksesibel yang sudah tersedia agar role, selected state, dan navigasi panah tidak hilang.
+
+## 6. Grafik, angka, dan loading
+
+Angka KPI tidak dihitung dari nol untuk hiburan. Nilai terbaru ditampilkan segera; bar baru mengikuti data tanpa menunda label. Pada pembukaan normal, class `bmn-chart-enter` membuka mask dari kiri selama 600ms dengan ease-out, mengikuti tempo grafik Personil Kepegawaian untuk Kondisi Aset BMN, Distribusi per Jenis BMN dan Top Lokasi Ruang, sementara ukuran data sebenarnya sudah tetap. Dalam reduced motion mask/reveal tidak berjalan. Warna kondisi Baik/Rusak Ringan/Rusak Berat tetap semantik, bukan semuanya aksen BMN.
+
+Contoh batang distribusi:
 
 ```tsx
 <motion.div
-  whileHover={{ y: -3 }}
-  whileTap={{ scale: 0.98 }}
-  transition={{ duration: 0.15 }}
-  onClick={() => setActiveTab("biodata")}
-  className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
->
-  <div className="flex items-center justify-between mb-1.5">
-    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Penugasan</span>
-    <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-      <FileText className="w-3.5 h-3.5" />
-    </div>
-  </div>
-  <div className="text-xl font-black text-slate-900 dark:text-white">42</div>
-  <p className="text-[10px] text-slate-500 mt-0.5 truncate">Surat Tugas Aktif</p>
-</motion.div>
+  initial={false}
+  animate={{ scaleX: proportion }}
+  transition={{ duration: 0.6, ease: "easeOut" }}
+  style={{ originX: 0 }}
+  className="h-full w-full rounded-full bg-[var(--ds-accent-solid)]"
+/>
 ```
 
----
+`proportion` adalah rasio data 0–1. Label jumlah/persentase harus tetap tersedia di luar batang; grafik bukan satu-satunya penyampai informasi. Untuk segmen kondisi, width statis tetap dihitung dari persentase. Motion menginterpolasi transform layout ketika data berubah; bukan menulis width pada tiap frame.
 
-### Resep 3: Smooth Panel & Tab Switch Transition (`AnimatePresence mode="wait"`)
-Mencegah perpindahan tab yang tersentak (*jumpy*) dengan efek pudar dan luncuran vertikal lembut sebesar 8px.
+Data kosong tidak boleh terlihat seperti sedang diproses selamanya. Skeleton hanya untuk permintaan yang benar-benar loading. Jangan memakai pulse untuk menandai semua status pending atau badge yang tidak menunjukkan aktivitas real-time. Polling/refetch yang tidak mengubah data tidak perlu memutar ulang animasi.
 
-```tsx
-<AnimatePresence mode="wait" initial={false}>
-  <motion.div
-    key={activeTab}
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -8 }}
-    transition={{ duration: 0.16, ease: "easeOut" }}
-  >
-    {activeTab === "biodata" && <BiodataSection />}
-    {activeTab === "history" && <AssignmentHistorySection />}
-    {activeTab === "leave" && <LeaveSection />}
-  </motion.div>
-</AnimatePresence>
+## 7. Inventaris pemeriksaan BMN
+
+| Area/source | Keadaan saat revisi | Status cakupan |
+| --- | --- | --- |
+| `frontend/src/app/bmn/page.tsx` | Satu entrance dashboard dan reveal grafik singkat; hover KPI tanpa aksi palsu; menghapus entrance KPI terpisah dan chart width dari nol; highlight pintasan serta feedback aksi | Diubah pada pekerjaan ini. |
+| `frontend/src/app/bmn/layout.tsx` | Menambah MotionConfig user, mempertahankan indikator sidebar, menyederhanakan transisi halaman menjadi opacity | Diubah sebagai konteks bersama BMN. |
+| `frontend/src/app/globals.css` | Entrance, reveal, hover KPI dan aksi scoped BMN, masing-masing dengan jalur reduced motion | Diubah pada pekerjaan ini. |
+| `frontend/src/app/bmn/settings/page.tsx` | Sudah mempunyai indikator tab shared layout dan perpindahan panel | Ditelusuri; isi halaman tidak dimigrasikan ulang. |
+| `frontend/src/app/bmn/reports/page.tsx` | Sudah mempunyai shared indicator dan AnimatePresence panel | Ditelusuri; isi halaman tidak dimigrasikan ulang. |
+| `frontend/src/components/ui/theme-toggler.tsx` | View Transitions native dengan media preference/fallback | Ditelusuri; tidak diubah. |
+| Halaman BMN lain, drawer CSS, ikon tema global, dan modul di luar BMN | Mungkin mempunyai transisi CSS/library tersendiri | Bukan klaim audit menyeluruh atau migrasi semua animasi. |
+
+Provider BMN tidak otomatis menjangkau konten React yang dibuat di luar pohonnya. Portal mempertahankan React context bila dibuat sebagai descendant, tetapi token CSS modul dapat hilang jika node berpindah ke body; lihat pedoman warna. Verifikasi keduanya pada dialog/popover yang diubah kelak.
+
+## 8. Verifikasi dan kriteria penerimaan
+
+Pemeriksaan otomatis yang tersedia:
+
+```powershell
+node frontend/tests/bmn-dashboard-motion.cjs
+node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit --incremental false
+# Jalankan dari direktori frontend:
+node node_modules/eslint/bin/eslint.js src/app/bmn/page.tsx src/app/bmn/layout.tsx tests/bmn-dashboard-motion.cjs --max-warnings=0
 ```
 
----
+Fixture memuat source dashboard aktual dengan query dummy dan module allowlist, tanpa API/akun/database. Ia menguji chart first paint, rasio segmen/batang, empat tujuan navigasi, prioritas fokus atas hover, cleanup blur/mouseleave, ID per instance, loading dan data kosong. Fixture ini tidak mengukur frame rate atau membuktikan perilaku media query OS di browser.
 
-### Resep 4: 1-Click Action & Copy Feedback Micro-Bounce (`CopyIcon`)
-Memberikan umpan balik instan bahwa aksi salin NIP, telepon WhatsApp, email dinas, atau nomor rekening bank telah berhasil disalin ke clipboard pengguna.
+Checklist browser saat melakukan perubahan motion:
 
-```tsx
-export function CopyIcon({ copied, checkClass = "text-emerald-600" }: { copied: boolean; checkClass?: string }) {
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      {copied ? (
-        <motion.span
-          key="check"
-          initial={{ scale: 0.5, rotate: -15 }}
-          animate={{ scale: 1, rotate: 0 }}
-          exit={{ scale: 0.5 }}
-          transition={{ type: "spring", stiffness: 500, damping: 22 }}
-          className="inline-flex"
-        >
-          <Check className={cn("w-3.5 h-3.5", checkClass)} />
-        </motion.span>
-      ) : (
-        <motion.span
-          key="copy"
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          exit={{ scale: 0.8 }}
-          className="inline-flex"
-        >
-          <Copy className="w-3.5 h-3.5" />
-        </motion.span>
-      )}
-    </AnimatePresence>
-  );
-}
-```
+- [ ] Halaman tampil dengan angka final tanpa menunggu entrance atau hitungan dari nol.
+- [ ] Hover/fokus berpindah antar pintasan, penanda tidak tersangkut setelah keluar, dan outline fokus tetap terlihat.
+- [ ] Tab/Shift+Tab serta klik tautan tetap menuju tujuan yang benar, tanpa kontrol interaktif bersarang.
+- [ ] Tema light/dark mempertahankan warna dan kontras yang ditetapkan pedoman warna.
+- [ ] Uji viewport sempit: target tidak tumpang tindih, teks tidak terpotong, dan scroll tetap bisa dipakai. Emulasi viewport bukan bukti sentuhan perangkat fisik.
+- [ ] Pada preferensi reduced motion, shared highlight berpindah tanpa perjalanan spatial, grafik langsung bernilai akhir, pressed tidak scale, dan skeleton tidak pulse.
+- [ ] Jika menguji update data, gunakan fixture terisolasi; jangan mengubah aset operasional untuk memicu animasi.
+- [ ] Catat apa yang diuji di browser versus fixture/source; jangan mengklaim seluruh BMN atau 60fps berdasarkan typecheck/screenshot statis.
 
----
+Hasil run yang benar-benar dilakukan dicatat di `progress.md`. Checklist di atas adalah kriteria untuk perubahan berikutnya, bukan pernyataan bahwa seluruh perangkat dan mode sudah diuji.
 
-### Resep 5: Live Status Pulsing Badge (Aktivitas Real-Time)
-Digunakan pada status persetujuan surat tugas, status sinkronisasi presensi, atau live device telemetry.
+### Hasil verifikasi awal 10 November 2026 (sebelum penyempurnaan hover/grafik)
 
-```tsx
-export function PulseStatusBadge({ status, label }: { status: "pending" | "approved" | "live"; label: string }) {
-  const theme = {
-    pending: { bg: "bg-amber-500", text: "text-amber-700 dark:text-amber-300", box: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800" },
-    approved: { bg: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-300", box: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800" },
-    live: { bg: "bg-blue-500", text: "text-blue-700 dark:text-blue-300", box: "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800" },
-  }[status];
+- **Browser normal:** CSS dashboard memuat entrance 280ms dan reveal grafik; hover KPI terukur translateY(-2px), cursor tetap biasa. Tab antar pintasan mempertahankan outline dan highlight; keluar dari grid menghapus highlight. Enter pada Peminjaman membuka `/bmn/loans`, lalu kembali ke dashboard berhasil.
+- **Reduced motion aktual:** setelah pengguna memilih emulasi `prefers-reduced-motion: reduce`, browser membaca media query `true`, entrance/reveal `none`, transform KPI `none`, serta transisi aksi/KPI `0s`. Nilai 1.633 aset tetap tampil. Ini membuktikan fallback CSS; interaksi shared-layout saat reduce ditinjau melalui provider/source dan fixture, bukan rekaman gerak browser. Input otomatis pada tab dengan DevTools sempat timeout; uji keyboard normal dilanjutkan pada tab baru di browser yang sama.
+- **Visual:** tema terang dan gelap diperiksa; viewport 390×844 tidak meluap horizontal dan pintasan terukur 133×120px. Ini emulasi viewport, bukan tes sentuh perangkat fisik. Tema terang, viewport semula, dan No emulation dipulihkan setelah pengujian.
+- **Otomatis:** fixture dashboard, TypeScript frontend noEmit, ESLint file terkait, serta `git diff --check` lulus. Loading, data kosong, rasio grafik dan pembaruan state diuji dengan data terisolasi. Tidak mengubah data aset operasional untuk memicu animasi dan tidak mengukur FPS.
 
-  return (
-    <span className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold border", theme.box, theme.text)}>
-      <span className="relative flex h-2 w-2">
-        <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", theme.bg)} />
-        <span className={cn("relative inline-flex rounded-full h-2 w-2", theme.bg)} />
-      </span>
-      <span>{label}</span>
-    </span>
-  );
-}
-```
+Bukti visual berada di direktori visualisasi chat: `bmn-motion-reduced.png`, `bmn-motion-focus-light.png`, `bmn-motion-focus-dark.png`, dan `bmn-motion-mobile.png`. Screenshot statis mendukung pemeriksaan tampilan/fokus; perilaku gerak dinilai dari pemeriksaan runtime di atas.
 
----
+### Penyempurnaan hover dan tempo grafik — 10 November 2026
 
-### Resep 6: Modal & Slide-over Drawer Backdrop & Entrance
-Animasi pembuka dialog modal dan sheet panel drawer yang luwes dengan *spring entrance* dan backdrop blur lembut.
+- Hover kendaraan terukur translateY(-3px)/150ms dengan perubahan border; KPI -2px/150ms dengan cursor auto. Light/dark diperiksa; explicit dark:hover diperlukan agar border bawaan dark tidak menutupi feedback KPI. Padding daftar menjaga jarak atas baris pertama 5px saat hover. Navigasi detail kendaraan dan kembali ke dashboard berhasil tanpa mengubah data.
+- Seluruh 20 track grafik pada data lokal (Kondisi Aset BMN, Distribusi per Jenis BMN dan Top Lokasi Ruang) membaca animation-duration 0.6s dan easing ease-out. Transisi pembaruan grafik memakai 600ms/easeOut juga, mengikuti tempo grafik Personil Kepegawaian. Angka tetap bernilai akhir; tidak menambahkan count-up atau delay bertingkat.
+- Pintasan terkonfirmasi tidak mendapat class hover yang lebih kuat, tetap 140ms; Tab ke Peminjaman menampilkan satu highlight dan outline solid. Fixture state hover/fokus, loading dan data nol tetap lulus; TypeScript frontend, ESLint terkait dan diff check juga lulus. Tema light dipulihkan setelah pengujian.
+- **Reduced motion tidak diuji ulang pada revisi ini sesuai arahan pengguna; pengguna menguji sendiri.** Guard media query dan MotionConfig dipertahankan: gerak hover/reveal hanya untuk no-preference dan transisi CSS menjadi 0ms saat reduce. Hasil reduced motion pada subbagian sebelumnya adalah bukti revisi awal, bukan klaim pengujian revisi terbaru.
 
-```tsx
-<AnimatePresence>
-  {isOpen && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        onClick={onClose}
-        className="fixed inset-0 bg-black/40 backdrop-blur-xs"
-      />
+Bukti visual tambahan: `bmn-hover-refined-light.png` dan `bmn-hover-refined-dark.png` di direktori visualisasi chat. Tidak mengukur FPS atau menguji pembaruan grafik menggunakan aset operasional.
 
-      {/* Modal Dialog Content */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 450, damping: 30 }}
-        className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl max-w-lg w-full z-10"
-      >
-        {children}
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
-```
+## 9. Referensi resmi
 
----
+- [Animate UI — Highlight](https://animate-ui.com/docs/primitives/animate-ui/highlight): referensi perilaku background yang berpindah antar item.
+- [Animate UI — Paket React](https://animate-ui.com/docs/react): API paket resmi berbeda dari adaptasi lokal; pemasangan baru bukan bagian pekerjaan ini.
+- [Motion — Accessibility](https://motion.dev/docs/react-accessibility): MotionConfig, reduced motion, dan alternatif gerak.
 
-### Resep 7: Staggered Fade-in pada Grid & Table Rows (Inflow Data)
-Saat memuat daftar data besar (misal 10 kartu aset BMN, 10 baris surat tugas), setiap elemen muncul dengan keterlambatan bertahap (*stagger 0.03s*) agar transisi terlihat teratur.
-
-```tsx
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.04,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 6 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.16 } },
-};
-
-// Render:
-<motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-3 gap-4">
-  {items.map((item) => (
-    <motion.div key={item.id} variants={itemVariants}>
-      <CardComponent data={item} />
-    </motion.div>
-  ))}
-</motion.div>
-```
-
----
-
-## 3. Inventaris Menyeluruh Kebutuhan Animate UI per Modul BKSDA SuperApp
-
-Berikut pemetaan lengkap 102 rute/halaman BKSDA SuperApp yang memerlukan penerapan Animate UI motion primitives, dikelompokkan berdasarkan modul, prioritas, dan pola yang direkomendasikan:
-
-| No | Modul | Rute Halaman | Komponen yang Diberi Animasi | Resep Motion | Prioritas | Manfaat UX |
-|:---|:---|:---|:---|:---:|:---:|:---|
-| **1** | **Kepegawaian** | `/kepegawaian/employees/[id]` | Tab Navigasi, Kartu Metrik, Panel, Tombol Salin NIP/WA/Email/Bank | Resep 1, 2, 3, 4 | **P1 (Selesai)** | Navigasi cepat tanpa refresh kaku, tactile feedback instan saat menyalin nomor penting. |
-| **2** | **Kepegawaian** | `/kepegawaian/employees` | Filter Pill Pegawai (Semua/PNS/PPPK/MMP), Baris Tabel Pegawai | Resep 1, 7 | **P1 (High)** | Pergantian filter kategori pegawai mulus dengan sliding pill. |
-| **3** | **Kepegawaian** | `/kepegawaian/cuti` | Tab Status Pengajuan Cuti (Diajukan/Disetujui/Ditolak), Saldo Cuti Cards | Resep 1, 2, 3, 5 | **P1 (High)** | Menghindari kebingungan status approval cuti dengan live pulse badge. |
-| **4** | **Kepegawaian** | `/kepegawaian/uang-makan` | Tab Rekonsiliasi vs Pembayaran, Kartu Akumulasi Bruto/Pph21/Netto | Resep 1, 2, 3 | **P1 (High)** | Ringkasan nominal uang makan terangkat jelas (*tactile elevation*) saat dipantau. |
-| **5** | **Kepegawaian** | `/kepegawaian/surat-tugas/inbox` | Tab Approval ST (Menunggu Verifikasi, Disetujui, Riwayat Ditolak) | Resep 1, 3, 5 | **P1 (High)** | Pejabat penandatangan mudah membedakan surat masuk mendesak. |
-| **6** | **Kepegawaian** | `/kepegawaian/surat-tugas/builder/[id]` | Multi-Step Wizard ST (Dasar Hukum, Personel, Lokasi, Pembiayaan DIPA) | Resep 1, 6 | **P1 (High)** | Indikator progres langkah dinamis meluncur (*sliding step*) saat beralih formulir. |
-| **7** | **Persuratan** | `/surat/masuk` | Tab Kategori Surat Masuk (Biasa, Rahasia, Undangan), Modal Disposisi | Resep 1, 3, 6 | **P1 (High)** | Alur disposisi persuratan tata naskah dinas terstruktur dan fokus. |
-| **8** | **Persuratan** | `/surat/keluar` | Tab Jenis Surat Keluar (Nota Dinas, Surat Tugas, Surat Edaran) | Resep 1, 3 | **P2 (Med)** | Navigasi arsip naskah dinas keluar lebih rapi. |
-| **9** | **Persuratan** | `/surat/laporan` | Ringkasan Kartu Disposisi per Bidang, Chart Filter Range | Resep 2, 7 | **P2 (Med)** | Visualisasi rekapitulasi surat masuk/keluar tampil staggered elegan. |
-| **10** | **Keuangan** | `/keuangan/spj` | Tab Status SPJ (Draft, Verifikasi PPK, Rampung), Kartu Alokasi Pagu | Resep 1, 2, 3, 5 | **P1 (High)** | Verifikator SPJ cepat mendeteksi berkas yang tertunda dengan pulse status. |
-| **11** | **Keuangan** | `/keuangan/spj/[id]` | Tab Rincian Biaya (Riil, Lumsum, Bukti Kuitansi, Visum) | Resep 1, 3, 4 | **P1 (High)** | Salin nomor kuitansi & nomor rekening pelaksana perjalanan dinas 1-click tactile. |
-| **12** | **BMN** | `/bmn/assets` | Filter Pill Kategori BMN (Tanah, Bangunan, Kendaraan, Peralatan), Kartu Aset Grid | Resep 1, 2, 7 | **P1 (High)** | Pencarian aset BMN di lapangan responsif dan visual kartu terangkat saat dipilih. |
-| **13** | **BMN** | `/bmn/assets/[id]` | Tab Detail Aset (Spesifikasi, Riwayat Peminjaman, Jadwal Servis, QR Code) | Resep 1, 3, 4 | **P1 (High)** | Salin kode NUP dan nomor rangka BMN dengan micro-bounce feedback. |
-| **14** | **BMN** | `/bmn/loans` | Tab Permohonan Pinjam Aktif vs Riwayat Pengembalian, Form Pinjam | Resep 1, 3, 6 | **P2 (Med)** | Alur permohonan pinjam kendaraan operasional lapangan lebih terpandu. |
-| **15** | **BMN** | `/bmn/disposal` | Tab Usulan Penghapusan, Lelang KPKNL, Berita Acara Pemusnahan | Resep 1, 3, 5 | **P2 (Med)** | Tahapan lelang BMN transparan dengan status live indicator. |
-| **16** | **Inventory** | `/inventory/items` | Tab Filter Golongan ATK, Kartu Ringkasan Stok Menipis (Alert) | Resep 1, 2, 5 | **P1 (High)** | Peringatan stok kritis berkedip halus (*pulse*) tanpa mengganggu fokus. |
-| **17** | **Inventory** | `/inventory/stock-in` & `stock-out` | Form Mutasi Barang, Riwayat Masuk/Keluar | Resep 3, 6 | **P2 (Med)** | Transisi form penerimaan dan pengeluaran barang persediaan kantor. |
-| **18** | **De-Reporting** | `/dereporting/forms` | Tab Formulir Aktif, Arsip, Tanggapan Mitra Masuk | Resep 1, 2, 3 | **P1 (High)** | Navigasi formulir pelaporan mandiri mitra PBPH/IUPHHK. |
-| **19** | **De-Reporting** | `/dereporting/forms/[id]/builder` | Drag-and-drop & Step Form Builder (Field Inspector, Preview) | Resep 1, 6 | **P1 (High)** | Pengelola form dinamis melihat transisi preview form secara real-time. |
-| **20** | **De-Reporting** | `/dereporting/pemegang-izin` | Tab Evaluasi RKU/RKT, Laporan Realisasi Penanaman | Resep 1, 3, 5 | **P2 (Med)** | Pantauan kepatuhan izin konservasi dengan status badge yang jelas. |
-| **21** | **Portal & Publik** | `/portal` | Quick App Launcher Tiles (12 Aplikasi Terpadu) | Resep 2, 7 | **P1 (High)** | Ubin aplikasi terangkat (*tactile elevation*) dengan bayangan halus saat disentuh/di-hover. |
-| **22** | **Portal & Publik** | `/(publik)/tsl` & `kawasan` | Galeri Flora/Fauna & Kawasan Konservasi Kalimantan Timur | Resep 2, 7 | **P1 (High)** | Tampilan edukasi publik modern sekelas standar kementerian nasional. |
-| **23** | **Drive** | `/drive` | File Explorer (Breadcrumbs, List vs Grid view, Context Menu Drawer) | Resep 1, 6, 7 | **P2 (Med)** | Penjelajah berkas cloud BKSDA Drive terasa seringan native OS explorer. |
-| **24** | **Layanan Publik** | `/lapor` | Form Pengaduan Publik Multi-Langkah (Identitas, Kronologi, Bukti Foto) | Resep 3, 6 | **P2 (Med)** | Form pengaduan masyarakat ramah seluler (*mobile-first*) dan tidak membingungkan. |
-
----
-
-## 4. Panduan Pengujian & Kriteria Kelulusan (Quality Assurance)
-
-Setiap halaman yang ditambahkan animasi Animate UI wajib mematuhi protokol verifikasi:
-
-1. **Zero TypeScript Error (`npx tsc --noEmit`)**:
-   - Komponen wajib terbebas dari kesalahan tipe `framer-motion` (hindari tipe `any`, gunakan antarmuka resmi).
-2. **Playwright Invariant Check**:
-   - Setiap halaman memiliki uji otomatis berbasis Chromium headless yang memverifikasi:
-     - Atribut layout `layoutId` terpasang.
-     - Tidak ada elemen yang terpotong secara visual (*overflow clipping*).
-     - Durasi animasi tidak memblokir interaksi pengguna (`pointer-events` tetap aktif).
-3. **Standar Efisiensi /ponytail**:
-   - Dilarang membuat wrapper komponen yang berlebihan (*over-abstraction*).
-   - Manfaatkan helper `CopyIcon` dan `motion.div` inline bila perubahan cukup dalam 1 baris.
-   - Tetap pertahankan komentar `// ponytail:` bila ada simplifikasi terencana.
-
----
-*Dokumen ini merupakan panduan resmi pengembangan antarmuka BKSDA SuperApp.*
+Tidak perlu menambahkan animasi ke setiap komponen agar tampak konsisten. Konsistensi adalah pola feedback dan state yang dapat dipahami, bukan jumlah efek.

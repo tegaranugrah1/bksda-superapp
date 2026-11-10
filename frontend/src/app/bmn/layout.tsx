@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { RouteGuard } from "@/components/RouteGuard";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 
 type BmnSidebarGroup =
   | "Ringkasan"
@@ -96,6 +96,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <RouteGuard requiredModule="bmn">
+      <MotionConfig reducedMotion="user">
       <div data-module="bmn" className="flex h-screen bg-slate-50/70 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 relative overflow-hidden">
         {/* Backdrop saat laci ditarik di layar HP */}
         {isOpen && (
@@ -279,10 +280,10 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
+                initial={false}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12, ease: "easeOut" }}
                 className="min-h-full w-full"
               >
                 {children}
@@ -291,6 +292,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      </MotionConfig>
     </RouteGuard>
   );
 }
