@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState, useEffect, useRef } from "react";
+import React, { use, useState, useEffect, useRef, useId } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, redirect } from "next/navigation";
 import { api } from "@/lib/api";
@@ -39,13 +39,16 @@ import {
 } from "./_components/DetailSection";
 import { PhotoGallery, PhotoGalleryRef, driveToThumbnail } from "./_components/PhotoGallery";
 import { useRole } from "@/hooks/useRole";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
 import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
 import { ALL_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
 import { cn } from "@/lib/utils";
+
+import "../assets.css";
+import "./detail.css";
 
 const LOKASI_RUANG_OPTIONS = ALL_LOKASI_RUANG_OPTIONS;
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
@@ -65,6 +68,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
   const router = useRouter();
   const { hasPermission } = useRole();
   const canWrite = hasPermission("bmn.asset.update");
+  const tabsId = useId();
+  const reduceMotion = useReducedMotion();
   const galleryRef = useRef<PhotoGalleryRef>(null);
 
   const { data: asset, isLoading, isError, refetch } = useQuery({
@@ -86,6 +91,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
   });
 
   const [activeTab, setActiveTab] = useState("identitas");
+  const [failedHeroUrl, setFailedHeroUrl] = useState<string | null>(null);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -241,24 +247,20 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-3" />
-        <p className="text-sm text-slate-500 dark:text-zinc-400">Memuat data aset...</p>
+      <div data-module="bmn" className="bmn-assets-ui bmn-detail-ui p-8 flex flex-col items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--ds-accent-fg)] mb-3" />
+        <p className="text-sm text-[var(--ds-fg-muted)]">Memuat data aset...</p>
       </div>
     );
   }
 
   if (isError || !asset) {
     return (
-      <div className="p-8 text-center max-w-md mx-auto mt-12">
-        <Package className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-zinc-600" />
-        <h3 className="text-base font-bold text-slate-800 dark:text-zinc-200 mb-1">Aset tidak ditemukan</h3>
-        <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4">Aset mungkin telah dipindahkan atau dihapus dari sistem.</p>
-        <Link href="/bmn/assets">
-          <Button variant="outline" size="sm" className="rounded-lg gap-2">
-            <ArrowLeft className="w-4 h-4" /> Kembali ke Katalog
-          </Button>
-        </Link>
+      <div data-module="bmn" className="bmn-assets-ui bmn-detail-ui p-8 text-center max-w-md mx-auto mt-12">
+        <Package className="w-12 h-12 mx-auto mb-3 text-[var(--ds-fg-muted)]" />
+        <h3 className="text-base font-bold text-[var(--ds-fg)] mb-1">Aset tidak ditemukan</h3>
+        <p className="text-xs text-[var(--ds-fg-muted)] mb-4">Aset mungkin telah dipindahkan atau dihapus dari sistem.</p>
+        <Button asChild variant="outline" size="sm" className="rounded-lg gap-2"><Link href="/bmn/assets"><ArrowLeft className="w-4 h-4" /> Kembali ke Katalog</Link></Button>
       </div>
     );
   }
@@ -344,28 +346,29 @@ function AssetDetail({ assetId }: { assetId: string }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/60 dark:bg-zinc-950">
+    <div data-module="bmn" className="bmn-assets-ui bmn-detail-ui min-h-screen bg-[var(--ds-canvas)]">
       {/* ==================== TOP OPERATIONAL COCKPIT BAR ==================== */}
-      <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-6 lg:px-10 py-3.5 flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 shadow-xs">
+      <header className="sticky top-0 z-30 bg-[var(--ds-surface)] backdrop-blur-md px-6 lg:px-10 py-3.5 flex items-center justify-between border-b border-[var(--ds-border-subtle)] shadow-xs">
         {/* Navigation & Breadcrumbs */}
         <div className="flex items-center gap-2 sm:gap-3 text-xs flex-wrap min-w-0">
           <button
+            aria-label="Kembali ke Data Aset"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 font-semibold text-zinc-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 font-semibold text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Kembali</span>
           </button>
-          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
-          <span className="uppercase tracking-wider font-semibold text-zinc-500 dark:text-zinc-500 truncate max-w-[120px] sm:max-w-xs hidden sm:inline">
+          <span className="text-[var(--ds-fg-muted)] hidden sm:inline">/</span>
+          <span className="uppercase tracking-wider font-semibold text-[var(--ds-fg-muted)] truncate max-w-[120px] sm:max-w-xs hidden sm:inline">
             {asset.jenis_bmn || "Aset BMN"}
           </span>
-          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
-          <span className="font-mono font-semibold text-zinc-600 dark:text-zinc-300 hidden sm:inline">
+          <span className="text-[var(--ds-fg-muted)] hidden sm:inline">/</span>
+          <span className="font-mono font-semibold text-[var(--ds-fg-muted)] hidden sm:inline">
             {asset.kode_barang}
           </span>
-          <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
-          <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md text-[11px]">
+          <span className="text-[var(--ds-fg-muted)] hidden sm:inline">/</span>
+          <span className="font-mono font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-0.5 rounded-md text-xs">
             NUP {asset.nup}
           </span>
         </div>
@@ -375,7 +378,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
           {canWrite && !isEditMode && (
             <button
               onClick={startEditMode}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>Edit Aset</span>
@@ -387,7 +390,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <button
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+                className="bmn-button bmn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] disabled:opacity-50"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Batal</span>
@@ -395,7 +398,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <button
                 onClick={handleSaveAll}
                 disabled={isSaving}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary disabled:opacity-50"
               >
                 {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                 <span>Simpan Perubahan</span>
@@ -406,35 +409,34 @@ function AssetDetail({ assetId }: { assetId: string }) {
       </header>
 
       {/* ==================== MAIN WORKSPACE ==================== */}
-      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6">
+      <main className={cn("p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6", isEditMode && "max-sm:pb-24")}>
         {/* ==================== SECTION 1: EXECUTIVE OPERATIONS COCKPIT (BENTO MATRIX) ==================== */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
           {/* TILE 1: Primary Geotag Visual Hero Box (Col 5) */}
-          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow">
-            {heroDisplayUrl ? (
-              <div className="relative group rounded-xl overflow-hidden border border-slate-200/60 dark:border-zinc-800 bg-slate-900 flex-1 min-h-[360px] flex flex-col justify-between">
+          <div className="lg:col-span-5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+            {heroDisplayUrl && failedHeroUrl !== heroDisplayUrl ? (
+              <div className="relative rounded-xl overflow-hidden border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col justify-between">
                 {/* Asset Hero Image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={heroDisplayUrl}
+                  onError={() => setFailedHeroUrl(heroDisplayUrl)}
                   alt={asset.nama_barang}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="absolute inset-0 w-full h-full object-cover"
                   referrerPolicy={heroDisplayUrl.includes("drive.google.com") ? "no-referrer" : undefined}
                 />
 
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
 
                 {/* Interactive Corner Top Bar */}
                 <div className="relative z-10 p-3 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold border border-white/10">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs font-semibold border border-[var(--ds-border-subtle)]">
+                    <Camera className="w-3.5 h-3.5" />
                     {heroPhotoCandidate?.label || "Foto Utama"}
                   </span>
 
                   <button
                     onClick={() => heroPhotoCandidate && galleryRef.current?.openLightbox(heroPhotoCandidate.key)}
-                    className="w-8 h-8 rounded-lg bg-black/50 backdrop-blur-md text-white hover:bg-black/75 flex items-center justify-center transition-colors"
+                    className="bmn-button bmn-secondary w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-150"
                     title="Perbesar Tampilan Foto"
                   >
                     <Maximize2 className="w-4 h-4" />
@@ -442,12 +444,12 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 </div>
 
                 {/* Interactive Corner Bottom Bar */}
-                <div className="relative z-10 p-3.5 text-white flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+                <div className="relative z-10 p-3.5 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{currentData.lokasi_ruang || "Lokasi belum ditentukan"}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-300 border-t border-white/15 pt-1.5">
+                  <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)] border-t border-[var(--ds-border-subtle)] pt-1.5">
                     <span>
                       {asset.verified_at
                         ? `Diverifikasi: ${new Date(asset.verified_at).toLocaleDateString("id-ID", {
@@ -457,7 +459,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                           })}`
                         : "Belum diverifikasi BMN"}
                     </span>
-                    <span className="font-mono text-[10px] bg-white/20 px-1.5 py-0.5 rounded backdrop-blur-xs">
+                    <span className="font-mono text-xs bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded backdrop-blur-xs">
                       KD: {asset.kode_barang}
                     </span>
                   </div>
@@ -465,19 +467,19 @@ function AssetDetail({ assetId }: { assetId: string }) {
               </div>
             ) : (
               /* Fallback Placeholder when NO photos uploaded */
-              <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/20 flex-1 min-h-[360px] flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3">
+              <div className="rounded-xl border-2 border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-3">
                   <Camera className="w-7 h-7" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200">Belum ada Foto Fisik</h4>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-xs leading-relaxed">
-                  Foto fisik dan geotag belum diunggah untuk aset ini. Silakan unggah foto pada seksi dokumentasi di bawah.
+                <h4 className="text-sm font-bold text-[var(--ds-fg)]">{heroDisplayUrl ? "Foto tidak dapat dimuat" : "Belum ada Foto Fisik"}</h4>
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1 max-w-xs leading-relaxed">
+                  {heroDisplayUrl ? "Coba buka preview atau periksa foto pada dokumentasi di bawah." : "Foto fisik dan geotag belum diunggah untuk aset ini. Silakan unggah foto pada seksi dokumentasi di bawah."}
                 </p>
               </div>
             )}
 
             {/* Quick Action Under-Image Strip */}
-            <div className="flex items-center justify-between mt-3 px-1 text-xs text-slate-500 dark:text-zinc-400">
+            <div className="flex items-center justify-between mt-3 px-1 text-xs text-[var(--ds-fg-muted)]">
               <span className="flex items-center gap-1 font-medium">
                 <Camera className="w-3.5 h-3.5" />
                 <span>NUP: {asset.nup}</span>
@@ -486,7 +488,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 <button
                   type="button"
                   onClick={() => heroPhotoCandidate && galleryRef.current?.openLightbox(heroPhotoCandidate.key)}
-                  className="text-emerald-700 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+                  className="text-[var(--ds-accent-fg)] hover:underline font-semibold flex items-center gap-1"
                 >
                   Lihat Resolusi Penuh
                   <ChevronRight className="w-3 h-3" />
@@ -498,21 +500,21 @@ function AssetDetail({ assetId }: { assetId: string }) {
           {/* TILE 2: Core Asset Identity & Metric Cluster (Col 7) */}
           <div className="lg:col-span-7 flex flex-col gap-5">
             {/* Sub-Tile 2A: Asset Title, Classification & Badges */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 flex flex-col justify-between flex-1 shadow-xs hover:shadow-md transition-shadow">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 flex flex-col justify-between flex-1 shadow-xs">
               <div>
                 {/* Top Row: Code Badge, Status Flags */}
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-mono font-bold">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] text-xs font-mono font-bold">
                       #{asset.kode_barang}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-zinc-400">
-                      NUP: <span className="font-semibold text-slate-800 dark:text-zinc-200">{asset.nup}</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)]">
+                      NUP: <span className="font-semibold text-[var(--ds-fg)]">{asset.nup}</span>
                     </span>
                     {asset.jenis_bmn && (
                       <>
-                        <span className="text-slate-300 dark:text-zinc-700">•</span>
-                        <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-zinc-400 truncate max-w-xs">
+                        <span className="text-[var(--ds-fg-muted)]">•</span>
+                        <span className="text-xs uppercase tracking-wider font-semibold text-[var(--ds-fg-muted)] truncate max-w-xs">
                           {asset.jenis_bmn}
                         </span>
                       </>
@@ -521,43 +523,23 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
                   <div className="flex items-center gap-2">
                     {asset.active_loan && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold">
-                        <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span data-status="info" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)] text-xs font-bold">
+                        <span className="w-2 h-2 rounded-full bg-current" />
                         Dipinjam
                       </span>
                     )}
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border",
-                        currentData.kondisi === "Baik"
-                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
-                          : currentData.kondisi === "Rusak Ringan"
-                          ? "bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
-                          : "bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "w-2 h-2 rounded-full",
-                          currentData.kondisi === "Baik"
-                            ? "bg-emerald-500"
-                            : currentData.kondisi === "Rusak Ringan"
-                            ? "bg-amber-500"
-                            : "bg-rose-500"
-                        )}
-                      />
-                      {currentData.kondisi}
+                    <span data-status={currentData.kondisi === "Baik" ? "success" : currentData.kondisi === "Rusak Ringan" ? "warning" : currentData.kondisi === "Rusak Berat" ? "danger" : "neutral"} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold">
+                      {currentData.kondisi || "Kondisi belum diisi"}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-xs font-bold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      {currentData.status_bmn || "Aktif"}
+                    <span data-status={currentData.status_bmn === "Aktif" ? "success" : "neutral"} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold">
+                      {currentData.status_bmn || "Status belum diisi"}
                     </span>
                   </div>
                 </div>
 
                 {/* Asset Headline */}
                 <div className="flex items-start gap-3.5 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0 mt-0.5">
                     {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" ? (
                       <Car className="w-6 h-6" />
                     ) : asset.jenis_bmn === "BANGUNAN DAN GEDUNG" ? (
@@ -568,7 +550,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
+                      <h2 className="text-2xl font-bold text-[var(--ds-fg)] tracking-tight leading-tight">
                         {asset.nama_barang}
                       </h2>
                       {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" &&
@@ -585,7 +567,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                         )}
                     </div>
                     {/* Merk & Tipe formatted according to user request */}
-                    <p className="text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1 leading-relaxed">
+                    <p className="text-sm font-medium text-[var(--ds-fg-muted)] mt-1 leading-relaxed">
                       {getMerkTipeSubtitle()}
                     </p>
                   </div>
@@ -593,22 +575,22 @@ function AssetDetail({ assetId }: { assetId: string }) {
               </div>
 
               {/* Tags Bar */}
-              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-2 mt-2">
+              <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between flex-wrap gap-2 mt-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-500 flex items-center gap-1">
-                    <TagIcon className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1">
+                    <TagIcon className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Tag Aset:
                   </span>
                   {asset.tags && asset.tags.length > 0 ? (
                     asset.tags.map((tag: IBmnTag) => <TagBadge key={tag.id} tag={tag} size="sm" />)
                   ) : (
-                    <span className="text-xs text-slate-400 dark:text-zinc-500 italic">Belum ada tag</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum ada tag</span>
                   )}
                 </div>
                 {canWrite && (
                   <button
                     onClick={() => setIsTagDialogOpen(true)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] hover:underline transition-colors duration-150"
                   >
                     <span>+ Atur Tag</span>
                   </button>
@@ -618,53 +600,53 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
             {/* Sub-Tile 2B: Financial & Lifecycle Bento Matrix (3 Interconnected Metric Micro-Tiles) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
-                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   NILAI PEROLEHAN
                 </div>
-                <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 my-1 truncate">
+                <div className="text-base sm:text-lg font-bold text-[var(--ds-fg)] my-1 break-words tabular-nums">
                   {formatCurrency(currentData.nilai_perolehan)}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Harga Awal Pengadaan</div>
+                <div className="text-xs text-[var(--ds-fg-muted)]">Harga Awal Pengadaan</div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
-                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   NILAI BUKU
                 </div>
-                <div className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-400 my-1 truncate">
+                <div className="text-base sm:text-lg font-bold text-[var(--ds-accent-fg)] my-1 break-words tabular-nums">
                   {formatCurrency(currentData.nilai_buku)}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Sisa Nilai Akuntansi</div>
+                <div className="text-xs text-[var(--ds-fg-muted)]">Sisa Nilai Akuntansi</div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
-                <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+                <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   TAHUN PEROLEHAN
                 </div>
-                <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 my-1">
+                <div className="text-base sm:text-lg font-bold text-[var(--ds-fg)] my-1">
                   {currentData.tahun_perolehan || "-"}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-zinc-400">Usia: {calculateAge()}</div>
+                <div className="text-xs text-[var(--ds-fg-muted)]">Usia: {calculateAge()}</div>
               </div>
             </div>
 
             {/* Sub-Tile 2C: Physical Location & Warehouse Custodian Bento Tile */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 shadow-xs">
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
                   <Warehouse className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 tracking-wider">
+                  <div className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] tracking-wider">
                     LOKASI PENYIMPANAN FISIK
                   </div>
-                  <div className="text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-2 mt-0.5">
+                  <div className="text-sm font-semibold text-[var(--ds-fg)] flex flex-wrap items-center gap-2 mt-0.5">
                     <span>{currentData.lokasi_ruang || "Belum ditentukan"}</span>
                     {(currentData.pengguna || currentData.nama_pengguna) && (
                       <>
-                        <span className="text-slate-300 dark:text-zinc-700">•</span>
-                        <span className="text-xs font-normal text-slate-500 dark:text-zinc-400">
+                        <span className="text-[var(--ds-fg-muted)]">•</span>
+                        <span className="text-xs font-normal text-[var(--ds-fg-muted)]">
                           Pengguna: {currentData.pengguna || currentData.nama_pengguna}
                         </span>
                       </>
@@ -708,27 +690,41 @@ function AssetDetail({ assetId }: { assetId: string }) {
         />
 
         {/* ==================== SECTION 3: TECHNICAL & COMPLIANCE BENTO PANEL ==================== */}
-        <section className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-6 shadow-xs hover:shadow-md transition-shadow">
+        <section className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 sm:p-6 shadow-xs">
           {/* Tab Navigation Bar with Sliding Indicator */}
-          <div className="flex items-center gap-1.5 border-b border-slate-200/80 dark:border-zinc-800 overflow-x-auto pb-3">
+          <div role="tablist" aria-label="Informasi aset" className="flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] overflow-x-auto pb-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
+                  role="tab"
+                  id={`${tabsId}-${tab.key}`}
+                  aria-selected={isActive}
+                  aria-controls={`${tabsId}-panel`}
+                  tabIndex={isActive ? 0 : -1}
+                  onKeyDown={(event) => {
+                    const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+                    if (!offset && event.key !== "Home" && event.key !== "End") return;
+                    event.preventDefault();
+                    const index = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (tabs.findIndex(item => item.key === tab.key) + offset + tabs.length) % tabs.length;
+                    setActiveTab(tabs[index].key);
+                    document.getElementById(`${tabsId}-${tabs[index].key}`)?.focus();
+                  }}
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "relative px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 transition-colors select-none cursor-pointer",
+                    "relative px-3.5 py-3 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0 transition-colors select-none cursor-pointer",
                     isActive
-                      ? "text-white font-bold"
-                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                      ? "text-[var(--ds-accent-fg)] bg-[var(--ds-surface-muted)] font-bold"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                   )}
                 >
                   {isActive && (
                     <motion.span
-                      layoutId="activeBmnDetailTabIndicator"
-                      className="absolute inset-0 bg-emerald-600 rounded-xl shadow-xs"
-                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                      layoutId={`${tabsId}-indicator`}
+                      initial={false}
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ds-accent-fg)]"
+                      transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                     />
                   )}
                   <span className="relative z-10 flex items-center gap-2">
@@ -738,10 +734,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   {typeof tab.count === "number" && tab.count > 0 && (
                     <span
                       className={cn(
-                        "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none",
+                        "relative z-10 px-1.5 py-0.5 rounded-full text-xs font-bold leading-none",
                         isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800"
+                          ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
                       )}
                     >
                       {tab.count}
@@ -753,7 +749,16 @@ function AssetDetail({ assetId }: { assetId: string }) {
           </div>
 
           {/* Tab Active Content */}
-          <div className="mt-6">
+          <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${activeTab}`} tabIndex={0} className="mt-6">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : -8 }}
+                transition={{ duration: reduceMotion ? 0 : 0.16, ease: "easeOut" }}
+                className="bmn-detail-tab-content"
+              >
             {activeTab === "identitas" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <DetailSection title="IDENTITAS BMN" icon={<FileText className="w-4 h-4" />}>
@@ -1156,6 +1161,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
             {activeTab === "riwayat" && (
               <HistoryTab updates={asset.history_updates || []} isEditMode={isEditMode} />
             )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </section>
       </main>
@@ -1183,18 +1190,18 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
       {/* Sticky Mobile Edit Actions */}
       {canWrite && isEditMode && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 p-3 flex items-center justify-between gap-3 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-[var(--ds-surface)] backdrop-blur-md border-t border-[var(--ds-border-subtle)] p-3 flex items-center justify-between gap-3 shadow-lg">
           <button
             onClick={handleCancelEdit}
             disabled={isSaving}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
+            className="bmn-button bmn-secondary flex-1 py-2 rounded-xl text-xs font-semibold border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-secondary-hover)] disabled:opacity-50"
           >
             Batal
           </button>
           <button
             onClick={handleSaveAll}
             disabled={isSaving}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
+            className="flex-1 py-2 rounded-xl text-xs font-semibold bmn-button bmn-primary flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             Simpan Perubahan
@@ -1213,27 +1220,27 @@ function StnkCountdown({ tanggal, label }: { tanggal: string; label: string }) {
 
   if (diffDays < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:text-red-400">
+      <span data-status="danger" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
         🚨 {label} expired {Math.abs(diffDays)} hari lalu
       </span>
     );
   }
   if (diffDays <= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:text-amber-400">
+      <span data-status="warning" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
         ⚠️ {diffDays} hari lagi
       </span>
     );
   }
   if (diffDays <= 90) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:text-blue-400">
+      <span data-status="info" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
         {diffDays} hari lagi
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
       ✓ {diffDays} hari lagi
     </span>
   );
@@ -1253,8 +1260,8 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
   return (
     <div className="space-y-4">
       {isEditMode && (
-        <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-center gap-3 text-amber-800 dark:text-amber-300 text-xs">
-          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="p-3.5 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-xl flex items-center gap-3 text-[var(--ds-status-warning-fg)] text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[var(--ds-status-warning-fg)]" />
           <div>
             <span className="font-bold">Mode Edit Sedang Aktif:</span> Perubahan data yang sedang diedit tersimpan dalam draft. Klik tombol <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di header atas untuk menyimpan perubahan dan mencatatnya ke riwayat ini.
           </div>
@@ -1262,47 +1269,47 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
       )}
 
       {updates.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-8 text-center">
-          <History className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-zinc-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Belum ada riwayat perubahan data</p>
-          <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1">
+        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-8 text-center">
+          <History className="w-10 h-10 mx-auto mb-3 text-[var(--ds-fg-muted)]" />
+          <p className="text-sm font-semibold text-[var(--ds-fg-muted)]">Belum ada riwayat perubahan data</p>
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Setiap kali data aset diperbarui dan disimpan, log kronologis riwayat perubahan (Asset Data Change History) akan otomatis tercatat di sini.
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
-          <div className="px-5 py-3.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/40 flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs">
+          <div className="px-5 py-3.5 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-emerald-600" />
-              <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
+              <History className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+              <h4 className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 Riwayat Perubahan Data Aset (Asset Data Change History)
               </h4>
             </div>
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">{updates.length} log perubahan</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-medium">{updates.length} log perubahan</span>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-[var(--ds-border-subtle)] max-h-[420px] overflow-y-auto">
             {updates.map((update) => (
-              <div key={update.id} className="px-5 py-3 hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors">
+              <div key={update.id} className="px-5 py-3 hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-1.5 py-0.5 rounded">
                         {update.field_changed}
                       </span>
-                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">oleh {update.author?.name || "System"}</span>
+                      <span className="text-xs text-[var(--ds-fg-muted)]">oleh {update.author?.name || "System"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="text-rose-600 line-through truncate max-w-[200px]">{update.old_value || "—"}</span>
-                      <span className="text-slate-300 dark:text-zinc-600">→</span>
-                      <span className="text-emerald-700 dark:text-emerald-400 font-medium truncate max-w-[200px]">
+                      <span className="text-[var(--ds-status-danger-fg)] line-through truncate max-w-[200px]">{update.old_value || "—"}</span>
+                      <span className="text-[var(--ds-fg-muted)]">→</span>
+                      <span className="text-[var(--ds-accent-fg)] font-medium truncate max-w-[200px]">
                         {update.new_value || "—"}
                       </span>
                     </div>
                     {update.alasan_perubahan && (
-                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 italic">{update.alasan_perubahan}</p>
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1 italic">{update.alasan_perubahan}</p>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500 shrink-0">
+                  <span className="text-xs text-[var(--ds-fg-muted)] shrink-0">
                     {new Date(update.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",

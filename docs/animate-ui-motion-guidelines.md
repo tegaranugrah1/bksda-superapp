@@ -149,6 +149,7 @@ Data kosong tidak boleh terlihat seperti sedang diproses selamanya. Skeleton han
 | `frontend/src/app/bmn/page.tsx` | Satu entrance dashboard dan reveal grafik singkat; hover KPI tanpa aksi palsu; menghapus entrance KPI terpisah dan chart width dari nol; highlight pintasan serta feedback aksi | Diubah pada pekerjaan ini. |
 | `frontend/src/app/bmn/layout.tsx` | Menambah MotionConfig user, mempertahankan indikator sidebar, menyederhanakan transisi halaman menjadi opacity | Diubah sebagai konteks bersama BMN. |
 | `frontend/src/app/bmn/assets/page.tsx` dan `assets/assets.css` | Entrance 280ms, hover 150ms, filter shared highlight, aksi tabel terlihat, selected state dan status semantik | Penerapan Data Aset. |
+| `frontend/src/app/bmn/assets/[id]/page.tsx`, `detail.css`, `DetailSection`, `PhotoGallery` | Kontrol/baris150ms, tab underline spring420/32, pergantian isi glide160ms, Dialog aksesibel150ms; menghapus zoom foto 500ms, pulse statis dan hover shadow kartu informasi | Penerapan detail aset; navigasi foto/dokumen existing dipertahankan. |
 | `AssetImportDialog`, `AssetTagsList`, `TagFilterCombobox` | Kontrol keyboard asli; Export/tag popover serta Impor mengikuti token dan portal scope | Penerapan kontrol yang dipakai Data Aset. Dialog pengelolaan tag bersama belum dimigrasikan seluruhnya. |
 | `frontend/src/app/globals.css` | Entrance, reveal, hover KPI dan aksi scoped BMN, masing-masing dengan jalur reduced motion | Diubah pada pekerjaan ini. |
 | `frontend/src/app/bmn/settings/page.tsx` | Sudah mempunyai indikator tab shared layout dan perpindahan panel | Ditelusuri; isi halaman tidak dimigrasikan ulang. |
@@ -211,3 +212,29 @@ Bukti visual tambahan: `bmn-hover-refined-light.png` dan `bmn-hover-refined-dark
 - [Motion — Accessibility](https://motion.dev/docs/react-accessibility): MotionConfig, reduced motion, dan alternatif gerak.
 
 Tidak perlu menambahkan animasi ke setiap komponen agar tampak konsisten. Konsistensi adalah pola feedback dan state yang dapat dipahami, bukan jumlah efek.
+
+## Animasi di dalam tab — acuan untuk implementasi berikutnya
+
+**Pola ini adalah standar animasi isi tab untuk tampilan serupa ke depan**, dengan acuan inbox Surat Tugas dan implementasi detail aset BMN. Terapkan ketika pemilihan tab mengganti kelompok formulir, daftar, atau informasi di area isi yang sama. Ini berbeda dari animasi indikator tab, pembukaan halaman, hover, dan grafik dashboard.
+
+- Gunakan Motion existing: `AnimatePresence mode="wait" initial={false}` dan satu `motion.div key={activeTab}` untuk kelompok isi. Konten lama memudar sambil naik 8px, kemudian konten baru masuk dari bawah 8px sambil menjadi jelas; **160ms easeOut per fase**, sekitar 320ms untuk keluar dan masuk. Jangan menumpuk fade per kotak atau stagger per baris.
+- Saat halaman pertama dibuka, isi langsung tampil. Ganti key hanya saat tab berganti; mengetik, refetch, dan rerender biasa tidak mengulang animasi. Simpan draft pada induk agar perpindahan tidak membuang perubahan formulir.
+- Reduced motion: posisi tetap y0, opacity1 dan durasi0. Pertahankan hubungan tab/panel, navigasi keyboard dan fokus; pergantian cepat harus berakhir pada tab terakhir yang dipilih.
+- Indikator tab adalah efek terpisah: bila memakai pola garis bawah seperti inbox/detail BMN, gunakan garis2px dengan spring420/32 dan ID per instance. Warna tetap mengikuti token modul masing-masing.
+
+Untuk pekerjaan baru yang memiliki perpindahan isi tab serupa, gunakan pola ini sebagai acuan; tidak perlu menambahkan dependency atau menyalin animasi dashboard. Catatan ini tidak memigrasikan halaman lain secara otomatis.
+
+## Detail aset BMN
+
+- Reuse `assets.css` melalui scope `bmn-assets-ui bmn-detail-ui`; CSS tambahan khusus detail tidak mengubah efek Akses Cepat Modul dashboard.
+- Kontrol dan perubahan warna baris: **150ms ease-out**, tanpa lift/scale kartu atau foto. Hapus zoom hero 500ms serta pulse penanda foto statis; pulse hanya untuk proses unggah yang benar-benar berlangsung. Kelompok formulir berganti dengan pola inbox Surat Tugas di bawah; kartu/baris tidak diberi animasi terpisah.
+- Tab mengikuti acuan `kepegawaian/surat-tugas/inbox/_components/GmailStatusTabs.tsx`: **garis bawah2px** yang berpindah dengan spring **stiffness420, damping32**, ID per instance dari useId dan `initial={false}`. Aktif memakai accent-fg Emerald dan surface-muted, bukan pill hijau penuh. State aktif/fokus tetap jelas, dengan roving focus dan ArrowLeft/Right/Home/End; padding4px tablist menjaga outline.
+- Isi mengikuti pola `kepegawaian/surat-tugas/inbox/page.tsx`: `AnimatePresence mode="wait" initial={false}` dengan satu `motion.div key={activeTab}` berisi semua kelompok formulir. Konten lama opacity1→0 dan y0→-8px, lalu konten baru opacity0→1 dan y8→0px, **160ms easeOut per fase** (sekitar320ms untuk keluar+masuk). Tanpa delay/stagger baris; pada kunjungan pertama konten langsung tampil. Pemilihan terbaru harus tetap menang saat pengguna berganti tab berulang.
+- Wrapper tabpanel aksesibel tetap, yang berganti adalah kelompok isi di dalamnya. State draft tetap di induk sehingga nilai tidak hilang setelah pindah tab. Rerender biasa pada key sama tidak memutar ulang glide. Fade CSS150ms per kotak dari percobaan sebelumnya dihapus agar tidak bertumpuk. Gunakan Motion yang sudah terpasang, tanpa timer/dependency baru.
+- `useReducedMotion` mengubah initial/exit menjadi opacity1/y0 dan durasi0, termasuk durasi indikator0; MotionConfig BMN dan fallback CSS reduce existing tetap. Uji browser reduce tetap mandiri pengguna sesuai arahan sebelumnya; fixture memeriksa cabang reduce, bukan mengklaim emulasi browser.
+- Konten preview: **150ms ease-out** memakai Dialog existing; backdrop tetap timing primitive existing. Hindari lightbox custom yang memasang listener keyboard global dan menulis overflow body manual. Focus trap, Escape dan scroll lock ditangani primitive; pengembalian fokus memakai ref tombol pembuka karena preview juga dapat dibuka secara imperatif dari hero.
+- Tombol prev/next dan panah kiri/kanan mempertahankan navigasi beberapa foto serta halaman dokumen. Gambar object-contain tidak dianimasikan; status gambar gagal mengganti gambar tanpa retry otomatis. Aksi thumbnail selalu terlihat, termasuk pada perangkat tanpa hover.
+- MotionConfig BMN reducedMotion=user dan media query reduce terlokalisasi tetap dipakai; CSS reduce meniadakan transisi/animasi. Uji browser reduced motion revisi ini diserahkan kepada pengguna sesuai arahan sebelumnya.
+- Browser normal: focus trap Tab/Shift+Tab, Escape dan focus-return dari hero/thumbnail; keenam tab mobile, edit-batal, light/dark dan lebar 359–1920px diperiksa. Konten Dialog terukur 0,15s; foto statis transform none/transition 0s, tanpa pulse idle. Fixture `node frontend/tests/bmn-detail-ui.cjs` menguji cabang status/form/tab, izin baca, loading/error, navigasi foto/dokumen serta fallback gambar; tidak mengukur FPS, sentuh fisik atau media query OS.
+
+Area unggah foto kosong pada detail memakai perubahan background/border/teks150ms ease-out saat hover atau focus-visible, tanpa transform. Cursor pointer hanya untuk tombol enabled; disabled tetap cursor default. Efek pada wrapper ditangani CSS :has terhadap tombol yang aktif; fallback reduced motion scoped existing tetap menghapus durasi transisi.

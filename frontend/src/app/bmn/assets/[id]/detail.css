@@ -1,0 +1,29 @@
+/* Detail-only additions; shared controls and preview reuse assets.css. */
+.bmn-detail-ui :is(button, a[href]):not(:disabled):not([aria-disabled="true"]) { cursor: pointer; }
+.bmn-detail-ui :is(button, a):is(:disabled, [aria-disabled="true"]) { cursor: default; }
+.bmn-detail-ui [data-slot="button"] { min-height: 36px; }
+.bmn-detail-ui [data-slot="button"][data-variant="outline"]:not(.bmn-danger) {
+  background: var(--ds-secondary-bg);
+  color: var(--ds-secondary-fg);
+  border-color: transparent;
+}
+.bmn-detail-ui [data-slot="button"][data-variant="outline"]:not(.bmn-danger):hover {
+  background: var(--ds-secondary-hover);
+  border-color: var(--ds-accent-soft-border);
+}
+.bmn-detail-ui [data-slot="button"][data-variant="outline"]:not(.bmn-danger):active { background: var(--ds-secondary-active); }
+.bmn-detail-ui .bmn-currency-field { background: var(--ds-surface); }
+.bmn-detail-ui .bmn-currency-field:focus-within { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; }
+.bmn-detail-ui .bmn-currency-field input { border: 0; background: transparent; }
+.bmn-detail-ui .bmn-currency-field input:focus-visible { outline: none; }
+.bmn-detail-ui [role="tabpanel"]:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 4px; border-radius: 8px; }
+.bmn-detail-ui [role="tablist"] { padding: 4px; scroll-padding-inline: 4px; }
+.bmn-detail-ui [role="tab"] { min-height: 36px; }
+.bmn-detail-ui input, .bmn-detail-ui select { min-height: 36px; caret-color: var(--ds-accent-fg); }
+.bmn-detail-ui ::selection { background: var(--ds-accent-soft-border); color: var(--ds-fg); }
+.bmn-detail-ui .bmn-photo-upload { transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.bmn-detail-ui .bmn-photo-upload:has(.bmn-photo-upload-trigger:not(:disabled):is(:hover, :focus-visible)) {
+  background-color: var(--ds-accent-soft);
+  border-color: var(--ds-accent-fg);
+}
+.bmn-detail-ui .bmn-photo-upload-trigger:not(:disabled):is(:hover, :focus-visible) { color: var(--ds-accent-fg); }
