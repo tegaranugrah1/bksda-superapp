@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (09 November 2026):** Penegakan kebijakan masa kerja cuti CPNS & PPPK, pembatasan hak fasilitas MMP (tanpa cuti, tanpa rekening bank, tanpa uang makan), serta perbaikan visualisasi kredensial login portal dan kode identitas personil MMP pada modul Kepegawaian (Bagian 45 & 46). Seluruh automated check backend (`EmployeeLeaveSnapshotCheck.php`) dan kompilasi TypeScript (`tsc --noEmit`) lulus 100%.
+**Status terbaru (10 November 2026):** Komit lokal berhasil untuk modernisasi Dashboard BMN (desain bento grid 3-kolom, header card ala Kepegawaian, audit data riil database, perbaikan visibilitas tombol aksi peminjaman aset, dan peredaman warna kartu STNK anti-fatigue). Penyusunan dokumen standar acuan warna desain sistem antar-modul (`docs/DESIGN_SYSTEM_COLORS.md`) dengan kalibrasi rasio kontras WCAG 2.1 dan aturan 60-30-10 (Bagian 64, 65, 66). TypeScript `0 errors`, security check backend `PASS`.
 
 ## Status Update: 2 November 2026
 
@@ -1711,8 +1711,41 @@
     - Expired: `bg-rose-50 text-rose-600 border border-rose-200`
     - Expiring soon: `bg-amber-50 text-amber-700 border border-amber-200`
     - Plat expired: `bg-orange-50 text-orange-700 border border-orange-200`
-- **Hasil Verifikasi**:
+- **Hasil Verifikasi & Komit**:
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - HTTP `http://localhost:3000/bmn`: **200 OK**.
-  - Status Git: *Uncommitted working tree* (tetap belum di-commit sesuai instruksi pengguna).
+  - Status Git: Berhasil di-komit pada commit `b2248613`: *`feat(bmn): redesign dashboard to match kepegawaian header, soften stnk alerts, and expose dynamic active loans`*.
+
+---
+
+## 66. Standardisasi Dokumen Acuan Warna Desain Sistem Antar-Modul (10 November 2026)
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  - Pengguna mengusulkan penyatuan satu tema fondasi visual (*unified theme*) untuk seluruh SuperApp, namun setiap modul memiliki satu warna identitas khas (misal: Kepegawaian = Biru, BMN = Emerald).
+  - Pengguna mempertanyakan apakah warna biru Kepegawaian lebih kontras dibandingkan warna hijau BMN, dan meminta panduan acuan warna komprehensif didokumentasikan dalam format `.md` sebagai rujukan ke depan tanpa langsung mengutak-atik kode modul lain.
+- **Analisis Sains Kontras & Kalibrasi WCAG 2.1**:
+  - Melakukan perhitungan matematis rasio kontras warna terhadap latar putih (`#FFFFFF`):
+    - **Biru Kepegawaian (`blue-600` / `#2563eb`)**: Kontras **5.17 : 1** (*PASS WCAG AA Normal Text*). Sangat tajam dan stabil di mata.
+    - **Emerald Standar (`emerald-500` / `#10b981`)**: Kontras **2.54 : 1** (*FAIL WCAG*). Sangat pudar di atas kanvas putih.
+    - **Emerald BMN (`emerald-600` / `#059669`)**: Kontras **3.77 : 1** (*PASS Large Text only*). Kurang kontras untuk teks kecil ukuran 10–12px.
+    - **Emerald Terkalibrasi (`emerald-700` / `#047857`)**: Kontras **5.48 : 1** (*PASS WCAG AA Normal Text*). **Setara persis dengan ketajaman Biru Kepegawaian.**
+- **Penyusunan Dokumen Acuan Desain Sistem**:
+  - Menulis berkas panduan lengkap di [`docs/DESIGN_SYSTEM_COLORS.md`](docs/DESIGN_SYSTEM_COLORS.md) dan artefak interaktif `DESIGN_SYSTEM_COLORS.md`.
+  - **Pilar Standar yang Ditetapkan**:
+    1. **Aturan Rasio Warna 60-30-10 (*Anti-Fatigue Guardrail*)**:
+       - 60% Netral Kanvas (`#F8FAFC` & Kartu Putih `#FFFFFF`).
+       - 30% Struktur Tipografi (`#0F172A` Slate-900 & `#64748B` Slate-500).
+       - 10% Aksen Modul (hanya pada Icon Box Header, Overline Kategori, Tombol CTA Utama, dan Indikator Tab Aktif).
+    2. **Matriks Warna Khas per Modul**:
+       - *SDM & Kepegawaian*: **Royal Blue** (`blue-600` `#2563eb` / `#1d4ed8`) — Kontras 5.17:1.
+       - *BMN & Inventaris*: **Forest Emerald** (`emerald-700` `#047857`) — Kontras 5.48:1.
+       - *Keuangan & DIPA*: **Deep Teal** (`teal-700` `#0f766e`) — Kontras 5.47:1.
+       - *Tata Persuratan*: **Indigo** (`indigo-600` `#4f46e5`) — Kontras 6.29:1.
+       - *Surat Tugas & SPPD*: **Sky Tech** (`sky-700` `#0369a1`) — Kontras 5.22:1.
+       - *DeReporting & Lapor*: **Amber Earth** (`amber-700` `#b45309`) — Kontras 5.02:1.
+       - *Portal & CMS Publik*: **Slate Navy** (`slate-900` `#0f172a`) — Kontras 16.1:1.
+    3. **Warna Semantik Universal**: Lampu lalu lintas seragam di seluruh modul (Hijau = Aman/Sukses, Kuning = Pending/Peringatan, Merah = Bahaya/Expired, Slate = Netral/Informasi).
+    4. **Blueprint Kode Header Bar Modul**: Komponen React/Tailwind terstandarisasi untuk keseragaman header seluruh modul.
+- **Status Eksekusi**:
+  - Dokumen telah siap sebagai rujukan arsitektur UI/UX. Sesuai instruksi pengguna, perubahan palet warna pada modul-modul lain **belum diaplikasikan ke kode** dan menunggu instruksi bertahap.
