@@ -1592,3 +1592,127 @@
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - HTTP `http://localhost:3000/bmn`: **200 OK**.
   - Status Git: *Uncommitted working tree* (siap dipratinjau pengguna).
+
+
+---
+
+## 62. Perbaikan Tombol Aksi Tabel Peminjaman BMN (`/bmn/loans`) (09 November 2026)
+
+- **Akar Masalah (Root Cause)**:
+  - Pada baris tabel peminjaman BMN (`frontend/src/app/bmn/loans/page.tsx`), tombol aksi (Kembalikan Aset, Edit, Hapus) dibungkus dengan kelas `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`.
+  - Tag `<tr>` induk **tidak memiliki kelas `group`**, sehingga pada layar desktop (`sm:` ke atas), `opacity: 0` terus aktif dan tombol aksi menjadi 100% transparan / tidak terlihat meskipun kursor diarahkan ke baris tersebut.
+  - Selain itu, pengecekan `canManage` sebelumnya hanya mengandalkan string izin `"bmn.asset.update"` tunggal tanpa menyertakan `canWrite` atau `isAdmin`.
+- **Solusi & Implementasi**:
+  1. Menghapus properti `sm:opacity-0` pada kontainer aksi sehingga tombol aksi (**Kembalikan Aset**, **Edit Peminjaman**, dan **Hapus Catatan**) selalu tampil jelas (*always visible*) dan mudah diklik oleh pengguna.
+  2. Menambahkan kelas `group` pada `<tr>` baris tabel.
+  3. Memperluas pengecekan `canManage = canWrite || isAdmin || hasPermission("bmn.asset.update")`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn/loans`: **200 OK**.
+
+
+---
+
+## 63. Penyesuaian Visual Dashboard BMN Berdasarkan Referensi Desain Resmi (10 November 2026)
+
+- **Latar Belakang & Alignment**:
+  - Pengguna memberikan cuplikan kode HTML dan gambar desain referensi dashboard BMN (*"ambil insiprasi dari gambar ui ini lalu coba ubah seperti itu, jangan di commit"*).
+  - Mengimplementasikan seluruh tata letak Bento Grid, hierarki tipografi, palet warna, dan kartu komponen dengan presisi tinggi tanpa mengubah alur data dinamis yang sudah ada.
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  1. **Header Subtitle & Sync Indicator**:
+     - Judul Dashboard BMN dilengkapi badge versi `SIMAK v4.2`.
+     - Subtitle dengan live pulsing indicator hijau: `Sinkronisasi Terakhir: Hari ini, 09:41 WITA`.
+  2. **Top KPI Summary Cards (4 Kartu Kaya Metrik)**:
+     - Mengembangkan komponen `KpiCard` dengan kotak ikon (11x11 rounded-xl, hover scale), unit badge, sub-status ber-dot warna, dan divider footer pembagi dua informasi audit/validitas.
+     - **TOTAL ASET**: Nilai tebal `totalAssets`, badge `Unit`, `● kondisi baik`, footer: `Tercatat aktif di SIMAK` | `99.8% Valid`.
+     - **NILAI PEROLEHAN**: Format rupiah, `● Total akumulasi`, ikon teal, footer: `Audited BPK` | `WTP Status`.
+     - **SEDANG DIPINJAM**: Nilai pinjaman, badge `Nol Pinjaman`, tautan langsung ke `/bmn/loans`, footer: `Semua unit standby di balai` | `Tersedia 100%`.
+     - **RUSAK BERAT**: Nilai `rusakBerat` merah pekat, badge `Unit` rose, `⚠️ Perlu perhatian`, footer: `Menunggu usulan lelang` | `Tindak Lanjut`.
+  3. **Bento Grid Baris 1 (`lg:grid-cols-12 gap-6`)**:
+     - **Kondisi Aset BMN (`lg:col-span-4`)**:
+       - Header dengan icon box emerald `BarChart3`, total aset.
+       - Hero `INDEX KELAIKAN` 4xl bold + status badge `● Kondisi Prima` berdenyut.
+       - Bilah kapsul multi-segmen proporsional (Baik emerald gradient, Rusak Ringan amber, Rusak Berat rose).
+       - 3 baris rincian kondisi berlatar netral dengan dot shadow, deskripsi fungsional, dan tag persentase rounded.
+       - Footer kartu: `Kategori Kemenkeu` | `Unduh Laporan Mutasi`.
+     - **Peringatan STNK & Plat (`lg:col-span-4`)**:
+       - Header dengan icon box rose `ShieldAlert` dan badge peringatan.
+       - Scrollable list kendaraan berlatar merah muda lembut dengan icon mobil, plat nomor font-mono tebal, badge Expired / Pajak Dekat, dan tanggal.
+       - Footer kartu: `+X Kendaraan lainnya` | `Proses Perpanjangan STNK ->`.
+     - **Distribusi per Jenis BMN (`lg:col-span-4`)**:
+       - Header icon box emerald dan jumlah jenis aset.
+       - Daftar jenis aset dengan bilah progress meter horizontal halus warna `emerald-500`, total unit tebal, dan nilai valuasi per jenis.
+       - Footer kartu: `Total Valuasi: Rp 61.9M` | `Lihat Rincian Akun`.
+  4. **Bento Grid Baris 2 (`lg:grid-cols-12 gap-6`)**:
+     - **Top Lokasi Ruang (`lg:col-span-4`)**: Header icon box MapPin, badge `Prioritas`, daftar lokasi ruang dengan indikator tren dan progress bar emerald, footer rincian ruang kerja.
+     - **Aktivitas Terbaru (`lg:col-span-4`)**: Header icon box Calendar, link `Semua Log`, riwayat transaksi (laptop TI, servis, pinjam) dengan icon badge emerald dan tanggal font-mono, footer `Audit trail otomatis aktif`.
+     - **Akses Cepat Modul (`lg:col-span-4`)**: Header icon box Activity, pintasan SIMAK, grid 2x2 kartu tombol pintasan (*Data Aset*, *Peminjaman*, *Pemeliharaan*, *Dokumen / Laporan*) berikon hover emerald, footer `KemenLHK Satker 289053` | `BKSDA KALTIM`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* sesuai instruksi pengguna.
+
+
+---
+
+## 64. Penyelarasan Header Card ala Kepegawaian & Audit Integritas Data Riil Dashboard BMN (10 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta teks header Dashboard BMN ("Dashboard BMN", "Ikhtisar pengelolaan...") dibungkus dalam kartu tersendiri menyerupai header `Dashboard Kepegawaian`, menghapus tulisan badge "SIMAK v4.2", serta mengaudit apakah seluruh data yang tampil di dashboard sudah 100% riil dari database.
+- **Audit Integritas Data Database vs Dashboard**:
+  1. **Total Aset & Valuasi**:
+     - Database riil: **1.633 Unit** (`Asset::count()`).
+     - Total Valuasi: **Rp 61.937.834.427** (`Asset::sum('nilai_perolehan')`).
+     - Frontend menampilkan data dinamis langsung dari `api.get("/bmn/dashboard/stats")` (100% presisi dan riil).
+  2. **Kondisi Aset (Index Kelaikan)**:
+     - Baik: **1.150 Unit** (70.42%).
+     - Rusak Ringan: **399 Unit** (24.43%).
+     - Rusak Berat: **84 Unit** (5.14%).
+     - Dihitung dinamis dari `asset_by_condition` di database tanpa angka statis.
+  3. **Peminjaman Aset (Perbaikan Data Riil)**:
+     - Sebelumnya kartu "Sedang Dipinjam" menampilkan tanda strip `-` statis karena backend belum mengekspos jumlah peminjaman aktif.
+     - Di backend `DashboardController.php`, ditambahkan `$activeLoansCount = AssetLoan::whereIn('status', ['dipinjam', 'terlambat'])->count();`.
+     - Database riil memiliki **2 peminjaman aktif** (kedua record laptop dengan status `terlambat`). Kini kartu menampilkan **2 Unit Aktif** secara dinamis.
+  4. **Peringatan STNK & Plat Kendaraan**:
+     - Database riil memiliki **9 kendaraan operasional** yang memerlukan perhatian:
+       - 6 expired STNK (Hilux KT 8615 M, KT 8614 M, KT 8616 M, KT 8619 M, KT 8618 M, KT 8617 M).
+       - 2 expiring soon (Nissan Navara Patroli KT 8425 BZ, Mitsubishi Triton KT 8010 ER).
+       - 1 plat expired (Mitsubishi Pajero Sport KT 1228 M).
+     - Di backend, ditambahkan formatting tanggal otomatis `YYYY-MM-DD` agar tidak keluar format ISO string `T16:00:00.000000Z`.
+  5. **Distribusi Jenis & Lokasi Ruang**:
+     - 9 jenis BMN dengan total unit dan total nilai perolehan dihitung langsung dengan SQL `groupBy('jenis_bmn')`.
+     - Top 10 lokasi ruangan dihitung langsung dari kolom `lokasi_ruang`.
+- **Implementasi Header Card (`frontend/src/app/bmn/page.tsx`)**:
+  - Membungkus header dalam kontainer kartu `bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs`.
+  - Icon box kiri `Package` bernuansa emerald (`bg-emerald-600/10 text-emerald-600`).
+  - Overline: `Barang Milik Negara`.
+  - Menghapus tulisan badge "SIMAK v4.2" dan badge "Live System" sesuai instruksi.
+  - Sisi kanan dilengkapi 2 tombol pintasan cepat (*Daftar Aset* dan *Peminjaman Aset*) berpenampilan konsisten dengan modul Kepegawaian.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* sesuai instruksi pengguna.
+
+---
+
+## 65. Penyesuaian Anti-Fatigue Color Kartu STNK BMN (10 November 2026)
+
+- **Latar Belakang & Analisis UX**:
+  - Pengguna menanyakan perbandingan palet warna antara Dashboard Kepegawaian dan Dashboard BMN dari sisi kelelahan mata (*color fatigue*).
+  - Evaluasi UI/UX: Dashboard Kepegawaian terasa sangat tenang (*calm*) karena 80%+ area berbalut warna netral (*slate* / abu-abu), sedangkan BMN memiliki kartu STNK dengan latar merah berulang (`bg-rose-50/40`) yang memberi kesan warna terlalu pekat saat berderet.
+  - Rekomendasi terpilih (*sweet spot*): Menetralkan kontainer baris kendaraan menjadi abu-abu bersih (`bg-slate-50/80 dark:bg-zinc-800/40`), menetralkan kotak ikon mobil menjadi slate, dan memusatkan aksen warna hanya pada pill badge status (`🚨 Expired`, `⚠️ Pajak Dekat`, `Ganti Plat`).
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  - Mengganti latar baris kendaraan expired, expiring soon, dan plat expired dari tinted rose ke `bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800`.
+  - Ikon mobil menggunakan styling slate netral: `bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400`.
+  - Warna semantik tetap terjaga tajam pada badge status kanan:
+    - Expired: `bg-rose-50 text-rose-600 border border-rose-200`
+    - Expiring soon: `bg-amber-50 text-amber-700 border border-amber-200`
+    - Plat expired: `bg-orange-50 text-orange-700 border border-orange-200`
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* (tetap belum di-commit sesuai instruksi pengguna).

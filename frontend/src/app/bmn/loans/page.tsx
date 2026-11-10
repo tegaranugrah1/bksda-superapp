@@ -61,8 +61,8 @@ const formatDate = (dateStr: string | null) => {
 export default function LoansPage() {
     const router = useRouter();
     const queryClient = useQueryClient();
-    const { hasPermission } = useRole();
-    const canManage = hasPermission("bmn.asset.update");
+    const { hasPermission, canWrite, isAdmin } = useRole();
+    const canManage = canWrite || isAdmin || hasPermission("bmn.asset.update");
     const [page, setPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState("all");
 
@@ -285,7 +285,7 @@ export default function LoansPage() {
                                 </tr>
                             ) : (
                                 records.map((r) => (
-                                    <tr key={r.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                                    <tr key={r.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors group">
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
                                             {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{r.asset.merk_tipe || r.asset.merk}</div>}
@@ -339,7 +339,7 @@ export default function LoansPage() {
                                         </td>
                                         {canManage && (
                                             <td className="px-4 py-3">
-                                                <div className="flex gap-1.5 justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                <div className="flex gap-1.5 justify-center items-center">
                                                     {r.status !== 'dikembalikan' && (
                                                         <Button
                                                             variant="ghost"

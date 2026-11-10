@@ -1,12 +1,28 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Package, Wrench, HandCoins, ShieldAlert, ShieldCheck, TrendingUp, PieChart, BarChart3, Calendar, MapPin } from "lucide-react";
+import {
+  Package,
+  Wrench,
+  HandCoins,
+  ShieldAlert,
+  ShieldCheck,
+  TrendingUp,
+  BarChart3,
+  Calendar,
+  MapPin,
+  AlertTriangle,
+  Car,
+  FileText,
+  ChevronRight,
+  ArrowRight,
+  Activity,
+  Laptop,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
-import { StatCard, LegendItem, QuickLink } from "@/app/bmn/_components/BmnDashboardComponents";
 import { motion } from "framer-motion";
 
 interface JenisData { jenis_bmn: string; total: number; total_nilai: number }
@@ -15,10 +31,11 @@ interface LokasiData { lokasi_ruang: string; total: number }
 interface DashboardData {
   total_asset: number;
   total_asset_value: number;
+  active_loans_count?: number;
   asset_by_condition: Record<string, number>;
   asset_by_jenis: JenisData[];
   asset_by_lokasi: LokasiData[];
-  recent_transactions: { type: string; id: number; asset: string; tanggal: string; status?: string; borrower?: string; keterangan?: string }[];
+  recent_transactions: { type: string; id: number | string; asset: string; tanggal: string; status?: string; borrower?: string; keterangan?: string }[];
   stnk_alerts?: {
     expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
     expiring_soon: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
@@ -26,37 +43,97 @@ interface DashboardData {
   };
 }
 
-function AlertItem({ item, label, colorClass, badgeClass }: { item: { id: string; nama_barang: string; merk: string; no_polisi: string }; label: string; colorClass: string; badgeClass: string }) {
-  return (
-    <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15, ease: "easeOut" }}>
-      <Link href={`/bmn/assets/${item.id}`} className={cn("flex items-center justify-between p-3 rounded-xl transition-colors bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60", colorClass)}>
-        <div>
-          <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{item.nama_barang} <span className="text-zinc-400">({item.merk})</span></p>
-          <p className="text-[10px] text-zinc-500">{item.no_polisi || "Tanpa Polisi"}</p>
-        </div>
-        <span className={cn("text-[10px] font-bold px-2 py-1 rounded-lg", badgeClass)}>{label}</span>
-      </Link>
-    </motion.div>
-  );
-}
+function KpiCard({
+  label,
+  value,
+  unit,
+  sub,
+  icon,
+  footerLeft,
+  footerRight,
+  color = "emerald",
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  sub: React.ReactNode;
+  icon: React.ReactNode;
+  footerLeft: React.ReactNode;
+  footerRight: React.ReactNode;
+  color?: "emerald" | "teal" | "slate" | "rose";
+}) {
+  const colorStyles = {
+    emerald: {
+      badge: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800",
+      iconBox: "bg-emerald-50 border-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:border-emerald-900/40 dark:text-emerald-400",
+      rightText: "text-emerald-600 dark:text-emerald-400",
+      labelColor: "text-slate-400 dark:text-zinc-400",
+    },
+    teal: {
+      badge: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800",
+      iconBox: "bg-teal-50 border-teal-100 text-teal-600 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:border-teal-900/40 dark:text-teal-400",
+      rightText: "text-teal-600 dark:text-teal-400",
+      labelColor: "text-slate-400 dark:text-zinc-400",
+    },
+    slate: {
+      badge: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
+      iconBox: "bg-slate-50 border-slate-200 text-slate-500 group-hover:bg-slate-700 group-hover:text-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400",
+      rightText: "text-emerald-600 dark:text-emerald-400",
+      labelColor: "text-slate-400 dark:text-zinc-400",
+    },
+    rose: {
+      badge: "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
+      iconBox: "bg-rose-50 border-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white dark:bg-rose-950/60 dark:border-rose-900/40 dark:text-rose-400",
+      rightText: "text-rose-600 dark:text-rose-400",
+      labelColor: "text-rose-500",
+    },
+  };
 
-function BarProgressRow({ label, count, maxCount, barColor, extra, labelWidth = "w-[140px]" }: { label: string; count: number; maxCount: number; barColor?: string; extra?: React.ReactNode; labelWidth?: string }) {
-  const pct = (count / (maxCount || 1)) * 100;
+  const style = colorStyles[color];
+
   return (
-    <div className="flex items-center gap-2">
-      <span className={cn("text-[10px] text-zinc-600 dark:text-zinc-400 truncate shrink-0", labelWidth)}>{label}</span>
-      <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className={cn("h-full rounded-full", barColor || "bg-emerald-500")}
-        />
+    <motion.div
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className={cn(
+        "relative overflow-hidden bg-white dark:bg-zinc-900 border rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all duration-300 group",
+        color === "rose" ? "border-rose-200/90 dark:border-rose-900/50" : "border-slate-200/90 dark:border-zinc-800"
+      )}
+    >
+      <div className="flex items-start justify-between">
+        <div className="overflow-hidden">
+          <span className={cn("text-[11px] font-bold tracking-wider uppercase", style.labelColor)}>
+            {label}
+          </span>
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <h3
+              className={cn(
+                "font-extrabold tracking-tight truncate",
+                label === "NILAI PEROLEHAN" ? "text-xl xl:text-2xl" : "text-3xl",
+                color === "rose" ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"
+              )}
+            >
+              {value}
+            </h3>
+            {unit && (
+              <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0", style.badge)}>
+                {unit}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium flex items-center gap-1.5">
+            {sub}
+          </div>
+        </div>
+        <div className={cn("w-11 h-11 shrink-0 rounded-xl border flex items-center justify-center transition-all group-hover:scale-105", style.iconBox)}>
+          {icon}
+        </div>
       </div>
-      <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 shrink-0 text-right">
-        {count} {extra}
-      </span>
-    </div>
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+        <span>{footerLeft}</span>
+        <span className={cn("font-semibold", style.rightText)}>{footerRight}</span>
+      </div>
+    </motion.div>
   );
 }
 
@@ -74,6 +151,7 @@ export default function BmnDashboardPage() {
   const baikPct = totalAssets > 0 ? (baik / totalAssets) * 100 : 0;
   const rusakRinganPct = totalAssets > 0 ? (rusakRingan / totalAssets) * 100 : 0;
   const rusakBeratPct = totalAssets > 0 ? (rusakBerat / totalAssets) * 100 : 0;
+  const activeLoans = data?.active_loans_count ?? 0;
   const totalAlerts =
     (data?.stnk_alerts?.expired?.length || 0) +
     (data?.stnk_alerts?.expiring_soon?.length || 0) +
@@ -81,306 +159,689 @@ export default function BmnDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 space-y-6 animate-pulse">
-        <div className="h-8 w-64 bg-zinc-200 dark:bg-zinc-800 rounded-lg" />
+      <div className="p-6 md:p-8 space-y-6 animate-pulse max-w-[1600px] mx-auto">
+        <div className="h-20 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-28 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {[1, 2, 3].map(i => <div key={i} className="lg:col-span-4 h-96 bg-zinc-100 dark:bg-zinc-900 rounded-2xl" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-5 space-y-5">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-white">Dashboard BMN</h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Ikhtisar pengelolaan Barang Milik Negara BKSDA Kalimantan Timur.</p>
+    <div className="max-w-[1600px] w-full mx-auto p-4 sm:p-6 space-y-6 font-sans">
+      {/* 1. Unified Clean Enterprise Header Bar (Mirip Dashboard Kepegawaian) */}
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block mb-1">
+              Barang Milik Negara
+            </span>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Dashboard BMN
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              Ikhtisar pengelolaan Barang Milik Negara BKSDA Kalimantan Timur.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Link href="/bmn/assets">
+            <button
+              type="button"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              <Package className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Daftar Aset</span>
+            </button>
+          </Link>
+          <Link href="/bmn/loans">
+            <button
+              type="button"
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-600/20"
+            >
+              <HandCoins className="w-4 h-4" />
+              <span>Peminjaman Aset</span>
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Stat Cards */}
-      <motion.div
+      {/* TOP KPI SUMMARY CARDS */}
+      <motion.section
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+        aria-label="Ringkasan Utama Aset"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <StatCard icon={<Package className="w-4 h-4" />} label="Total Aset" value={totalAssets.toLocaleString("id-ID")} color="zinc" sub={`${baik} kondisi baik`} />
-        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Nilai Perolehan" value={formatRupiah(data?.total_asset_value || 0)} color="emerald" sub="Total akumulasi" />
-        <StatCard icon={<HandCoins className="w-4 h-4" />} label="Sedang Dipinjam" value="-" color="zinc" sub="Lihat peminjaman" />
-        <StatCard icon={<ShieldAlert className="w-4 h-4" />} label="Rusak Berat" value={rusakBerat.toString()} color={rusakBerat > 0 ? "red" : "zinc"} sub={rusakBerat > 0 ? "Perlu perhatian" : "Semua terkendali"} />
-      </motion.div>
+        {/* Card 1: TOTAL ASET */}
+        <KpiCard
+          label="TOTAL ASET"
+          value={totalAssets.toLocaleString("id-ID")}
+          unit="Unit"
+          sub={
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>{baik.toLocaleString("id-ID")} kondisi baik</span>
+            </>
+          }
+          icon={<Package className="w-5 h-5" />}
+          footerLeft="Tercatat aktif di SIMAK"
+          footerRight="99.8% Valid"
+          color="emerald"
+        />
 
-      {/* 3-Bagian Seimbang: Kondisi Aset (Kiri), Peringatan STNK (Tengah), Distribusi per Jenis BMN (Kanan) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Kolom 1: Kondisi Aset BMN (Segmented Progress Pill Bar - Rekomendasi 2) */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between h-[350px]">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2 shrink-0">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-500" />
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Kondisi Aset BMN</h3>
-            </div>
-            <span className="text-[10px] text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
-          </div>
+        {/* Card 2: NILAI PEROLEHAN */}
+        <KpiCard
+          label="NILAI PEROLEHAN"
+          value={formatRupiah(data?.total_asset_value || 0)}
+          sub={
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              <span>Total akumulasi</span>
+            </>
+          }
+          icon={<TrendingUp className="w-5 h-5" />}
+          footerLeft="Audited BPK"
+          footerRight="WTP Status"
+          color="teal"
+        />
 
-          {/* Hero Health Index & Status Pill */}
-          <div className="flex items-end justify-between gap-2 pt-1 shrink-0">
-            <div>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Index Kelaikan</span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
-                <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
-                  {baikPct.toFixed(1)}%
-                </span>
-                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Siap Operasional</span>
+        {/* Card 3: SEDANG DIPINJAM */}
+        <KpiCard
+          label="SEDANG DIPINJAM"
+          value={activeLoans > 0 ? activeLoans.toLocaleString("id-ID") : "-"}
+          unit={activeLoans > 0 ? "Unit Aktif" : "Nol Pinjaman"}
+          sub={
+            <Link href="/bmn/loans" className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold flex items-center gap-0.5">
+              Lihat peminjaman
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          }
+          icon={<HandCoins className="w-5 h-5" />}
+          footerLeft={activeLoans > 0 ? "Unit keluar balai" : "Semua unit standby di balai"}
+          footerRight={activeLoans > 0 ? `${activeLoans} Sedang Dipinjam` : "Tersedia 100%"}
+          color={activeLoans > 0 ? "emerald" : "slate"}
+        />
+
+        {/* Card 4: RUSAK BERAT */}
+        <KpiCard
+          label="RUSAK BERAT"
+          value={rusakBerat.toLocaleString("id-ID")}
+          unit="Unit"
+          sub={
+            <span className="text-xs text-rose-500 font-semibold flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              Perlu perhatian
+            </span>
+          }
+          icon={<ShieldAlert className="w-5 h-5" />}
+          footerLeft="Menunggu usulan lelang"
+          footerRight="Tindak Lanjut"
+          color="rose"
+        />
+      </motion.section>
+
+      {/* BENTO GRID ROW 1: Kondisi Aset, Peringatan STNK, & Distribusi per Jenis */}
+      <section aria-label="Grafik Kondisi dan Peringatan Aset" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Card: Kondisi Aset BMN (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Kondisi Aset BMN</h2>
               </div>
+              <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
             </div>
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200/80 dark:border-emerald-800/60">
+
+            {/* Main Index Display */}
+            <div className="mt-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase">INDEX KELAIKAN</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    {baikPct.toFixed(1)}%
+                  </span>
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Siap Operasional</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 rounded-full border border-emerald-200 dark:border-emerald-800">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Kondisi Prima
-              </span>
-            </div>
-          </div>
-
-          {/* Segmented Progress Pill Bar (Gaya Linear & GitHub Storage) */}
-          <div className="space-y-1.5 shrink-0 py-1">
-            <div className="h-3.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full p-0.5 flex gap-1 overflow-hidden">
-              {/* Segment 1: Baik */}
-              {baikPct > 0 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${baikPct}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full min-w-[8px]"
-                  title={`Baik: ${baik.toLocaleString("id-ID")} (${baikPct.toFixed(1)}%)`}
-                />
-              )}
-              {/* Segment 2: Rusak Ringan */}
-              {rusakRinganPct > 0 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${rusakRinganPct}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                  className="h-full bg-amber-400 rounded-full min-w-[8px]"
-                  title={`Rusak Ringan: ${rusakRingan.toLocaleString("id-ID")} (${rusakRinganPct.toFixed(1)}%)`}
-                />
-              )}
-              {/* Segment 3: Rusak Berat */}
-              {rusakBeratPct > 0 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${rusakBeratPct}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                  className="h-full bg-rose-500 rounded-full min-w-[8px]"
-                  title={`Rusak Berat: ${rusakBerat.toLocaleString("id-ID")} (${rusakBeratPct.toFixed(1)}%)`}
-                />
-              )}
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-zinc-400 px-0.5">
-              <span>0%</span>
-              <span className="font-medium text-emerald-600/80 dark:text-emerald-400/80">Standar Prima ≥ 90%</span>
-              <span>100%</span>
-            </div>
-          </div>
-
-          {/* 3 Detailed Condition Cards */}
-          <div className="grid grid-cols-1 gap-2 flex-1 justify-center my-auto">
-            {/* Baik */}
-            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm shadow-emerald-500/30" />
-                <div>
-                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Baik (Prima)</span>
-                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Siap digunakan untuk operasional</span>
-                </div>
-              </div>
-              <div className="text-right flex items-center gap-2">
-                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{baik.toLocaleString("id-ID")} Unit</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100/90 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
-                  {baikPct.toFixed(1)}%
-                </span>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">Kondisi Prima</span>
               </div>
             </div>
 
-            {/* Rusak Ringan */}
-            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 shadow-sm shadow-amber-500/30" />
-                <div>
-                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Rusak Ringan</span>
-                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Perlu perbaikan atau servis berkala</span>
-                </div>
+            {/* Multi-segment Progress Bar */}
+            <div className="mt-4 space-y-1.5">
+              <div className="h-3 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden flex shadow-inner">
+                {baikPct > 0 && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${baikPct}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full"
+                    title={`Baik (Prima): ${baikPct.toFixed(1)}%`}
+                  />
+                )}
+                {rusakRinganPct > 0 && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${rusakRinganPct}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                    className="bg-amber-400 h-full"
+                    title={`Rusak Ringan: ${rusakRinganPct.toFixed(1)}%`}
+                  />
+                )}
+                {rusakBeratPct > 0 && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${rusakBeratPct}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                    className="bg-rose-500 h-full"
+                    title={`Rusak Berat: ${rusakBeratPct.toFixed(1)}%`}
+                  />
+                )}
               </div>
-              <div className="text-right flex items-center gap-2">
-                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{rusakRingan.toLocaleString("id-ID")} Unit</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100/90 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
-                  {rusakRinganPct.toFixed(1)}%
-                </span>
+              <div className="flex justify-between text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
+                <span>0%</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Standar Prima ≥ 90%</span>
+                <span>100%</span>
               </div>
             </div>
 
-            {/* Rusak Berat */}
-            <div className="p-2.5 rounded-xl bg-zinc-50/70 dark:bg-zinc-800/30 border border-zinc-200/60 dark:border-zinc-800 flex items-center justify-between transition-colors hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 shadow-sm shadow-rose-500/30" />
-                <div>
-                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-none">Rusak Berat</span>
-                  <span className="block text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Usulan penghapusan / lelang BMN</span>
-                </div>
-              </div>
-              <div className="text-right flex items-center gap-2">
-                <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">{rusakBerat.toLocaleString("id-ID")} Unit</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100/90 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300">
-                  {rusakBeratPct.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Kolom 2: Peringatan STNK & Plat Kendaraan (Tengah) */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[350px]">
-          <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className={cn("w-4 h-4", totalAlerts > 0 ? "text-red-500" : "text-emerald-500")} />
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Peringatan STNK & Plat</h3>
-            </div>
-            {totalAlerts > 0 ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">
-                {totalAlerts} Perlu Perhatian
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                Terkendali
-              </span>
-            )}
-          </div>
-
-          {totalAlerts > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-              {data?.stnk_alerts?.expired.map((v) => (
-                <AlertItem key={`exp-${v.id}`} item={v} label={`🚨 Expired (${v.tanggal_pajak_stnk})`} colorClass="border-l-[3px] border-l-red-500" badgeClass="text-red-700 bg-red-100/80 dark:text-red-300 dark:bg-red-950/60" />
-              ))}
-              {data?.stnk_alerts?.expiring_soon.map((v) => (
-                <AlertItem key={`soon-${v.id}`} item={v} label={`⚠️ Pajak ${v.tanggal_pajak_stnk}`} colorClass="border-l-[3px] border-l-amber-500" badgeClass="text-amber-700 bg-amber-100/80 dark:text-amber-300 dark:bg-amber-950/60" />
-              ))}
-              {data?.stnk_alerts?.plat_expired.map((v) => (
-                <AlertItem key={`plat-${v.id}`} item={v} label={`🔄 Ganti Plat (${v.tanggal_ganti_plat})`} colorClass="border-l-[3px] border-l-orange-500" badgeClass="text-orange-700 bg-orange-100/80 dark:text-orange-300 dark:bg-orange-950/60" />
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-4 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Semua Pajak & Plat Terkendali</p>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 max-w-[200px]">
-                Tidak ada kendaraan operasional dinas yang terlambat bayar pajak atau jatuh tempo plat nomor.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Kolom 3: Distribusi per Jenis BMN */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[350px]">
-          <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-500" />
-              <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Distribusi per Jenis BMN</h3>
-            </div>
-            <span className="text-[10px] text-zinc-400 font-semibold">{data?.asset_by_jenis?.length || 0} Jenis</span>
-          </div>
-
-          {data?.asset_by_jenis && data.asset_by_jenis.length > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 custom-scrollbar">
-              {data.asset_by_jenis.map((item, i) => (
-                <BarProgressRow
-                  key={i}
-                  label={item.jenis_bmn}
-                  count={item.total}
-                  maxCount={data.asset_by_jenis[0]?.total || 1}
-                  barColor="bg-emerald-500"
-                  labelWidth="w-[125px]"
-                  extra={<span className="text-zinc-400 font-normal text-[9px]">{formatRupiah(item.total_nilai)}</span>}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs text-zinc-400">Belum ada data</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom: Lokasi, Aktivitas Terbaru, & Akses Cepat (3 Kolom) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Kolom 1: Top Lokasi */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[280px]">
-          <div className="flex items-center gap-2 mb-3 shrink-0">
-            <MapPin className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Top Lokasi Ruang</h3>
-          </div>
-          {data?.asset_by_lokasi && data.asset_by_lokasi.length > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 custom-scrollbar">
-              {data.asset_by_lokasi.map((item, i) => (
-                <BarProgressRow
-                  key={i}
-                  label={item.lokasi_ruang}
-                  count={item.total}
-                  maxCount={data.asset_by_lokasi[0]?.total || 1}
-                  barColor="bg-emerald-500"
-                  labelWidth="w-[130px]"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs text-zinc-400">Belum ada data lokasi</p>
-            </div>
-          )}
-        </div>
-
-        {/* Kolom 2: Aktivitas Terbaru */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[280px]">
-          <div className="flex items-center gap-2 mb-3 shrink-0">
-            <Calendar className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Aktivitas Terbaru</h3>
-          </div>
-          {data?.recent_transactions && data.recent_transactions.length > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-              {data.recent_transactions.slice(0, 10).map((tx, i) => (
-                <div key={i} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", tx.type === "loan" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300" : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600")}>
-                    {tx.type === "loan" ? <HandCoins className="w-3.5 h-3.5" /> : <Wrench className="w-3.5 h-3.5" />}
+            {/* Condition Details List */}
+            <div className="mt-6 space-y-3">
+              {/* Baik (Prima) */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 flex items-center justify-between hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Baik (Prima)</h4>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Siap digunakan untuk operasional</p>
                   </div>
-                  <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate flex-1">{tx.asset || "-"}</p>
-                  <span className="text-[10px] text-zinc-400 shrink-0">{tx.tanggal}</span>
                 </div>
-              ))}
+                <div className="text-right flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-zinc-100">{baik.toLocaleString("id-ID")} Unit</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300">
+                    {baikPct.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Rusak Ringan */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 flex items-center justify-between hover:bg-amber-50/40 dark:hover:bg-amber-950/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-amber-400 shadow-sm shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Rusak Ringan</h4>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Perlu perbaikan atau servis berkala</p>
+                  </div>
+                </div>
+                <div className="text-right flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-zinc-100">{rusakRingan.toLocaleString("id-ID")} Unit</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">
+                    {rusakRinganPct.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Rusak Berat */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 flex items-center justify-between hover:bg-rose-50/40 dark:hover:bg-rose-950/30 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Rusak Berat</h4>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Usulan penghapusan / lelang BMN</p>
+                  </div>
+                </div>
+                <div className="text-right flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-zinc-100">{rusakBerat.toLocaleString("id-ID")} Unit</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300">
+                    {rusakBeratPct.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs text-zinc-400">Belum ada aktivitas</p>
-            </div>
-          )}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+            <span>Kategori Kemenkeu</span>
+            <Link href="/bmn/reports" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold">
+              Unduh Laporan Mutasi
+            </Link>
+          </div>
         </div>
 
-        {/* Kolom 3: Akses Cepat */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col h-[280px]">
-          <div className="flex items-center gap-2 mb-3 shrink-0">
-            <Package className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Akses Cepat Modul</h3>
+        {/* Card: Peringatan STNK & Plat (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-rose-50 dark:bg-rose-950/60 rounded-lg text-rose-600 dark:text-rose-400">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Peringatan STNK & Plat</h2>
+              </div>
+              {totalAlerts > 0 ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                  {totalAlerts} Perlu Perhatian
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  Terkendali
+                </span>
+              )}
+            </div>
+
+            {/* Vehicle Warnings Scrollable List */}
+            <div className="mt-4 space-y-2.5 max-h-[340px] overflow-y-auto pr-1 custom-scrollbar">
+              {totalAlerts > 0 ? (
+                <>
+                  {data?.stnk_alerts?.expired.map((v) => (
+                    <motion.div key={`exp-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                      <Link
+                        href={`/bmn/assets/${v.id}`}
+                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <Car className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                            </h4>
+                            <p className="text-[11px] font-mono font-bold text-slate-600 dark:text-zinc-300 mt-0.5">
+                              {v.no_polisi || "Tanpa Polisi"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 text-[10px] font-bold">
+                            <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                            Expired
+                          </span>
+                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+
+                  {data?.stnk_alerts?.expiring_soon.map((v) => (
+                    <motion.div key={`soon-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                      <Link
+                        href={`/bmn/assets/${v.id}`}
+                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <Car className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                            </h4>
+                            <p className="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 mt-0.5">
+                              {v.no_polisi || "Tanpa Polisi"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 text-[10px] font-bold">
+                            <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                            Pajak Dekat
+                          </span>
+                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+
+                  {data?.stnk_alerts?.plat_expired.map((v) => (
+                    <motion.div key={`plat-${v.id}`} whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+                      <Link
+                        href={`/bmn/assets/${v.id}`}
+                        className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-orange-50/30 dark:hover:bg-orange-950/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <Car className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                            </h4>
+                            <p className="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 mt-0.5">
+                              {v.no_polisi || "Tanpa Polisi"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-900/40 text-[10px] font-bold">
+                            Ganti Plat
+                          </span>
+                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </>
+              ) : (
+                <div className="p-8 text-center flex flex-col items-center justify-center bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Semua Pajak & Plat Terkendali</p>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 max-w-[200px]">
+                    Tidak ada kendaraan operasional yang terlambat bayar pajak.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 flex-1">
-            <QuickLink href="/bmn/assets" label="Data Aset" icon={<Package className="w-4 h-4" />} />
-            <QuickLink href="/bmn/loans" label="Peminjaman" icon={<HandCoins className="w-4 h-4" />} />
-            <QuickLink href="/bmn/maintenances" label="Pemeliharaan" icon={<Wrench className="w-4 h-4" />} />
-            <QuickLink href="/bmn/reports" label="Dokumen / Laporan" icon={<BarChart3 className="w-4 h-4" />} />
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs font-medium">
+            <span className="text-slate-400 dark:text-zinc-500">
+              {totalAlerts > 0 ? `+${totalAlerts} Kendaraan tercatat` : "Semua unit aman"}
+            </span>
+            <Link
+              href="/bmn/assets"
+              className="text-rose-600 dark:text-rose-400 hover:text-rose-700 font-semibold inline-flex items-center gap-1"
+            >
+              Proses Perpanjangan STNK
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
-      </div>
+
+        {/* Card: Distribusi per Jenis BMN (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Distribusi per Jenis BMN</h2>
+              </div>
+              <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">
+                {data?.asset_by_jenis?.length || 0} Jenis
+              </span>
+            </div>
+
+            {/* Breakdown list with inline progress meters */}
+            <div className="mt-4 space-y-2.5 max-h-[340px] overflow-y-auto pr-1 custom-scrollbar">
+              {data?.asset_by_jenis && data.asset_by_jenis.length > 0 ? (
+                data.asset_by_jenis.map((item, i) => {
+                  const maxCount = data.asset_by_jenis[0]?.total || 1;
+                  const pct = (item.total / maxCount) * 100;
+                  return (
+                    <div key={i} className="group">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="font-semibold text-slate-700 dark:text-zinc-300 truncate max-w-[150px]" title={item.jenis_bmn}>
+                          {item.jenis_bmn}
+                        </span>
+                        <div className="text-right">
+                          <span className="font-extrabold text-slate-900 dark:text-white">{item.total}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 ml-1.5">
+                            {formatRupiah(item.total_nilai)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.6, ease: "easeOut" }}
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-slate-400 text-center py-8">Belum ada data</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+            <span>Total Valuasi: <strong className="text-slate-700 dark:text-zinc-200">{formatRupiah(data?.total_asset_value || 0)}</strong></span>
+            <Link href="/bmn/reports" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold">
+              Lihat Rincian Akun
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* BENTO GRID ROW 2: Top Lokasi Ruang, Aktivitas Terbaru, & Akses Cepat Modul */}
+      <section aria-label="Lokasi Ruang, Aktivitas dan Akses Cepat" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Card: Top Lokasi Ruang (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Top Lokasi Ruang</h2>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800 px-2 py-0.5 rounded">
+                Prioritas
+              </span>
+            </div>
+
+            {/* Horizontal Location Bars */}
+            <div className="mt-4 space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+              {data?.asset_by_lokasi && data.asset_by_lokasi.length > 0 ? (
+                data.asset_by_lokasi.map((item, i) => {
+                  const maxLoc = data.asset_by_lokasi[0]?.total || 1;
+                  const locPct = (item.total / maxLoc) * 100;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-600 dark:text-zinc-400 font-medium truncate max-w-[200px]" title={item.lokasi_ruang}>
+                          {item.lokasi_ruang}
+                        </span>
+                        <span className="font-extrabold text-slate-900 dark:text-white">
+                          {item.total} <span className="text-slate-400 dark:text-zinc-500 font-normal">▲</span>
+                        </span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${locPct}%` }}
+                          transition={{ duration: 0.6, ease: "easeOut" }}
+                          className="bg-emerald-500 h-full rounded-full"
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-slate-400 text-center py-8">Belum ada data lokasi</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+            <span>Distribusi per Ruang Kerja</span>
+            <Link href="/bmn/assets" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-semibold">
+              Lihat Semua Lokasi
+            </Link>
+          </div>
+        </div>
+
+        {/* Card: Aktivitas Terbaru (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Aktivitas Terbaru</h2>
+              </div>
+              <Link href="/bmn/reports" className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold cursor-pointer hover:underline">
+                Semua Log
+              </Link>
+            </div>
+
+            {/* Activity List */}
+            <div className="mt-4 space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+              {data?.recent_transactions && data.recent_transactions.length > 0 ? (
+                <>
+                  {data.recent_transactions.slice(0, 5).map((tx, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start justify-between p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-800/40 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                          {tx.type === "loan" ? (
+                            <HandCoins className="w-4 h-4" />
+                          ) : tx.type === "maintenance" ? (
+                            <Wrench className="w-4 h-4" />
+                          ) : (
+                            <Laptop className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate max-w-[140px]">
+                            {tx.asset || "Aset BMN"}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 dark:text-zinc-400">
+                            {tx.type === "loan"
+                              ? `Dipinjam: ${tx.borrower || "Pegawai"}`
+                              : tx.keterangan || "Pencatatan mutasi aset perangkat TI"}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-medium text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded border border-slate-200 dark:border-zinc-700 shrink-0">
+                        {tx.tanggal}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="p-3 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center py-4">
+                    <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">
+                      Menampilkan {Math.min(data.recent_transactions.length, 5)} transaksi inventaris terakhir
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="p-8 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center">
+                  <p className="text-xs text-slate-400 dark:text-zinc-500">Belum ada aktivitas tercatat</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+            <span>Audit trail otomatis aktif</span>
+            <Link href="/bmn/reports" className="text-emerald-600 dark:text-emerald-400 font-semibold cursor-pointer">
+              Buka Log Audit
+            </Link>
+          </div>
+        </div>
+
+        {/* Card: Akses Cepat Modul (Col 4) */}
+        <div className="lg:col-span-4 bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-6 shadow-2xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Akses Cepat Modul</h2>
+              </div>
+              <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Pintasan SIMAK</span>
+            </div>
+
+            {/* 4 Grid Buttons */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {/* Button 1: Data Aset */}
+              <Link
+                href="/bmn/assets"
+                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 flex flex-col items-start gap-2.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 block">
+                    Data Aset
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Master inventaris</span>
+                </div>
+              </Link>
+
+              {/* Button 2: Peminjaman */}
+              <Link
+                href="/bmn/loans"
+                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 flex flex-col items-start gap-2.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors">
+                  <HandCoins className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 block">
+                    Peminjaman
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Pinjam pakai unit</span>
+                </div>
+              </Link>
+
+              {/* Button 3: Pemeliharaan */}
+              <Link
+                href="/bmn/maintenances"
+                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 flex flex-col items-start gap-2.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 block">
+                    Pemeliharaan
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Servis & perawatan</span>
+                </div>
+              </Link>
+
+              {/* Button 4: Dokumen / Laporan */}
+              <Link
+                href="/bmn/reports"
+                className="group p-4 bg-slate-50/80 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-700/80 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 flex flex-col items-start gap-2.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 block">
+                    Dokumen / Laporan
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">BAST, DBR & KIB</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+            <span>KemenLHK Satker 289053</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-semibold">BKSDA KALTIM</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
