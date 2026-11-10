@@ -50,8 +50,12 @@ Spring ditentukan oleh stiffness/damping, bukan janji selesai tepat pada durasi 
 | Filter kondisi | Shared highlight spring 500/40; `initial=false`, layoutId useId per instance | Tombol filter memakai aria-pressed; label on-solid mengikuti light/dark. Bukan role tabs karena bukan panel tab. |
 | Popover Export/filter tag dan dialog Impor | Animasi buka/tutup existing, durasi 150ms ease-out | Gunakan primitive aksesibel existing; Escape memulihkan fokus. Scope token/style dipasang pada konten portal. |
 | Loading | Pulse/spinner hanya selama permintaan; tabel memakai aria-busy | Tidak menyamarkan seluruh tabel saat refetch. Angka dan aksi tidak masuk bergiliran. |
+| Grid dan pergantian view | Layout langsung berganti; feedback kontrol 150ms, tanpa stagger/lift kartu | Hanya view aktif dirender; pertahankan query, filter, seleksi dan pagination. Skeleton saat preferensi belum siap. |
+| Preview foto grid | Dialog existing 150ms ease-out, satu gambar object-contain | Foto/judul/checkbox/Detail terpisah. Escape/focus trap/return; fallback foto kosong/rusak. |
 
 Tempo grafik **600ms** hanya untuk grafik dashboard (Kondisi Aset/Distribusi/Top Lokasi), bukan durasi hover tabel atau filter Data Aset. Efek Akses Cepat Modul dashboard tetap 140ms dan shared highlight existing.
+
+Grid otomatis <768px, tabel default >=768px, dengan preferensi tersimpan terpisah. Kartu vertikal mobile dua kolom mulai 360px (satu di bawahnya). Grid desktop dipadatkan: 3 kolom mulai 1024px, 4 pada 1280px, 5 pada 1440px, 6 pada 1920px; foto desktop setinggi 144px dan gap teks 6px. Mobile tetap rasio foto 4:3/gap 8px. Hierarki kode/NUP aktif dan NUP Lama mengikuti [panduan visual BMN](bmn-ui-ux-modernization/visual-guidelines.md#grid-data-aset-dan-preview-foto).
 
 CSS Data Aset ada pada `frontend/src/app/bmn/assets/assets.css`. Saat reduce, scope ini meniadakan animasi/transisi CSS dan transform tombol/tautan; provider BMN mengurangi shared-layout Motion. Pulse/spinner berhenti, tetapi label loading/status tetap tersedia. Aturan ini tidak menyentuh animasi modul lain. Uji ulang emulasi reduced motion diserahkan kepada pengguna sesuai arahan sesi ini; jangan mengklaim verifikasi browser reduce terbaru hanya dari inspeksi source.
 
@@ -161,6 +165,7 @@ Pemeriksaan otomatis yang tersedia:
 ```powershell
 node frontend/tests/bmn-dashboard-motion.cjs
 node frontend/tests/bmn-assets-ui.cjs
+node frontend/tests/bmn-asset-grid.cjs
 node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit --incremental false
 # Jalankan dari direktori frontend:
 node node_modules/eslint/bin/eslint.js src/app/bmn/page.tsx src/app/bmn/layout.tsx tests/bmn-dashboard-motion.cjs --max-warnings=0

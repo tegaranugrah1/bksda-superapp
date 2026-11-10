@@ -32,6 +32,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { getPrimaryPhoto } from "@/app/bmn/_lib/asset-photos";
+import { getAssetUser } from "@/app/bmn/_lib/asset-utils";
+export { getPrimaryPhoto, resolvePhotoUrl } from "@/app/bmn/_lib/asset-photos";
+export { getAssetUser } from "@/app/bmn/_lib/asset-utils";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 
@@ -74,10 +78,6 @@ export interface LoanAsset {
   foto_url?: string | null;
 }
 
-export function getAssetUser(asset: LoanAsset): string | null {
-  return asset.pengguna || asset.nama_pengguna || asset.penanggung_jawab?.nama_lengkap || null;
-}
-
 const NON_LOANABLE_TYPES = new Set([
   "BANGUNAN DAN GEDUNG",
   "TANAH",
@@ -88,65 +88,6 @@ const NON_LOANABLE_TYPES = new Set([
 export function formatMerkTipe(merk?: string | null, tipe?: string | null, merkTipe?: string | null): string | null {
   const parts = [merk, tipe, merkTipe].filter(Boolean).join(" ").split(/[\s,]+/).filter(Boolean);
   return parts.length ? Array.from(new Set(parts)).join(" ") : null;
-}
-
-/**
- * Converts Google Drive share URLs into direct embeddable images and prefixes relative paths
- */
-export function resolvePhotoUrl(rawUrl?: string | null): string | null {
-  if (!rawUrl) return null;
-  const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (match) {
-    return `https://lh3.googleusercontent.com/d/${match[1]}`;
-  }
-  if (rawUrl.startsWith("/")) {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL;
-    if (apiBase && apiBase.startsWith("http")) {
-      try {
-        const origin = new URL(apiBase).origin;
-        return `${origin}${rawUrl}`;
-      } catch {
-        return rawUrl;
-      }
-    }
-  }
-  return rawUrl;
-}
-
-/**
- * Returns the highest priority documentation photo available
- */
-export function getPrimaryPhoto(asset: LoanAsset): { url: string; label: string } | null {
-  const geotag = asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null);
-  if (geotag) {
-    const url = resolvePhotoUrl(geotag);
-    if (url) return { url, label: "Geotag" };
-  }
-  if (asset.foto_depan_url) {
-    const url = resolvePhotoUrl(asset.foto_depan_url);
-    if (url) return { url, label: "Tampak Depan" };
-  }
-  if (asset.foto_belakang_url) {
-    const url = resolvePhotoUrl(asset.foto_belakang_url);
-    if (url) return { url, label: "Tampak Belakang" };
-  }
-  if (asset.foto_kiri_url) {
-    const url = resolvePhotoUrl(asset.foto_kiri_url);
-    if (url) return { url, label: "Tampak Kiri" };
-  }
-  if (asset.foto_kanan_url) {
-    const url = resolvePhotoUrl(asset.foto_kanan_url);
-    if (url) return { url, label: "Tampak Kanan" };
-  }
-  if (asset.foto_lokasi_url) {
-    const url = resolvePhotoUrl(asset.foto_lokasi_url);
-    if (url) return { url, label: "Lokasi" };
-  }
-  if (asset.foto_url) {
-    const url = resolvePhotoUrl(asset.foto_url);
-    if (url) return { url, label: "Dokumentasi" };
-  }
-  return null;
 }
 
 interface AssetCatalogModalProps {

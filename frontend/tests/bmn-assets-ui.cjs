@@ -8,12 +8,15 @@ const ts = require('typescript');
 // Exercise the actual page with isolated query data; no browser, credentials or real API writes.
 let params = new URLSearchParams();
 let writable = true;
+let view = 'table';
 let state = [], cursor = 0;
 let replacedUrl;
 const queries = new Map();
 const assets = ['Baik', 'Rusak Ringan', 'Rusak Berat', 'Tidak diketahui'].map((kondisi, i) => ({
   id: `asset-${i}`, kode_barang: '123', nup: `${i}`, nama_barang: `Fixture ${i}`,
   kondisi, nilai_perolehan: 1000, tags: [],
+  pengguna: i === 0 ? 'Fixture User' : undefined,
+  nup_lama: i === 0 ? 'OLD-123' : undefined,
 }));
 let result = { data: { data: assets, meta: { last_page: 2, total: 14 } }, isLoading: false, isFetching: false };
 let lastRequest;
@@ -50,10 +53,13 @@ const imports = {
   '@/app/bmn/_components/TagAssignmentDialog': { TagAssignmentDialog: 'tag-dialog' },
   '@/app/bmn/_components/TagFilterCombobox': { TagFilterCombobox: 'tag-filter' },
   '@/app/bmn/_components/AssetTagsList': { AssetTagsList: 'tag-list' },
-  '@/app/bmn/_lib/asset-utils': { formatRupiah: value => `Rp ${value}`, deduplicateMerkTipe: value => value, shortenLokasi: value => value },
+  '@/app/bmn/_lib/asset-utils': { formatRupiah: value => `Rp ${value}`, deduplicateMerkTipe: value => value, shortenLokasi: value => value, getAssetUser: asset => asset.pengguna || asset.nama_pengguna || asset.penanggung_jawab?.nama_lengkap || null },
   '@/app/bmn/_lib/tag-utils': { getTagColorClasses: () => ({}) },
   '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [] },
   './assets.css': {},
+  './use-asset-view': { useAssetView: () => [view, value => { view = value; }] },
+  './_components/AssetPhotoPreview': { AssetPhotoPreview: 'photo-preview' },
+  '@/app/bmn/_lib/asset-photos': { getPrimaryPhoto: () => null },
 };
 const moduleObject = { exports: {} };
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/app/bmn/assets/page.tsx'), 'utf8'), {
@@ -68,7 +74,11 @@ function flatten(node) {
   return [node, ...flatten(node.props.children)];
 }
 function render() { cursor = 0; return flatten(moduleObject.exports.default()); }
-function button(nodes, text) { return nodes.find(n => n.type === 'button' && n.props.children === text); }
+function content(node) {
+  if (Array.isArray(node)) return node.map(content).join('');
+  return typeof node === 'object' && node ? content(node.props.children) : (node ?? '');
+}
+function button(nodes, text) { return nodes.find(n => n.type === 'button' && content(n).trim() === text); }
 function reset(search = '') { state = []; params = new URLSearchParams(search); return render(); }
 
 // Check the real solid token pairs used by Data Aset, without rounding into a pass.
@@ -121,9 +131,24 @@ for (const tokens of themeBlocks) {
   nodes.find(n => n.props['aria-label'] === 'Pilih aset Fixture 0 NUP 0').props.onChange();
   nodes = render();
   assert.equal(nodes.filter(n => n.type === 'tr' && n.props['aria-selected']).length, 1);
+  const queryBeforeSwitch = JSON.stringify(queries.get('bmn-assets').queryKey);
+  button(nodes, 'Grid').props.onClick();
+  nodes = render();
+  assert.equal(nodes.filter(n => n.type === 'table').length, 0, 'Only render the active view');
+  assert.equal(nodes.filter(n => n.type === 'article' && n.props['data-selected']).length, 1);
+  assert.equal(nodes.filter(n => n.type === 'photo-preview').length, assets.length);
+  assert(nodes.some(n => n.type === 'p' && content(n).includes('Pengguna: Fixture User')));
+  assert.equal(nodes.filter(n => n.type === 'p' && content(n) === 'NUP Lama: OLD-123').length, 1);
+  assert.equal(JSON.stringify(queries.get('bmn-assets').queryKey), queryBeforeSwitch, 'Switching view preserves query/filter/pagination');
+  button(nodes, 'Tabel').props.onClick();
+  nodes = render();
+  assert.equal(nodes.filter(n => n.type === 'article').length, 0);
+  assert.equal(nodes.filter(n => n.type === 'tr' && n.props['aria-selected']).length, 1);
   button(nodes, 'Batal').props.onClick();
   assert.equal(render().filter(n => n.type === 'tr' && n.props['aria-selected']).length, 0);
   reset('per_page=0');
+  render().find(n => n.props['aria-label'] === 'Jumlah aset per halaman').props.onChange({ target: { value: '0' } });
+  assert.equal(new URLSearchParams(replacedUrl.slice(1)).get('per_page'), '0', 'Keep large-page selection in the URL');
   await queries.get('bmn-assets').queryFn();
   assert.equal(lastRequest[1].params.per_page, 2000, 'Large page size must match the backend cap');
   writable = false;
@@ -132,9 +157,22 @@ for (const tokens of themeBlocks) {
   assert(!nodes.some(n => n.props.type === 'checkbox' || n.props.href === '/bmn/assets/create'));
   assert(nodes.filter(n => n.type === 'td').every(n => n.props.colSpan === 7));
   assert(button(nodes, 'Berikutnya').props.disabled);
+  view = 'grid';
+  result = { data: { data: [], meta: { last_page: 1, total: 0 } }, isLoading: false, isFetching: false };
+  nodes = render();
+  assert(nodes.some(n => n.props.children === 'Tidak ada data ditemukan'));
+  result = { data: { data: assets, meta: { last_page: 1, total: 4 } }, isLoading: false, isFetching: false };
+  nodes = render();
+  assert.equal(nodes.filter(n => n.type === 'article').length, 4);
+  assert(!nodes.some(n => n.props.type === 'checkbox' || n.props['aria-label']?.startsWith('Dispose aset')));
+  result = { data: undefined, isLoading: true, isFetching: true };
+  assert(render().some(n => n.props['aria-label'] === 'Memuat grid aset'));
+  view = null;
+  assert(render().some(n => n.props['aria-label'] === 'Menyiapkan tampilan aset'));
+  view = 'table';
   result = { data: { data: [], meta: { last_page: 1, total: 0 } }, isLoading: false, isFetching: false };
   nodes = render();
   assert(nodes.some(n => n.props.children === 'Tidak ada data ditemukan'));
   assert(button(nodes, 'Berikutnya').props.disabled);
-  console.log('PASS: solid token contrast, asset status semantics, link structure, pagination metadata, filters, selection/cancel, page cap, read-only/loading/empty states.');
+  console.log('PASS: solid token contrast, table/grid selection and query continuity, user/legacy NUP, pagination/filter/page cap, read-only/loading/empty/preparation states.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

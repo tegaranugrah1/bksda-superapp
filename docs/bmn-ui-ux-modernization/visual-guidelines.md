@@ -48,6 +48,18 @@ Status wajib disertai label/ikon. Aksi hapus/dispose memakai danger, tidak mengi
 
 Gerak spatial hanya berjalan pada no-preference. Pertahankan MotionConfig reducedMotion=user dan fallback CSS terlokalisasi; teks, status, seleksi dan fokus tetap tersedia. Pengujian browser reduced motion revisi terakhir diserahkan kepada pengguna, bukan dinyatakan lulus dari source saja.
 
+## Grid Data Aset dan preview foto
+
+- Default **grid pada lebar <768px**, tabel pada desktop. Tombol Tabel/Grid tersedia pada keduanya. Pilihan disimpan terpisah pada `bmn-assets-view-mobile` dan `bmn-assets-view-desktop`; bila storage diblokir, default responsif tetap bekerja dan pilihan sementara berlaku selama halaman aktif. Saat hidrasi/preferensi belum siap, tampilkan skeleton; render hanya satu view.
+- Kartu final **vertikal**, foto di atas dan teks di bawah. Mobile memakai satu kolom <360px dan dua kolom 360–1023px. Pada desktop ketika grid dipilih: tiga kolom mulai 1024px, empat mulai 1280px, lima mulai 1440px, enam mulai 1920px. Foto mobile rasio 4:3; desktop >=1024px memakai tinggi 144px dan gap teks 6px untuk mengurangi whitespace. Jangan mengubah mobile menjadi kartu horizontal.
+- Nama dan nilai perolehan memakai foreground utama. Kode barang/NUP aktif memakai accent-fg dengan font-weight 600. **NUP Lama hanya bila terisi, memakai foreground-muted normal**, sehingga tidak lebih dominan dari NUP aktif. Lokasi, merk dan pengguna tetap metadata. Nama pengguna bila ada mengikuti prioritas helper existing: pengguna → nama_pengguna → penanggung jawab.
+- Foto merupakan tombol preview tersendiri; judul/Detail merupakan tautan ke detail. Checkbox, tag dan hapus tetap kontrol terpisah dengan izin existing. Jangan membungkus seluruh kartu dalam link. Filter, seleksi, pagination, per-page dan query yang sama dipertahankan saat ganti view.
+- Reuse helper foto dari katalog peminjaman melalui `bmn/_lib/asset-photos.ts`: geotag → depan → belakang → kiri → kanan → lokasi → foto lama. BPKB/STNK bukan cover. Thumbnail lazy-load, tanpa request detail per kartu atau kredensial tambahan ke URL eksternal. Foto tidak tersedia/rusak mendapat placeholder tanpa retry loop.
+- Klik foto membuka **satu foto utama** dalam Dialog existing: object-contain, nama/NUP, tombol tutup, focus trap, Escape dan focus-return. Tidak ada carousel/zoom/upload/download. Preview light/dark membawa scope BMN sendiri melalui portal.
+- Hover kontrol dan dialog tetap 150ms; kartu tidak bergerak, scale atau masuk bergiliran. Warna, seleksi dan fokus tidak bergantung animasi. Dukungan reduced motion dipertahankan; emulasi browser revisi ini tetap diuji mandiri oleh pengguna.
+
+Verifikasi: fixture `bmn-assets-ui.cjs` dan `bmn-asset-grid.cjs` mencakup state tabel/grid, helper foto/pengguna, fallback gambar, storage/SSR dan permission UI. Browser diperiksa pada 359, 390, 767, 768, 1024, 1440 dan 1920px; preview/keyboard, seleksi lintas view, preferensi setelah reload dan light/dark diperiksa tanpa mengubah aset operasional. Rincian bukti serta batasnya ada di progress.
+
 ## Penerapan dan pemeriksaan
 
 - Reuse token `[data-module="bmn"]`, primitive UI dan library Motion yang sudah terpasang. Jangan mengubah token HSL shadcn menjadi hex atau menambah theme provider/dependency.
