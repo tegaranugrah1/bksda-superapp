@@ -148,6 +148,36 @@
   --ds-accent-fg: #047857;
   --ds-accent-soft: #ecfdf5;
   --ds-accent-soft-border: #a7f3d0;
+  --ds-surface-raised: #ffffff;
+  --ds-surface-muted: #f1f5f9;
+  --ds-border-subtle: #e2e8f0;
+  --ds-border-control: #7c899a;
+  --ds-secondary-bg: #f1f5f9;
+  --ds-secondary-hover: #e2e8f0;
+  --ds-secondary-active: #cbd5e1;
+  --ds-secondary-fg: #0f172a;
+  --ds-disabled-bg: #f1f5f9;
+  --ds-disabled-fg: #64748b;
+  --ds-danger-solid: #be123c;
+  --ds-danger-hover: #9f1239;
+  --ds-danger-active: #881337;
+  --ds-danger-on-solid: #ffffff;
+  --ds-danger-focus: #be123c;
+  --ds-status-success-bg: #ecfdf5;
+  --ds-status-success-fg: #047857;
+  --ds-status-success-border: #a7f3d0;
+  --ds-status-warning-bg: #fffbeb;
+  --ds-status-warning-fg: #92400e;
+  --ds-status-warning-border: #fde68a;
+  --ds-status-danger-bg: #fff1f2;
+  --ds-status-danger-fg: #be123c;
+  --ds-status-danger-border: #fecdd3;
+  --ds-status-info-bg: #eff6ff;
+  --ds-status-info-fg: #1d4ed8;
+  --ds-status-info-border: #bfdbfe;
+  --ds-status-neutral-bg: #f1f5f9;
+  --ds-status-neutral-fg: #475569;
+  --ds-status-neutral-border: #e2e8f0;
 }
 
 .dark[data-module="bmn"],
@@ -163,6 +193,36 @@
   --ds-accent-fg: #6ee7b7;
   --ds-accent-soft: #022c22;
   --ds-accent-soft-border: #065f46;
+  --ds-surface-raised: #27272a;
+  --ds-surface-muted: #27272a;
+  --ds-border-subtle: #3f3f46;
+  --ds-border-control: #71717a;
+  --ds-secondary-bg: #27272a;
+  --ds-secondary-hover: #3f3f46;
+  --ds-secondary-active: #52525b;
+  --ds-secondary-fg: #f8fafc;
+  --ds-disabled-bg: #27272a;
+  --ds-disabled-fg: #71717a;
+  --ds-danger-solid: #fb7185;
+  --ds-danger-hover: #fda4af;
+  --ds-danger-active: #fecdd3;
+  --ds-danger-on-solid: #0f172a;
+  --ds-danger-focus: #fda4af;
+  --ds-status-success-bg: #022c22;
+  --ds-status-success-fg: #6ee7b7;
+  --ds-status-success-border: #065f46;
+  --ds-status-warning-bg: #451a03;
+  --ds-status-warning-fg: #fcd34d;
+  --ds-status-warning-border: #92400e;
+  --ds-status-danger-bg: #4c0519;
+  --ds-status-danger-fg: #fda4af;
+  --ds-status-danger-border: #9f1239;
+  --ds-status-info-bg: #172554;
+  --ds-status-info-fg: #93c5fd;
+  --ds-status-info-border: #1e40af;
+  --ds-status-neutral-bg: #27272a;
+  --ds-status-neutral-fg: #d4d4d8;
+  --ds-status-neutral-border: #52525b;
 }
 
 /* Marquee animation for photo gallery */

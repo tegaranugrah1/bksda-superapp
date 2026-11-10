@@ -1,7 +1,7 @@
 # Panduan Warna BKSDA SuperApp
 
 Tanggal revisi: **10 November 2026**.
-Status: **spesifikasi token untuk penerapan bertahap; belum diterapkan ke kode aplikasi**.
+Status: **spesifikasi token untuk penerapan bertahap; sebagian telah diterapkan pada BMN, lihat bagian 9.1**.
 
 Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
 
@@ -31,7 +31,7 @@ Aksen boleh dipakai untuk tautan, focus ring, selected state, dan grafik yang re
 
 Source saat revisi memakai Tailwind v4, dengan palet bawaan OKLCH pada `frontend/node_modules/tailwindcss/theme.css`. Rasio hex di dokumen ini tidak otomatis membuktikan kontras kelas Tailwind yang sedang terpasang. Saat implementasi, gunakan token aplikasi eksplisit atau hitung kembali warna computed yang benar-benar dirender. Jangan mengganti palet global Tailwind hanya untuk menyamakan nama kelas dengan tabel ini.
 
-Gunakan namespace baru **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Token ini adalah spesifikasi, belum merupakan variabel aktif dalam aplikasi.
+Gunakan namespace **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Alias BMN sudah aktif pada scope `[data-module="bmn"]`; jangan menganggap semua token/modul pada dokumen ini sudah dimigrasikan.
 
 - Konvensi tema web yang sudah ada adalah class `.dark`; tidak perlu menambah theme provider baru.
 - `globals.css` saat ini menyimpan token shadcn seperti `--primary` sebagai channel HSL dan memanggil `hsl(var(--primary))`. **Jangan langsung mengisi token HSL itu dengan hex**, karena formatnya tidak cocok. Gunakan namespace baru atau adapter eksplisit saat migrasi per komponen.
@@ -51,7 +51,7 @@ Seluruh nilai dalam tabel adalah warna solid tanpa transparansi.
 | `--ds-fg` | `#0f172a` | `#f8fafc` | Teks utama pada permukaan netral. |
 | `--ds-fg-muted` | `#475569` | `#a1a1aa` | Teks pendukung; tetap dibaca, bukan dekorasi. |
 | `--ds-border-subtle` | `#e2e8f0` | `#3f3f46` | Pemisah dekoratif; bukan satu-satunya batas input atau indikator state. |
-| `--ds-border-control` | `#64748b` | `#71717a` | Batas kontrol bila diperlukan untuk mengenalinya. |
+| `--ds-border-control` | `#7c899a` | `#71717a` | Batas kontrol; light diperhalus setelah pemeriksaan Data Aset agar filter berderet tidak terlalu berat. |
 | `--ds-secondary-bg` | `#f1f5f9` | `#27272a` | Tombol sekunder. |
 | `--ds-secondary-hover` | `#e2e8f0` | `#3f3f46` | Hover tombol sekunder. |
 | `--ds-secondary-active` | `#cbd5e1` | `#52525b` | Pressed tombol sekunder. |
@@ -174,9 +174,9 @@ Pada 10 November 2026, pemeriksaan numerik membaca langsung tabel token dokumen 
 
 Rasio terkecil yang diuji untuk teks normal adalah **4,749275:1**; untuk batas kontrol/focus yang diuji adalah **3,081918:1**. Pemeriksaan tidak memakai pembulatan untuk menentukan kelulusan. Pasangan disabled dan border dekoratif tidak diklaim memenuhi ambang teks/kontrol aktif. Hasil ini hanya verifikasi nilai solid pada dokumen, bukan tes aplikasi atau pemeriksaan browser.
 
-## 7. Contoh penerapan nanti, bukan perubahan source saat ini
+## 7. Contoh implementasi token
 
-Contoh berikut menunjukkan pola variabel penuh yang kompatibel dengan hex dan class `.dark`. Ini hanya cuplikan di dokumen. Untuk modul lain, gunakan nilai tabel bagian 4; jangan membuat nama kelas Tailwind dinamis yang tidak dapat ditemukan compiler.
+Contoh berikut menunjukkan pola variabel penuh yang kompatibel dengan hex dan class `.dark`. Cakupan source yang benar-benar diterapkan dicatat pada bagian 9.1. Untuk modul lain, gunakan nilai tabel bagian 4; jangan membuat nama kelas Tailwind dinamis yang tidak dapat ditemukan compiler.
 
 ```css
 /* Contoh terlokalisasi pada root modul BMN. */
@@ -239,6 +239,18 @@ Tampilkan label, nilai, dan legenda. Jangan mengandalkan merah/hijau saja. Untuk
 - [ ] Periksa tema dan token pada komponen Radix yang dipindahkan melalui portal.
 - [ ] Dokumentasikan komponen yang sudah dimigrasikan dan yang masih memakai warna lama; jangan menyatakan seluruh modul sudah seragam berdasarkan satu halaman.
 - [ ] Jalankan typecheck/lint/regresi relevan ketika source diubah. Revisi dokumentasi saja tidak memerlukan tes aplikasi ulang dan tidak boleh dilaporkan sebagai kelulusan UI aktual.
+
+### 9.1 Penerapan Data Aset BMN — 10 November 2026
+
+Panduan khusus untuk pekerjaan visual modul BMN berikutnya: [Panduan Visual Modul BMN](bmn-ui-ux-modernization/visual-guidelines.md). Gunakan aturan border halus dan state di sana; detail token lengkap tetap bersumber dari dokumen ini.
+
+- `globals.css` menyediakan token fondasi, sekunder/disabled, semantik status dan danger light/dark dalam scope BMN. Aksen dashboard tetap. Halaman Data Aset memakai CSS terlokalisasi `frontend/src/app/bmn/assets/assets.css` melalui class `bmn-assets-ui`; modul lain tidak mendapat override global.
+- **Border normal Data Aset:** Search/NUP/select memakai border-subtle (`#e2e8f0` light, `#3f3f46` dark); Export/Impor memakai secondary dengan border transparan. Pengguna menilai bahkan versi antara `#7c899a` masih terlalu menonjol. Hover secondary memakai soft-border dan perubahan background; fokus tetap outline accent 2px dengan offset 2px. Teks, ikon, panah select dan affordance input tetap terlihat. Border halus ini bersifat dekoratif dan **tidak diklaim mencapai kontras 3:1**.
+- Token border-control tetap tersedia untuk konteks yang memerlukan batas tegas: light `#7c899a`, dark `#71717a`. Kontras solid token light terhadap putih **3,56:1**, canvas **3,40:1**, dan secondary **3,25:1**; angka ini bukan rasio border normal Data Aset setelah penyempurnaan terakhir. Penilaian seluruh halaman tidak dapat disimpulkan dari tes pasangan token.
+- Tambah Aset memakai pasangan accent-solid/on-solid; Export/Impor/Reset/Batal memakai secondary. Pilihan baris dan toolbar seleksi memakai accent-soft dengan checkbox/aria-selected; warna merah hanya untuk aksi destruktif atau status danger. Status Baik=success, Rusak Ringan=warning, Rusak Berat= danger, nilai tidak dikenal=neutral; pinjaman=info. Badge STNK memakai warning/danger sesuai label.
+- Metadata dan judul kolom memakai foreground muted yang tetap terbaca. Warna tag kategori buatan pengguna dipertahankan sebagai taksonomi, bukan diubah menjadi status sukses atau bahaya.
+- Popover Export/filter tag dan dialog Impor membawa `data-module="bmn"` sendiri karena dipindahkan ke body melalui portal; token surface/foreground tetap mengikuti tema. Detail aset/form create dan isi dialog pengelolaan tag bersama belum dimigrasikan menyeluruh lewat pekerjaan ini.
+- Aturan hover/kecepatan berada di [pedoman animasi, bagian Data Aset](animate-ui-motion-guidelines.md#data-aset-bmn). Warna state tidak boleh tergantung animasi: row hover/fokus 150ms tanpa lift, selected state persisten, dan aksi tabel selalu terlihat.
 
 ## 10. Rujukan
 

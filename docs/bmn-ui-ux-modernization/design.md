@@ -1,5 +1,7 @@
 # Desain Arsitektur Teknis (TDD): Modernisasi UI/UX & Pengerasan Keamanan BMN (Full Internals)
 
+> **Acuan visual terbaru (10 November 2026):** baca [Panduan Visual Modul BMN](visual-guidelines.md) untuk warna, border, hover dan kecepatan animasi. Cuplikan kelas visual di dokumen ini adalah snapshot lama; cakupan penerapan terbaru dicatat di panduan tersebut dan progress, bukan disimpulkan dari status historis di bawah.
+
 > **Arsitektur**: Next.js App Router (TypeScript) + Tailwind CSS + Lucide React + TanStack Query v5 + Laravel Sanctum  
 > **Pendekatan**: Ponytail Minimal Diff, zero boilerplate baru, reuse pola Kepegawaian  
 > **Status**: Deep Internals Hardened (Mencakup Seluruh Sub-halaman BMN)

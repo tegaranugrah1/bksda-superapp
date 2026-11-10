@@ -2,13 +2,15 @@
 
 Revisi: **10 November 2026**. Acuan warna: [DESIGN_SYSTEM_COLORS.md](DESIGN_SYSTEM_COLORS.md).
 
+Ringkasan aturan khusus modul: [Panduan Visual Modul BMN](bmn-ui-ux-modernization/visual-guidelines.md).
+
 ## 1. Status dan ruang lingkup
 
 Pedoman ini membedakan feedback kartu informasi dan navigasi, menjaga angka tetap terbaca, membatasi pulse untuk loading, dan menghindari klaim jaminan 60fps. Targetnya adalah aplikasi operasional: data mudah dibaca, navigasi jelas, serta feedback cepat. Animasi tidak membuktikan data sinkron, valid, atau sudah diaudit.
 
 **Implementasi saat revisi:** pola Animate UI digunakan melalui `framer-motion` yang sudah terpasang. Paket `@animate-ui/react` belum dipasang dan tidak diperlukan untuk perubahan ini. Jangan mengimpor API paket itu seolah sudah tersedia. Istilah Animate UI di sini menjelaskan referensi pola interaksi, bukan klaim penggunaan seluruh komponen resmi.
 
-Perubahan kode mencakup dashboard BMN, kebijakan MotionConfig di layout BMN, dan CSS aksi yang dibatasi oleh `[data-module="bmn"]`. Modul lain tidak dimigrasikan melalui pekerjaan ini.
+Penerapan mencakup dashboard BMN, kebijakan MotionConfig di layout BMN, serta Data Aset dan kontrol terkait. CSS dashboard dibatasi oleh `[data-module="bmn"]`; CSS Data Aset dibatasi oleh `bmn-assets-ui`, termasuk pada portal terkait. Modul lain tidak dimigrasikan melalui pekerjaan ini.
 
 ## 2. Prinsip gerak
 
@@ -36,6 +38,24 @@ Perubahan kode mencakup dashboard BMN, kebijakan MotionConfig di layout BMN, dan
 | Loading dashboard | Skeleton berlabel Memuat dashboard BMN | Pulse CSS hanya selama loading | Pulse dihentikan; skeleton dan label status tetap terlihat. |
 
 Spring ditentukan oleh stiffness/damping, bukan janji selesai tepat pada durasi tertentu. Hindari overshoot/bounce yang mengubah keterbacaan data. Jangan menambahkan delay 0.6–0.8 detik pada setiap baris atau segmen.
+
+### Data Aset BMN
+
+| Elemen | Kecepatan dan hover | Aturan penerapan |
+| --- | --- | --- |
+| Pembukaan halaman | 280ms, easing `[0.16, 1, 0.3, 1]`, offset 6px dari opacity 0.85 | Satu entrance; filter/pagination tidak memutar ulang pembukaan seluruh halaman. |
+| Tombol header Export/Impor/Tambah | Warna/border 150ms ease-out, lift 2px pada hover selama 150ms dengan easing yang sama seperti entrance | Class `bmn-lift`; berbeda dari lift 3px pada navigasi dashboard. Bukan untuk baris tabel. |
+| Baris tabel | Background 150ms ease-out saat hover atau focus-within | **Tanpa translate/scale/stagger**, agar kolom dan angka tidak bergeser. Selected state memakai accent-soft, checkbox dan aria-selected; mengalahkan hover biasa. |
+| Detail/hapus/tag/pagination/filter | Warna/border 150ms ease-out; fokus outline 2px, offset 2px | Aksi tabel selalu terlihat, bukan hanya ketika mouse masuk. Warna danger dipertahankan pada aksi hapus. |
+| Filter kondisi | Shared highlight spring 500/40; `initial=false`, layoutId useId per instance | Tombol filter memakai aria-pressed; label on-solid mengikuti light/dark. Bukan role tabs karena bukan panel tab. |
+| Popover Export/filter tag dan dialog Impor | Animasi buka/tutup existing, durasi 150ms ease-out | Gunakan primitive aksesibel existing; Escape memulihkan fokus. Scope token/style dipasang pada konten portal. |
+| Loading | Pulse/spinner hanya selama permintaan; tabel memakai aria-busy | Tidak menyamarkan seluruh tabel saat refetch. Angka dan aksi tidak masuk bergiliran. |
+
+Tempo grafik **600ms** hanya untuk grafik dashboard (Kondisi Aset/Distribusi/Top Lokasi), bukan durasi hover tabel atau filter Data Aset. Efek Akses Cepat Modul dashboard tetap 140ms dan shared highlight existing.
+
+CSS Data Aset ada pada `frontend/src/app/bmn/assets/assets.css`. Saat reduce, scope ini meniadakan animasi/transisi CSS dan transform tombol/tautan; provider BMN mengurangi shared-layout Motion. Pulse/spinner berhenti, tetapi label loading/status tetap tersedia. Aturan ini tidak menyentuh animasi modul lain. Uji ulang emulasi reduced motion diserahkan kepada pengguna sesuai arahan sesi ini; jangan mengklaim verifikasi browser reduce terbaru hanya dari inspeksi source.
+
+**Hasil penerapan Data Aset, 10 November 2026:** hover baris di browser terukur 150ms dengan transform none, aksi tabel opacity 1, fokus aksi hapus mendapat outline solid danger. Seleksi/batal, filter kondisi/tag, pagination, pencarian kosong/reset, Escape/focus-return Export dan dialog Impor tanpa upload diperiksa. Light/dark dan viewport 390×844 diperiksa; tidak ada luapan horizontal halaman, tabel tetap scroll internal dan fokus keyboard dapat mencapai aksi di sisi kanan. Border normal diperhalus mengikuti feedback pengguna: input/select memakai subtle, Export/Impor border transparan. Fixture source aktual menguji status, pagination meta, filter, seleksi/cancel, batas 2.000, read-only/loading/empty dan kontras pasangan token solid. Reduced motion terbaru tidak diuji di browser; tidak ada operasi simpan/hapus/upload terhadap aset untuk pengujian ini.
 
 ## 4. Reduced motion: library dan CSS berbeda
 
@@ -124,6 +144,8 @@ Data kosong tidak boleh terlihat seperti sedang diproses selamanya. Skeleton han
 | --- | --- | --- |
 | `frontend/src/app/bmn/page.tsx` | Satu entrance dashboard dan reveal grafik singkat; hover KPI tanpa aksi palsu; menghapus entrance KPI terpisah dan chart width dari nol; highlight pintasan serta feedback aksi | Diubah pada pekerjaan ini. |
 | `frontend/src/app/bmn/layout.tsx` | Menambah MotionConfig user, mempertahankan indikator sidebar, menyederhanakan transisi halaman menjadi opacity | Diubah sebagai konteks bersama BMN. |
+| `frontend/src/app/bmn/assets/page.tsx` dan `assets/assets.css` | Entrance 280ms, hover 150ms, filter shared highlight, aksi tabel terlihat, selected state dan status semantik | Penerapan Data Aset. |
+| `AssetImportDialog`, `AssetTagsList`, `TagFilterCombobox` | Kontrol keyboard asli; Export/tag popover serta Impor mengikuti token dan portal scope | Penerapan kontrol yang dipakai Data Aset. Dialog pengelolaan tag bersama belum dimigrasikan seluruhnya. |
 | `frontend/src/app/globals.css` | Entrance, reveal, hover KPI dan aksi scoped BMN, masing-masing dengan jalur reduced motion | Diubah pada pekerjaan ini. |
 | `frontend/src/app/bmn/settings/page.tsx` | Sudah mempunyai indikator tab shared layout dan perpindahan panel | Ditelusuri; isi halaman tidak dimigrasikan ulang. |
 | `frontend/src/app/bmn/reports/page.tsx` | Sudah mempunyai shared indicator dan AnimatePresence panel | Ditelusuri; isi halaman tidak dimigrasikan ulang. |
@@ -138,6 +160,7 @@ Pemeriksaan otomatis yang tersedia:
 
 ```powershell
 node frontend/tests/bmn-dashboard-motion.cjs
+node frontend/tests/bmn-assets-ui.cjs
 node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit --incremental false
 # Jalankan dari direktori frontend:
 node node_modules/eslint/bin/eslint.js src/app/bmn/page.tsx src/app/bmn/layout.tsx tests/bmn-dashboard-motion.cjs --max-warnings=0

@@ -79,24 +79,24 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 bg-zinc-950 border-zinc-800 hover:bg-zinc-900 text-zinc-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
+          className="bmn-button bmn-secondary bmn-lift flex items-center gap-2 px-4 rounded-xl font-semibold text-xs"
         >
-          <Upload className="w-4 h-4 text-emerald-500" /> Impor Excel
+          <Upload className="w-4 h-4 text-[var(--ds-accent-fg)]" /> Impor Excel
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-zinc-950 border-zinc-800 text-white sm:max-w-[425px]">
+      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-popover sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-black flex items-center gap-2">
-            <Upload className="w-5 h-5 text-emerald-500" /> Impor Massal Aset
+            <Upload className="w-5 h-5 text-[var(--ds-accent-fg)]" /> Impor Massal Aset
           </DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogDescription className="text-[var(--ds-fg-muted)]">
             Unggah file Excel (.xlsx) lalu review perubahan sebelum diterapkan ke database.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="file-upload" className="text-zinc-400 text-xs font-bold uppercase tracking-wider">
+            <Label htmlFor="file-upload" className="text-[var(--ds-fg-muted)] text-xs font-bold uppercase tracking-wider">
               Pilih Berkas
             </Label>
             <Input
@@ -104,17 +104,17 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleFileChange}
-              className="bg-zinc-900 border-zinc-800 focus:border-emerald-500 transition-all cursor-pointer file:text-emerald-500 file:font-bold file:mr-4"
+              className="bg-zinc-900 border-zinc-800 focus:border-emerald-500 transition-all cursor-pointer file:text-[var(--ds-accent-fg)] file:font-bold file:mr-4"
             />
           </div>
 
-          <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl space-y-2">
-            <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-2 uppercase tracking-widest">
+          <div className="bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] p-4 rounded-xl space-y-2">
+            <h4 className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2 uppercase tracking-widest">
               <AlertCircle className="w-4 h-4" /> Aturan Format
             </h4>
-            <ul className="text-[10px] text-zinc-400 list-disc list-inside space-y-1">
+            <ul className="text-xs text-[var(--ds-fg-muted)] list-disc list-inside space-y-1">
               <li>Header kolom wajib ada di baris pertama.</li>
-              <li>Kolom wajib: <code className="text-emerald-500">kode_barang</code>, <code className="text-emerald-500">nup</code>, <code className="text-emerald-500">nama_barang</code>.</li>
+              <li>Kolom wajib: <code className="text-[var(--ds-accent-fg)]">kode_barang</code>, <code className="text-[var(--ds-accent-fg)]">nup</code>, <code className="text-[var(--ds-accent-fg)]">nama_barang</code>.</li>
               <li>Data akan di-review dulu sebelum masuk database.</li>
               <li>Aset yang sudah ada akan ditandai sebagai &quot;update&quot;.</li>
               <li>Maksimal ukuran file: 20MB.</li>
@@ -126,14 +126,14 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}
-            className="text-zinc-500 hover:text-white hover:bg-zinc-900"
+            className="bmn-button bmn-secondary"
           >
             Batal
           </Button>
           <Button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all min-w-[120px]"
+            className="bmn-button bmn-primary font-semibold min-w-[120px]"
           >
             {isUploading ? (
               <>
