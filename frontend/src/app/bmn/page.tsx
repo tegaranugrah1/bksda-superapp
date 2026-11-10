@@ -67,25 +67,25 @@ function KpiCard({
       badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
       iconBox: "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white",
       rightText: "text-[var(--ds-accent-fg)]",
-      labelColor: "text-slate-400 dark:text-zinc-400",
+      labelColor: "text-slate-600 dark:text-zinc-400",
     },
     teal: {
-      badge: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800",
-      iconBox: "bg-teal-50 border-teal-100 text-teal-600 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:border-teal-900/40 dark:text-teal-400",
-      rightText: "text-teal-600 dark:text-teal-400",
-      labelColor: "text-slate-400 dark:text-zinc-400",
+      badge: "bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800",
+      iconBox: "bg-teal-50 border-teal-100 text-teal-700 group-hover:bg-teal-700 group-hover:text-white dark:bg-teal-950/60 dark:border-teal-900/40 dark:text-teal-400",
+      rightText: "text-teal-700 dark:text-teal-400",
+      labelColor: "text-slate-600 dark:text-zinc-400",
     },
     slate: {
-      badge: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
-      iconBox: "bg-slate-50 border-slate-200 text-slate-500 group-hover:bg-slate-700 group-hover:text-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400",
+      badge: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
+      iconBox: "bg-slate-50 border-slate-200 text-slate-600 group-hover:bg-slate-700 group-hover:text-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400",
       rightText: "text-[var(--ds-accent-fg)]",
-      labelColor: "text-slate-400 dark:text-zinc-400",
+      labelColor: "text-slate-600 dark:text-zinc-400",
     },
     rose: {
-      badge: "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
-      iconBox: "bg-rose-50 border-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white dark:bg-rose-950/60 dark:border-rose-900/40 dark:text-rose-400",
-      rightText: "text-rose-600 dark:text-rose-400",
-      labelColor: "text-rose-500",
+      badge: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800",
+      iconBox: "bg-rose-50 border-rose-100 text-rose-700 group-hover:bg-rose-700 group-hover:text-white dark:bg-rose-950/60 dark:border-rose-900/40 dark:text-rose-400",
+      rightText: "text-rose-700 dark:text-rose-400",
+      labelColor: "text-rose-700 dark:text-rose-400",
     },
   };
 
@@ -121,7 +121,7 @@ function KpiCard({
               </span>
             )}
           </div>
-          <div className="text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium flex items-center gap-1.5">
+          <div className="text-xs text-slate-600 dark:text-zinc-400 mt-1 font-medium flex items-center gap-1.5">
             {sub}
           </div>
         </div>
@@ -129,7 +129,7 @@ function KpiCard({
           {icon}
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-slate-600 dark:text-zinc-400 font-medium">
         <span>{footerLeft}</span>
         <span className={cn("font-semibold", style.rightText)}>{footerRight}</span>
       </div>
@@ -156,6 +156,21 @@ export default function BmnDashboardPage() {
     (data?.stnk_alerts?.expired?.length || 0) +
     (data?.stnk_alerts?.expiring_soon?.length || 0) +
     (data?.stnk_alerts?.plat_expired?.length || 0);
+
+  const statusKondisi =
+    baikPct >= 70
+      ? {
+          label: "Kondisi Baik",
+          sub: `${baik.toLocaleString("id-ID")} unit siap guna`,
+          badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+          dot: "bg-[var(--ds-accent-solid)]",
+        }
+      : {
+          label: "Perlu Perhatian",
+          sub: `${rusakBerat.toLocaleString("id-ID")} unit rusak berat`,
+          badge: "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+          dot: "bg-amber-500",
+        };
 
   if (isLoading) {
     return (
@@ -186,30 +201,26 @@ export default function BmnDashboardPage() {
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Dashboard BMN
             </h1>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
               Ikhtisar pengelolaan Barang Milik Negara BKSDA Kalimantan Timur.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <Link href="/bmn/assets">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-            >
-              <Package className="w-4 h-4 text-[var(--ds-accent-fg)]" />
-              <span>Daftar Aset</span>
-            </button>
+          <Link
+            href="/bmn/assets"
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+          >
+            <Package className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+            <span>Daftar Aset</span>
           </Link>
-          <Link href="/bmn/loans">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] active:bg-[var(--ds-accent-active)] text-[color:var(--ds-accent-on-solid)] font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent-fg)]"
-            >
-              <HandCoins className="w-4 h-4" />
-              <span>Peminjaman Aset</span>
-            </button>
+          <Link
+            href="/bmn/loans"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] active:bg-[var(--ds-accent-active)] text-[color:var(--ds-accent-on-solid)] font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-sm shadow-emerald-950/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent-fg)]"
+          >
+            <HandCoins className="w-4 h-4" />
+            <span>Peminjaman Aset</span>
           </Link>
         </div>
       </div>
@@ -234,8 +245,8 @@ export default function BmnDashboardPage() {
             </>
           }
           icon={<Package className="w-5 h-5" />}
-          footerLeft="Tercatat aktif di SIMAK"
-          footerRight="99.8% Valid"
+          footerLeft="Tercatat aktif di SIMAK-BMN"
+          footerRight={totalAssets > 0 ? `${baikPct.toFixed(1)}% Layak Guna` : "Belum Ada Data"}
           color="emerald"
         />
 
@@ -250,8 +261,8 @@ export default function BmnDashboardPage() {
             </>
           }
           icon={<TrendingUp className="w-5 h-5" />}
-          footerLeft="Audited BPK"
-          footerRight="WTP Status"
+          footerLeft="Akumulasi nilai buku"
+          footerRight={`${data?.asset_by_jenis?.length || 0} Kategori BMN`}
           color="teal"
         />
 
@@ -278,14 +289,14 @@ export default function BmnDashboardPage() {
           value={rusakBerat.toLocaleString("id-ID")}
           unit="Unit"
           sub={
-            <span className="text-xs text-rose-500 font-semibold flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <span className="text-xs text-rose-700 dark:text-rose-400 font-semibold flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400 shrink-0" />
               Perlu perhatian
             </span>
           }
           icon={<ShieldAlert className="w-5 h-5" />}
           footerLeft="Menunggu usulan lelang"
-          footerRight="Tindak Lanjut"
+          footerRight={rusakBerat > 0 ? `${rusakBeratPct.toFixed(1)}% dari Total` : "Nol Rusak"}
           color="rose"
         />
       </motion.section>
@@ -302,23 +313,25 @@ export default function BmnDashboardPage() {
                 </div>
                 <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Kondisi Aset BMN</h2>
               </div>
-              <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
+              <span className="text-xs text-slate-600 dark:text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
             </div>
 
             {/* Main Index Display */}
             <div className="mt-4 flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-zinc-400 uppercase">INDEX KELAIKAN</p>
+                <p className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-zinc-400 uppercase">INDEX KELAIKAN</p>
                 <div className="flex items-baseline gap-2 mt-1">
                   <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                     {baikPct.toFixed(1)}%
                   </span>
-                  <span className="text-xs font-semibold text-[var(--ds-accent-fg)]">Siap Operasional</span>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
+                    {statusKondisi.sub}
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--ds-accent-soft)] rounded-full border border-[var(--ds-accent-soft-border)]">
-                <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] animate-pulse" />
-                <span className="text-xs font-bold text-[var(--ds-accent-fg)]">Kondisi Prima</span>
+              <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full border", statusKondisi.badge)}>
+                <span className={cn("w-2 h-2 rounded-full", statusKondisi.dot)} />
+                <span className="text-xs font-bold">{statusKondisi.label}</span>
               </div>
             </div>
 
@@ -331,7 +344,7 @@ export default function BmnDashboardPage() {
                     animate={{ width: `${baikPct}%` }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="bg-[var(--ds-accent-solid)] h-full"
-                    title={`Baik (Prima): ${baikPct.toFixed(1)}%`}
+                    title={`Baik: ${baikPct.toFixed(1)}%`}
                   />
                 )}
                 {rusakRinganPct > 0 && (
@@ -353,22 +366,22 @@ export default function BmnDashboardPage() {
                   />
                 )}
               </div>
-              <div className="flex justify-between text-[11px] text-slate-400 dark:text-zinc-500 font-medium">
+              <div className="flex justify-between text-[11px] text-slate-600 dark:text-zinc-400 font-medium">
                 <span>0%</span>
-                <span className="text-[var(--ds-accent-fg)] font-semibold">Standar Prima ≥ 90%</span>
+                <span className="text-[var(--ds-accent-fg)] font-semibold">Standar Kelaikan ≥ 90%</span>
                 <span>100%</span>
               </div>
             </div>
 
             {/* Condition Details List */}
             <div className="mt-6 space-y-3">
-              {/* Baik (Prima) */}
+              {/* Baik */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 flex items-center justify-between hover:bg-[var(--ds-accent-soft)] transition-colors">
                 <div className="flex items-center gap-2.5">
                   <span className="w-3 h-3 rounded-full bg-[var(--ds-accent-solid)] shadow-sm shrink-0" />
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Baik (Prima)</h4>
-                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Siap digunakan untuk operasional</p>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Baik</h4>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">Siap digunakan untuk operasional</p>
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-2">
@@ -385,12 +398,12 @@ export default function BmnDashboardPage() {
                   <span className="w-3 h-3 rounded-full bg-amber-400 shadow-sm shrink-0" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Rusak Ringan</h4>
-                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Perlu perbaikan atau servis berkala</p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">Perlu perbaikan atau servis berkala</p>
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-2">
                   <span className="text-xs font-extrabold text-slate-800 dark:text-zinc-100">{rusakRingan.toLocaleString("id-ID")} Unit</span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200">
                     {rusakRinganPct.toFixed(1)}%
                   </span>
                 </div>
@@ -402,12 +415,12 @@ export default function BmnDashboardPage() {
                   <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm shrink-0" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Rusak Berat</h4>
-                    <p className="text-[11px] text-slate-400 dark:text-zinc-400">Usulan penghapusan / lelang BMN</p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">Usulan penghapusan / lelang BMN</p>
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-2">
                   <span className="text-xs font-extrabold text-slate-800 dark:text-zinc-100">{rusakBerat.toLocaleString("id-ID")} Unit</span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200">
                     {rusakBeratPct.toFixed(1)}%
                   </span>
                 </div>
@@ -415,7 +428,7 @@ export default function BmnDashboardPage() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Kategori Kemenkeu</span>
             <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] hover:underline font-semibold">
               Unduh Laporan Mutasi
@@ -460,19 +473,19 @@ export default function BmnDashboardPage() {
                           </div>
                           <div>
                             <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
-                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                              {v.nama_barang} <span className="font-normal text-slate-600 dark:text-zinc-400">({v.merk})</span>
                             </h4>
-                            <p className="text-[11px] font-mono font-bold text-slate-600 dark:text-zinc-300 mt-0.5">
+                            <p className="text-[11px] font-mono font-bold text-slate-700 dark:text-zinc-300 mt-0.5">
                               {v.no_polisi || "Tanpa Polisi"}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 text-[10px] font-bold">
-                            <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 text-[10px] font-bold">
+                            <AlertTriangle className="w-3 h-3 text-rose-700 dark:text-rose-400" />
                             Expired
                           </span>
-                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
+                          <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
                         </div>
                       </Link>
                     </motion.div>
@@ -485,12 +498,12 @@ export default function BmnDashboardPage() {
                         className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
                             <Car className="w-4 h-4" />
                           </div>
                           <div>
                             <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
-                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                              {v.nama_barang} <span className="font-normal text-slate-600 dark:text-zinc-400">({v.merk})</span>
                             </h4>
                             <p className="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 mt-0.5">
                               {v.no_polisi || "Tanpa Polisi"}
@@ -498,11 +511,11 @@ export default function BmnDashboardPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40 text-[10px] font-bold">
                             <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                             Pajak Dekat
                           </span>
-                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
+                          <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_pajak_stnk}</p>
                         </div>
                       </Link>
                     </motion.div>
@@ -515,12 +528,12 @@ export default function BmnDashboardPage() {
                         className="p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-orange-50/30 dark:hover:bg-orange-950/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
                             <Car className="w-4 h-4" />
                           </div>
                           <div>
                             <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
-                              {v.nama_barang} <span className="font-normal text-slate-500 dark:text-zinc-400">({v.merk})</span>
+                              {v.nama_barang} <span className="font-normal text-slate-600 dark:text-zinc-400">({v.merk})</span>
                             </h4>
                             <p className="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 mt-0.5">
                               {v.no_polisi || "Tanpa Polisi"}
@@ -528,10 +541,10 @@ export default function BmnDashboardPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-900/40 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-900/40 text-[10px] font-bold">
                             Ganti Plat
                           </span>
-                          <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
+                          <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
                         </div>
                       </Link>
                     </motion.div>
@@ -543,7 +556,7 @@ export default function BmnDashboardPage() {
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Semua Pajak & Plat Terkendali</p>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 max-w-[200px]">
+                  <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-1 max-w-[200px]">
                     Tidak ada kendaraan operasional yang terlambat bayar pajak.
                   </p>
                 </div>
@@ -552,8 +565,8 @@ export default function BmnDashboardPage() {
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs font-medium">
-            <span className="text-slate-400 dark:text-zinc-500">
-              {totalAlerts > 0 ? `+${totalAlerts} Kendaraan tercatat` : "Semua unit aman"}
+            <span className="text-slate-600 dark:text-zinc-400">
+              {totalAlerts > 0 ? `${totalAlerts} kendaraan perlu perhatian` : "Semua unit aman"}
             </span>
             <Link
               href="/bmn/assets"
@@ -575,7 +588,7 @@ export default function BmnDashboardPage() {
                 </div>
                 <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Distribusi per Jenis BMN</h2>
               </div>
-              <span className="text-xs text-slate-400 dark:text-zinc-500 font-semibold">
+              <span className="text-xs text-slate-600 dark:text-zinc-400 font-semibold">
                 {data?.asset_by_jenis?.length || 0} Jenis
               </span>
             </div>
@@ -594,7 +607,7 @@ export default function BmnDashboardPage() {
                         </span>
                         <div className="text-right">
                           <span className="font-extrabold text-slate-900 dark:text-white">{item.total}</span>
-                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 ml-1.5">
+                          <span className="text-[10px] text-slate-600 dark:text-zinc-400 ml-1.5">
                             {formatRupiah(item.total_nilai)}
                           </span>
                         </div>
@@ -616,7 +629,7 @@ export default function BmnDashboardPage() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Total Valuasi: <strong className="text-slate-700 dark:text-zinc-200">{formatRupiah(data?.total_asset_value || 0)}</strong></span>
             <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] hover:underline font-semibold">
               Lihat Rincian Akun
@@ -651,11 +664,11 @@ export default function BmnDashboardPage() {
                   return (
                     <div key={i}>
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-600 dark:text-zinc-400 font-medium truncate max-w-[200px]" title={item.lokasi_ruang}>
+                        <span className="text-slate-700 dark:text-zinc-300 font-medium truncate max-w-[200px]" title={item.lokasi_ruang}>
                           {item.lokasi_ruang}
                         </span>
                         <span className="font-extrabold text-slate-900 dark:text-white">
-                          {item.total} <span className="text-slate-400 dark:text-zinc-500 font-normal">▲</span>
+                          {item.total.toLocaleString("id-ID")} <span className="text-xs font-normal text-slate-600 dark:text-zinc-400">Unit</span>
                         </span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -675,7 +688,7 @@ export default function BmnDashboardPage() {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Distribusi per Ruang Kerja</span>
             <Link href="/bmn/assets" className="text-[var(--ds-accent-fg)] hover:underline font-semibold">
               Lihat Semua Lokasi
@@ -721,33 +734,33 @@ export default function BmnDashboardPage() {
                           <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate max-w-[140px]">
                             {tx.asset || "Aset BMN"}
                           </h4>
-                          <p className="text-[11px] text-slate-400 dark:text-zinc-400">
+                          <p className="text-[11px] text-slate-600 dark:text-zinc-400">
                             {tx.type === "loan"
                               ? `Dipinjam: ${tx.borrower || "Pegawai"}`
                               : tx.keterangan || "Pencatatan mutasi aset perangkat TI"}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-mono font-medium text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded border border-slate-200 dark:border-zinc-700 shrink-0">
+                      <span className="text-xs font-mono font-medium text-slate-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded border border-slate-200 dark:border-zinc-700 shrink-0">
                         {tx.tanggal}
                       </span>
                     </div>
                   ))}
                   <div className="p-3 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center py-4">
-                    <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium">
+                    <p className="text-xs text-slate-600 dark:text-zinc-400 font-medium">
                       Menampilkan {Math.min(data.recent_transactions.length, 5)} transaksi inventaris terakhir
                     </p>
                   </div>
                 </>
               ) : (
                 <div className="p-8 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center">
-                  <p className="text-xs text-slate-400 dark:text-zinc-500">Belum ada aktivitas tercatat</p>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400">Belum ada aktivitas tercatat</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Audit trail otomatis aktif</span>
             <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] font-semibold cursor-pointer hover:underline">
               Buka Log Audit
@@ -765,7 +778,7 @@ export default function BmnDashboardPage() {
                 </div>
                 <h2 className="font-bold text-slate-800 dark:text-zinc-200 text-sm tracking-tight">Akses Cepat Modul</h2>
               </div>
-              <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium">Pintasan SIMAK</span>
+              <span className="text-xs text-slate-600 dark:text-zinc-400 font-medium">Pintasan SIMAK</span>
             </div>
 
             {/* 4 Grid Buttons */}
@@ -782,7 +795,7 @@ export default function BmnDashboardPage() {
                   <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
                     Data Aset
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Master inventaris</span>
+                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Master inventaris</span>
                 </div>
               </Link>
 
@@ -798,7 +811,7 @@ export default function BmnDashboardPage() {
                   <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
                     Peminjaman
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Pinjam pakai unit</span>
+                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Pinjam pakai unit</span>
                 </div>
               </Link>
 
@@ -814,7 +827,7 @@ export default function BmnDashboardPage() {
                   <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
                     Pemeliharaan
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Servis & perawatan</span>
+                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">Servis & perawatan</span>
                 </div>
               </Link>
 
@@ -830,13 +843,13 @@ export default function BmnDashboardPage() {
                   <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[var(--ds-accent-fg)] block">
                     Dokumen / Laporan
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">BAST, DBR & KIB</span>
+                  <span className="text-[10px] text-slate-600 dark:text-zinc-400">BAST, DBR & KIB</span>
                 </div>
               </Link>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-400 font-medium">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>KemenLHK Satker 289053</span>
             <span className="text-[var(--ds-accent-fg)] font-semibold">BKSDA KALTIM</span>
           </div>

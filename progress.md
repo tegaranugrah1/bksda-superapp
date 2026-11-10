@@ -1794,3 +1794,31 @@
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - HTTP `http://localhost:3000/bmn`: **200 OK**.
 
+
+
+---
+
+## 69. Penyempurnaan Dashboard BMN: Logika Data, Keterbacaan Kontras WCAG & Pembersihan Semantik (10 November 2026)
+
+- **Latar Belakang & Evaluasi Temuan**:
+  - Audit antarmuka pada Dashboard BMN mengidentifikasi 5 catatan:
+    1. Label "Kondisi Prima" muncul statis pada angka 70,4%, bertentangan dengan standar kelaikan ≥90%.
+    2. Teks statis tiruan audit ("99.8% Valid", "Audited BPK", "WTP Status") yang tidak memiliki sumber data verifikasi riil.
+    3. Label teks kecil (10–11px) pada tema terang terlalu pucat dengan kontras di bawah target WCAG AA (label abu-abu ~2,63:1, label merah "RUSAK BERAT" ~3,75:1).
+    4. Simbol panah tren `▲` pada lokasi aset menyesatkan karena bukan data pertumbuhan; label `+9 Kendaraan tercatat` menimbulkan kesan penambahan baru padahal berupa total hitungan peringatan.
+    5. Tombol header membungkus elemen `<button>` di dalam `<Link>`, melanggar spesifikasi HTML interaktif bertingkat dan mengganggu fokus keyboard.
+- **Tindakan Perbaikan**:
+  - `frontend/src/app/bmn/page.tsx`:
+    - **Pembersihan Istilah & Status Netral**: Menghapus seluruh kata "Prima" pada kartu Kondisi Aset BMN: "Baik (Prima)" diubah menjadi "Baik", "Standar Prima ≥ 90%" diubah menjadi "Standar Kelaikan ≥ 90%". Status badge menjadi netral dan data-driven: `baikPct >= 70%` menampilkan "Kondisi Baik" & subteks `${baik} unit siap guna`, sedangkan `< 70%` menampilkan "Perlu Perhatian".
+    - **Pembersihan Klaim Audit**: Mengganti teks statis dengan metrik riil: Card 1 footer kanan menampilkan `${baikPct.toFixed(1)}% Layak Guna`, Card 2 menampilkan jumlah kategori BMN aktif dan akumulasi nilai buku.
+    - **Peningkatan Kontras (WCAG 2.2 AA)**:
+      - Mengganti kelas teks pucat `text-slate-400` / `text-slate-500` menjadi `text-slate-600 dark:text-zinc-400` (rasio kontras naik dari 2,63:1 menjadi **7,49:1**).
+      - Mengganti label merah `text-rose-500` menjadi `text-rose-700 dark:text-rose-400` (rasio kontras naik dari 3,75:1 menjadi **6,24:1**).
+    - **Koreksi Semantik & Tren**: Menghapus tanda `▲` dari daftar lokasi (diganti satuan "Unit" yang jelas), serta mengubah `+${totalAlerts} Kendaraan tercatat` menjadi `${totalAlerts} kendaraan perlu perhatian`.
+    - **Pembersihan Nested Interactive**: Menghapus tag `<button>` di dalam `<Link href="...">` pada header action, menjadikan `<Link>` sebagai satu-satunya elemen interaktif berfokus keyboard.
+  - `frontend/src/app/bmn/layout.tsx`:
+    - Memperbaiki kontras teks judul grup navigasi sidebar (`text-slate-600 dark:text-zinc-400 font-bold`).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - Status: Terverifikasi dan di-commit pada sesi ini.

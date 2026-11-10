@@ -173,7 +173,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
               return (
                 <div key={groupName} className="space-y-1">
                   {!collapsed && (
-                    <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">
+                    <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-zinc-400">
                       {groupName}
                     </p>
                   )}
