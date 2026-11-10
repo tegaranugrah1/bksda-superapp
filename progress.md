@@ -1822,3 +1822,16 @@
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
   - `php backend/tests/portal_security_check.php`: **PASS**.
   - Status: Terverifikasi dan di-commit pada sesi ini.
+
+
+---
+
+## 70. Koreksi Indikator Kondisi BMN dan Pemulihan Database Lokal (10 November 2026)
+
+- **Perbaikan tampilan:** pada `frontend/src/app/bmn/page.tsx`, hapus klasifikasi kondisi berdasarkan ambang 70% dan caption standar 90% yang belum disepakati. Kartu kini menyatakan fakta Aset berkondisi baik, persentase, jumlah baik dibanding total, dan Distribusi kondisi aset. Footer valuasi menjadi Akumulasi nilai perolehan, mengikuti field yang dijumlahkan backend. Footer KPI memakai persentase berkondisi baik, bukan klaim layak guna. Total nol menampilkan tanda pisah pada persentase utama; baris jumlah dapat wrap.
+- **Ponytail:** net implementasi -21 baris, tanpa dependency/helper baru. Tidak mengubah perhitungan atau data aset.
+- **Verifikasi source:** TypeScript seluruh frontend noEmit dan ESLint file dashboard dengan max-warnings=0 lulus. Tidak menjalankan ulang suite keamanan/backend untuk perubahan tampilan. Guard total nol diperiksa melalui source/typecheck, tanpa mengosongkan database operasional.
+- **Gangguan saat verifikasi:** Laravel tetap berjalan dan endpoint up merespons 200, tetapi koneksi database lokal mengalami timeout. Docker melaporkan engine gagal dan WSL docker-desktop sempat Stopped. Setelah engine pulih, database sehat di dalam container tetapi koneksi Windows tetap terputus: log forwarding port 5435 menunjuk IP lama 172.21.0.4, sedangkan IP aktual bksda-db adalah 172.21.0.2. Log WSL mencatat ExecError dan recovery; pemicu awal WSL berhenti belum dipastikan.
+- **Pemulihan:** pemeriksaan engine dan penyalakan Docker Desktop diikuti restart hanya container bksda-db memperbarui forwarding. Protokol database di port 5435 kembali merespons dalam sekitar 0,02 detik, query koneksi Laravel menghasilkan 1, dan browser kembali menampilkan 1.633 aset. Tidak mengubah konfigurasi port/env, data/volume, migration, atau batas waktu PHP. Service lain tidak diubah; hasil ini tidak menyatakan seluruh service Docker sehat.
+- **Verifikasi browser aktual:** light/dark menampilkan 70,4% dan 1.150 dari 1.633 unit, label nilai perolehan yang benar, serta tidak memuat istilah/ambang lama. Tema dikembalikan ke light seperti awal. Bukti visual bmn-fixed-light.png dan bmn-fixed-dark.png tersimpan pada direktori visualisasi chat. Tidak melakukan pengujian data kosong terhadap database operasional.
+- **Status:** perubahan hanya source dashboard dan tambahan progress ini, belum di-commit/push/deploy. Seluruh byte progress sebelumnya dipertahankan.

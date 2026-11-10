@@ -157,21 +157,6 @@ export default function BmnDashboardPage() {
     (data?.stnk_alerts?.expiring_soon?.length || 0) +
     (data?.stnk_alerts?.plat_expired?.length || 0);
 
-  const statusKondisi =
-    baikPct >= 70
-      ? {
-          label: "Kondisi Baik",
-          sub: `${baik.toLocaleString("id-ID")} unit siap guna`,
-          badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
-          dot: "bg-[var(--ds-accent-solid)]",
-        }
-      : {
-          label: "Perlu Perhatian",
-          sub: `${rusakBerat.toLocaleString("id-ID")} unit rusak berat`,
-          badge: "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
-          dot: "bg-amber-500",
-        };
-
   if (isLoading) {
     return (
       <div className="p-6 md:p-8 space-y-6 animate-pulse max-w-[1600px] mx-auto">
@@ -246,7 +231,7 @@ export default function BmnDashboardPage() {
           }
           icon={<Package className="w-5 h-5" />}
           footerLeft="Tercatat aktif di SIMAK-BMN"
-          footerRight={totalAssets > 0 ? `${baikPct.toFixed(1)}% Layak Guna` : "Belum Ada Data"}
+          footerRight={totalAssets > 0 ? `${baikPct.toFixed(1)}% berkondisi baik` : "Belum Ada Data"}
           color="emerald"
         />
 
@@ -261,7 +246,7 @@ export default function BmnDashboardPage() {
             </>
           }
           icon={<TrendingUp className="w-5 h-5" />}
-          footerLeft="Akumulasi nilai buku"
+          footerLeft="Akumulasi nilai perolehan"
           footerRight={`${data?.asset_by_jenis?.length || 0} Kategori BMN`}
           color="teal"
         />
@@ -316,22 +301,16 @@ export default function BmnDashboardPage() {
               <span className="text-xs text-slate-600 dark:text-zinc-400 font-semibold">{totalAssets.toLocaleString("id-ID")} Aset</span>
             </div>
 
-            {/* Main Index Display */}
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-zinc-400 uppercase">INDEX KELAIKAN</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    {baikPct.toFixed(1)}%
-                  </span>
-                  <span className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
-                    {statusKondisi.sub}
-                  </span>
-                </div>
-              </div>
-              <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full border", statusKondisi.badge)}>
-                <span className={cn("w-2 h-2 rounded-full", statusKondisi.dot)} />
-                <span className="text-xs font-bold">{statusKondisi.label}</span>
+            {/* Persentase aset berkondisi baik */}
+            <div className="mt-4">
+              <p className="text-[11px] font-bold tracking-wider text-slate-600 dark:text-zinc-400 uppercase">Aset berkondisi baik</p>
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-1">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {totalAssets > 0 ? `${baikPct.toFixed(1)}%` : "—"}
+                </span>
+                <span className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
+                  {baik.toLocaleString("id-ID")} dari {totalAssets.toLocaleString("id-ID")} unit
+                </span>
               </div>
             </div>
 
@@ -368,7 +347,7 @@ export default function BmnDashboardPage() {
               </div>
               <div className="flex justify-between text-[11px] text-slate-600 dark:text-zinc-400 font-medium">
                 <span>0%</span>
-                <span className="text-[var(--ds-accent-fg)] font-semibold">Standar Kelaikan ≥ 90%</span>
+                <span className="text-slate-600 dark:text-zinc-400 font-semibold">Distribusi kondisi aset</span>
                 <span>100%</span>
               </div>
             </div>
