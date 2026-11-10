@@ -5,9 +5,10 @@ const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
 let state = [], cursor = 0, writable = true, reducedMotion = false, handle, focused;
+let assetRouteId = 'fixture';
 const el = (type, props, key) => ({ type, props: props || {}, key });
 const react = {
-  use: () => ({ id: 'fixture' }), useId: () => 'fixture', useEffect() {},
+  use: () => ({ id: assetRouteId }), useId: () => 'fixture', useEffect() {},
   useRef: value => { const i = cursor++; return state[i] ||= { current: value }; },
   useState: initial => {
     const i = cursor++;
@@ -32,7 +33,7 @@ const imports = {
   sonner: { toast: { info() {}, success() {}, error() {} } },
   '@/lib/api': { api: new Proxy({}, { get: () => () => { throw Error('Fixture must not access API'); } }) },
   '@tanstack/react-query': { useQuery: opts => opts.queryKey[0] === 'bmn-asset' ? { data: asset, ...query } : { data: [] }, useQueryClient: () => ({}) },
-  'next/navigation': { useRouter: () => ({}), redirect() {} },
+  'next/navigation': { useRouter: () => ({}), redirect(url) { throw new Error(`Redirect ${url}`); } },
   'next/link': { default: 'a' },
   'framer-motion': { motion: { span: 'motion.span', div: 'motion.div' }, AnimatePresence: 'presence', useReducedMotion: () => reducedMotion },
   '@/app/bmn/_components/TagBadge': { TagBadge: 'tag' },
@@ -80,6 +81,9 @@ assert(text(render(detail.DetailRow, { label: 'Empty', value: null })[0]).includ
 const gallery = load('_components/PhotoGallery.tsx', '\nexport { Lightbox, PhotoCardSlot, VehicleDocumentCard };');
 imports['./_components/PhotoGallery'] = { ...gallery, PhotoGallery: 'gallery' };
 const page = load('page.tsx');
+assetRouteId = 'create';
+assert.throws(() => render(page.default, {}), { message: 'Redirect /bmn/assets' });
+assetRouteId = 'fixture';
 reset();
 let nodes = render(page.default, {});
 for (const [condition, expected] of [['Baik', 'success'], ['Rusak Ringan', 'warning'], ['Rusak Berat', 'danger'], ['Lain', 'neutral'], [null, 'neutral']]) {

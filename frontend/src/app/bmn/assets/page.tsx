@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Plus, Loader2, Eye, Trash2, Package, Download, Tag as TagIcon, X, UserRound, Handshake, AlertTriangle, LayoutGrid, Table2 } from "lucide-react";
+import { Search, Loader2, Eye, Trash2, Package, Download, Tag as TagIcon, X, UserRound, Handshake, AlertTriangle, LayoutGrid, Table2 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
 import { useRole } from "@/hooks/useRole";
@@ -291,16 +291,7 @@ export default function BmnAssetsPage() {
               </button>
             </PopoverContent>
           </Popover>
-          {canWrite && (
-            <>
-              {canImport && <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />}
-              {canCreate && (
-                <Button asChild size="sm" className="bmn-button bmn-primary bmn-lift rounded-xl gap-2 text-xs">
-                  <Link href="/bmn/assets/create"><Plus className="w-3.5 h-3.5" /> Tambah Aset</Link>
-                </Button>
-              )}
-            </>
-          )}
+          {canImport && <AssetImportDialog onImportSuccess={() => { setPage(1); queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }} />}
         </div>
       </div>
 

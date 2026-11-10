@@ -85,7 +85,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
     if (href === "/bmn/assets") {
       return (
         pathname === "/bmn/assets" ||
-        (pathname.startsWith("/bmn/assets/") && !pathname.startsWith("/bmn/assets/create"))
+        pathname.startsWith("/bmn/assets/")
       );
     }
     if (href === "/bmn/auction-batches") {

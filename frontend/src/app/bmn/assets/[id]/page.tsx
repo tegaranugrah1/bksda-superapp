@@ -57,7 +57,7 @@ export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
 
   if (id === "create") {
-    redirect("/bmn/assets/create");
+    redirect("/bmn/assets");
   }
 
   return <AssetDetail assetId={id} />;

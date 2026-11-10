@@ -39,7 +39,7 @@ Status wajib disertai label/ikon. Aksi hapus/dispose memakai danger, tidak mengi
 | Grafik Kondisi Aset, Distribusi per Jenis, Top Lokasi | 600ms ease-out mengikuti tempo grafik Personil Kepegawaian; angka langsung bernilai akhir. |
 | KPI dashboard | Hover naik 2px/150ms, border ringan dan shadow; kartu informasi tidak diberi aksi klik palsu atau cursor pointer. |
 | Navigasi header/baris kendaraan dashboard | Hover naik 3px/150ms; border peringatan mengikuti semantiknya. Sisakan ruang agar lift/outline tidak terpotong. |
-| Header Data Aset | Export/Impor/Tambah naik 2px pada hover; feedback 150ms. |
+| Header Data Aset | Export/Impor naik 2px pada hover; feedback 150ms. |
 | Baris tabel Data Aset | Background hover/focus-within 150ms, **tanpa gerak/scale/stagger**. Aksi detail/hapus selalu terlihat. |
 | Filter, aksi kecil dan pagination Data Aset | Warna/border 150ms; outline fokus jelas. Highlight kondisi memakai spring 500/40 dengan ID per instance. |
 | Popover Export/filter tag dan dialog Impor | 150ms ease-out melalui primitive aksesibel existing; Escape/focus-return tetap bekerja. |
@@ -68,7 +68,7 @@ Verifikasi: fixture `bmn-assets-ui.cjs` dan `bmn-asset-grid.cjs` mencakup state 
 - Periksa normal/hover/focus/selected/disabled/loading/empty, light/dark, keyboard serta viewport sempit. Tabel lebar boleh scroll di dalam kontainernya; seluruh halaman tidak boleh melebar.
 - Jalankan pemeriksaan yang relevan dan catat bukti browser versus fixture/source. Jangan mengubah data operasional hanya untuk memicu animasi.
 
-Implementasi saat panduan ini ditulis mencakup dashboard, Data Aset, detail aset dan kontrol Export/filter tag/Impor yang disebutkan. Halaman lain, form create dan isi dialog pengelolaan tag bersama belum dinyatakan seragam atau selesai diaudit. Cuplikan kelas pada dokumen modernisasi lama adalah snapshot; gunakan token/pola pada panduan ini untuk pekerjaan visual baru.
+Implementasi saat panduan ini ditulis mencakup dashboard, Data Aset, detail aset dan kontrol Export/filter tag/Impor yang disebutkan. Form create manual telah dihapus karena penambahan aset melalui Impor Excel SIMAN. Halaman lain dan isi dialog pengelolaan tag bersama belum dinyatakan seragam atau selesai diaudit. Cuplikan kelas pada dokumen modernisasi lama adalah snapshot; gunakan token/pola pada panduan ini untuk pekerjaan visual baru.
 
 ## Detail aset BMN — 10 November 2026
 
@@ -86,3 +86,7 @@ Pola pergantian kelompok isi pada detail ini disebut **animasi di dalam tab**. U
 Penyempurnaan area unggah: seluruh bidang tombol kosong sampai tepi frame menjadi target klik. Tombol enabled memakai cursor pointer; hover/focus-visible memakai accent-soft pada frame serta accent-fg pada border/teks selama150ms ease-out, tanpa lift/scale. Outline keyboard tetap tersedia. Read-only tetap native disabled dengan cursor default dan tanpa feedback aktif. Tautan Drive terpisah, bukan tombol bersarang.
 
 Cursor interaktif detail: semua button enabled dan tautan href memakai pointer, termasuk unggah BPKB/STNK, verifikasi, unduh, tag, tab, edit/simpan/batal dan tombol Dialog preview. Native disabled atau aria-disabled=true memakai default. Aturan dipusatkan di detail.css, tidak mengubah Button global atau halaman/modul lain; jangan mengulang kelas cursor per tombol.
+
+## Penambahan aset melalui Excel SIMAN
+
+Penambahan aset dilakukan melalui **Data Aset → Impor Excel → review impor**. Formulir manual dan tombol Tambah Aset dihapus atas keputusan pengguna pada10 November2026; jangan membuat ulang wizard tersebut berdasarkan dokumen historis. URL lama `/bmn/assets/create` diarahkan ke `/bmn/assets`, tanpa mengambil detail aset bernama create. Impor tetap mengikuti izin `bmn.import.review`; filter, tabel/grid dan pengeditan detail aset tetap tersedia. Penghapusan ini hanya mencakup alur frontend manual, tidak menghapus data, API backend atau proses impor/review existing.

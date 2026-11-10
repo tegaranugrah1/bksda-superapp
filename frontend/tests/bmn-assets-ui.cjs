@@ -116,8 +116,8 @@ for (const tokens of themeBlocks) {
 (async () => {
   let nodes = reset();
   assert.deepEqual(nodes.filter(n => n.props['data-status']).map(n => n.props['data-status']), ['success', 'warning', 'danger', 'neutral']);
-  const add = nodes.find(n => n.type === 'a' && n.props.href === '/bmn/assets/create');
-  assert(add && !flatten(add.props.children).some(n => n.type === 'button'), 'Create link must not contain a button');
+  assert(!nodes.some(n => n.props.href === '/bmn/assets/create'), 'Manual asset creation is removed');
+  assert(nodes.some(n => n.type === 'import-dialog'), 'Keep Excel import for authorized users');
   assert(button(nodes, 'Sebelumnya').props.disabled);
   assert(!button(nodes, 'Berikutnya').props.disabled);
   button(nodes, 'Berikutnya').props.onClick();
@@ -154,6 +154,7 @@ for (const tokens of themeBlocks) {
   writable = false;
   result = { data: undefined, isLoading: true, isFetching: true };
   nodes = reset();
+  assert(!nodes.some(n => n.type === 'import-dialog'), 'Read-only users cannot import');
   assert(!nodes.some(n => n.props.type === 'checkbox' || n.props.href === '/bmn/assets/create'));
   assert(nodes.filter(n => n.type === 'td').every(n => n.props.colSpan === 7));
   assert(button(nodes, 'Berikutnya').props.disabled);

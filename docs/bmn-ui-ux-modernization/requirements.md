@@ -1,5 +1,7 @@
 # Dokumen Kebutuhan Teknis (SRS): Modernisasi UI/UX & Pengerasan Keamanan Modul BMN (Full Internals)
 
+> **Keputusan terbaru (10 November 2026):** formulir Tambah Aset manual dihapus. Penambahan aset hanya melalui Impor Excel dari data SIMAN dan review existing. Catatan wizard di analisis historis bukan instruksi membuat ulang halaman tersebut.
+
 > **ID Inisiatif**: `BMN-MODERNIZATION-2026`  
 > **Standar Rujukan**: Modul Kepegawaian (`frontend/src/app/kepegawaian/`)  
 > **Prinsip**: Ponytail (Zero Bloat, Deletion > Addition, Boring > Clever) + UI-UX-Pro-Max + Security Audit  
@@ -40,10 +42,10 @@ Pemeriksaan mendalam pada kode sumber sub-halaman BMN menemukan titik kritis int
 * **FR-02.2**: Ukuran tombol aksi minimal 36–44px (memenuhi WCAG 2.1 AA).
 * **FR-02.3**: Pertahankan integritas 8 parameter sinkronisasi URL `searchParams` dengan debouncing 400ms.
 
-### FR-03: Wizard Tambah Aset Berbasis Zinc & Responsif (`bmn/assets/create/page.tsx`)
-* **FR-03.1**: Terapkan dukungan penuh Dark Mode palet Zinc (`bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800/80 text-slate-900 dark:text-zinc-100`) pada seluruh 5 langkah wizard.
-* **FR-03.2**: Stepper 5 langkah responsif: di layar mobile `< 640px`, tampilkan indikator nomor ringkas (*compact stepper badge*) atau pill dengan scroll horizontal.
-* **FR-03.3**: Field input diubah menjadi `grid-cols-1 sm:grid-cols-2` agar nyaman diisi di smartphone.
+### FR-03: Penambahan Aset Melalui Impor Excel SIMAN
+* **FR-03.1**: Tidak menyediakan formulir atau pintasan Tambah Aset manual; gunakan Impor Excel pada Data Aset dengan izin import review existing.
+* **FR-03.2**: URL lama `/bmn/assets/create` kembali ke `/bmn/assets`, tanpa redirect loop atau request detail aset dengan ID create.
+* **FR-03.3**: Proses upload/review impor, data aset dan pengeditan detail existing tetap dipertahankan.
 
 ### FR-04: Transaksi Peminjaman Tanpa Bug & React Query (`bmn/loans/`)
 * **FR-04.1 (`loans/create/page.tsx`)**: Filter aset yang tersedia untuk dipinjam agar aset berstatus `active_loan` atau `Rusak Berat` diberi badge non-aktif dan dicegah pemilihannya.

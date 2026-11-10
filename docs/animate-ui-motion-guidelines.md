@@ -44,7 +44,7 @@ Spring ditentukan oleh stiffness/damping, bukan janji selesai tepat pada durasi 
 | Elemen | Kecepatan dan hover | Aturan penerapan |
 | --- | --- | --- |
 | Pembukaan halaman | 280ms, easing `[0.16, 1, 0.3, 1]`, offset 6px dari opacity 0.85 | Satu entrance; filter/pagination tidak memutar ulang pembukaan seluruh halaman. |
-| Tombol header Export/Impor/Tambah | Warna/border 150ms ease-out, lift 2px pada hover selama 150ms dengan easing yang sama seperti entrance | Class `bmn-lift`; berbeda dari lift 3px pada navigasi dashboard. Bukan untuk baris tabel. |
+| Tombol header Export/Impor | Warna/border 150ms ease-out, lift 2px pada hover selama 150ms dengan easing yang sama seperti entrance | Class `bmn-lift`; berbeda dari lift 3px pada navigasi dashboard. Bukan untuk baris tabel. |
 | Baris tabel | Background 150ms ease-out saat hover atau focus-within | **Tanpa translate/scale/stagger**, agar kolom dan angka tidak bergeser. Selected state memakai accent-soft, checkbox dan aria-selected; mengalahkan hover biasa. |
 | Detail/hapus/tag/pagination/filter | Warna/border 150ms ease-out; fokus outline 2px, offset 2px | Aksi tabel selalu terlihat, bukan hanya ketika mouse masuk. Warna danger dipertahankan pada aksi hapus. |
 | Filter kondisi | Shared highlight spring 500/40; `initial=false`, layoutId useId per instance | Tombol filter memakai aria-pressed; label on-solid mengikuti light/dark. Bukan role tabs karena bukan panel tab. |

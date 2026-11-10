@@ -68,14 +68,8 @@ Menghapus tombol mengambang `fixed bottom-6 right-6 p-4 rounded-full` yang mengh
 
 ## 2. Blueprint Teknis Sub-Halaman Internal ("Jeroan" BMN)
 
-### 2.1 Wizard Tambah Aset (`assets/create/page.tsx`)
-* **Dukungan Dark Mode Total**:
-  * Kontainer wizard: `bg-white dark:bg-zinc-900 ring-1 ring-slate-200/60 dark:ring-zinc-800 text-slate-900 dark:text-zinc-100`.
-  * Input & Select fields: `bg-white dark:bg-zinc-800/80 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 focus:ring-emerald-500`.
-* **Stepper Responsif**:
-  * Pada layar `< 640px`, sembunyikan teks label step, hanya tampilkan badge nomor step (`1/5`) dengan indikator progress bar horizontal, atau scroll horizontal berpenanda.
-* **Tata Letak Grid Responsif**:
-  * Ubah seluruh `grid grid-cols-2 gap-4` menjadi `grid grid-cols-1 sm:grid-cols-2 gap-4` agar field input tidak menyempit di bawah 160px pada layar ponsel.
+### 2.1 Penambahan Aset Melalui Impor Excel SIMAN
+Keputusan pengguna pada10 November2026 menggantikan blueprint wizard manual sebelumnya. File `assets/create/page.tsx` dan tombol Tambah Aset pada katalog dihapus. Penambahan menggunakan dialog Impor Excel dan review yang tersedia, mengikuti izin existing. Guard ID `create` pada route detail mengarahkan URL lama ke Data Aset agar tidak diproses sebagai ID aset atau redirect ke dirinya sendiri. Data/API backend/proses impor tidak dihapus.
 
 ### 2.2 Formulir Peminjaman Baru (`loans/create/page.tsx`)
 * **Filter Aset Tersedia**:
