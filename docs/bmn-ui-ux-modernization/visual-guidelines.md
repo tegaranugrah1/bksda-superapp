@@ -68,7 +68,7 @@ Verifikasi: fixture `bmn-assets-ui.cjs` dan `bmn-asset-grid.cjs` mencakup state 
 - Periksa normal/hover/focus/selected/disabled/loading/empty, light/dark, keyboard serta viewport sempit. Tabel lebar boleh scroll di dalam kontainernya; seluruh halaman tidak boleh melebar.
 - Jalankan pemeriksaan yang relevan dan catat bukti browser versus fixture/source. Jangan mengubah data operasional hanya untuk memicu animasi.
 
-Implementasi saat panduan ini ditulis mencakup dashboard, Data Aset, detail aset dan kontrol Export/filter tag/Impor yang disebutkan. Form create manual telah dihapus karena penambahan aset melalui Impor Excel SIMAN. Halaman lain dan isi dialog pengelolaan tag bersama belum dinyatakan seragam atau selesai diaudit. Cuplikan kelas pada dokumen modernisasi lama adalah snapshot; gunakan token/pola pada panduan ini untuk pekerjaan visual baru.
+Cakupan per11 November2026 mencakup dashboard, Data Aset, detail aset, kontrol Export/filter tag/Impor yang disebutkan, serta delapan menu sidebar pada [matriks audit](remaining-sidebar-audit.md). Form create manual telah dihapus karena penambahan aset melalui Impor Excel SIMAN. Isi dialog pengelolaan tag bersama di Data Aset berada di luar audit delapan menu ini. Cuplikan kelas pada dokumen modernisasi lama adalah snapshot; gunakan token/pola pada panduan ini untuk pekerjaan visual baru.
 
 ## Detail aset BMN — 10 November 2026
 
@@ -90,3 +90,44 @@ Cursor interaktif detail: semua button enabled dan tautan href memakai pointer, 
 ## Penambahan aset melalui Excel SIMAN
 
 Penambahan aset dilakukan melalui **Data Aset → Impor Excel → review impor**. Formulir manual dan tombol Tambah Aset dihapus atas keputusan pengguna pada10 November2026; jangan membuat ulang wizard tersebut berdasarkan dokumen historis. URL lama `/bmn/assets/create` diarahkan ke `/bmn/assets`, tanpa mengambil detail aset bernama create. Impor tetap mengikuti izin `bmn.import.review`; filter, tabel/grid dan pengeditan detail aset tetap tersedia. Penghapusan ini hanya mencakup alur frontend manual, tidak menghapus data, API backend atau proses impor/review existing.
+
+
+## Sidebar BMN lanjutan — penerapan bertahap
+
+Peminjaman (termasuk wizard/katalog/dialog), Pemeliharaan, Import Review (daftar/detail) dan Aset Dihapus kini memakai `.bmn-assets-ui.bmn-standard-ui`, termasuk scope tersendiri pada portal. Kontrol enabled memakai pointer, disabled default; feedback150ms ease-out. Tabel hanya berubah background pada hover/focus-within; kartu katalog tidak lift/zoom. Entrance tunggal halaman280ms, tanpa replay pada filter/refetch. Status memakai token semantik light/dark, seleksi memakai Emerald, hapus memakai danger. Input/secondary mengikuti border halus BMN.
+
+Pergantian langkah wizard memakai **animasi di dalam tab** melalui `BmnTabContent`:160ms per fase, presence wait/initial=false, opacity/y8, reduced motion durasi0; draft tetap di induk. Filter summary Import Review adalah tombol aria-pressed, memakai feedback warna150ms tanpa animasi panel data. GET filter mempertahankan panel/input agar fokus ketik tidak hilang; aksi mutasi disabled selama fetching. Aset Dihapus membersihkan pilihan dan konfirmasi saat pencarian/halaman/jumlah berubah agar target aksi tetap terlihat.
+
+Status audit seluruh menu dan batas bukti browser/fixture dicatat pada [audit sidebar lanjutan](remaining-sidebar-audit.md). Catatan tahap awal ini telah dilengkapi penutupan seluruh8 menu pada11 November2026 di matriks tersebut. Uji browser reduced motion tetap oleh pengguna; fallback source/fixture diperiksa. Seluruh perubahan sidebar disimpan dalam commit lokal, tanpa push atau deploy.
+
+
+## Pengaturan Master BMN — 10 November 2026
+
+Tiga tab master mengikuti token surface/fg/border BMN; aksi positif Emerald, hapus danger. Kategori form adalah klasifikasi netral, bukan warning/success. Warna pilihan tag dan badge tag pengguna tetap berasal dari palette konfigurasi existing; tidak dipaksa satu warna. Swatch memakai aria-pressed, outline dan check hitam/putih yang terbaca di semua warna, tanpa scale/zoom. Aksi ikon minimal36px dengan pointer enabled; hapus tag induk/lokasi/jenis yang masih terpakai native disabled sesuai guard existing. Metadata minimal12px.
+
+Tab memakai underline2px spring420/32, initial=false dan useId; ArrowLeft/Right/Home/End memilih serta memfokuskan tab. Kelompok isi memakai BmnTabContent160ms per fase, fallback reduced motion0. Query/pengetikan tidak memutar ulang entrance. Form/konfirmasi membawa scope BMN pada portal, surface solid dan footer surface-muted, feedback150ms, fokus kembali ke pemicu setelah Escape/batal. ConfirmDialog menerima scope opsional; pemanggil modul lain tidak otomatis mendapat warna BMN. Tabel data scroll internal; header empty disembunyikan pada mobile agar pesan kosong/CTA terlihat.
+
+
+## Dokumen & Laporan BMN — 11 November 2026
+
+Export, empat form dokumen, riwayat dan picker barang memakai token BMN. Ketiga unduhan Emerald; secondary berborder transparan; hapus danger; klasifikasi jenis dokumen netral, status Draf/Terbit warning/success. Native checkbox di tabel diberi nama dan selected state Emerald. Pemilih barang memakai label+checkbox native (klik/Space memilih sekali), scope portal BMN, lebar maksimal viewport-2rem,150ms, Escape/fokus kembali. Area KTP tetap native file input yang dapat dicapai Tab, dengan hover/focus-within accent150ms tanpa lift; read-only disabled. Kertas/preview resmi tetap putih/hitam dan komponen cetaknya tidak dimodifikasi.
+
+Tab utama underline2px spring420/32/useId; pergantian isi tab/jenis160ms per fase memakai BmnTabContent. **State form dimiliki halaman induk** melalui hook form yang diekspor dari file tab masing-masing, diteruskan sebagai formState bertipe ReturnType. Child boleh unmount selama presence wait; field, pilihan aset, override pihak dan berkas tetap tersimpan di memori halaman. Tidak memakai localStorage; meninggalkan halaman/reload mengakhiri draft. Sinkronisasi record edit dijalankan sekali per objek mode, bukan setiap remount. Respons riwayat sudah resource lengkap sehingga fetch detail berulang dihapus agar tidak menimpa draft. BA Pemakaian menggabungkan snapshot historis dengan opsi aset pegawai tanpa mengganti seleksi arsip. Blob KTP dilepas oleh pemilik state saat URL diganti atau halaman ditutup, bukan ketika berpindah tab.
+
+Tablist menyisakan padding4px/scroll-margin4px untuk outline2px+offset2px. Navigasi panah/Home/End memfokuskan dan scrollIntoView nearest sehingga indikator/fokus tidak terpotong di mobile. Label/metadata aplikasi minimal12px; isi dokumen cetak mengikuti format dokumennya.
+
+## Kandidat Rusak Berat — 11 November 2026
+
+Buat Paket adalah aksi Emerald. Seleksi checkbox dapat lintas halaman; jumlah dan nilai menjumlahkan seluruh pilihan, bukan halaman terlihat saja. Aset tidak eligible tidak dapat dipilih; warning dokumen tetap advisory yang bisa dibuka keyboard dengan aria-expanded/controls. Tabel scroll di kontainer pada mobile; empty/error tidak memaksa lebar tabel. Dialog scopeless tidak digunakan: portal memakai bmn-assets-ui/bmn-standard-ui dan token BMN, tombol minimal36px/pointer/150ms, nama wajib, submit disabled saat fetching/pending. Tidak ada transaksi operasional dibuat saat pengujian.
+
+## Paket Lelang, editor dan penutupan sidebar — 11 November 2026
+
+Daftar Paket Lelang menggunakan link tunggal Button asChild (tanpa tombol bersarang), label pencarian/filter, status semantik dan pagination aman saat fetching. Gagal GET diberi retry, tidak ditampilkan sebagai empty state. Detail memakai empat tab aktif: Aset & Nilai Taksiran, Pusat Generator Dokumen, Realisasi & Pindah Paket, Riwayat Audit. Draft ada di pemilik page; pola motion160ms per fase/underline420/32 tetap berlaku.
+
+Tambah Aset di sini berarti memasukkan aset existing ke paket, bukan menghidupkan formulir tambah manual. Kandidat dipilih melalui checkbox bernama dan selected row; baris pasif tidak diberi klik palsu. Peringatan kelengkapan advisory tetap tidak memblokir aset eligible. Dialog kalkulator umum/kendaraan, quick edit dokumen aset, jadwal ulang dan pembatalan memakai scope BMN150ms/Escape/focus-return. Tabel keuangan scroll internal pada mobile.
+
+Editor isi dokumen memakai Dialog existing dengan focus trap, nama/deskripsi aksesibel dan Escape; toolbar membungkus sehingga Simpan/Tutup tetap terlihat di390px. Narasi read-only memakai fieldset disabled dan guard simpan, tetapi subtab SK tetap dapat dibuka. Kertas resmi di sisi pratinjau tetap putih/hitam; toolbar/form aplikasi memakai tema BMN. Jangan men-tokenisasi isi komponen dokumen cetak berdasarkan tema layar. Kertas kerja kendaraan mempertahankan ukuran sel cetak dengan pengecualian .kk-page pada fondasi CSS.
+
+Izin UI mengikuti capability: delete terpisah dari update; dokumen read-only mematikan edit; realisasi/finalisasi mengikuti bmn.auction.finalize; transisi mengikuti update; pindah paket memerlukan create+update dan finalisasi jika paket lama belum final. Backend permission tetap otoritas; tidak ada perubahan izin backend dalam pekerjaan visual ini.
+
+Sidebar/header memakai token BMN, metadata12px, pointer dan focus outline. Menu aktif ber-aria-current=page, toggle mobile ber-aria-expanded/controls; drawer tertutup tidak terlihat/focusable pada mobile; Escape mengembalikan fokus ke toggle. Scope bmn-shell tidak mengubah efek Quick Actions dashboard. [Matriks audit dan hasil tes seluruh8 menu](remaining-sidebar-audit.md).

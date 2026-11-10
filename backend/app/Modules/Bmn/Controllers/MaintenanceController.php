@@ -10,12 +10,13 @@ use App\Modules\Bmn\Services\MaintenanceService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MaintenanceController extends Controller
 {
     public function __construct(private MaintenanceService $maintenanceService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $query = AssetMaintenance::with('asset')->latest();
 

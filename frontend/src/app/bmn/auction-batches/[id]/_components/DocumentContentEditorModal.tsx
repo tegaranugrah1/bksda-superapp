@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useId } from "react";
 import {
   X,
   RotateCcw,
@@ -16,6 +16,9 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BmnTabContent } from "@/app/bmn/_components/BmnTabContent";
+import { motion, useReducedMotion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 
 import type { AuctionBatch } from "../../_lib/api";
@@ -49,6 +52,7 @@ export interface DocumentItemInfo {
 
 interface DocumentContentEditorModalProps {
   open: boolean;
+  readOnly: boolean;
   onClose: () => void;
   doc: DocumentItemInfo;
   batch: AuctionBatch;
@@ -68,6 +72,7 @@ interface DocumentContentEditorModalProps {
 
 export function DocumentContentEditorModal({
   open,
+  readOnly,
   onClose,
   doc,
   batch,
@@ -84,6 +89,9 @@ export function DocumentContentEditorModal({
   onSaveContent,
   onPrintDoc,
 }: DocumentContentEditorModalProps) {
+  const opener = useRef<HTMLElement | null>(document.activeElement as HTMLElement | null);
+  const tabId = useId();
+  const reduced = useReducedMotion();
   const meta = (batch.metadata as Record<string, any>) || {};
   const savedContents = meta.document_contents || {};
 
@@ -127,12 +135,14 @@ export function DocumentContentEditorModal({
   if (!open) return null;
 
   const handleResetToDefault = () => {
+    if (readOnly || isSaving) return;
     const defaults = getDefaultDocumentContent(doc.key);
     setContent(JSON.parse(JSON.stringify(defaults)));
     toast.info("Isi dokumen telah direset ke format standar instansi.");
   };
 
   const handleSave = async () => {
+    if (readOnly || isSaving) return;
     try {
       setIsSaving(true);
       await onSaveContent(doc.key, content);
@@ -151,36 +161,36 @@ export function DocumentContentEditorModal({
   const isPernyataan = ["sptjm", "sptj_limit", "sp_tugas", "sk_kebenaran"].includes(doc.key);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 overflow-hidden">
-      <div className="flex flex-col w-full h-full max-w-[96vw] max-h-[96vh] rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
-        
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen && !isSaving) onClose(); }}>
+      <DialogContent data-module="bmn" showCloseButton={false} onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }} className="bmn-assets-ui bmn-standard-ui bmn-popover flex flex-col w-[calc(100vw-2rem)] h-[94dvh] sm:max-w-[96vw] max-h-[96dvh] rounded-2xl bg-[var(--ds-surface)] p-0 gap-0 overflow-hidden">
         {/* Modal Topbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/80">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
               <FileText className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                <DialogTitle className="text-base font-bold text-[var(--ds-fg)] truncate">
                   Edit Isi & Pratinjau
-                </h2>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                </DialogTitle>
+                <span className="rounded-full bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
                   Live Sync
                 </span>
               </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+              <DialogDescription className="text-xs text-[var(--ds-fg-muted)] truncate">
                 {doc.title} &bull; Sesuaikan narasi, konsiderans, atau butir pernyataan sebelum dicetak
-              </p>
+              </DialogDescription>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Button
               variant="outline"
               size="sm"
+              disabled={readOnly || isSaving}
               onClick={handleResetToDefault}
-              className="h-9 gap-1.5 rounded-xl text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              className="h-9 gap-1.5 rounded-xl text-xs font-semibold text-[var(--ds-fg-secondary)] hover:text-[var(--ds-fg)]"
               title="Kembalikan narasi dokumen ini ke format template standar instansi"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -191,7 +201,7 @@ export function DocumentContentEditorModal({
               variant="outline"
               size="sm"
               onClick={() => onPrintDoc(doc)}
-              className="h-9 gap-1.5 rounded-xl border-emerald-300 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+              className="h-9 gap-1.5 rounded-xl border-[var(--ds-accent-soft-border)] text-xs font-semibold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]"
             >
               <Printer className="h-3.5 w-3.5" />
               Cetak Dokumen
@@ -199,19 +209,21 @@ export function DocumentContentEditorModal({
 
             <Button
               size="sm"
-              disabled={isSaving}
+              disabled={readOnly || isSaving}
               onClick={handleSave}
-              className="h-9 gap-1.5 rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700 shadow-sm"
+              className="h-9 gap-1.5 rounded-xl bg-[var(--ds-accent-solid)] text-xs font-semibold text-white hover:bg-[var(--ds-accent-hover)] shadow-sm"
             >
               {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
 
-            <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800 mx-1" />
+            <div className="h-6 w-px bg-[var(--ds-border-subtle)] mx-1" />
 
             <button
+              disabled={isSaving}
+              aria-label="Tutup editor dokumen"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)] transition-colors"
               title="Tutup Modal"
             >
               <X className="h-5 w-5" />
@@ -220,46 +232,60 @@ export function DocumentContentEditorModal({
         </div>
 
         {/* Modal 2-Column Body */}
-        <div className="grid grid-cols-1 lg:grid-cols-[460px_1fr] flex-1 overflow-hidden">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-[460px_minmax(0,1fr)] flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
+
           {/* LEFT: Structured Form Editor */}
-          <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-5 py-3 bg-zinc-50/50 dark:bg-zinc-900/50">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+          <div className="min-h-[460px] lg:min-h-0 flex flex-col border-r border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] px-5 py-3 bg-[var(--ds-surface-muted)]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
                 Formulir Kustomisasi Isi
               </span>
-              <span className="text-[11px] text-zinc-400">
+              <span className="text-xs text-[var(--ds-fg-muted)]">
                 Akan tersimpan ke draft lelang
               </span>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              
+            {isSk && <div className="px-5 pt-3">                  <div role="tablist" aria-label="Bagian isi SK" className="grid grid-cols-2 sm:grid-cols-4 gap-1 rounded-xl bg-[var(--ds-surface-muted)] p-1">
+                    {(["menimbang", "mengingat", "memutuskan", "tembusan"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        role="tab"
+                        id={`${tabId}-${tab}`}
+                        aria-selected={activeTab === tab}
+                        aria-controls={`${tabId}-panel`}
+                        tabIndex={activeTab === tab ? 0 : -1}
+                        onKeyDown={(event) => {
+                          const values = ["menimbang", "mengingat", "memutuskan", "tembusan"] as const;
+                          const index = values.indexOf(tab);
+                          const next = event.key === "Home" ? values[0] : event.key === "End" ? values[3] : event.key === "ArrowRight" ? values[(index + 1) % 4] : event.key === "ArrowLeft" ? values[(index + 3) % 4] : null;
+                          if (next) { event.preventDefault(); setActiveTab(next); document.getElementById(`${tabId}-${next}`)?.focus(); }
+                        }}
+                        onClick={() => setActiveTab(tab)}
+                        className={`relative rounded-lg py-1.5 text-xs font-bold capitalize transition-colors ${
+                          activeTab === tab
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-xs  dark:text-white"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                        }`}
+                      >
+                        {tab}
+                        {activeTab === tab && <motion.span aria-hidden="true" layoutId={`${tabId}-indicator`} className="absolute inset-x-2 bottom-0 h-0.5 bg-[var(--ds-accent-fg)]" transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }} />}
+                      </button>
+                    ))}
+                  </div></div>}
+            <fieldset disabled={readOnly || isSaving} className="min-w-0 flex-1 overflow-y-auto p-5 space-y-5">
+
               {/* === SK EDITOR === */}
               {isSk && (
                 <div className="space-y-4">
                   {/* Category Sub-tabs */}
-                  <div className="grid grid-cols-4 gap-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-1">
-                    {(["menimbang", "mengingat", "memutuskan", "tembusan"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`rounded-lg py-1.5 text-xs font-bold capitalize transition-colors ${
-                          activeTab === tab
-                            ? "bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-white"
-                            : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400"
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
 
+
+                  <BmnTabContent value={activeTab}><div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${activeTab}`} tabIndex={0}>
                   {/* Menimbang */}
                   {activeTab === "menimbang" && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                           Butir Konsiderans Menimbang
                         </span>
                         <Button
@@ -272,27 +298,28 @@ export function DocumentContentEditorModal({
                               menimbang: [...current, newSkBuilderItem("")],
                             });
                           }}
-                          className="h-7 gap-1 rounded-lg text-[11px]"
+                          className="h-7 gap-1 rounded-lg text-xs"
                         >
                           <Plus className="h-3 w-3" /> Tambah Poin
                         </Button>
                       </div>
                       <div className="space-y-2.5">
                         {((content as SkDocumentContent).menimbang || []).map((item, idx) => (
-                          <div key={item.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60 p-2.5 space-y-1.5">
+                          <div key={item.id} className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5 space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-zinc-500">
+                              <span className="text-xs font-bold text-[var(--ds-fg-muted)]">
                                 Huruf ({String.fromCharCode(97 + idx)})
                               </span>
                               <Button
                                 size="xs"
+                                aria-label={`Hapus butir ${idx + 1}`}
                                 variant="ghost"
                                 disabled={((content as SkDocumentContent).menimbang || []).length <= 1}
                                 onClick={() => {
                                   const filtered = ((content as SkDocumentContent).menimbang || []).filter((m) => m.id !== item.id);
                                   setContent({ ...content, menimbang: filtered });
                                 }}
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                                className="bmn-icon-danger h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -319,7 +346,7 @@ export function DocumentContentEditorModal({
                   {activeTab === "mengingat" && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                           Dasar Hukum Mengingat
                         </span>
                         <Button
@@ -332,27 +359,28 @@ export function DocumentContentEditorModal({
                               mengingat: [...current, newSkBuilderItem("")],
                             });
                           }}
-                          className="h-7 gap-1 rounded-lg text-[11px]"
+                          className="h-7 gap-1 rounded-lg text-xs"
                         >
                           <Plus className="h-3 w-3" /> Tambah Dasar Hukum
                         </Button>
                       </div>
                       <div className="space-y-2.5">
                         {((content as SkDocumentContent).mengingat || []).map((item, idx) => (
-                          <div key={item.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60 p-2.5 space-y-1.5">
+                          <div key={item.id} className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5 space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-zinc-500">
+                              <span className="text-xs font-bold text-[var(--ds-fg-muted)]">
                                 Angka ({idx + 1})
                               </span>
                               <Button
                                 size="xs"
+                                aria-label={`Hapus butir ${idx + 1}`}
                                 variant="ghost"
                                 disabled={((content as SkDocumentContent).mengingat || []).length <= 1}
                                 onClick={() => {
                                   const filtered = ((content as SkDocumentContent).mengingat || []).filter((m) => m.id !== item.id);
                                   setContent({ ...content, mengingat: filtered });
                                 }}
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                                className="bmn-icon-danger h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -379,8 +407,8 @@ export function DocumentContentEditorModal({
                   {activeTab === "memutuskan" && (
                     <div className="space-y-3">
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold uppercase text-zinc-500">Menetapkan</label>
-                        <Textarea
+                        <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Menetapkan</label>
+                        <Textarea aria-label="Menetapkan"
                           rows={2}
                           value={(content as SkDocumentContent).memutuskan?.menetapkan || ""}
                           onChange={(e) =>
@@ -396,8 +424,8 @@ export function DocumentContentEditorModal({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold uppercase text-zinc-500">KESATU</label>
-                        <Textarea
+                        <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KESATU</label>
+                        <Textarea aria-label="KESATU"
                           rows={4}
                           value={(content as SkDocumentContent).memutuskan?.kesatu || ""}
                           onChange={(e) =>
@@ -413,8 +441,8 @@ export function DocumentContentEditorModal({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold uppercase text-zinc-500">KEDUA</label>
-                        <Textarea
+                        <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KEDUA</label>
+                        <Textarea aria-label="KEDUA"
                           rows={4}
                           value={(content as SkDocumentContent).memutuskan?.kedua || ""}
                           onChange={(e) =>
@@ -430,8 +458,8 @@ export function DocumentContentEditorModal({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[11px] font-bold uppercase text-zinc-500">KETIGA</label>
-                        <Textarea
+                        <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KETIGA</label>
+                        <Textarea aria-label="KETIGA"
                           rows={2}
                           value={(content as SkDocumentContent).memutuskan?.ketiga || ""}
                           onChange={(e) =>
@@ -448,8 +476,8 @@ export function DocumentContentEditorModal({
                       </div>
                       {doc.key === "sk_tim_penilai" && (
                         <div className="space-y-1">
-                          <label className="text-[11px] font-bold uppercase text-zinc-500">KEEMPAT</label>
-                          <Textarea
+                          <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KEEMPAT</label>
+                          <Textarea aria-label="KEEMPAT"
                             rows={2}
                             value={(content as any).memutuskan?.keempat || DEFAULT_TIM_PENILAI_MEMUTUSKAN.keempat}
                             onChange={(e) =>
@@ -472,7 +500,7 @@ export function DocumentContentEditorModal({
                   {activeTab === "tembusan" && (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                           Daftar Tembusan Surat
                         </span>
                         <Button
@@ -485,18 +513,18 @@ export function DocumentContentEditorModal({
                               tembusan: [...current, newSkBuilderItem("")],
                             });
                           }}
-                          className="h-7 gap-1 rounded-lg text-[11px]"
+                          className="h-7 gap-1 rounded-lg text-xs"
                         >
                           <Plus className="h-3 w-3" /> Tambah Tembusan
                         </Button>
                       </div>
                       <div className="space-y-2.5">
                         {((content as SkDocumentContent).tembusan || []).length === 0 ? (
-                          <p className="text-xs text-zinc-400 italic">Tidak ada tembusan pada SK ini.</p>
+                          <p className="text-xs text-[var(--ds-fg-muted)] italic">Tidak ada tembusan pada SK ini.</p>
                         ) : (
                           ((content as SkDocumentContent).tembusan || []).map((item, idx) => (
                             <div key={item.id} className="flex items-center gap-2">
-                              <span className="text-xs font-mono text-zinc-400 w-5">{idx + 1}.</span>
+                              <span className="text-xs font-mono text-[var(--ds-fg-muted)] w-5">{idx + 1}.</span>
                               <Input
                                 value={item.text}
                                 onChange={(e) => {
@@ -510,12 +538,13 @@ export function DocumentContentEditorModal({
                               />
                               <Button
                                 size="xs"
+                                aria-label={`Hapus butir ${idx + 1}`}
                                 variant="ghost"
                                 onClick={() => {
                                   const filtered = ((content as SkDocumentContent).tembusan || []).filter((t) => t.id !== item.id);
                                   setContent({ ...content, tembusan: filtered });
                                 }}
-                                className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                                className="bmn-icon-danger h-8 w-8 p-0 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)]"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -525,6 +554,7 @@ export function DocumentContentEditorModal({
                       </div>
                     </div>
                   )}
+                  </div></BmnTabContent>
                 </div>
               )}
 
@@ -532,8 +562,8 @@ export function DocumentContentEditorModal({
               {isLetter && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Perihal</label>
-                    <Input
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Perihal</label>
+                    <Input aria-label="Perihal"
                       value={(content as LetterDocumentContent).perihal || ""}
                       onChange={(e) => setContent({ ...content, perihal: e.target.value })}
                       className="text-xs font-semibold"
@@ -542,16 +572,16 @@ export function DocumentContentEditorModal({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase text-zinc-500">Lampiran</label>
-                      <Input
+                      <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Lampiran</label>
+                      <Input aria-label="Lampiran"
                         value={(content as LetterDocumentContent).lampiran || ""}
                         onChange={(e) => setContent({ ...content, lampiran: e.target.value })}
                         className="text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase text-zinc-500">Kota Lokasi</label>
-                      <Input
+                      <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Kota Lokasi</label>
+                      <Input aria-label="Kota Lokasi"
                         value={(content as LetterDocumentContent).lokasi || ""}
                         onChange={(e) => setContent({ ...content, lokasi: e.target.value })}
                         className="text-xs"
@@ -560,8 +590,8 @@ export function DocumentContentEditorModal({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Tujuan Surat / Pejabat Penerima</label>
-                    <Input
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Tujuan Surat / Pejabat Penerima</label>
+                    <Input aria-label="Tujuan Surat / Pejabat Penerima"
                       value={(content as LetterDocumentContent).tujuan || ""}
                       onChange={(e) => setContent({ ...content, tujuan: e.target.value })}
                       placeholder="Contoh: Sekretaris Direktorat Jenderal KSDAE"
@@ -570,8 +600,8 @@ export function DocumentContentEditorModal({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Narasi Isi & Kesimpulan Pokok</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Narasi Isi & Kesimpulan Pokok</label>
+                    <Textarea aria-label="Narasi Isi & Kesimpulan Pokok"
                       rows={5}
                       value={(content as LetterDocumentContent).kesimpulan || ""}
                       onChange={(e) => setContent({ ...content, kesimpulan: e.target.value })}
@@ -586,16 +616,16 @@ export function DocumentContentEditorModal({
               {isBa && doc.key === "ba_koreksi" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Tempat Pelaksanaan</label>
-                    <Input
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Tempat Pelaksanaan</label>
+                    <Input aria-label="Tempat Pelaksanaan"
                       value={(content as BaKoreksiContent).tempat || ""}
                       onChange={(e) => setContent({ ...content, tempat: e.target.value })}
                       className="text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Alasan & Rincian Koreksi</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Alasan & Rincian Koreksi</label>
+                    <Textarea aria-label="Alasan & Rincian Koreksi"
                       rows={4}
                       value={(content as BaKoreksiContent).alasan || ""}
                       onChange={(e) => setContent({ ...content, alasan: e.target.value })}
@@ -603,8 +633,8 @@ export function DocumentContentEditorModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Kalimat Penutup</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Kalimat Penutup</label>
+                    <Textarea aria-label="Kalimat Penutup"
                       rows={3}
                       value={(content as BaKoreksiContent).penutup || ""}
                       onChange={(e) => setContent({ ...content, penutup: e.target.value })}
@@ -617,8 +647,8 @@ export function DocumentContentEditorModal({
               {isBa && doc.key === "ba_pemeriksaan" && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Teks Hari (Opsional / Manual)</label>
-                    <Input
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Teks Hari (Opsional / Manual)</label>
+                    <Input aria-label="Teks Hari (Opsional / Manual)"
                       value={(content as BaPemeriksaanContent).hari || ""}
                       onChange={(e) => setContent({ ...content, hari: e.target.value })}
                       placeholder="Biarkan kosong untuk otomatis sesuai tanggal dokumen"
@@ -626,8 +656,8 @@ export function DocumentContentEditorModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Dasar Pelaksanaan Tugas & Pemeriksaan</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Dasar Pelaksanaan Tugas & Pemeriksaan</label>
+                    <Textarea aria-label="Dasar Pelaksanaan Tugas & Pemeriksaan"
                       rows={5}
                       value={(content as BaPemeriksaanContent).dasarTugas || ""}
                       onChange={(e) => setContent({ ...content, dasarTugas: e.target.value })}
@@ -635,8 +665,8 @@ export function DocumentContentEditorModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Kalimat Penutup</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Kalimat Penutup</label>
+                    <Textarea aria-label="Kalimat Penutup"
                       rows={3}
                       value={(content as BaPemeriksaanContent).penutup || ""}
                       onChange={(e) => setContent({ ...content, penutup: e.target.value })}
@@ -650,8 +680,8 @@ export function DocumentContentEditorModal({
               {isSuratTugas && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Dasar Surat Tugas</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Dasar Surat Tugas</label>
+                    <Textarea aria-label="Dasar Surat Tugas"
                       rows={4}
                       value={(content as SuratTugasContent).dasar || ""}
                       onChange={(e) => setContent({ ...content, dasar: e.target.value })}
@@ -659,8 +689,8 @@ export function DocumentContentEditorModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Maksud / Uraian Tugas</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Maksud / Uraian Tugas</label>
+                    <Textarea aria-label="Maksud / Uraian Tugas"
                       rows={4}
                       value={(content as SuratTugasContent).maksud || ""}
                       onChange={(e) => setContent({ ...content, maksud: e.target.value })}
@@ -668,8 +698,8 @@ export function DocumentContentEditorModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Masa Berlaku & Penutup</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Masa Berlaku & Penutup</label>
+                    <Textarea aria-label="Masa Berlaku & Penutup"
                       rows={3}
                       value={(content as SuratTugasContent).penutup || ""}
                       onChange={(e) => setContent({ ...content, penutup: e.target.value })}
@@ -683,8 +713,8 @@ export function DocumentContentEditorModal({
               {isPernyataan && (
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Kalimat Pembuka</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Kalimat Pembuka</label>
+                    <Textarea aria-label="Kalimat Pembuka"
                       rows={3}
                       value={(content as PernyataanDocumentContent).pembuka || ""}
                       onChange={(e) => setContent({ ...content, pembuka: e.target.value })}
@@ -694,7 +724,7 @@ export function DocumentContentEditorModal({
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                      <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                         Butir-butir Pernyataan
                       </span>
                       <Button
@@ -707,7 +737,7 @@ export function DocumentContentEditorModal({
                             poin: [...current, newPernyataanItem("")],
                           });
                         }}
-                        className="h-7 gap-1 rounded-lg text-[11px]"
+                        className="h-7 gap-1 rounded-lg text-xs"
                       >
                         <Plus className="h-3 w-3" /> Tambah Poin
                       </Button>
@@ -715,20 +745,21 @@ export function DocumentContentEditorModal({
 
                     <div className="space-y-2.5">
                       {((content as PernyataanDocumentContent).poin || []).map((item, idx) => (
-                        <div key={item.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60 p-2.5 space-y-1.5">
+                        <div key={item.id} className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5 space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-zinc-500">
+                            <span className="text-xs font-bold text-[var(--ds-fg-muted)]">
                               Pernyataan #{idx + 1}
                             </span>
                             <Button
                               size="xs"
+                              aria-label={`Hapus butir ${idx + 1}`}
                               variant="ghost"
                               disabled={((content as PernyataanDocumentContent).poin || []).length <= 1}
                               onClick={() => {
                                 const filtered = ((content as PernyataanDocumentContent).poin || []).filter((p) => p.id !== item.id);
                                 setContent({ ...content, poin: filtered });
                               }}
-                              className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                              className="bmn-icon-danger h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -751,8 +782,8 @@ export function DocumentContentEditorModal({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold uppercase text-zinc-500">Kalimat Penutup</label>
-                    <Textarea
+                    <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Kalimat Penutup</label>
+                    <Textarea aria-label="Kalimat Penutup"
                       rows={3}
                       value={(content as PernyataanDocumentContent).penutup || ""}
                       onChange={(e) => setContent({ ...content, penutup: e.target.value })}
@@ -761,25 +792,25 @@ export function DocumentContentEditorModal({
                   </div>
                 </div>
               )}
-            </div>
+            </fieldset>
           </div>
 
           {/* RIGHT: Live Document Preview */}
-          <div className="flex flex-col bg-zinc-100 dark:bg-zinc-950 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-6 py-3 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs">
+          <div className="min-h-[400px] lg:min-h-0 min-w-0 flex flex-col bg-[var(--ds-surface-muted)] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] px-6 py-3 bg-[var(--ds-surface)]">
               <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
+                <Eye className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
                   Pratinjau Langsung (A4 Paper)
                 </span>
               </div>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-[var(--ds-fg-muted)]">
                 Format Tata Naskah Dinas Resmi
               </span>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center">
-              <div className="w-full max-w-[210mm] transition-all duration-150">
+            <div className="flex-1 overflow-auto p-4 sm:p-8">
+              <div className="w-full max-w-[210mm] transition-colors duration-150 ease-out duration-150">
                 <AuctionDocumentRenderer
                   docKey={doc.key}
                   assets={mappedAssets}
@@ -799,7 +830,7 @@ export function DocumentContentEditorModal({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

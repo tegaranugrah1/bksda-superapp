@@ -269,7 +269,7 @@ const createInitialState = (asset: AuctionAsset): WorksheetState => {
 };
 
 const inputCls =
-  "h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:border-red-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white";
+  "h-8 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-danger-border)]   ";
 
 function parseMoney(value: string) {
   return Number(value.replace(/[^\d-]/g, "")) || 0;
@@ -327,7 +327,7 @@ function WorksheetInput({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">{label}</span>
       <input value={value ?? ""} onChange={(event) => onChange(event.target.value)} className={inputCls} />
     </label>
   );
@@ -355,7 +355,7 @@ function CellInput({
       placeholder={placeholder}
       inputMode={inputMode}
       onBlur={onBlur}
-      className={`w-full min-w-0 border border-zinc-300 bg-white px-1 py-0.5 text-center outline-none focus:bg-yellow-50 ${className}`}
+      className={`w-full min-w-0 border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-1 py-0.5 text-center outline-none focus:bg-yellow-50 ${className}`}
     />
   );
 }
@@ -392,7 +392,7 @@ function CellTextarea({
       value={value ?? ""}
       rows={visualRows}
       onChange={(event) => onChange(event.target.value)}
-      className={`w-full min-w-0 resize-none overflow-hidden border border-zinc-300 bg-white px-1 py-0.5 text-center leading-tight outline-none focus:bg-yellow-50 ${className}`}
+      className={`w-full min-w-0 resize-none overflow-hidden border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-1 py-0.5 text-center leading-tight outline-none focus:bg-yellow-50 ${className}`}
     />
   );
 }
@@ -418,12 +418,12 @@ function WorksheetCheckbox({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-200">
+    <label className="flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)] ">
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+        className="h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
       />
       <span>{label}</span>
     </label>
@@ -441,7 +441,7 @@ function EmployeeSelectInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">{label}</span>
       <select
         value=""
         onChange={(event) => {
@@ -653,10 +653,10 @@ export function KertasKerjaAssetSection({
 
   return (
     <section id="kertas-kerja-preview" className="space-y-4">
-      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-2xl border border-zinc-200/90 bg-white/95 backdrop-blur-md p-4 dark:border-zinc-800 dark:bg-zinc-900/95 sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
+      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]  p-4   sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
         <div>
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-lg font-bold text-[var(--ds-fg)] ">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
+          <p className="text-sm text-[var(--ds-fg-muted)] ">
             Nomor kertas kerja #{worksheetNumber} mengikuti urutan aset terpilih.
           </p>
         </div>
@@ -666,8 +666,9 @@ export function KertasKerjaAssetSection({
               <Button
                 type="button"
                 variant="outline"
+                aria-expanded={isCopyOpen}
                 onClick={() => setIsCopyOpen((prev) => !prev)}
-                className="rounded-xl gap-1.5 text-xs border-indigo-200 bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70 hover:text-indigo-800 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 cursor-pointer"
+                className="rounded-xl gap-1.5 text-xs border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]     cursor-pointer"
                 title="Salin data analisis dari kertas kerja aset lain"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -676,13 +677,13 @@ export function KertasKerjaAssetSection({
               </Button>
 
               {isCopyOpen && (
-                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-3 rounded-2xl shadow-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-3 rounded-2xl shadow-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]  ">
                   <div className="mb-2">
-                    <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                      <Copy className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <h4 className="text-xs font-bold text-[var(--ds-fg)]  flex items-center gap-1.5">
+                      <Copy className="h-3.5 w-3.5 text-[var(--ds-accent-fg)] " />
                       Salin Data Kertas Kerja
                     </h4>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)]  mt-0.5">
                       Salin data komparasi pasar, panitia, &amp; kondisi dari aset yang sudah dinilai.
                     </p>
                   </div>
@@ -693,19 +694,19 @@ export function KertasKerjaAssetSection({
                         key={src.id}
                         type="button"
                         onClick={() => handleApplySourceWorksheet(src)}
-                        className="w-full text-left p-2 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:bg-zinc-800 transition group cursor-pointer"
+                        className="w-full text-left p-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-muted)]    transition-colors duration-150 ease-out group cursor-pointer"
                       >
                         <div className="flex items-center justify-between gap-1">
-                          <span className="font-semibold text-xs truncate text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-zinc-50">
+                          <span className="font-semibold text-xs truncate text-[var(--ds-fg)]  group-hover:text-[var(--ds-fg)]">
                             {src.nama_barang}
                           </span>
                           {src.nilai_taksiran ? (
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <span className="text-xs font-bold text-[var(--ds-accent-fg)]  shrink-0">
                               Rp{formatPlainRupiah(src.nilai_taksiran)}
                             </span>
                           ) : null}
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--ds-fg-muted)] ">
                           <span>NUP: {src.nup || "-"}</span>
                           {src.merk_tipe && <span>• {src.merk_tipe}</span>}
                         </div>
@@ -733,14 +734,14 @@ export function KertasKerjaAssetSection({
           </Button>
           {onSave && (
             <Button
-              className="rounded-xl gap-2 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+              className="rounded-xl gap-2 bg-[var(--ds-accent-solid)] text-xs text-white hover:bg-[var(--ds-accent-solid)]"
               onClick={() => onSave({ nilaiTaksiran: pembulatan, worksheet: state })}
               disabled={isSaving}
             >
               {isSaving ? "Menyimpan..." : "Simpan Kertas Kerja & Taksiran"}
             </Button>
           )}
-          <Button className="rounded-xl gap-2 bg-slate-900 text-xs hover:bg-slate-800" onClick={handlePrintKertasKerjaAsset}>
+          <Button variant="outline" className="rounded-xl gap-2 bg-[var(--ds-border-subtle)] text-xs hover:bg-[var(--ds-border-subtle)]" onClick={handlePrintKertasKerjaAsset}>
             <Printer className="h-3.5 w-3.5" />
             Cetak / Save PDF
           </Button>
@@ -749,8 +750,8 @@ export function KertasKerjaAssetSection({
 
       <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)] xl:items-start">
         <div className="space-y-4 print:hidden">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Identitas Aset</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Identitas Aset</h3>
             <div className="grid gap-2 sm:grid-cols-2">
               <WorksheetInput label="Nama Objek" value={state.namaObjek} onChange={(value) => update("namaObjek", value)} />
               <WorksheetInput label="Lokasi Objek" value={state.lokasiObjek} onChange={(value) => update("lokasiObjek", value)} />
@@ -767,7 +768,7 @@ export function KertasKerjaAssetSection({
                 className="sm:col-span-2"
               />
             </div>
-            <div className="mt-3 grid gap-2 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mt-3 grid gap-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5  ">
               <div className="grid gap-1.5 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.roda2Atau3} label="Roda 2 atau 3" onChange={(checked) => update("roda2Atau3", checked)} />
                 <WorksheetCheckbox checked={state.roda4AtauLebih} label="Roda 4 atau lebih" onChange={(checked) => update("roda4AtauLebih", checked)} />
@@ -785,8 +786,8 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Fisik & Ringkasan</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Fisik & Ringkasan</h3>
             <div className="grid gap-2">
               <WorksheetInput label="Warna" value={state.warna} onChange={(value) => update("warna", value)} />
               <WorksheetInput label="Tahun Pembuatan" value={state.tahunPembuatan} onChange={(value) => update("tahunPembuatan", value)} />
@@ -801,19 +802,19 @@ export function KertasKerjaAssetSection({
               />
             </div>
 
-            <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950 space-y-2">
+            <div className="mt-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5   space-y-2">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={dateParts.isManualDate}
                   onChange={(e) => handleDatePartChange({ isManualDate: e.target.checked })}
-                  className="h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+                  className="h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  <span className="text-xs font-semibold text-[var(--ds-fg)] ">
                     Kosongkan Tanggal (Diisi Manual / Pulpen)
                   </span>
-                  <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                  <span className="text-xs text-[var(--ds-fg-muted)] ">
                     Menyisipkan spasi kosong untuk diisi tanggal bertulis tangan saat tanda tangan fisik
                   </span>
                 </div>
@@ -822,7 +823,7 @@ export function KertasKerjaAssetSection({
               <div className={`grid gap-1.5 ${dateParts.isManualDate ? "grid-cols-2" : "grid-cols-3"}`}>
                 {!dateParts.isManualDate && (
                   <div>
-                    <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Tgl
                     </span>
                     <input
@@ -838,7 +839,7 @@ export function KertasKerjaAssetSection({
                 )}
 
                 <div>
-                  <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Bulan
                   </span>
                   <select
@@ -855,7 +856,7 @@ export function KertasKerjaAssetSection({
                 </div>
 
                 <div>
-                  <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Tahun
                   </span>
                   <input
@@ -871,17 +872,17 @@ export function KertasKerjaAssetSection({
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950">
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kondisi Kendaraan</p>
+            <div className="mt-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5  ">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Kondisi Kendaraan</p>
               <div className="grid gap-2">
                 {kondisiOptions.map((option) => (
-                  <label key={option.value} className="flex items-start gap-2 text-xs text-zinc-700 dark:text-zinc-200">
+                  <label key={option.value} className="flex items-start gap-2 text-xs text-[var(--ds-fg-secondary)] ">
                     <input
                       type="radio"
                       name={`kondisi-${asset.id}`}
                       checked={state.kondisiKendaraan === option.value}
                       onChange={() => updateKondisi(option.value)}
-                      className="mt-0.5 h-4 w-4 border-zinc-300 text-red-600 focus:ring-red-500"
+                      className="mt-0.5 h-4 w-4 border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
                     />
                     <span>{option.label}</span>
                   </label>
@@ -890,26 +891,26 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Data Lelang</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Data Lelang</h3>
               <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addLelangRow}>
                 <Plus className="h-3 w-3" />
                 Tambah Baris
               </Button>
             </div>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-xs text-[var(--ds-fg-muted)] ">
               Minimal 3 baris. Penyesuaian mengikuti baris data hasil lelang.
             </p>
             <div className="mt-3 space-y-2">
               {state.lelangRows.map((row, index) => (
-                <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950">
+                <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs  ">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-semibold text-zinc-700 dark:text-zinc-200 truncate">
+                    <span className="font-semibold text-[var(--ds-fg-secondary)]  truncate">
                       Baris {index + 1}: {row.data || "Kosong"}
                     </span>
                     {row.harga && (
-                      <span className="shrink-0 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="shrink-0 text-xs font-bold text-[var(--ds-accent-fg)] ">
                         • Rp{row.harga}
                       </span>
                     )}
@@ -918,7 +919,7 @@ export function KertasKerjaAssetSection({
                     type="button"
                     onClick={() => removeLelangRow(index)}
                     disabled={state.lelangRows.length <= 3}
-                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-red-500/10 shrink-0"
+                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[var(--ds-status-danger-fg)] transition hover:bg-[var(--ds-status-danger-bg)] disabled:cursor-not-allowed disabled:opacity-30  shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                     Hapus
@@ -928,8 +929,8 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Panitia Penaksir</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Panitia Penaksir</h3>
             <div className="grid gap-3">
               <EmployeeSelectInput label="Ambil Pegawai 1" employees={employeeList} onSelect={(name) => update("panitia1", name)} />
               <WorksheetInput label="Nama Panitia 1" value={state.panitia1} onChange={(value) => update("panitia1", value)} />
@@ -943,7 +944,7 @@ export function KertasKerjaAssetSection({
 
         <div
           id="kertas-kerja-print-root"
-          className="overflow-x-auto xl:sticky xl:top-[76px] xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-2xl border border-zinc-200/80 bg-zinc-100/50 p-2 dark:border-zinc-800 dark:bg-zinc-950/50 shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
+          className="overflow-x-auto xl:sticky xl:top-[76px] xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2   shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
         >
           <div className="kk-page mx-auto min-w-245 border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`

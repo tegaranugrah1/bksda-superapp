@@ -29,6 +29,9 @@ interface EmployeeSelectProps {
   disabled?: boolean;
   className?: string;
   clearable?: boolean;
+  contentClassName?: string;
+  contentModule?: string;
+  "aria-label"?: string;
 }
 
 export function EmployeeSelect({
@@ -38,6 +41,9 @@ export function EmployeeSelect({
   disabled = false,
   className,
   clearable = false,
+  contentClassName,
+  contentModule,
+  "aria-label": ariaLabel,
 }: EmployeeSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [employees, setEmployees] = React.useState<Employee[]>([]);
@@ -63,6 +69,7 @@ export function EmployeeSelect({
         setEmployees(Array.isArray(result) ? result : []);
       })
       .catch((error) => {
+        if (controller.signal.aborted) return;
         console.error("Failed to fetch employees:", error);
         setEmployees([]);
       });
@@ -86,6 +93,7 @@ export function EmployeeSelect({
         <Button
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           disabled={disabled}
@@ -98,7 +106,7 @@ export function EmployeeSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent data-module={contentModule} className={cn("w-[400px] p-0", contentClassName)} align="start">
         <div className="flex flex-col max-h-[300px]">
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />

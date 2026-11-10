@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRole } from "@/hooks/useRole";
 import { useRouter } from "next/navigation";
@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface RealizationTabProps {
+  formState: ReturnType<typeof useRealizationFormState>;
   batch: AuctionBatch;
   readOnly: boolean;
   onRefetch: () => void;
@@ -60,35 +61,19 @@ function parseThousandsInput(value: string | null | undefined): number | null {
   return Number(digitsOnly);
 }
 
-export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabProps) {
-  const router = useRouter();
-  const { isSuperAdmin, isAdmin } = useRole();
-  const canFinalize = isSuperAdmin || isAdmin;
+export function useRealizationFormState(batch?: AuctionBatch) {
   const [isMovingUnsold, setIsMovingUnsold] = useState(false);
-
-  // First auction form state
   const [firstAuctionSold, setFirstAuctionSold] = useState<Record<string, boolean>>({});
   const [firstAuctionPrice, setFirstAuctionPrice] = useState<Record<string, string>>({});
-
-  // Reauction form state
   const [reauctionSold, setReauctionSold] = useState<Record<string, boolean>>({});
   const [reauctionPrice, setReauctionPrice] = useState<Record<string, string>>({});
-
-  // Dialog states
   const [isReauctionDialogOpen, setIsReauctionDialogOpen] = useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-
-  // Reauction scheduling form state
   const [noSuratJadwalUlang, setNoSuratJadwalUlang] = useState("");
   const [tglLelangUlang, setTglLelangUlang] = useState("");
   const [reauctionNotes, setReauctionNotes] = useState("");
-
-  // Cancel notes state
   const [cancelNotes, setCancelNotes] = useState("");
-
   const assets = batch?.assets || [];
-
-  // Initialize input fields based on existing values
   useEffect(() => {
     if (batch && assets.length > 0) {
       const initialFirstSold: Record<string, boolean> = {};
@@ -112,6 +97,33 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       setReauctionPrice(initialRePrice);
     }
   }, [batch, assets]);
+  return { isMovingUnsold, setIsMovingUnsold, firstAuctionSold, setFirstAuctionSold, firstAuctionPrice, setFirstAuctionPrice, reauctionSold, setReauctionSold, reauctionPrice, setReauctionPrice, isReauctionDialogOpen, setIsReauctionDialogOpen, isCancelDialogOpen, setIsCancelDialogOpen, noSuratJadwalUlang, setNoSuratJadwalUlang, tglLelangUlang, setTglLelangUlang, reauctionNotes, setReauctionNotes, cancelNotes, setCancelNotes };
+}
+
+export function RealizationTab({ batch, readOnly, onRefetch, formState }: RealizationTabProps) {
+  const dialogOpener = useRef<HTMLElement | null>(null);
+  const { isMovingUnsold, setIsMovingUnsold, firstAuctionSold, setFirstAuctionSold, firstAuctionPrice, setFirstAuctionPrice, reauctionSold, setReauctionSold, reauctionPrice, setReauctionPrice, isReauctionDialogOpen, setIsReauctionDialogOpen, isCancelDialogOpen, setIsCancelDialogOpen, noSuratJadwalUlang, setNoSuratJadwalUlang, tglLelangUlang, setTglLelangUlang, reauctionNotes, setReauctionNotes, cancelNotes, setCancelNotes } = formState;
+  const router = useRouter();
+  const { hasPermission } = useRole();
+  const terminal = batch.status === "REALISASI" || batch.status === "BATAL";
+  const canFinalize = hasPermission("bmn.auction.finalize") && !terminal;
+  const canTransition = hasPermission("bmn.auction.update") && !terminal;
+  const canMoveUnsold = hasPermission("bmn.auction.create") && hasPermission("bmn.auction.update") && (batch.status === "REALISASI" || canFinalize);
+
+  // First auction form state
+
+  // Reauction form state
+
+  // Dialog states
+
+  // Reauction scheduling form state
+
+  // Cancel notes state
+
+  const assets = batch?.assets || [];
+
+  // Initialize input fields based on existing values
+
 
   // Mutations
   const recordFirstMutation = useMutation({
@@ -173,23 +185,24 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
 
   // Action Triggers
   const handleSaveFirstResults = () => {
-    const payload = assets.map((asset) => {
-      const isSold = firstAuctionSold[asset.id] || false;
-      const priceStr = firstAuctionPrice[asset.id];
-      const price = parseThousandsInput(priceStr);
-
-      if (isSold && (price === null || price < 0)) {
-        throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
-      }
-
-      return {
-        bmn_asset_id: asset.id,
-        first_auction_is_sold: isSold,
-        first_auction_price: isSold ? price : null,
-      };
-    });
-
+    if (!canFinalize) return;
     try {
+      const payload = assets.map((asset) => {
+        const isSold = firstAuctionSold[asset.id] || false;
+        const priceStr = firstAuctionPrice[asset.id];
+        const price = parseThousandsInput(priceStr);
+
+        if (isSold && (price === null || price < 0)) {
+          throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
+        }
+
+        return {
+          bmn_asset_id: asset.id,
+          first_auction_is_sold: isSold,
+          first_auction_price: isSold ? price : null,
+        };
+      });
+
       recordFirstMutation.mutate(payload);
     } catch (e: any) {
       toast.error(e.message);
@@ -197,6 +210,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
   };
 
   const handleSaveAndFinalize = async () => {
+    if (!canFinalize) return;
     try {
       const payload = assets.map((asset) => {
         const isSold = firstAuctionSold[asset.id] || false;
@@ -222,24 +236,25 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
   };
 
   const handleSaveReauctionResults = () => {
-    const unsoldInFirst = assets.filter((a) => !a.pivot?.first_auction_is_sold);
-    const payload = unsoldInFirst.map((asset) => {
-      const isSold = reauctionSold[asset.id] || false;
-      const priceStr = reauctionPrice[asset.id];
-      const price = parseThousandsInput(priceStr);
-
-      if (isSold && (price === null || price < 0)) {
-        throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
-      }
-
-      return {
-        bmn_asset_id: asset.id,
-        reauction_is_sold: isSold,
-        reauction_price: isSold ? price : null,
-      };
-    });
-
+    if (!canFinalize) return;
     try {
+      const unsoldInFirst = assets.filter((a) => !a.pivot?.first_auction_is_sold);
+      const payload = unsoldInFirst.map((asset) => {
+        const isSold = reauctionSold[asset.id] || false;
+        const priceStr = reauctionPrice[asset.id];
+        const price = parseThousandsInput(priceStr);
+
+        if (isSold && (price === null || price < 0)) {
+          throw new Error(`Harga terbentuk wajib diisi untuk aset terjual pada Lot ${asset.pivot?.lot_number}.`);
+        }
+
+        return {
+          bmn_asset_id: asset.id,
+          reauction_is_sold: isSold,
+          reauction_price: isSold ? price : null,
+        };
+      });
+
       recordReauctionMutation.mutate(payload);
     } catch (e: any) {
       toast.error(e.message);
@@ -247,6 +262,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
   };
 
   const handleScheduleReauction = () => {
+    if (!canTransition || startReauctionMutation.isPending) return;
     if (!noSuratJadwalUlang.trim() || !tglLelangUlang) {
       toast.error("Nomor surat dan tanggal lelang ulang wajib diisi.");
       return;
@@ -260,11 +276,13 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
   };
 
   const handleCancelSubmit = () => {
+    if (!canTransition || cancelMutation.isPending) return;
     cancelMutation.mutate(cancelNotes.trim() || null);
   };
 
   // Move Unsold Assets to New Batch
   const handleMoveUnsoldToNewBatch = async () => {
+    if (!canMoveUnsold || isMovingUnsold) return;
     const unsoldAssets = assets.filter((asset) => {
       const p = asset.pivot;
       if (p?.final_result === "UNSOLD") return true;
@@ -322,24 +340,24 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       batch.status === "DIAJUKAN" ||
       batch.status === "JADWAL_DITETAPKAN" ||
       batch.status === "LELANG_ULANG") &&
-    canFinalize;
+    canTransition;
 
   return (
     <div className="space-y-6">
       {/* Top Banner / Tab Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-4 rounded-2xl shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-base font-bold text-[var(--ds-fg)]">
             Realisasi & Hasil Lelang
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
             Lacak hasil akhir penjualan aset BMN dan finalisasi penghapusan inventaris negara.
           </p>
         </div>
         {canCancel && (
           <Button
             variant="destructive"
-            onClick={() => setIsCancelDialogOpen(true)}
+            onClick={() => { dialogOpener.current = document.activeElement as HTMLElement | null; setIsCancelDialogOpen(true); }}
             className="rounded-xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-center"
           >
             <XCircle className="h-4 w-4" />
@@ -351,16 +369,16 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       {/* -------------------- 1. REALISASI & PENCATATAN HASIL LELANG -------------------- */}
       {batch.status !== "REALISASI" && batch.status !== "BATAL" && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs p-6 space-y-4">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
-              <Gavel className="h-4.5 w-4.5 text-emerald-600" />
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-xs p-6 space-y-4">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)] flex items-center gap-1.5">
+              <Gavel className="h-4.5 w-4.5 text-[var(--ds-accent-fg)]" />
               Hasil Pelaksanaan Lelang Pertama
             </h3>
 
-            <div className="overflow-hidden border border-zinc-100 dark:border-zinc-800 rounded-xl">
-              <table className="w-full text-left">
+            <div className="overflow-x-auto border border-[var(--ds-border-subtle)] rounded-xl">
+              <table className="bmn-wide-table w-full text-left">
                 <thead>
-                  <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-xs font-bold text-zinc-500">
+                  <tr className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)]">
                     <th className="px-4 py-2.5 w-20">Lot</th>
                     <th className="px-4 py-2.5">Identitas Aset</th>
                     <th className="px-4 py-2.5 text-right">Nilai Taksiran</th>
@@ -368,27 +386,28 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                     <th className="px-4 py-2.5 text-right w-52">Harga Terbentuk (Rp)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
+                <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
                   {assets.map((asset) => {
                     const isSold = firstAuctionSold[asset.id] || false;
                     return (
                       <tr key={asset.id}>
-                        <td className="px-4 py-3 font-mono font-bold text-zinc-500">
+                        <td className="px-4 py-3 font-mono font-bold text-[var(--ds-fg-muted)]">
                           {asset.pivot?.lot_number || "-"}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          <div className="font-semibold text-[var(--ds-fg)]">
                             {asset.nama_barang}
                           </div>
-                          <div className="text-[10px] text-zinc-400 mt-0.5">
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                             NUP: {asset.nup} • {asset.jenis_bmn}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-zinc-800 dark:text-zinc-300">
+                        <td className="px-4 py-3 text-right font-semibold text-[var(--ds-fg)]">
                           {formatRupiah(asset.pivot?.nilai_taksiran)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <select
+                            aria-label={`Status terjual ${asset.nama_barang} NUP ${asset.nup}`}
                             value={isSold ? "true" : "false"}
                             onChange={(e) => {
                               const val = e.target.value === "true";
@@ -398,7 +417,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                               }
                             }}
                             disabled={!canFinalize}
-                            className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="h-8 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs outline-none focus:ring-1 focus:ring-[var(--ds-accent-soft-border)]"
                           >
                             <option value="false">Tidak Terjual</option>
                             <option value="true">Terjual</option>
@@ -407,6 +426,8 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                         <td className="px-4 py-3 text-right">
                           <Input
                             type="text"
+                            inputMode="numeric"
+                            aria-label={`Harga lelang ${asset.nama_barang} NUP ${asset.nup}`}
                             placeholder="0"
                             value={firstAuctionPrice[asset.id] || ""}
                             onChange={(e) =>
@@ -416,7 +437,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                               })
                             }
                             disabled={!isSold || !canFinalize}
-                            className="h-8 text-right font-mono text-xs rounded-lg border-zinc-200 dark:border-zinc-800"
+                            className="h-8 text-right font-mono text-xs rounded-lg border-[var(--ds-border-subtle)]"
                           />
                         </td>
                       </tr>
@@ -431,7 +452,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                 <Button
                   variant="outline"
                   onClick={handleSaveFirstResults}
-                  className="rounded-xl text-xs font-semibold py-2 px-4 flex items-center gap-1.5 border-zinc-300"
+                  className="rounded-xl text-xs font-semibold py-2 px-4 flex items-center gap-1.5 border-[var(--ds-border-subtle)]"
                   disabled={recordFirstMutation.isPending || realizeMutation.isPending}
                 >
                   {recordFirstMutation.isPending ? (
@@ -443,7 +464,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                 </Button>
                 <Button
                   onClick={handleSaveAndFinalize}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
                   disabled={recordFirstMutation.isPending || realizeMutation.isPending}
                 >
                   {realizeMutation.isPending || recordFirstMutation.isPending ? (
@@ -459,37 +480,38 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
 
           {/* Subsequent Actions Block */}
           {firstResultsSaved && (
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
-              <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-250 flex items-center gap-2">
-                <TrendingUp className="h-4.5 w-4.5 text-zinc-400" />
+            <div className="bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 space-y-4">
+              <h4 className="font-bold text-sm text-[var(--ds-fg)] flex items-center gap-2">
+                <TrendingUp className="h-4.5 w-4.5 text-[var(--ds-fg-muted)]" />
                 Langkah Penyelesaian
               </h4>
 
               {hasUnsoldAssetsInFirst ? (
                 <div className="space-y-4">
-                  <p className="text-xs text-zinc-500 leading-relaxed">
+                  <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                     Terdapat aset yang <strong>tidak terjual</strong> pada pelaksanaan lelang pertama. Anda dapat menetapkan Lelang Ulang untuk sisa aset tersebut, atau langsung memfinalisasi realisasi (aset tidak terjual akan dikembalikan ke status operasional dinas).
                   </p>
                   {canFinalize && (
                     <div className="flex flex-wrap gap-3">
                       <Button
-                        onClick={() => setIsReauctionDialogOpen(true)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold"
+                        disabled={!canTransition}
+                        onClick={() => { if (!canTransition) return; dialogOpener.current = document.activeElement as HTMLElement | null; setIsReauctionDialogOpen(true); }}
+                        className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold"
                       >
                         Jadwal Lelang Ulang (Lelang II)
                       </Button>
                       <Button
                         onClick={handleMoveUnsoldToNewBatch}
-                        disabled={isMovingUnsold}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold"
+                        disabled={isMovingUnsold || !canMoveUnsold}
+                        className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold"
                       >
                         {isMovingUnsold && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
                         Pindahkan Barang Tidak Laku ke Paket Baru
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => realizeMutation.mutate()}
-                        className="rounded-xl text-xs font-bold border-zinc-300 hover:bg-zinc-100"
+                        onClick={() => { if (canFinalize) realizeMutation.mutate(); }}
+                        className="rounded-xl text-xs font-bold border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)]"
                         disabled={realizeMutation.isPending}
                       >
                         {realizeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
@@ -500,13 +522,13 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-xs text-zinc-500 leading-relaxed">
+                  <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                     Semua aset di dalam paket lelang ini telah <strong>berhasil terjual</strong>. Lakukan finalisasi realisasi untuk menyelesaikan dokumen penghapusan aset.
                   </p>
                   {canFinalize && (
                     <Button
-                      onClick={() => realizeMutation.mutate()}
-                      className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold"
+                      onClick={() => { if (canFinalize) realizeMutation.mutate(); }}
+                      className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-xl text-xs font-bold"
                       disabled={realizeMutation.isPending}
                     >
                       {realizeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
@@ -524,27 +546,27 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       {batch.status === "LELANG_ULANG" && (
         <div className="space-y-6">
           {/* Reauction details info */}
-          <div className="bg-purple-50/20 dark:bg-purple-950/5 border border-purple-200 dark:border-purple-900/30 p-4 rounded-2xl text-xs flex gap-3 items-start">
-            <Calendar className="h-5 w-5 text-purple-650 shrink-0 mt-0.5" />
+          <div className="bg-[var(--ds-status-info-bg)] border border-[var(--ds-status-info-border)] p-4 rounded-2xl text-xs flex gap-3 items-start">
+            <Calendar className="h-5 w-5 text-[var(--ds-status-info-fg)] shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold text-purple-900 dark:text-purple-400">Status: Lelang Ulang (Lelang II)</h4>
-              <p className="mt-0.5 leading-relaxed text-zinc-650 dark:text-zinc-400">
+              <h4 className="font-bold text-[var(--ds-status-info-fg)]">Status: Lelang Ulang (Lelang II)</h4>
+              <p className="mt-0.5 leading-relaxed text-[var(--ds-fg-secondary)]">
                 Surat penetapan lelang ulang: <strong>{batch.no_surat_jadwal_ulang}</strong> • Tanggal pelaksanaan lelang ulang: <strong>{batch.tanggal_lelang_ulang ? formatDateLong(new Date(batch.tanggal_lelang_ulang)) : "-"}</strong>
               </p>
             </div>
           </div>
 
           {/* Reauction table */}
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-xs">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
-              <Gavel className="h-4.5 w-4.5 text-purple-650" />
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 space-y-4 shadow-xs">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)] flex items-center gap-1.5">
+              <Gavel className="h-4.5 w-4.5 text-[var(--ds-status-info-fg)]" />
               Hasil Pelaksanaan Lelang Kedua (Ulang)
             </h3>
 
-            <div className="overflow-hidden border border-zinc-100 dark:border-zinc-800 rounded-xl">
-              <table className="w-full text-left">
+            <div className="overflow-x-auto border border-[var(--ds-border-subtle)] rounded-xl">
+              <table className="bmn-wide-table w-full text-left">
                 <thead>
-                  <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-xs font-bold text-zinc-500">
+                  <tr className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)]">
                     <th className="px-4 py-2.5 w-20">Lot</th>
                     <th className="px-4 py-2.5">Identitas Aset</th>
                     <th className="px-4 py-2.5 text-right">Nilai Taksiran</th>
@@ -552,29 +574,30 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                     <th className="px-4 py-2.5 text-right w-52">Harga Terbentuk (Rp)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
+                <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
                   {assets
                     .filter((a) => !a.pivot?.first_auction_is_sold)
                     .map((asset) => {
                       const isSold = reauctionSold[asset.id] || false;
                       return (
                         <tr key={asset.id}>
-                          <td className="px-4 py-3 font-mono font-bold text-zinc-500">
+                          <td className="px-4 py-3 font-mono font-bold text-[var(--ds-fg-muted)]">
                             {asset.pivot?.lot_number || "-"}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                            <div className="font-semibold text-[var(--ds-fg)]">
                               {asset.nama_barang}
                             </div>
-                            <div className="text-[10px] text-zinc-400 mt-0.5">
+                            <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                               NUP: {asset.nup} • {asset.jenis_bmn}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-zinc-800 dark:text-zinc-300">
+                          <td className="px-4 py-3 text-right font-semibold text-[var(--ds-fg)]">
                             {formatRupiah(asset.pivot?.nilai_taksiran)}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <select
+                              aria-label={`Status lelang ulang ${asset.nama_barang} NUP ${asset.nup}`}
                               value={isSold ? "true" : "false"}
                               onChange={(e) => {
                                 const val = e.target.value === "true";
@@ -584,7 +607,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                                 }
                               }}
                               disabled={!canFinalize}
-                              className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs outline-none focus:ring-1 focus:ring-purple-500"
+                              className="h-8 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs outline-none focus:ring-1 focus:ring-[var(--ds-status-info-border)]"
                             >
                               <option value="false">Tidak Terjual</option>
                               <option value="true">Terjual</option>
@@ -592,14 +615,16 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                           </td>
                           <td className="px-4 py-3 text-right">
                             <Input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
+                              aria-label={`Harga lelang ulang ${asset.nama_barang} NUP ${asset.nup}`}
                               placeholder="Rp Harga Terbentuk"
                               value={reauctionPrice[asset.id] || ""}
                               onChange={(e) =>
-                                setReauctionPrice({ ...reauctionPrice, [asset.id]: e.target.value })
+                                setReauctionPrice({ ...reauctionPrice, [asset.id]: formatThousandsInput(e.target.value) })
                               }
                               disabled={!isSold || !canFinalize}
-                              className="h-8 text-right text-xs rounded-lg border-zinc-200 dark:border-zinc-800"
+                              className="h-8 text-right text-xs rounded-lg border-[var(--ds-border-subtle)]"
                             />
                           </td>
                         </tr>
@@ -613,7 +638,7 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
               <div className="flex justify-end pt-2">
                 <Button
                   onClick={handleSaveReauctionResults}
-                  className="bg-purple-650 hover:bg-purple-700 text-white rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold py-2 px-4 shadow-sm flex items-center gap-1.5"
                   disabled={recordReauctionMutation.isPending}
                 >
                   {recordReauctionMutation.isPending ? (
@@ -629,14 +654,14 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
 
           {/* Finalize Action */}
           {reauctionResultsSaved && canFinalize && (
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
-              <h4 className="font-bold text-sm text-zinc-855 dark:text-zinc-250">Finalisasi Akhir</h4>
-              <p className="text-xs text-zinc-500 leading-relaxed">
+            <div className="bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 space-y-4">
+              <h4 className="font-bold text-sm text-[var(--ds-fg)]">Finalisasi Akhir</h4>
+              <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                 Hasil lelang ulang telah dicatat. Finalisasi realisasi sekarang untuk menghapus aset terjual dan memulihkan aset tidak terjual.
               </p>
               <Button
-                onClick={() => realizeMutation.mutate()}
-                className="bg-emerald-650 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold"
+                onClick={() => { if (canFinalize) realizeMutation.mutate(); }}
+                className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-xl text-xs font-bold"
                 disabled={realizeMutation.isPending}
               >
                 {realizeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
@@ -650,23 +675,23 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       {/* -------------------- 3. REALISASI (FINALIZED) VIEW -------------------- */}
       {batch.status === "REALISASI" && (
         <div className="space-y-6">
-          <div className="bg-emerald-50/20 dark:bg-emerald-950/5 border border-emerald-250 dark:border-emerald-900/30 p-4 rounded-2xl text-xs flex gap-3 items-center">
-            <CheckCircle className="h-5 w-5 text-emerald-650 shrink-0" />
+          <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] p-4 rounded-2xl text-xs flex gap-3 items-center">
+            <CheckCircle className="h-5 w-5 text-[var(--ds-accent-fg)] shrink-0" />
             <div>
-              <h4 className="font-bold text-emerald-900 dark:text-emerald-400">Realisasi Selesai</h4>
-              <p className="mt-0.5 leading-relaxed text-zinc-650 dark:text-zinc-400">
+              <h4 className="font-bold text-[var(--ds-accent-fg)]">Realisasi Selesai</h4>
+              <p className="mt-0.5 leading-relaxed text-[var(--ds-fg-secondary)]">
                 Paket lelang ini telah difinalisasi. Penghapusan aset yang terjual telah dicatat secara hukum, dan aset yang tidak terjual telah dikembalikan ke status aktif.
               </p>
             </div>
           </div>
 
           {/* Outcomes list table */}
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs space-y-4">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">Laporan Akhir Penjualan Aset</h3>
-            <div className="overflow-hidden border border-zinc-100 dark:border-zinc-800 rounded-xl">
-              <table className="w-full text-left">
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs space-y-4">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)]">Laporan Akhir Penjualan Aset</h3>
+            <div className="overflow-x-auto border border-[var(--ds-border-subtle)] rounded-xl">
+              <table className="bmn-wide-table w-full text-left">
                 <thead>
-                  <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-xs font-bold text-zinc-500">
+                  <tr className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)]">
                     <th className="px-4 py-2.5 w-20">Lot</th>
                     <th className="px-4 py-2.5">Identitas Aset</th>
                     <th className="px-4 py-2.5 text-right">Nilai Taksiran</th>
@@ -674,47 +699,47 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
                     <th className="px-4 py-2.5 text-right w-44">Harga Terbentuk</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
+                <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
                   {assets.map((asset) => {
                     const pivot = asset.pivot;
                     const finalResult = pivot?.final_result;
                     const finalPrice = pivot?.final_price;
 
                     let label = "Tidak Terjual";
-                    let badgeCls = "bg-zinc-100 text-zinc-850";
+                    let badgeCls = "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]";
 
                     if (finalResult === "SOLD_FIRST" || pivot?.first_auction_is_sold) {
                       label = "Terjual Lelang I";
-                      badgeCls = "bg-emerald-50 text-emerald-800 border-emerald-100";
+                      badgeCls = "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]";
                     } else if (finalResult === "SOLD_REAUCTION" || pivot?.reauction_is_sold) {
                       label = "Terjual Lelang II";
-                      badgeCls = "bg-purple-50 text-purple-800 border-purple-100";
+                      badgeCls = "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]";
                     }
 
                     const displayPrice = finalPrice ?? (pivot?.first_auction_is_sold ? pivot?.first_auction_price : pivot?.reauction_is_sold ? pivot?.reauction_price : null);
 
                     return (
                       <tr key={asset.id}>
-                        <td className="px-4 py-3 font-mono font-bold text-zinc-500">
+                        <td className="px-4 py-3 font-mono font-bold text-[var(--ds-fg-muted)]">
                           {pivot?.lot_number || "-"}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          <div className="font-semibold text-[var(--ds-fg)]">
                             {asset.nama_barang}
                           </div>
-                          <div className="text-[10px] text-zinc-400 mt-0.5">
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                             NUP: {asset.nup} • {asset.jenis_bmn}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-zinc-800 dark:text-zinc-350">
+                        <td className="px-4 py-3 text-right font-semibold text-[var(--ds-fg)]">
                           {formatRupiah(pivot?.nilai_taksiran)}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <Badge variant="outline" className={`${badgeCls} text-[10px] font-semibold`}>
+                          <Badge variant="outline" className={`${badgeCls} text-xs font-semibold`}>
                             {label}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-right font-bold text-zinc-900 dark:text-zinc-100">
+                        <td className="px-4 py-3 text-right font-bold text-[var(--ds-fg)]">
                           {displayPrice ? formatRupiah(displayPrice) : "-"}
                         </td>
                       </tr>
@@ -725,19 +750,19 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
             </div>
 
             {assets.some((a) => a.pivot?.final_result === "UNSOLD" || (!a.pivot?.first_auction_is_sold && !a.pivot?.reauction_is_sold)) && (
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-blue-50/40 dark:bg-blue-950/10 p-4 rounded-xl">
+              <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--ds-status-info-bg)] p-4 rounded-xl">
                 <div>
-                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                  <p className="text-xs font-bold text-[var(--ds-fg)]">
                     Terdapat Aset Tidak Terjual
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                     Buat paket lelang draf baru khusus untuk barang yang tidak laku dengan set dokumen SK/BA baru.
                   </p>
                 </div>
                 <Button
                   onClick={handleMoveUnsoldToNewBatch}
-                  disabled={isMovingUnsold}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shrink-0"
+                  disabled={isMovingUnsold || !canMoveUnsold}
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold shrink-0"
                 >
                   {isMovingUnsold && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
                   Pindahkan Barang Tidak Laku ke Paket Baru
@@ -751,47 +776,47 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
       {/* -------------------- 4. BATAL (CANCELLED) VIEW -------------------- */}
       {batch.status === "BATAL" && (
         <div className="space-y-6">
-          <div className="bg-red-50/20 dark:bg-red-950/5 border border-red-200 dark:border-red-900/30 p-4 rounded-2xl text-xs flex gap-3 items-start">
-            <XCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] p-4 rounded-2xl text-xs flex gap-3 items-start">
+            <XCircle className="h-5 w-5 text-[var(--ds-status-danger-fg)] shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-bold text-red-950 dark:text-red-400">Paket Dibatalkan</h4>
-              <p className="mt-0.5 leading-relaxed text-zinc-650 dark:text-zinc-400">
+              <h4 className="font-bold text-[var(--ds-status-danger-fg)]">Paket Dibatalkan</h4>
+              <p className="mt-0.5 leading-relaxed text-[var(--ds-fg-secondary)]">
                 Proses lelang dibatalkan. Aset yang dibekukan telah dikembalikan ke status dinas semula.
               </p>
               {batch.reauction_notes && (
-                <p className="mt-2 text-zinc-500">
-                  Catatan pembatalan: <strong className="text-zinc-800 dark:text-zinc-200">"{batch.reauction_notes}"</strong>
+                <p className="mt-2 text-[var(--ds-fg-muted)]">
+                  Catatan pembatalan: <strong className="text-[var(--ds-fg)]">"{batch.reauction_notes}"</strong>
                 </p>
               )}
             </div>
           </div>
 
           {/* List of assets in cancelled batch */}
-          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xs space-y-4">
-            <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">Daftar Aset</h3>
-            <div className="overflow-hidden border border-zinc-100 dark:border-zinc-800 rounded-xl">
-              <table className="w-full text-left text-xs">
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs space-y-4">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)]">Daftar Aset</h3>
+            <div className="overflow-x-auto border border-[var(--ds-border-subtle)] rounded-xl">
+              <table className="bmn-wide-table w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800 text-xs font-bold text-zinc-500">
+                  <tr className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)]">
                     <th className="px-4 py-2.5 w-20">Lot</th>
                     <th className="px-4 py-2.5">Identitas Aset</th>
                     <th className="px-4 py-2.5">Jenis BMN</th>
                     <th className="px-4 py-2.5 text-right">Nilai Perolehan</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                   {assets.map((asset) => (
                     <tr key={asset.id}>
-                      <td className="px-4 py-3 font-mono font-bold text-zinc-400">
+                      <td className="px-4 py-3 font-mono font-bold text-[var(--ds-fg-muted)]">
                         {asset.pivot?.lot_number || "-"}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-zinc-950 dark:text-zinc-50">
+                        <div className="font-semibold text-[var(--ds-fg)]">
                           {asset.nama_barang}
                         </div>
-                        <div className="text-[10px] text-zinc-450 mt-0.5">NUP: {asset.nup}</div>
+                        <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">NUP: {asset.nup}</div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-650 dark:text-zinc-400">{asset.jenis_bmn}</td>
+                      <td className="px-4 py-3 text-[var(--ds-fg-secondary)]">{asset.jenis_bmn}</td>
                       <td className="px-4 py-3 text-right font-semibold">
                         {formatRupiah(asset.nilai_perolehan)}
                       </td>
@@ -810,48 +835,48 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
 
       {/* Reauction Scheduling Dialog */}
       <Dialog open={isReauctionDialogOpen} onOpenChange={setIsReauctionDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl text-xs">
+        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl text-xs">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+            <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
               Jadwal Ulang Pelaksanaan Lelang (Lelang II)
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+            <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
               Masukkan nomor surat keputusan jadwal ulang KPKNL untuk aset-aset yang belum laku terjual.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Nomor Surat Jadwal Ulang
               </label>
-              <Input
+              <Input aria-label="Nomor Surat Jadwal Ulang"
                 placeholder="S-JADWAL-ULANG-XXX/KNL.XX/YYYY"
                 value={noSuratJadwalUlang}
                 onChange={(e) => setNoSuratJadwalUlang(e.target.value)}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs"
+                className="rounded-xl border-[var(--ds-border-subtle)] text-xs"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Tanggal Pelaksanaan Lelang Ulang
               </label>
-              <Input
+              <Input aria-label="Tanggal Pelaksanaan Lelang Ulang"
                 type="date"
                 value={tglLelangUlang}
                 onChange={(e) => setTglLelangUlang(e.target.value)}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs"
+                className="rounded-xl border-[var(--ds-border-subtle)] text-xs"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Catatan / Keterangan (Opsional)
               </label>
-              <Input
+              <Input aria-label="Catatan / Keterangan (Opsional)"
                 placeholder="Tambahkan alasan atau detail lainnya..."
                 value={reauctionNotes}
                 onChange={(e) => setReauctionNotes(e.target.value)}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs"
+                className="rounded-xl border-[var(--ds-border-subtle)] text-xs"
               />
             </div>
           </div>
@@ -866,8 +891,8 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
             </Button>
             <Button
               onClick={handleScheduleReauction}
-              className="bg-purple-600 hover:bg-purple-750 text-white rounded-xl font-bold text-xs"
-              disabled={startReauctionMutation.isPending}
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl font-bold text-xs"
+              disabled={!canTransition || startReauctionMutation.isPending || !noSuratJadwalUlang.trim() || !tglLelangUlang}
             >
               Ya, Mulai Lelang Ulang
             </Button>
@@ -877,27 +902,27 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
 
       {/* Cancel Batch Dialog */}
       <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl text-xs">
+        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl text-xs">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold dark:text-zinc-50 flex items-center gap-1.5 text-red-600">
+            <DialogTitle className="text-base font-bold flex items-center gap-1.5 text-[var(--ds-status-danger-fg)]">
               <XCircle className="h-5 w-5" />
               Batalkan Paket Lelang ini?
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+            <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
               Membatalkan paket akan mengembalikan seluruh aset yang dibekukan kembali ke status aktif operasional dinas. Tindakan ini tidak dapat dianulir.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 py-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Alasan Pembatalan (Opsional)
               </label>
-              <Input
+              <Input aria-label="Alasan Pembatalan (Opsional)"
                 placeholder="Sebutkan alasan penundaan atau pembatalan..."
                 value={cancelNotes}
                 onChange={(e) => setCancelNotes(e.target.value)}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs"
+                className="rounded-xl border-[var(--ds-border-subtle)] text-xs"
               />
             </div>
           </div>
@@ -911,9 +936,10 @@ export function RealizationTab({ batch, readOnly, onRefetch }: RealizationTabPro
               Batal
             </Button>
             <Button
+              variant="destructive"
               onClick={handleCancelSubmit}
-              className="bg-red-600 hover:bg-red-750 text-white rounded-xl font-bold text-xs"
-              disabled={cancelMutation.isPending}
+              className="bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-white rounded-xl font-bold text-xs"
+              disabled={!canTransition || cancelMutation.isPending}
             >
               Ya, Batalkan Paket
             </Button>

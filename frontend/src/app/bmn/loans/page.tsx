@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useId, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -46,10 +46,10 @@ const STATUS_OPTIONS = [
 
 const getStatusBadge = (status: string) => {
     switch (status) {
-        case 'dipinjam': return <Badge className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 hover:bg-blue-100 text-[10px] font-bold">Dipinjam</Badge>;
-        case 'dikembalikan': return <Badge className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 text-[10px] font-bold">Dikembalikan</Badge>;
-        case 'terlambat': return <Badge className="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/20 hover:bg-red-100 text-[10px] font-bold">Terlambat</Badge>;
-        default: return <Badge variant="outline" className="text-[10px]">{status}</Badge>;
+        case 'dipinjam': return <Badge data-status="info" className="text-xs font-bold">Dipinjam</Badge>;
+        case 'dikembalikan': return <Badge data-status="success" className="text-xs font-bold">Dikembalikan</Badge>;
+        case 'terlambat': return <Badge data-status="danger" className="text-xs font-bold">Terlambat</Badge>;
+        default: return <Badge data-status="neutral" className="text-xs">{status || 'Belum diisi'}</Badge>;
     }
 };
 
@@ -60,13 +60,15 @@ const formatDate = (dateStr: string | null) => {
 
 export default function LoansPage() {
     const router = useRouter();
+    const statusId = useId();
+    const dialogOpener = useRef<HTMLElement | null>(null);
     const queryClient = useQueryClient();
     const { hasPermission, canWrite, isAdmin } = useRole();
     const canManage = canWrite || isAdmin || hasPermission("bmn.asset.update");
     const [page, setPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState("all");
 
-    const { data: response, isLoading: loading } = useQuery({
+    const { data: response, isLoading: loading, isFetching, isError, refetch } = useQuery({
         queryKey: ["bmn-loans", page, filterStatus],
         queryFn: async () => {
             const params: Record<string, string | number> = { page, per_page: 10 };
@@ -166,11 +168,11 @@ export default function LoansPage() {
             await api.delete(`/bmn/loans/${deletingRecord.id}`);
             toast.success("Peminjaman berhasil dihapus");
             setIsDeleteModalOpen(false);
-            
+
             // Store asset_id before nullifying
             const assetId = deletingRecord.asset_id;
             setDeletingRecord(null);
-            
+
             queryClient.invalidateQueries({ queryKey: ["bmn-loans"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
             queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
@@ -183,21 +185,19 @@ export default function LoansPage() {
     };
 
     return (
-        <div className="p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 sm:p-5 md:p-7 space-y-5 text-[var(--ds-fg)] ">
             {/* 1. Unified Clean Enterprise Header Bar */}
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
                         <Handshake className="w-5 h-5" />
                     </div>
                     <div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-                            Barang Milik Negara
-                        </span>
-                        <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+
+                        <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                             Peminjaman Aset
                         </h1>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                             Kelola data sirkulasi, peminjaman, dan pengembalian BMN.
                         </p>
                     </div>
@@ -206,7 +206,7 @@ export default function LoansPage() {
                     <Button
                         onClick={() => router.push('/bmn/loans/create')}
                         size="sm"
-                        className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 cursor-pointer"
+                        className="rounded-xl gap-2 text-xs bmn-primary shadow-sm  cursor-pointer"
                     >
                         <Plus className="w-3.5 h-3.5" /> Pinjam Aset
                     </Button>
@@ -214,7 +214,7 @@ export default function LoansPage() {
             </div>
 
             {/* Sliding Pill Status Filter */}
-            <div className="flex flex-wrap items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap items-center gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-xl w-fit">
                 {[
                     { value: "all", label: "Semua Status" },
                     ...STATUS_OPTIONS,
@@ -224,19 +224,21 @@ export default function LoansPage() {
                         <button
                             key={opt.value}
                             type="button"
+                            aria-pressed={isActive}
                             onClick={() => { setFilterStatus(opt.value); setPage(1); }}
                             className={cn(
                                 "relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
                                 isActive
-                                    ? "text-white font-bold"
-                                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100"
+                                    ? "text-[var(--ds-accent-on-solid)] font-bold"
+                                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                             )}
                         >
                             {isActive && (
                                 <motion.span
-                                    layoutId="activeBmnLoansStatusTab"
-                                    className="absolute inset-0 bg-emerald-600 rounded-lg shadow-xs"
-                                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                                    layoutId={`${statusId}-status`}
+                                    initial={false}
+                                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
+                                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
                                 />
                             )}
                             <span className="relative z-10">{opt.label}</span>
@@ -246,79 +248,79 @@ export default function LoansPage() {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-2xs">
-                <div className="p-4 border-b border-slate-200/80 dark:border-zinc-800 flex justify-between items-center">
-                    <h2 className="font-semibold text-slate-800 dark:text-zinc-200 text-sm">Riwayat Peminjaman ({pagination.total})</h2>
+            <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xs">
+                <div className="p-4 border-b border-[var(--ds-border-subtle)] flex justify-between items-center">
+                    <h2 className="font-semibold text-[var(--ds-fg)] text-sm">Riwayat Peminjaman ({pagination.total})</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-zinc-100 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50">
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider w-[200px]">Aset</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kode / NUP</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lokasi & Pengguna</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Peminjam</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tgl Pinjam</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Jatuh Tempo</th>
-                                <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center">Status</th>
+                    <table className={`${records.length ? "bmn-wide-table" : ""} w-full text-left`}>
+                        <thead className={records.length ? "" : "hidden sm:table-header-group"}>
+                            <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider w-[200px]">Aset</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Kode / NUP</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Lokasi & Pengguna</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Peminjam</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Tgl Pinjam</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Jatuh Tempo</th>
+                                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">Status</th>
                                 {canManage && (
-                                    <th className="px-4 py-3 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-center w-32">Aksi</th>
+                                    <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-32">Aksi</th>
                                 )}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                        <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                             {loading ? (
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td colSpan={canManage ? 8 : 7} className="px-4 py-4">
-                                            <div className="h-10 bg-slate-100 dark:bg-zinc-800/60 rounded-xl" />
+                                            <div className="h-10 bg-[var(--ds-surface-muted)] rounded-xl" />
                                         </td>
                                     </tr>
                                 ))
-                            ) : records.length === 0 ? (
+                            ) : isError ? (<tr><td colSpan={canManage ? 8 : 7} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Riwayat peminjaman gagal dimuat.</p><Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba lagi</Button></td></tr>) : records.length === 0 ? (
                                 <tr>
                                     <td colSpan={canManage ? 8 : 7} className="text-center py-20">
-                                        <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-700" />
-                                        <p className="text-zinc-900 dark:text-zinc-100 font-medium">Belum ada data peminjaman</p>
-                                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Sesuai dengan filter pencarian</p>
+                                        <Package className="w-12 h-12 mx-auto mb-3 text-[var(--ds-fg-muted)]" />
+                                        <p className="text-[var(--ds-fg)] font-medium">Belum ada data peminjaman</p>
+                                        <p className="text-sm text-[var(--ds-fg-muted)] mt-1">Sesuai dengan filter pencarian</p>
                                     </td>
                                 </tr>
                             ) : (
                                 records.map((r) => (
-                                    <tr key={r.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors group">
+                                    <tr key={r.id} className="hover:bg-[var(--ds-surface-muted)] transition-colors group">
                                         <td className="px-4 py-3">
-                                            <div className="font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
-                                            {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-[11px] text-zinc-500 dark:text-zinc-400">{r.asset.merk_tipe || r.asset.merk}</div>}
-                                            {r.asset?.no_polisi && r.asset.no_polisi !== '-' && <div className="text-[10px] text-blue-600 font-medium mt-0.5">🚗 {r.asset.no_polisi}</div>}
+                                            <div className="font-bold text-[var(--ds-fg)] line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
+                                            {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-xs text-[var(--ds-fg-muted)]">{r.asset.merk_tipe || r.asset.merk}</div>}
+                                            {r.asset?.no_polisi && r.asset.no_polisi !== '-' && <div className="text-xs text-[var(--ds-status-info-fg)] font-medium mt-0.5">No. Polisi: {r.asset.no_polisi}</div>}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">{r.asset?.kode_barang || '-'}</div>
-                                            <div className="text-[10px] text-zinc-400 font-mono tracking-tighter mt-0.5">NUP: {r.asset?.nup || '-'}</div>
-                                            {r.asset?.nup_lama && <div className="text-[10px] text-zinc-400 font-mono tracking-tighter">NUP Lama: {r.asset.nup_lama}</div>}
+                                            <div className="text-xs font-mono font-bold text-[var(--ds-accent-fg)]">{r.asset?.kode_barang || '-'}</div>
+                                            <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter mt-0.5">NUP: {r.asset?.nup || '-'}</div>
+                                            {r.asset?.nup_lama && <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter">NUP Lama: {r.asset.nup_lama}</div>}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{r.asset?.lokasi_ruang || '-'}</div>
-                                            {r.asset?.pengguna && <div className="text-[10px] text-amber-600 mt-0.5">👤 {r.asset.pengguna}</div>}
+                                            <div className="text-xs text-[var(--ds-fg-muted)]">{r.asset?.lokasi_ruang || '-'}</div>
+                                            {r.asset?.pengguna && <div className="text-xs text-[var(--ds-status-warning-fg)] mt-0.5">Pengguna: {r.asset.pengguna}</div>}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="font-medium text-zinc-800 dark:text-zinc-200 text-sm">{r.borrower?.name || '-'}</div>
-                                            {r.borrower?.nip && <div className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">NIP. {r.borrower.nip}</div>}
+                                            <div className="font-medium text-[var(--ds-fg)] text-sm">{r.borrower?.name || '-'}</div>
+                                            {r.borrower?.nip && <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">NIP. {r.borrower.nip}</div>}
                                         </td>
-                                        <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 text-sm whitespace-nowrap">
+                                        <td className="px-4 py-3 text-[var(--ds-fg-muted)] text-sm whitespace-nowrap">
                                             {formatDate(r.loan_date)}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="text-zinc-600 dark:text-zinc-400 text-sm whitespace-nowrap font-medium">{formatDate(r.due_date)}</div>
+                                            <div className="text-[var(--ds-fg-muted)] text-sm whitespace-nowrap font-medium">{formatDate(r.due_date)}</div>
                                             {r.return_date && (
                                                 <div className="mt-1 flex flex-col gap-1">
-                                                    <div className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-100 w-fit">
+                                                    <div className="text-xs text-[var(--ds-accent-fg)] font-bold bg-[var(--ds-accent-soft)] px-1.5 py-0.5 rounded-md border border-[var(--ds-accent-soft-border)] w-fit">
                                                         Kembali: {formatDate(r.return_date)}
                                                     </div>
                                                     {r.return_condition && (
-                                                        <div className="text-[9px] text-zinc-500 dark:text-zinc-400 italic flex items-center gap-1.5">
+                                                        <div className="text-xs text-[var(--ds-fg-muted)] italic flex items-center gap-1.5">
                                                             <div className={cn("w-1.5 h-1.5 rounded-full",
-                                                                r.return_condition === 'Baik' ? 'bg-emerald-500' :
-                                                                r.return_condition === 'Rusak Ringan' ? 'bg-amber-500' : 'bg-red-500'
+                                                                r.return_condition === 'Baik' ? 'bg-[var(--ds-status-success-fg)]' :
+                                                                r.return_condition === 'Rusak Ringan' ? 'bg-[var(--ds-status-warning-fg)]' : r.return_condition === 'Rusak Berat' ? 'bg-[var(--ds-status-danger-fg)]' : 'bg-[var(--ds-status-neutral-fg)]'
                                                             )} />
                                                             Kondisi: {r.return_condition}
                                                         </div>
@@ -330,7 +332,7 @@ export default function LoansPage() {
                                             <div className="flex flex-col items-center gap-1.5">
                                                 {getStatusBadge(r.status)}
                                                 {r.late_days && r.late_days > 0 && (
-                                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-500/10 px-1.5 py-0.5 rounded-md border border-red-100 flex items-center gap-1">
+                                                    <span className="text-xs font-bold text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] px-1.5 py-0.5 rounded-md border border-[var(--ds-status-danger-border)] flex items-center gap-1">
                                                         <AlertTriangle className="w-3 h-3" />
                                                         {r.late_days} hari
                                                     </span>
@@ -344,7 +346,7 @@ export default function LoansPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="min-h-9 min-w-9 h-9 w-9 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg cursor-pointer"
+                                                            className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]  rounded-lg cursor-pointer"
                                                             title="Kembalikan Aset"
                                                             aria-label="Kembalikan Aset"
                                                             onClick={() => openReturnModal(r)}
@@ -355,7 +357,7 @@ export default function LoansPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="min-h-9 min-w-9 h-9 w-9 text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg cursor-pointer"
+                                                        className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]  rounded-lg cursor-pointer"
                                                         onClick={() => openEditModal(r)}
                                                         disabled={r.status === 'dikembalikan'}
                                                         title="Edit Peminjaman"
@@ -366,7 +368,7 @@ export default function LoansPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="min-h-9 min-w-9 h-9 w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg cursor-pointer"
+                                                        className="bmn-icon-danger min-h-9 min-w-9 h-9 w-9 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]  rounded-lg cursor-pointer"
                                                         title="Hapus Catatan"
                                                         aria-label="Hapus Catatan"
                                                         onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}
@@ -383,11 +385,11 @@ export default function LoansPage() {
                     </table>
                 </div>
                 {pagination.total > 0 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-200/80 dark:border-zinc-800 gap-3">
-                        <p className="text-xs text-slate-500 dark:text-zinc-400">Total {pagination.total} transaksi peminjaman (Hal {page} / {pagination.last_page})</p>
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[var(--ds-border-subtle)] gap-3">
+                        <p className="text-xs text-[var(--ds-fg-muted)]">Total {pagination.total} transaksi peminjaman (Hal {page} / {pagination.last_page})</p>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-xs rounded-lg cursor-pointer">Sebelumnya</Button>
-                            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= pagination.last_page} className="text-xs rounded-lg cursor-pointer">Selanjutnya</Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || isFetching} className="text-xs rounded-lg">Sebelumnya</Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= pagination.last_page || isFetching} className="text-xs rounded-lg">Selanjutnya</Button>
                         </div>
                     </div>
                 )}
@@ -407,29 +409,29 @@ export default function LoansPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2"><CalendarClock className="w-5 h-5 text-blue-600" /> Edit Peminjaman</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2"><CalendarClock className="w-5 h-5 text-[var(--ds-status-info-fg)]" /> Edit Peminjaman</DialogTitle>
                         <DialogDescription>Perbarui detail peminjaman aset <strong>{editingRecord?.asset?.nama_barang}</strong>.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>Tanggal Pinjam</Label>
-                                <Input type="date" value={editForm.loan_date} onChange={(e) => setEditForm({ ...editForm, loan_date: e.target.value })} />
+                                <Input aria-label="Tanggal Pinjam" type="date" value={editForm.loan_date} onChange={(e) => setEditForm({ ...editForm, loan_date: e.target.value })} />
                             </div>
                             <div className="space-y-2">
                                 <Label>Jatuh Tempo</Label>
-                                <Input type="date" value={editForm.due_date} onChange={(e) => setEditForm({ ...editForm, due_date: e.target.value })} />
+                                <Input aria-label="Jatuh Tempo" type="date" value={editForm.due_date} onChange={(e) => setEditForm({ ...editForm, due_date: e.target.value })} />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Tujuan Peminjaman</Label>
-                            <Textarea value={editForm.purpose} onChange={(e) => setEditForm({ ...editForm, purpose: e.target.value })} placeholder="Tujuan peminjaman..." rows={2} />
+                            <Textarea aria-label="Tujuan Peminjaman" value={editForm.purpose} onChange={(e) => setEditForm({ ...editForm, purpose: e.target.value })} placeholder="Tujuan peminjaman..." rows={2} />
                         </div>
                         <div className="space-y-2">
                             <Label>Catatan</Label>
-                            <Textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Catatan tambahan..." rows={2} />
+                            <Textarea aria-label="Catatan" value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Catatan tambahan..." rows={2} />
                         </div>
                     </div>
                     <DialogFooter>
@@ -443,9 +445,9 @@ export default function LoansPage() {
 
             {/* Delete Modal */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-red-600"><Trash2 className="w-5 h-5" /> Hapus Peminjaman?</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2 text-[var(--ds-status-danger-fg)]"><Trash2 className="w-5 h-5" /> Hapus Peminjaman?</DialogTitle>
                         <DialogDescription>Hapus data peminjaman aset <strong>{deletingRecord?.asset?.nama_barang}</strong>? Tindakan ini tidak dapat dibatalkan.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

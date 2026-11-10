@@ -1,6 +1,6 @@
 # Panduan Warna BKSDA SuperApp
 
-Tanggal revisi: **10 November 2026**.
+Tanggal revisi: **11 November 2026**.
 Status: **spesifikasi token untuk penerapan bertahap; sebagian telah diterapkan pada BMN, lihat bagian 9.1**.
 
 Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
@@ -267,3 +267,23 @@ Panduan khusus untuk pekerjaan visual modul BMN berikutnya: [Panduan Visual Modu
 - [W3C — WCAG 2.2, Non-text Contrast](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html): kontrol/state/grafik bermakna dan pengecualian border dekoratif.
 - [W3C — WCAG 2.2, Use of Color](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html): informasi tidak hanya melalui warna.
 - Source lokal yang dibaca: `frontend/src/app/globals.css`, `frontend/src/components/ui/button.tsx`, `frontend/package.json`, dan palet paket Tailwind yang sudah terpasang. Source tersebut merupakan bukti keadaan saat revisi, bukan bagian yang diubah melalui dokumen ini.
+
+
+### Penerapan sidebar BMN lanjutan
+
+Peminjaman, Pemeliharaan, Import Review, Aset Dihapus dan Pengaturan Master memakai token BMN melalui scope `.bmn-standard-ui` bersama `.bmn-assets-ui`; portal membawa `data-module="bmn"` dan scope sendiri. Secondary berborder transparan, input border-subtle, fokus outline accent2px/offset2px, checkbox memakai border-control ketika belum dipilih dan accent-solid/on-solid ketika dipilih. Disabled memakai disabled-bg/fg. Hapus memakai danger; seleksi baris Emerald. Status impor/diff memakai lima pasangan semantik existing, kategori form master netral. Palette tag yang dipilih pengguna tetap konfigurasi tag, bukan status operasional.
+
+Dialog BMN memakai surface/fg, judul fg, deskripsi fg-muted, footer surface-muted/border-subtle. ConfirmDialog mendukung scope opsional agar penerapan BMN tidak mengganti palette pemanggil modul lain. Audit menu lainnya masih berjalan; status aktual per menu tercatat di [audit sidebar](bmn-ui-ux-modernization/remaining-sidebar-audit.md).
+
+
+Dokumen & Laporan BMN mengikuti scope yang sama: unduhan/action utama Emerald, secondary transparan, Draf warning, Terbit success, kategori dokumen netral dan hapus danger. State seleksi tabel/picker Emerald; bidang KTP hover/focus-within accent-soft/accent-fg dan disabled mengikuti token. Native file input tetap aksesibel lewat Tab. Button style menargetkan button/anchor ber-data-variant sehingga Radix asChild yang mengganti data-slot tidak menghilangkan warna/hover. Kertas cetak resmi mempertahankan putih/hitam; jangan mengganti palette dokumen berdasarkan tema aplikasi.
+
+Kandidat Rusak Berat: Buat Paket memakai accent-solid/on-solid Emerald (aksi membuat). Selected row memakai accent-soft, identitas tetap fg. Warning kelengkapan advisory memakai pasangan warning; kandidat aktif di paket lain tetap disabled; Ready memakai success. Warna selalu disertai label.
+
+## Sidebar BMN lanjutan — 11 November 2026
+
+Delapan menu tersisa mengikuti token BMN, termasuk daftar/dialog/portal dan kontrol workflow Paket Lelang. Rincian cakupan dan bukti: [audit sidebar](bmn-ui-ux-modernization/remaining-sidebar-audit.md). Sidebar/header memakai canvas/surface/fg/border-subtle; scope bmn-shell tidak menerapkan ulang aturan tombol halaman ke dashboard/Data Aset.
+
+Status paket: Draft netral, Diajukan warning, Jadwal Ditetapkan info, Lelang Ulang warning (perlu tindakan lanjutan), Realisasi success, Batal danger. Aksi buat/edit/jadwal/lanjut memakai Emerald atau secondary; hapus/pembatalan memakai danger. Kode aset bukan error. Label dan ikon tetap menyertai status. Status pengembalian yang tidak dikenal netral, bukan otomatis rusak berat.
+
+Editor, picker panitia/Kepala Balai dan kalkulator memakai pasangan light/dark BMN; area kertas resmi tetap putih/hitam. Khusus input di .kk-page: putih/#111, border #c8c8c8, ukuran cetak existing16px dan focus #047857; jangan menerapkan min-height kontrol aplikasi36px ke sel kertas cetak. Warna tag konfigurasi pengguna tetap mengikuti palette existing.

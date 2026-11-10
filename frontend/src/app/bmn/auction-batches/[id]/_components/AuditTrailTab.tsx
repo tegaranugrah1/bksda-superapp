@@ -23,7 +23,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
   // Fetch events list
-  const { data: response, isLoading, error } = useQuery({
+  const { data: response, isLoading, error, refetch } = useQuery({
     queryKey: ["bmn-auction-batch-events", batchId],
     queryFn: () => getEvents(batchId),
   });
@@ -90,49 +90,49 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
 
   const getActionBadgeClass = (action: string) => {
     if (action.includes("created") || action.includes("added")) {
-      return "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-300 dark:border-emerald-900/30";
+      return "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   ";
     }
     if (action.includes("removed") || action.includes("canceled") || action.includes("batal")) {
-      return "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/20 dark:text-red-300 dark:border-red-900/30";
+      return "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]   ";
     }
     if (action.includes("locked") || action.includes("freeze")) {
-      return "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900/30";
+      return "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   ";
     }
     if (action.includes("printed")) {
-      return "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-900/30";
+      return "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]   ";
     }
-    return "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800";
+    return "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-[var(--ds-border-subtle)]   ";
   };
 
   return (
     <div className="space-y-6">
       {/* Title */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs">
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
-          <History className="h-5 w-5 text-emerald-600" />
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-5 rounded-2xl shadow-xs">
+        <h2 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
+          <History className="h-5 w-5 text-[var(--ds-accent-fg)]" />
           Riwayat Audit Aktivitas
         </h2>
-        <p className="text-xs text-zinc-500 mt-0.5">
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
           Log historis lengkap mengenai seluruh tindakan administratif dan perubahan data pada paket lelang BMN.
         </p>
       </div>
 
       {/* Audit Table */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 shadow-xs">
+      <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50/75 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-52">
+          <table className={`${events.length ? "bmn-wide-table" : ""} w-full text-left border-collapse`}>
+            <thead className={events.length ? "" : "hidden sm:table-header-group"}>
+              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-52">
                   Waktu
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-44">
+                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-44">
                   Aktor
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 w-56">
+                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-56">
                   Tindakan
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Catatan / Aset Terkait
                 </th>
                 <th className="w-16 px-5 py-3.5 text-center">
@@ -140,17 +140,17 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-10 text-center">
-                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-emerald-600" />
-                    <p className="text-xs text-zinc-400 mt-1">Memuat log riwayat...</p>
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin text-[var(--ds-accent-fg)]" />
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1">Memuat log riwayat...</p>
                   </td>
                 </tr>
-              ) : events.length === 0 ? (
+              ) : error ? (<tr><td colSpan={5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Riwayat audit gagal dimuat.</p><Button variant="outline" onClick={() => refetch()}>Coba lagi</Button></td></tr>) : events.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-zinc-400">
+                  <td colSpan={5} className="p-12 text-center text-[var(--ds-fg-muted)]">
                     Belum ada riwayat aktivitas yang tercatat untuk paket lelang ini.
                   </td>
                 </tr>
@@ -161,19 +161,19 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
 
                   return (
                     <React.Fragment key={event.id}>
-                      <tr className="transition-colors hover:bg-zinc-50/40 dark:hover:bg-zinc-900/30">
+                      <tr className="bmn-table-row">
                         {/* Time */}
-                        <td className="px-5 py-4 text-zinc-500">
+                        <td className="px-5 py-4 text-[var(--ds-fg-muted)]">
                           <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                            <Clock className="h-3.5 w-3.5 text-[var(--ds-fg-muted)]" />
                             <span>{formatDateTime(event.created_at)}</span>
                           </div>
                         </td>
 
                         {/* Actor */}
-                        <td className="px-5 py-4 text-zinc-850 dark:text-zinc-200">
+                        <td className="px-5 py-4 text-[var(--ds-fg)]">
                           <div className="flex items-center gap-1.5">
-                            <User className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                            <User className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
                             <span className="font-medium truncate max-w-[150px]">
                               {event.actor_name || "Sistem"}
                             </span>
@@ -183,7 +183,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                         {/* Action Badge */}
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-block border px-2 py-0.5 rounded-md text-[10px] font-bold ${getActionBadgeClass(
+                            className={`inline-block border px-2 py-0.5 rounded-md text-xs font-bold ${getActionBadgeClass(
                               event.action
                             )}`}
                           >
@@ -192,11 +192,11 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                         </td>
 
                         {/* Notes / Affected Asset */}
-                        <td className="px-5 py-4 text-zinc-650 dark:text-zinc-350">
+                        <td className="px-5 py-4 text-[var(--ds-fg-secondary)]">
                           <div className="space-y-0.5">
                             <p className="font-medium">{event.notes || "-"}</p>
                             {event.bmn_asset_id && (
-                              <div className="flex items-center gap-1 text-[9px] text-zinc-450 font-mono">
+                              <div className="flex items-center gap-1 text-xs text-[var(--ds-fg-muted)] font-mono">
                                 <Layers className="h-3 w-3" />
                                 <span>Aset ID: {event.bmn_asset_id}</span>
                               </div>
@@ -210,6 +210,9 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                             <Button
                               variant="ghost"
                               size="icon-sm"
+                              aria-label={`Lihat detail ${getActionLabel(event.action)}`}
+                              aria-expanded={isExpanded}
+                              aria-controls={`auction-event-${event.id}`}
                               onClick={() => setExpandedEventId(isExpanded ? null : event.id)}
                               className="rounded-lg h-7 w-7"
                               title="Tampilkan detail JSON diff"
@@ -226,16 +229,16 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
 
                       {/* Expandable JSON details panel */}
                       {isExpanded && hasDetails && (
-                        <tr className="bg-zinc-50/50 dark:bg-zinc-900/10 border-t border-b border-zinc-100 dark:border-zinc-800">
+                        <tr className="bg-[var(--ds-surface-muted)] border-t border-b border-[var(--ds-border-subtle)]">
                           <td />
-                          <td colSpan={4} className="px-5 py-4">
-                            <div className="grid gap-4 md:grid-cols-2 text-[10px] font-mono">
+                          <td id={`auction-event-${event.id}`} colSpan={4} className="px-5 py-4">
+                            <div className="grid gap-4 md:grid-cols-2 text-xs font-mono">
                               {/* Previous Values */}
                               <div className="space-y-1">
-                                <span className="font-sans font-bold text-zinc-500 uppercase tracking-wider block">
+                                <span className="font-sans font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider block">
                                   Sebelum (Previous)
                                 </span>
-                                <pre className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-x-auto max-h-48 text-zinc-600 dark:text-zinc-400">
+                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-[var(--ds-border-subtle)] overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)]">
                                   {event.previous_values
                                     ? JSON.stringify(event.previous_values, null, 2)
                                     : "null"}
@@ -244,10 +247,10 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
 
                               {/* New Values */}
                               <div className="space-y-1">
-                                <span className="font-sans font-bold text-zinc-500 uppercase tracking-wider block">
+                                <span className="font-sans font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider block">
                                   Sesudah (New)
                                 </span>
-                                <pre className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-x-auto max-h-48 text-zinc-700 dark:text-zinc-300">
+                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-[var(--ds-border-subtle)] overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)]">
                                   {event.new_values
                                     ? JSON.stringify(event.new_values, null, 2)
                                     : "null"}

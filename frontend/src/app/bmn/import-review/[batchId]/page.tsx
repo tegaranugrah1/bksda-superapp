@@ -145,8 +145,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     setIdentityFilters((current) => ({ ...current, [field]: value }));
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["bmn-import-batch", batchId, filter, identityFilters, page],
+    placeholderData: (previous) => previous,
     queryFn: async () => {
       const params: Record<string, string> = { page: String(page), per_page: "200" };
       if (filter !== "all") params.status = filter;
@@ -272,33 +273,41 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui flex items-center justify-center h-96" role="status" aria-label="Memuat review impor">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--ds-accent-fg)]" />
       </div>
     );
   }
 
+  if (isError || !batch) {
+    return <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui p-6 space-y-4">
+      <p role="alert" className="text-[var(--ds-status-danger-fg)]">Detail impor gagal dimuat atau tidak tersedia.</p>
+      <Button variant="outline" onClick={() => refetch()}>Coba lagi</Button>
+      <Button asChild variant="ghost"><Link href="/bmn/import-review">Kembali ke Import Review</Link></Button>
+    </div>;
+  }
+
   return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
       {/* Enterprise Header Card */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-6 rounded-2xl shadow-xs">
+        <div className="flex min-w-0 flex-wrap items-center gap-4">
+            <Button asChild variant="ghost" size="sm">
           <Link href="/bmn/import-review">
-            <Button variant="ghost" size="sm" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
               <ArrowLeft className="w-4 h-4 mr-1" /> Kembali
-            </Button>
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                {batch?.filename}
+            </Button>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="min-w-0 text-xl font-bold text-[var(--ds-fg)] flex items-start gap-2">
+                <FileSpreadsheet className="w-5 h-5 shrink-0 mt-1 text-[var(--ds-accent-fg)]" />
+                <span className="min-w-0 break-words">{batch?.filename}</span>
               </h1>
-              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span data-status="neutral" className="text-xs font-medium px-2 py-0.5 rounded-full">
                 Review Impor
               </span>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               {batch?.total_rows} baris total •{" "}
               Diupload {batch?.created_at ? new Date(batch.created_at).toLocaleDateString("id-ID") : ""}
             </p>
@@ -306,20 +315,20 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         </div>
 
         {canApprove && isPending && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button
               onClick={handleReject}
-              disabled={isRejecting}
+              disabled={isRejecting || isApproving || isFetching}
               variant="outline"
-              className="border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+              className="bmn-icon-danger"
             >
               {isRejecting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
               Tolak
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={isApproving || totalActionable === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              disabled={isApproving || isRejecting || isFetching || totalActionable === 0}
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold"
             >
               {isApproving ? (
                 <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Memproses...</>
@@ -332,7 +341,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {!canApprove && isPending && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+        <div className="rounded-xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] px-4 py-3 text-sm text-[var(--ds-status-warning-fg)]">
           <div className="flex items-start gap-2">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
@@ -347,14 +356,12 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         <SummaryCard
           label="Total"
           value={batch?.total_rows || 0}
-          color="slate"
           active={filter === "all"}
           onClick={() => handleStatusFilterChange("all")}
         />
         <SummaryCard
           label="Baru"
           value={batch?.new_rows || 0}
-          color="emerald"
           icon={<Plus className="w-3.5 h-3.5" />}
           active={filter === "new"}
           onClick={() => handleStatusFilterChange("new")}
@@ -362,7 +369,6 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         <SummaryCard
           label="Update"
           value={batch?.updated_rows || 0}
-          color="blue"
           icon={<RefreshCw className="w-3.5 h-3.5" />}
           active={filter === "updated"}
           onClick={() => handleStatusFilterChange("updated")}
@@ -370,7 +376,6 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         <SummaryCard
           label="Tidak Berubah"
           value={batch?.unchanged_rows || 0}
-          color="slate"
           icon={<Minus className="w-3.5 h-3.5" />}
           active={filter === "unchanged"}
           onClick={() => handleStatusFilterChange("unchanged")}
@@ -378,47 +383,50 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {/* Identity Filters */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-xs">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-4 shadow-xs">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               Kode Barang
             </label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -tranzinc-y-1/2 text-zinc-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
               <Input
+                aria-label="Kode Barang"
                 value={identityFilters.kode_barang}
                 onChange={(event) => handleIdentityFilterChange("kode_barang", event.target.value)}
                 placeholder="Cari kode barang..."
-                className="h-10 pl-9 bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
               />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               NUP
             </label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -tranzinc-y-1/2 text-zinc-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
               <Input
+                aria-label="NUP"
                 value={identityFilters.nup}
                 onChange={(event) => handleIdentityFilterChange("nup", event.target.value)}
                 placeholder="Cari NUP..."
-                className="h-10 pl-9 bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
               />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               Nama Barang
             </label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -tranzinc-y-1/2 text-zinc-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
               <Input
+                aria-label="Nama Barang"
                 value={identityFilters.nama_barang}
                 onChange={(event) => handleIdentityFilterChange("nama_barang", event.target.value)}
                 placeholder="Cari nama barang..."
-                className="h-10 pl-9 bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
               />
             </div>
           </div>
@@ -430,7 +438,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               setPage(1);
               setIdentityFilters({ kode_barang: "", nup: "", nama_barang: "" });
             }}
-            className="h-10 shrink-0 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+            className="h-10 shrink-0 border-[var(--ds-border-subtle)] text-[var(--ds-fg-secondary)]"
           >
             <X className="mr-1 h-4 w-4" />
             Reset
@@ -440,17 +448,18 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
 
       {/* Selection Toolbar */}
       {canWrite && isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
-        <div className="flex flex-col gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
-          <span className="text-sm text-zinc-600 dark:text-zinc-300">
-            Dipilih: <strong className="text-zinc-900 dark:text-white">{selectionSummary.selected_new}</strong> baru, <strong className="text-zinc-900 dark:text-white">{selectionSummary.selected_updated}</strong> update
+        <div className="flex flex-col gap-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
+          <span className="text-sm text-[var(--ds-fg-secondary)]">
+            Dipilih: <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_new}</strong> baru, <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_updated}</strong> update
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               size="sm"
-              disabled={bulkAction !== null}
+              disabled={isFetching || bulkAction !== null}
               onClick={() => handleBulkSelection("select_changed")}
-              className="h-8 bg-zinc-700 text-white hover:bg-zinc-800"
+              variant="outline"
+              className="h-8"
             >
               {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="mr-1 h-3.5 w-3.5" />}
               Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
@@ -458,9 +467,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             <Button
               type="button"
               size="sm"
-              disabled={bulkAction !== null || filteredNewTotal === 0}
+              disabled={isFetching || bulkAction !== null || filteredNewTotal === 0}
               onClick={() => handleBulkSelection("select_new_only")}
-              className="h-8 bg-emerald-600 text-white hover:bg-emerald-700"
+              className="h-8 bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
             >
               {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
               Pilih hanya aset baru ({filteredNewTotal})
@@ -470,14 +479,15 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       )}
 
       {/* Rows Table */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800">
+          <table className={`${rows.length > 0 ? "bmn-wide-table" : ""} w-full text-sm`}>
+            <thead className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)]">
               <tr>
                 {canWrite && isPending && (
                   <th className="px-4 py-3 w-10">
                     <Checkbox
+                      aria-label="Pilih semua perubahan sesuai filter"
                       checked={(() => {
                         const changed = rows.filter((r) => r.diff_status === "new" || r.diff_status === "updated");
                         const selected = changed.filter((r) => r.selected);
@@ -486,24 +496,24 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         if (selected.length > 0) return "indeterminate" as const;
                         return false;
                       })()}
-                      disabled={bulkAction !== null}
+                      disabled={isFetching || bulkAction !== null}
                       onCheckedChange={(checked) => {
                         handleBulkSelection(checked ? "select_changed" : "clear_changed");
                       }}
                     />
                   </th>
                 )}
-                <th className="px-4 py-3 text-left font-semibold text-zinc-600 dark:text-zinc-300">Status</th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-600 dark:text-zinc-300">Kode Barang</th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-600 dark:text-zinc-300">NUP</th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-600 dark:text-zinc-300">Nama Barang</th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-600 dark:text-zinc-300">Perubahan</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">Status</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">Kode Barang</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">NUP</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">Nama Barang</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">Perubahan</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={canWrite && isPending ? 6 : 5} className="px-4 py-12 text-center text-zinc-400">
+                  <td colSpan={canWrite && isPending ? 6 : 5} className="px-4 py-12 text-center text-[var(--ds-fg-muted)]">
                     Tidak ada data untuk filter ini.
                   </td>
                 </tr>
@@ -515,18 +525,16 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                   return (
                     <tr
                       key={row.id}
-                      className={cn(
-                        "transition-colors",
-                        row.diff_status === "new" && "bg-emerald-50/30 dark:bg-emerald-950/20",
-                        row.diff_status === "updated" && "bg-blue-50/30 dark:bg-blue-950/20",
-                        isSelectableRow && !isSelected && "opacity-60"
-                      )}
+                      aria-selected={isSelected}
+                      className="bmn-table-row"
                     >
                     {canWrite && isPending && (
                       <td className="px-4 py-3">
                         {isSelectableRow && (
                           <Checkbox
+                            aria-label={`Pilih ${String(row.imported_data.nama_barang)} NUP ${String(row.imported_data.nup)}`}
                             checked={isSelected}
+                            disabled={isFetching}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
                           />
                         )}
@@ -535,21 +543,21 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                     <td className="px-4 py-3">
                       <DiffStatusBadge status={row.diff_status} />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)]">
                       {row.imported_data.kode_barang as string}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)]">
                       {row.imported_data.nup as string}
                     </td>
-                    <td className="px-4 py-3 text-zinc-800 dark:text-zinc-200 font-medium max-w-[200px] truncate">
+                    <td className="px-4 py-3 text-[var(--ds-fg)] font-medium max-w-[200px] truncate">
                       {row.imported_data.nama_barang as string}
                     </td>
                     <td className="px-4 py-3">
                       {row.diff_status === "new" && (
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Aset baru akan ditambahkan</span>
+                        <span className="text-xs text-[var(--ds-accent-fg)] font-medium">Aset baru akan ditambahkan</span>
                       )}
                       {row.diff_status === "unchanged" && (
-                        <span className="text-xs text-zinc-400">Tidak ada perubahan</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)]">Tidak ada perubahan</span>
                       )}
                       {row.diff_status === "updated" && row.changed_fields && (
                         <DiffFields
@@ -557,6 +565,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                           rowId={row.id}
                           isPending={canWrite && isPending}
                           fieldAction={fieldAction}
+                          isFetching={isFetching}
                           onToggleField={handleToggleField}
                         />
                       )}
@@ -571,7 +580,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {rowsPagination && rowsPagination.last_page > 1 && (
-        <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400 shadow-xs md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-4 py-3 text-sm text-[var(--ds-fg-secondary)] shadow-xs md:flex-row md:items-center md:justify-between">
           <span>
             Menampilkan {rowsPagination.from || 0}-{rowsPagination.to || 0} dari {rowsPagination.total} baris hasil filter
           </span>
@@ -580,19 +589,19 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               type="button"
               variant="outline"
               size="sm"
-              disabled={page <= 1}
+              disabled={isFetching || page <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
               Sebelumnya
             </Button>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-[var(--ds-fg-muted)]">
               Halaman {rowsPagination.current_page} / {rowsPagination.last_page}
             </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              disabled={page >= rowsPagination.last_page}
+              disabled={isFetching || page >= rowsPagination.last_page}
               onClick={() => setPage((current) => Math.min(rowsPagination.last_page, current + 1))}
             >
               Berikutnya
@@ -608,19 +617,19 @@ function DiffStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "new":
       return (
-        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-[10px]">
+        <Badge data-status="success" className="text-xs">
           <Plus className="w-3 h-3 mr-0.5" /> Baru
         </Badge>
       );
     case "updated":
       return (
-        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px]">
+        <Badge data-status="info" className="text-xs">
           <RefreshCw className="w-3 h-3 mr-0.5" /> Update
         </Badge>
       );
     case "unchanged":
       return (
-        <Badge className="bg-zinc-100 text-zinc-500 border-zinc-200 text-[10px]">
+        <Badge data-status="neutral" className="text-xs">
           <Minus className="w-3 h-3 mr-0.5" /> Sama
         </Badge>
       );
@@ -634,12 +643,14 @@ function DiffFields({
   rowId,
   isPending,
   fieldAction,
+  isFetching,
   onToggleField,
 }: {
   fields: Record<string, ChangedField>;
   rowId: string;
   isPending: boolean;
   fieldAction: string | null;
+  isFetching?: boolean;
   onToggleField: (rowId: string, field: string, selected: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -651,8 +662,8 @@ function DiffFields({
   return (
     <div className="space-y-1.5">
       {isPending && (
-        <div className="mb-1 text-[10px] font-medium text-zinc-500">
-          Kolom disetujui: <span className="text-zinc-700">{selectedCount}</span>/{entries.length}
+        <div className="mb-1 text-xs font-medium text-[var(--ds-fg-muted)]">
+          Kolom disetujui: <span className="text-[var(--ds-fg-secondary)]">{selectedCount}</span>/{entries.length}
         </div>
       )}
       {visible.map(([field, values]) => (
@@ -660,35 +671,38 @@ function DiffFields({
           key={field}
           className={cn(
             "flex items-center gap-2 text-xs",
-            values.selected === false && "opacity-50"
+            values.selected === false && "text-[var(--ds-fg-muted)]"
           )}
         >
           {isPending && (
             <Checkbox
+              aria-label={`Setujui kolom ${FIELD_LABELS[field] || field}`}
               checked={values.selected !== false}
-              disabled={fieldAction === `${rowId}:${field}`}
+              disabled={isFetching || fieldAction === `${rowId}:${field}`}
               onCheckedChange={(checked) => onToggleField(rowId, field, checked === true)}
               className="size-3.5 shrink-0"
             />
           )}
-          <span className="text-zinc-500 font-medium min-w-[100px]">
+          <span className="text-[var(--ds-fg-muted)] font-medium min-w-[100px]">
             {FIELD_LABELS[field] || field}:
           </span>
-          <span className="text-red-500 line-through truncate max-w-[120px]">
+          <span className="text-[var(--ds-status-danger-fg)] line-through truncate max-w-[120px]">
             {values.old != null && values.old !== "" ? String(values.old) : "—"}
           </span>
-          <span className="text-zinc-400">→</span>
-          <span className="text-emerald-600 font-medium truncate max-w-[120px]">
+          <span className="text-[var(--ds-fg-muted)]">→</span>
+          <span className="text-[var(--ds-accent-fg)] font-medium truncate max-w-[120px]">
             {values.new != null && values.new !== "" ? String(values.new) : "—"}
           </span>
         </div>
       ))}
       {remaining > 0 && (
         <button
+          type="button"
+          aria-expanded={expanded}
           onClick={() => setExpanded(!expanded)}
-          className="text-[10px] text-blue-600 hover:text-blue-800 font-medium mt-1 cursor-pointer"
+          className="text-xs text-[var(--ds-status-info-fg)] hover:text-[var(--ds-status-info-fg)] font-medium mt-1 cursor-pointer"
         >
-          {expanded ? "▲ Sembunyikan" : `▼ +${remaining} perubahan lainnya`}
+          {expanded ? "Sembunyikan perubahan lainnya" : `+${remaining} perubahan lainnya`}
         </button>
       )}
     </div>
@@ -698,32 +712,26 @@ function DiffFields({
 function SummaryCard({
   label,
   value,
-  color,
   icon,
   active,
   onClick,
 }: {
   label: string;
   value: number;
-  color: string;
   icon?: React.ReactNode;
   active: boolean;
   onClick: () => void;
 }) {
-  const colorMap: Record<string, string> = {
-    emerald: "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
-    blue: "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300",
-    slate: "border-zinc-400 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100",
-  };
-
   return (
     <button
+      type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "p-4 rounded-xl border-2 transition-all text-left shadow-xs",
+        "p-4 rounded-xl border transition-colors duration-150 ease-out text-left hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]",
         active
-          ? colorMap[color]
-          : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700"
+          ? "border-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
       )}
     >
       <div className="flex items-center gap-2 mb-1">

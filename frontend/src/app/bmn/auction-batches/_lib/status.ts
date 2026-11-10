@@ -23,19 +23,19 @@ export function getStatusLabel(status: AuctionBatchStatus): string {
 export function getStatusColorClass(status: AuctionBatchStatus): string {
   switch (status) {
     case "DRAFT":
-      return "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700";
+      return "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border-[var(--ds-status-neutral-border)]";
     case "DIAJUKAN":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-900/50";
+      return "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]";
     case "JADWAL_DITETAPKAN":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-900/50";
+      return "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]";
     case "LELANG_ULANG":
-      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-900/50";
+      return "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]";
     case "REALISASI":
-      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50";
+      return "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]";
     case "BATAL":
-      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-900/50";
+      return "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]";
     default:
-      return "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700";
+      return "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border-[var(--ds-status-neutral-border)]";
   }
 }
 

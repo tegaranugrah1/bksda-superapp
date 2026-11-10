@@ -1,6 +1,6 @@
 # Pedoman Animate UI dan Motion BKSDA SuperApp
 
-Revisi: **10 November 2026**. Acuan warna: [DESIGN_SYSTEM_COLORS.md](DESIGN_SYSTEM_COLORS.md).
+Revisi: **11 November 2026**. Acuan warna: [DESIGN_SYSTEM_COLORS.md](DESIGN_SYSTEM_COLORS.md).
 
 Ringkasan aturan khusus modul: [Panduan Visual Modul BMN](bmn-ui-ux-modernization/visual-guidelines.md).
 
@@ -238,3 +238,35 @@ Untuk pekerjaan baru yang memiliki perpindahan isi tab serupa, gunakan pola ini 
 - Browser normal: focus trap Tab/Shift+Tab, Escape dan focus-return dari hero/thumbnail; keenam tab mobile, edit-batal, light/dark dan lebar 359–1920px diperiksa. Konten Dialog terukur 0,15s; foto statis transform none/transition 0s, tanpa pulse idle. Fixture `node frontend/tests/bmn-detail-ui.cjs` menguji cabang status/form/tab, izin baca, loading/error, navigasi foto/dokumen serta fallback gambar; tidak mengukur FPS, sentuh fisik atau media query OS.
 
 Area unggah foto kosong pada detail memakai perubahan background/border/teks150ms ease-out saat hover atau focus-visible, tanpa transform. Cursor pointer hanya untuk tombol enabled; disabled tetap cursor default. Efek pada wrapper ditangani CSS :has terhadap tombol yang aktif; fallback reduced motion scoped existing tetap menghapus durasi transisi.
+
+
+## Sidebar BMN lanjutan — penerapan bertahap
+
+Peminjaman (termasuk wizard/katalog/dialog), Pemeliharaan, Import Review (daftar/detail) dan Aset Dihapus kini memakai `.bmn-assets-ui.bmn-standard-ui`, termasuk scope tersendiri pada portal. Kontrol enabled memakai pointer, disabled default; feedback150ms ease-out. Tabel hanya berubah background pada hover/focus-within; kartu katalog tidak lift/zoom. Entrance tunggal halaman280ms, tanpa replay pada filter/refetch. Status memakai token semantik light/dark, seleksi memakai Emerald, hapus memakai danger. Input/secondary mengikuti border halus BMN.
+
+Pergantian langkah wizard memakai **animasi di dalam tab** melalui `BmnTabContent`:160ms per fase, presence wait/initial=false, opacity/y8, reduced motion durasi0; draft tetap di induk. Filter summary Import Review adalah tombol aria-pressed, memakai feedback warna150ms tanpa animasi panel data. GET filter mempertahankan panel/input agar fokus ketik tidak hilang; aksi mutasi disabled selama fetching. Aset Dihapus membersihkan pilihan dan konfirmasi saat pencarian/halaman/jumlah berubah agar target aksi tetap terlihat.
+
+Status audit seluruh menu dan batas bukti browser/fixture dicatat pada [audit sidebar lanjutan](bmn-ui-ux-modernization/remaining-sidebar-audit.md). Catatan tahap awal ini telah dilengkapi penutupan seluruh8 menu pada11 November2026 di matriks tersebut. Uji browser reduced motion tetap oleh pengguna; fallback source/fixture diperiksa. Seluruh perubahan sidebar disimpan dalam commit lokal, tanpa push atau deploy.
+
+
+### Pengaturan Master BMN
+
+Tiga tab memakai pola **animasi di dalam tab**160ms per fase lewat BmnTabContent; underline2px spring420/32 adalah efek terpisah, dengan ID per instance dan durasi0 saat reduced motion. Panah/Home/End mempertahankan fokus pada tab. Form tambah/edit dan konfirmasi hapus menggunakan Dialog existing150ms dengan scope BMN serta pengembalian fokus eksplisit ke pemicu. Swatch warna, aksi ikon, pencarian dan pagination memberi feedback150ms, tanpa lift/scale/stagger. Kartu statistik tidak diberi pointer atau hover gerak. Tidak ada animasi tambahan saat memilih Main/Sub Tag atau unit kerja manual.
+
+
+### Dokumen & Laporan BMN: state di luar subtree animasi
+
+Pola final tetap **animasi di dalam tab**:160ms keluar lalu160ms masuk (wait,initial=false,y8,easeOut), reduced motion0, underline spring420/32 per instance. Form laporan memindahkan state ke halaman induk dengan hook per form yang diekspor dari file existing. Jangan menaruh draft di subtree keyed yang dibongkar saat perpindahan. Effect pemilihan pegawai dijadikan handler perubahan pilihan agar remount tidak menghapus override manual; sinkronisasi mode edit dijaga ref di pemilik state. Resource riwayat lengkap dipakai kembali, tanpa refetch detail yang menimpa draft. Tidak menambah cache persisten/generic store/dependency.
+
+Pemilih barang, unggah KTP dan kontrol form150ms, tanpa lift/zoom/stagger. Hover picker terbukti150ms di browser; Tab mencapai native file input dan focus-within menandai seluruh bidang. Scope Button memakai button/anchor dengan data-variant agar tetap berlaku ketika Radix asChild mengganti data-slot menjadi popover-trigger. Tablist diberi ruang4px dan scrollIntoView nearest saat navigasi keyboard agar outline tidak terpotong. Template cetak tidak dianimasikan/diwarnai ulang.
+
+Kandidat Rusak Berat memakai entrance halaman280ms sekali; checkbox, search, peringatan expandable dan pagination feedback150ms, tanpa lift/scale/stagger baris atau animasi angka. Dialog buat paket150ms memakai primitive existing dengan Escape/focus-return. Reduced motion mengikuti fondasi BMN; pengujian browsernya tetap oleh pengguna.
+
+## Paket Lelang dan navigasi BMN — 11 November 2026
+
+- Daftar/kandidat/workflow memakai entrance halaman280ms sekali. Baris, kartu dokumen dan angka tidak lift/zoom/stagger. Kontrol, hover/focus, pilihan panitia dan Dialog150ms.
+- Empat tab utama Paket Lelang dan subtab SK dalam editor memakai **animasi di dalam tab** existing: BmnTabContent, presence wait/initial=false, keluar y-8/opacity0 selama160ms, masuk y8→0/opacity1 selama160ms. Underline2px spring420/32, ID per instance. Draft AssetsLot/Valuation/DocumentsCenter/Realization hidup pada hook pemilik di page; draft narasi SK di pemilik modal. Pergantian tab tidak membuang isian.
+- Tab utama memakai keyboard Radix; subtab editor mendukung ArrowLeft/Right/Home/End, roving tabIndex dan aria-controls/labelledby. Disabled fieldset narasi tidak mematikan navigasi subtab pratinjau. Modal memakai Dialog existing untuk Escape/focus trap/focus-return. Header editor membungkus aksi pada mobile.
+- Sidebar mempertahankan spring navigasi existing450/35, bukan pola tab isi. Drawer/collapse150ms; fade keluar route existing120ms terpisah dari entrance halaman. Reduced motion: CSS durasi0 dan Framer duration0; nav/menu aktif memakai aria-current/expanded dan fokus kembali setelah Escape mobile. Efek Akses Cepat dashboard tetap seperti semula.
+
+Fixture/source memverifikasi fallback reduced motion; emulasi browser tetap dikerjakan pengguna sesuai preferensi. Rincian pengujian aktual ada di [audit sidebar](bmn-ui-ux-modernization/remaining-sidebar-audit.md).

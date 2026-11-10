@@ -28,30 +28,31 @@ export function TablePaginationFooter({
   const endItem = pageSize === 0 ? totalItems : Math.min(totalItems, currentPage * pageSize);
 
   return (
-    <div className="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-slate-50/30 dark:bg-slate-900/30">
-      <div className="flex items-center gap-3">
-        <span className="text-slate-500 dark:text-slate-400">
+    <div className="px-5 py-3.5 border-t border-[var(--ds-border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs bg-[var(--ds-surface-muted)]">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-[var(--ds-fg-muted)]">
           Menampilkan{" "}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <span className="font-semibold text-[var(--ds-fg)]">
             {startItem}
           </span>
           {" - "}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <span className="font-semibold text-[var(--ds-fg)]">
             {endItem}
           </span>{" "}
           dari{" "}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
+          <span className="font-semibold text-[var(--ds-fg)]">
             {totalItems}
           </span>{" "}
           {itemLabel}
         </span>
         <select
+          aria-label={`Jumlah ${itemLabel} per halaman`}
           value={pageSize}
           onChange={(e) => {
             onPageSizeChange(Number(e.target.value));
             onPageChange(1);
           }}
-          className="h-7 px-2 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-700 dark:text-slate-300 cursor-pointer"
+          className="h-7 px-2 text-xs border border-[var(--ds-border-subtle)] rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] cursor-pointer"
         >
           <option value={10}>10 / halaman</option>
           <option value={25}>25 / halaman</option>
@@ -68,9 +69,9 @@ export function TablePaginationFooter({
             onClick={() => onPageChange((p) => Math.max(1, p - 1))}
             className="h-7 text-xs rounded-lg px-2.5"
           >
-            Prev
+            Sebelumnya
           </Button>
-          <span className="text-slate-500 dark:text-slate-400 px-1 font-medium">
+          <span className="text-[var(--ds-fg-muted)] px-1 font-medium">
             Hal {currentPage} / {totalPages}
           </span>
           <Button
@@ -80,7 +81,7 @@ export function TablePaginationFooter({
             onClick={() => onPageChange((p) => Math.min(totalPages, p + 1))}
             className="h-7 text-xs rounded-lg px-2.5"
           >
-            Next
+            Selanjutnya
           </Button>
         </div>
       )}

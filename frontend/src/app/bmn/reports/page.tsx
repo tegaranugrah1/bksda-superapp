@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { Archive, Download, FileClock, FileText, Handshake } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { BmnTabContent } from "@/app/bmn/_components/BmnTabContent";
 
 import { ExportReportsTab } from "./_tabs/ExportReportsTab";
-import { UsageAgreementTab } from "./_tabs/UsageAgreementTab";
-import { HandoverAgreementTab } from "./_tabs/HandoverAgreementTab";
-import { PowerOfAttorneyTab } from "./_tabs/PowerOfAttorneyTab";
-import { CoveringLetterTab } from "./_tabs/CoveringLetterTab";
+import { UsageAgreementTab, useUsageAgreementFormState } from "./_tabs/UsageAgreementTab";
+import { HandoverAgreementTab, useHandoverAgreementFormState } from "./_tabs/HandoverAgreementTab";
+import { PowerOfAttorneyTab, usePowerOfAttorneyFormState } from "./_tabs/PowerOfAttorneyTab";
+import { CoveringLetterTab, useCoveringLetterFormState } from "./_tabs/CoveringLetterTab";
 import { DocumentHistoryTab } from "./_tabs/DocumentHistoryTab";
 
 import { isDraftNumber, type EmployeeOption } from "./_lib/report-utils";
@@ -24,6 +25,8 @@ import {
 } from "./_lib/types";
 
 export default function BmnReportsPage() {
+  const tabsId = useId();
+  const reduceMotion = useReducedMotion();
   const queryClient = useQueryClient();
   const { hasPermission } = useRole();
   const canDelete = hasPermission("bmn.document.delete");
@@ -36,7 +39,12 @@ export default function BmnReportsPage() {
   >("usage");
   const [editingDocument, setEditingDocument] = useState<EditingDocumentState | null>(null);
 
-  const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeOption[]>({
+  const usageAgreementFormState = useUsageAgreementFormState(editingDocument);
+  const powerOfAttorneyFormState = usePowerOfAttorneyFormState(editingDocument);
+  const handoverAgreementFormState = useHandoverAgreementFormState(editingDocument);
+  const coveringLetterFormState = useCoveringLetterFormState(editingDocument);
+
+  const { data: employees = [], isLoading: loadingEmployees, isError: employeesError, refetch: refetchEmployees } = useQuery<EmployeeOption[]>({
     queryKey: ["employees-select-report"],
     queryFn: async () => {
       const response = await api.get("/kepegawaian/employees/select");
@@ -47,7 +55,7 @@ export default function BmnReportsPage() {
     retry: 2,
   });
 
-  const { data: vehicleAssetOptions = [], isLoading: loadingVehicleAssets } = useQuery<BmnAssetOption[]>({
+  const { data: vehicleAssetOptions = [], isLoading: loadingVehicleAssets, isError: vehicleOptionsError, refetch: refetchVehicleOptions } = useQuery<BmnAssetOption[]>({
     queryKey: ["bmn-report-vehicle-assets"],
     queryFn: async () => {
       const response = await api.get("/bmn/assets", {
@@ -145,19 +153,19 @@ export default function BmnReportsPage() {
   ] as const;
 
   return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-6 h-6 text-emerald-500" /> Laporan
+          <h1 className="text-2xl font-bold text-[var(--ds-fg)]  flex items-center gap-2">
+            <FileText className="w-6 h-6 text-[var(--ds-accent-fg)]" /> Laporan
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-[var(--ds-fg-muted)]  mt-0.5">
             Export laporan dan generate dokumen BMN dari satu workspace.
           </p>
         </div>
       </div>
 
-      <div className="inline-flex max-w-full overflow-x-auto rounded-2xl border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+      <div role="tablist" aria-label="Dokumen dan laporan BMN" className="flex max-w-full overflow-x-auto gap-2 border-b border-[var(--ds-border-subtle)]">
         {tabs.map((tab) => {
           const TabIcon = tab.icon;
           const active = activeTab === tab.id;
@@ -165,18 +173,31 @@ export default function BmnReportsPage() {
             <button
               key={tab.id}
               type="button"
+              role="tab" id={`${tabsId}-${tab.id}`} aria-controls={`${tabsId}-panel`}
+              aria-selected={active} tabIndex={active ? 0 : -1}
+              onKeyDown={(event) => {
+                const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+                if (!offset && event.key !== "Home" && event.key !== "End") return;
+                event.preventDefault();
+                const index = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (tabs.findIndex(item => item.id === tab.id) + offset + tabs.length) % tabs.length;
+                setActiveTab(tabs[index].id);
+                const target = document.getElementById(`${tabsId}-${tabs[index].id}`);
+              target?.focus();
+              target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+              }}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+              className={`relative flex h-11 shrink-0 items-center gap-2 rounded-t-lg px-4 text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                 active
-                  ? "text-white font-bold"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+                  ? "text-[var(--ds-accent-fg)] font-bold"
+                  : "text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
               }`}
             >
               {active && (
                 <motion.span
-                  layoutId="activeReportTabIndicator"
-                  className="absolute inset-0 bg-emerald-600 rounded-xl shadow-sm"
-                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  layoutId={`${tabsId}-tab-indicator`}
+                  initial={false}
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ds-accent-fg)]"
+                  transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                 />
               )}
               <TabIcon className="w-4 h-4 relative z-10" />
@@ -186,21 +207,18 @@ export default function BmnReportsPage() {
         })}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-        >
+      {activeTab !== "exports" && employeesError && <div role="alert" className="text-sm text-[var(--ds-status-danger-fg)]">Daftar pegawai gagal dimuat. <Button variant="outline" onClick={() => refetchEmployees()}>Muat ulang pegawai</Button></div>}
+      {activeTab === "documents" && activeDocumentType === "power_of_attorney" && vehicleOptionsError && <div role="alert" className="text-sm text-[var(--ds-status-danger-fg)]">Daftar kendaraan gagal dimuat. <Button variant="outline" onClick={() => refetchVehicleOptions()}>Muat ulang kendaraan</Button></div>}
+
+      <BmnTabContent value={activeTab}>
+        <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${activeTab}`} tabIndex={0}>
           {activeTab === "exports" && <ExportReportsTab />}
 
           {activeTab === "documents" && (
             <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
-              <aside className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+              <aside className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
                 <div className="px-2 pb-3">
-                  <p className="text-xs font-bold uppercase tracking-wide text-zinc-400">Jenis Dokumen</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Jenis Dokumen</p>
                 </div>
                 {documentTypes.map((doc) => {
                   const Icon = doc.icon;
@@ -209,26 +227,29 @@ export default function BmnReportsPage() {
                     <button
                       key={doc.id}
                       type="button"
+                      aria-pressed={active}
+                      aria-controls={`${tabsId}-document-form`}
                       onClick={() => setActiveDocumentType(doc.id)}
                       className={`relative mt-2 first:mt-0 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors duration-150 cursor-pointer ${
                         active
-                          ? "border-emerald-300 dark:border-emerald-700/60"
-                          : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                          ? "border-[var(--ds-accent-soft-border)] "
+                          : "border-transparent hover:bg-[var(--ds-surface-muted)] "
                       }`}
                     >
                       {active && (
                         <motion.span
-                          layoutId="activeDocTypeIndicator"
-                          className="absolute inset-0 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl"
-                          transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                          layoutId={`${tabsId}-document-type-indicator`}
+                          initial={false}
+                          className="absolute inset-0 bg-[var(--ds-accent-soft)]  rounded-xl"
+                          transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                         />
                       )}
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-zinc-950 relative z-10">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-sm  relative z-10">
                         <Icon className="w-5 h-5" />
                       </span>
                       <span className="relative z-10">
-                        <span className="block text-sm font-bold text-zinc-900 dark:text-white">{doc.title}</span>
-                        <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">{doc.desc}</span>
+                        <span className="block text-sm font-bold text-[var(--ds-fg)] ">{doc.title}</span>
+                        <span className="mt-0.5 block text-xs text-[var(--ds-fg-muted)] ">{doc.desc}</span>
                       </span>
                     </button>
                   );
@@ -237,14 +258,14 @@ export default function BmnReportsPage() {
 
               <div className="space-y-5">
                 {editingDocument && (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4  ">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+                          <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-status-warning-fg)] ">
                             {editingDocument.isDuplicate
                               ? `Duplikasi dari: ${editingDocument.titleOrNumber}`
                               : `Mode Edit Aktif: ${editingDocument.titleOrNumber}`}
@@ -252,8 +273,8 @@ export default function BmnReportsPage() {
                           <span
                             className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
                               editingDocument.status === "draft"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
-                                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+                                ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  "
+                                : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
                             }`}
                           >
                             {editingDocument.isDuplicate
@@ -261,7 +282,7 @@ export default function BmnReportsPage() {
                               : `Status: ${editingDocument.status === "draft" ? "Draf" : "Terbit"}`}
                           </span>
                         </div>
-                        <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
+                        <p className="text-xs text-[var(--ds-status-warning-fg)]  mt-0.5">
                           {editingDocument.isDuplicate
                             ? "Data telah disalin ke formulir. Silakan sesuaikan dan simpan sebagai dokumen baru."
                             : "Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf."}
@@ -272,7 +293,7 @@ export default function BmnReportsPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="rounded-xl border-amber-300 bg-white text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-600 dark:bg-zinc-800 dark:text-amber-200"
+                      className="rounded-xl border-[var(--ds-status-warning-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)]   "
                       onClick={cancelEditMode}
                     >
                       {editingDocument.isDuplicate ? "Batal Duplikasi" : "Batal Edit"}
@@ -280,21 +301,17 @@ export default function BmnReportsPage() {
                   </div>
                 )}
 
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeDocumentType}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                  >
+                <BmnTabContent value={activeDocumentType}>
+                  <div id={`${tabsId}-document-form`}>
                     {activeDocumentType === "usage" && (
                       <UsageAgreementTab
+                        formState={usageAgreementFormState}
                         key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                         employees={employees}
                         loadingEmployees={loadingEmployees}
                         canGenerate={canGenerate}
                         canWrite={canWrite}
+                        canDelete={canDelete}
                         editingDocument={editingDocument}
                         onSetEditingDocument={setEditingDocument}
                         onClearEditing={() => setEditingDocument(null)}
@@ -305,6 +322,7 @@ export default function BmnReportsPage() {
 
                     {activeDocumentType === "handover" && (
                       <HandoverAgreementTab
+                        formState={handoverAgreementFormState}
                         key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                         employees={employees}
                         loadingEmployees={loadingEmployees}
@@ -317,12 +335,14 @@ export default function BmnReportsPage() {
 
                     {activeDocumentType === "power_of_attorney" && (
                       <PowerOfAttorneyTab
+                        formState={powerOfAttorneyFormState}
                         key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                         employees={employees}
                         vehicleAssetOptions={vehicleAssetOptions}
                         loadingEmployees={loadingEmployees}
                         canGenerate={canGenerate}
                         canWrite={canWrite}
+                        canDelete={canDelete}
                         editingDocument={editingDocument}
                         onSetEditingDocument={setEditingDocument}
                         onClearEditing={() => setEditingDocument(null)}
@@ -333,6 +353,7 @@ export default function BmnReportsPage() {
 
                     {activeDocumentType === "covering_letter" && (
                       <CoveringLetterTab
+                        formState={coveringLetterFormState}
                         key={`${editingDocument?.isDuplicate ? "dup" : "edit"}_${editingDocument?.id || "new"}`}
                         employees={employees}
                         loadingEmployees={loadingEmployees}
@@ -342,8 +363,8 @@ export default function BmnReportsPage() {
                         onRefetchHistory={handleRefetchHistory}
                       />
                     )}
-                  </motion.div>
-                </AnimatePresence>
+                  </div>
+                </BmnTabContent>
               </div>
             </section>
           )}
@@ -351,14 +372,15 @@ export default function BmnReportsPage() {
           {activeTab === "history" && (
             <DocumentHistoryTab
               canWrite={canWrite}
+              canDelete={canDelete}
               employees={employees}
               vehicleAssetOptions={vehicleAssetOptions}
               onEdit={handleEditFromHistory}
               onDuplicate={handleDuplicateFromHistory}
             />
           )}
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      </BmnTabContent>
     </div>
   );
 }

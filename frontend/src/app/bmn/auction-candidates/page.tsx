@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCandidates, createBatch, AuctionCandidateAsset } from "../auction-batches/_lib/api";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function BmnAuctionCandidatesPage() {
+  const createTrigger = useRef<HTMLElement | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { hasPermission } = useRole();
@@ -42,7 +43,8 @@ export default function BmnAuctionCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedAssets, setSelectedAssets] = useState<Map<string, AuctionCandidateAsset>>(new Map());
+  const selectedIds = useMemo(() => new Set(selectedAssets.keys()), [selectedAssets]);
   const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null);
 
   // Dialog state
@@ -59,7 +61,7 @@ export default function BmnAuctionCandidatesPage() {
   };
 
   // Fetch candidates from API
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["bmn-auction-candidates", triggerSearch, page, perPage],
     queryFn: async () => {
       return getCandidates({
@@ -75,16 +77,8 @@ export default function BmnAuctionCandidatesPage() {
   const meta = data?.meta;
   const totalCandidates = meta?.total || 0;
 
-  // Selected assets detailed list for calculation
-  const selectedAssets = useMemo(() => {
-    // Since we only have the current page's assets in memory, we merge currently fetched assets that are selected.
-    // If they were selected on a previous page, we might not have their full details, so we match whatever we can find.
-    // In a fully robust scenario, we keep a map of selected asset details.
-    return assets.filter((asset) => selectedIds.has(asset.id));
-  }, [assets, selectedIds]);
-
   const selectedTotalValue = useMemo(() => {
-    return selectedAssets.reduce((sum, asset) => sum + (asset.nilai_perolehan || 0), 0);
+    return Array.from(selectedAssets.values()).reduce((sum, asset) => sum + (asset.nilai_perolehan || 0), 0);
   }, [selectedAssets]);
 
   // Selection handlers
@@ -99,26 +93,24 @@ export default function BmnAuctionCandidatesPage() {
     );
   }, [eligibleAssetsOnPage, selectedIds]);
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+  const toggleSelect = (asset: AuctionCandidateAsset) => {
+    if (!canCreateBatch || !asset.is_auction_eligible || isFetching || createBatchMutation.isPending) return;
+    setSelectedAssets((previous) => {
+      const next = new Map(previous);
+      if (next.has(asset.id)) next.delete(asset.id);
+      else next.set(asset.id, asset);
       return next;
     });
   };
 
   const toggleSelectAllOnPage = () => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (allEligibleSelectedOnPage) {
-        eligibleAssetsOnPage.forEach((asset) => next.delete(asset.id));
-      } else {
-        eligibleAssetsOnPage.forEach((asset) => next.add(asset.id));
-      }
+    if (!canCreateBatch || isFetching || createBatchMutation.isPending) return;
+    setSelectedAssets((previous) => {
+      const next = new Map(previous);
+      eligibleAssetsOnPage.forEach((asset) => {
+        if (allEligibleSelectedOnPage) next.delete(asset.id);
+        else next.set(asset.id, asset);
+      });
       return next;
     });
   };
@@ -144,6 +136,8 @@ export default function BmnAuctionCandidatesPage() {
   });
 
   const handleOpenCreateDialog = () => {
+    if (!canCreateBatch || isFetching || createBatchMutation.isPending) return;
+    createTrigger.current = document.activeElement as HTMLElement | null;
     if (selectedIds.size === 0) {
       toast.error("Pilih minimal satu aset terlebih dahulu.");
       return;
@@ -157,6 +151,7 @@ export default function BmnAuctionCandidatesPage() {
   };
 
   const handleCreateBatchSubmit = () => {
+    if (!canCreateBatch || selectedIds.size === 0 || isFetching || createBatchMutation.isPending) return;
     if (!newBatchName.trim()) {
       toast.error("Nama paket lelang wajib diisi.");
       return;
@@ -168,22 +163,22 @@ export default function BmnAuctionCandidatesPage() {
   };
 
   return (
-    <div className="p-6 md:p-10 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--ds-fg)]">
             Kandidat Rusak Berat
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-sm text-[var(--ds-fg-muted)] mt-1">
             Pilih aset-aset dengan kondisi Rusak Berat untuk dikelompokkan ke dalam paket dokumen lelang BMN.
           </p>
         </div>
         {canCreateBatch && (
           <Button
             onClick={handleOpenCreateDialog}
-            disabled={selectedIds.size === 0}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-2 rounded-xl transition duration-200"
+            disabled={selectedIds.size === 0 || isFetching || createBatchMutation.isPending}
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-white font-semibold flex items-center gap-2 rounded-xl transition-colors duration-150 ease-out"
           >
             <Plus className="h-4 w-4" />
             Buat Paket Lelang ({selectedIds.size})
@@ -193,43 +188,44 @@ export default function BmnAuctionCandidatesPage() {
 
       {/* Summary Tiles */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+          <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Total Kandidat
           </p>
-          <p className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+          <p className="mt-2 text-3xl font-bold text-[var(--ds-fg)]">
             {isLoading ? "-" : totalCandidates.toLocaleString("id-ID")}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+          <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Dipilih
           </p>
-          <p className="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">
+          <p className="mt-2 text-3xl font-bold text-[var(--ds-accent-fg)]">
             {selectedIds.size.toLocaleString("id-ID")}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+          <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Nilai Perolehan Terpilih
           </p>
-          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50 truncate">
+          <p className="mt-2 text-2xl font-bold text-[var(--ds-fg)] truncate">
             {formatRupiah(selectedTotalValue)}
           </p>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 p-4 shadow-xs">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
+            <Search className="absolute top-2.5 left-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
+              aria-label="Cari kandidat aset"
               type="text"
               placeholder="Cari nama aset, nomor register, atau kode barang..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-red-500"
+              className="pl-9 rounded-xl border-[var(--ds-border-subtle)]"
             />
           </div>
           <Button
@@ -244,30 +240,31 @@ export default function BmnAuctionCandidatesPage() {
       </div>
 
       {/* Candidates Table */}
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-100 bg-zinc-50/75 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <table className={`${assets.length > 0 ? "bmn-wide-table" : ""} w-full text-left border-collapse`}>
+            <thead className={assets.length > 0 ? "" : "hidden sm:table-header-group"}>
+              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
                 {canCreateBatch && (
                   <th className="w-12 px-4 py-3 text-center">
                     <Checkbox
-                      checked={allEligibleSelectedOnPage}
+                      aria-label="Pilih semua kandidat yang tersedia pada halaman ini"
+                      checked={allEligibleSelectedOnPage ? true : eligibleAssetsOnPage.some((asset) => selectedIds.has(asset.id)) ? "indeterminate" : false}
                       onCheckedChange={toggleSelectAllOnPage}
-                      disabled={eligibleAssetsOnPage.length === 0}
+                      disabled={eligibleAssetsOnPage.length === 0 || isFetching || createBatchMutation.isPending}
                     />
                   </th>
                 )}
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Identitas Aset
                 </th>
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Kategori / Lokasi
                 </th>
-                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Status Dokumen
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Nilai Perolehan
                 </th>
                 <th className="w-16 px-4 py-3 text-center">
@@ -275,19 +272,21 @@ export default function BmnAuctionCandidatesPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
               {isLoading ? (
                 <tr>
                   <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
-                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-red-500" />
-                    <p className="text-sm text-zinc-400">Memuat kandidat aset...</p>
+                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-[var(--ds-accent-fg)]" />
+                    <p className="text-sm text-[var(--ds-fg-muted)]">Memuat kandidat aset...</p>
                   </td>
                 </tr>
+              ) : isError ? (
+                <tr><td colSpan={canCreateBatch ? 6 : 5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Kandidat aset gagal dimuat.</p><Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba lagi</Button></td></tr>
               ) : assets.length === 0 ? (
                 <tr>
                   <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
-                    <Package className="mx-auto mb-2 h-10 w-10 text-zinc-300 dark:text-zinc-700" />
-                    <p className="text-sm text-zinc-400">Tidak ada aset kandidat lelang yang ditemukan.</p>
+                    <Package className="mx-auto mb-2 h-10 w-10 text-[var(--ds-fg-muted)]" />
+                    <p className="text-sm text-[var(--ds-fg-muted)]">Tidak ada aset kandidat lelang yang ditemukan.</p>
                   </td>
                 </tr>
               ) : (
@@ -301,25 +300,25 @@ export default function BmnAuctionCandidatesPage() {
                   return (
                     <React.Fragment key={asset.id}>
                       <tr
-                        className={`transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-900/40 ${
-                          isSelected ? "bg-red-50/20 dark:bg-red-500/5" : ""
-                        } ${!isEligible ? "opacity-60 bg-zinc-50/20 dark:bg-zinc-900/10" : ""}`}
+                        aria-selected={isSelected}
+                        className="bmn-table-row"
                       >
                         {canCreateBatch && (
                           <td className="px-4 py-4 text-center align-middle">
                             <Checkbox
                               checked={isSelected}
-                              onCheckedChange={() => toggleSelect(asset.id)}
-                              disabled={!isEligible}
+                              aria-label={`Pilih ${asset.nama_barang} NUP ${asset.nup}`}
+                              onCheckedChange={() => toggleSelect(asset)}
+                              disabled={!isEligible || isFetching || createBatchMutation.isPending}
                             />
                           </td>
                         )}
                         <td className="px-4 py-4">
-                          <div className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                          <div className="font-semibold text-sm text-[var(--ds-fg)]">
                             {asset.nama_barang}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-zinc-500 dark:text-zinc-400">
-                            <span className="font-bold text-red-700 dark:text-red-400">
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)]">
+                            <span className="font-bold text-[var(--ds-accent-fg)]">
                               {asset.kode_barang}
                             </span>
                             <span>•</span>
@@ -327,34 +326,37 @@ export default function BmnAuctionCandidatesPage() {
                             {asset.no_polisi && (
                               <>
                                 <span>•</span>
-                                <span className="bg-blue-50 px-1.5 py-0.5 rounded text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 font-sans font-semibold">
+                                <span className="bg-[var(--ds-status-info-bg)] px-1.5 py-0.5 rounded text-[var(--ds-status-info-fg)] font-sans font-semibold">
                                   {asset.no_polisi}
                                 </span>
                               </>
                             )}
                           </div>
                           {asset.merk_tipe && (
-                            <div className="text-xs text-zinc-400 mt-0.5">{asset.merk_tipe}</div>
+                            <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">{asset.merk_tipe}</div>
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                          <div className="text-xs font-medium text-[var(--ds-fg)]">
                             {asset.jenis_bmn}
                           </div>
-                          <div className="text-[11px] text-zinc-400 mt-0.5">
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                             {asset.lokasi_ruang || asset.lokasi_spesifik || "-"}
                           </div>
                         </td>
                         <td className="px-4 py-4">
                           {!isEligible ? (
-                            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-900/50 text-[10px] font-semibold">
+                            <Badge data-status="warning" className="bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-xs font-semibold">
                               Aktif di Batch: {asset.active_auction_batch_number}
                             </Badge>
                           ) : hasWarnings ? (
                             <button
                               type="button"
+                              data-status="warning"
+                              aria-expanded={isExpanded}
+                              aria-controls={`candidate-warning-${asset.id}`}
                               onClick={() => setExpandedAssetId(isExpanded ? null : asset.id)}
-                              className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30 px-2 py-0.5 rounded-full text-[10px] font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/20 transition"
+                              className="bmn-status-toggle inline-flex items-center gap-1 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] px-2 py-0.5 rounded-full text-xs font-semibold hover:bg-[var(--ds-status-warning-bg)] transition-colors duration-150 ease-out"
                             >
                               <AlertTriangle className="h-3 w-3 shrink-0" />
                               Review Dokumen ({warnings.length})
@@ -365,17 +367,17 @@ export default function BmnAuctionCandidatesPage() {
                               )}
                             </button>
                           ) : (
-                            <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+                            <span data-status="success" className="inline-flex items-center gap-1 bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] px-2.5 py-0.5 rounded-full text-xs font-semibold">
                               <CheckCircle className="h-3 w-3 shrink-0" />
                               Ready
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-4 text-right">
-                          <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                          <div className="font-bold text-sm text-[var(--ds-fg)]">
                             {formatRupiah(asset.nilai_perolehan)}
                           </div>
-                          <div className="text-[10px] text-zinc-400">
+                          <div className="text-xs text-[var(--ds-fg-muted)]">
                             Buku: {formatRupiah(asset.nilai_buku)}
                           </div>
                         </td>
@@ -385,9 +387,12 @@ export default function BmnAuctionCandidatesPage() {
                               variant="ghost"
                               size="icon-sm"
                               onClick={() => setExpandedAssetId(isExpanded ? null : asset.id)}
-                              title="Detail warnings dokumen"
+                              aria-label={`Lihat peringatan dokumen ${asset.nama_barang} NUP ${asset.nup}`}
+                              aria-expanded={isExpanded}
+                              aria-controls={`candidate-warning-${asset.id}`}
+                              title="Detail peringatan dokumen"
                             >
-                              <Info className="h-4 w-4 text-zinc-400 hover:text-zinc-600" />
+                              <Info className="h-4 w-4 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)]" />
                             </Button>
                           )}
                         </td>
@@ -395,20 +400,20 @@ export default function BmnAuctionCandidatesPage() {
 
                       {/* Expandable Warnings Row */}
                       {isExpanded && isEligible && hasWarnings && (
-                        <tr className="bg-amber-50/10 dark:bg-amber-900/5 border-t border-b border-amber-100/50 dark:border-amber-900/20">
-                          <td />
-                          <td colSpan={5} className="px-4 py-3">
+                        <tr className="bg-[var(--ds-status-warning-bg)] border-t border-b border-[var(--ds-status-warning-border)]">
+                          {canCreateBatch && <td />}
+                          <td id={`candidate-warning-${asset.id}`} colSpan={5} className="px-4 py-3">
                             <div className="space-y-1.5">
-                              <div className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                              <div className="text-xs font-semibold text-[var(--ds-status-warning-fg)] flex items-center gap-1">
                                 <AlertTriangle className="h-3.5 w-3.5" />
                                 Peringatan Kelengkapan Dokumen Administrasi:
                               </div>
-                              <ul className="list-disc list-inside text-xs text-amber-700/90 dark:text-amber-400/90 pl-1 space-y-1">
+                              <ul className="list-disc list-inside text-xs text-[var(--ds-status-warning-fg)] pl-1 space-y-1">
                                 {warnings.map((warn, i) => (
                                   <li key={i}>{warn}</li>
                                 ))}
                               </ul>
-                              <p className="text-[10px] text-zinc-500 italic mt-2">
+                              <p className="text-xs text-[var(--ds-fg-muted)] italic mt-2">
                                 * Peringatan ini bersifat imbauan/advisory internal dan tidak menghalangi pembuatan paket lelang.
                               </p>
                             </div>
@@ -425,18 +430,19 @@ export default function BmnAuctionCandidatesPage() {
 
         {/* Table Pagination footer */}
         {meta && (
-          <div className="flex flex-col gap-3 border-t border-zinc-100 bg-zinc-50/20 px-4 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/20 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-[var(--ds-fg-muted)]">
                 {totalCandidates.toLocaleString("id-ID")} item total
               </span>
               <select
+                aria-label="Jumlah kandidat per halaman"
                 value={perPage}
                 onChange={(e) => {
                   setPerPage(Number(e.target.value));
                   setPage(1);
                 }}
-                className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-600 outline-none focus:ring-1 focus:ring-red-500 dark:border-zinc-700 dark:bg-zinc-850 dark:text-zinc-300"
+                className="h-8 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg-secondary)] outline-none"
               >
                 <option value={10}>10 / halaman</option>
                 <option value={50}>50 / halaman</option>
@@ -448,23 +454,23 @@ export default function BmnAuctionCandidatesPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === 1}
+                disabled={isFetching || page <= 1}
                 onClick={() => setPage((prev) => prev - 1)}
                 className="rounded-lg text-xs"
               >
-                Prev
+                Sebelumnya
               </Button>
-              <span className="px-2 text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="px-2 text-xs text-[var(--ds-fg-muted)]">
                 Hal {page} / {meta.last_page || 1}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page === meta.last_page || perPage === 0}
+                disabled={isFetching || page >= (meta.last_page || 1) || perPage === 0}
                 onClick={() => setPage((prev) => prev + 1)}
                 className="rounded-lg text-xs"
               >
-                Next
+                Selanjutnya
               </Button>
             </div>
           </div>
@@ -473,28 +479,29 @@ export default function BmnAuctionCandidatesPage() {
 
       {/* Create Batch Dialog Modal */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogContent data-module="bmn" onCloseAutoFocus={(event) => { event.preventDefault(); createTrigger.current?.focus(); }} className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+            <DialogTitle className="text-lg font-bold text-[var(--ds-fg)]">
               Buat Paket Lelang BMN
             </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400">
+            <DialogDescription className="text-sm text-[var(--ds-fg-muted)]">
               Kelompokkan {selectedIds.size} aset terpilih ke dalam paket dokumen lelang baru.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-3">
             <div className="space-y-1.5">
-              <label htmlFor="batchName" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label htmlFor="batchName" className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Nama Paket Lelang
               </label>
               <Input
                 id="batchName"
+                disabled={createBatchMutation.isPending}
                 type="text"
                 placeholder="Masukkan nama paket lelang..."
                 value={newBatchName}
                 onChange={(e) => setNewBatchName(e.target.value)}
-                className="rounded-xl border-zinc-200 dark:border-zinc-800 focus-visible:ring-red-500"
+                className="rounded-xl border-[var(--ds-border-subtle)]"
               />
             </div>
           </div>
@@ -510,8 +517,8 @@ export default function BmnAuctionCandidatesPage() {
             </Button>
             <Button
               onClick={handleCreateBatchSubmit}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl flex items-center gap-1.5"
-              disabled={createBatchMutation.isPending}
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-white font-semibold rounded-xl flex items-center gap-1.5"
+              disabled={createBatchMutation.isPending || !newBatchName.trim() || selectedIds.size === 0 || !canCreateBatch || isFetching}
             >
               {createBatchMutation.isPending ? (
                 <>
