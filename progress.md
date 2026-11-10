@@ -1749,3 +1749,15 @@
     4. **Blueprint Kode Header Bar Modul**: Komponen React/Tailwind terstandarisasi untuk keseragaman header seluruh modul.
 - **Status Eksekusi**:
   - Dokumen telah siap sebagai rujukan arsitektur UI/UX. Sesuai instruksi pengguna, perubahan palet warna pada modul-modul lain **belum diaplikasikan ke kode** dan menunggu instruksi bertahap.
+
+
+---
+
+## 67. Revisi Panduan Warna: Token Light/Dark dan Koreksi Kontras (10 November 2026)
+
+- **Permintaan dan batas perubahan:** memperbaiki `docs/DESIGN_SYSTEM_COLORS.md` dan memperbarui progress, tanpa mengubah kode aplikasi. Bagian 66 tetap menjadi riwayat panduan awal; koreksi angka dan aturan warna terbaru mengacu pada bagian ini serta dokumen revisi.
+- **Keputusan warna:** Forest Green `#1e5433` yang sudah dipakai source menjadi brand global untuk login/Portal/CMS; Slate tetap warna struktur/teks. Enam aksen modul dipertahankan. Warna brand, identitas modul, dan status semantik dipisahkan agar warna modul tidak diartikan sebagai hasil transaksi.
+- **Token lengkap:** menetapkan hex eksplisit sebagai sumber acuan dan namespace spesifikasi `--ds-*`, karena palet default Tailwind v4 memakai OKLCH dan tidak identik dengan pasangan nama/hex pada panduan awal. Tabel mencakup fondasi, brand/enam modul, teks di atas tombol, hover/pressed, teks aksen, soft background/border, status success/warning/danger/info/neutral, tombol destruktif, focus, selected, loading, dan disabled untuk light/dark. Format HSL shadcn yang masih dipakai aplikasi tidak diubah.
+- **Koreksi teknis:** Sky `#0369a1` terhadap putih menjadi **5,93:1**; Slate `#0f172a` menjadi **17,85:1**. Aturan 60–30–10 dijelaskan sebagai heuristik, bukan standar aksesibilitas/jaminan anti-fatigue. Klaim ketajaman warna setara persis diganti penilaian per pasangan. Ditambahkan ambang WCAG 2.2 AA, kebutuhan label/ikon, batas border dekoratif, kontras grafik, contoh class statis dengan CSS variables, dan perhatian terhadap inheritance token pada Radix portal.
+- **Verifikasi dokumentasi:** validator eksternal membaca tabel token aktual: **180 pemeriksaan pasangan kontras lulus** dan **21 angka rasio cocok**. Nilai minimum teks normal **4,749275:1**; batas kontrol/focus yang diuji **3,081918:1**, kelulusan memakai nilai penuh. Disabled/border dekoratif tidak dihitung sebagai kontrol aktif. Checker: `C:/Users/USER/.codex/visualizations/2026/11/08/01a1badb-82d4-7721-9146-6498f31671a1/validate-design-colors.py`. Ini bukan pengulangan tes keamanan, typecheck, atau bukti tampilan browser aplikasi.
+- **Status:** penerapan token pada source masih menunggu instruksi per modul. Hanya panduan warna dan progress yang berubah; seluruh byte progress sebelum tambahan bagian 67 dipertahankan. Tidak push atau deploy; perubahan dokumentasi revisi ini belum di-commit.
