@@ -755,17 +755,16 @@ export default function EmployeeIncomingLettersPage() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col justify-between">
-              <table className="w-full min-w-[1050px] text-left text-sm">
+              <table className="w-full text-left text-xs">
                 <thead className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   <tr>
-                    <th className="py-3.5 px-4 w-32"># Agenda</th>
-                    <th className="py-3.5 px-3 w-32">Kategori</th>
-                    <th className="py-3.5 px-4 min-w-48">Nomor &amp; Tgl Surat</th>
-                    <th className="py-3.5 px-4 min-w-56">Asal Surat / Pengirim</th>
-                    <th className="py-3.5 px-4 min-w-64">Perihal</th>
-                    <th className="py-3.5 px-4 min-w-44">Status Balasan</th>
-                    <th className="py-3.5 px-3 min-w-28 text-center">Lampiran</th>
-                    <th className="py-3.5 px-4 w-28 text-right">Aksi</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Agenda &amp; Kategori</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Nomor &amp; Tgl Surat</th>
+                    <th className="py-3 px-3">Asal Surat / Pengirim</th>
+                    <th className="py-3 px-3">Perihal</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Status Balasan</th>
+                    <th className="py-3 px-2.5 text-center whitespace-nowrap">Lampiran</th>
+                    <th className="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--ds-border-subtle)]">
@@ -779,60 +778,58 @@ export default function EmployeeIncomingLettersPage() {
                         onClick={() => setDetailItem(item)}
                         className="group cursor-pointer transition-colors hover:bg-[var(--ds-accent-soft)]"
                       >
-                        {/* Kolom Agenda */}
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="inline-block rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
-                            #{item.no_agenda || "-"}
-                          </span>
-                          <div className="mt-1 text-xs text-[var(--ds-fg-muted)] font-medium">
+                        {/* Kolom Agenda & Kategori */}
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-block rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
+                              #{item.no_agenda || "-"}
+                            </span>
+                            <span
+                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${catStyle.badge}`}
+                            >
+                              {item.kategori}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs text-[var(--ds-fg-muted)] font-medium leading-tight">
                             Diterima: {item.tanggal_diterima || "-"}
                           </div>
                         </td>
 
-                        {/* Kolom Kategori */}
-                        <td className="py-3 px-3">
-                          <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${catStyle.badge}`}
-                          >
-                            {item.kategori}
-                          </span>
-                        </td>
-
                         {/* Kolom Nomor & Tanggal Surat */}
-                        <td className="py-3 px-4">
-                          <div className="font-medium text-[var(--ds-fg)] line-clamp-2 text-xs">
+                        <td className="py-3 px-3 align-top max-w-[165px]">
+                          <div className="font-semibold text-[var(--ds-fg)] truncate text-xs leading-tight" title={item.no_surat_masuk || undefined}>
                             {item.no_surat_masuk ? (
                               item.no_surat_masuk
                             ) : (
                               <span className="text-[var(--ds-fg-muted)] italic">Tanpa nomor surat</span>
                             )}
                           </div>
-                          <div className="mt-0.5 text-xs text-[var(--ds-fg-muted)]">
+                          <div className="mt-1 text-xs text-[var(--ds-fg-muted)] whitespace-nowrap leading-tight">
                             Tgl Surat: {item.tanggal_surat || <span className="text-[var(--ds-fg-muted)]">-</span>}
                           </div>
                         </td>
 
                         {/* Kolom Pengirim */}
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-[var(--ds-fg)] line-clamp-2 text-xs">
+                        <td className="py-3 px-3 align-top max-w-[175px]">
+                          <div className="font-semibold text-[var(--ds-fg)] line-clamp-2 text-xs leading-tight" title={item.asal_surat}>
                             {item.asal_surat}
                           </div>
                           {item.catatan ? (
-                            <div className="mt-0.5 text-xs text-[var(--ds-fg-muted)] line-clamp-1 italic">
+                            <div className="mt-1 text-xs text-[var(--ds-fg-muted)] truncate italic leading-tight" title={item.catatan}>
                               Catatan: {item.catatan}
                             </div>
                           ) : null}
                         </td>
 
                         {/* Kolom Perihal */}
-                        <td className="py-3 px-4">
-                          <p className="line-clamp-2 text-xs leading-relaxed text-[var(--ds-fg-muted)]">
+                        <td className="py-3 px-3 align-top max-w-[200px]">
+                          <p className="line-clamp-2 text-xs leading-snug text-[var(--ds-fg-muted)]" title={item.perihal || undefined}>
                             {item.perihal || <span className="text-[var(--ds-fg-muted)]">-</span>}
                           </p>
                         </td>
 
                         {/* Kolom Status Balasan */}
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
                           {isReplied ? (
                             <div className="space-y-0.5">
                               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-success-fg)]">
@@ -840,7 +837,7 @@ export default function EmployeeIncomingLettersPage() {
                                 Sudah Dibalas
                               </span>
                               {item.no_surat_balasan && (
-                                <div className="text-xs font-semibold text-[var(--ds-fg)] truncate max-w-44">
+                                <div className="text-xs font-semibold text-[var(--ds-fg)] truncate max-w-[140px]" title={item.no_surat_balasan}>
                                   {item.no_surat_balasan}
                                 </div>
                               )}
@@ -857,7 +854,7 @@ export default function EmployeeIncomingLettersPage() {
                         </td>
 
                         {/* Kolom Lampiran (Badge Kapsul Cerdas) */}
-                        <td className="py-3 px-3 text-center">
+                        <td className="py-3 px-2.5 align-top text-center whitespace-nowrap">
                           {item.attachments && item.attachments.length > 0 ? (
                             <button
                               type="button"
@@ -866,9 +863,9 @@ export default function EmployeeIncomingLettersPage() {
                                 setDetailItem(item);
                               }}
                               title="Klik untuk melihat berkas lampiran"
-                              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-fg)] transition hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]"
+                              className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-fg)] transition hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]"
                             >
-                              <Paperclip className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
+                              <Paperclip className="h-3 w-3 text-[var(--ds-accent-fg)]" />
                               <span>{item.attachments.length} Berkas</span>
                             </button>
                           ) : (
@@ -877,7 +874,7 @@ export default function EmployeeIncomingLettersPage() {
                         </td>
 
                         {/* Kolom Aksi */}
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-3 align-top text-right whitespace-nowrap">
                           <div
                             className="flex items-center justify-end gap-1"
                             onClick={(e) => e.stopPropagation()}

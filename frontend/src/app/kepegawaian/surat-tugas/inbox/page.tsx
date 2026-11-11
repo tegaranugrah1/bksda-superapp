@@ -715,9 +715,9 @@ export default function SuratTugasInbox() {
   }
 
   return (
-    <div data-module="surat-tugas" className="st-ui st-page-enter p-4 md:p-7 space-y-5">
+    <div data-module="surat-tugas" className="st-ui st-page-enter p-4 md:p-5 space-y-3.5">
       {/* Header Top Section: Title & Compose Button (Matching /kepegawaian/cuti) */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-3.5 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
@@ -754,7 +754,7 @@ export default function SuratTugasInbox() {
       />
 
       {/* Main Gmail Box Container */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-sm flex flex-col min-h-96 lg:h-[max(28rem,calc(100dvh-240px))]">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-sm flex flex-col min-h-80 lg:h-[calc(100dvh-210px)]">
         {/* Horizontal Status Tabs ala Gmail */}
         <GmailStatusTabs
           activeTab={activeTab}

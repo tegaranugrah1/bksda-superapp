@@ -504,29 +504,28 @@ export default function InboxSuratCutiPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
                 <tr>
-                  <th className="p-3.5 w-[20%]">Pegawai Pemohon</th>
-                  <th className="p-3.5 w-[16%]">Surat & Jenis Cuti</th>
-                  <th className="p-3.5 w-[14%]">Masa Pelaksanaan</th>
-                  <th className="p-3.5 w-[13%]">Alasan Cuti</th>
-                  <th className="p-3.5 w-[14%]">Alamat Selama Cuti</th>
-                  <th className="p-3.5 w-[9%] text-center">Status</th>
-                  <th className="p-3.5 text-right w-[14%]">Aksi & Verifikasi</th>
+                  <th className="py-3 px-3">Pegawai Pemohon</th>
+                  <th className="py-3 px-3">Surat &amp; Jenis Cuti</th>
+                  <th className="py-3 px-3 whitespace-nowrap">Masa Pelaksanaan</th>
+                  <th className="py-3 px-3">Alasan &amp; Alamat Cuti</th>
+                  <th className="py-3 px-2.5 text-center">Status</th>
+                  <th className="py-3 px-3 text-right whitespace-nowrap">Aksi &amp; Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {list.map((item) => (
                   <tr key={item.id} className="hover:bg-[var(--ds-surface)] transition-colors">
                     {/* Pegawai Pemohon */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
+                    <td className="py-3 px-3 align-top max-w-[180px]">
+                      <div className="font-bold text-[var(--ds-fg)] leading-tight truncate" title={item.employee?.nama_lengkap || "Pegawai"}>
                         {item.employee?.nama_lengkap || "Pegawai"}
                       </div>
-                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-0.5">
+                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-1 leading-tight truncate">
                         {item.employee?.nip}
                       </div>
                       {item.employee?.satuan_kerja && (
                         <div
-                          className="text-xs text-[var(--ds-fg-muted)] truncate max-w-52 mt-0.5"
+                          className="text-xs text-[var(--ds-fg-muted)] truncate mt-0.5 leading-tight"
                           title={item.employee?.satuan_kerja}
                         >
                           {item.employee?.satuan_kerja}
@@ -535,56 +534,55 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Surat & Jenis Cuti */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-semibold text-[var(--ds-accent-fg)] leading-snug">
+                    <td className="py-3 px-3 align-top max-w-[175px]">
+                      <div className="font-bold text-[var(--ds-accent-fg)] leading-tight whitespace-nowrap truncate">
                         {item.jenis_cuti}
                       </div>
                       {item.nomor_pengajuan ? (
-                        <span className="font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-border-subtle)] font-medium whitespace-pre">
+                        <div
+                          className="font-mono text-xs text-[var(--ds-fg-muted)] mt-1 font-medium truncate leading-tight"
+                          title={item.nomor_pengajuan}
+                        >
                           {item.nomor_pengajuan}
-                        </span>
+                        </div>
                       ) : (
-                        <span className="text-xs text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-status-warning-border)] font-medium">
+                        <div className="text-xs text-[var(--ds-status-warning-fg)] mt-1 font-medium leading-tight">
                           Belum Ada Nomor
-                        </span>
+                        </div>
                       )}
                     </td>
 
                     {/* Masa Pelaksanaan */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
+                    <td className="py-3 px-3 align-top whitespace-nowrap">
+                      <div className="font-bold text-[var(--ds-fg)] leading-tight">
+                        {item.tanggal_mulai} s/d {item.tanggal_selesai}
+                      </div>
+                      <div className="text-xs font-semibold text-[var(--ds-fg-muted)] mt-1 leading-tight">
                         {item.jumlah_hari} Hari
                       </div>
-                      <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 whitespace-nowrap">
-                        {item.tanggal_mulai} s/d {item.tanggal_selesai}
-                      </span>
                     </td>
 
-                    {/* Alasan Cuti */}
-                    <td className="p-3.5 max-w-44 align-middle">
+                    {/* Alasan & Alamat Cuti */}
+                    <td className="py-3 px-3 max-w-[185px] align-top">
                       {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
-                        <span className="text-[var(--ds-fg-muted)] italic text-xs">-</span>
+                        <div className="text-[var(--ds-fg-muted)] italic text-xs leading-tight">-</div>
                       ) : (
-                        <span className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
+                        <div className="text-xs font-medium text-[var(--ds-fg)] truncate leading-tight" title={item.alasan_cuti}>
                           {item.alasan_cuti}
-                        </span>
+                        </div>
                       )}
+                      <div className="text-xs text-[var(--ds-fg-muted)] truncate mt-1 leading-tight" title={item.alamat_menjalankan_cuti || "-"}>
+                        {item.alamat_menjalankan_cuti || "-"}
+                      </div>
                       {item.catatan_atasan && (
-                        <div className="mt-1 text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded border border-[var(--ds-status-success-border)] truncate" title={`Catatan Atasan: ${item.catatan_atasan}`}>
+                        <div className="mt-1 text-xs text-[var(--ds-status-success-fg)] truncate leading-tight" title={`Catatan Atasan: ${item.catatan_atasan}`}>
                           <span className="font-semibold">Catatan:</span> {item.catatan_atasan}
                         </div>
                       )}
                     </td>
 
-                    {/* Alamat Selama Cuti */}
-                    <td className="p-3.5 max-w-44 align-middle">
-                      <span className="text-xs text-[var(--ds-fg-muted)] truncate block" title={item.alamat_menjalankan_cuti || "-"}>
-                        {item.alamat_menjalankan_cuti || "-"}
-                      </span>
-                    </td>
-
                     {/* Status Badge */}
-                    <td className="p-3.5 align-middle text-center">
+                    <td className="py-3 px-2.5 align-top text-center whitespace-nowrap">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -646,7 +644,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Aksi & Verifikasi */}
-                    <td className="p-3.5 text-right whitespace-nowrap align-middle">
+                    <td className="py-3 px-3 text-right whitespace-nowrap align-top">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
