@@ -1,6 +1,40 @@
 # Audit visual Kepegawaian
 
-11 November 2026. Acuan penerapan mengikuti [Panduan Warna BKSDA SuperApp](../DESIGN_SYSTEM_COLORS.md) dan [Pedoman Animasi Animate UI](../animate-ui-motion-guidelines.md). Status akhir: perbaikan disimpan dalam satu commit lokal sesuai instruksi pengguna; tidak dipush. Catatan belum commit pada bagian pemeriksaan di bawah merekam status saat pemeriksaan tersebut.
+11 November 2026. Acuan penerapan mengikuti [Panduan Warna BKSDA SuperApp](../DESIGN_SYSTEM_COLORS.md) dan [Pedoman Animasi Animate UI](../animate-ui-motion-guidelines.md). Implementasi tersimpan pada commit lokal `8e3d0a8c` — `fix(kepegawaian): align visual styles and preserve approved motion`. Tidak dipush atau dideploy. Catatan belum commit pada bagian riwayat merekam status saat pemeriksaan tersebut; pembaruan dokumentasi setelah commit dicatat pada progress bagian 97.
+
+## Acuan final yang berlaku
+
+Ringkasan ini menjadi acuan implementasi berikutnya. Catatan koreksi di bagian bawah merupakan riwayat pemeriksaan; pengaturan sementara yang diganti tidak boleh diterapkan kembali.
+
+| Area | Kondisi final |
+| --- | --- |
+| Warna | Fondasi netral light/dark dan aksen Blue Kepegawaian. Grafik komposisi tetap PNS `blue-600`, PPPK `amber-500`, MMP `emerald-500`; grafik wilayah tetap seperti semula. |
+| Badge dan ikon dashboard | Tint latar 5% currentColor pada surface, border ikon 12%, border badge transparan. Foreground/label tetap terbaca. Scope hanya `.kpg-ui.kpg-dashboard`; tidak memakai opacity seluruh elemen. |
+| Tab | Isi mengikuti Kotak Masuk → Menunggu Persetujuan di Inbox Surat Tugas: fade/geser 8 px, 160 ms per fase, easeOut, mode wait, initial=false. Berlaku juga pada hasil filter dan subtab bank. Tab utama mempertahankan pill penuh/spring420/32. Tidak ada varian list140ms atau penggantian pill menjadi garis bawah. |
+| Dashboard dan sidebar | Hover/pengisian grafik yang disukai pengguna tetap; route160ms tanpa entrance tambahan. Sidebar width/transform200ms, hover120ms dan indikator spring420/32. Dilarang mengubah motion sebagai bagian perapian warna. |
+| Keterbacaan | Tanggal memakai fg-muted, subjudul sidebar membungkus tanpa ellipsis, keterangan kartu pegawai termasuk NIPPPK tampil utuh. Badge aktivitas memakai label status dari helper Inbox. |
+| Kontrol dan dialog | Pointer, hover/fokus150ms, target ikon36px, navigasi keyboard, exiting inert, focus trap/Escape/focus-return. Dialog bank memakai satu permukaan/radius12px; aktivasi primary dan penonaktifan destructive. |
+| Konsistensi data dan layout | Link kategori/wilayah mengirim status=all dan API daftar menerima all eksplisit. Nilai grafik nol benar. Loading/error/empty dibedakan; layout tablet/mobile dan kertas A4 memakai gulir internal. |
+
+## Validasi akhir dan batas pekerjaan
+
+- TypeScript seluruh frontend, ESLint seluruh source/fixture terkait, fixture Kepegawaian dan lima regresi BMN lulus sebelum commit; staged diff check lulus.
+- Browser memeriksa light/dark, desktop/tablet/mobile, tab dan keyboard, drawer, dialog/Escape/fokus kembali, teks panjang, serta pratinjau. Rincian ukuran dan bukti aktual ada pada bagian hasil browser serta koreksi terkait.
+- Kontras pada 30 badge/ikon aktual per tema memenuhi ambang yang diperiksa: minimum teks sekitar 4,71:1 light dan 6,27:1 dark; ikon 3,02:1 light dan 5,33:1 dark. Ini bukan sertifikasi seluruh halaman atau pengukuran kelelahan pengguna.
+- Emulasi reduced motion browser tetap diuji pengguna; fallback source/fixture lulus. Transaksi operasional, unggah/cetak/unduh aktual dan sesi akun read-only belum diuji browser. Pemeriksaan ini adalah audit visual/interaksi, bukan pengganti audit keamanan.
+- Tes callback Portal tambahan terhenti pada path mount Linux di Windows dan tidak dihitung lulus. Detail batas pengujian tetap dipertahankan di bagian terkait.
+
+Pemeriksaan fixture dapat diulang dari direktori `frontend`:
+
+```powershell
+node tests/kepegawaian-ui.cjs
+node tests/bmn-assets-ui.cjs
+node tests/bmn-asset-grid.cjs
+node tests/bmn-dashboard-motion.cjs
+node tests/bmn-detail-ui.cjs
+node tests/bmn-sidebar-ui.cjs
+node node_modules/typescript/bin/tsc --noEmit --incremental false
+```
 
 ## Cakupan dan alasan perubahan
 
@@ -10,7 +44,7 @@
 | Dashboard ke daftar pegawai | Angka kategori mencakup pegawai nonaktif, tetapi tautan membuka daftar aktif. Pilihan Semua status juga menghilangkan parameter status dari API sehingga backend kembali memakai default aktif. | Tautan kategori, wilayah dan Kelola Semua Personil mengirim status=all. Daftar mengirim pilihan status secara eksplisit ke endpoint existing. Browser mengonfirmasi PNS berjumlah 97 setelah perbaikan, sesuai dashboard. Kartu ringkasan aktif di daftar diberi keterangan aktif agar maknanya jelas. |
 | Grafik dashboard | Saat jumlah personel nol, persentase MMP dapat menjadi 100 persen. Batang wilayah kosong memiliki lebar minimum 5 persen. | Hitung persentase MMP dari jumlah sebenarnya dan batasi lebar wilayah pada 0–100 persen. Pertahankan hover personel 150 ms dan pengisian batang 600 ms yang menjadi acuan pengguna. |
 | Daftar dan tambah pegawai | Terdapat tautan yang membungkus tombol, kontrol tanpa nama aksesibel, dan pilihan kategori yang belum menyatakan state. Data placeholder dapat menampilkan baris dari filter sebelumnya. | Gunakan satu elemen interaktif per aksi, label form, aria-pressed untuk kategori/status, dan kerangka loading saat data filter berikutnya disiapkan. Kegagalan kueri memakai Coba lagi. Pagination menunggu fetch selesai. |
-| Detail dan biodata pegawai | Identitas visual masih Emerald, indikator tab memakai ID berulang, dan beberapa tombol ikon terlalu kecil. Foto hanya memperlihatkan aksi unggah saat hover. | Pakai token Kepegawaian, tab ber-ID unik dengan navigasi panah/Home/End dan indikator bawah 2 px. Tombol ikon berlabel memiliki target minimum 36 px. Bidang foto dapat dicapai lewat keyboard, terlihat pada mobile, dan memiliki feedback hover/fokus 150 ms. Input foto dinonaktifkan selama upload, lalu tersedia lagi saat berhasil atau gagal. |
+| Detail dan biodata pegawai | Identitas visual masih Emerald, indikator tab memakai ID berulang, dan beberapa tombol ikon terlalu kecil. Foto hanya memperlihatkan aksi unggah saat hover. | Pakai token Kepegawaian, tab ber-ID unik dengan navigasi panah/Home/End dan indikator pill penuh sesuai acuan final. Tombol ikon berlabel memiliki target minimum 36 px. Bidang foto dapat dicapai lewat keyboard, terlihat pada mobile, dan memiliki feedback hover/fokus 150 ms. Input foto dinonaktifkan selama upload, lalu tersedia lagi saat berhasil atau gagal. |
 | Hak akses dan lifecycle | Dialog perlu pengembalian fokus yang jelas. Aksi aktivasi dan penonaktifan membutuhkan warna sesuai konsekuensinya. | Gunakan Dialog existing dan referensi pemicu. Penonaktifan memakai destructive, aktivasi kembali serta pembatalan jadwal memakai primary. Penutupan dialog menunggu operasi pending selesai. |
 | Inbox dan riwayat cuti | Campuran warna lama, kegagalan dapat terlihat seperti daftar kosong, dan cache ringkasan ditulis ke ref saat render. Bidang unggah tersembunyi dari keyboard. | Tokenisasi daftar, status dan dialog aktif. Gunakan data kueri existing tanpa cache ref tambahan. Tampilkan error dengan retry. Input unggah native tetap fokusable dan bidangnya memiliki outline 2 px saat fokus. Lampiran kembali ke tombol Berkas yang tetap berada di tabel setelah menu ditutup. |
 | Pratinjau cuti | Surat izin A4 dipusatkan di dalam area sempit sehingga sisi kiri kertas berada di koordinat negatif dan terpotong. Toolbar memakai permukaan inverse yang menyulitkan teks pendukung. | Pakai toolbar netral dan scroller internal dengan pembungkus w-max/min-w-full. Kedua pratinjau memakai kertas sekitar 794 px yang tetap putih/hitam. Area gulir diberi nama dan dapat difokuskan. Template dokumen sumber tetap menjadi komponen cetak existing. |
@@ -73,7 +107,9 @@ Uji browser menggunakan pembacaan data lokal, draft tanpa simpan, dan fixture co
 
 Bukti visual tersimpan sebagai kepegawaian-create-desktop-light.png dan kepegawaian-cuti-fixture-mobile-dark.png pada folder visualisasi sesi.
 
-## Koreksi tab dan sidebar setelah umpan balik lanjutan
+## Riwayat koreksi tab dan sidebar setelah umpan balik lanjutan
+
+Catatan berikut merekam tahap sementara. Varian list140ms dan subtab bank langsung telah diganti oleh acuan Inbox pada klarifikasi berikutnya; jangan dipakai sebagai pedoman final.
 
 Pengguna melaporkan navigasi tetap terasa berat dan menyukai perilaku sebelum audit. Perbandingan dengan HEAD menemukan entrance CSS280ms tambahan pada halaman selain dashboard, transisi geometri sidebar yang terhapus karena diganti transition-colors, indikator pill yang ditimpa menjadi garis bawah, serta animasi baru pada subtab bank yang sebelumnya langsung. Ini adalah regresi dari audit visual dan telah dikoreksi; tidak ada pengukuran FPS atau klaim profil performa runtime.
 

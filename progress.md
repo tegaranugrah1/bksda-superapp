@@ -2111,6 +2111,28 @@
 
 ## 96. Commit Lokal Audit Visual Kepegawaian (11 November2026)
 
+- Commit terverifikasi: `8e3d0a8c` — `fix(kepegawaian): align visual styles and preserve approved motion` (37 berkas).
+
 - Seluruh pekerjaan visual Kepegawaian pada bagian90–95 disimpan dalam satu commit lokal bersama pedoman warna, pedoman animasi, laporan audit, fixture dan komponen pendukung bersama. Kondisi final mempertahankan animasi sesuai acuan Inbox Surat Tugas dan palet tiga warna grafik, dengan badge/ikon pendukung yang lebih lembut.
 - Validasi akhir TypeScript, ESLint source/fixture terkait, fixture Kepegawaian dan lima regresi BMN serta staged diff check lulus. Bukti dan batas browser/transaksi tercatat pada docs/testing/kepegawaian-visual-audit.md.
 - Tidak push atau deploy. frontend/AGENTS.md otomatis tetap di luar cakupan commit.
+
+
+## 97. Rekap Akhir Dokumentasi Visual Kepegawaian (11 November 2026)
+
+Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a8c`. Pembaruan ini merapikan dokumen setelah commit tersebut; hanya Markdown yang diubah, tanpa perubahan kode atau animasi.
+
+| Pekerjaan selesai | Yang dicatat |
+| --- | --- |
+| Fondasi visual | Token light/dark, aksen Blue, border halus, pointer, hover/fokus dan target ikon. |
+| Dashboard | Tiga warna komposisi tetap, nilai grafik nol benar, tautan kategori/wilayah sesuai status=all, dan badge/ikon pendukung lebih lembut. |
+| Teks dan status | Tanggal lebih terbaca, subjudul sidebar/keterangan NIPPPK utuh, dan label aktivitas mengikuti Inbox Surat Tugas. |
+| Animasi final | Isi tab mengikuti Kotak Masuk → Menunggu Persetujuan: fade/geser8px,160ms per fase. Pill utama tetap; tidak ada entrance ganda atau varian list140ms. Hover dashboard/sidebar dipertahankan. |
+| Daftar/tambah/detail pegawai | Filter, loading/error/empty, navigasi tab, unggah foto/fokus/pending, dan kontrol lifecycle/hak akses mengikuti pedoman. |
+| Cuti, uang makan dan arsip | Kontrol/unggahan/keyboard, dialog/pratinjau A4, state loading/error, serta layout responsif dirapikan. |
+| Pengaturan dan bank | Tab/subtab dapat diakses lewat keyboard; dialog kelola/edit bank memakai satu permukaan dengan Escape/fokus kembali. |
+| Validasi | TypeScript, ESLint, fixture Kepegawaian dan lima regresi BMN serta diff check lulus sebelum commit. Browser light/dark dan ukuran yang dilaporkan tercatat dalam audit. |
+
+- Dokumen diperbarui: [pedoman warna](docs/DESIGN_SYSTEM_COLORS.md), [pedoman animasi](docs/animate-ui-motion-guidelines.md) dan [laporan audit visual](docs/testing/kepegawaian-visual-audit.md). Laporan kini diawali ringkasan final, cakupan tes, batas pengujian dan perintah fixture; catatan sementara ditandai sebagai riwayat.
+- Batas tetap: reduced motion browser diuji pengguna; transaksi operasional, unggah/cetak/unduh aktual dan akun read-only belum diuji browser. Tes callback Portal yang memerlukan mount Linux tidak dihitung lulus. Rekap ini tidak menyatakan audit keamanan baru selesai.
+- Status: implementasi sudah commit lokal; pembaruan Markdown pada bagian97 disimpan dalam commit dokumentasi terpisah sebelum pengajuan PR. Tidak push atau deploy. frontend/AGENTS.md otomatis tetap di luar cakupan.

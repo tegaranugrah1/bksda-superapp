@@ -296,6 +296,8 @@ Tombol utama light memakai `#0369a1` dengan teks putih, hover `#075985` dan acti
 
 ## Kepegawaian — 11 November 2026
 
+Status implementasi: commit lokal `8e3d0a8c`; belum dipush atau dideploy. Pedoman Kepegawaian berikut mencakup fondasi warna, perbaikan keterbacaan dan pelembutan badge/ikon. Aturan pelembutan dashboard yang lebih spesifik di bawah melengkapi keluarga warna asal, tanpa mengganti palet grafik. Lihat [acuan final dan validasi audit](testing/kepegawaian-visual-audit.md#acuan-final-yang-berlaku) serta [progress bagian 90–97](../progress.md).
+
 Gunakan scope data-module kepegawaian dengan .kpg-ui pada halaman dan konten portal. Shell memakai .kpg-shell. Kontrol memakai fondasi bersama Surat Tugas, sementara panel Surat Tugas dalam pengaturan tetap memiliki scope aksennya sendiri.
 
 Primary light memakai #2563eb/#ffffff dengan hover #1d4ed8 dan active #1e40af. Dark memakai #60a5fa/#0f172a dengan hover #93c5fd dan active #bfdbfe. Teks aksen dark memakai #93c5fd. Input memakai border-subtle dan tombol sekunder memakai border transparan dengan pasangan secondary-hover/active. Teks pendukung aplikasi memakai ukuran minimal 12 px. Tombol ikon berlabel memiliki target minimal 36 px dan fokus outline 2 px dengan offset 2 px.
