@@ -958,7 +958,7 @@ export default function EmployeeDetailPage() {
                   <span
                     className={cn(
                       "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
-                      activeTab === "history" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
+                      activeTab === "history" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
                     )}
                   >
                     {assignmentsData.meta.total}
@@ -992,7 +992,7 @@ export default function EmployeeDetailPage() {
                   className={cn(
                     "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
                     activeTab === "leave"
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]"
                       : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  "
                   )}
                 >
@@ -1027,7 +1027,7 @@ export default function EmployeeDetailPage() {
                   <span
                     className={cn(
                       "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
-                      activeTab === "meal_allowance" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
+                      activeTab === "meal_allowance" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
                     )}
                   >
                     {allowancesData.meta.total} Batch

@@ -773,69 +773,67 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+              <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
                 <table className="w-full text-xs text-left">
                   <thead className="bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] font-bold border-b border-[var(--ds-border-subtle)]">
                     <tr>
-                      <th className="py-2.5 px-3 w-8 text-center">No</th>
-                      <th className="py-2.5 px-3 w-[28%]">Surat Persetujuan (SI / ST)</th>
-                      <th className="py-2.5 px-3 w-[16%]">Jenis Cuti</th>
-                      <th className="py-2.5 px-3 w-[22%]">Pelaksanaan & Durasi</th>
-                      <th className="py-2.5 px-3 w-[18%]">Alasan Cuti</th>
-                      <th className="py-2.5 px-3 w-[16%] text-right">Status & Aksi</th>
+                      <th className="py-2.5 px-3 w-10 text-center whitespace-nowrap">No</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap">Surat Persetujuan (SI / ST)</th>
+                      <th className="py-2.5 px-3">Jenis &amp; Alasan Cuti</th>
+                      <th className="py-2.5 px-3 whitespace-nowrap">Pelaksanaan &amp; Durasi</th>
+                      <th className="py-2.5 px-3 text-right whitespace-nowrap">Status &amp; Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                     {filteredRequests.map((req, idx) => (
                       <tr key={req.id} className="hover:bg-[var(--ds-surface)] transition-colors">
-                        <td className="py-3 px-3 text-center font-bold text-[var(--ds-fg-muted)] align-top">{idx + 1}</td>
-                        <td className="py-3 px-3 align-top">
-                          <div className="font-bold text-[var(--ds-fg)] font-mono text-xs break-all leading-tight">
+                        <td className="py-3 px-3 text-center font-bold text-[var(--ds-fg-muted)] align-top whitespace-nowrap">{idx + 1}</td>
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
+                          <div className="font-bold text-[var(--ds-fg)] font-mono text-xs whitespace-nowrap leading-tight">
                             {req.nomor_pengajuan || "-"}
                           </div>
-                          <div className="text-xs text-[var(--ds-fg-muted)] mt-1 flex items-center gap-1">
-                            <CalendarDays className="w-3 h-3 text-[var(--ds-fg-muted)] shrink-0" />
-                            <span>Tgl Surat: {formatDate(req.tanggal_pengajuan)}</span>
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-1 whitespace-nowrap leading-tight">
+                            Tgl Surat: {formatDate(req.tanggal_pengajuan)}
                           </div>
                         </td>
-                        <td className="py-3 px-3 align-top">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-xs font-semibold leading-snug ${
-                              req.jenis_cuti.toLowerCase().includes("tahunan")
-                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
-                                : req.jenis_cuti.toLowerCase().includes("sakit")
-                                ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)]"
-                                : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
-                            }`}
+                        <td className="py-3 px-3 align-top max-w-[240px]">
+                          <div
+                            className={cn(
+                              "text-xs font-bold whitespace-nowrap leading-tight",
+                              req.jenis_cuti.toLowerCase().includes("sakit")
+                                ? "text-[var(--ds-status-danger-fg)]"
+                                : "text-[var(--ds-accent-fg)]"
+                            )}
                           >
                             {req.jenis_cuti}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 align-top">
-                          <div className="font-medium text-[var(--ds-fg)] text-xs">
-                            {formatDate(req.tanggal_mulai)} s.d. {formatDate(req.tanggal_selesai)}
                           </div>
                           <div className="mt-1">
-                            <span className="inline-block font-bold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] px-1.5 py-0.5 rounded text-xs">
-                              {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
-                            </span>
+                            {(() => {
+                              const raw = req.alasan_cuti || req.catatan_atasan;
+                              if (!raw || raw.toLowerCase().includes("sisa cuti")) {
+                                return <span className="block text-[var(--ds-fg-muted)] text-xs italic leading-tight">-</span>;
+                              }
+                              return (
+                                <span
+                                  className="block text-xs font-medium text-[var(--ds-fg-muted)] truncate leading-tight"
+                                  title={raw}
+                                >
+                                  {raw}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </td>
-                        <td className="py-3 px-3 align-top">
-                          {(() => {
-                            const raw = req.alasan_cuti || req.catatan_atasan;
-                            if (!raw || raw.toLowerCase().includes("sisa cuti")) {
-                              return <span className="text-[var(--ds-fg-muted)] text-xs italic">-</span>;
-                            }
-                            return (
-                              <span className="inline-block text-xs font-medium text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] px-2 py-0.5 rounded-md leading-snug">
-                                {raw}
-                              </span>
-                            );
-                          })()}
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
+                          <div className="font-bold text-[var(--ds-fg)] text-xs whitespace-nowrap leading-tight">
+                            {formatDate(req.tanggal_mulai)} s.d. {formatDate(req.tanggal_selesai)}
+                          </div>
+                          <div className="text-xs font-semibold text-[var(--ds-fg-muted)] mt-1 whitespace-nowrap leading-tight">
+                            {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
+                          </div>
                         </td>
-                        <td className="py-3 px-3 align-top text-right">
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
+                        <td className="py-3 px-3 align-top text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                             {(() => {
                               const st = (req.status || "PENGAJUAN").toUpperCase();
                               const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -844,7 +842,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               return (
                                 <span
                                   className={cn(
-                                    "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs shrink-0 uppercase tracking-wider",
+                                    "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs shrink-0 whitespace-nowrap uppercase tracking-wider",
                                     isApproved
                                       ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
                                       : isRejected
@@ -872,7 +870,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               const uploadedCount = (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
                               return (
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 shrink-0">
                                   {/* Berkas Dropdown Menu */}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild
@@ -882,7 +880,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                       <button
                                         type="button"
                                         className={cn(
-                                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer",
+                                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap shrink-0",
                                           uploadedCount === 2
                                             ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)]"
                                             : uploadedCount === 1
@@ -892,14 +890,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                         title="Kelola & Lihat Berkas Scan Cuti"
                                       >
                                         {uploadedCount === 2 ? (
-                                          <CheckCircle2 className="w-3 h-3 text-[var(--ds-status-success-fg)]" />
+                                          <CheckCircle2 className="w-3 h-3 text-[var(--ds-status-success-fg)] shrink-0" />
                                         ) : uploadedCount === 1 ? (
-                                          <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)]" />
+                                          <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)] shrink-0" />
                                         ) : (
-                                          <FileUp className="w-3 h-3 text-[var(--ds-accent-fg)]" />
+                                          <FileUp className="w-3 h-3 text-[var(--ds-accent-fg)] shrink-0" />
                                         )}
-                                        <span>{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
-                                        <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                        <span className="whitespace-nowrap">{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
+                                        <ChevronDown className="w-2.5 h-2.5 opacity-60 shrink-0" />
                                       </button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-60 p-1.5 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">

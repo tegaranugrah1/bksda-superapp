@@ -865,7 +865,7 @@ export default function UangMakanPage() {
                   <span
                     className={cn(
                       "relative z-10 ml-1.5 px-2 py-0.5 rounded-full text-xs",
-                      isActive ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)] "
+                      isActive ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)] "
                     )}
                   >
                     {tab.count}

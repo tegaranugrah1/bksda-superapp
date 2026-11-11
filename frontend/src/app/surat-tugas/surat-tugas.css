@@ -84,12 +84,15 @@
 
 
 .st-inbox-list { container-type: inline-size; }
-@container (max-width: 1120px) {
+@container (max-width: 860px) {
   .st-letter-row { flex-wrap: wrap; }
   .st-letter-row > .st-row-meta { display: none; }
   .st-row-person { flex: 1; min-width: 0; }
+  .st-row-status { width: auto; }
   .st-row-subject { flex: 0 0 100%; order: 2; }
-  .st-row-actions { flex: 0 0 100%; order: 3; justify-content: space-between; }
+  .st-row-actions { flex: 0 0 100%; width: 100%; order: 3; justify-content: space-between; }
+  .st-row-date { opacity: 1 !important; }
+  .st-row-action-buttons { position: static; transform: none; opacity: 1; pointer-events: auto; background: transparent; padding-left: 0; box-shadow: none; }
 }
 
 .st-page-enter { animation: st-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
