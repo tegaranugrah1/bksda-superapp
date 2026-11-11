@@ -15,14 +15,13 @@ import { motion, useReducedMotion } from "framer-motion";
 import { BmnTabContent } from "@/app/bmn/_components/BmnTabContent";
 import { Button } from "@/components/ui/button";
 import { type IBmnTag } from "../_lib/tag-utils";
-import { type IBmnLocation, type IBmnAssetType, STANDARD_UNIT_KERJA } from "./_lib/types";
+import { type IBmnLocation, type IBmnAssetType } from "./_lib/types";
 import { TagManagementTab } from "./_tabs/TagManagementTab";
 import { LocationManagementTab } from "./_tabs/LocationManagementTab";
 import { AssetTypeManagementTab } from "./_tabs/AssetTypeManagementTab";
 
 // Backward-compatibility re-exports
 export type { IBmnLocation, IBmnAssetType };
-export { STANDARD_UNIT_KERJA };
 
 export default function BmnSettingsPage() {
   const tabsId = useId();

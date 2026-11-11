@@ -51,3 +51,12 @@ Batas pengujian: browser reduced motion diserahkan kepada pengguna sesuai keputu
 - Browser dikembalikan light, viewport override direset, dialog ditutup. Reduced motion browser tetap oleh pengguna; source/fixture fallback lulus. Tidak mengklaim pengujian cetak fisik atau transaksi/deployment produksi.
 
 Status Git: **commit lokal**, tanpa push atau deploy, sesuai permintaan pengguna. `frontend/AGENTS.md` dihasilkan Next dev dan berada di luar commit.
+
+
+## Pemeriksaan build sebelum PR production-server — 11 November 2026
+
+Build produksi tambahan menemukan runtime re-export STANDARD_UNIT_KERJA pada settings/page.tsx yang ditolak oleh generated page types Next.js. Re-export dan import yang hanya mendukungnya dihapus. Konstanta tetap berada di settings/_lib/types.ts dan LocationManagementTab tetap mengimpornya langsung; tidak ada caller yang mengimpor konstanta melalui page. Ekspor type kompatibilitas tetap. Tampilan, data, warna dan animasi tidak diubah.
+
+ESLint page dan fixture bmn-sidebar-ui.cjs lulus. Build webpack pada salinan source terisolasi di drive E berhasil kompilasi, generated TypeScript dan86 halaman statis (exit0). Percobaan pertama pada drive C terhalang resolusi path lintas drive, bukan dihitung sebagai pass. Build ulang masih memperingatkan manifest route-group yang gagal disalin dan27 traced dependencies di luar tracing root akibat penggunaan junction dependency; penyebab seluruh warning packaging belum dituntaskan. Artefak standalone ini tidak dipakai untuk deploy. Build Docker/Linux dengan dependency normal belum diverifikasi. Tidak menyatakan deployment produksi siap hanya berdasarkan exit0 build ini.
+
+Push/PR/merge belum dilakukan karena branch memuat43 commit fitur tertunda terhadap production-server sebelum commit dokumentasi dan perbaikan build ini. Cakupan promosi sedang dimintakan pilihan kepada pengguna. Status terakhir ada di progress bagian98.
