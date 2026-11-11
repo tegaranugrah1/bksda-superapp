@@ -206,12 +206,12 @@
 }
 
 [data-module="persuratan"] {
-  --ds-accent-solid: #4f46e5;
-  --ds-accent-hover: #4338ca;
-  --ds-accent-active: #3730a3;
-  --ds-accent-fg: #4f46e5;
-  --ds-accent-soft: #eef2ff;
-  --ds-accent-soft-border: #c7d2fe;
+  --ds-accent-solid: #0f766e;
+  --ds-accent-hover: #115e59;
+  --ds-accent-active: #134e4a;
+  --ds-accent-fg: #0f766e;
+  --ds-accent-soft: #f0fdfa;
+  --ds-accent-soft-border: #99f6e4;
 }
 
 .dark[data-module="bmn"],
@@ -292,12 +292,12 @@
 
 .dark[data-module="persuratan"],
 .dark [data-module="persuratan"] {
-  --ds-accent-solid: #818cf8;
-  --ds-accent-hover: #a5b4fc;
-  --ds-accent-active: #c7d2fe;
-  --ds-accent-fg: #a5b4fc;
-  --ds-accent-soft: #1e1b4b;
-  --ds-accent-soft-border: #3730a3;
+  --ds-accent-solid: #2dd4bf;
+  --ds-accent-hover: #5eead4;
+  --ds-accent-active: #99f6e4;
+  --ds-accent-fg: #5eead4;
+  --ds-accent-soft: #042f2e;
+  --ds-accent-soft-border: #115e59;
 }
 
 /* Marquee animation for photo gallery */

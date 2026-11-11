@@ -34,33 +34,33 @@ assert(
   'globals.css must declare [data-module="persuratan"] token scope.'
 );
 assert(
-  globalsCss.includes('--ds-accent-solid: #4f46e5;') &&
-    globalsCss.includes('--ds-accent-hover: #4338ca;') &&
-    globalsCss.includes('--ds-accent-active: #3730a3;') &&
-    globalsCss.includes('--ds-accent-soft: #eef2ff;') &&
-    globalsCss.includes('--ds-accent-soft-border: #c7d2fe;'),
-  'globals.css must define light Indigo tokens for Persuratan.'
+  globalsCss.includes('--ds-accent-solid: #0f766e;') &&
+    globalsCss.includes('--ds-accent-hover: #115e59;') &&
+    globalsCss.includes('--ds-accent-active: #134e4a;') &&
+    globalsCss.includes('--ds-accent-soft: #f0fdfa;') &&
+    globalsCss.includes('--ds-accent-soft-border: #99f6e4;'),
+  'globals.css must define light Teal tokens for Persuratan.'
 );
 assert(
-  globalsCss.includes('--ds-accent-solid: #818cf8;') &&
-    globalsCss.includes('--ds-accent-hover: #a5b4fc;') &&
-    globalsCss.includes('--ds-accent-active: #c7d2fe;') &&
-    globalsCss.includes('--ds-accent-soft: #1e1b4b;') &&
-    globalsCss.includes('--ds-accent-soft-border: #3730a3;'),
-  'globals.css must define dark Indigo tokens for Persuratan.'
+  globalsCss.includes('--ds-accent-solid: #2dd4bf;') &&
+    globalsCss.includes('--ds-accent-hover: #5eead4;') &&
+    globalsCss.includes('--ds-accent-active: #99f6e4;') &&
+    globalsCss.includes('--ds-accent-soft: #042f2e;') &&
+    globalsCss.includes('--ds-accent-soft-border: #115e59;'),
+  'globals.css must define dark Teal tokens for Persuratan.'
 );
 
 assert(
-  contrastRatio('#4f46e5', '#ffffff') >= 4.5,
-  'Light Indigo primary (#4f46e5 on #ffffff) must pass WCAG AA 4.5:1.'
+  contrastRatio('#0f766e', '#ffffff') >= 4.5,
+  'Light Teal primary (#0f766e on #ffffff) must pass WCAG AA 4.5:1.'
 );
 assert(
-  contrastRatio('#818cf8', '#18181b') >= 4.5,
-  'Dark Indigo accent text (#818cf8 on #18181b) must pass WCAG AA 4.5:1.'
+  contrastRatio('#5eead4', '#18181b') >= 4.5,
+  'Dark Teal accent text (#5eead4 on #18181b) must pass WCAG AA 4.5:1.'
 );
 assert(
-  contrastRatio('#818cf8', '#0f172a') >= 4.5,
-  'Dark Indigo solid button (#818cf8 with #0f172a text) must pass WCAG AA 4.5:1.'
+  contrastRatio('#2dd4bf', '#0f172a') >= 4.5,
+  'Dark Teal solid button (#2dd4bf with #0f172a text) must pass WCAG AA 4.5:1.'
 );
 
 // 2. Ponytail CSS reuse (no new CSS file, shared rules in surat-tugas.css and kepegawaian.css)
@@ -94,14 +94,26 @@ assert(
   'surat/layout.tsx must match BMN and Kepegawaian sidebar/shell architecture.'
 );
 
-// 4. Hub & Dashboard parity
+// 4. Hub & Dashboard parity (including canonical Dashboard Kepegawaian header standard across BMN & Persuratan)
 const hubPageSource = read('app/surat/page.tsx');
 const hubComponentsSource = read('app/surat/_components/SuratHubComponents.tsx');
+const bmnPageSource = read('app/bmn/page.tsx');
+const kepegawaianPageSource = read('app/kepegawaian/page.tsx');
 assert(
   hubPageSource.includes('psr-ui psr-dashboard') &&
     hubPageSource.includes('kpg-support-icon') &&
     hubComponentsSource.includes('kpg-support-badge'),
   'surat/page.tsx and SuratHubComponents.tsx must use .psr-ui.psr-dashboard and soft support icon/badge classes.'
+);
+assert(
+  kepegawaianPageSource.includes('text-xl md:text-2xl font-bold') &&
+    kepegawaianPageSource.includes('Dashboard Kepegawaian') &&
+    bmnPageSource.includes('text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight') &&
+    bmnPageSource.includes('Dashboard BMN') &&
+    !bmnPageSource.includes('>Barang Milik Negara</span>') &&
+    hubComponentsSource.includes('text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight') &&
+    hubComponentsSource.includes('Dashboard Persuratan'),
+  'Dashboard BMN and Dashboard Persuratan must follow the canonical Dashboard Kepegawaian header anatomy and sizing.'
 );
 assert(
   hubComponentsSource.includes('isError') &&

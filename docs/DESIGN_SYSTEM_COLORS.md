@@ -12,7 +12,7 @@ Gunakan satu fondasi netral, aksen modul yang terbatas, dan warna status yang ko
 | Lapisan | Fungsi | Keputusan |
 | --- | --- | --- |
 | Brand global | Login, Portal, identitas aplikasi, kontrol global di luar modul | Forest Green `#1e5433`, mengikuti warna brand yang sudah dipakai source aplikasi. Ini bukan klaim verifikasi pedoman logo resmi kementerian. |
-| Identitas modul | Tombol utama, overline, ikon header, pilihan aktif, tautan dan focus ring dalam modul | Biru Kepegawaian, Emerald BMN, Teal Keuangan, Indigo Persuratan, Sky Surat Tugas, Amber DeReporting. |
+| Identitas modul | Tombol utama, overline, ikon header, pilihan aktif, tautan dan focus ring dalam modul | Biru Kepegawaian, Emerald BMN, Teal Keuangan & Persuratan, Sky Surat Tugas, Amber DeReporting. |
 | Semantik | Sukses, menunggu/peringatan, bahaya/penolakan, informasi dan netral | Mengikuti makna status, disertai teks atau ikon yang jelas; tidak mengikuti aksen modul. |
 
 Portal dan CMS memakai brand Forest Green, dengan Slate sebagai teks dan struktur netral. Ini memperjelas usulan awal yang menempatkan Slate Navy sebagai aksen Portal. `#0f172a` tetap dipakai sebagai teks utama light mode, bukan warna brand terpisah.
@@ -327,14 +327,20 @@ Dashboard Kepegawaian mempertahankan palet kategori yang dipilih pengguna. Kompo
 - Grafik komposisi tetap blue-600/amber-500/emerald-500. Grafik wilayah, angka utama, teks penting, tombol utama, hover dan seluruh motion tetap. Pelembutan hanya untuk dekorasi pendukung yang ditandai.
 - Kontras dari30 elemen aktual per tema (16 badge dan14 ikon) dihitung dari sRGB mix yang dilaporkan Chrome: minimum teks sekitar4.71:1 light/6.27:1 dark, ikon3.02:1 light/5.33:1 dark. Perhitungan menginversi campuran5% foreground/95% surface dan mengikuti pembulatan CSSOM; bukan sertifikasi seluruh halaman. Bukti dan batas ada pada laporan audit visual Kepegawaian.
 
-## Persuratan — 11 November 2026
+## Persuratan — 11–12 November 2026
 
 Gunakan scope `[data-module="persuratan"]` dengan `.psr-ui` pada halaman dan konten portal (Dialog, Popover, DropdownMenu, ConfirmDialog, KepegawaianDialog). Shell memakai `.psr-shell` dan mewarisi aturan fondasi bersama `.st-ui`/`.kpg-ui` tanpa membuat berkas CSS baru.
 
-- **Aksen Indigo (bagian 4.2):**
-  - Light: `--ds-accent-solid: #4f46e5` (6,29:1 pada putih), `--ds-accent-hover: #4338ca`, `--ds-accent-active: #3730a3`, `--ds-accent-on-solid: #ffffff`, `--ds-accent-fg: #4f46e5`, `--ds-accent-soft: #eef2ff`, `--ds-accent-soft-border: #c7d2fe`.
-  - Dark: `--ds-accent-solid: #818cf8` (8,89:1 pada `#18181b`, 5,98:1 terhadap `#0f172a`), `--ds-accent-hover: #a5b4fc`, `--ds-accent-active: #c7d2fe`, `--ds-accent-on-solid: #0f172a`, `--ds-accent-fg: #818cf8`, `--ds-accent-soft: #1e1b4b`, `--ds-accent-soft-border: #3730a3`.
-- **Sidebar & Header (`.psr-shell`):** Diselaraskan 1:1 dengan BMN dan Kepegawaian: subjudul `BKSDA Kalimantan Timur` uppercase tebal (`text-[11px] font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]`), judul grup `text-[var(--ds-fg-secondary)]`, indikator aktif spring (`stiffness: 450, damping: 35`) dengan titik aksen kanan (`w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)]`), footer `bg-[var(--ds-surface-muted)]`, dan drawer mobile yang menutup saat `Escape` serta mengembalikan fokus ke tombol menu.
-- **Dashboard (`.psr-ui.psr-dashboard`):** Memakai `.kpg-support-icon` dan `.kpg-support-badge` untuk pelembutan latar ikon/badge pendukung tanpa menghilangkan warna kategori kartu layanan (Surat Masuk, Surat Keluar, Surat Tugas).
+- **Aksen Teal Kedinasan (`#0f766e` light / `#2dd4bf` dark — bagian 4.1 & 4.2):**
+  - Dipilih menggantikan Indigo agar lebih teduh, formal, dan ramah bagi pengguna senior/orang tua saat membaca tabel maupun menyusun naskah dinas panjang.
+  - Light: `--ds-accent-solid: #0f766e` (5,47:1 pada putih), `--ds-accent-hover: #115e59`, `--ds-accent-active: #134e4a`, `--ds-accent-on-solid: #ffffff`, `--ds-accent-fg: #0f766e`, `--ds-accent-soft: #f0fdfa`, `--ds-accent-soft-border: #99f6e4`.
+  - Dark: `--ds-accent-solid: #2dd4bf` (9,59:1 terhadap `#0f172a`), `--ds-accent-hover: #5eead4`, `--ds-accent-active: #99f6e4`, `--ds-accent-on-solid: #0f172a`, `--ds-accent-fg: #5eead4` (11,98:1 pada `#18181b`), `--ds-accent-soft: #042f2e`, `--ds-accent-soft-border: #115e59`.
+- **Pedoman Standar Header Dashboard Lintas Modul (Patokan: Dashboard Kepegawaian):**
+  - Seluruh halaman utama modul (`Dashboard Kepegawaian`, `Dashboard BMN`, `Dashboard Persuratan`) wajib mengacu pada anatomi dan ukuran header `kepegawaian/page.tsx`:
+    - Pembungkus: `rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4`.
+    - Sisi kiri: `flex items-start sm:items-center gap-3.5` berisi kotak ikon `w-10 h-10 rounded-xl` (`w-5 h-5` icon) + blok teks **tanpa overline/badge tambahan di atas `<h1>`**.
+    - Tipografi judul: `<h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">Dashboard <Nama Modul></h1>` diikuti deskripsi `<p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">...</p>`.
+- **Sidebar & Header (`.psr-shell`):** Diselaraskan 1:1 dengan BMN dan Kepegawaian: subjudul uppercase tebal, judul grup `text-[var(--ds-fg-secondary)]`, indikator aktif spring (`stiffness: 450, damping: 35`) dengan titik aksen kanan (`w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)]`), footer `bg-[var(--ds-surface-muted)]`, dan drawer mobile yang menutup saat `Escape` serta mengembalikan fokus ke tombol menu.
+- **Dashboard (`.psr-ui.psr-dashboard`):** Memakai `.kpg-support-icon` dan `.kpg-support-badge` untuk pelembutan latar ikon/badge pendukung. Nomor surat keluar menggunakan `--ds-fg` agar tidak bertabrakan dengan warna hijau badge status `Signed`/`Terdaftar`.
 - **Kertas Cetak Resmi (`LembarDisposisiSheet`, `SuratDinasDocument`):** Tetap putih (`bg-white`) dan hitam (`text-black`) pada mode terang maupun gelap agar sesuai standar cetak fisik Letter 2-Up dan A4 Permen Kehutanan No. 1/2025. Rincian audit, ergonomi `1366 x 768` (100%), dan verifikasi tercatat di [audit visual Persuratan](testing/persuratan-visual-audit.md).
 

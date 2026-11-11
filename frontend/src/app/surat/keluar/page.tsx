@@ -351,8 +351,8 @@ export default function SuratKeluarListPage() {
                     return (
                       <tr key={item.id} className="hover:bg-[var(--ds-surface-muted)] transition-colors">
                         <td className="py-2 px-3 align-top whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
-                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-fg)]">
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
                             <span>{item.no_surat}</span>
                           </div>
                           {item.no_surat?.includes("${nomor_naskah}") && (

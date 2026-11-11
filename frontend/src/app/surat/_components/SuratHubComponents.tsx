@@ -8,7 +8,7 @@ import {
   Plus,
   FileCheck,
   CheckCircle2,
-  Building2,
+  Mail,
   ChevronRight,
   Calendar,
   ExternalLink,
@@ -33,48 +33,42 @@ function formatDisplayDate(dateStr?: string | null): string {
 
 export function HeaderBanner({ canCreate = true }: { canCreate?: boolean }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-[var(--ds-surface)] p-4 md:p-5 border border-[var(--ds-border-subtle)]">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
-            <Building2 className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
-            <span className="text-xs font-bold tracking-wide uppercase">
-              BKSDA KALIMANTAN TIMUR &bull; PERSURATAN RESMI
-            </span>
-          </div>
-
-          <div>
-            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[var(--ds-fg)]">
-              Pengelolaan Surat Masuk &amp; Surat Keluar
-            </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 max-w-2xl leading-relaxed">
-              Pusat penatausahaan naskah dinas resmi, registrasi nomor agenda, penerusan lembar disposisi, dan pengarsipan digital Balai KSDA Kalimantan Timur.
-            </p>
-          </div>
+    <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="flex items-start sm:items-center gap-3.5">
+        <div className="kpg-support-icon w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+          <Mail className="w-5 h-5" />
         </div>
-
-        {/* Action Buttons */}
-        {canCreate && (
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
-              <Link href="/surat/masuk/create">
-                <Plus className="h-4 w-4" />
-                Input Surat Masuk
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="kpg-secondary h-9 px-4 text-xs font-bold rounded-xl gap-1.5"
-            >
-              <Link href="/surat/keluar/create">
-                <Plus className="h-4 w-4 text-[var(--ds-accent-fg)]" />
-                Input Surat Keluar
-              </Link>
-            </Button>
-          </div>
-        )}
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
+            Dashboard Persuratan
+          </h1>
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            Pusat penatausahaan surat masuk, surat keluar, lembar disposisi, dan tata naskah dinas BKSDA Kalimantan Timur.
+          </p>
+        </div>
       </div>
+
+      {/* Action Buttons */}
+      {canCreate && (
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Button
+            asChild
+            variant="outline"
+            className="kpg-secondary h-9 px-4 text-xs font-bold rounded-xl gap-1.5"
+          >
+            <Link href="/surat/keluar/create">
+              <Plus className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+              Input Surat Keluar
+            </Link>
+          </Button>
+          <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
+            <Link href="/surat/masuk/create">
+              <Plus className="h-4 w-4" />
+              Input Surat Masuk
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -367,7 +361,7 @@ export function RecentSuratWidget({
                       className="transition-colors"
                     >
                       <td className="py-2.5 px-3 align-top max-w-[160px]">
-                        <span className="font-semibold text-[var(--ds-accent-fg)] block truncate">
+                        <span className="font-semibold text-[var(--ds-fg)] block truncate">
                           {item.no_surat || "-"}
                         </span>
                         <span

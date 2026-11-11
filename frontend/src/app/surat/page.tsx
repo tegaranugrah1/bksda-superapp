@@ -34,7 +34,7 @@ const QUICK_LINKS = [
     description: "Register Agenda & Disposisi",
     href: "/surat/masuk/create",
     icon: Plus,
-    iconStyle: "text-indigo-700 dark:text-indigo-300",
+    iconStyle: "text-teal-700 dark:text-teal-300",
     writeOnly: true,
   },
   {

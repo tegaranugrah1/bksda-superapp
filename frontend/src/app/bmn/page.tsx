@@ -183,20 +183,17 @@ export default function BmnDashboardPage() {
 
   return (
     <div data-module="bmn" className="bmn-dashboard-enter max-w-[1600px] w-full mx-auto p-4 sm:p-6 space-y-6 font-sans">
-      {/* 1. Unified Clean Enterprise Header Bar (Mirip Dashboard Kepegawaian) */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 1. Unified Clean Enterprise Header Bar (Patokan: Dashboard Kepegawaian) */}
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
             <Package className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--ds-accent-fg)] block mb-1">
-              Barang Milik Negara
-            </span>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Dashboard BMN
             </h1>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Ikhtisar pengelolaan Barang Milik Negara BKSDA Kalimantan Timur.
             </p>
           </div>
