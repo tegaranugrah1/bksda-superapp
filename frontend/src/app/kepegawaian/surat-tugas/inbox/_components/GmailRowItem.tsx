@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Eye, Download, Pencil, Trash2, Undo2, Users, MapPin, CheckSquare, Square, CheckCircle2 } from "lucide-react";
+import { Eye, Download, Pencil, Trash2, Undo2, Users, MapPin, CheckCircle2 } from "lucide-react";
 import type { AssignmentLetter } from "../_lib/types";
 import {
   getStatusStyle,
@@ -59,122 +59,115 @@ export function GmailRowItem({
   return (
     <div
       onClick={() => onClick(letter)}
-      className={`group relative flex items-center gap-3 px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800/80 cursor-pointer transition-colors select-none text-xs ${
+      className={`st-letter-row group relative flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border-subtle)] cursor-pointer transition-colors select-none text-xs ${
         isActive
-          ? "bg-blue-50/80 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+          ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]"
           : isSelected
-          ? "bg-blue-50/50 dark:bg-blue-900/10"
+          ? "bg-[var(--ds-accent-soft)]"
           : isPending
-          ? "bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
-          : "bg-slate-50/30 dark:bg-zinc-900/40 hover:bg-slate-100/60 dark:hover:bg-zinc-800/40 text-slate-600 dark:text-zinc-400"
+          ? "bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
+          : "bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
       }`}
     >
       {/* Active Left Indicator Bar */}
       {isActive && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--ds-accent-fg)] rounded-r" />
       )}
 
-      {/* Checkbox */}
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelect(letter.id);
-        }}
-        className="shrink-0 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-colors"
-      >
-        {isSelected ? (
-          <CheckSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        ) : (
-          <Square className="w-4 h-4" />
-        )}
-      </div>
+      <input
+        type="checkbox"
+        checked={isSelected}
+        aria-label={`Pilih surat ${letter.nomor_surat || title}`}
+        onClick={(event) => event.stopPropagation()}
+        onChange={() => onToggleSelect(letter.id)}
+        className="size-4 shrink-0"
+      />
 
       {/* Primary Personel */}
-      <div className="w-36 md:w-44 shrink-0 truncate flex items-center gap-1.5 font-semibold">
+      <div className="st-row-person w-36 shrink-0 truncate flex items-center gap-1.5 font-semibold">
         <span
           className={`truncate ${
             isPending
-              ? "font-bold text-slate-900 dark:text-zinc-100"
-              : "text-slate-700 dark:text-zinc-300 font-medium"
+              ? "font-bold text-[var(--ds-fg)]"
+              : "text-[var(--ds-fg-muted)] font-medium"
           }`}
           title={employees.map((e) => e.nama_lengkap).join(", ")}
         >
           {primaryName}
         </span>
         {extraCount > 0 && (
-          <span className="shrink-0 text-[10px] text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.2 rounded font-bold">
+          <span className="shrink-0 text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.2 rounded font-bold">
             +{extraCount}
           </span>
         )}
       </div>
 
       {/* Subject / Title & Snippet (Middle flex-1) */}
-      <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+      <div className="st-row-subject flex-1 min-w-0 flex items-center gap-2">
         {letter.template_type === "bmn-pemeriksaan" && (
-          <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
+          <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-black uppercase tracking-wider border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
             BMN
           </span>
         )}
         {letter.template_type === "plh" && (
-          <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-300">
+          <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-black uppercase tracking-wider border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
             PLH
           </span>
         )}
-        <span
-          className={`truncate ${
-            isPending
-              ? "font-bold text-slate-900 dark:text-zinc-100"
-              : "font-semibold text-slate-800 dark:text-zinc-200"
-          }`}
+        <button
+          type="button"
+          aria-current={isActive ? "true" : undefined}
+          className="min-w-0 truncate rounded px-1 text-left font-semibold text-[var(--ds-fg)] hover:text-[var(--ds-accent-fg)]"
           title={letter.maksud_tujuan || ""}
+          onClick={(event) => { event.stopPropagation(); onClick(letter); }}
         >
           {title}
-        </span>
+        </button>
       </div>
 
       {/* Dedicated Column: Tempat Tujuan (Aligned vertically down) */}
-      <div className="w-36 md:w-44 lg:w-48 shrink-0 truncate hidden sm:flex items-center text-[11px]">
+      <div className="st-row-meta w-28 xl:w-36 shrink-0 truncate hidden sm:flex items-center text-xs">
         {tujuan && tujuan !== "-" ? (
-          <span className="text-slate-600 dark:text-zinc-400 font-medium truncate" title={tujuan}>
+          <span className="text-[var(--ds-fg-muted)] font-medium truncate" title={tujuan}>
             {tujuan}
           </span>
         ) : (
-          <span className="text-slate-300 dark:text-zinc-600">-</span>
+          <span className="text-[var(--ds-fg-muted)]">-</span>
         )}
       </div>
 
       {/* Dedicated Column: Nomor Surat Tugas (Aligned vertically down) */}
-      <div className="w-44 md:w-56 lg:w-64 shrink-0 font-mono text-[11px] truncate hidden sm:flex items-center">
+      <div className="st-row-meta w-40 xl:w-48 shrink-0 font-mono text-xs truncate hidden sm:flex items-center">
         {letter.nomor_surat ? (
           <span
-            className="text-slate-600 dark:text-zinc-300 font-semibold truncate hover:text-blue-600 transition-colors"
+            className="text-[var(--ds-fg-muted)] font-semibold truncate hover:text-[var(--ds-accent-fg)] transition-colors"
             title={letter.nomor_surat}
           >
             {letter.nomor_surat}
           </span>
         ) : (
-          <span className="text-slate-300 dark:text-zinc-600 italic">Belum ada nomor</span>
+          <span className="text-[var(--ds-fg-muted)] italic">Belum ada nomor</span>
         )}
       </div>
 
       {/* Dedicated Column: Sumber Dana (DIPA / FOLU) */}
-      <div className="w-14 shrink-0 hidden sm:flex items-center justify-start">
+      <div className="st-row-meta w-14 shrink-0 hidden sm:flex items-center justify-start">
         {letter.sumber_dana ? (
           <span
-            className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
+            className="px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
             title={formatFormalSumberDana(letter.sumber_dana, letter.sumber_dana_other)}
           >
             {formatShortSumberDana(letter.sumber_dana)}
           </span>
         ) : (
-          <span className="text-slate-300 dark:text-zinc-600 text-[10px]">-</span>
+          <span className="text-[var(--ds-fg-muted)] text-xs">-</span>
         )}
       </div>
 
       {/* Dedicated Column: Status Badge (Left-aligned so DRAFT & DITERBITKAN align perfectly) */}
-      <div className="w-28 shrink-0 hidden sm:flex items-center justify-start">
+      <div className="st-row-status max-w-36 shrink-0 flex items-center justify-start">
         <span
-          className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getStatusStyle(
+          className={`px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-wider ${getStatusStyle(
             letter.status
           )}`}
         >
@@ -183,13 +176,13 @@ export function GmailRowItem({
       </div>
 
       {/* Dedicated Column: Rentang Tanggal Pelaksanaan Tugas OR Hover Action Buttons */}
-      <div className="shrink-0 w-32 md:w-36 text-right flex items-center justify-end relative h-6">
+      <div className="st-row-actions shrink-0 flex flex-wrap items-center justify-end gap-1 text-right">
         {/* Date range text (default visible, hidden on hover) */}
         <span
-          className={`text-[11px] whitespace-nowrap transition-opacity group-hover:opacity-0 ${
+          className={`text-xs whitespace-nowrap  ${
             isPending
-              ? "font-bold text-slate-800 dark:text-zinc-200"
-              : "font-medium text-slate-500 dark:text-zinc-400"
+              ? "font-bold text-[var(--ds-fg)]"
+              : "font-medium text-[var(--ds-fg-muted)]"
           }`}
           title={
             letter.tanggal_mulai && letter.tanggal_selesai
@@ -201,13 +194,13 @@ export function GmailRowItem({
         </span>
 
         {/* Hover action buttons (hidden by default, visible on hover) */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/95 dark:bg-zinc-900/95 pl-2 rounded-lg shadow-sm transition-opacity">
+        <div className="flex flex-wrap items-center gap-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onClick(letter);
             }}
-            className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-blue-400 transition-colors"
+            className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors"
             title="Lihat naskah surat"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -219,7 +212,7 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickApprove(letter);
               }}
-              className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded text-emerald-600 dark:text-emerald-400 transition-colors"
+              className="p-1 hover:bg-[var(--ds-status-success-bg)] rounded text-[var(--ds-status-success-fg)] transition-colors"
               title={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
               aria-label={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
             >
@@ -233,7 +226,7 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickDownload(letter);
               }}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 transition-colors"
+              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
               title="Unduh Dokumen Dasar"
             >
               <Download className="w-3.5 h-3.5" />
@@ -246,7 +239,7 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickEdit(letter);
               }}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-amber-400 transition-colors"
+              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] transition-colors"
               title="Edit di Builder"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -260,7 +253,7 @@ export function GmailRowItem({
                   e.stopPropagation();
                   onQuickRestore(letter.id);
                 }}
-                className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 transition-colors"
+                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
                 title="Pulihkan dokumen"
               >
                 <Undo2 className="w-3.5 h-3.5" />
@@ -273,7 +266,7 @@ export function GmailRowItem({
                   e.stopPropagation();
                   onQuickDelete?.(letter.id);
                 }}
-                className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 transition-colors"
+                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
                 title="Pindahkan ke sampah"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -286,7 +279,7 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickForceDelete(letter.id);
               }}
-              className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+              className="p-1 hover:bg-[var(--ds-status-danger-bg)] rounded text-[var(--ds-status-danger-fg)] transition-colors cursor-pointer"
               title="Hapus permanen"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -298,7 +291,7 @@ export function GmailRowItem({
                   e.stopPropagation();
                   onQuickDelete?.(letter.id);
                 }}
-                className="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 transition-colors"
+                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
                 title="Pindahkan ke sampah"
               >
                 <Trash2 className="w-3.5 h-3.5" />

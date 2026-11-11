@@ -29,6 +29,9 @@ interface EmployeeSelectProps {
   disabled?: boolean;
   className?: string;
   clearable?: boolean;
+  contentClassName?: string;
+  contentModule?: string;
+  "aria-label"?: string;
 }
 
 export function EmployeeSelect({
@@ -38,6 +41,9 @@ export function EmployeeSelect({
   disabled = false,
   className,
   clearable = false,
+  contentClassName,
+  contentModule,
+  "aria-label": ariaLabel,
 }: EmployeeSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [employees, setEmployees] = React.useState<Employee[]>([]);
@@ -63,6 +69,7 @@ export function EmployeeSelect({
         setEmployees(Array.isArray(result) ? result : []);
       })
       .catch((error) => {
+        if (controller.signal.aborted) return;
         console.error("Failed to fetch employees:", error);
         setEmployees([]);
       });
@@ -86,6 +93,7 @@ export function EmployeeSelect({
         <Button
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel || placeholder}
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           disabled={disabled}
@@ -98,13 +106,14 @@ export function EmployeeSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent data-module={contentModule} className={cn("w-[400px] p-0", contentClassName)} align="start">
         <div className="flex flex-col max-h-[300px]">
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
             <Input
               className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0 px-0"
               placeholder="Cari nama atau NIP..."
+              aria-label="Cari pegawai berdasarkan nama atau NIP"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -123,8 +132,8 @@ export function EmployeeSelect({
           <div className="overflow-y-auto flex-1 p-1">
             {/* Clear option */}
             {clearable && !loading && (
-              <div
-                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-red-50 hover:text-red-600 text-red-500 border-b border-gray-100 mb-1"
+              <button type="button"
+                className="w-full text-left relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-red-50 hover:text-red-600 text-red-500 border-b border-gray-100 mb-1"
                 onClick={() => {
                   onChange(null);
                   setOpen(false);
@@ -132,7 +141,7 @@ export function EmployeeSelect({
               >
                 <X className="mr-2 h-4 w-4" />
                 <span className="font-medium">Hapus Pengguna</span>
-              </div>
+              </button>
             )}
             {loading ? (
               <div className="py-6 text-center text-sm text-muted-foreground flex items-center justify-center">
@@ -145,10 +154,11 @@ export function EmployeeSelect({
               </div>
             ) : (
               employees.map((employee) => (
-                <div
+                <button type="button"
                   key={employee.id}
+                  aria-pressed={value === employee.id}
                   className={cn(
-                    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
+                    "w-full text-left relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
                     value === employee.id && "bg-accent text-accent-foreground",
                   )}
                   onClick={() => {
@@ -162,15 +172,15 @@ export function EmployeeSelect({
                       value === employee.id ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  <div className="flex flex-col">
+                  <span className="flex flex-col">
                     <span className="font-medium">{employee.name}</span>
                     {employee.nip && (
                       <span className="text-xs text-muted-foreground">
                         {formatNipLabel(employee, true)} {employee.nip}
                       </span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </button>
               ))
             )}
           </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { KepegawaianDialog } from "../../../_components/KepegawaianDialog";
+
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Calendar,
@@ -195,16 +197,16 @@ export function LeaveTypesTab() {
   return (
     <div className="space-y-6">
       {/* Top Banner / Summary */}
-      <div className="p-4 rounded-2xl bg-linear-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200 dark:border-blue-900/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl  border border-[var(--ds-accent-soft-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shrink-0 mt-0.5">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+            <h3 className="text-base font-semibold text-[var(--ds-fg)]">
               Master Jenis Surat Cuti ASN &amp; Pegawai
             </h3>
-            <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Atur daftar jenis cuti, rumus penghitungan durasi (Hari Kerja / Kalender), aturan pemotongan kuota cuti tahunan, dan batas maksimal permohonan.
             </p>
           </div>
@@ -213,7 +215,7 @@ export function LeaveTypesTab() {
           <button
             type="button"
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold shadow-md transition-colors cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             Tambah Jenis Cuti
@@ -224,29 +226,29 @@ export function LeaveTypesTab() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari jenis cuti, kode, aturan..."
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] placeholder-[var(--ds-fg-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] transition-colors" aria-label="Cari jenis cuti, kode, aturan..."
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          <span className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
+          <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 shrink-0">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Status:
           </span>
-          <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs">
+          <div className="inline-flex p-1 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs">
             <button
               type="button"
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                 filterStatus === "all"
-                  ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-[var(--ds-surface)]  text-[var(--ds-accent-fg)]  shadow-xs"
+                  : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] "
               }`}
             >
               Semua ({items.length})
@@ -254,10 +256,10 @@ export function LeaveTypesTab() {
             <button
               type="button"
               onClick={() => setFilterStatus("active")}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                 filterStatus === "active"
-                  ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-[var(--ds-surface)]  text-[var(--ds-status-success-fg)]  shadow-xs"
+                  : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] "
               }`}
             >
               Aktif ({items.filter((i) => i.is_active).length})
@@ -265,10 +267,10 @@ export function LeaveTypesTab() {
             <button
               type="button"
               onClick={() => setFilterStatus("inactive")}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                 filterStatus === "inactive"
-                  ? "bg-white dark:bg-zinc-800 text-rose-600 dark:text-rose-400 shadow-xs"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-[var(--ds-surface)]  text-[var(--ds-status-danger-fg)]  shadow-xs"
+                  : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] "
               }`}
             >
               Nonaktif ({items.filter((i) => !i.is_active).length})
@@ -278,10 +280,10 @@ export function LeaveTypesTab() {
       </div>
 
       {/* Main Table */}
-      <div className="rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 dark:bg-zinc-900/50 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
+            <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-12 text-center">No</th>
                 <th className="py-3.5 px-4 min-w-[200px]">Jenis Surat Cuti</th>
@@ -293,18 +295,18 @@ export function LeaveTypesTab() {
                 {canWrite && <th className="py-3.5 px-4 w-24 text-center">Aksi</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--ds-accent-fg)] mb-2" />
                     Memuat data jenis cuti...
                   </td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-slate-400">
-                    <AlertCircle className="w-8 h-8 text-slate-300 dark:text-zinc-700 mx-auto mb-2" />
+                  <td colSpan={canWrite ? 8 : 7} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                    <AlertCircle className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
                     Tidak ada jenis cuti yang sesuai kriteria pencarian.
                   </td>
                 </tr>
@@ -312,19 +314,19 @@ export function LeaveTypesTab() {
                 filteredItems.map((item, index) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/40 transition-colors"
+                    className="hover:bg-[var(--ds-surface)] transition-colors"
                   >
-                    <td className="py-3.5 px-4 text-center font-mono text-slate-400">
+                    <td className="py-3.5 px-4 text-center font-mono text-[var(--ds-fg-muted)]">
                       {item.urutan || index + 1}
                     </td>
 
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+                        <span className="font-semibold text-[var(--ds-fg)] text-sm">
                           {item.nama}
                         </span>
                         {item.kode && (
-                          <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 font-mono text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                          <span className="px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-mono text-xs font-bold border border-[var(--ds-accent-soft-border)]">
                             {item.kode}
                           </span>
                         )}
@@ -333,12 +335,12 @@ export function LeaveTypesTab() {
 
                     <td className="py-3.5 px-4">
                       {item.hitung_hari === "hari_kerja" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]">
                           <Briefcase className="w-3 h-3" />
                           Hari Kerja (Senin–Jumat)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                           <Calendar className="w-3 h-3" />
                           Hari Kalender
                         </span>
@@ -347,12 +349,12 @@ export function LeaveTypesTab() {
 
                     <td className="py-3.5 px-4">
                       {item.potong_kuota_tahunan ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                           <FileCheck2 className="w-3 h-3" />
                           Memotong Hak Tahunan
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                           Tidak Memotong Kuota
                         </span>
                       )}
@@ -360,16 +362,16 @@ export function LeaveTypesTab() {
 
                     <td className="py-3.5 px-4">
                       {item.maks_hari ? (
-                        <span className="inline-flex items-center gap-1 text-zinc-800 dark:text-zinc-200 font-medium">
-                          <Clock className="w-3 h-3 text-slate-400" />
+                        <span className="inline-flex items-center gap-1 text-[var(--ds-fg)] font-medium">
+                          <Clock className="w-3 h-3 text-[var(--ds-fg-muted)]" />
                           Maks {item.maks_hari} Hari
                         </span>
                       ) : (
-                        <span className="text-slate-400 italic">Tidak dibatasi</span>
+                        <span className="text-[var(--ds-fg-muted)] italic">Tidak dibatasi</span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-400 max-w-xs truncate" title={item.keterangan || ""}>
+                    <td className="py-3.5 px-4 text-[var(--ds-fg-muted)] max-w-xs truncate" title={item.keterangan || ""}>
                       {item.keterangan || "—"}
                     </td>
 
@@ -378,12 +380,12 @@ export function LeaveTypesTab() {
                         type="button"
                         disabled={!canWrite}
                         onClick={() => void handleToggleActive(item)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
                           canWrite ? "cursor-pointer" : "cursor-default"
                         } ${
                           item.is_active
-                            ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
-                            : "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200"
+                            ? "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  hover:bg-[var(--ds-status-success-bg)]"
+                            : "bg-[var(--ds-status-danger-bg)]  text-[var(--ds-status-danger-fg)]  hover:bg-[var(--ds-status-danger-bg)]"
                         }`}
                       >
                         {item.is_active ? (
@@ -404,7 +406,7 @@ export function LeaveTypesTab() {
                           <button
                             type="button"
                             onClick={() => openEditModal(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                             title="Edit Jenis Cuti"
                           >
                             <Pencil className="w-4 h-4" />
@@ -412,7 +414,7 @@ export function LeaveTypesTab() {
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] transition-colors cursor-pointer"
                             title="Hapus Jenis Cuti"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -430,17 +432,17 @@ export function LeaveTypesTab() {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-6 space-y-4">
+        <KepegawaianDialog title="Hapus jenis cuti" onClose={() => setDeleteTarget(null)} busy={isDeleting} className="sm:max-w-md">
+          <div className="w-full max-w-md bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] shadow-2xl p-6 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                <h3 className="text-base font-bold text-[var(--ds-fg)]">
                   Hapus Jenis Surat Cuti?
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1 leading-relaxed">
                   Jenis cuti <strong>{deleteTarget.nama}</strong> akan dihapus. Data riwayat cuti pegawai yang sudah ada tetap aman tersimpan.
                 </p>
               </div>
@@ -450,7 +452,7 @@ export function LeaveTypesTab() {
                 type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
               >
                 Batal
               </button>
@@ -458,31 +460,31 @@ export function LeaveTypesTab() {
                 type="button"
                 onClick={() => void handleDelete()}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-[var(--ds-danger-solid)] hover:bg-[var(--ds-danger-solid)] text-[var(--ds-accent-on-solid)] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Ya, Hapus
               </button>
             </div>
           </div>
-        </div>
+        </KepegawaianDialog>
       )}
 
       {/* Modal Add / Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <KepegawaianDialog title="Form jenis cuti" onClose={() => setIsModalOpen(false)} busy={isSubmitting} className="sm:max-w-lg">
+          <div className="w-full max-w-lg bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] shadow-2xl overflow-hidden   ">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-zinc-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ds-border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-zinc-900 dark:text-white">
+                  <h3 className="font-bold text-base text-[var(--ds-fg)]">
                     {editingItem ? "Edit Jenis Surat Cuti" : "Tambah Jenis Surat Cuti Baru"}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Konfigurasi parameter dan aturan penghitungan cuti
                   </p>
                 </div>
@@ -490,7 +492,7 @@ export function LeaveTypesTab() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-zinc-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-xl text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors" aria-label="Tutup"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -500,8 +502,8 @@ export function LeaveTypesTab() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Nama Jenis Cuti <span className="text-rose-500">*</span>
+                  <label className="text-xs font-semibold text-[var(--ds-fg)]">
+                    Nama Jenis Cuti <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
                   <input
                     type="text"
@@ -509,12 +511,12 @@ export function LeaveTypesTab() {
                     value={nama}
                     onChange={(e) => setNama(e.target.value)}
                     placeholder="Contoh: Cuti Tahunan, Cuti Sakit"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-hidden" aria-label="Contoh: Cuti Tahunan, Cuti Sakit"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <label className="text-xs font-semibold text-[var(--ds-fg)]">
                     Kode Singkat
                   </label>
                   <input
@@ -523,22 +525,22 @@ export function LeaveTypesTab() {
                     onChange={(e) => setKode(e.target.value.toUpperCase())}
                     placeholder="Contoh: CT, CS"
                     maxLength={10}
-                    className="w-full px-3 py-2 text-xs uppercase font-mono rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden"
+                    className="w-full px-3 py-2 text-xs uppercase font-mono rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-hidden" aria-label="Contoh: CT, CS"
                   />
                 </div>
               </div>
 
               {/* Rumus Penghitungan Hari */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                <label className="text-xs font-semibold text-[var(--ds-fg)]">
                   Rumus Hitung Hari
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors ${
                       hitungHari === "hari_kerja"
-                        ? "border-blue-500 bg-blue-50/40 dark:bg-blue-500/10 text-blue-900 dark:text-blue-200"
-                        : "border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 text-slate-700 dark:text-zinc-300"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)] "
+                        : "border-[var(--ds-border-subtle)]  hover:bg-[var(--ds-surface)]  text-[var(--ds-fg)] "
                     }`}
                   >
                     <input
@@ -546,24 +548,24 @@ export function LeaveTypesTab() {
                       name="hitungHari"
                       checked={hitungHari === "hari_kerja"}
                       onChange={() => setHitungHari("hari_kerja")}
-                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                      className="mt-0.5 text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)]" aria-label="Hari Kerja Sabtu &amp; Minggu otomatis dilewati (tidak dihitung)."
                     />
                     <div>
                       <span className="text-xs font-bold block flex items-center gap-1.5">
-                        <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                        <Briefcase className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                         Hari Kerja
                       </span>
-                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                      <span className="text-xs text-[var(--ds-fg-muted)] leading-tight block mt-0.5">
                         Sabtu &amp; Minggu otomatis dilewati (tidak dihitung).
                       </span>
                     </div>
                   </label>
 
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors ${
                       hitungHari === "hari_kalender"
-                        ? "border-blue-500 bg-blue-50/40 dark:bg-blue-500/10 text-blue-900 dark:text-blue-200"
-                        : "border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 text-slate-700 dark:text-zinc-300"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)] "
+                        : "border-[var(--ds-border-subtle)]  hover:bg-[var(--ds-surface)]  text-[var(--ds-fg)] "
                     }`}
                   >
                     <input
@@ -571,14 +573,14 @@ export function LeaveTypesTab() {
                       name="hitungHari"
                       checked={hitungHari === "hari_kalender"}
                       onChange={() => setHitungHari("hari_kalender")}
-                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                      className="mt-0.5 text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)]" aria-label="Hari Kerja Sabtu &amp; Minggu otomatis dilewati (tidak dihitung)."
                     />
                     <div>
                       <span className="text-xs font-bold block flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                        <Calendar className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                         Hari Kalender
                       </span>
-                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                      <span className="text-xs text-[var(--ds-fg-muted)] leading-tight block mt-0.5">
                         Dihitung penuh setiap hari berturut-turut.
                       </span>
                     </div>
@@ -587,12 +589,12 @@ export function LeaveTypesTab() {
               </div>
 
               {/* Potong Kuota Tahunan Switch */}
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200 dark:border-zinc-800 flex items-center justify-between gap-3">
+              <div className="p-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between gap-3">
                 <div>
-                  <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block">
+                  <span className="text-xs font-semibold text-[var(--ds-fg)] block">
                     Memotong Kuota Cuti Tahunan?
                   </span>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 block mt-0.5">
+                  <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5">
                     Aktifkan jika cuti ini mengurangi sisa jatah cuti tahunan pegawai (N, N-1, N-2).
                   </span>
                 </div>
@@ -600,14 +602,14 @@ export function LeaveTypesTab() {
                   type="checkbox"
                   checked={potongKuotaTahunan}
                   onChange={(e) => setPotongKuotaTahunan(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)] cursor-pointer"
                 />
               </div>
 
               {/* Batas Maksimal & Urutan */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <label className="text-xs font-semibold text-[var(--ds-fg)]">
                     Batas Maksimal Hari (Opsional)
                   </label>
                   <input
@@ -617,12 +619,12 @@ export function LeaveTypesTab() {
                     value={maksHari}
                     onChange={(e) => setMaksHari(e.target.value)}
                     placeholder="Kosongkan jika tak terbatas"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-hidden" aria-label="Kosongkan jika tak terbatas"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <label className="text-xs font-semibold text-[var(--ds-fg)]">
                     Nomor Urutan Tampilan
                   </label>
                   <input
@@ -630,14 +632,14 @@ export function LeaveTypesTab() {
                     min="1"
                     value={urutan}
                     onChange={(e) => setUrutan(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Keterangan */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                <label className="text-xs font-semibold text-[var(--ds-fg)]">
                   Ketentuan / Deskripsi Peraturan
                 </label>
                 <textarea
@@ -645,7 +647,7 @@ export function LeaveTypesTab() {
                   value={keterangan}
                   onChange={(e) => setKeterangan(e.target.value)}
                   placeholder="Keterangan singkat aturan atau persyaratan surat cuti ini..."
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-hidden"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-hidden" aria-label="Keterangan singkat aturan atau persyaratan surat cuti ini..."
                 />
               </div>
 
@@ -656,27 +658,27 @@ export function LeaveTypesTab() {
                   id="isActiveCheck"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)] cursor-pointer"
                 />
-                <label htmlFor="isActiveCheck" className="text-xs font-medium text-zinc-800 dark:text-zinc-200 cursor-pointer">
+                <label htmlFor="isActiveCheck" className="text-xs font-medium text-[var(--ds-fg)] cursor-pointer">
                   Jenis cuti ini aktif dan dapat dipilih oleh pegawai / admin
                 </label>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[var(--ds-border-subtle)]">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+                  className="px-4 py-2 text-xs font-semibold rounded-xl text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-md transition-colors disabled:opacity-50"
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {editingItem ? "Simpan Perubahan" : "Tambahkan"}
@@ -684,7 +686,7 @@ export function LeaveTypesTab() {
               </div>
             </form>
           </div>
-        </div>
+        </KepegawaianDialog>
       )}
     </div>
   );

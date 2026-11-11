@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Bmn\Enums\AuctionBatchStatus;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetLoan;
+use App\Modules\Bmn\Models\AssetMaintenance;
 use App\Modules\Bmn\Models\AuctionBatch;
 use App\Modules\Bmn\Models\ImportBatch;
 use App\Modules\Bmn\Models\Tag;
@@ -563,6 +564,28 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
 
         // Controller looks for where('status', 'pending')->findOrFail(), so it returns 404
         $response->assertStatus(404);
+    }
+
+    public function test_maintenance_index_returns_paginated_resources_for_view_only_users(): void
+    {
+        Sanctum::actingAs($this->viewOnlyUser);
+        $this->getJson('/api/bmn/maintenances')->assertOk()
+            ->assertJsonCount(0, 'data')->assertJsonPath('meta.total', 0);
+
+        $asset = $this->createAsset();
+        for ($i = 0; $i < 21; $i++) {
+            AssetMaintenance::create([
+                'asset_id' => $asset->id,
+                'tanggal_service' => '2026-11-10',
+                'biaya' => 10000,
+                'deskripsi' => 'Fixture servis',
+            ]);
+        }
+
+        $this->getJson('/api/bmn/maintenances')->assertOk()
+            ->assertJsonCount(20, 'data')->assertJsonPath('meta.last_page', 2)
+            ->assertJsonPath('meta.total', 21)->assertJsonPath('data.0.asset.id', $asset->id);
+        $this->getJson('/api/bmn/maintenances?page=2')->assertOk()->assertJsonCount(1, 'data');
     }
 
     public function test_maintenance_rejects_negative_cost_and_updates_asset_condition_to_baik(): void

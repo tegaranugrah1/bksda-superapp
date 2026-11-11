@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -43,6 +43,7 @@ export function AssetTypeManagementTab({
   isLoading,
   canManage,
 }: AssetTypeManagementTabProps) {
+  const formTrigger = useRef<HTMLElement | null>(null);
   const queryClient = useQueryClient();
   const confirm = useConfirm();
 
@@ -86,6 +87,7 @@ export function AssetTypeManagementTab({
   }, [assetTypes]);
 
   const handleOpenCreateType = () => {
+    formTrigger.current = document.activeElement as HTMLElement | null;
     setEditingType(null);
     setTypeName("");
     setTypeCategoryMode("peralatan");
@@ -94,6 +96,7 @@ export function AssetTypeManagementTab({
   };
 
   const handleOpenEditType = (t: IBmnAssetType) => {
+    formTrigger.current = document.activeElement as HTMLElement | null;
     setEditingType(t);
     setTypeName(t.name);
     setTypeCategoryMode(t.category_mode);
@@ -103,6 +106,7 @@ export function AssetTypeManagementTab({
 
   const handleSubmitType = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManage) return;
     if (!typeName.trim()) {
       toast.error("Nama jenis BMN wajib diisi.");
       return;
@@ -150,6 +154,8 @@ export function AssetTypeManagementTab({
       description: `Yakin ingin menghapus klasifikasi jenis BMN ini dari master data?`,
       confirmText: `Ya, Hapus Jenis BMN`,
       variant: "danger",
+      contentModule: "bmn",
+      contentClassName: "bmn-assets-ui bmn-standard-ui bmn-popover",
     });
 
     if (!ok) return;
@@ -171,44 +177,44 @@ export function AssetTypeManagementTab({
     <div className="space-y-6">
       {/* Quick Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Total Jenis BMN
             </p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
               {assetTypes.length}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Box className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Kategori Form Aset
             </p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
               4 Mode
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Layers className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between sm:col-span-2 lg:col-span-1">
+        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between sm:col-span-2 lg:col-span-1">
           <div>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Aset Terklasifikasi
             </p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
               {totalAssetsInTypes}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Package className="w-6 h-6" />
           </div>
         </div>
@@ -218,38 +224,40 @@ export function AssetTypeManagementTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-1 max-w-lg flex-wrap">
           <div className="relative flex-1 min-w-50">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
             <input
               type="text"
               placeholder="Cari nama jenis BMN atau deskripsi..."
-              value={typeSearch}
+              aria-label="Cari jenis BMN"
+                  value={typeSearch}
               onChange={(e) => {
                 setTypeSearch(e.target.value);
                 setTypePage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
             />
           </div>
           <select
-            value={categoryModeFilter}
+            aria-label="Filter Kategori Form"
+                  value={categoryModeFilter}
             onChange={(e) => {
               setCategoryModeFilter(e.target.value);
               setTypePage(1);
             }}
-            className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="h-9 px-3 text-xs border border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
           >
             <option value="Semua">Semua Kategori Form</option>
-            <option value="kendaraan">🚗 Kendaraan</option>
-            <option value="tanah">🗺️ Tanah</option>
-            <option value="bangunan">🏢 Bangunan</option>
-            <option value="peralatan">⚙️ Peralatan</option>
+            <option value="kendaraan">Kendaraan</option>
+            <option value="tanah">Tanah</option>
+            <option value="bangunan">Bangunan</option>
+            <option value="peralatan">Peralatan</option>
           </select>
         </div>
         {canManage && (
           <Button
             onClick={handleOpenCreateType}
             size="sm"
-            className="rounded-xl gap-2 text-xs bg-emerald-600 hover:bg-emerald-500 shrink-0"
+            className="rounded-xl gap-2 text-xs bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] shrink-0"
           >
             <Plus className="w-4 h-4" /> Tambah Jenis BMN
           </Button>
@@ -257,43 +265,43 @@ export function AssetTypeManagementTab({
       </div>
 
       {/* Asset Types Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900/50">
-                <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          <table className={`${totalTypeItems > 0 ? "bmn-wide-table" : ""} w-full text-left`}>
+            <thead className={totalTypeItems > 0 ? "" : "hidden sm:table-header-group"}>
+              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Jenis BMN
                 </th>
-                <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Kategori Form Spesifik
                 </th>
-                <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Deskripsi Cakupan
                 </th>
-                <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
                   Aset Terkait
                 </th>
                 {canManage && (
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center w-28">
+                  <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
                     Aksi
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
               {isLoading ? (
                 <tr>
                   <td colSpan={canManage ? 5 : 4} className="p-12 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
-                    <p className="text-sm text-slate-400">Memuat klasifikasi jenis BMN...</p>
+                    <Loader2 className="w-6 h-6 animate-spin text-[var(--ds-accent-fg)] mx-auto mb-2" />
+                    <p className="text-sm text-[var(--ds-fg-muted)]">Memuat klasifikasi jenis BMN...</p>
                   </td>
                 </tr>
               ) : filteredAssetTypes.length === 0 ? (
                 <tr>
                   <td colSpan={canManage ? 5 : 4} className="p-12 text-center">
-                    <Box className="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-700" />
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <Box className="w-10 h-10 mx-auto mb-2 text-[var(--ds-fg-muted)]" />
+                    <p className="text-sm text-[var(--ds-fg-muted)] font-medium">
                       {typeSearch || categoryModeFilter !== "Semua"
                         ? "Tidak ada jenis BMN yang cocok dengan filter"
                         : "Belum ada jenis BMN yang ditambahkan"}
@@ -314,26 +322,18 @@ export function AssetTypeManagementTab({
                 paginatedAssetTypes.map((t) => (
                   <tr
                     key={t.id}
-                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group"
+                    className="bmn-table-row group"
                   >
                     <td className="px-5 py-3.5">
-                      <span className="font-semibold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                        <Box className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                      <span className="font-semibold text-xs text-[var(--ds-fg)] flex items-center gap-1.5">
+                        <Box className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
                         {t.name}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={cn(
-                          "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border",
-                          t.category_mode === "kendaraan"
-                            ? "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-                            : t.category_mode === "tanah"
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-                            : t.category_mode === "bangunan"
-                            ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-                            : "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800"
-                        )}
+                        data-status="neutral"
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold"
                       >
                         {t.category_mode === "kendaraan" && <Car className="w-3 h-3" />}
                         {t.category_mode === "tanah" && <Landmark className="w-3 h-3" />}
@@ -343,7 +343,7 @@ export function AssetTypeManagementTab({
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm truncate">
+                      <p className="text-xs text-[var(--ds-fg-muted)] max-w-sm truncate">
                         {t.description || "—"}
                       </p>
                     </td>
@@ -352,8 +352,8 @@ export function AssetTypeManagementTab({
                         className={cn(
                           "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold",
                           (t.assets_count || 0) > 0
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                            ? "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border border-[var(--ds-accent-soft-border)] "
+                            : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
                         )}
                       >
                         {t.assets_count || 0}
@@ -365,11 +365,12 @@ export function AssetTypeManagementTab({
                           <button
                             onClick={() => handleOpenEditType(t)}
                             title="Edit Jenis BMN"
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                            className="bmn-icon-action p-1.5 rounded-lg"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
+                            disabled={(t.assets_count || 0) > 0}
                             onClick={() => handleDeleteType(t)}
                             title={
                               (t.assets_count || 0) > 0
@@ -377,10 +378,10 @@ export function AssetTypeManagementTab({
                                 : "Hapus Jenis BMN"
                             }
                             className={cn(
-                              "p-1.5 rounded-lg transition-colors",
+                              "bmn-icon-danger p-1.5 rounded-lg",
                               (t.assets_count || 0) > 0
-                                ? "text-slate-300 dark:text-slate-700 cursor-not-allowed"
-                                : "text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                ? "text-[var(--ds-fg-muted)]  cursor-not-allowed"
+                                : "bmn-icon-danger "
                             )}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -408,11 +409,11 @@ export function AssetTypeManagementTab({
 
       {/* DIALOG: CREATE / EDIT JENIS BMN */}
       <Dialog open={isTypeFormOpen} onOpenChange={setIsTypeFormOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl max-h-[90dvh] overflow-y-auto">
           <form onSubmit={handleSubmitType}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Box className="w-5 h-5 text-purple-600" />
+                <Box className="w-5 h-5 text-[var(--ds-accent-fg)]" />
                 {editingType ? "Edit Jenis BMN" : "Tambah Jenis BMN Baru"}
               </DialogTitle>
               <DialogDescription>
@@ -422,51 +423,54 @@ export function AssetTypeManagementTab({
 
             <div className="space-y-4 py-4">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Nama Jenis BMN <span className="text-red-500">*</span>
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
+                  Nama Jenis BMN <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   placeholder="misal: ALAT ANGKUTAN BERMOTOR, TANAH, PC/LAPTOP..."
+                  aria-label="Nama Jenis BMN"
                   value={typeName}
                   onChange={(e) => setTypeName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 uppercase"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm uppercase"
                 />
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Standar penamaan menggunakan huruf kapital (UPPERCASE).
                 </p>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Mode Formulir Spesifik <span className="text-red-500">*</span>
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
+                  Mode Formulir Spesifik <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <select
+                  aria-label="Mode Formulir Spesifik"
                   value={typeCategoryMode}
                   onChange={(e) => setTypeCategoryMode(e.target.value as "kendaraan" | "tanah" | "bangunan" | "peralatan")}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
                 >
-                  <option value="peralatan">⚙️ Peralatan / Mesin (Non Kendaraan)</option>
-                  <option value="kendaraan">🚗 Kendaraan (Memerlukan No Polisi, STNK, BPKB)</option>
-                  <option value="bangunan">🏢 Bangunan & Gedung (Memerlukan IMB, Luas Lantai)</option>
-                  <option value="tanah">🗺️ Tanah (Memerlukan Sertifikat, Luas Tanah)</option>
+                  <option value="peralatan">Peralatan / Mesin (Non Kendaraan)</option>
+                  <option value="kendaraan">Kendaraan (Memerlukan No Polisi, STNK, BPKB)</option>
+                  <option value="bangunan">Bangunan & Gedung (Memerlukan IMB, Luas Lantai)</option>
+                  <option value="tanah">Tanah (Memerlukan Sertifikat, Luas Tanah)</option>
                 </select>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Menentukan kolom formulir spesifik yang akan aktif saat input aset.
                 </p>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Deskripsi Cakupan <span className="text-slate-400 font-normal">(Opsional)</span>
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
+                  Deskripsi Cakupan <span className="text-[var(--ds-fg-muted)] font-normal">(Opsional)</span>
                 </label>
                 <textarea
                   rows={2}
                   placeholder="Contoh barang atau peruntukan klasifikasi ini..."
+                  aria-label="Deskripsi Cakupan"
                   value={typeDescription}
                   onChange={(e) => setTypeDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
                 />
               </div>
             </div>
@@ -484,7 +488,7 @@ export function AssetTypeManagementTab({
               <Button
                 type="submit"
                 disabled={isSubmittingType || !typeName.trim()}
-                className="rounded-xl bg-purple-600 hover:bg-purple-500 text-white gap-2"
+                className="rounded-xl gap-2"
               >
                 {isSubmittingType ? (
                   <>

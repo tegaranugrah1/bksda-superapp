@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { buildKegiatanDiktumText } from "@/app/kepegawaian/surat-tugas/_lib/activity-helpers";
 import { formatDateRangeIndonesian } from "@/lib/letter-utils";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +24,7 @@ import { SuratTugasSuccessStep } from "./_components/SuratTugasSuccessStep";
 import { detectDefaultKotaAsal } from "@/app/kepegawaian/surat-tugas/_lib";
 
 export default function SuratTugasForm() {
+  const reducedMotion = useReducedMotion();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,7 +32,7 @@ export default function SuratTugasForm() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { data: allEmployees = [], isLoading: isSearching } = useQuery({
+  const { data: allEmployees = [], isLoading: isSearching, isError: employeeError, refetch: retryEmployees } = useQuery({
     queryKey: ["all-employees-list"],
     queryFn: async () => {
       const response = await api.get("/kepegawaian/employees/select", {
@@ -390,22 +392,28 @@ export default function SuratTugasForm() {
   };
 
   return (
-    <>
+    <div className="st-page-enter">
       {isSearching && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-100 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-sm font-bold text-slate-700">
+        <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 mb-4 flex flex-col items-center justify-center">
+          <div className="w-6 h-6 border-2 border-[var(--ds-accent-fg)] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-sm font-bold text-[var(--ds-fg-muted)]">
             Tunggu sebentar, memuat pegawai...
           </p>
         </div>
       )}
 
-      {/* 3-Step Horizontal Progress Indicator (UI/UX Pro Max) */}
+      {employeeError && (
+        <div role="alert" className="mb-4 rounded-xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 text-sm text-[var(--ds-status-danger-fg)]">
+          Daftar pegawai gagal dimuat.
+          <button type="button" className="st-secondary ml-3 rounded-lg px-3 py-2 font-semibold" onClick={() => retryEmployees()}>Coba lagi</button>
+        </div>
+      )}
+      {/* Progress pengajuan */}
       <div className="mb-8 max-w-md mx-auto px-4">
         <div className="flex items-center justify-between relative">
-          <div className="absolute left-6 right-6 top-4 h-0.5 bg-slate-200 z-0"></div>
+          <div className="absolute left-6 right-6 top-4 h-0.5 bg-[var(--ds-surface-muted)] z-0"></div>
           <div
-            className="absolute left-6 top-4 h-0.5 bg-blue-600 transition-all duration-300 z-0"
+            className="absolute left-6 top-4 h-0.5 bg-[var(--ds-accent-solid)] transition-[width] duration-150 z-0"
             style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "88%" }}
           ></div>
 
@@ -414,8 +422,8 @@ export default function SuratTugasForm() {
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                 step >= 1
-                  ? "bg-blue-600 text-white shadow-sm ring-4 ring-blue-100"
-                  : "bg-slate-200 text-slate-500"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-accent-soft-border)]"
+                  : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
               1
@@ -423,7 +431,7 @@ export default function SuratTugasForm() {
             <span
               className={cn(
                 "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
-                step >= 1 ? "text-blue-900" : "text-slate-400"
+                step >= 1 ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]"
               )}
             >
               Personel
@@ -435,8 +443,8 @@ export default function SuratTugasForm() {
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                 step >= 2
-                  ? "bg-blue-600 text-white shadow-sm ring-4 ring-blue-100"
-                  : "bg-slate-200 text-slate-500"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-accent-soft-border)]"
+                  : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
               2
@@ -444,7 +452,7 @@ export default function SuratTugasForm() {
             <span
               className={cn(
                 "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
-                step >= 2 ? "text-blue-900" : "text-slate-400"
+                step >= 2 ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]"
               )}
             >
               Detail &amp; Waktu
@@ -456,8 +464,8 @@ export default function SuratTugasForm() {
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                 step === 3
-                  ? "bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-100"
-                  : "bg-slate-200 text-slate-500"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-status-success-border)]"
+                  : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
               {step === 3 ? <Check className="w-4 h-4" /> : "3"}
@@ -465,7 +473,7 @@ export default function SuratTugasForm() {
             <span
               className={cn(
                 "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
-                step === 3 ? "text-emerald-700 font-bold" : "text-slate-400"
+                step === 3 ? "text-[var(--ds-status-success-fg)] font-bold" : "text-[var(--ds-fg-muted)]"
               )}
             >
               Selesai
@@ -474,7 +482,15 @@ export default function SuratTugasForm() {
         </div>
       </div>
 
-      <div className="w-full pb-20">
+      <div className="w-full pb-12">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={step}
+            initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -8 }}
+            transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
+          >
         {step === 1 && (
           <EmployeeSelectionStep
             selectedEmployees={selectedEmployees}
@@ -539,7 +555,9 @@ export default function SuratTugasForm() {
           />
         )}
         {step === 3 && <SuratTugasSuccessStep />}
+          </motion.div>
+        </AnimatePresence>
       </div>
-    </>
+    </div>
   );
 }

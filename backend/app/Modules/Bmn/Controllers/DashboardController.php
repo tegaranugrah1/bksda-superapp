@@ -82,32 +82,50 @@ class DashboardController extends Controller
             ->take(10)
             ->values();
 
+        // Total peminjaman aktif (status dipinjam atau terlambat)
+        $activeLoansCount = AssetLoan::whereIn('status', ['dipinjam', 'terlambat'])->count();
+
         // STNK Alerts: kendaraan yang pajak expired atau hampir expired (30 hari)
         $today = now()->toDateString();
         $thirtyDaysLater = now()->addDays(30)->toDateString();
+
+        $mapVehicle = fn ($item) => [
+            'id' => (string) $item->id,
+            'nama_barang' => $item->nama_barang,
+            'kode_barang' => $item->kode_barang,
+            'nup' => $item->nup,
+            'merk' => $item->merk,
+            'no_polisi' => $item->no_polisi,
+            'tanggal_pajak_stnk' => $item->tanggal_pajak_stnk ? substr((string) $item->tanggal_pajak_stnk, 0, 10) : null,
+            'tanggal_ganti_plat' => $item->tanggal_ganti_plat ? substr((string) $item->tanggal_ganti_plat, 0, 10) : null,
+        ];
 
         $stnkExpired = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
             ->whereNotNull('tanggal_pajak_stnk')
             ->where('tanggal_pajak_stnk', '<', $today)
             ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_pajak_stnk')
-            ->get();
+            ->get()
+            ->map($mapVehicle);
 
         $stnkExpiringSoon = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
             ->whereNotNull('tanggal_pajak_stnk')
             ->where('tanggal_pajak_stnk', '>=', $today)
             ->where('tanggal_pajak_stnk', '<=', $thirtyDaysLater)
             ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_pajak_stnk')
-            ->get();
+            ->get()
+            ->map($mapVehicle);
 
         $platExpired = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
             ->whereNotNull('tanggal_ganti_plat')
             ->where('tanggal_ganti_plat', '<', $today)
             ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_ganti_plat')
-            ->get();
+            ->get()
+            ->map($mapVehicle);
 
         return response()->json([
             'total_asset' => $totalAsset,
             'total_asset_value' => (float) $totalAssetValue,
+            'active_loans_count' => $activeLoansCount,
             'asset_by_condition' => $assetByCondition,
             'asset_by_jenis' => $assetByJenis,
             'asset_by_lokasi' => $assetByLokasi,

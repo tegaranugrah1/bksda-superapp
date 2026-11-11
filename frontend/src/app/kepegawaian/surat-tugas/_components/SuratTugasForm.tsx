@@ -2241,6 +2241,8 @@ export function SuratTugasForm({
     }
 
     const confirmed = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: isDraftSave ? "Simpan sebagai draft?" : "Simpan perubahan?",
       description: isDraftSave
         ? "Surat Tugas akan disimpan ke Inbox sebagai draft dan masih bisa diedit sebelum diterbitkan."
@@ -2291,6 +2293,8 @@ export function SuratTugasForm({
     }
 
     const confirmed = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Terbitkan Surat Tugas?",
       description:
         "Surat Tugas akan langsung diterbitkan dan masuk ke riwayat. Pastikan nomor, personil, tanggal, dan isi dokumen sudah benar.",
@@ -2440,9 +2444,9 @@ export function SuratTugasForm({
 
   if (isInitializing) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-        <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-widest">
+      <div data-module="surat-tugas" className="st-ui h-screen flex flex-col items-center justify-center bg-[var(--ds-surface)]">
+        <Loader2 className="w-10 h-10 text-[var(--ds-accent-fg)] animate-spin mb-4" />
+        <p className="text-sm font-bold text-[var(--ds-fg)] uppercase tracking-widest">
           Inisialisasi Builder...
         </p>
       </div>
@@ -2450,13 +2454,13 @@ export function SuratTugasForm({
   }
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] flex bg-slate-100/80 dark:bg-zinc-950 overflow-hidden">
-      <aside className="w-120 xl:w-130 shrink-0 bg-slate-50/80 dark:bg-zinc-950/80 border-r border-slate-200/80 dark:border-zinc-800/80 flex flex-col z-10">
-        <header className="px-5 py-4 bg-white dark:bg-zinc-900 border-b border-slate-200/80 dark:border-zinc-800/80 space-y-3">
+    <div data-module="surat-tugas" className="st-ui st-page-enter st-builder flex flex-col lg:flex-row lg:h-[calc(100dvh-3.5rem)] bg-[var(--ds-surface-muted)] overflow-hidden">
+      <aside className="w-full lg:w-[min(40vw,30rem)] xl:w-130 shrink-0 bg-[var(--ds-surface)] border-r border-[var(--ds-border-subtle)] flex flex-col z-10">
+        <header className="px-5 py-4 bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] space-y-3">
           <div className="flex items-center justify-between gap-2">
             <Link
               href="/kepegawaian/surat-tugas/inbox"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-bold transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl st-secondary text-xs font-bold transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Inbox</span>
@@ -2465,10 +2469,10 @@ export function SuratTugasForm({
               className={cn(
                 "text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border",
                 isPublished
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800/60"
+                  ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
                   : suratStatus === "pending"
-                  ? "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800/60"
-                  : "bg-blue-50 text-blue-700 border-blue-200/70 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800/60"
+                  ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
+                  : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]"
               )}
             >
               {mode === "create"
@@ -2481,14 +2485,14 @@ export function SuratTugasForm({
             </span>
           </div>
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] rounded-xl flex items-center justify-center shrink-0">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                ST Builder <span className="text-blue-600 dark:text-blue-400">Premium</span>
+              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                ST Builder <span className="text-[var(--ds-accent-fg)]">Premium</span>
               </h1>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
+              <p className="text-xs text-[var(--ds-fg-muted)]">
                 {isPublished
                   ? "Mode Pratinjau (Read Only)"
                   : "Penyusunan Naskah & Pengajuan Persetujuan"}
@@ -2499,19 +2503,19 @@ export function SuratTugasForm({
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-hide">
           {isPublished && (
-            <div className="p-3 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-800/80 rounded-xl text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-2">
-              <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+            <div className="p-3 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl text-[var(--ds-accent-fg)] text-xs font-semibold flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
               <span>Surat Tugas ini bersifat Read Only. Admin hanya dapat memperbaiki nomor surat.</span>
             </div>
           )}
 
           {/* === Template Card === */}
-          <div className="rounded-2xl border border-blue-200/80 bg-white p-4 shadow-2xs dark:border-blue-800/50 dark:bg-zinc-900 space-y-2.5">
+          <div className="rounded-2xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] p-4 shadow-2xs space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                 Template Surat Tugas
               </span>
-              <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+              <span className="inline-flex items-center rounded-md bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                 Format Naskah
               </span>
             </div>
@@ -2527,7 +2531,7 @@ export function SuratTugasForm({
               }
               disabled={isPublished}
               onChange={(e) => handleTemplateChange(e.target.value)}
-              className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-100 disabled:opacity-60 cursor-pointer"
+              className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs font-bold text-[var(--ds-fg)] outline-none transition focus:border-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] disabled:opacity-60 cursor-pointer"
             >
               <option value="">Kosong / Manual</option>
               <option value="bmn-pemeriksaan">Penghapusan BMN</option>
@@ -2556,17 +2560,17 @@ export function SuratTugasForm({
           {/* Card Nomor Surat */}
           <FormSection title="Nomor Surat">
             <div className="space-y-3">
-              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-xs font-medium">
+              <div className="flex items-center gap-1 p-1 bg-[var(--ds-surface-muted)] rounded-xl text-xs font-medium">
                 <button
                   type="button"
                   disabled={!canWrite || isSaving}
                   aria-pressed={nomorNumberingType === "st_pattern"}
                   onClick={() => setNomorNumberingType("st_pattern")}
                   className={cn(
-                    "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
+                    "flex-1 py-1.5 px-2.5 rounded-lg transition-colors text-center cursor-pointer",
                     nomorNumberingType === "st_pattern"
-                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
-                      : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   )}
                 >
                   Pola ST (ST.01/...)
@@ -2577,10 +2581,10 @@ export function SuratTugasForm({
                   aria-pressed={nomorNumberingType === "naskah_auto"}
                   onClick={() => setNomorNumberingType("naskah_auto")}
                   className={cn(
-                    "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer",
+                    "flex-1 py-1.5 px-2.5 rounded-lg transition-colors text-center cursor-pointer",
                     nomorNumberingType === "naskah_auto"
-                      ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
-                      : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   )}
                 >
                   Nomor Naskah (${"{nomor_naskah}"})
@@ -2588,8 +2592,8 @@ export function SuratTugasForm({
               </div>
 
               {nomorNumberingType === "st_pattern" ? (
-                <div className="flex items-center gap-2 text-sm font-mono bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-200 dark:border-zinc-700">
-                  <span className="text-slate-400 font-bold">ST.</span>
+                <div className="flex items-center gap-2 text-sm font-mono bg-[var(--ds-surface)] p-2 rounded-xl border border-[var(--ds-border-subtle)]">
+                  <span className="text-[var(--ds-fg-muted)] font-bold">ST.</span>
                   <input
                     type="text"
                     placeholder="01"
@@ -2597,23 +2601,23 @@ export function SuratTugasForm({
                     aria-label="Nomor Surat Tugas"
                     disabled={!canWrite || isSaving}
                     onChange={(e) => setStNumber(e.target.value)}
-                    className="w-16 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                    className="w-16 font-bold bg-[var(--ds-surface)] px-2 py-1 rounded border border-[var(--ds-border-subtle)] text-center outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                   />
-                  <span className="text-slate-400 text-xs truncate">{nomorFormatPrefix}</span>
+                  <span className="text-[var(--ds-fg-muted)] text-xs truncate">{nomorFormatPrefix}</span>
                   <input
                     type="text"
                     value={klasifikasi}
                     aria-label="Klasifikasi Surat Tugas"
                     disabled={!canWrite || isSaving}
                     onChange={(e) => setKlasifikasi(e.target.value)}
-                    className="w-24 font-bold bg-white dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-700 text-center text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                    className="w-24 font-bold bg-[var(--ds-surface)] px-2 py-1 rounded border border-[var(--ds-border-subtle)] text-center text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                   />
-                  <span className="text-slate-400 text-xs truncate">{nomorFormatSuffix}</span>
+                  <span className="text-[var(--ds-fg-muted)] text-xs truncate">{nomorFormatSuffix}</span>
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-200 dark:border-zinc-700">
-                    <span className="text-slate-500 dark:text-zinc-400 font-semibold text-xs shrink-0">
+                  <div className="flex items-center gap-2 bg-[var(--ds-surface)] p-2 rounded-xl border border-[var(--ds-border-subtle)]">
+                    <span className="text-[var(--ds-fg-muted)] font-semibold text-xs shrink-0">
                       Nomor :
                     </span>
                     <input
@@ -2623,10 +2627,10 @@ export function SuratTugasForm({
                       aria-label="Nomor naskah"
                       disabled={!canWrite || isSaving}
                       onChange={(e) => setCustomNomorNaskah(e.target.value)}
-                      className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                      className="w-full font-mono text-xs font-semibold bg-[var(--ds-surface)] px-3 py-1.5 rounded-lg border border-[var(--ds-border-subtle)] outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Masukkan nomor naskah otomatis dari sistem lain. Format pada naskah: <i>Nomor : {customNomorNaskah || "${nomor_naskah}"}</i>
                   </p>
                 </div>
@@ -2637,11 +2641,11 @@ export function SuratTugasForm({
           {/* Card Menimbang */}
           <FormSection title="Menimbang (Pertimbangan Penugasan)">
             <div className="space-y-4">
-              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 text-[10px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-fg-muted)] space-y-1 leading-relaxed">
                 <p>
-                  <b className="text-blue-800 dark:text-blue-200">Konsiderans Menimbang (Huruf a, b, dst.):</b>{" "}
+                  <b className="text-[var(--ds-accent-fg)]">Konsiderans Menimbang (Huruf a, b, dst.):</b>{" "}
                   Diambil dari <b>Template ST</b> yang dipilih. Klik chip placeholder untuk menyisipkan variabel ke poin yang sedang diedit, atau tekan{" "}
-                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800 font-mono">Ctrl+I</code>{" "}
+                  <code className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] font-mono">Ctrl+I</code>{" "}
                   (atau tombol <b>Miringkan</b>) untuk cetak miring.
                 </p>
               </div>
@@ -2670,9 +2674,9 @@ export function SuratTugasForm({
           <FormSection title="Dasar Hukum & Anggaran">
             <div className="space-y-4">
               {letterId && (
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs">
-                  <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 min-w-0">
-                    <Paperclip className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs">
+                  <div className="flex items-center gap-2 text-[var(--ds-accent-fg)] min-w-0">
+                    <Paperclip className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                     <span className="font-semibold truncate">
                       {fileSuratPath ? "Berkas dasar terlampir dari pengajuan" : "Dokumen rujukan / pengajuan pegawai"}
                     </span>
@@ -2680,23 +2684,23 @@ export function SuratTugasForm({
                   <button
                     type="button"
                     onClick={() => setIsBaseDocOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-white dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-lg border border-blue-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-accent-soft-border)] shadow-2xs transition-colors cursor-pointer shrink-0"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Lihat Dokumen Dasar</span>
                   </button>
                 </div>
               )}
-              <div className="p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-[10px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] text-xs text-[var(--ds-fg-muted)] space-y-1 leading-relaxed">
                 <p>
-                  <b className="text-amber-800 dark:text-amber-200">Urutan Otomatis 3 Lapis Dasar Hukum:</b>{" "}
-                  <span className="text-blue-600 dark:text-blue-400 font-semibold">1. Template ST (Atas)</span> →{" "}
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2. Tambahan Manual Builder (Tengah)</span> →{" "}
-                  <span className="text-amber-600 dark:text-amber-400 font-semibold">3. Template Biaya (Bawah)</span>.
+                  <b className="text-[var(--ds-status-warning-fg)]">Urutan Otomatis 3 Lapis Dasar Hukum:</b>{" "}
+                  <span className="text-[var(--ds-accent-fg)] font-semibold">1. Template ST (Atas)</span> →{" "}
+                  <span className="text-[var(--ds-status-success-fg)] font-semibold">2. Tambahan Manual Builder (Tengah)</span> →{" "}
+                  <span className="text-[var(--ds-status-warning-fg)] font-semibold">3. Template Biaya (Bawah)</span>.
                 </p>
                 <p>
-                  <b className="text-amber-800 dark:text-amber-200">Tips Format:</b> Blok kata lalu tekan{" "}
-                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-800 font-mono">Ctrl+I</code>{" "}
+                  <b className="text-[var(--ds-status-warning-fg)]">Tips Format:</b> Blok kata lalu tekan{" "}
+                  <code className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] font-mono">Ctrl+I</code>{" "}
                   (atau tombol <b>Miringkan</b>) untuk cetak miring istilah asing (contoh: <i>*Result Based Contribution*</i>).
                 </p>
               </div>
@@ -2718,20 +2722,20 @@ export function SuratTugasForm({
                 getItemBadge={(item) => {
                   if (item.id === "funding-dasar" || isFundingDasarText(item.text, expenseTemplates)) {
                     return (
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] px-2 py-0.5 rounded-md w-fit">
                         <span>3. Template Biaya & Sumber Dana (Selalu Paling Bawah)</span>
                       </div>
                     );
                   }
                   if (String(item.id).startsWith("manual-dasar-")) {
                     return (
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md w-fit">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] px-2 py-0.5 rounded-md w-fit">
                         <span>2. Tambahan Manual Builder (Di Bawah Template ST & Di Atas Biaya)</span>
                       </div>
                     );
                   }
                   return (
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md w-fit">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] px-2 py-0.5 rounded-md w-fit">
                       <span>1. Bawaan Template ST (Paling Atas)</span>
                     </div>
                   );
@@ -2756,12 +2760,12 @@ export function SuratTugasForm({
                     setShowDropdown(true);
                   }}
                   onFocus={() => setShowDropdown(true)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                 />
                 {showDropdown && searchQuery && searchResults.length > 0 && !isPublished && (
                   <div
                     ref={dropdownRef}
-                    className="absolute z-20 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-lg"
+                    className="absolute z-20 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl shadow-lg"
                   >
                     {searchResults.map((emp: Employee) => (
                       <button
@@ -2787,12 +2791,12 @@ export function SuratTugasForm({
                           setSearchQuery("");
                           setShowDropdown(false);
                         }}
-                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-zinc-800 border-b border-slate-100 dark:border-zinc-800 last:border-0"
+                        className="w-full text-left px-3 py-2 hover:bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] last:border-0"
                       >
-                        <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        <p className="text-xs font-bold text-[var(--ds-fg)]">
                           {emp.nama_lengkap || emp.name}
                         </p>
-                        <p className="text-[10px] text-zinc-400">
+                        <p className="text-xs text-[var(--ds-fg-muted)]">
                           {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.jabatan || "-"}
                         </p>
                       </button>
@@ -2803,9 +2807,9 @@ export function SuratTugasForm({
 
               {/* Judul Lampiran & Opsi Kolom Tempat Keberangkatan (Beda Hari) */}
               {isBedaHariTemplate && (
-                <div className="space-y-2 p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900/50">
+                <div className="space-y-2 p-3 bg-[var(--ds-accent-soft)] rounded-xl border border-[var(--ds-accent-soft-border)]">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-[var(--ds-accent-fg)] uppercase flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
                       Judul Lampiran Beda Hari
                     </label>
@@ -2815,19 +2819,19 @@ export function SuratTugasForm({
                       disabled={isPublished}
                       onChange={(e) => setJudulLampiranBedaHari(e.target.value)}
                       placeholder="DAFTAR PEGAWAI MENGIKUTI PATROLI"
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-semibold outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                      className="w-full px-2.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs font-semibold outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                     />
-                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-[var(--ds-fg-muted)]">
                       Judul tabel lampiran untuk jadwal masing-masing personel.
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-blue-200/60 dark:border-blue-900/40 flex items-center justify-between gap-3">
+                  <div className="pt-2 border-t border-[var(--ds-accent-soft-border)] flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                      <p className="text-xs font-bold text-[var(--ds-accent-fg)]">
                         Sertakan Kolom Tempat Keberangkatan?
                       </p>
-                      <p className="text-[10px] text-blue-700/90 dark:text-blue-400/90 leading-tight">
+                      <p className="text-xs text-[var(--ds-accent-fg)] leading-tight">
                         Tampilkan kolom Tempat Keberangkatan pada tabel lampiran Halaman 2.
                       </p>
                     </div>
@@ -2836,13 +2840,13 @@ export function SuratTugasForm({
                       disabled={isPublished}
                       onClick={() => setShowDepartureColumn((prev) => !prev)}
                       className={cn(
-                        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50",
-                        showDepartureColumn ? "bg-blue-600" : "bg-slate-300 dark:bg-zinc-700"
+                        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus:outline-none disabled:opacity-50",
+                        showDepartureColumn ? "bg-[var(--ds-accent-soft)]" : "bg-[var(--ds-surface-muted)]"
                       )}
                     >
                       <span
                         className={cn(
-                          "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                          "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--ds-surface)] shadow-md ring-0 transition duration-150 ease-out",
                           showDepartureColumn ? "translate-x-4" : "translate-x-0"
                         )}
                       />
@@ -2852,13 +2856,13 @@ export function SuratTugasForm({
               )}
 
               {/* Buruh / Tenaga Lapangan (PM) Card */}
-              <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 rounded-xl space-y-2.5">
+              <div className="p-3 bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                    <p className="text-xs font-bold text-[var(--ds-status-success-fg)]">
                       Buruh / Tenaga Lapangan (PM)
                     </p>
-                    <p className="text-[10px] text-emerald-700/90 dark:text-emerald-400/90 mt-0.5">
+                    <p className="text-xs text-[var(--ds-status-success-fg)] mt-0.5">
                       Tambahkan buruh jika diperlukan (format Nama: <b>PM</b>, Jabatan: <b>-</b>).
                     </p>
                   </div>
@@ -2867,13 +2871,13 @@ export function SuratTugasForm({
                     disabled={isPublished}
                     onClick={() => handleToggleBuruh(!hasBuruh)}
                     className={cn(
-                      "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50",
-                      hasBuruh ? "bg-emerald-600" : "bg-slate-300 dark:bg-zinc-700"
+                      "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus:outline-none disabled:opacity-50",
+                      hasBuruh ? "bg-[var(--ds-status-success-bg)]" : "bg-[var(--ds-surface-muted)]"
                     )}
                   >
                     <span
                       className={cn(
-                        "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                        "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--ds-surface)] shadow-md ring-0 transition duration-150 ease-out",
                         hasBuruh ? "translate-x-4" : "translate-x-0"
                       )}
                     />
@@ -2881,8 +2885,8 @@ export function SuratTugasForm({
                 </div>
 
                 {hasBuruh && (
-                  <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-900/40 flex items-center justify-between gap-3 animate-in fade-in duration-200">
-                    <span className="text-[11px] font-semibold text-emerald-900 dark:text-emerald-200">
+                  <div className="pt-2 border-t border-[var(--ds-status-success-border)] flex items-center justify-between gap-3">
+                    <span className="text-xs font-semibold text-[var(--ds-status-success-fg)]">
                       Jumlah Buruh:
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -2890,7 +2894,7 @@ export function SuratTugasForm({
                         type="button"
                         disabled={isPublished || jumlahBuruh <= 1}
                         onClick={() => handleBuruhCountChange(jumlahBuruh - 1)}
-                        className="w-6 h-6 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                        className="w-6 h-6 rounded-md bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
                       >
                         -
                       </button>
@@ -2904,17 +2908,17 @@ export function SuratTugasForm({
                           const val = parseInt(e.target.value, 10);
                           handleBuruhCountChange(isNaN(val) ? 1 : Math.max(1, Math.min(100, val)));
                         }}
-                        className="w-12 px-1 py-1 text-center bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded-md text-xs font-bold text-slate-800 dark:text-zinc-100"
+                        className="w-12 px-1 py-1 text-center bg-[var(--ds-surface)] border border-[var(--ds-status-success-border)] rounded-md text-xs font-bold text-[var(--ds-fg)]"
                       />
                       <button
                         type="button"
                         disabled={isPublished || jumlahBuruh >= 100}
                         onClick={() => handleBuruhCountChange(jumlahBuruh + 1)}
-                        className="w-6 h-6 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
+                        className="w-6 h-6 rounded-md bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] text-xs font-bold flex items-center justify-center transition-colors disabled:opacity-40"
                       >
                         +
                       </button>
-                      <span className="text-xs text-emerald-800 dark:text-emerald-300 ml-1">orang</span>
+                      <span className="text-xs text-[var(--ds-status-success-fg)] ml-1">orang</span>
                     </div>
                   </div>
                 )}
@@ -2932,14 +2936,14 @@ export function SuratTugasForm({
                   return (
                     <div
                       key={emp.id}
-                      className="p-2.5 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-2"
+                      className="p-2.5 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] space-y-2"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                          <p className="text-xs font-bold text-[var(--ds-fg)] truncate">
                             {index + 1}. {emp.nama_lengkap || emp.name} {isBuruhEmployee(emp) ? "(Buruh Lapangan)" : ""}
                           </p>
-                          <p className="text-[10px] text-zinc-400 truncate">
+                          <p className="text-xs text-[var(--ds-fg-muted)] truncate">
                             {isBuruhEmployee(emp)
                               ? "Tenaga Lapangan / Buruh • Jabatan: -"
                               : `${emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip} • ` : ""}${emp.jabatan || emp.position || "-"}`}
@@ -2963,7 +2967,7 @@ export function SuratTugasForm({
                                 return next;
                               });
                             }}
-                            className="p-1 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 rounded-lg transition-colors shrink-0"
+                            className="p-1 hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] rounded-lg transition-colors shrink-0"
                             title="Hapus Pegawai"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2972,10 +2976,10 @@ export function SuratTugasForm({
                       </div>
 
                       {isBedaHariTemplate && (
-                        <div className={cn("pt-2 border-t border-slate-200/70 dark:border-zinc-700/70 grid gap-2", showDepartureColumn ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2")}>
+                        <div className={cn("pt-2 border-t border-[var(--ds-border-subtle)] grid gap-2", showDepartureColumn ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2")}>
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
-                              <Calendar className="w-2.5 h-2.5 text-blue-500" />
+                            <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase flex items-center gap-1">
+                              <Calendar className="w-2.5 h-2.5 text-[var(--ds-accent-fg)]" />
                               Tgl Mulai
                             </label>
                             <input
@@ -2992,12 +2996,12 @@ export function SuratTugasForm({
                                   },
                                 }));
                               }}
-                              className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                              className="w-full px-2 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
-                              <Calendar className="w-2.5 h-2.5 text-blue-500" />
+                            <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase flex items-center gap-1">
+                              <Calendar className="w-2.5 h-2.5 text-[var(--ds-accent-fg)]" />
                               Tgl Selesai
                             </label>
                             <input
@@ -3014,12 +3018,12 @@ export function SuratTugasForm({
                                   },
                                 }));
                               }}
-                              className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                              className="w-full px-2 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                             />
                           </div>
                           {showDepartureColumn && (
                             <div className="space-y-1">
-                              <label className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
+                              <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase flex items-center gap-1">
                                 Keberangkatan
                               </label>
                               <input
@@ -3035,7 +3039,7 @@ export function SuratTugasForm({
                                   }));
                                 }}
                                 placeholder="Kota Asal"
-                                className="w-full px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                                className="w-full px-2 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                               />
                             </div>
                           )}
@@ -3059,24 +3063,24 @@ export function SuratTugasForm({
           <FormSection title="Untuk (Diktum Penugasan, Biaya & Laporan)">
             <div className="space-y-4">
               {/* Info Alur Urutan Untuk */}
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700/80 text-[10px] text-slate-600 dark:text-zinc-400 space-y-1 leading-relaxed">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] space-y-1 leading-relaxed">
                 <p>
-                  <b className="text-slate-800 dark:text-zinc-200">Urutan Otomatis Bagian Untuk:</b>{" "}
-                  <span className="text-blue-600 dark:text-blue-400 font-semibold">1. Tugas Utama & Waktu (Selalu #1)</span> →{" "}
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2..k. Butir Tambahan Untuk</span> →{" "}
-                  <span className="text-amber-600 dark:text-amber-400 font-semibold">Biaya (Turun di Bawah Tambahan)</span> →{" "}
-                  <span className="text-purple-600 dark:text-purple-400 font-semibold">Laporan (Selalu Terakhir)</span>.
+                  <b className="text-[var(--ds-fg)]">Urutan Otomatis Bagian Untuk:</b>{" "}
+                  <span className="text-[var(--ds-accent-fg)] font-semibold">1. Tugas Utama & Waktu (Selalu #1)</span> →{" "}
+                  <span className="text-[var(--ds-status-success-fg)] font-semibold">2..k. Butir Tambahan Untuk</span> →{" "}
+                  <span className="text-[var(--ds-status-warning-fg)] font-semibold">Biaya (Turun di Bawah Tambahan)</span> →{" "}
+                  <span className="text-[var(--ds-accent-fg)] font-semibold">Laporan (Selalu Terakhir)</span>.
                 </p>
               </div>
 
               {/* BLOK 1: BUTIR 1 (TUGAS UTAMA & WAKTU) */}
-              <div className="p-3.5 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/15 space-y-3">
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-blue-200/60 dark:border-blue-900/40">
+              <div className="p-3.5 rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] space-y-3">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-[var(--ds-accent-soft-border)]">
                   <div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                       Butir 1 (Selalu Nomor 1)
                     </span>
-                    <p className="text-xs font-bold text-slate-800 dark:text-zinc-100 mt-1">
+                    <p className="text-xs font-bold text-[var(--ds-fg)] mt-1">
                       Tugas Utama, Lokasi & Waktu Pelaksanaan
                     </p>
                   </div>
@@ -3085,19 +3089,19 @@ export function SuratTugasForm({
                 {/* Mode Switcher: Terstruktur vs Tulis Manual */}
                 {!isPlhTemplate && !isBmnTemplate && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">
                       Mode Input Butir 1
                     </label>
-                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-[11px] font-medium">
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-[var(--ds-surface-muted)] rounded-xl text-xs font-medium">
                       <button
                         type="button"
                         disabled={isPublished}
                         onClick={() => setInputModeKegiatan("structured")}
                         className={cn(
-                          "py-1.5 px-2 rounded-lg transition-all text-center cursor-pointer disabled:opacity-60",
+                          "py-1.5 px-2 rounded-lg transition-colors text-center cursor-pointer disabled:opacity-60",
                           inputModeKegiatan === "structured"
-                            ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs"
-                            : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-bold shadow-xs"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         )}
                       >
                         Terstruktur (Jenis Tugas)
@@ -3115,10 +3119,10 @@ export function SuratTugasForm({
                           }
                         }}
                         className={cn(
-                          "py-1.5 px-2 rounded-lg transition-all text-center cursor-pointer disabled:opacity-60",
+                          "py-1.5 px-2 rounded-lg transition-colors text-center cursor-pointer disabled:opacity-60",
                           inputModeKegiatan === "manual"
-                            ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs"
-                            : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-bold shadow-xs"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         )}
                       >
                         Tulis Manual (Uraian + Waktu)
@@ -3130,7 +3134,7 @@ export function SuratTugasForm({
                 {/* Pilih Jenis Tugas hanya tampil jika mode = structured dan bukan PLH */}
                 {inputModeKegiatan === "structured" && !isPlhTemplate && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">
                       Jenis Tugas (Terkoneksi dari Pengaturan)
                     </label>
                     <select
@@ -3160,7 +3164,7 @@ export function SuratTugasForm({
                           }
                         }
                       }}
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white font-semibold cursor-pointer"
+                      className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] font-semibold cursor-pointer"
                     >
                       {taskTypes.length > 0 ? (
                         taskTypes.map((tt) => (
@@ -3194,7 +3198,7 @@ export function SuratTugasForm({
                   !isPlhTemplate &&
                   isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format) && (
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">
                         Untuk ( Jenis Kegiatan / Tugas ) *
                       </label>
                       <input
@@ -3203,9 +3207,9 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setUntukKegiatanText(e.target.value)}
                         placeholder="Contoh: Pemeriksaan Pekerjaan / Pengawasan Pekerjaan Konstruksi"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-xs text-[var(--ds-fg-muted)]">
                         Mengisi bagian <code>{"untuk {untuk} dalam rangka {kegiatan}"}</code> pada kalimat Butir 1.
                       </p>
                     </div>
@@ -3213,7 +3217,7 @@ export function SuratTugasForm({
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-300 uppercase">
+                    <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">
                       {isPlhTemplate || inputModeKegiatan === "manual"
                         ? "Uraian Tugas Utama (Butir 1) *"
                         : isJenisKegiatanTask(activityPrefix, activeBuilderTaskType?.contoh_format)
@@ -3235,10 +3239,10 @@ export function SuratTugasForm({
                             );
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                         title="Miringkan teks terpilih (*kata*) - Ctrl+I"
                       >
-                        <Italic className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        <Italic className="w-3 h-3 text-[var(--ds-accent-fg)]" />
                         <span className="font-serif italic font-bold">Miringkan (*I*)</span>
                       </button>
                     )}
@@ -3268,13 +3272,13 @@ export function SuratTugasForm({
                         ? "Contoh: Pengelolaan Kontrak Pekerjaan Konstruksi Pembangunan Sarana dan Prasarana di Suaka Badak Kelian"
                         : "Contoh: Melakukan koordinasi teknis..."
                     }
-                    className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none focus:border-blue-500 text-zinc-900 dark:text-white disabled:opacity-60"
+                    className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60"
                   />
 
                   {(isPlhTemplate || inputModeKegiatan === "manual") && !isPublished && (
                     <div className="space-y-1 pt-0.5">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">
+                        <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                           Sisipkan Placeholder:
                         </span>
                         {[
@@ -3290,13 +3294,13 @@ export function SuratTugasForm({
                                 `${namaKegiatan}${namaKegiatan && !namaKegiatan.endsWith(" ") ? " " : ""}${chip.token}`
                               )
                             }
-                            className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+                            className="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer"
                           >
                             {chip.label}
                           </button>
                         ))}
                       </div>
-                      <p className="text-[10px] text-blue-700 dark:text-blue-300 leading-relaxed">
+                      <p className="text-xs text-[var(--ds-accent-fg)] leading-relaxed">
                         <b>Mode Tulis Manual:</b> Uraian di atas langsung menjadi kalimat utama Butir 1, dan keterangan waktu{" "}
                         <i>&quot;, selama X (...) hari terhitung mulai tanggal ... sampai dengan ...;&quot;</i> tetap ditambahkan otomatis di ujung kalimat.
                       </p>
@@ -3307,7 +3311,7 @@ export function SuratTugasForm({
                 {/* Tanggal Mulai & Selesai */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                    <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                       Tanggal Mulai
                     </label>
                     <input
@@ -3324,11 +3328,11 @@ export function SuratTugasForm({
                           setTanggalSelesai(e.target.value);
                         }
                       }}
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase">
+                    <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                       Tanggal Selesai
                     </label>
                     <input
@@ -3341,42 +3345,42 @@ export function SuratTugasForm({
                             activityPrefix.includes("Melaksanakan Kegiatan")))
                       }
                       onChange={(e) => setTanggalSelesai(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                      className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                     />
                   </div>
                 </div>
 
                 {isBedaHariTemplate && (
-                  <div className="p-2 bg-blue-50/60 dark:bg-blue-950/30 rounded-lg border border-blue-200/50 dark:border-blue-900/40 text-[10px] text-blue-700 dark:text-blue-300">
+                  <div className="p-2 bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-accent-fg)]">
                     <span className="font-semibold">Info:</span> Pada template Beda Hari, rentang tanggal utama surat tugas otomatis disesuaikan dengan rentang tanggal keseluruhan (paling awal s/d paling akhir) dari daftar pegawai saat disimpan.
                   </div>
                 )}
 
                 {/* Input Lokasi Berdasarkan Mode */}
                 {isPlhTemplate ? (
-                  <div className="space-y-3 p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 rounded-xl animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between pb-2 border-b border-amber-200/60 dark:border-amber-900/30">
+                  <div className="space-y-3 p-3.5 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-xl">
+                    <div className="flex items-center justify-between pb-2 border-b border-[var(--ds-status-warning-border)]">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                        <span className="w-2 h-2 rounded-full bg-[var(--ds-status-warning-fg)]" />
+                        <span className="text-xs font-bold text-[var(--ds-status-warning-fg)] uppercase tracking-wider">
                           Konfigurasi Pelaksana Harian (PLH)
                         </span>
                       </div>
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                         Pejabat Struktural
                       </span>
                     </div>
 
                     {/* Selector Pejabat Struktural yang Digantikan */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                      <label className="text-xs font-bold text-[var(--ds-status-warning-fg)] uppercase tracking-wider">
                         Pejabat Struktural yang Digantikan *
                       </label>
                       <select
                         value={plhTargetRole}
                         disabled={isPublished}
                         onChange={(e) => handlePlhTargetRoleChange(e.target.value as PlhTargetRole)}
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs font-medium outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60 cursor-pointer"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] rounded-xl text-xs font-medium outline-none text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] disabled:opacity-60 cursor-pointer"
                       >
                         {PLH_TARGET_OPTIONS.map((opt) => (
                           <option key={opt.id} value={opt.id}>
@@ -3384,7 +3388,7 @@ export function SuratTugasForm({
                           </option>
                         ))}
                       </select>
-                      <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                      <p className="text-xs text-[var(--ds-status-warning-fg)]">
                         {plhTargetRole === "kasubbag_tu"
                           ? "Diktum menimbang & untuk disesuaikan otomatis untuk Kepala Subbagian Tata Usaha (Samarinda)."
                           : `Diktum menimbang & untuk disesuaikan otomatis untuk ${getPlhTargetOption(plhTargetRole).shortLabel}.`}
@@ -3393,7 +3397,7 @@ export function SuratTugasForm({
 
                     {/* Input Kegiatan Pejabat yang Digantikan */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                      <label className="text-xs font-bold text-[var(--ds-status-warning-fg)] uppercase tracking-wider">
                         Kegiatan Pejabat yang Digantikan (Menimbang a) *
                       </label>
                       <input
@@ -3406,17 +3410,17 @@ export function SuratTugasForm({
                             ? "Contoh: Melaksanakan rapat koordinasi kepegawaian di Jakarta"
                             : "Contoh: Melaksanakan patroli pengamanan kawasan hutan"
                         }
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-amber-300/80 dark:border-amber-800 rounded-xl text-xs outline-none text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] rounded-xl text-xs outline-none text-[var(--ds-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] disabled:opacity-60"
                       />
-                      <p className="text-[10px] text-amber-700/80 dark:text-amber-400">
+                      <p className="text-xs text-[var(--ds-status-warning-fg)]">
                         Otomatis mengisi butir Menimbang: &quot;bahwa {getPlhTargetOption(plhTargetRole).label} akan [kegiatan]...&quot;
                       </p>
                     </div>
 
                     {/* Referensi Surat Tugas Induk */}
-                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/50 dark:border-amber-900/30">
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[var(--ds-status-warning-border)]">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                           Nomor ST Induk (Dasar 1)
                         </label>
                         <input
@@ -3425,11 +3429,11 @@ export function SuratTugasForm({
                           disabled={isPublished}
                           onChange={(e) => handleParentStInfoChange("nomor", e.target.value)}
                           placeholder="Contoh: ST.01/K.18/TU/..."
-                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                           Tanggal ST Induk (Dasar 1)
                         </label>
                         <input
@@ -3438,7 +3442,7 @@ export function SuratTugasForm({
                           disabled={isPublished}
                           onChange={(e) => handleParentStInfoChange("tanggal", e.target.value)}
                           placeholder="Contoh: 28 Oktober 2026"
-                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                     </div>
@@ -3446,7 +3450,7 @@ export function SuratTugasForm({
                     {/* Lokasi Penugasan PLH */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                           Pada ( Tempat / Unit Lokasi )
                         </label>
                         <input
@@ -3455,11 +3459,11 @@ export function SuratTugasForm({
                           disabled={isPublished}
                           onChange={(e) => setTempatKegiatan(e.target.value)}
                           placeholder="Contoh: Kantor Balai KSDA Kalimantan Timur"
-                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase">
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                           Di ( Kota / Wilayah )
                         </label>
                         <input
@@ -3468,7 +3472,7 @@ export function SuratTugasForm({
                           disabled={isPublished}
                           onChange={(e) => setKotaTujuan(e.target.value)}
                           placeholder="Contoh: Samarinda"
-                          className="w-full px-3 py-1.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                     </div>
@@ -3476,7 +3480,7 @@ export function SuratTugasForm({
                 ) : inputModeKegiatan === "manual" ? (
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Wilayah / Kota Tujuan (Untuk Metadata & {"{wilayah}"})
                       </label>
                       <input
@@ -3485,11 +3489,11 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setKotaTujuan(e.target.value)}
                         placeholder="Contoh: Wilayah I Berau / Samarinda"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Tempat / Unit Lokasi (Opsional)
                       </label>
                       <input
@@ -3498,15 +3502,15 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setTempatKegiatan(e.target.value)}
                         placeholder="Contoh: Seksi Konservasi Wilayah I"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                   </div>
                 ) : (activeBuilderTaskType?.mode_lokasi === "dalam_kawasan" ||
                     isDalamKawasanTask(activityPrefix)) ? (
-                  <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                  <div className="space-y-2 pt-1">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Di ( Kota / Kabupaten Wilayah Penugasan )
                       </label>
                       <input
@@ -3515,11 +3519,11 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setKotaTujuan(e.target.value)}
                         placeholder="Contoh: Kabupaten Paser"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Di ( Kawasan / Lokasi Spesifik )
                       </label>
                       <input
@@ -3528,16 +3532,16 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setTempatKegiatan(e.target.value)}
                         placeholder="Contoh: Cagar Alam Teluk Adang"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                   </div>
                 ) : (activeBuilderTaskType?.mode_lokasi === "tempat_saja" ||
                     activityPrefix.includes("Melaksanakan Kegiatan") ||
                     activityPrefix.includes("Menugaskan Staf")) ? (
-                  <div className="grid grid-cols-2 gap-2 pt-1 animate-in fade-in duration-200">
+                  <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Pada ( Tempat / Unit Lokasi )
                       </label>
                       <input
@@ -3546,11 +3550,11 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setTempatKegiatan(e.target.value)}
                         placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Di ( Kota / Kabupaten )
                       </label>
                       <input
@@ -3559,7 +3563,7 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setKotaTujuan(e.target.value)}
                         placeholder="Contoh: Samarinda"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                   </div>
@@ -3567,17 +3571,17 @@ export function SuratTugasForm({
                   <>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase">Kota Asal</label>
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">Kota Asal</label>
                         <input
                           type="text"
                           value={kotaAsal}
                           disabled={isPublished}
                           onChange={(e) => setKotaAsal(e.target.value)}
-                          className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase">
+                        <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                           Kota Tujuan
                         </label>
                         <input
@@ -3585,13 +3589,13 @@ export function SuratTugasForm({
                           value={kotaTujuan}
                           disabled={isPublished}
                           onChange={(e) => setKotaTujuan(e.target.value)}
-                          className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                          className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">
+                      <label className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase">
                         Tempat / Lokasi Spesifik
                       </label>
                       <input
@@ -3600,18 +3604,18 @@ export function SuratTugasForm({
                         disabled={isPublished}
                         onChange={(e) => setTempatKegiatan(e.target.value)}
                         placeholder="Contoh: Suaka Badak Kelian Kabupaten Kutai Barat"
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                       />
                     </div>
                   </>
                 )}
 
                 {/* Pratinjau Hasil Kalimat Butir 1 */}
-                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-blue-200/70 dark:border-blue-900/50 space-y-1">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                <div className="p-2.5 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] space-y-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] block">
                     Pratinjau Kalimat Untuk — Butir 1:
                   </span>
-                  <p className="text-[11px] font-serif text-slate-800 dark:text-zinc-200 leading-relaxed">
+                  <p className="text-xs font-serif text-[var(--ds-fg)] leading-relaxed">
                     <b className="mr-1.5">1.</b>
                     {renderFormattedItalic(buildUntukText())}
                   </p>
@@ -3622,10 +3626,10 @@ export function SuratTugasForm({
               <EditableItemListSection
                 title="Butir Tambahan Untuk (Butir 2 dst.)"
                 description={
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                     Butir bawaan dari Template ST atau yang Anda tambahkan manual di sini otomatis menempati{" "}
-                    <b className="text-slate-700 dark:text-zinc-200">Nomor 2, 3, dst.</b> dan menggeser posisi{" "}
-                    <b className="text-amber-700 dark:text-amber-300">Biaya</b> ke bawahnya.
+                    <b className="text-[var(--ds-fg-muted)]">Nomor 2, 3, dst.</b> dan menggeser posisi{" "}
+                    <b className="text-[var(--ds-status-warning-fg)]">Biaya</b> ke bawahnya.
                   </p>
                 }
                 items={untukItems}
@@ -3633,7 +3637,7 @@ export function SuratTugasForm({
                 marker="number"
                 startIndex={1}
                 getItemBadge={(_item, idx) => (
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md w-fit">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] px-2 py-0.5 rounded-md w-fit">
                     <span>Butir {idx + 2} (Di Bawah Butir 1 & Di Atas Biaya)</span>
                   </div>
                 )}
@@ -3641,28 +3645,28 @@ export function SuratTugasForm({
               />
 
               {/* BLOK 3: PEMBEBANAN BIAYA & SUMBER DANA */}
-              <div className="p-3.5 rounded-xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/15 space-y-2.5">
+              <div className="p-3.5 rounded-xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
-                    <Banknote className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                    <label className="text-xs font-bold text-slate-800 dark:text-zinc-100">
+                    <Banknote className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
+                    <label className="text-xs font-bold text-[var(--ds-fg)]">
                       Pembebanan Biaya & Sumber Dana
                     </label>
                   </div>
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
+                  <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                     {buildBiayaText()
                       ? `Otomatis Butir ${2 + untukItems.filter((i) => i.text.trim()).length}`
                       : "Tanpa Butir Biaya"}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+                <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                   Selalu berada di bawah Butir 1 (atau otomatis turun ke bawah Butir Tambahan Untuk jika ada), serta menyisipkan Dasar Anggaran di urutan paling bawah bagian <b>Dasar</b>.
                 </p>
                 <select
                   value={sumberDana}
                   disabled={isPublished}
                   onChange={(e) => handleSumberDanaChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold outline-none text-zinc-900 dark:text-white disabled:opacity-60 cursor-pointer"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-semibold outline-none text-[var(--ds-fg)] disabled:opacity-60 cursor-pointer"
                 >
                   {availableSumberDanaOptions.map((opt) => (
                     <option key={opt.id} value={opt.id}>
@@ -3677,11 +3681,11 @@ export function SuratTugasForm({
                     disabled={isPublished}
                     onChange={(e) => setSumberDanaOther(e.target.value)}
                     placeholder="Sebutkan pembebanan anggaran..."
-                    className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                    className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none text-[var(--ds-fg)] disabled:opacity-60"
                   />
                 )}
                 {buildBiayaText() && (
-                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-amber-200/70 dark:border-amber-900/50 text-[11px] font-serif text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] text-xs font-serif text-[var(--ds-fg-muted)] leading-relaxed">
                     <b className="mr-1.5">{2 + untukItems.filter((i) => i.text.trim()).length}.</b>
                     {renderFormattedItalic(buildBiayaText())}
                   </div>
@@ -3689,17 +3693,17 @@ export function SuratTugasForm({
               </div>
 
               {/* BLOK 4: KEWAJIBAN MEMBUAT LAPORAN TERTULIS (SELALU TERAKHIR) */}
-              <div className="p-3.5 bg-purple-50/35 dark:bg-purple-950/15 rounded-xl border border-purple-200/80 dark:border-purple-900/50 space-y-2">
+              <div className="p-3.5 bg-[var(--ds-accent-soft)] rounded-xl border border-[var(--ds-accent-soft-border)] space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
                       <label
                         htmlFor="builder_chk_laporan"
-                        className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer"
+                        className="text-xs font-bold text-[var(--ds-fg)] block cursor-pointer"
                       >
                         Kewajiban Membuat Laporan Tertulis
                       </label>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200">
+                      <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                         {sertakanLaporan
                           ? `Butir Terakhir (#${
                               2 +
@@ -3709,7 +3713,7 @@ export function SuratTugasForm({
                           : "Nonaktif"}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Selalu ditempatkan pada urutan paling terakhir di bagian Untuk.
                     </p>
                   </div>
@@ -3719,11 +3723,11 @@ export function SuratTugasForm({
                     disabled={isPublished}
                     checked={sertakanLaporan}
                     onChange={(e) => setSertakanLaporan(e.target.checked)}
-                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    className="w-4 h-4 rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)] cursor-pointer"
                   />
                 </div>
                 {sertakanLaporan && (
-                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900/90 border border-purple-200/70 dark:border-purple-900/50 text-[11px] font-serif text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-xs font-serif text-[var(--ds-fg-muted)] leading-relaxed">
                     <b className="mr-1.5">
                       {2 +
                         untukItems.filter((i) => i.text.trim()).length +
@@ -3741,16 +3745,16 @@ export function SuratTugasForm({
           <FormSection title="Kaki Surat & Tanggal">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Kota Surat</label>
+                <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">Kota Surat</label>
                 <input
                   value={kotaSurat}
                   disabled={isPublished}
                   onChange={(e) => setKotaSurat(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm outline-none text-[var(--ds-fg)] disabled:opacity-60"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">
+                <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase">
                   Tanggal Surat
                 </label>
                 <input
@@ -3758,7 +3762,7 @@ export function SuratTugasForm({
                   value={tanggalSurat}
                   disabled={isPublished}
                   onChange={(e) => setTanggalSurat(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm outline-none text-zinc-900 dark:text-white disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm outline-none text-[var(--ds-fg)] disabled:opacity-60"
                 />
               </div>
             </div>
@@ -3780,10 +3784,10 @@ export function SuratTugasForm({
         </div>
 
         {/* Footer Actions */}
-        <footer aria-busy={isSaving} className="p-4 border-t border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 space-y-2.5">
-          {isSaving && <p role="status" className="text-xs font-semibold text-blue-700 dark:text-blue-300">Menyimpan Surat Tugas...</p>}
+        <footer aria-busy={isSaving} className="p-4 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] sticky bottom-0 space-y-2.5">
+          {isSaving && <p role="status" className="text-xs font-semibold text-[var(--ds-accent-fg)]">Menyimpan Surat Tugas...</p>}
           {saveError && (
-            <p role="alert" className="max-h-32 overflow-y-auto whitespace-pre-line break-words rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            <p role="alert" className="max-h-32 overflow-y-auto whitespace-pre-line break-words rounded-xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-3 text-xs text-[var(--ds-status-danger-fg)]">
               {saveError}
             </p>
           )}
@@ -3799,7 +3803,7 @@ export function SuratTugasForm({
                   onClick={handleSaveDraft}
                   variant="outline"
                   disabled={hasConflict || isSaving || isPublished}
-                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed px-2"
+                  className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed px-2"
                 >
                   <FileText className="w-3.5 h-3.5 mr-1" /> Simpan Draft
                 </Button>
@@ -3808,38 +3812,38 @@ export function SuratTugasForm({
                     <Button
                       variant="outline"
                       disabled={isExporting !== null}
-                      className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer flex items-center justify-center gap-1 px-2"
+                      className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer flex items-center justify-center gap-1 px-2"
                     >
                       {isExporting ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
                       ) : (
-                        <Download className="w-3.5 h-3.5 mr-1 text-blue-600 dark:text-blue-400" />
+                        <Download className="w-3.5 h-3.5 mr-1 text-[var(--ds-accent-fg)]" />
                       )}
                       <span>Unduh</span>
                       <ChevronDown className="w-3 h-3 opacity-60" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-52 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+                  <DropdownMenuContent data-module="surat-tugas" align="center" className="st-ui w-52 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl rounded-xl p-1.5 z-50">
                     <DropdownMenuItem
                       onClick={handleExportPdf}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
-                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                      <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh PDF (.pdf)</span>
-                        <span className="text-[10px] text-slate-400 font-normal">Berkas fisik PDF</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleExportWord}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh Word (.doc)</span>
-                        <span className="text-[10px] text-slate-400 font-normal">Microsoft Word editable</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -3847,7 +3851,7 @@ export function SuratTugasForm({
                 <Button
                   variant="outline"
                   onClick={handlePrint}
-                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer px-2"
+                  className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer px-2"
                 >
                   <Printer className="w-3.5 h-3.5 mr-1" /> Cetak
                 </Button>
@@ -3857,10 +3861,10 @@ export function SuratTugasForm({
                 onClick={handleApprove}
                 disabled={hasConflict || isSaving}
                 className={cn(
-                  "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                  "w-full h-11 text-[var(--ds-fg)] rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
                   hasConflict
-                    ? "bg-red-600 hover:bg-red-700 shadow-red-600/20"
-                    : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20"
+                    ? "bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)]"
+                    : "bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
                 )}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />{" "}
@@ -3876,7 +3880,7 @@ export function SuratTugasForm({
                     onClick={handleSaveDraft}
                     variant="outline"
                     disabled={hasConflict || isSaving}
-                    className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed px-2"
+                    className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed px-2"
                   >
                     <FileText className="w-3.5 h-3.5 mr-1" /> {saveLabel}
                   </Button>
@@ -3885,7 +3889,7 @@ export function SuratTugasForm({
                     onClick={handleUpdateNomorSurat}
                     variant="outline"
                     disabled={!canWrite || !canApprove || isSaving}
-                    className="w-full h-10 rounded-xl font-bold text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer px-2"
+                    className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] cursor-pointer px-2"
                   >
                     <FileText className="w-3.5 h-3.5 mr-1" /> Simpan Nomor
                   </Button>
@@ -3896,38 +3900,38 @@ export function SuratTugasForm({
                     <Button
                       variant="outline"
                       disabled={isExporting !== null}
-                      className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer flex items-center justify-center gap-1 px-2"
+                      className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer flex items-center justify-center gap-1 px-2"
                     >
                       {isExporting ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
                       ) : (
-                        <Download className="w-3.5 h-3.5 mr-1 text-blue-600 dark:text-blue-400" />
+                        <Download className="w-3.5 h-3.5 mr-1 text-[var(--ds-accent-fg)]" />
                       )}
                       <span>Unduh</span>
                       <ChevronDown className="w-3 h-3 opacity-60" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-52 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+                  <DropdownMenuContent data-module="surat-tugas" align="center" className="st-ui w-52 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl rounded-xl p-1.5 z-50">
                     <DropdownMenuItem
                       onClick={handleExportPdf}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
-                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                      <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh PDF (.pdf)</span>
-                        <span className="text-[10px] text-slate-400 font-normal">Berkas fisik PDF</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleExportWord}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh Word (.doc)</span>
-                        <span className="text-[10px] text-slate-400 font-normal">Microsoft Word editable</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -3936,7 +3940,7 @@ export function SuratTugasForm({
                 <Button
                   variant="outline"
                   onClick={handlePrint}
-                  className="w-full h-10 rounded-xl font-bold text-xs text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 cursor-pointer px-2"
+                  className="w-full h-10 rounded-xl font-bold text-xs text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] cursor-pointer px-2"
                 >
                   <Printer className="w-3.5 h-3.5 mr-1" /> Cetak
                 </Button>
@@ -3946,7 +3950,7 @@ export function SuratTugasForm({
                 <Button
                   onClick={handleApprove}
                   disabled={hasConflict || isSaving}
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+                  className="w-full h-11 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl font-bold text-xs disabled:opacity-50"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" /> Terbitkan Surat Tugas
                 </Button>
@@ -3954,7 +3958,7 @@ export function SuratTugasForm({
               {isPublished ? (
                 <Button
                   disabled
-                  className="w-full h-11 bg-emerald-600 text-white rounded-xl font-bold text-xs opacity-90 cursor-not-allowed flex items-center justify-center"
+                  className="w-full h-11 bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] rounded-xl font-bold text-xs flex items-center justify-center"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" /> Sudah Diterbitkan
                 </Button>
@@ -3963,10 +3967,10 @@ export function SuratTugasForm({
                   onClick={handleSubmitForApproval}
                   disabled={hasConflict || isSaving}
                   className={cn(
-                    "w-full h-11 text-white rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                    "w-full h-11 text-[var(--ds-fg)] rounded-xl font-bold text-xs shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
                     hasConflict
-                      ? "bg-red-600 hover:bg-red-700 shadow-red-500/20"
-                      : "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
+                      ? "bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)]"
+                      : "bg-[var(--ds-status-warning-bg)] hover:bg-[var(--ds-status-warning-bg)]"
                   )}
                 >
                   <Send className="w-4 h-4 mr-2" />{" "}
@@ -3983,15 +3987,15 @@ export function SuratTugasForm({
       </aside>
 
       {/* Main Preview Panel */}
-      <main className="flex-1 overflow-y-auto flex flex-col items-center bg-slate-200/60 dark:bg-zinc-950">
+      <main className="min-w-0 flex-1 overflow-auto flex flex-col items-start lg:items-center bg-[var(--ds-surface-muted)]">
         {/* Sticky Top Preview Toolbar */}
-        <div className="sticky top-0 z-10 w-full bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-zinc-800/80 px-6 py-2.5 flex items-center justify-between gap-4">
+        <div className="sticky top-0 z-10 w-full bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-xs">
-            <span className="font-bold text-slate-700 dark:text-zinc-200">
+            <span className="font-bold text-[var(--ds-fg-muted)]">
               Pratinjau Dokumen A4
             </span>
-            <span className="text-slate-300 dark:text-zinc-700">•</span>
-            <span className="font-mono text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800/50">
+            <span className="text-[var(--ds-fg-muted)]">•</span>
+            <span className="font-mono text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-0.5 rounded-md border border-[var(--ds-accent-soft-border)]">
               {nomorNumberingType === "naskah_auto"
                 ? customNomorNaskah || "${nomor_naskah}"
                 : `ST.${stNumber?.trim() || "\u00A0\u00A0\u00A0\u00A0"} / K.18/TU/${klasifikasi || "\u00A0\u00A0\u00A0\u00A0"}/B`}
@@ -4003,19 +4007,19 @@ export function SuratTugasForm({
                 type="button"
                 onClick={() => setIsBaseDocOpen((prev) => !prev)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs",
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border shadow-2xs",
                   isBaseDocOpen
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] border-[var(--ds-accent-soft-border)] shadow-xs"
                     : fileSuratPath
-                    ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
-                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700"
+                    ? "bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                    : "st-secondary border-[var(--ds-border-subtle)]"
                 )}
                 title="Buka panel dokumen dasar untuk menyalin perihal & melihat berkas"
               >
                 <Paperclip className="w-3.5 h-3.5" />
                 <span>Dasar Surat</span>
                 {fileSuratPath && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--ds-status-success-fg)]" />
                 )}
               </button>
             )}
@@ -4025,7 +4029,7 @@ export function SuratTugasForm({
                 <button
                   type="button"
                   disabled={isExporting !== null}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
                 >
                   {isExporting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -4036,27 +4040,27 @@ export function SuratTugasForm({
                   <ChevronDown className="w-3 h-3 opacity-80" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
+              <DropdownMenuContent data-module="surat-tugas" align="end" className="st-ui w-52 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl rounded-xl p-1.5 z-50">
                 <DropdownMenuItem
                   onClick={handleExportPdf}
                   disabled={isExporting !== null}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                 >
-                  <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                  <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
                   <div className="flex flex-col text-left">
                     <span>Unduh PDF (.pdf)</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Berkas fisik PDF</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExportWord}
                   disabled={isExporting !== null}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                 >
-                  <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                  <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                   <div className="flex flex-col text-left">
                     <span>Unduh Word (.doc)</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Microsoft Word editable</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -4065,7 +4069,7 @@ export function SuratTugasForm({
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-bold transition-colors cursor-pointer"
+              className="st-secondary inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Preview Cetak</span>

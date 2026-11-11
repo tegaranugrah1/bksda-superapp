@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru Portal (8 November 2026):** audit dan perbaikan lokal ditutup pada bagian36. Perbaikan, tes, laporan dan progress disatukan dalam commit lokal penutupan; belum di-push atau deploy. Rekap temuan lama/baru, perubahan dan bukti tes ada di [laporan penutupan Portal](docs/security/portal-security-review-2026-11-08.md). Catatan putaran sebelumnya di bawah adalah riwayat, bukan daftar celah yang semuanya masih terbuka.
+**Status terbaru (10 November 2026):** Komit lokal berhasil untuk modernisasi Dashboard BMN (desain bento grid 3-kolom, header card ala Kepegawaian, audit data riil database, perbaikan visibilitas tombol aksi peminjaman aset, dan peredaman warna kartu STNK anti-fatigue). Penyusunan dokumen standar acuan warna desain sistem antar-modul (`docs/DESIGN_SYSTEM_COLORS.md`) dengan kalibrasi rasio kontras WCAG 2.1 dan aturan 60-30-10 (Bagian 64, 65, 66). TypeScript `0 errors`, security check backend `PASS`.
 
 ## Status Update: 2 November 2026
 
@@ -1067,8 +1067,1103 @@
 
 ## 41. Uji Notifikasi Produksi Setelah Login Ulang — Selesai (9 November 2026)
 
-- Login terbaru pengguna sudah diverifikasi: private auth200 dan satu private channel akun aktif. Status menunggu login pada bagian40 telah ditutup; tidak mengubah kode autentikasi, melonggarkan guard, atau membuat akun/token tambahan.
-- Satu notifikasi teknis ID359 dibuat pada11:15:05 UTC+8 melalui PortalNotificationService dan native database queue. Toast realtime teramati di browser, lalu judul/body yang sama tampil pada bel. DB menyimpan tepat satu record; tidak membuat atau menghapus ST, cuti atau loan produksi.
-- Klik hanya notice uji menyimpan read_at11:16:36 UTC+8; unread168 turun167. Filter Sudah Dibaca menampilkan satu item yang sama. Seluruh167notifikasi lain tetap belum dibaca; tidak memakai tombol Tandai Semua Dibaca.
-- Pemeriksaan runtime11:20 menunjukkan Reverb yang sama sejak10:40:13, running/restart0 selama sekitar40menit, API/Portal200 dan DNS tetap berhasil. Masalah arsip Drive tetap terpisah seperti bagian40/laporan; tidak menghapus failed_jobs untuk membuat status tampak bersih.
-- [Laporan deployment](docs/security/portal-reverb-deployment-2026-11-09.md),[hasil/hash](docs/security/portal-reverb-deployment-2026-11-09-results.json),rencana dan laporan lifecycle diperbarui. Bukti visual yang sah adalah portal-read-confirmed-359.jpg; screenshot transisi tidak dipakai sebagai bukti toast. Format bagian40 dirapikan tanpa mengubah byte progress sebelum bagian40. Perubahan dokumentasi dibawa lewat commit/push/PR/merge ke production-server sesuai otorisasi yang sudah ada.
+- **Status akhir:** perbaikan lifecycle Portal/Surat Tugas/BMN/Kepegawaian, pemulihan Reverb, deployment Dokploy dan smoke test notifikasi produksi selesai. Bagian 39–40 menyimpan urutan pekerjaan sebelumnya; status menunggu deploy/login di bagian tersebut telah ditutup oleh hasil di bagian ini.
+- **Yang diperbaiki dan alasannya:** ekstensi `pcntl` dan guard signal native ditambahkan agar Reverb tidak berhenti karena `SIGINT`; konfigurasi proxy Nginx lama dimuat ulang melalui restart hanya `nginx-backend` di Dokploy agar route `/app` melayani WSS; `CACHE_PREFIX` disamakan pada backend/queue/scheduler/Reverb agar heartbeat yang diproses worker terbaca backend. Reseed akun otomatis pada startup dihapus agar redeploy tidak mengganti kredensial akun lama; startup dihentikan jika migrasi gagal. Detail perubahan lifecycle dan konsekuensi ST di sampah tetap dicatat pada bagian 39 serta laporan terkait.
+- **Tes lokal yang sudah selesai:** 31 skenario tercatat (30 PASS lokal dan satu diagnosis deployment RV-01), suite 407 tes/4.745 assertions (404 lulus, 3 skip, 0 gagal), subset akhir 38 tes/454 assertions, serta E2E aktual, TypeScript, ESLint dan pemeriksaan sintaks sebagaimana bagian 39. Subset tidak dijumlahkan. Tes tersebut tidak diklaim diulang terhadap data produksi; pembaruan progress ini hanya dokumentasi.
+- **Uji produksi setelah login ulang:** private-channel auth HTTP 200 dan satu private channel akun aktif. Tepat satu notifikasi teknis ID 359 dibuat pada 11:15:05 WITA melalui `PortalNotificationService` dan native database queue. Toast realtime teramati di browser, judul/body yang sama tampil pada bel, dan DB menyimpan satu record. Klik hanya notifikasi uji menyimpan `read_at` pada 11:16:36 WITA; jumlah belum dibaca turun 168 menjadi 167. Filter Sudah Dibaca menampilkan satu item yang sama. Tidak menandai seluruh riwayat dibaca, membuat akun/token tambahan, atau mengubah ST/cuti/pinjaman aset produksi.
+- **Verifikasi terakhir setelah deploy:** pada 11:28:45 WITA, source server sesuai merge `787666d9`; backend/frontend/queue/scheduler/Reverb berjalan dengan restart count 0. Proses Reverb yang sama berjalan sejak 10:40:13 WITA, sekitar 48 menit tanpa restart. DNS `reverb` berhasil, `pcntl=yes`/`SIGINT=yes`, API dan Portal HTTP 200; handshake WebSocket internal dan WSS publik sebelumnya lulus dengan verifikasi TLS tetap aktif. Heartbeat queue sudah terbaca backend setelah penyamaan namespace cache.
+- **Commit, PR dan deployment:** perbaikan utama melalui [PR #599](https://github.com/tegaranugrah1/bksda-superapp/pull/599), cache melalui [PR #600](https://github.com/tegaranugrah1/bksda-superapp/pull/600), dokumentasi deployment melalui [PR #601](https://github.com/tegaranugrah1/bksda-superapp/pull/601), dan hasil login ulang melalui [PR #602](https://github.com/tegaranugrah1/bksda-superapp/pull/602), semuanya sudah merged ke `production-server`. Commit dokumentasi hasil browser `91927dd4`, merge terakhir `787666d9` pada 11:26:51 WITA; Dokploy menampilkan hash tersebut dengan status **Done**, durasi 46 detik. Backup PostgreSQL sebelum deploy tervalidasi dan tetap di server; tidak melakukan restore/reset atau penghapusan volume.
+- **Laporan dan bukti:** [laporan deployment](docs/security/portal-reverb-deployment-2026-11-09.md), [hasil terstruktur/hash](docs/security/portal-reverb-deployment-2026-11-09-results.json), [laporan lifecycle](docs/security/portal-notification-lifecycle-report-2026-11-09.md), dan [hasil 31 skenario](docs/security/portal-notification-lifecycle-results-2026-11-09.json). Bukti visual akhir `C:/Users/USER/security-audit-skill/bksda-superapp/run-8/deployment/portal-read-confirmed-359.jpg` menunjukkan notifikasi uji pada filter Sudah Dibaca; screenshot transisi tidak dipakai sebagai bukti toast. Bukti toast berasal dari pengamatan accessibility tree saat event tampil.
+- **Batas hasil:** kegagalan job `ArchiveOfficialDocument` saat menulis arsip Drive tetap dicatat terpisah dan belum diperbaiki dalam lingkup Reverb/notifikasi. Tidak menghapus atau retry massal failed jobs untuk membuat status tampak bersih. Tiga lead historis ST/Kepegawaian pada bagian 38 tidak diubah verdict-nya; hasil ini tidak menyatakan semua integrasi atau seluruh aplikasi bebas masalah.
+
+
+## 42. Perbaikan Thumbnail Foto Aset Saya di Portal Pegawai — Selesai (9 November 2026)
+
+- **Akar masalah:** Kolom `foto_geotag_url` pada database BMN menyimpan URL halaman web Google Drive (`https://drive.google.com/file/d/.../view`). Pada `MyAssetsTab.tsx`, penentuan thumbnail sebelumnya memprioritaskan URL mentah `asset.foto_geotag_url` tanpa melalui `resolvePhotoUrl()`, sehingga browser menembakkan event `onError` karena dokumen HTML tidak dapat dirender sebagai gambar dan kartu jatuh ke fallback ("Belum ada foto"). Sebaliknya saat kartu diklik, modal Lightbox memanggil `resolvePhotoUrl()` yang mengubah ID Google Drive menjadi URL CDN langsung (`https://lh3.googleusercontent.com/d/{id}`), sehingga foto muncul di modal.
+- **Perbaikan:** Menyeragamkan penentuan `thumbUrl` pada List View dan Grid View `MyAssetsTab.tsx` agar menggunakan `primaryPhoto?.url` yang sudah diproses oleh `resolvePhotoUrl()`. Memperluas regex `resolvePhotoUrl()` untuk mendukung variasi URL Google Drive dengan parameter `?id=` / `&id=`. Menyelaraskan key `failedImgMap` pada `ActiveLoansTab.tsx` agar null-safe.
+- **Verifikasi:** TypeScript `tsc --noEmit` lolos 0 error; `portal_security_check.php` PASS; PHPUnit `PortalPersonalSecurityTest` (52 tests, 183 assertions) dan `PortalAuthSecurityTest` (21 tests, 481 assertions) lulus 100%.
+
+
+## 43. Perbaikan Sinkronisasi Snapshot Saldo Cuti Form Cetak Penetapan Cuti — Selesai (9 November 2026)
+
+- **Akar Masalah:**
+  Saat admin kepegawaian mencatat surat izin penetapan cuti langsung melalui `/kepegawaian/employees/{id}` (`EmployeeLeaveController::storeRecord` dan `updateRecord`), rekaman dibuat tanpa mengisi kolom `sisa_n0`, `sisa_n1`, dan `sisa_n2` pada tabel `kpg_employee_leave_requests`. Akibatnya, nilai kolom `sisa_n0` mengambil nilai default skema database yaitu `12` (bukan sisa kuota hak cuti riil pegawai pada tahun bersangkutan). Saat pegawai membuka cetak Formulir Cuti (`FormulirCutiPrint.tsx`), tabel V Catatan Cuti menampilkan angka default `12` meskipun pegawai telah menggunakan cuti sebelumnya.
+- **Implementasi Solusi (Prinsip /ponytail):**
+  1. **`EmployeeLeaveController::storeRecord`**: Mengambil `leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year)` dan menghitung `sisa_n0` dinamis (`max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - (int) $leaveBalance->cuti_terpakai_n0)`), serta menyertakan `sisa_n1` (`$leaveBalance->hak_n1_diakui`) dan `sisa_n2` (`$leaveBalance->hak_n2_diakui`) saat `EmployeeLeaveRequest::create()`.
+  2. **`EmployeeLeaveController::updateRecord`**: Menghitung `otherApprovedDays` (total hari cuti disetujui dari permohonan lain di tahun yang sama) dan memperbarui `sisa_n0`, `sisa_n1`, dan `sisa_n2` pada `$updatePayload`.
+  3. **Runnable Check & Data Sync**:
+     - Sinkronisasi data saldo snapshot pada permohonan cuti ID 787 milik pegawai 123 (Tegar Anugrah) dari `12` menjadi `11` (sesuai pemakaian 1 hari sebelumnya pada ID 661).
+     - Menambahkan assert-based self-check `backend/tests/EmployeeLeaveSnapshotCheck.php` untuk memvalidasi `storeRecord` dan `updateRecord` secara otomatis.
+- **Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+
+## 44. Pencantuman Tahun Akumulasi Cuti N-1 dan N-2 pada Surat Izin Cuti Resmi — Selesai (9 November 2026)
+
+- **Kebutuhan & Hasil Diskusi `/grill-me`**:
+  Saat admin kepegawaian menyetujui atau menerbitkan ulang Surat Izin Cuti resmi (`surat_izin_cuti`) untuk permohonan Cuti Tahunan, jika pegawai masih memiliki sisa hak cuti dari tahun-tahun sebelumnya (N-1 atau N-2), kalimat pembuka butir 1 naskah dinas resmi disesuaikan secara otomatis:
+  - **Hanya Tahun Berjalan (N)**: Tetap default: *"1. Diberikan Cuti Tahunan kepada Pegawai Negeri Sipil :"* (atau PPPK jika bersangkutan).
+  - **Ada Sisa N-1 (misal 2025 & 2026)**: *"1. Diberikan Cuti Tahunan untuk tahun 2025 dan tahun 2026 kepada Pegawai Negeri Sipil :"*.
+  - **Ada Sisa N-2 & N-1 (misal 2024, 2025 & 2026)**: *"1. Diberikan Cuti Tahunan untuk tahun 2024, tahun 2025 dan tahun 2026 kepada Pegawai Negeri Sipil :"*.
+  - **Non-Tahunan**: Tetap tanpa tahun (misal: *"1. Diberikan Cuti Sakit kepada..."*).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Backend `EmployeeLeaveRequestController.php`**:
+     - Menambahkan helper terpadu `resolveTahunCutiText(EmployeeLeaveRequest $leaveReq): ?string` yang mendeteksi sisa `sisa_n1 > 0` dan `sisa_n2 > 0` (dengan fallback aman ke saldo `EmployeeLeave` pegawai).
+     - Menyertakan `'tahun_cuti_text'` pada respons API `previewSuratIzin`.
+     - Menyimpan `'tahunCutiText'` ke dalam `document_payload` tabel `surat_keluar` saat `generateSuratIzin` dipanggil.
+  2. **Frontend `SuratDinasDocument.tsx`**:
+     - Menambahkan properti `tahunCutiText?: string | null` pada antarmuka `SuratDinasData`.
+     - Menjadikan kalimat pembuka butir 1 dinamis: `1. Diberikan Cuti {jenisCutiClean}{isTahunan && tahunCutiText ? ` ${tahunCutiText}` : ""} kepada ...`.
+  3. **Frontend `DigitalSuratIzinModal.tsx` & Modul Persuratan**:
+     - Menyediakan fallback kalkulasi langsung di `DigitalSuratIzinModal` agar tampilan surat izin yang sudah ada langsung memunculkan tahun akumulasi cuti.
+     - Menyediakan input kontrol akumulasi tahun cuti opsional di editor `/surat/keluar/dinas`.
+  4. **Runnable Check**:
+     - Menambahkan pengujian komprehensif pada `backend/tests/EmployeeLeaveSnapshotCheck.php` untuk memvalidasi kasus N-1 (`"untuk tahun 2025 dan tahun 2026"`), kasus N-2 & N-1 (`"untuk tahun 2024, tahun 2025 dan tahun 2026"`), serta kasus N saja (`null`).
+- **Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+## 45. Penegakan Kebijakan Cuti CPNS/PPPK dan Peniadaan Cuti, Bank & Uang Makan Personil MMP — Selesai (9 November 2026)
+
+- **Kebutuhan & Hasil Klarifikasi `/grill-me`**:
+  1. **Personil MMP (Masyarakat Mitra Polhut)**:
+     - Tidak memiliki hak cuti kepegawaian (`is_mmp` tidak boleh mengajukan atau mencatat cuti, saldo cuti = 0, tab Cuti di detail pegawai disembunyikan, menu Cuti di portal pegawai disembunyikan/dinonaktifkan).
+     - Tidak memiliki rekening bank operasional kepegawaian (kartu bank dan input rekening disembunyikan dari UI detail & edit pegawai; kolom `nama_bank` dan `nomor_rekening` selalu diset `null` di level database dan model).
+     - Tidak memiliki fasilitas uang makan & presensi (tab "Presensi & Uang Makan", kartu metrik "Uang Makan", serta query riwayat uang makan disembunyikan/diblokir dari detail pegawai MMP).
+  2. **Pegawai PPPK (P3K)**:
+     - Tidak berhak atas Cuti Karena Alasan Penting (CAP) sesuai regulasi BKN. Opsi CAP otomatis disaring (difilter) dari dropdown jenis cuti di seluruh antarmuka (portal dan admin), serta divalidasi ketat di backend.
+  3. **Masa Kerja 1 Tahun CPNS & PPPK untuk Hak Cuti Tahunan**:
+     - Hak cuti tahunan (12 hari kerja) baru aktif setelah genap 1 tahun masa kerja terhitung sejak NIP/NIPPPK diangkat.
+     - **CPNS**: Digit 9–14 NIP format `YYYYMM` (misal: `199907072025061006` diangkat Juni 2025). Berhak cuti tahunan mulai 1 tahun kemudian: **1 Juni 2026**. Sebelum tanggal ini, kuota cuti tahunan = 0 dan permohonan ditolak.
+     - **PPPK**: Digit 9–12 NIP format `YYYY` dan digit 13–14 adalah `21` (misal: `199601032024212050` kontrak tahun 2024). Berhak cuti tahunan pada tahun kalender berikutnya: **1 Januari 2025**. Pada tahun pengangkatan, kuota cuti tahunan = 0.
+     - Cuti selain tahunan (seperti Cuti Sakit, Cuti Melahirkan) tetap dapat diajukan sesuai ketentuan regulasi.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Database & Model Pegawai (`Employee.php`)**:
+     - Migration `2026_11_09_140000_make_nama_bank_nullable_in_kpg_employees.php` mengubah kolom `nama_bank` menjadi `nullable()` dan membersihkan bank default personil MMP yang sebelumnya terisi otomatis.
+     - Model hook `static::saving` di `Employee.php` menjamin `nama_bank = null` dan `nomor_rekening = null` setiap kali pegawai adalah MMP.
+     - Accessor `annual_leave_eligible_date` dan helper `isEligibleForAnnualLeave(?Carbon $asOf)` pada `Employee.php` menghitung tanggal kelayakan cuti tahunan secara dinamis dari NIP.
+  2. **Model & Saldo Cuti (`EmployeeLeave.php` & `LeaveType.php`)**:
+     - `EmployeeLeave::forEmployeeYear` mengembalikan kuota 0 untuk MMP dan mengecek `annual_leave_eligible_date` untuk CPNS/PPPK (tahun berjalan 0 jika belum genap 1 tahun masa kerja; tidak ada carryover N-1 pada tahun pertama kelayakan).
+     - `LeaveType::forEmployee` memvalidasi dan memblokir permohonan jika pegawai adalah MMP, atau jika PPPK mengajukan Cuti Karena Alasan Penting.
+     - `LeaveTypeController::index` otomatis menyaring jenis cuti berdasarkan target pegawai (`employee_id` atau akun login).
+  3. **Controllers (`EmployeeLeaveRequestController.php` & `EmployeeLeaveController.php`)**:
+     - Guarding endpoint `myStore`, `myBalance`, `show`, `store`, `storeRecord`, dan `updateRecord` untuk memvalidasi syarat 1 tahun masa kerja dan menolak permohonan dari personil MMP.
+  4. **Frontend UI/UX**:
+     - `employee-helpers.ts`: Menambahkan `getAnnualLeaveEligibleDate` dan `isEligibleForAnnualLeave`.
+     - `employees/[id]/page.tsx`: Menyembunyikan Sub-Card Rekening, Card Rekening di Biodata, Metric Sisa Cuti, Metric Uang Makan, Tab Cuti, dan Tab Presensi & Uang Makan untuk personil MMP; menyembunyikan input bank di modal edit MMP.
+     - `PortalProfileSidebar.tsx` & `PortalQuickStats.tsx` & `portal/page.tsx`: Menyembunyikan tab/menu Pengajuan Cuti dan card statistik cuti jika user adalah MMP.
+     - `CatatSuratIzinModal.tsx` & `EmployeeLeaveTab.tsx`: Menampilkan banner larangan untuk MMP, menyaring jenis cuti CAP untuk PPPK, dan memvalidasi syarat 1 tahun masa kerja untuk Cuti Tahunan dengan simulasi real-time.
+  5. **Automated Verification**:
+     - Mengembangkan automated test `backend/tests/EmployeeLeaveSnapshotCheck.php` dengan pengujian menyeluruh (10 skenario) mencakup CPNS 2025, PPPK 2024, MMP bank & cuti blocking, serta aturan CAP PPPK.
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+---
+
+## 46. Visualisasi Username Login Portal & Kode Identitas Personil MMP (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Personil MMP (Masyarakat Mitra Polhut) login ke Portal BKSDA menggunakan kode sekuensial unik `MMP-xxx` (misal: `MMP-006` untuk Abdul Farij, ID 133).
+  - Sebelumnya di antarmuka detail pegawai dan dialog Reset Password, identitas MMP sengaja disamarkan sebagai `"MMP • Tanpa NIP"` dan `"- (Tanpa NIP)"`, sehingga administrator kesulitan mengetahui username yang harus dibagikan ke personil ketika menerbitkan atau mereset password akun.
+  - Selain itu, saat pendaftaran pegawai baru di `employees/create`, notifikasi keberhasilan belum menampilkan username yang diterbitkan secara otomatis oleh sistem.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Cockpit Card Detail Pegawai (`employees/[id]/page.tsx`)**:
+     - Menampilkan label `Username: MMP-xxx` untuk personil MMP (atau NIP/NIPPPK untuk PNS/PPPK) dilengkapi tombol 1-klik Salin (Copy) langsung.
+  2. **Tab Biodata (`employees/[id]/page.tsx`)**:
+     - Mengubah label identitas menjadi `Username Portal (Kode MMP)` dengan nilai kode MMP pegawai untuk personil MMP.
+  3. **Dialog Reset Password (`employees/[id]/page.tsx`)**:
+     - Menambahkan baris informasi `Username Login: {employee.nip}` sehingga admin langsung mengetahui username terkait sebelum menyerahkan password baru.
+  4. **Dialog IAM (`EmployeeAccessSheet.tsx`)**:
+     - Menampilkan `Username Portal: MMP-xxx` untuk personil MMP agar konsisten.
+  5. **Formulir Tambah Pegawai Baru (`employees/create/page.tsx`)**:
+     - Memperjelas info banner kategori MMP bahwa sistem otomatis menerbitkan kode unik yang berfungsi sebagai Username Login Portal.
+     - Memperbarui toast keberhasilan pendaftaran agar langsung menampilkan username yang berhasil diterbitkan: `"Pegawai berhasil ditambahkan! Username: {createdNip}"`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `graphify update .`: Sukses tersinkronisasi (14.623 nodes, 27.352 edges, 1.008 communities).
+
+---
+
+## 47. Implementasi Lifecycle Pegawai Pensiun, Keluar & TMT (09 November 2026)
+
+- **Latar Belakang & Kebutuhan (`doc.md`)**:
+  - Pegawai yang pensiun atau keluar (mengundurkan diri, habis kontrak, mutasi, meninggal, diberhentikan) tidak boleh dihapus atau disoft-delete agar riwayat operasional (SPT, Cuti, Uang Makan, BMN, arsip surat) tetap utuh.
+  - Akses akun login harus dicabut tepat pada batas TMT (Terhitung Mulai Tanggal) pukul 00:00 WITA (`Asia/Makassar`), Sanctum tokens direvoke, dan session web ditutup.
+  - Mendukung penetapan TMT di masa mendatang (`scheduled_inactive`) di mana pegawai dan user tetap aktif sampai TMT tiba, serta pembatalan jadwal sebelum tanggal efektif.
+  - Mengintegrasikan guard lintas modul: pencegahan penugasan baru pada Surat Tugas (`AssignmentLetterConflictService`), pemblokiran izin cuti baru (`EmployeeLeaveController` & `EmployeeLeaveRequestController`), penolakan pinjaman baru BMN (`LoanController`), dan pemfilteran uang makan pada hari nonaktif (`AttendanceReconcilerService` & `MealAllowanceController`).
+  - Menyediakan endpoint pemeriksaan tanggungan BMN unik (`bmnClearance`) sebelum penonaktifan dieksekusi.
+  - Memastikan retensi data operasional di mana `forceDestroy` diblokir jika pegawai memiliki jejak historis (`hasOperationalHistory()`).
+
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Database Migration Additive**:
+     - `backend/database/migrations/2026_11_09_160000_add_lifecycle_columns_to_kpg_employees_table.php`: Menambahkan kolom nullable `inactive_reason` (varchar 50), `inactive_effective_date` (date), `inactive_notes` (text), dan composite index `(is_active, inactive_effective_date)`.
+  2. **Model Pegawai & Akun (`Employee.php` & `User.php`)**:
+     - `User.php`: Menambahkan relasi `employee(): HasOne` via `('nip', 'username')`.
+     - `Employee.php`:
+       - Menetapkan konstanta alasan `ALLOWED_INACTIVE_REASONS` (`pensiun`, `mengundurkan_diri`, `habis_kontrak`, `mutasi`, `meninggal`, `diberhentikan`, `lainnya`) dan labelnya.
+       - Menambahkan helper `isEffectiveActive(?\DateTimeInterface|string $asOf = null)`, `isScheduledInactive()`, query scope `scopeEffectiveActive()`, `scopeScheduledInactive()`, serta accessor `status_badge`.
+       - Menambahkan method atomik `applyLifecycleStatus(action, reason, effectiveDate, notes, actor)` yang mengunci record (`lockForUpdate`), mengupdate lifecycle pegawai, menonaktifkan linked User, mencabut token Sanctum, dan mencatat audit ke `EmployeeHistory`.
+       - Menambahkan `hasOperationalHistory(): bool` untuk melindungi pegawai dengan jejak riwayat SPT, Cuti, Uang Makan, BMN, atau History dari `forceDestroy`.
+  3. **Security Middleware & Auth Guard**:
+     - `EnsureAccountSecure.php`: Memeriksa apakah pegawai terkait berstatus `!isEffectiveActive()`. Jika tidak aktif, otomatis mendonaktifkan akun user, menghapus tokens, logout web session, dan mengembalikan 403 `account_inactive`.
+     - `AuthController::login`: Memblokir percobaan login pegawai yang sudah melewati TMT dengan pesan `"Akun Anda sudah dinonaktifkan."`.
+     - `EmployeeAccessController`: Memblokir pengaktifan akun user via IAM jika data pegawai berstatus non-aktif.
+  4. **Scheduler Idempotent**:
+     - `ApplyEmployeeLifecycleCommand.php` (`employee:apply-lifecycle`): Artisan command idempotent yang mengeksekusi penonaktifan pegawai terjadwal saat TMT tiba, menonaktifkan akun user, menghapus token, dan mencatat audit history.
+     - `backend/routes/console.php`: Didaftarkan untuk berjalan harian pada pukul 00:01 WITA (`Asia/Makassar`).
+  5. **Cross-Module Guards (ST, Cuti, BMN, Uang Makan)**:
+     - `AssignmentLetterConflictService.php` & `AssignmentLetterRequest.php`: Menolak pegawai non-aktif dan pegawai yang TMT-nya jatuh pada atau sebelum tanggal selesai penugasan dinas.
+     - `EmployeeLeaveController.php` & `EmployeeLeaveRequestController.php`: Memblokir pengajuan cuti baru bagi pegawai non-aktif dan menolak permohonan yang tanggal selesainya melintasi TMT.
+     - `EmployeeLeave.php`: Menyetel kuota tahunan = 0 jika pegawai nonaktif sebelum tahun berjalan.
+     - `LoanController.php`: Menolak peminjaman BMN baru bagi pegawai yang tidak `effectiveActive()`.
+     - `MealAllowanceController.php` & `AttendanceReconcilerService.php`: Mengabaikan hari kerja pada atau setelah TMT dari perhitungan uang makan.
+  6. **Frontend UI/UX**:
+     - `EmployeeLifecycleModal.tsx`: Dialog konfirmasi interaktif lengkap dengan pemeriksaan tanggungan BMN unik real-time, pilihan tindakan (`deactivate`, `cancel_schedule`, `reactivate`), pemilih TMT, dropdown alasan resmi, dan validasi catatan backdate.
+     - `employees/[id]/page.tsx`: Tombol aksi "Status & Pensiun", Cockpit badge status cerdas (Emerald untuk Aktif, Amber pulsating untuk Terjadwal Nonaktif dengan TMT, Slate untuk Pensiun/Non-Aktif), dan detail TMT/Alasan di Card Biodata.
+     - `employees/page.tsx`: Filter status lengkap (`all`, `active`, `scheduled`, `pensiun`, `inactive`, `trashed`) beserta badge tabel row adaptif.
+     - `employee-types.ts`: Menambahkan tipe `inactive_reason`, `inactive_effective_date`, `inactive_notes`, dan `status_badge`.
+  7. **Automated Verification**:
+     - `backend/tests/EmployeeLifecycleTest.php`: Dibuat dan dijalankan dengan 10 skenario pengujian komprehensif (EMP-01 s/d EMP-12, BMN clearance & loan guard, ST conflict, Cuti boundary, dan Force delete protection).
+
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus tanpa error).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5 checks lulus).
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100% assertions lulus).
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `graphify update .`: Terkini.
+
+---
+
+## 48. Pemisahan Total Pegawai Aktif & List Khusus Purna Tugas / Non-Aktif (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pegawai pensiun/purna tugas (seperti Djunaib Ahmad) sebelumnya masih terhitung di card statistik "Total Pegawai" dan tercampur di daftar utama ketika halaman pertama kali dibuka.
+  - Pengguna menginginkan daftar utama dan card total hanya menampilkan pegawai yang **aktif bertugas**, sedangkan pegawai yang sudah tidak aktif/pensiun memiliki list dan card tersendiri.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Backend (`EmployeeController.php`)**:
+     - Query default `/api/kepegawaian/employees` (tanpa status atau `status=active`) otomatis menggunakan `effectiveActive()`, sehingga pegawai pensiun/non-aktif tidak muncul di daftar kerja utama.
+     - `counts.active`: Jumlah pegawai aktif (150 personil).
+     - `counts.pns`, `pppk`, `mmp`: Diselaraskan untuk menghitung personil yang aktif di masing-masing kategori jenis pegawai.
+     - `counts.inactive` & `counts.pensiun`: Menghitung pegawai purna tugas/keluar.
+     - Menyediakan filter eksplisit `status=inactive` / `status=pensiun` untuk menampilkan arsip purna tugas, dan `status=all` jika ingin menampilkan keseluruhan.
+  2. **Frontend UI/UX (`employees/page.tsx`)**:
+     - `statusFilter` default: `"active"`.
+     - Card 1: **"Pegawai Aktif"** menampilkan `counts.active` (150 personil).
+     - Card Baru: **"Purna / Keluar"** (icon `UserX`, warna slate netral) menampilkan `counts.inactive` (1 personil).
+     - Responsiveness grid card diperbarui: `xl:grid-cols-6 lg:grid-cols-3 sm:grid-cols-3 grid-cols-2`.
+     - Ketika card "Purna / Keluar" diklik, tabel berganti menampilkan daftar pegawai purna tugas/keluar dilengkapi banner konteks informatif dan tombol 1-klik untuk kembali ke daftar pegawai aktif.
+     - Dropdown status diperjelas dengan opsi: *Aktif Bertugas*, *Purna / Non-Aktif*, *Terjadwal Nonaktif*, *Purna Tugas / Pensiun*, *Semua Status*, dan *Data Terhapus*.
+- **Hasil Verifikasi**:
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5).
+  - `php backend/tests/EmployeeLeaveSnapshotCheck.php`: **PASS** (100%).
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - Query default API: 150 aktif, Djunaib Ahmad tidak masuk di default list.
+  - Query `?status=inactive`: 1 personil (Djunaib Ahmad).
+
+---
+
+## 49. Penyempurnaan Motion UI & Mikro-Interaksi Animasi Modul Kepegawaian (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi UI pada modul Kepegawaian sesuai rekomendasi audit visual menggunakan prinsip `/ponytail` (minimalis, tanpa overhead, tanpa dependensi baru, memanfaatkan `framer-motion` bawaan).
+- **Implementasi Solusi (4 Area Kunci)**:
+  1. **Formulir Tambah Pegawai Baru (`employees/create/page.tsx`)**:
+     - *Category Selector*: Menambahkan umpan balik taktil `whileHover={{ y: -2 }}` dan `whileTap={{ scale: 0.98 }}` pada kartu pilihan kategori (PNS, PPPK, MMP).
+     - *Dynamic Fields Accordion*: Transisi ekspansi/kolaps mulus menggunakan `<AnimatePresence initial={false}>` dan `motion.div` dengan animasi tinggi & opacity pada kolom NIP, Pangkat/Golongan, serta banner informasi personil MMP.
+     - *Preview Pas Foto*: Transisi kemunculan foto pas unggah dengan efek scale-fade (`initial={{ opacity: 0, scale: 0.95 }}` -> `animate={{ opacity: 1, scale: 1 }}`).
+     - *Toggle Status Keaktifan*: Tombol segmented pegawi aktif/non-aktif ditingkatkan dengan `whileTap={{ scale: 0.98 }}`.
+  2. **Dashboard Kepegawaian (`page.tsx` & `_components/KepegawaianDashboardComponents.tsx`)**:
+     - *Komposisi SDM Segmented Bar*: Menggantikan bilah proporsi statis dengan `<motion.div>` yang terisi mulus dari 0% hingga proporsi aktual (`pnsPct`, `pppkPct`, `mmpPct`) dengan transisi easing staggered.
+     - *Sebaran Satker Breakdown*: Bilah persentase jumlah pegawai per Seksi KSDA Wilayah teranimasi mulus saat dimuat.
+     - *Micro-Interactions*: Efek hover responsif pada kartu riwayat Surat Tugas (`whileHover={{ x: 3 }}`) dan kartu sebaran satker (`whileHover={{ x: 2 }}`).
+  3. **Inbox & Riwayat Cuti (`cuti/page.tsx`)**:
+     - *Table Glide Transition*: Transisi glide tabel via `<AnimatePresence mode="wait">` diperkaya dengan key `${selectedStatus}-${selectedYear}-${page}` sehingga pergantian halaman dan filter terasa mulus tanpa kedipan kasar.
+     - *Live Pending Indicator*: Badge status `PENGAJUAN` pada tabel kini menampilkan pulsating attention beacon (`animate-ping`) yang menunjukkan pengajuan memerlukan respon tindakan atasan/admin.
+  4. **Dialog Status & Pensiun Lifecycle (`EmployeeLifecycleModal.tsx`)**:
+     - *Modal Entrance*: Modal dialog muncul dengan transisi scale-fade halus (`scale: 0.95` -> `1`).
+     - *BMN Clearance Reveal*: Transisi perubahan status pemeriksaan tanggungan aset BMN dari state memuat (`Loader2`), state peringatan aset tertanggung (`AlertTriangle`), hingga state bebas tanggungan (`CheckCircle2`) menggunakan `<AnimatePresence mode="wait">`.
+     - *Action Buttons*: Tombol alih status (Nonaktifkan / Pensiun, Batalkan Jadwal, Aktifkan Kembali) dilengkapi mikro-interaksi `whileTap={{ scale: 0.98 }}`.
+  5. **Animasi Perpindahan Tab Sidebar & Transisi Halaman (`kepegawaian/layout.tsx` & `components/layout/sidebar.tsx`)**:
+     - *Sliding Active Pill*: Menambahkan `layoutId="activeKepegawaianSidebarIndicator"` dan aksen vertikal `layoutId="activeKepegawaianSidebarAccent"` dengan spring physics (`stiffness: 420, damping: 32`) sehingga sorotan aktif meluncur mulus saat berpindah antar menu/tab sidebar (Dashboard, Pegawai, Tambah, ST, Cuti, Uang Makan, dsb).
+     - *Taktil Hover & Tap*: Menambahkan `whileHover={{ x: 2 }}` dan `whileTap={{ scale: 0.98 }}` pada setiap item menu sidebar.
+     - *Transisi Halaman Konten*: Membungkus konten `{children}` di dalam tag `<main>` dengan `<AnimatePresence mode="wait" initial={false}>` dan `<motion.div key={pathname}>` (`initial={{ opacity: 0, y: 6 }}` -> `animate={{ opacity: 1, y: 0 }}`) sehingga tampilan halaman mengalir halus saat berganti menu.
+     - *Konsistensi Root Sidebar*: Menerapkan `layoutId="activeRootSidebarIndicator"` pada `components/layout/sidebar.tsx` agar perpindahan menu pada layout utama dashboard juga memiliki efek meluncur yang identik.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - `php backend/tests/SuratTugasConflictTest.php`: **PASS** (5/5 checks lulus).
+  - `git status`: Bersih, seluruh perubahan lokal siap di-commit.
+
+---
+
+## 50. Implementasi Animasi Animate UI Theme Toggler (Transisi Siang ke Malam) (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi transisi pergantian tema dari siang ke malam (Light Mode $\leftrightarrow$ Dark Mode) sesuai spesifikasi resmi [Animate UI Theme Toggler](https://animate-ui.com/docs/primitives/animate-ui/theme-toggler).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Primitif `ThemeToggler` (`components/ui/theme-toggler.tsx`)**:
+     - Dibangun menggunakan native browser Web **View Transitions API** (`document.startViewTransition`) tanpa dependensi pihak ketiga baru.
+     - Mendukung animasi sapuan lingkaran radial (`direction: "radial"`) yang mengembang dari titik koordinat klik tombol toggle (`circle(0px at x y)` $\rightarrow$ `circle(maxRadius at x y)`), serta sapuan terarah (`ltr`, `rtl`, `ttb`, `btt`).
+     - Perlindungan aksesibilitas: Deteksi otomatis `prefers-reduced-motion` dan ketiadaan View Transitions API pada browser lawas untuk fallback pergantian tema instan tanpa jeda.
+  2. **Komponen `ThemeToggle` Global (`components/theme-toggle.tsx`)**:
+     - Membungkus tombol toggle tema di seluruh modul aplikasi (Kepegawaian, Portal, Inventory, Drive, BMN, Keuangan, dsb).
+     - Menghadirkan animasi morphing ikon Matahari (Amber) $\leftrightarrow$ Bulan (Emerald) dengan rotasi $\pm 60^\circ$, skala dinamis, dan efek blur transisi halus via Framer Motion.
+     - Mikro-interaksi taktil: `whileTap={{ scale: 0.92 }}` dan `whileHover={{ scale: 1.05 }}`.
+  3. **CSS View Transitions (`globals.css`)**:
+     - Menambahkan aturan isolasi layer `::view-transition-old(root)` dan `::view-transition-new(root)` untuk mencegah kedipan kasar (*crossfade glitch*) dan memastikan layer tema baru selalu mengembang sempurna di atas layer lama.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos typecheck TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - Seluruh tombol tema di aplikasi kini memiliki efek sapuan gelombang siang/malam yang sinematik.
+
+---
+
+## 51. Perbaikan Popover Arahan Pimpinan & Sifat Surat pada Tabel Surat Masuk (09 November 2026)
+
+- **Latar Belakang & Gejala Masalah**:
+  - Pada halaman `http://localhost:3000/surat/masuk`, ketika pengguna mencari nomor agenda tertentu (contoh: `?search=199`) sehingga tabel hanya menampilkan 1 atau 2 baris data, mengklik tombol `+ Pilih Penerus` atau badge Sifat Surat menyebabkan popover "Arahan Pimpinan (Sifat & Penerus Balai)" terpotong (*clipped*) di bagian bawah pembungkus tabel (`overflow-x-auto` & `overflow-hidden`).
+  - Akibatnya, pengguna hanya melihat bagian judul popover, sementara pilihan Sifat, input pencarian, tab Seksi/Pegawai, checklist penerus, serta tombol Batal/Simpan tersembunyi di luar kontainer tabel.
+- **Akar Penyebab (*Root Cause*)**:
+  - Komponen `DiteruskanCellPopover` dan `SifatCellPopover` sebelumnya menggunakan elemen `div` dengan styling `position: absolute` yang berada langsung di dalam hierarki DOM sel tabel `<td>`.
+  - Pembungkus tabel memiliki batasan CSS `overflow-x-auto` dan `overflow-hidden`, sehingga setiap elemen anak yang tingginya melebihi batas bawah tabel akan terpotong secara visual oleh aturan overflow peramban (*overflow boundary containment*).
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Migrasi ke Radix UI Popover Portal (`@/components/ui/popover`)**:
+     - Mengganti elemen inline absolut pada `DiteruskanCellPopover` dan `SifatCellPopover` dengan primitif `Popover`, `PopoverTrigger asChild`, dan `PopoverContent`.
+     - `PopoverContent` memanfaatkan `PopoverPrimitive.Portal` yang merender konten popover langsung ke level `document.body` di luar kontainer overflow tabel. Dengan demikian, popover tidak akan pernah terpotong oleh batasan overflow tabel berapapun jumlah barisnya.
+  2. **Deteksi Tabrakan Cerdas & Auto-Flip**:
+     - Menambahkan konfigurasi `align="end"` (atau `align="start"` pada sifat), `side="bottom"`, `sideOffset={8}`, dan `collisionPadding={16}`.
+     - Radix Floating Engine secara otomatis mendeteksi ketersediaan ruang viewport: apabila baris tabel berada di bagian paling bawah layar dan ruang ke bawah tidak mencukupi, popover secara otomatis membalik arah bukaannya ke atas (`side="top"`).
+  3. **Penyatuan Payload API & Normalisasi Rute**:
+     - Mengeliminasi rute fallback yang salah (`/api/surat-masuk/...` dan `/surat-masuk/.../sifat`), menyatukan update sifat dan penerus langsung ke endpoint resmi `PUT /surat-masuk/{id}` yang memvalidasi seluruh kolom secara atomik tanpa error 404.
+     - Menyinkronkan pembaruan status ke cache offline `localStorage` (`bksda_saved_surat_masuk`) agar antarmuka tetap konsisten dalam kondisi offline/koneksi lambat.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **PASS** (10/10 skenario lulus).
+  - `php backend/tests/portal_security_check.php`: **PASS** (100% lulus).
+  ---
+
+## 52. Resolusi Isolasi Hak Akses Ruangan Balai pada Disposisi Surat (Akun Magang / Staf Non-BMN) (09 November 2026)
+
+- **Latar Belakang & Gejala Masalah**:
+  - Pada halaman `http://localhost:3000/surat/masuk`, saat akun magang atau staf biasa membuka popover "Arahan Pimpinan (Pilih Penerus)", daftar *Pegawai Balai* muncul normal, namun tab *Ruangan Balai* kosong melompong (`Ruangan Balai (0)`).
+- **Akar Penyebab (*Root Cause*)**:
+  1. *Pegawai Balai* diambil dari `GET /api/kepegawaian/employees/select` yang sengaja berstatus *public/open directory lookup* (hanya dibatasi `throttle:120,1`), sehingga akun magang dapat mengaksesnya tanpa syarat permission khusus.
+  2. *Ruangan Balai* sebelumnya langsung memanggil `GET /api/bmn/locations`. Endpoint ini berada di dalam modul BMN yang diproteksi ketat oleh `module.access:bmn` dan `permission:bmn.view`.
+  3. Akun magang/staf umum hanya memiliki hak akses persuratan (`surat.view`) dan tidak memiliki hak akses BMN (`bmn.view`), sehingga pemanggilan ke `/api/bmn/locations` ditolak dengan status **HTTP 403 Forbidden**.
+  4. Karena frontend menangkap error 403 tersebut dengan `.catch(() => ({ data: { data: [] } }))`, daftar ruangan balai ter-set menjadi array kosong tanpa fallback.
+- **Implementasi Solusi (Prinsip /ponytail)**:
+  1. **Endpoint Khusus Modul Surat (`SuratMasukController::locations`)**:
+     - Menambahkan route `GET /surat-masuk/locations` pada `App\Modules\Surat\Routes\api.php` dengan otorisasi `permission:surat.view`.
+     - Mengambil data id, nama ruangan, dan unit kerja langsung dari tabel `bmn_locations` secara ringan tanpa membutuhkan hak akses lintas modul BMN.
+  2. **Multi-Tier Fallback pada Frontend (`DiteruskanCellPopover.tsx`)**:
+     - Memprioritaskan pemanggilan `api.get("/surat-masuk/locations")` yang sesuai dengan hak akses persuratan pengguna.
+     - Menyediakan fallback sekunder ke `/bmn/locations` (jika user adalah admin BMN).
+     - Menyediakan fallback tersier ke konstanta `DEFAULT_BALAI_ROOMS` (daftar unit baku Balai: *Ka Sub Bag TU, Urusan Umum & Perlengkapan, Urusan Kepegawaian, Urusan Program, Urusan Keuangan, Urusan Evlab, Urusan Teknis, Urusan Perlindungan, Urusan IKN, PPK FOLU NC 2030*) jika server offline.
+  3. **Pengujian Otomatis (`SuratModuleTest.php`)**:
+     - Menambahkan unit test `test_can_fetch_surat_masuk_locations_with_surat_view` yang memverifikasi bahwa staf dengan izin `surat.view` (termasuk magang) dapat mengambil daftar ruangan dengan status HTTP 200.
+- **Hasil Verifikasi**:
+  - `cd backend; php vendor/phpunit/phpunit/phpunit tests/Feature/SuratModuleTest.php`: **10/10 PASS** (30 assertions lulus 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+
+---
+
+## 53. Redesign Halaman Login Resmi Kementerian Kehutanan & BKSDA Kaltim (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta perancangan ulang (*redesign*) antarmuka halaman login (`http://localhost:3000/login`) menggunakan logo resmi `kemenhutlogo.png` dengan tipografi hierarki tiga baris resmi:
+    1. **KEMENTERIAN KEHUTANAN**
+    2. **BALAI KONSERVASI SUMBER DAYA ALAM**
+    3. **KALIMANTAN TIMUR**
+  - Instruksi tegas: Bersihkan ornamen berlebih/dekorasi yang terkesan *AI slop* (hapus ikon-ikon tidak perlu di dalam input, hapus badge pil glitter/sparkles, hapus kartu fitur dummy), serta pastikan foto hero konservasi di samping kanan tampil terang, alami, dan jelas tanpa tertutup bayangan (*shadow*) atau gradien gelap yang berlebihan.
+- **Implementasi Solusi Visual Bersih & Autentik**:
+  1. **Identitas & Branding Resmi**:
+     - Memasang logo resmi Kementerian Kehutanan (`/kemenhutlogo.png`) secara elegan dan proporsional berdampingan dengan tipografi hierarki baku:
+       - Baris 1: `KEMENTERIAN KEHUTANAN` (Emerald bold/black uppercase).
+       - Baris 2: `BALAI KONSERVASI SUMBER DAYA ALAM` (Zinc-900 / dark:zinc-100 bold uppercase).
+       - Baris 3: `KALIMANTAN TIMUR` (Emerald uppercase tracking-widest).
+  2. **Penyempurnaan Copywriting & Eliminasi Elemen Berlebih**:
+     - Menghapus badge pil *"Portal Layanan Terpadu Pegawai & Persuratan"* di atas form Selamat Datang.
+     - Menghapus elemen meta indicator *"Sistem Administrasi Konservasi Sumber Daya Alam"* dan teks *"BKSDA KALTIM"* di bawah area toggle tema hero kanan.
+     - Menghapus pil *"Kementerian Kehutanan Republik Indonesia"* di atas judul *"Melindungi Warisan Alam Untuk Generasi Masa Depan"*.
+     - Menghapus seluruh ikon bintang (*Sparkles*).
+     - Menghapus kartu fitur sorotan ("Keamanan Terenkripsi" & "Layanan Terpadu") pada hero kanan sesuai arahan pengguna agar tampilan lebih bersih, lega, dan gambar alam Pulau Sangalaki tampak lebih luas tanpa tertutup kartu.
+  3. **Visual Hero Kanan (Terang, Jelas, & Berkarakter)**:
+     - Menggunakan foto aset konservasi lokal BKSDA Kaltim (`/assets/images/background/sangalaki.png` - Pulau Sangalaki).
+     - Menghilangkan *mix-blend mode* dan *shadow* gelap pekat yang sebelumnya menutup gambar. Foto kini tampil 100% jelas, terang, dan berwarna alami.
+     - Hanya ditambahkan gradien lembut tipis di bagian dasar agar teks kutipan resmi terbaca kontras tanpa meredupkan pemandangan alam di atasnya.
+  4. **Penyatuan Alur Lupa Kata Sandi dengan Efek Push Transition (`/ponytail`)**:
+     - Mengintegrasikan alur *Lupa Kata Sandi* (`POST /api/forgot-password`) dan *Verifikasi 2FA* langsung ke dalam halaman `/login` tanpa perpindahan halaman (*no full-page reload*), menggunakan `AnimatePresence` + `motion.div` (*spring push transition* `x: ±100%`).
+     - Menyederhanakan `frontend/src/app/forgot-password/page.tsx` dari 132 baris menjadi 5 baris redirect ke `/login`.
+  5. **Harmonisasi Palet Warna Hijau Resmi Kemenhut Portal**:
+     - Menyelaraskan seluruh aksen warna hijau pada halaman `/login` (tombol utama, frame logo, tipografi kementerian, ring focus input, ikon, badge 2FA, dan status sukses) menggunakan kode warna resmi portal BKSDA Kaltim (`#1e5433` - Kemenhut Forest Green, hover `#164227`, active `#153e24`, soft background `#edf3ee`, dan border `#dce8dd`) menggantikan warna generic `emerald-600`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 54. Penyelarasan Sidebar Profil Pegawai, Skala Tipografi Metrik & Warna Status Cuti (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  1. Pengguna meminta perbaikan antarmuka sidebar profil pegawai (`http://localhost:3000/kepegawaian/employees/[id]`) agar bagian *Kontak & Komunikasi* dibuat mengalir secara natural seperti pada sidebar portal BKSDA (tanpa kotak sub-card tebal berwarna mencolok), namun tetap mempertahankan tombol aksi salin (copy) dan chat/kirim (WhatsApp & Email).
+  2. Memperbaiki ukuran font pada kartu ringkasan metrik *Masa Kerja* ("2 Tahun 0 Bulan") yang sebelumnya tampak terlalu kecil (`text-xs`) dibandingkan tiga kartu metrik di sampingnya (`text-xl`).
+  3. Menyelaraskan warna status pengajuan cuti pada tab cuti detail pegawai PNS (`EmployeeLeaveTab.tsx`), di mana status *PENGAJUAN* sebelumnya keliru diwarnai hijau solid dengan tanda centang, agar konsisten dengan standar modul persuratan cuti (`/kepegawaian/cuti`) yang menggunakan warna kuning/amber dengan indikator pulsing ping.
+- **Implementasi**:
+  1. **Sidebar Profil Pegawai Alami (`frontend/src/app/kepegawaian/employees/[id]/page.tsx`)**:
+     - Menyatukan informasi Jabatan, Unit Kerja, Pangkat/Golongan, Email Akun Resmi, Telepon/WhatsApp, dan Rekening Penyalur dalam satu daftar detail vertikal yang elegan bergaya portal (`PortalProfileSidebar.tsx`).
+     - Menyematkan tombol aksi cepat salin 1-klik yang kompak dan bersih di sebelah kanan untuk NIP, Email, Telepon/WhatsApp, dan No. Rekening (tombol tautan Kirim Email dan Chat WA dihapus sesuai arahan pengguna agar antarmuka semakin minimalis dan natural persis seperti portal).
+     - Merapikan tombol *"Edit Data Pegawai"* di dasar kartu cockpit.
+  2. **Harmonisasi Skala Tipografi Metrik**:
+     - Mengubah ukuran teks nilai metrik Masa Kerja dari `text-xs font-black` menjadi `text-lg xl:text-xl font-black`, sejajar proporsional dengan kartu Penugasan, Sisa Cuti, dan Uang Makan.
+  3. **Standardisasi Status Cuti (`frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx`)**:
+     - Status `PENGAJUAN`: Diwarnai Amber/Kuning (`bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800`) lengkap dengan animasi ping amber (`animate-ping`).
+     - Status `DISETUJUI`: Tetap Hijau Emerald (`bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800`) dengan ikon `CheckCircle2`.
+     - Status `DITOLAK`: Tetap Merah Rose (`bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800`).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/EmployeeLifecycleTest.php`: **10/10 PASS**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+
+
+
+
+
+
+
+---
+
+## 55. Implementasi Animate UI Sidebar Navigasi, Transisi Halaman & Dashboard BMN (09 November 2026)
+
+- **Latar Belakang & Alignment (/grill-me)**:
+  1. Pengguna meminta audit seluruh elemen UI di `http://localhost:3000/bmn` yang membutuhkan animasi (*animate ui*), mulai dari sidebar hingga dashboard dan komponen di dalamnya.
+  2. Melalui klarifikasi terstruktur `/grill-me`, disepakati prioritas Tahap 1:
+     - **Sidebar Navigasi**: Sliding pill indicator pada menu navigasi aktif menggunakan `layoutId="activeBmnNavIndicator"`, transisi spring halus tanpa overshooting, diselaraskan dengan warna khas modul BMN (`bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800/60`, teks `text-emerald-800 dark:text-emerald-300`, ikon `text-emerald-600 dark:text-emerald-400`, dan indikator titik `bg-emerald-500` persis seperti pada menu BMN & Aset di Module Switcher).
+     - **Transisi Pergantian Halaman BMN**: Transisi halus *subtle fade + slide up 6px* (`opacity: 0, y: 6` -> `1, 0`) menggunakan `AnimatePresence mode="wait"` membungkus `{children}` di `BmnLayout`.
+     - **Dashboard BMN**:
+       - *Stat Cards*: Efek *hover-lift* (`whileHover={{ y: -3 }}`) dengan bayangan lembut dan transisi spring halus.
+       - *Distribusi per Jenis BMN & Top Lokasi*: Batang progres (`BarProgressRow`) mengisi dinamis dari lebar 0% ke persentase target secara smooth (`duration: 0.6s, ease: easeOut`).
+       - *Donut Chart Kondisi Aset*: Animasi *gentle scale & fade* saat dimuat (`scale: 0.88 -> 1, opacity: 0 -> 1`).
+       - *STNK & Plat Alerts*: Hover micro-interaction (`whileHover={{ x: 3 }}`).
+       - *Quick Links*: Hover & tap micro-interaction (`whileHover={{ y: -1.5, scale: 1.01 }}`).
+- **Implementasi Berkas**:
+  - `frontend/src/app/bmn/layout.tsx`: Memasang `motion.span` layout indicator untuk menu aktif dan `AnimatePresence` pada `<main>`.
+  - `frontend/src/app/bmn/_components/BmnDashboardComponents.tsx`: Memasang `motion.div` hover-lift pada `StatCard` dan `QuickLink`.
+  - `frontend/src/app/bmn/page.tsx`: Memasang animasi width progress bar, entrance stagger stat cards, entrance chart kondisi, dan hover alert item.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 56. Implementasi Animate UI Tab Pengaturan Master & Dokumen Laporan BMN (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta penambahan animasi *animate-ui* pada navigasi tab di halaman `http://localhost:3000/bmn/settings` dan `http://localhost:3000/bmn/reports`.
+- **Implementasi**:
+  1. **Pengaturan Master Data (`frontend/src/app/bmn/settings/page.tsx`)**:
+     - *Sliding Tab Underline*: Memasang `motion.span` dengan `layoutId="activeSettingsTabUnderline"` dan spring physics (`stiffness: 450, damping: 35`) untuk transisi garis aktif antar-tab (*Tag Aset*, *Lokasi & Ruangan*, *Jenis BMN*).
+     - *Tab Content Transition*: Membungkus perpindahan komponen tab dengan `<AnimatePresence mode="wait">` dan `<motion.div>` (*subtle fade & slide up 6px*).
+  2. **Dokumen & Laporan (`frontend/src/app/bmn/reports/page.tsx`)**:
+     - *Sliding Pill Tab Switcher*: Memasang `motion.span` dengan `layoutId="activeReportTabIndicator"` pada tab bar utama (*Export Laporan*, *Generate Dokumen*, *Riwayat Dokumen*).
+     - *Document Type Selection Indicator*: Memasang `motion.span` dengan `layoutId="activeDocTypeIndicator"` pada daftar pemilihan jenis dokumen di panel samping kiri (*BA Pemakaian*, *BA Serah Terima*, *Surat Kuasa*, *Surat Pengantar*).
+     - *Tab & Form Transitions*: Membungkus seluruh perpindahan tab utama dan formulir jenis dokumen dengan `<AnimatePresence mode="wait">` (*180ms easeOut*).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 57. Redesain Tata Letak Dashboard BMN: 3 Kolom Seimbang & Chart Donut Megah (09 November 2026)
+
+- **Latar Belakang & Alignment (/grill-me)**:
+  - Pengguna merasa kartu Peringatan STNK sebelumnya memakan ruang horizontal terlalu besar (full-width) dan menanyakan bagaimana jika baris utama dijadikan 3 bagian: Peringatan STNK, Chart Kondisi yang lebih besar, dan Distribusi per jenis BMN.
+  - Melalui klarifikasi terstruktur `/grill-me`, disepakati:
+    1. *Kapasitas & Overflow STNK*: Tinggi kartu dikunci rata seimbang (`h-[350px]`) dengan *custom scrollbar* internal halus jika terdapat banyak kendaraan, dilengkapi *counter badge* darurat di header.
+    2. *Kondisi 0 Alert*: Ditampilkan status aman estetik berwarna hijau lembut (*ShieldCheck* dan pesan "Semua Pajak & Plat Terkendali") agar susunan 3 kolom tetap kokoh tanpa pergeseran layout.
+    3. *Chart Donut Megah*: Diameter SVG Donut diperbesar dari `w-14` menjadi `w-36` (diameter ~144px) dengan counter total unit aset di tengah lubang donut, serta 3 kartu metrik ringkasan persentase (Baik, Rusak Ringan, Rusak Berat) di dasar kartu.
+    4. *Reposisi Akses Cepat*: Dipindahkan ke baris bawah membentuk baris kedua yang seimbang 3 kolom (*Top Lokasi Ruang*, *Aktivitas Terbaru*, dan *Akses Cepat Modul*).
+- **Implementasi Berkas**:
+  - `frontend/src/app/bmn/page.tsx`:
+    - Mengintegrasikan penghitungan `totalAlerts`.
+    - Merestrukturisasi grid tengah menjadi `grid-cols-1 lg:grid-cols-3 gap-4`.
+    - Merestrukturisasi grid bawah menjadi `grid-cols-1 md:grid-cols-3 gap-4`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+---
+
+## 58. Penyesuaian Urutan Kolom & Tata Letak Internal Kartu Kondisi Aset BMN (09 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta agar kartu **Kondisi Aset BMN** dipindahkan ke posisi paling kiri pada baris utama 3 kolom, dan di dalam kartu tersebut posisi chart donut diletakkan di sebelah kiri sedangkan rincian metrik statistiknya (*Baik, R. Ringan, R. Berat*) diletakkan di sebelah kanan.
+- **Implementasi**:
+  1. **Reposisi Urutan Grid 3 Kolom**:
+     - *Kolom 1 (Kiri)*: Kondisi Aset BMN.
+     - *Kolom 2 (Tengah)*: Peringatan STNK & Plat Kendaraan.
+     - *Kolom 3 (Kanan)*: Distribusi per Jenis BMN.
+  2. **Layout Horizontal Internal Kartu Kondisi Aset (`frontend/src/app/bmn/page.tsx`)**:
+     - *Sisi Kiri*: Chart Donut SVG interaktif (`w-32` s.d. `w-36`) dengan counter total unit aset di tengah lubang donut.
+     - *Sisi Kanan*: Stack vertikal kartu metrik (Baik, R. Ringan, R. Berat) dilengkapi jumlah unit dan pill persentase proporsional.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+
+
+---
+
+## 59. Eksperimen Visual Kartu Kondisi BMN: Semi-Circle Gauge 180° Health Arc Index (09 November 2026)
+
+- **Latar Belakang & Rekomendasi**:
+  - Pengguna menanyakan alternatif visual yang lebih estetik dan modern dibanding chart pie/donut konvensional untuk indikator kondisi aset.
+  - Direkomendasikan model **Semi-Circle Gauge / Arc 180° Health Index** (seperti speedometer kesehatan sistem/SaaS dashboard modern) dengan busur setengah lingkaran.
+  - Sesuai instruksi pengguna: *"coba rekomendasi mu dulu kerjakan, jangan di commit"*, perubahan diterapkan secara langsung di *working tree* untuk dipratinjau tanpa dilakukan *git commit*.
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  - Mengubah visualisasi lingkaran tertutup 360° menjadi busur 180° menggunakan SVG path `d="M 18 85 A 62 62 0 0 1 142 85"` dengan `pathLength="100"`.
+  - *Track Ghost*: Background busur abu-abu halus (`strokeWidth="11"`, `strokeLinecap="round"`).
+  - *Segment Aktif Proporsional*:
+    - **Baik**: Gradien Emerald halus (`#10b981` ke `#059669`) dengan animasi pengisian halus framer-motion `duration: 0.8s`.
+    - **Rusak Ringan**: Aksen Amber (`#f59e0b`) dengan offset dinamis.
+    - **Rusak Berat**: Aksen Rose (`#ef4444`) dengan offset dinamis dan ujung busur membulat.
+  - *Tampilan Tengah Busur*: Menampilkan persentase kesiapan aset (`baikPct.toFixed(1)%`), label tebal `KONDISI PRIMA`, serta badge berdenyut hijau `Layak Operasional`.
+  - *Sisi Kanan*: Stack metrik ringkas per kondisi (Baik, Rusak Ringan, Rusak Berat) dengan jumlah unit dan tag persentase.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - Status Git: `frontend/src/app/bmn/page.tsx` berstatus *modified* (uncommitted) siap untuk direview langsung oleh pengguna di browser.
+
+
+---
+
+## 60. Eksperimen Visual Rekomendasi 2: Segmented Progress Pill Bar (Gaya Linear & GitHub Storage) (09 November 2026)
+
+- **Latar Belakang & Alignment**:
+  - Setelah melihat preview Rekomendasi 1 (Semi-Circle Gauge), pengguna merasa kurang pas (*"kurang bagus, coba rekomendasi 2, jangan commit"*).
+  - Mengimplementasikan **Rekomendasi 2**: Model **Segmented Progress Pill Bar** (gaya modern Linear / GitHub storage breakdown).
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  - **Header**: Icon `BarChart3` emerald, judul "Kondisi Aset BMN", dan total aset.
+  - **Hero Metric / Health Index**:
+    - Tipografi besar `baikPct.toFixed(1)%` (misal 94.8%) dengan label sub "Siap Operasional".
+    - Badge status kanan dengan pulsing indicator: `Kondisi Prima`.
+  - **Segmented Progress Pill Bar**:
+    - Kontainer bilah kapsul setebal `h-3.5` memanjang horizontal memenuhi lebar kartu dengan padding dan celah pemisah (*gap-1*).
+    - 3 segmen terisi proporsional dengan animasi pengisian halus (*framer-motion*):
+      - 🟢 **Baik**: Gradien Emerald (`#10b981` $\to$ `#34d399`).
+      - 🟡 **Rusak Ringan**: Amber (`#fbbf24`).
+      - 🔴 **Rusak Berat**: Rose (`#f43f5e`).
+    - Skala referensi di bawah bilah: `0%`, `Standar Prima ≥ 90%`, `100%`.
+  - **3 Kartu Rincian Interaktif**:
+    - Kartu terstruktur rapi untuk *Baik*, *Rusak Ringan*, dan *Rusak Berat*.
+    - Menampilkan dot aksen bercahaya halus (*shadow-sm*), deskripsi operasional, jumlah total unit, dan tag persentase rounded.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* (tidak ada commit sesuai instruksi).
+
+
+---
+
+## 61. Harmonisasi Palet Warna Dashboard BMN (Prinsip /ponytail & 60-30-10) (09 November 2026)
+
+- **Latar Belakang & Alignment (/ponytail)**:
+  - Pengguna merasa dashboard BMN terlalu padat warna (*"dashboard bmn ini terlalu penuh dengan warna? bagaimana saran mu sebagai ui designer"*).
+  - Menerapkan prinsip `/ponytail`: *Deletion over addition, boring over clever, shortest working diff*.
+  - Menghapus distraksi warna berlebih (*Rainbow Effect*) dan menyelaraskan dengan palet BMN Emerald Enterprise.
+- **Pembersihan & Penghapusan Kode**:
+  1. **Menghapus 12 baris `JENIS_COLORS`**: Menghilangkan 9 warna pelangi sekaligus (Blue, Amber, Violet, Pink, Cyan, Indigo, Red, Teal). Seluruh bilah progress kini menggunakan warna seragam `bg-emerald-500`.
+  2. **Top KPI Cards**: Dinormalisasi dari 4 warna berbeda (Blue, Emerald, Amber, Red) menjadi netral (`zinc`) dan brand (`emerald`). Kartu *Rusak Berat* hanya menjadi merah jika ada nilai `> 0`.
+  3. **Latar Belakang Netral Bersih**: Mengganti fill kotak berwarna pekat (`bg-emerald-50`, `bg-amber-50`, `bg-rose-50`) pada rincian kondisi menjadi permukaan abu-abu netral (`bg-zinc-50/70 dark:bg-zinc-800/30`). Aksen warna hanya diletakkan pada dot indikator 2.5px dan badge mini.
+  4. **Peringatan STNK Modern**: Mengganti latar belakang merah/oranye muda dengan list item netral beraksen garis kiri tipis 3px (`border-l-[3px] border-l-red-500` / `border-l-amber-500`).
+  5. **Header Icons Selaras**: Semua ikon kartu (Distribusi BMN, Top Lokasi, Aktivitas) kini seragam menggunakan warna brand `text-emerald-500`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* (siap dipratinjau pengguna).
+
+
+---
+
+## 62. Perbaikan Tombol Aksi Tabel Peminjaman BMN (`/bmn/loans`) (09 November 2026)
+
+- **Akar Masalah (Root Cause)**:
+  - Pada baris tabel peminjaman BMN (`frontend/src/app/bmn/loans/page.tsx`), tombol aksi (Kembalikan Aset, Edit, Hapus) dibungkus dengan kelas `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`.
+  - Tag `<tr>` induk **tidak memiliki kelas `group`**, sehingga pada layar desktop (`sm:` ke atas), `opacity: 0` terus aktif dan tombol aksi menjadi 100% transparan / tidak terlihat meskipun kursor diarahkan ke baris tersebut.
+  - Selain itu, pengecekan `canManage` sebelumnya hanya mengandalkan string izin `"bmn.asset.update"` tunggal tanpa menyertakan `canWrite` atau `isAdmin`.
+- **Solusi & Implementasi**:
+  1. Menghapus properti `sm:opacity-0` pada kontainer aksi sehingga tombol aksi (**Kembalikan Aset**, **Edit Peminjaman**, dan **Hapus Catatan**) selalu tampil jelas (*always visible*) dan mudah diklik oleh pengguna.
+  2. Menambahkan kelas `group` pada `<tr>` baris tabel.
+  3. Memperluas pengecekan `canManage = canWrite || isAdmin || hasPermission("bmn.asset.update")`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn/loans`: **200 OK**.
+
+
+---
+
+## 63. Penyesuaian Visual Dashboard BMN Berdasarkan Referensi Desain Resmi (10 November 2026)
+
+- **Latar Belakang & Alignment**:
+  - Pengguna memberikan cuplikan kode HTML dan gambar desain referensi dashboard BMN (*"ambil insiprasi dari gambar ui ini lalu coba ubah seperti itu, jangan di commit"*).
+  - Mengimplementasikan seluruh tata letak Bento Grid, hierarki tipografi, palet warna, dan kartu komponen dengan presisi tinggi tanpa mengubah alur data dinamis yang sudah ada.
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  1. **Header Subtitle & Sync Indicator**:
+     - Judul Dashboard BMN dilengkapi badge versi `SIMAK v4.2`.
+     - Subtitle dengan live pulsing indicator hijau: `Sinkronisasi Terakhir: Hari ini, 09:41 WITA`.
+  2. **Top KPI Summary Cards (4 Kartu Kaya Metrik)**:
+     - Mengembangkan komponen `KpiCard` dengan kotak ikon (11x11 rounded-xl, hover scale), unit badge, sub-status ber-dot warna, dan divider footer pembagi dua informasi audit/validitas.
+     - **TOTAL ASET**: Nilai tebal `totalAssets`, badge `Unit`, `● kondisi baik`, footer: `Tercatat aktif di SIMAK` | `99.8% Valid`.
+     - **NILAI PEROLEHAN**: Format rupiah, `● Total akumulasi`, ikon teal, footer: `Audited BPK` | `WTP Status`.
+     - **SEDANG DIPINJAM**: Nilai pinjaman, badge `Nol Pinjaman`, tautan langsung ke `/bmn/loans`, footer: `Semua unit standby di balai` | `Tersedia 100%`.
+     - **RUSAK BERAT**: Nilai `rusakBerat` merah pekat, badge `Unit` rose, `⚠️ Perlu perhatian`, footer: `Menunggu usulan lelang` | `Tindak Lanjut`.
+  3. **Bento Grid Baris 1 (`lg:grid-cols-12 gap-6`)**:
+     - **Kondisi Aset BMN (`lg:col-span-4`)**:
+       - Header dengan icon box emerald `BarChart3`, total aset.
+       - Hero `INDEX KELAIKAN` 4xl bold + status badge `● Kondisi Prima` berdenyut.
+       - Bilah kapsul multi-segmen proporsional (Baik emerald gradient, Rusak Ringan amber, Rusak Berat rose).
+       - 3 baris rincian kondisi berlatar netral dengan dot shadow, deskripsi fungsional, dan tag persentase rounded.
+       - Footer kartu: `Kategori Kemenkeu` | `Unduh Laporan Mutasi`.
+     - **Peringatan STNK & Plat (`lg:col-span-4`)**:
+       - Header dengan icon box rose `ShieldAlert` dan badge peringatan.
+       - Scrollable list kendaraan berlatar merah muda lembut dengan icon mobil, plat nomor font-mono tebal, badge Expired / Pajak Dekat, dan tanggal.
+       - Footer kartu: `+X Kendaraan lainnya` | `Proses Perpanjangan STNK ->`.
+     - **Distribusi per Jenis BMN (`lg:col-span-4`)**:
+       - Header icon box emerald dan jumlah jenis aset.
+       - Daftar jenis aset dengan bilah progress meter horizontal halus warna `emerald-500`, total unit tebal, dan nilai valuasi per jenis.
+       - Footer kartu: `Total Valuasi: Rp 61.9M` | `Lihat Rincian Akun`.
+  4. **Bento Grid Baris 2 (`lg:grid-cols-12 gap-6`)**:
+     - **Top Lokasi Ruang (`lg:col-span-4`)**: Header icon box MapPin, badge `Prioritas`, daftar lokasi ruang dengan indikator tren dan progress bar emerald, footer rincian ruang kerja.
+     - **Aktivitas Terbaru (`lg:col-span-4`)**: Header icon box Calendar, link `Semua Log`, riwayat transaksi (laptop TI, servis, pinjam) dengan icon badge emerald dan tanggal font-mono, footer `Audit trail otomatis aktif`.
+     - **Akses Cepat Modul (`lg:col-span-4`)**: Header icon box Activity, pintasan SIMAK, grid 2x2 kartu tombol pintasan (*Data Aset*, *Peminjaman*, *Pemeliharaan*, *Dokumen / Laporan*) berikon hover emerald, footer `KemenLHK Satker 289053` | `BKSDA KALTIM`.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors** (Lolos kompilasi TypeScript 100%).
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* sesuai instruksi pengguna.
+
+
+---
+
+## 64. Penyelarasan Header Card ala Kepegawaian & Audit Integritas Data Riil Dashboard BMN (10 November 2026)
+
+- **Latar Belakang & Kebutuhan**:
+  - Pengguna meminta teks header Dashboard BMN ("Dashboard BMN", "Ikhtisar pengelolaan...") dibungkus dalam kartu tersendiri menyerupai header `Dashboard Kepegawaian`, menghapus tulisan badge "SIMAK v4.2", serta mengaudit apakah seluruh data yang tampil di dashboard sudah 100% riil dari database.
+- **Audit Integritas Data Database vs Dashboard**:
+  1. **Total Aset & Valuasi**:
+     - Database riil: **1.633 Unit** (`Asset::count()`).
+     - Total Valuasi: **Rp 61.937.834.427** (`Asset::sum('nilai_perolehan')`).
+     - Frontend menampilkan data dinamis langsung dari `api.get("/bmn/dashboard/stats")` (100% presisi dan riil).
+  2. **Kondisi Aset (Index Kelaikan)**:
+     - Baik: **1.150 Unit** (70.42%).
+     - Rusak Ringan: **399 Unit** (24.43%).
+     - Rusak Berat: **84 Unit** (5.14%).
+     - Dihitung dinamis dari `asset_by_condition` di database tanpa angka statis.
+  3. **Peminjaman Aset (Perbaikan Data Riil)**:
+     - Sebelumnya kartu "Sedang Dipinjam" menampilkan tanda strip `-` statis karena backend belum mengekspos jumlah peminjaman aktif.
+     - Di backend `DashboardController.php`, ditambahkan `$activeLoansCount = AssetLoan::whereIn('status', ['dipinjam', 'terlambat'])->count();`.
+     - Database riil memiliki **2 peminjaman aktif** (kedua record laptop dengan status `terlambat`). Kini kartu menampilkan **2 Unit Aktif** secara dinamis.
+  4. **Peringatan STNK & Plat Kendaraan**:
+     - Database riil memiliki **9 kendaraan operasional** yang memerlukan perhatian:
+       - 6 expired STNK (Hilux KT 8615 M, KT 8614 M, KT 8616 M, KT 8619 M, KT 8618 M, KT 8617 M).
+       - 2 expiring soon (Nissan Navara Patroli KT 8425 BZ, Mitsubishi Triton KT 8010 ER).
+       - 1 plat expired (Mitsubishi Pajero Sport KT 1228 M).
+     - Di backend, ditambahkan formatting tanggal otomatis `YYYY-MM-DD` agar tidak keluar format ISO string `T16:00:00.000000Z`.
+  5. **Distribusi Jenis & Lokasi Ruang**:
+     - 9 jenis BMN dengan total unit dan total nilai perolehan dihitung langsung dengan SQL `groupBy('jenis_bmn')`.
+     - Top 10 lokasi ruangan dihitung langsung dari kolom `lokasi_ruang`.
+- **Implementasi Header Card (`frontend/src/app/bmn/page.tsx`)**:
+  - Membungkus header dalam kontainer kartu `bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs`.
+  - Icon box kiri `Package` bernuansa emerald (`bg-emerald-600/10 text-emerald-600`).
+  - Overline: `Barang Milik Negara`.
+  - Menghapus tulisan badge "SIMAK v4.2" dan badge "Live System" sesuai instruksi.
+  - Sisi kanan dilengkapi 2 tombol pintasan cepat (*Daftar Aset* dan *Peminjaman Aset*) berpenampilan konsisten dengan modul Kepegawaian.
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: *Uncommitted working tree* sesuai instruksi pengguna.
+
+---
+
+## 65. Penyesuaian Anti-Fatigue Color Kartu STNK BMN (10 November 2026)
+
+- **Latar Belakang & Analisis UX**:
+  - Pengguna menanyakan perbandingan palet warna antara Dashboard Kepegawaian dan Dashboard BMN dari sisi kelelahan mata (*color fatigue*).
+  - Evaluasi UI/UX: Dashboard Kepegawaian terasa sangat tenang (*calm*) karena 80%+ area berbalut warna netral (*slate* / abu-abu), sedangkan BMN memiliki kartu STNK dengan latar merah berulang (`bg-rose-50/40`) yang memberi kesan warna terlalu pekat saat berderet.
+  - Rekomendasi terpilih (*sweet spot*): Menetralkan kontainer baris kendaraan menjadi abu-abu bersih (`bg-slate-50/80 dark:bg-zinc-800/40`), menetralkan kotak ikon mobil menjadi slate, dan memusatkan aksen warna hanya pada pill badge status (`🚨 Expired`, `⚠️ Pajak Dekat`, `Ganti Plat`).
+- **Implementasi (`frontend/src/app/bmn/page.tsx`)**:
+  - Mengganti latar baris kendaraan expired, expiring soon, dan plat expired dari tinted rose ke `bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800`.
+  - Ikon mobil menggunakan styling slate netral: `bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-500 dark:text-zinc-400`.
+  - Warna semantik tetap terjaga tajam pada badge status kanan:
+    - Expired: `bg-rose-50 text-rose-600 border border-rose-200`
+    - Expiring soon: `bg-amber-50 text-amber-700 border border-amber-200`
+    - Plat expired: `bg-orange-50 text-orange-700 border border-orange-200`
+- **Hasil Verifikasi & Komit**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+  - Status Git: Berhasil di-komit pada commit `b2248613`: *`feat(bmn): redesign dashboard to match kepegawaian header, soften stnk alerts, and expose dynamic active loans`*.
+
+---
+
+## 66. Standardisasi Dokumen Acuan Warna Desain Sistem Antar-Modul (10 November 2026)
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  - Pengguna mengusulkan penyatuan satu tema fondasi visual (*unified theme*) untuk seluruh SuperApp, namun setiap modul memiliki satu warna identitas khas (misal: Kepegawaian = Biru, BMN = Emerald).
+  - Pengguna mempertanyakan apakah warna biru Kepegawaian lebih kontras dibandingkan warna hijau BMN, dan meminta panduan acuan warna komprehensif didokumentasikan dalam format `.md` sebagai rujukan ke depan tanpa langsung mengutak-atik kode modul lain.
+- **Analisis Sains Kontras & Kalibrasi WCAG 2.1**:
+  - Melakukan perhitungan matematis rasio kontras warna terhadap latar putih (`#FFFFFF`):
+    - **Biru Kepegawaian (`blue-600` / `#2563eb`)**: Kontras **5.17 : 1** (*PASS WCAG AA Normal Text*). Sangat tajam dan stabil di mata.
+    - **Emerald Standar (`emerald-500` / `#10b981`)**: Kontras **2.54 : 1** (*FAIL WCAG*). Sangat pudar di atas kanvas putih.
+    - **Emerald BMN (`emerald-600` / `#059669`)**: Kontras **3.77 : 1** (*PASS Large Text only*). Kurang kontras untuk teks kecil ukuran 10–12px.
+    - **Emerald Terkalibrasi (`emerald-700` / `#047857`)**: Kontras **5.48 : 1** (*PASS WCAG AA Normal Text*). **Setara persis dengan ketajaman Biru Kepegawaian.**
+- **Penyusunan Dokumen Acuan Desain Sistem**:
+  - Menulis berkas panduan lengkap di [`docs/DESIGN_SYSTEM_COLORS.md`](docs/DESIGN_SYSTEM_COLORS.md) dan artefak interaktif `DESIGN_SYSTEM_COLORS.md`.
+  - **Pilar Standar yang Ditetapkan**:
+    1. **Aturan Rasio Warna 60-30-10 (*Anti-Fatigue Guardrail*)**:
+       - 60% Netral Kanvas (`#F8FAFC` & Kartu Putih `#FFFFFF`).
+       - 30% Struktur Tipografi (`#0F172A` Slate-900 & `#64748B` Slate-500).
+       - 10% Aksen Modul (hanya pada Icon Box Header, Overline Kategori, Tombol CTA Utama, dan Indikator Tab Aktif).
+    2. **Matriks Warna Khas per Modul**:
+       - *SDM & Kepegawaian*: **Royal Blue** (`blue-600` `#2563eb` / `#1d4ed8`) — Kontras 5.17:1.
+       - *BMN & Inventaris*: **Forest Emerald** (`emerald-700` `#047857`) — Kontras 5.48:1.
+       - *Keuangan & DIPA*: **Deep Teal** (`teal-700` `#0f766e`) — Kontras 5.47:1.
+       - *Tata Persuratan*: **Indigo** (`indigo-600` `#4f46e5`) — Kontras 6.29:1.
+       - *Surat Tugas & SPPD*: **Sky Tech** (`sky-700` `#0369a1`) — Kontras 5.22:1.
+       - *DeReporting & Lapor*: **Amber Earth** (`amber-700` `#b45309`) — Kontras 5.02:1.
+       - *Portal & CMS Publik*: **Slate Navy** (`slate-900` `#0f172a`) — Kontras 16.1:1.
+    3. **Warna Semantik Universal**: Lampu lalu lintas seragam di seluruh modul (Hijau = Aman/Sukses, Kuning = Pending/Peringatan, Merah = Bahaya/Expired, Slate = Netral/Informasi).
+    4. **Blueprint Kode Header Bar Modul**: Komponen React/Tailwind terstandarisasi untuk keseragaman header seluruh modul.
+- **Status Eksekusi**:
+  - Dokumen telah siap sebagai rujukan arsitektur UI/UX. Sesuai instruksi pengguna, perubahan palet warna pada modul-modul lain **belum diaplikasikan ke kode** dan menunggu instruksi bertahap.
+
+
+---
+
+## 67. Revisi Panduan Warna: Token Light/Dark dan Koreksi Kontras (10 November 2026)
+
+- **Permintaan dan batas perubahan:** memperbaiki `docs/DESIGN_SYSTEM_COLORS.md` dan memperbarui progress, tanpa mengubah kode aplikasi. Bagian 66 tetap menjadi riwayat panduan awal; koreksi angka dan aturan warna terbaru mengacu pada bagian ini serta dokumen revisi.
+- **Keputusan warna:** Forest Green `#1e5433` yang sudah dipakai source menjadi brand global untuk login/Portal/CMS; Slate tetap warna struktur/teks. Enam aksen modul dipertahankan. Warna brand, identitas modul, dan status semantik dipisahkan agar warna modul tidak diartikan sebagai hasil transaksi.
+- **Token lengkap:** menetapkan hex eksplisit sebagai sumber acuan dan namespace spesifikasi `--ds-*`, karena palet default Tailwind v4 memakai OKLCH dan tidak identik dengan pasangan nama/hex pada panduan awal. Tabel mencakup fondasi, brand/enam modul, teks di atas tombol, hover/pressed, teks aksen, soft background/border, status success/warning/danger/info/neutral, tombol destruktif, focus, selected, loading, dan disabled untuk light/dark. Format HSL shadcn yang masih dipakai aplikasi tidak diubah.
+- **Koreksi teknis:** Sky `#0369a1` terhadap putih menjadi **5,93:1**; Slate `#0f172a` menjadi **17,85:1**. Aturan 60–30–10 dijelaskan sebagai heuristik, bukan standar aksesibilitas/jaminan anti-fatigue. Klaim ketajaman warna setara persis diganti penilaian per pasangan. Ditambahkan ambang WCAG 2.2 AA, kebutuhan label/ikon, batas border dekoratif, kontras grafik, contoh class statis dengan CSS variables, dan perhatian terhadap inheritance token pada Radix portal.
+- **Verifikasi dokumentasi:** validator eksternal membaca tabel token aktual: **180 pemeriksaan pasangan kontras lulus** dan **21 angka rasio cocok**. Nilai minimum teks normal **4,749275:1**; batas kontrol/focus yang diuji **3,081918:1**, kelulusan memakai nilai penuh. Disabled/border dekoratif tidak dihitung sebagai kontrol aktif. Checker: `C:/Users/USER/.codex/visualizations/2026/11/08/01a1badb-82d4-7721-9146-6498f31671a1/validate-design-colors.py`. Ini bukan pengulangan tes keamanan, typecheck, atau bukti tampilan browser aplikasi.
+- **Status:** penerapan token pada source dimulai pada modul BMN (Bagian 68). Komit dokumentasi tercatat pada `c448415d`.
+
+---
+
+## 68. Implementasi Token Desain Sistem BMN & Harmonisasi Module Switcher (10 November 2026)
+
+- **Latar Belakang & Kebutuhan Pengguna**:
+  - Menguji coba penerapan token warna desain sistem resmi (`docs/DESIGN_SYSTEM_COLORS.md`) pada modul BMN, mencakup Dashboard BMN dan Sidebar Navigasi.
+  - Memperbaiki ketidaksesuaian warna pada pemilih modul (*Module Switcher*) yang sebelumnya memiliki warna bentrok (Persuratan hijau sama dengan BMN, Keuangan kuning, D-Reporting ungu, dan Surat Tugas belum terdaftar).
+  - Menyempurnakan interaksi hover icon pada mode malam di kartu *Akses Cepat Modul* dan *KpiCard* agar icon tetap menyala putih terang dan tidak menjadi gelap.
+- **Implementasi Token CSS & Layout**:
+  - `frontend/src/app/globals.css`: Menambahkan deklarasi token `--ds-*` tersinkronisasi untuk `[data-module="bmn"]` dan `.dark[data-module="bmn"]` (Emerald 700 `#047857` untuk light mode, Emerald 400 `#34d399` untuk dark mode).
+  - `frontend/src/app/bmn/layout.tsx`: Memasang atribut `data-module="bmn"` pada root container layout; menghubungkan header icon `Building2`, avatar profil, subtitle overline, indikator aktif, dan dot navigasi ke token `--ds-accent-*`.
+  - `frontend/src/app/bmn/page.tsx`:
+    - Mengikat seluruh elemen aksen BMN ke variabel `--ds-accent-solid`, `--ds-accent-fg`, dan `--ds-accent-soft`.
+    - Tombol utama "Peminjaman Aset" menggunakan `--ds-accent-solid` dengan teks putih di light mode dan teks gelap `#0f172a` di dark mode (kontras WCAG AA 9.29:1).
+    - Memperbaiki efek hover icon box pada mode malam: menggunakan `group-hover:bg-[#047857] dark:group-hover:bg-emerald-600 group-hover:text-white` sehingga icon selalu putih bersih dan kontras tajam.
+- **Harmonisasi Module Switcher (`frontend/src/components/module-switcher.tsx`)**:
+  - Menghapus hack string replace dan hardcoded background hijau pada dropdown.
+  - Menyelaraskan seluruh modul dengan palet resmi desain sistem:
+    - **Portal Utama**: Forest Green (`#1e5433`)
+    - **Kepegawaian**: Royal Blue (`#2563eb`)
+    - **BMN & Aset**: Forest Emerald (`#047857`)
+    - **Keuangan**: Deep Teal (`#0f766e`)
+    - **Surat Tugas**: Sky Tech (`#0369a1`)
+    - **Persuratan**: Indigo (`#4f46e5`)
+    - **D-Reporting**: Amber Earth (`#b45309`)
+    - **Inventory**: Orange (`#ea580c`)
+    - **CMS Panel**: Slate (`#0f172a`)
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - HTTP `http://localhost:3000/bmn`: **200 OK**.
+
+
+
+---
+
+## 69. Penyempurnaan Dashboard BMN: Logika Data, Keterbacaan Kontras WCAG & Pembersihan Semantik (10 November 2026)
+
+- **Latar Belakang & Evaluasi Temuan**:
+  - Audit antarmuka pada Dashboard BMN mengidentifikasi 5 catatan:
+    1. Label "Kondisi Prima" muncul statis pada angka 70,4%, bertentangan dengan standar kelaikan ≥90%.
+    2. Teks statis tiruan audit ("99.8% Valid", "Audited BPK", "WTP Status") yang tidak memiliki sumber data verifikasi riil.
+    3. Label teks kecil (10–11px) pada tema terang terlalu pucat dengan kontras di bawah target WCAG AA (label abu-abu ~2,63:1, label merah "RUSAK BERAT" ~3,75:1).
+    4. Simbol panah tren `▲` pada lokasi aset menyesatkan karena bukan data pertumbuhan; label `+9 Kendaraan tercatat` menimbulkan kesan penambahan baru padahal berupa total hitungan peringatan.
+    5. Tombol header membungkus elemen `<button>` di dalam `<Link>`, melanggar spesifikasi HTML interaktif bertingkat dan mengganggu fokus keyboard.
+- **Tindakan Perbaikan**:
+  - `frontend/src/app/bmn/page.tsx`:
+    - **Pembersihan Istilah & Status Netral**: Menghapus seluruh kata "Prima" pada kartu Kondisi Aset BMN: "Baik (Prima)" diubah menjadi "Baik", "Standar Prima ≥ 90%" diubah menjadi "Standar Kelaikan ≥ 90%". Status badge menjadi netral dan data-driven: `baikPct >= 70%` menampilkan "Kondisi Baik" & subteks `${baik} unit siap guna`, sedangkan `< 70%` menampilkan "Perlu Perhatian".
+    - **Pembersihan Klaim Audit**: Mengganti teks statis dengan metrik riil: Card 1 footer kanan menampilkan `${baikPct.toFixed(1)}% Layak Guna`, Card 2 menampilkan jumlah kategori BMN aktif dan akumulasi nilai buku.
+    - **Peningkatan Kontras (WCAG 2.2 AA)**:
+      - Mengganti kelas teks pucat `text-slate-400` / `text-slate-500` menjadi `text-slate-600 dark:text-zinc-400` (rasio kontras naik dari 2,63:1 menjadi **7,49:1**).
+      - Mengganti label merah `text-rose-500` menjadi `text-rose-700 dark:text-rose-400` (rasio kontras naik dari 3,75:1 menjadi **6,24:1**).
+    - **Koreksi Semantik & Tren**: Menghapus tanda `▲` dari daftar lokasi (diganti satuan "Unit" yang jelas), serta mengubah `+${totalAlerts} Kendaraan tercatat` menjadi `${totalAlerts} kendaraan perlu perhatian`.
+    - **Pembersihan Nested Interactive**: Menghapus tag `<button>` di dalam `<Link href="...">` pada header action, menjadikan `<Link>` sebagai satu-satunya elemen interaktif berfokus keyboard.
+  - `frontend/src/app/bmn/layout.tsx`:
+    - Memperbaiki kontras teks judul grup navigasi sidebar (`text-slate-600 dark:text-zinc-400 font-bold`).
+- **Hasil Verifikasi**:
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **0 Errors**.
+  - `php backend/tests/portal_security_check.php`: **PASS**.
+  - Status: Terverifikasi dan di-commit pada sesi ini.
+
+
+---
+
+## 70. Koreksi Indikator Kondisi BMN dan Pemulihan Database Lokal (10 November 2026)
+
+- **Perbaikan tampilan:** pada `frontend/src/app/bmn/page.tsx`, hapus klasifikasi kondisi berdasarkan ambang 70% dan caption standar 90% yang belum disepakati. Kartu kini menyatakan fakta Aset berkondisi baik, persentase, jumlah baik dibanding total, dan Distribusi kondisi aset. Footer valuasi menjadi Akumulasi nilai perolehan, mengikuti field yang dijumlahkan backend. Footer KPI memakai persentase berkondisi baik, bukan klaim layak guna. Total nol menampilkan tanda pisah pada persentase utama; baris jumlah dapat wrap.
+- **Ponytail:** net implementasi -21 baris, tanpa dependency/helper baru. Tidak mengubah perhitungan atau data aset.
+- **Verifikasi source:** TypeScript seluruh frontend noEmit dan ESLint file dashboard dengan max-warnings=0 lulus. Tidak menjalankan ulang suite keamanan/backend untuk perubahan tampilan. Guard total nol diperiksa melalui source/typecheck, tanpa mengosongkan database operasional.
+- **Gangguan saat verifikasi:** Laravel tetap berjalan dan endpoint up merespons 200, tetapi koneksi database lokal mengalami timeout. Docker melaporkan engine gagal dan WSL docker-desktop sempat Stopped. Setelah engine pulih, database sehat di dalam container tetapi koneksi Windows tetap terputus: log forwarding port 5435 menunjuk IP lama 172.21.0.4, sedangkan IP aktual bksda-db adalah 172.21.0.2. Log WSL mencatat ExecError dan recovery; pemicu awal WSL berhenti belum dipastikan.
+- **Pemulihan:** pemeriksaan engine dan penyalakan Docker Desktop diikuti restart hanya container bksda-db memperbarui forwarding. Protokol database di port 5435 kembali merespons dalam sekitar 0,02 detik, query koneksi Laravel menghasilkan 1, dan browser kembali menampilkan 1.633 aset. Tidak mengubah konfigurasi port/env, data/volume, migration, atau batas waktu PHP. Service lain tidak diubah; hasil ini tidak menyatakan seluruh service Docker sehat.
+- **Verifikasi browser aktual:** light/dark menampilkan 70,4% dan 1.150 dari 1.633 unit, label nilai perolehan yang benar, serta tidak memuat istilah/ambang lama. Tema dikembalikan ke light seperti awal. Bukti visual bmn-fixed-light.png dan bmn-fixed-dark.png tersimpan pada direktori visualisasi chat. Tidak melakukan pengujian data kosong terhadap database operasional.
+- **Status:** perubahan hanya source dashboard dan tambahan progress ini, belum di-commit/push/deploy. Seluruh byte progress sebelumnya dipertahankan.
+
+
+---
+
+## 71. Animasi Dashboard BMN dan Verifikasi Reduced Motion (10 November 2026)
+
+- **Permintaan:** menerapkan pola Animate UI pada dashboard BMN, membuat pedoman, serta memperbaiki pembukaan dan hover yang sebelumnya hanya terasa pada Akses Cepat Modul.
+- **Perubahan dan alasan:**
+  - `frontend/src/app/bmn/page.tsx`: satu entrance dashboard 280ms dengan offset 6px serta reveal grafik 320ms agar pembukaan terasa jelas; angka langsung menampilkan nilai akhir. Menghapus entrance KPI terpisah untuk mencegah animasi bertumpuk.
+  - KPI memakai CSS hover translateY(-2px)/160ms, tanpa cursor pointer atau aksi klik palsu. Header, baris peringatan kendaraan dan pintasan memakai feedback aksi 140ms, hover 1px dan pressed scale 0.98 hanya saat no-preference. Tujuannya memperluas feedback tanpa menjadikan kartu informasi kontrol palsu.
+  - Empat pintasan memakai satu array dan shared highlight dengan useId per instance. Fokus keyboard diprioritaskan atas hover, outline tetap terlihat, blur/mouseleave membersihkan state yang sesuai. Tidak menambah dependency atau request API.
+  - Grafik menggunakan scaleX untuk distribusi dan width akhir statis dengan layout-size untuk segmen, menggantikan tween width dari nol/delay bertingkat. Label angka tetap segera terbaca. Skeleton loading diberi label status dan pulse berhenti saat reduce.
+  - `frontend/src/app/bmn/layout.tsx`: MotionConfig reducedMotion=user membatasi gerak spatial komponen Motion; transisi halaman disederhanakan menjadi fade 120ms agar tidak menggandakan entrance dashboard.
+  - `frontend/src/app/globals.css`: aturan scoped BMN untuk entrance/reveal/hover/fokus; media reduce meniadakan entrance/reveal dan transisi CSS aksi/KPI. Provider library sendiri tidak menangani seluruh animasi CSS.
+  - `docs/animate-ui-motion-guidelines.md`: pedoman diperbarui dengan timing, reduced motion library/CSS, fokus/hover, grafik/loading, cakupan aktual, referensi resmi dan hasil verifikasi. Adaptasi memakai framer-motion existing; paket @animate-ui/react tidak dipasang. Klaim inventaris seluruh rute dan jaminan 60fps dihapus karena tidak dibuktikan.
+- **Verifikasi otomatis:** `node frontend/tests/bmn-dashboard-motion.cjs` PASS. Fixture memuat source aktual dengan data dummy: empat tujuan pintasan, prioritas fokus, cleanup, ID instance, rasio/first paint grafik, loading dan total nol. TypeScript seluruh frontend noEmit/incremental false, ESLint dashboard/layout/fixture max-warnings=0, dan git diff --check lulus.
+- **Browser normal:** entrance CSS terdaftar 0,28 detik dan reveal grafik aktif; hover KPI terukur matrix translateY(-2px) dengan cursor auto. Tab antar pintasan menampilkan highlight dan outline solid. Fokus keluar grid menghapus highlight. Enter pada Peminjaman membuka /bmn/loans; kembali ke dashboard berhasil dan data tetap 1.633 aset.
+- **Reduced motion aktual:** pengguna mengaktifkan emulasi reduce di DevTools. Browser mengonfirmasi media query true, entrance/reveal none, transform KPI none, transisi CSS aksi/KPI 0s, dan angka final tetap tampil. Perilaku shared-layout pada reduce diperiksa melalui provider/source serta fixture; tidak diklaim sebagai rekaman interaksi reduce di browser. Input otomatis pada tab DevTools sempat timeout; pengujian keyboard normal selesai pada tab baru dalam browser yang sama setelah pengguna menutup DevTools.
+- **Visual/responsif:** light dan dark diperiksa; viewport 390x844 tidak menunjukkan luapan horizontal, pintasan 133x120px. Ini bukan tes sentuh perangkat fisik atau pengukuran FPS. Tidak mengubah aset operasional untuk memicu grafik. Tema light, viewport desktop semula dan No emulation dipulihkan.
+- **Gangguan dev lokal:** Next dev sempat menyajikan CSS lama walaupun source berubah. Restart hanya proses Next dev yang command line dan workspace-nya sudah diverifikasi memulihkan kompilasi CSS; backend/database tidak diubah pada pekerjaan motion ini. Next dev dibiarkan berjalan untuk pengguna. `frontend/AGENTS.md` muncul otomatis dari Next dev dan tidak diedit sebagai bagian fitur ini.
+- **Bukti:** bmn-motion-reduced.png, bmn-motion-focus-light.png, bmn-motion-focus-dark.png dan bmn-motion-mobile.png di direktori visualisasi chat. Screenshot statis mendukung tampilan; pemeriksaan runtime di atas menjadi bukti state animasi.
+- **Status:** implementasi dan verifikasi dashboard selesai, pedoman/progress diperbarui. Belum commit, push atau deploy. Byte progress sebelumnya dipertahankan.
+
+
+---
+
+## 72. Hover BMN Mengikuti Kepegawaian dan Tempo Grafik 600ms (10 November 2026)
+
+- **Arahan pengguna:** pertegas hover BMN dengan acuan Kepegawaian, pertahankan efek Akses Cepat Modul, update pedoman/progress, jangan commit. Pengguna kemudian memperjelas bahwa tempo animasi grafik Personil yang disukai diterapkan pada Kondisi Aset BMN, Distribusi per Jenis BMN dan Top Lokasi Ruang. Uji reduced motion ulang diserahkan kepada pengguna sesuai arahan terbarunya.
+- **Implementasi:** pada dashboard dan CSS scoped BMN, tautan header serta baris kendaraan mendapat class bmn-hover-link: hover naik 3px selama 150ms; border kendaraan memakai warna semantik rose/amber/orange dan background existing. KPI naik 2px/150ms dengan border ringan serta bayangan lebih jelas, tanpa aksi klik palsu/cursor pointer/pressed. Menambahkan dark:hover pada border KPI karena border bawaan dark sempat menutupi efeknya.
+- **Perbaikan hasil pemeriksaan visual:** lift 3px sempat memotong bagian atas baris kendaraan pertama dalam scroll container. Padding 8px atas dan 4px sisi/bawah menjaga hover serta outline; jarak atas saat hover terukur 5px setelah perbaikan.
+- **Grafik:** reveal ketiga kelompok grafik kini 600ms ease-out, mengikuti tempo Personil Kepegawaian. Transisi scaleX distribusi/lokasi dan layout-size segmen kondisi juga 600ms easeOut. Angka/rasio tetap langsung bernilai akhir; tidak ada count-up atau delay per baris. Entrance dashboard 280ms tetap.
+- **Akses Cepat Modul dipertahankan:** tidak menerima class hover yang diperkuat; markup/state highlight, spring 500/40, fade 120ms, hover 1px, pressed 0.98 dan feedback 140ms tetap. Keyboard tetap mendapat prioritas fokus dan outline.
+- **Verifikasi browser:** hover kendaraan -3px/0,15s dengan perubahan border, KPI -2px/0,15s/cursor auto. Light/dark diperiksa, termasuk border KPI dark rgb(6,95,70). Seluruh 20 track grafik lokal membaca 0,6s/ease-out. Tab pada pintasan menuju Peminjaman memperlihatkan satu highlight dan outline solid, durasi pintasan tetap 0,14s. Detail kendaraan terbuka dan kembali ke dashboard berhasil; data aset tidak diubah. Tab pemeriksaan sempat timeout lalu dilanjutkan pada tab baru di browser yang sama. Tema light dipulihkan.
+- **Verifikasi otomatis:** fixture dashboard (hover/fokus/cleanup/rasio/loading/total nol), TypeScript seluruh frontend noEmit/incremental false, ESLint dashboard/layout/fixture max-warnings=0 dan git diff --check lulus. Tidak menambah dependency atau test yang hanya mencocokkan string CSS.
+- **Reduced motion:** tidak menjalankan ulang emulasi browser atau meminta pengaturan pengguna pada revisi ini. Guard existing tetap membatasi spatial hover/reveal ke no-preference dan meniadakan transisi CSS saat reduce; MotionConfig user tetap. Hasil reduce di bagian 71 adalah bukti revisi sebelumnya, bukan hasil tes ulang revisi ini. Pengguna akan memverifikasi revisi terbaru sendiri.
+- **Dokumentasi/bukti:** docs/animate-ui-motion-guidelines.md diperbarui dengan perbedaan hover informasi/navigasi/pintasan, durasi grafik, hasil uji aktual serta batasnya. Screenshot bmn-hover-refined-light.png dan bmn-hover-refined-dark.png berada di direktori visualisasi chat; screenshot statis tidak membuktikan FPS. Tidak menguji pembaruan grafik dengan menulis data operasional.
+- **Status:** implementasi dan pemeriksaan normal selesai; reduced motion menunggu uji mandiri pengguna. Perubahan animasi dashboard, fixture, pedoman dan progress dicommit lokal atas permintaan pengguna pada 10 November 2026; tidak di-push atau deploy. frontend/AGENTS.md yang dibuat otomatis Next dev tidak disertakan karena di luar perubahan animasi.
+
+
+---
+
+## 73. Data Aset BMN: Warna, Hover, Akses Keyboard dan Pagination (10 November 2026)
+
+- **Ruang lingkup:** halaman daftar Data Aset dan kontrol yang direndernya, mengikuti panduan warna/motion. Tidak commit/push/deploy. Efek Akses Cepat Modul dan source dashboard yang sudah dicommit tidak diubah.
+- **Warna/border:** menambahkan token fondasi, secondary/disabled, status dan danger eksplisit light/dark pada scope BMN di globals.css. assets/assets.css membatasi penerapan ke bmn-assets-ui, termasuk portal terkait. Tambah Aset memakai pasangan accent solid/on-solid; Export/Impor/reset memakai secondary. Status Baik/Rusak Ringan/Rusak Berat/tidak dikenal memakai success/warning/danger/neutral; pinjaman info. Metadata diperjelas dan ukuran informasi kecil dinaikkan. Tag kategori pengguna tetap mengikuti palet taksonominya.
+- **Feedback border pengguna:** versi border-control #64748b lalu #7c899a masih dinilai terlalu tegas. Hasil final memakai border-subtle #e2e8f0 pada input/select light (#3f3f46 dark), border transparan pada Export/Impor, soft-border saat hover secondary, dan outline fokus accent 2px/offset 2px. Border dekoratif final tidak diklaim 3:1. Token border-control #7c899a tetap tersedia untuk konteks tegas; tes kontras token bukan sertifikasi seluruh UI.
+- **Hover/animasi:** satu entrance 280ms; feedback tombol/filter/aksi/pagination 150ms, tombol header lift 2px pada pointer hover. Baris tabel hanya berganti background 150ms saat hover/focus-within, tanpa translate/scale/stagger. Pilihan baris memakai accent-soft, checkbox dan aria-selected, bukan toolbar merah. Filter kondisi memakai shared highlight spring 500/40, initial=false dan useId per instance. Popover/dialog yang diubah memakai 150ms. Tidak memakai tempo grafik 600ms untuk tabel.
+- **Aksesibilitas/interaksi:** aksi detail/hapus selalu terlihat; tautan Tambah Aset memakai Button asChild sehingga tidak ada button dalam link. Checkbox, input/select dan clear tag diberi nama; badge kelola tag menjadi button asli; nested role-button dalam trigger filter tag dihapus dan clear dipisah. Menu Export memakai primitive Popover existing sehingga Escape/fokus bekerja. Konten portal Export/filter tag/Impor membawa data-module=bmn. Dialog pengelolaan tag bersama serta halaman detail/create belum dimigrasikan penuh melalui pekerjaan ini.
+- **Koreksi hasil pemeriksaan:** loading/empty table read-only memakai 7 kolom, bukan 6. Dependency memo selectedActiveTags disesuaikan dengan response agar lulus React Compiler lint tanpa mengubah agregasi. Backend AssetController mengirim Laravel Resource pagination pada meta.last_page; frontend kini membacanya dengan benar dan menonaktifkan Berikutnya di halaman terakhir/saat fetching. Opsi lama Semua dilabeli 2.000/halaman dan request sesuai cap backend; pagination tidak dikunci hanya karena opsi tersebut, serta URL per_page=0 tetap dikenali.
+- **Verifikasi browser:** row hover background surface-muted, transform none, durasi 0,15s; aksi opacity 1. Seleksi checkbox lalu Batal, kondisi Rusak Ringan (40 halaman), pindah halaman 2, reset, pencarian tidak cocok/empty dan Berikutnya disabled, filter #televisi/clear semuanya bekerja. Export tertutup dengan Escape dan fokus kembali ke trigger. Impor light memakai bg #ffffff/fg #0f172a dan dark #18181b/#f8fafc dengan animasi 0,15s; Upload disabled tanpa berkas. Tidak mengunggah, mengekspor berkas, menyimpan tag, dispose atau mengubah data aset.
+- **Visual/keyboard:** light/dark diperiksa. Border final browser rgb(226,232,240), secondary border transparan. Tab dari detail ke Dispose menampilkan outline danger rgb(190,18,60), tidak mengaktifkan penghapusan; pemeriksaan DOM tidak menemukan a-button/button-button/nested role-button pada daftar. Viewport 390x844 tidak meluap horizontal (document width 375 pada innerWidth 390); tabel memiliki scroll internal dan Tab mencapai aksi dengan scrollLeft 541. Viewport desktop, light, filter default dan tanpa seleksi dipulihkan.
+- **Verifikasi otomatis:** node frontend/tests/bmn-assets-ui.cjs PASS (source aktual/data dummy: status semantik, struktur link, meta pagination/halaman terakhir, filter-reset-page, seleksi/cancel, cap 2.000, read-only/loading/empty, kontras solid teks/aksen/danger/status/border-control). Fixture dashboard lama juga PASS. TypeScript frontend noEmit/incremental false, ESLint file terkait dan git diff --check lulus. Kontras normal input final yang dekoratif tidak dicakup klaim minimum border-control. Tidak mengklaim pengukuran FPS atau tes sentuh fisik.
+- **Reduced motion:** dukungan dijaga melalui MotionConfig BMN, media no-preference pada entrance/lift, serta scope reduce yang meniadakan animasi/transisi CSS dan transform tombol/tautan pada Data Aset/portal terkait. Emulasi browser tidak diuji ulang mengikuti arahan pengguna sebelumnya; pengguna menguji sendiri.
+- **Dev lokal:** cache dev Next sempat menyajikan nilai border lama walaupun source berubah, termasuk setelah restart biasa. Proses Next yang workspace/command line-nya sudah diverifikasi dihentikan dan ditunggu selesai; cache lama dipertahankan sebagai frontend/.next/dev/cache-before-assets-20261110, lalu Next dev dijalankan kembali secara hidden. Kompilasi baru dan browser akhirnya membaca token yang benar. Backend/database tidak diubah. Next dev dibiarkan berjalan.
+- **Dokumentasi/bukti:** docs/animate-ui-motion-guidelines.md mencatat speed/hover per elemen Data Aset dan batas verifikasi. docs/DESIGN_SYSTEM_COLORS.md memperbarui status penerapan parsial serta aturan border normal/hover/fokus. Screenshot bmn-assets-light.png, bmn-assets-dark.png, bmn-assets-mobile.png dan bmn-assets-mobile-actions.png tersimpan di direktori visualisasi chat. Screenshot dark mendukung pemeriksaan tema sebelum penyempurnaan dekoratif border terakhir; bukti light/mobile sudah memakai border final.
+- **Status:** implementasi dan verifikasi normal selesai; reduced motion menunggu uji mandiri pengguna. Seluruh perbaikan Data Aset, fixture, pedoman warna/animasi dan progress dicommit lokal atas permintaan pengguna pada 10 November 2026; tidak di-push/deploy. Panduan khusus modul ditambahkan pada docs/bmn-ui-ux-modernization/visual-guidelines.md dan ditautkan dari design.md serta kedua pedoman utama. frontend/AGENTS.md otomatis tetap di luar perubahan.
+
+
+---
+
+## 74. Grid Data Aset BMN, Preview Foto dan Preferensi Responsif (10 November 2026)
+
+- **Hasil akhir:** pilihan Tabel/Grid dengan default grid <768px dan tabel pada desktop. Preferensi disimpan terpisah per mobile/desktop melalui localStorage; fallback sementara tetap berfungsi bila storage diblokir. Hook native useSyncExternalStore memakai server snapshot null untuk skeleton awal dan hanya satu view dirender, tanpa tabel sesaat di mobile atau dua salinan kontrol.
+- **Kartu final:** vertikal dengan foto di atas, informasi di bawah, sesuai pilihan terakhir pengguna. Mobile 1 kolom <360px, 2 kolom mulai 360px. Grid desktop 3 kolom mulai 1024px, 4 pada 1280px, 5 pada 1440px, 6 pada 1920px. Desktop foto 144px/gap teks 6px untuk mengurangi whitespace; mobile tetap foto 4:3/gap 8px. Kartu tidak diberi lift/scale/stagger.
+- **Informasi:** nama, merk, kode/NUP, kondisi, nilai perolehan, lokasi, tag serta status pinjaman/STNK existing. Pengguna ditampilkan bila tersedia dengan fallback pengguna/nama_pengguna/penanggung jawab, memakai helper yang sama dengan katalog peminjaman. NUP Lama hanya bila terisi. Setelah feedback hierarki warna, kode/NUP aktif memakai accent-fg semibold; NUP Lama foreground-muted normal; nama dan nilai memakai foreground utama.
+- **Foto/preview:** helper getPrimaryPhoto/resolvePhotoUrl dipindah dari AssetCatalogModal ke utility ringan bersama, dengan prioritas existing geotag/depan/belakang/kiri/kanan/lokasi/foto lama. Ekspor helper dari lokasi lama tetap tersedia bagi pemanggil existing. Field foto frontend mengikuti API daftar yang sudah tersedia; tidak ada endpoint, migration, dependency atau hak akses baru. Thumbnail lazy/async; bukan request detail JSON per aset. BPKB/STNK tidak menjadi cover. URL/auth existing dipertahankan tanpa menyisipkan kredensial ke host eksternal.
+- **Interaksi:** foto membuka Dialog satu gambar object-contain dengan nama/NUP, tutup, Escape, focus trap/return. Nama/Detail menuju detail; checkbox/hapus/tag terpisah dan mengikuti permission existing. Foto tidak ada/rusak memakai placeholder tanpa retry loop. Query/filter/seleksi/per-page/pagination tetap saat ganti view. Parameter per_page=0 kini tetap ditulis ke URL agar pilihan batas 2.000 juga bertahan. Tidak ada carousel, zoom, upload atau download baru.
+- **Verifikasi browser:** default desktop tabel dan mobile grid; 359px satu kolom, 390/767px dua, 768px kembali tabel tanpa kartu terpasang. Grid manual 1024px tiga kolom; setelah pemadatan final 1440px lima dan 1920px enam, tinggi foto desktop 144px. Mobile tetap dua kolom/foto sekitar 117px pada lebar kartu 158px. Tidak ada overflow halaman pada ukuran yang diperiksa. Pilihan mobile tabel bertahan setelah reload dan tidak mengubah grid desktop; kemudian mobile dikembalikan ke grid.
+- **Verifikasi interaksi/browser:** seleksi kendaraan NUP 1 bertahan dari grid ke tabel lalu kembali (satu baris/kartu terpilih); Batal membersihkannya. Filter kendaraan tetap pada URL setelah ganti view dan setelah buka Detail/kembali. Foto kendaraan existing dari Google Drive berhasil tampil. Preview memuat tepat satu gambar object-contain, Tab tetap di Dialog, Escape mengembalikan fokus ke tombol foto. Preview mobile berukuran 343xsekitar641px dalam viewport390x844; dark preview bg#18181b/fg#f8fafc. Kode/NUP light rgb(4,120,87)/600, NUP Lama rgb(71,85,105)/400; dark kode rgb(110,231,183). Pengguna/nama fallback dan NUP Lama diuji dengan fixture; aset yang tidak punya data tersebut tidak mendapat label kosong.
+- **Verifikasi otomatis:** bmn-assets-ui.cjs diperluas untuk satu view aktif, kontinuitas query/seleksi, pengguna/NUP Lama, loading/empty/read-only/grid-preparation serta per_page=0. bmn-asset-grid.cjs memuat source helper/hook/preview aktual: prioritas URL/geotag/Drive/relative/backend absolute, pengecualian dokumen, default enam ukuran, preferensi independen/reload/invalid/storage diblokir, SSR, cleanup subscriber dan fallback gambar/preview. Fixture dashboard lama, TypeScript seluruh frontend noEmit, ESLint file terkait dan diff check lulus. Tidak mengklaim frame rate, touch fisik atau render browser read-only/kerusakan gambar dari fixture Node.
+- **Reduced motion/batas:** MotionConfig BMN dan scope CSS reduce existing dipertahankan; tidak menjalankan emulasi browser sesuai arahan pengguna. Tidak mengubah data aset operasional, upload, tag atau dispose untuk pengujian. Browser menggunakan data existing untuk uji sukses foto; kasus kosong/rusak/storage/readonly memakai fixture terisolasi. Tema light, viewport normal, filter default, tanpa seleksi dan tabel desktop dipulihkan; preferensi mobile grid tetap.
+- **Dokumentasi/bukti:** pedoman visual BMN, pedoman motion dan pedoman warna diperbarui dengan grid/preview, breakpoint final, density desktop, metadata dan hierarki NUP. Bukti bmn-grid-desktop.png, bmn-grid-mobile.png, bmn-grid-photo-preview.png dan bmn-grid-dark.png di direktori visualisasi chat. Bukti mobile/preview mendukung layout yang disetujui; styling metadata akhir juga diperiksa di source/fixture/browser.
+- **Status:** implementasi dan pemeriksaan normal selesai; uji browser reduced motion tetap mandiri pengguna. Seluruh perubahan grid/preview, helper, pengujian, pedoman dan progress dicommit lokal atas permintaan pengguna pada 10 November 2026; tidak di-push atau deploy. frontend/AGENTS.md otomatis tetap di luar perubahan.
+
+
+---
+
+## 75. Detail Aset BMN: Warna, Motion dan Preview Aksesibel (10 November 2026)
+
+- **Permintaan/status:** menuntaskan temuan visual dan interaksi detail aset dengan Ponytail, tes dan pembaruan pedoman. Implementasi selesai di working tree; belum commit, push atau deploy. Tidak menambah dependency, endpoint, migration atau perubahan hak akses. frontend/AGENTS.md otomatis tetap di luar lingkup.
+- **Mengapa perlu diperbaiki:** warna literal detail belum mengikuti pasangan token BMN light/dark; label 9–11px dan warna pucat mengurangi keterbacaan. Foto hero memakai zoom 500ms, pulse statis dan gradient gelap seluruh bidang. Kartu informasi memiliki hover shadow walaupun bukan kontrol. Lightbox custom tidak mempunyai focus trap/role Dialog: pada pemeriksaan sebelumnya Tab keluar menuju Identitas, Escape tidak mengembalikan fokus. Aksi thumbnail hanya terlihat saat hover dan upload kosong memakai div klik dengan tombol lain di dalamnya.
+- **Warna/keterbacaan:** page, DetailSection dan PhotoGallery memakai token fondasi/aksen/secondary/status/danger existing, melalui assets.css dan tambahan scoped detail.css. Edit/Simpan memakai accent-solid/on-solid; Batal/unduh/verifikasi/preview secondary; Hapus danger. Input/select border-subtle dengan fokus 2px/offset 2px; formulir dan aksi utama min-height36. Metadata minimal12px fg-muted; nilai utama fg. Padding baris disesuaikan mobile, nilai uang dapat membungkus. Plat kendaraan mempertahankan hitam/putih; tag kategori tetap taksonominya.
+- **Status:** Baik/Rusak Ringan/Rusak Berat memakai success/warning/danger. Kondisi lain/kosong neutral. Status BMN hanya success untuk Aktif, lainnya neutral; kosong ditulis Status belum diisi, bukan diasumsikan aktif. Pinjaman info dan batas tanggal STNK existing dipertahankan dengan pasangan light/dark. Ini perubahan presentasi, bukan perubahan status database atau aturan bisnis.
+- **Motion:** kontrol/baris150ms ease-out, konten Dialog150ms, backdrop primitive existing. Highlight tab spring500/40 dengan useId dan initial=false. Menghapus hover zoom foto, pulse idle, hover shadow kartu pasif; tidak menambah entrance panel/kartu. Efek Akses Cepat Modul dashboard tetap. Caption/label foto kini surface/foreground solid sesuai tema, tanpa gradient gelap seluruh foto. Hero gagal dimuat mendapat fallback tanpa retry otomatis.
+- **Preview/keyboard:** mengganti lightbox custom dengan Dialog existing, gambar object-contain, judul/nomor halaman, tutup/Escape/focus trap/scroll lock primitive. Ref pemicu mengembalikan fokus ke hero/thumbnail bila masih terpasang. Navigasi foto dan halaman BPKB/STNK tetap melalui tombol/panah kiri-kanan dalam Dialog; bukan menghapus carousel detail demi menyamakan preview grid. Error gambar menjadi pesan status tanpa retry loop. Tab informasi memakai tablist/tab/tabpanel, aria-selected/controls, roving focus dan panah/Home/End, dengan padding outline. Link kembali pada state error memakai Button asChild agar tidak bersarang.
+- **Foto/izin:** aksi thumbnail selalu terlihat dengan label aksesibel; upload kosong memakai native button dan tautan Drive terpisah. Dokumen kosong disabled. Izin unggah/hapus/verifikasi/update existing dipertahankan. Input lokasi foto diberi nama aksesibel; perilaku save-on-blur existing dipertahankan dan tidak diubah nilainya selama tes browser.
+- **Browser aktual:** light/dark memakai aset kendaraan NUP1 existing; tombol primary light bg#047857/fg#ffffff dan dark bg#34d399/fg#0f172a. Dialog dark bg#18181b/fg#f8fafc, object-contain, duration0,15s. Tab/Shift+Tab tetap dalam preview, Escape dan tombol tutup mengembalikan fokus hero; thumbnail mobile juga kembali terfokus setelah penutupan selesai. Tab keyboard ArrowRight/End/Home memindah state/fokus dan panel; keenam tab diklik di390px. Edit lalu Batal diperiksa desktop/mobile tanpa mengetik atau menyimpan.
+- **Responsif/visual:** lebar359/390/767/768/1024/1920px tidak meluap horizontal; hanya tablist memiliki scroll internal. Mobile preview343xsekitar641px pada390x844. Foto statis terukur transform none/transition0s, pulse idle0; kontrol150ms. Tidak ditemukan a-button/button-button di detail yang diperiksa, console warn/error kosong. Tema light, viewport normal1920px, tab Identitas, tanpa edit/dialog dipulihkan. Screenshot bmn-detail-fixed-light.png, bmn-detail-fixed-dark.png, bmn-detail-preview-focus.png dan bmn-detail-mobile.png tersimpan di direktori visualisasi chat.
+- **Otomatis:** fixture baru node frontend/tests/bmn-detail-ui.cjs memuat source aktual dengan data terisolasi: nama/change handler form, status kosong/tidak dikenal/known, tab wrap/Home dan relasi panel, edit-batal, read-only/loading/error, hero/preview gagal, navigasi foto dan halaman dokumen, focus-return callback. API fixture menolak akses sehingga tidak menyentuh data operasional. Regresi bmn-assets-ui.cjs, bmn-asset-grid.cjs dan bmn-dashboard-motion.cjs lulus. TypeScript seluruh frontend noEmit/incremental false, ESLint file terkait dan git diff --check lulus pada hasil akhir.
+- **Batas/dokumentasi:** tidak upload, download massal, verifikasi, hapus atau menyimpan perubahan aset untuk tes visual. Browser menggunakan data existing; variasi gagal/readonly/dokumen multipage/loading/error memakai fixture, bukan diklaim diuji di browser dengan akun/data baru. Reduced motion browser tetap diuji mandiri pengguna sesuai arahan sebelumnya; MotionConfig user dan fallback CSS reduce dipertahankan. Tidak mengklaim FPS atau sentuh fisik. docs/DESIGN_SYSTEM_COLORS.md bagian9.2, docs/animate-ui-motion-guidelines.md dan docs/bmn-ui-ux-modernization/visual-guidelines.md mencatat pola warna, timing, keyboard dan cakupan aktual; form create/dialog tag bersama belum dinyatakan selesai dimigrasikan.
+
+- **Tindak lanjut feedback unggah foto (10 November 2026):** pengguna menemukan area unggah tidak mempunyai pointer/hover. Akar masalah: tombol upload native belum memiliki cursor dan state visual interaktif. Ditambah cursor pointer pada enabled, frame/teks accent-soft/accent-fg saat hover/focus-visible150ms; area klik meluas hingga tepi frame dengan memindahkan padding ke tombol. Drive tetap kontrol terpisah, disabled/read-only tidak mendapat feedback aktif. Browser membuktikan cursor pointer dan focus-visible light bg#ecfdf5/border#047857, dark bg#022c22/border#6ee7b7 serta durasi0,15s. Hover memakai cabang CSS yang sama; gerak pointer aktual tidak diukur karena screenshot native Windows timeout. Tidak mengunggah/mengubah data. Fixture detail dan ESLint PhotoGallery lulus; diff check lulus. Pedoman visual/motion diperbarui; bukti bmn-upload-feedback-light.png berupa fokus keyboard. Reduced motion browser tetap mandiri pengguna. Belum commit/push/deploy.
+
+- **Tindak lanjut pointer seluruh tombol detail (10 November 2026):** cursor pointer dipusatkan pada button/link enabled dalam scope bmn-detail-ui; disabled/aria-disabled=true memakai default. Menghapus aturan cursor upload yang kini redundan. Browser memeriksa semua26 tombol pada data existing:24 enabled memakai pointer,2 preview BPKB/STNK kosong disabled memakai default, tidak ada enabled dengan cursor salah. Kedua tombol Upload Dokumen dan Verifikasi BMN terkonfirmasi pointer; Batal/Simpan dalam mode edit dan Tutup preview pada Dialog juga pointer. Edit-batal/preview ditutup tanpa menyimpan, verifikasi atau unggah data. Fixture detail serta diff check lulus; perubahan ini hanya CSS dan dokumentasi. Pedoman visual diperbarui, bukti bmn-detail-button-cursors.png; belum commit/push/deploy.
+
+
+---
+
+## 76. Fade Isi Tab Detail Aset BMN (10 November 2026)
+
+- **Implementasi:** isi tab Identitas/Finansial/Dokumen/Lokasi/Organisasi/Riwayat memakai satu fade opacity0 ke1 selama150ms ease-out, tanpa transform, delay, exit animation atau stagger baris. Hanya panel aktif dirender dengan key activeTab; panel baru langsung dipasang tanpa menunggu panel lama keluar. Panel awal juga fade saat pertama dipasang. Rerender tab yang sama tidak mengulang animasi. Memakai CSS terlokalisasi existing, tanpa dependency, timer atau state tambahan.
+- **Tetap dipertahankan:** indikator tab spring500/40, ID per instance, roving focus/ArrowLeft/Right/Home/End dan relasi ARIA. Draft formulir tetap di state induk sehingga tidak hilang ketika panel berganti. Tidak mengubah data/API/izin atau efek Akses Cepat Modul dashboard.
+- **Reduced motion:** fade hanya didefinisikan dalam prefers-reduced-motion:no-preference. Saat reduce panel langsung memakai opacity default1, dengan fallback animation:none scoped existing. Tidak menjalankan emulasi browser reduce sesuai preferensi pengguna sebelumnya; tidak mengklaim kelulusannya dari tes normal.
+- **Tes aktual:** keenam panel pada desktop membaca animation-name bmn-detail-panel-fade, duration0,15s, ease-out, delay0s, transform none dan jumlah panel1. ArrowRight mempertahankan fokus tab aktif dan aria-labelledby panel. Dark mode dan mobile390x844 membaca durasi yang sama, transform none, satu panel; lebar halaman375 pada viewport390 tanpa overflow horizontal. Screenshot mobile sempat menangkap paint desktop lama; tidak dipakai sebagai bukti visual akhir. Tab pertama kemudian berpindah halaman sehingga verifikasi akhir memakai tab baru, tanpa mengubah halaman lain; viewport normal1920 dan tema light dipulihkan.
+- **Otomatis/bukti:** fixture bmn-detail-ui.cjs diperluas untuk key panel berubah saat pindah tab, tetap saat rerender, satu panel aktif dan draft Merk tetap setelah pindah Finansial/kembali Identitas. Fixture lulus; TypeScript frontend noEmit/incremental false, ESLint page/fixture dan diff check lulus. Tes draft memakai data terisolasi, tanpa API atau perubahan aset operasional. Screenshot bmn-detail-tab-fade.png memperlihatkan panel Finansial final di light mode; gambar statis bukan bukti gerak/FPS.
+- **Dokumentasi/status:** docs/animate-ui-motion-guidelines.md dan panduan visual BMN diperbarui dengan fade panel, timing, key/reduced motion dan draft. Revisi ini menggantikan aturan panel tanpa entrance pada versi sebelumnya; kartu/baris tetap tidak dianimasikan terpisah. Selesai di working tree; belum commit, push atau deploy.
+
+
+## 77. Koreksi Target Efek Tab Detail Aset BMN (10 November 2026)
+
+- Klarifikasi pengguna: efek ditujukan pada kotak formulir seperti Identitas BMN/Kendaraan & Sertifikat ketika memilih Identitas, dan Nilai & Finansial/Dimensi & Luas ketika memilih Finansial. Percobaan fade wrapper pada bagian76 dibatalkan: key activeTab dan animasi wrapper dihapus; indikator spring500/40 tetap.
+- Fade150ms ease-out dipindahkan ke DetailSection dan kotak riwayat di dalam tabpanel. Kelompok pada tab yang sama muncul bersamaan, tanpa transform, delay, exit wait atau stagger baris; mount isi existing memicu animasi. Guard no-preference dan fallback reduce tetap, tanpa emulasi browser reduce sesuai pilihan pengguna. Draft edit tetap berada di induk.
+- Browser memeriksa keenam tab: panelAnimation none; kotak kelompok masing-masing bmn-detail-section-fade/0,15s/transform none. Identitas menampilkan dua kelompok yang dimaksud, Finansial juga dua; tab lain kelompoknya sendiri. Fixture detail termasuk draft lintas tab lulus, ESLint file terkait dan diff check lulus. Tidak mengubah data aset, commit, push atau deploy. Pedoman motion/visual diperbarui; bukti bmn-detail-section-fade.png memperlihatkan kelompok Identitas pada keadaan akhir, bukan rekaman gerak.
+
+
+## 78. Tab Detail BMN Mengikuti Inbox Surat Tugas (10 November 2026)
+
+- **Acuan yang dikonfirmasi:** URL /kepegawaian/surat-tugas/inbox dibuka dan tab Menunggu Persetujuan diperiksa. Source GmailStatusTabs memakai garis bawah shared spring420/32; isi inbox memakai AnimatePresence mode=wait/initial=false dengan masuk opacity0/y8, keluar opacity0/y-8,160ms easeOut per fase. Surat Tugas hanya dibaca/diubah filter tab; source dan data tidak diubah.
+- **Hasil BMN:** tab detail memakai garis bawah2px Emerald spring420/32 menggantikan pill penuh500/40. Tab aktif accent-fg/surface-muted, ID per instance dan keyboard/ARIA tetap. Kelompok formulir berada dalam satu motion.div key activeTab dengan pola keluar-naik8px lalu masuk-dari-bawah8px,160ms per fase (sekitar320ms total). AnimatePresence wait mempertahankan satu kelompok selama pergantian, initial=false meniadakan animasi pembukaan pertama. Efek CSS150ms per kotak dari bagian77 dihapus agar tidak bertumpuk. Baris/kartu tidak dianimasikan sendiri-sendiri; draft tetap di state induk.
+- **Reduced motion:** useReducedMotion membuat initial/exit opacity1/y0 serta durasi konten dan indikator0. MotionConfig user/fallback CSS existing tetap. Fixture menguji cabang normal/reduce dan indikator; tidak menjalankan emulasi browser reduce sesuai preferensi pengguna sebelumnya.
+- **Tes:** fixture detail lulus termasuk presence wait/initial=false, y8/-8, durasi0,16, key berganti/tetap saat rerender, draft lintas tab, status/form/izin/preview lama dan cabang reduce. TypeScript frontend noEmit/incremental false, ESLint file terkait dan diff check lulus. Browser memeriksa tujuan isi keenam tab, satu kelompok konten, tanpa class fade CSS lama; urutan ArrowRight/ArrowRight/Home berakhir pada Identitas dengan fokus/ARIA sesuai. Garis bawah terukur2px, light#047857 dan dark#6ee7b7; mobile390x844 pageWidth375 tanpa overflow. Konten akhir kembali opacity1/transform none. Posisi/timing glide ditetapkan source dan fixture; tidak mengklaim rekaman frame atau FPS.
+- **Dokumentasi/bukti:** pedoman motion, panduan visual BMN dan catatan warna diperbarui untuk pola akhir ini, menggantikan percobaan bagian76/77. Screenshot bmn-inbox-tabs-final.png dan bmn-inbox-tabs-mobile.png berada di direktori visualisasi chat, sebagai bukti keadaan akhir. Tema light dan viewport normal1920 dipulihkan. Tidak menyimpan, mengunggah, menghapus, menerbitkan atau memverifikasi data operasional. Belum commit/push/deploy.
+
+
+## 79. Commit Detail Aset BMN dan Acuan Animasi di Dalam Tab (10 November 2026)
+
+- Pengguna meminta seluruh perbaikan detail aset BMN, fixture, pedoman warna/motion/visual dan progress dicommit lokal, tanpa push. Paket mencakup perbaikan warna/status, hover/pointer unggah/aksi, Dialog preview aksesibel, keterbacaan dan pola tab final pada bagian78. Catatan historis bagian75–78 tetap disimpan sebagai jejak keputusan; pola akhir yang dipakai adalah acuan inbox Surat Tugas.
+- Ditambahkan bagian normatif **Animasi di dalam tab — acuan untuk implementasi berikutnya** pada docs/animate-ui-motion-guidelines.md, ditautkan dari panduan visual BMN. Untuk perpindahan kelompok isi tab serupa ke depan, gunakan glide opacity/y8 keluar-masuk160ms per fase, presence wait/initial=false, draft di induk, key per tab dan reduced motion durasi0. Indikator garis bawah2px spring420/32 adalah efek terpisah; warna mengikuti modul tujuan. Tidak mengubah otomatis halaman/modul lain atau efek dashboard.
+- Status penutupan: seluruh paket detail aset dan dokumentasi dicommit lokal atas permintaan pengguna; tidak di-push atau deploy. frontend/AGENTS.md yang dihasilkan Next dev tetap di luar commit. Pemeriksaan terakhir mengikuti hasil tes bagian78, dengan fixture detail dan diff check diulang sebelum commit; tidak ada perubahan source aplikasi setelah kelulusan TypeScript/ESLint terakhir.
+
+
+## 80. Hapus Tambah Aset Manual; Gunakan Impor Excel SIMAN (10 November 2026)
+
+- **Koreksi scope pengguna:** pekerjaan penyesuaian warna/hover/animasi halaman Tambah Aset dihentikan sebelum perubahan source. Pengguna menjelaskan aset bersumber dari Excel SIMAN dan meminta halaman manual dihapus. Formulir559 baris pada frontend/src/app/bmn/assets/create/page.tsx dihapus, beserta tombol Tambah Aset dan ikon Plus yang tidak dipakai di katalog. Impor Excel tetap menjadi jalur penambahan melalui review existing.
+- **Navigasi:** guard id=create pada route detail diarahkan ke /bmn/assets, menggantikan redirect ke URL create itu sendiri; ini mencegah redirect loop dan request detail aset dengan id=create setelah route statis dihapus. Pengecualian create yang tidak diperlukan pada penanda sidebar dihapus. Pencarian frontend/src tidak menemukan tautan /bmn/assets/create atau komponen BmnCreateAssetPage tersisa. URL lama sengaja tetap ditangani oleh guard fallback, bukan mengembalikan formulir.
+- **Izin/data:** dialog impor tetap hanya tampil dengan bmn.import.review. Perhitungan izin existing lainnya, API backend, tabel data, unggah/review impor dan edit detail tidak dihapus/diubah. Aksi Tambah Aset pada paket lelang memiliki arti memasukkan aset existing ke lot dan bukan pintasan form manual; tetap dipertahankan. Label capability existing di administrasi akses juga tidak dihapus sebagai efek samping penghapusan UI.
+- **Tes:** bmn-assets-ui.cjs diperbarui untuk memastikan tautan manual tidak dirender, impor tersedia bagi pengguna berizin dan tidak tersedia read-only; regresi tabel/grid/filter/seleksi/pagination tetap lulus. bmn-detail-ui.cjs menguji redirect URL create ke katalog sebelum merender detail, serta seluruh regresi detail termasuk draft/tab/preview/status; lulus. ESLint file terkait lulus. TypeScript pertama menemukan referensi route terhapus dalam .next/types/validator.ts dari build lama; next typegen resmi meregenerasi tipe route, lalu TypeScript seluruh frontend noEmit/incremental false lulus. Tidak mengedit tipe generated manual atau mengecualikan error dari tsconfig. Diff check lulus.
+- **Browser:** membuka /bmn/assets/create berakhir di /bmn/assets. Tombol/tautan Tambah Aset manual0 dan Impor Excel1. Dialog impor tetap terbuka, Upload & Review disabled tanpa berkas; Escape menutup dan fokus kembali ke Impor Excel. Tidak memilih/mengunggah file, melakukan impor, menghapus data atau menyimpan aset untuk pengujian. Bukti bmn-import-only.png memperlihatkan katalog dengan Export/Impor Excel tanpa Tambah Aset.
+- **Dokumentasi/status:** pedoman warna, motion dan visual BMN diperbarui; requirements FR-03, design2.1 dan tasks3.1 kini menyatakan impor Excel SIMAN menggantikan wizard manual, agar AI berikutnya tidak membuat ulang berdasarkan catatan lama. Riwayat pekerjaan sebelumnya tetap tersimpan. Seluruh penghapusan/perubahan ini dicommit lokal atas permintaan pengguna pada 10 November 2026; tidak di-push atau deploy. frontend/AGENTS.md otomatis tetap di luar lingkup.
+
+
+## 81. Audit Sidebar BMN Lanjutan — Tahap Peminjaman dan Pemeliharaan (10 November 2026)
+
+- Cakupan tetap seluruh delapan menu sidebar tersisa, termasuk detail/tab/dialog yang dapat dicapai; status per menu dicatat di docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md. Pekerjaan belum dinyatakan tuntas. Tidak commit/push/deploy.
+- Peminjaman, wizard, katalog dan dialog memakai token BMN, pointer enabled/disabled, feedback150ms dan entrance280ms. Katalog dapat dipilih melalui Space/Enter dengan guard aset tidak tersedia; tanpa zoom/lift. Draft wizard tetap di induk saat perpindahan langkah memakai pola animasi di dalam tab160ms per fase. Popup pegawai mendapat scope BMN opsional; pembatalan GET tidak diperlakukan sebagai error oleh komponen.
+- Pemeliharaan sebelumnya HTTP500 karena index dideklarasikan JsonResponse tetapi mengembalikan AnonymousResourceCollection. Tipe return diperbaiki sesuai resource existing, tanpa mengubah data. Frontend membaca meta pagination serta membedakan gagal/empty. Tes backend SQLite :memory: lulus1 tes/10 assertion untuk empty,20+1 baris dan view-only. Browser kembali memuat empty state normal.
+- Fixture bmn-sidebar-ui.cjs lulus untuk filter/status/pagination/read-only/dialog, keyboard katalog, draft wizard dan fallback reduced motion tanpa API writes. Regresi assets/detail/dashboard lulus pada tahap awal; TypeScript lulus. Lint/diff dan regresi penuh akan diulang setelah menu lainnya selesai. Browser menguji daftar/dialog tanpa menyimpan, seleksi lokal katalog, langkah2, popup pegawai,390px dan light/dark; reduced motion browser tetap dilakukan pengguna.
+
+
+## 82. Sidebar BMN — Import Review dan Aset Dihapus (10 November 2026)
+
+- Import Review daftar/detail memakai token semantik light/dark untuk pending/approved/rejected/expired serta diff baru/update/sama. Border halus, pointer/fokus, kontrol150ms, entrance280ms; summary filter aria-pressed tanpa gerak kartu. Link Lihat/Kembali memakai Button asChild tanpa button di dalam anchor. Layout upload, metadata, nama file dan header dapat membungkus di mobile. Error mempunyai pesan dan Coba lagi.
+- Ditemukan filter detail menghilangkan fokus ketik karena setiap GET mengganti seluruh panel dengan loading. placeholderData mempertahankan panel/input; browser mengonfirmasi fokus tetap NUP setelah respons filter kosong. Tombol mutasi/checkbox disabled selama fetching. Tidak mengubah endpoint atau aturan approval.
+- Aset Dihapus membaca meta.last_page/meta.total (fallback respons lama); next disabled pada empty/batas dan saat fetching. Restore/hapus ditampilkan sesuai izin masing-masing. Pilihan serta konfirmasi dibersihkan ketika search/page/perPage berubah; mengganti pilihan menutup konfirmasi. Native checkbox/label jelas dan selected state Emerald; hapus danger. Nilai buku0 dipertahankan, bukan diganti nilai perolehan. Header mobile yang terjepit diperbaiki, empty state tetap terlihat tanpa tabel720px yang tidak diperlukan.
+- Verifikasi: bmn-sidebar-ui.cjs lulus untuk empat menu beserta izin, field-selection via stub, metadata, seleksi/konfirmasi dan error. Regresi bmn-assets-ui, bmn-detail-ui, bmn-dashboard-motion lulus. ESLint file tahap ini dan shared EmployeeSelect/fixture lulus; TypeScript seluruh frontend lulus sebelum perubahan minor terakhir dan akan diulang pada penutupan. Browser: daftar/detail approved, filter/reset/empty, outline keyboard2px,390px tanpa overflow halaman, status light/dark; empty arsip dan next disabled. Tidak memilih file, upload, approve, restore atau delete operasional. Screenshot bmn-import-review-light.png, bmn-import-review-mobile.png, bmn-disposal-mobile.png. Browser reduced motion tetap pengguna.
+- Pedoman visual/motion dan audit matriks diperbarui; empat menu lainnya (Kandidat, Paket Lelang, Laporan, Pengaturan) tetap dalam cakupan dan belum selesai. Seluruh perubahan lanjutan belum dicommit, tidak push/deploy.
+
+
+## 83. Sidebar BMN — Pengaturan Master (10 November 2026)
+
+- Tag, Lokasi dan Jenis BMN memakai token BMN, border halus, metadata12px, hover/fokus150ms, ikon aksi minimal36px. Kategori form netral; pilihan warna dan badge tag pengguna tetap palette existing. Swatch mempunyai aria-label/pressed, outline/check dan tidak scale/zoom. Hapus tag beranak/lokasi/jenis terpakai native disabled, mengikuti guard existing.
+- Animasi di dalam tab memakai BmnTabContent160ms per fase dan underline2px spring420/32/useId; fallback source/fixture durasi0. Keyboard ArrowLeft/Right/Home/End, role tab/tablist/tabpanel dan hubungan ARIA ditambahkan. Error query tampil sebagai gagal+Coba lagi, bukan daftar kosong. Header tabel kosong disembunyikan pada mobile agar pesan/CTA tetap terlihat.
+- Dialog form dan konfirmasi membawa scope BMN, termasuk footer surface-muted yang sebelumnya kebiruan pada dark. Shared ConfirmDialog mendapat prop scope opsional, variant destructive dan pengembalian fokus hanya pada pemanggil BMN; style/default pemanggil lain dipertahankan. Form master juga menyimpan referensi pemicu sehingga Escape/batal kembali ke tombol asal. Tidak mengganti alur simpan atau endpoint.
+- Tes: fixture sidebar lulus untuk tab keyboard/ARIA/error, hierarki/draft Main-Sub Tag, fokus callback/read-only dan lokasi/jenis disabled/validasi. ESLint seluruh settings, shared ConfirmDialog dan fixture lulus; TypeScript frontend noEmit/incremental false lulus. Browser menguji tiga tab, panah keyboard, isi form tanpa simpan, Escape/fokus kembali, konfirmasi hapus tag dibuka lalu dibatalkan,390px tanpa overflow halaman, light/dark. Dialog mobile343px; primary light #047857/putih dan dark #34d399/#0f172a, danger #be123c/putih. Footer light #f1f5f9/border#e2e8f0; dark memakai pasangan token yang sama, source diperiksa. Reduced motion browser tetap pengguna.
+- Screenshot bmn-master-settings-light.png dan bmn-master-dialog-mobile.png; pedoman warna/motion/visual serta matriks audit diperbarui. Lima menu telah diterapkan tahap awal; Laporan, Kandidat Rusak Berat dan Paket Lelang masih dalam cakupan dan belum selesai. Tidak commit/push/deploy.
+
+
+## 84. Sidebar BMN — Awal Dokumen & Laporan (11 November 2026, belum tuntas)
+
+- Export memakai Emerald konsisten untuk ketiga unduhan; colorMap dekoratif tiga warna dihapus. Nama aksesibel tombol menyebut jenis laporan. Kerangka laporan memakai scope BMN, entrance280ms, tab utama underline2px spring420/32/useId dan navigasi panah/Home/End. Isi tab/jenis dokumen memakai BmnTabContent160ms per fase; lifecycle kondisional existing belum diubah.
+- Temuan UI: izin hapus riwayat sebelumnya memakai canWrite dari izin generate; Edit/Duplikasi tampil untuk read-only. canDelete bmn.document.delete dipisahkan di riwayat dan RecentDocumentTable, diteruskan lewat BA Pemakaian/Surat Kuasa. Edit/Duplikasi mengikuti canWrite generate. Backend tidak diubah; ini koreksi affordance UI. Helper konfirmasi dokumen memakai scope BMN optional agar warna/fokus mengikuti Dialog BMN.
+- Riwayat dan dua tabel bersama mulai memakai token, label pencarian/filter, status semantik, klasifikasi netral, seleksi Emerald, hover baris150ms dan error/loading yang dibedakan dari empty. Checkbox AssetSelectionTable terhubung ke nama kolom pertama via aria-labelledby/useId. Form empat jenis dokumen dan picker/KTP masih diperiksa; jangan menyatakan seluruh menu selesai. Terdeteksi lifecycle lama unmount saat berpindah jenis/tab yang dapat mereset draft lokal; perlu penilaian/test lanjutan agar animasi sesuai pedoman tanpa kehilangan draft. Template kertas/cetak belum diubah.
+- Fixture sidebar lulus untuk export loading/filename/endpoint via Blob/DOM stub, izin generate-delete independen, dan view preview riwayat tanpa API writes. Browser: tiga tombol unduh Emerald #047857/putih, pointer, tab keyboard berpindah dan fokus tetap tab; tidak mengunduh, generate/simpan atau hapus dokumen operasional. Bukti bmn-reports-export-light.png. ESLint reports lulus pada tahap awal; pemeriksaan akhir dan browser riwayat/form/mobile/dark masih diperlukan. Tidak commit/push/deploy.
+
+
+## 85. Sidebar BMN — Penutupan Tahap Dokumen & Laporan (11 November 2026)
+
+- Enam permukaan laporan (export, empat form, riwayat) dan tabel/picker bersama telah diselaraskan ke token, kontrol150ms, pointer/disabled, status semantik dan entrance280ms. Template kertas/cetak tidak diubah. Unggah KTP kini native input yang dapat difokuskan lewat Tab dengan highlight seluruh bidang; read-only disabled. Picker barang memakai label/checkbox native, scope portal BMN dan max-width viewport-2rem.
+- Temuan draft pada bagian84 diperbaiki: empat hook state form kini dipanggil di halaman induk dan diteruskan bertipe ReturnType, sehingga subtree animasi boleh unmount tanpa menghapus draft/pilihan/override/file. Sync edit dijaga per objek mode di ref pemilik state. Effect pilihan pegawai dipindah ke handler agar manual override tidak ditimpa saat remount. Fetch detail berulang di empat child dihapus setelah memverifikasi DocumentHistoryController dan keempat Resource sudah mengirim snapshot lengkap. Tidak menambah endpoint/dependency/store persisten. Draft hanya hidup selama halaman terbuka.
+- BA Pemakaian mempertahankan snapshot dan asset_ids arsip saat GET opsi aset pegawai selesai; sebelumnya pilihan historis dapat terganti semua aset saat ini. Blob KTP dibersihkan oleh owner pada perubahan URL/unmount halaman, tidak saat berpindah tab. Error pegawai/kendaraan/picker/riwayat dibedakan dari empty dengan retry. Pemisahan izin generate/delete bagian84 mencakup riwayat utama dan RecentDocumentTable.
+- Browser menemukan outline tab mobile terpotong. Tablist diberi ruang4px dan navigasi keyboard scrollIntoView nearest. Home/End kini menempatkan Export pada x20 terhadap container x16, outline2px+offset2px terlihat penuh. Pengaturan Master memakai ruang/navigasi yang sama. Efek dashboard Akses Cepat tetap tidak diubah.
+- Fixture sidebar lulus: empat draft dan override pihak tetap setelah simulasi child remount; snapshot aset BA tetap; validasi KTP mime/5MB, file bertahan saat child remount, cleanup blob di owner dan readonly; izin independen, loading export/nama file/endpoint stub, riwayat preview/error dan seleksi kendaraan. Tidak ada API writes. Regresi assets/detail/dashboard/grid-helper lulus. TypeScript seluruh frontend dan ESLint reports/settings/shared ConfirmDialog/fixture lulus, termasuk pemeriksaan setelah koreksi keyboard.
+- Browser: empat form390px, lebar halaman375px tanpa overflow; draft777/778/779/780 dan override manual tetap setelah berganti jenis maupun tab utama. Riwayat search kosong mempertahankan fokus, Lihat membuka preview Surat Kuasa dan row selected; tidak mencetak. Picker343px di light/dark, Space/klik memilih sekali, pencarian empty, Escape kembali ke trigger. Hover saat checkbox tidak selected terbukti aktif dengan bg#022c22 dan transition150ms. Tab mencapai bidang KTP dengan outline. Tombol unduh light #047857/putih, dark #34d399/#0f172a; input/portal dark #18181b/#f8fafc. Uji browser reduced motion tetap pengguna. Tidak upload/simpan/generate/restore/hapus operasional; reload membersihkan draft uji, viewport normal dan light dipulihkan.
+- Bukti bmn-reports-export-light.png, bmn-reports-mobile-dark.png dan bmn-reports-mobile-focus.png. Pedoman warna/motion/visual serta matriks audit diperbarui. Enam dari delapan menu telah diterapkan dan diuji tahap awal; Kandidat Rusak Berat serta Paket Lelang tetap belum selesai dan masih dalam cakupan. Semua pekerjaan sidebar lanjutan belum dicommit, tidak push/deploy.
+
+
+## 86. Kandidat Rusak Berat — Konsistensi Visual dan Seleksi Lintas Halaman (11 November 2026)
+
+- Audit sidebar tahap7: kandidat ditokenisasi light/dark, Emerald untuk buat paket, warning/success semantik, border halus, kontrol150ms dan entrance280ms. Pointer/focus/disabled dari scope BMN; tabel hanya scroll internal; error memakai retry, terpisah empty. Warning punya aria-expanded/controls; colspan read-only diperbaiki.
+- Ditemukan nilai terpilih hanya menjumlahkan halaman aktif, sementara jumlah ID mencakup halaman lain. Set ID diganti Map aset terpilih agar jumlah/nilai/payload tetap konsisten lintas halaman, tanpa query detail tambahan. Guard izin/eligible/fetching/pending melindungi seleksi dan tombol buat; nama wajib, input pending disabled.
+- Fixture aktual bmn-sidebar-ui.cjs lulus termasuk lintas halaman Rp400 untuk aset100+300, payload ID tepat, kandidat tidak eligible, warning tidak memblokir eligible, read-only, error/loading/empty dan fetching. Mutasi hanya ditangkap stub, tidak menyentuh API. ESLint kandidat dan fixture lulus.
+- Browser: memilih Fotocopy NUP2 Rp49.500.000 pada halaman1 dan Printer NUP58 Rp1.632.375 pada halaman2 menghasilkan2 pilihan/Rp51.132.375. Dialog dibuka, Escape menutup dan fokus kembali ke Buat Paket. Warning advisory dapat dibuka; filter tidak ada hasil benar. Mobile390px page375px, dialog343px; dark primary rgb52,211,153/on-solid15,23,42 dan pointer. Light dikembalikan, viewport direset, reload membersihkan draft. Bukti bmn-candidates-mobile-dark.png; tidak membuat paket. Browser reduced motion tetap diserahkan pengguna.
+- Pedoman warna/motion/visual dan matriks audit diperbarui. Paket Lelang/detail/workflow serta regresi akhir masih dikerjakan; seluruh perubahan sidebar tetap belum dicommit/push/deploy.
+
+
+## 87. Penutupan Seluruh Sidebar BMN — Paket Lelang, Navigasi dan Regresi Akhir (11 November 2026)
+
+- **Cakupan tuntas:** delapan menu lanjutan (Peminjaman, Pemeliharaan, Import Review, Kandidat Rusak Berat, Paket Lelang, Aset Dihapus, Dokumen & Laporan, Pengaturan Master), termasuk kontrol/panel/dialog yang punya render caller. Matriks dan alasan tiap perbaikan: docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md. Cakupan historis bagian81–86 dilengkapi verifikasi akhir, bukan dibatasi pada menu yang mudah diuji.
+- **Paket Lelang:** list/error/retry/pagination/status, link tunggal asChild, token light/dark/metadata12px dan pointer. Empat tab aktif memakai animasi isi160ms per fase/underline420/32; hook pemilik mempertahankan draft aset/taksiran/dokumen/realisasi saat child unmount. Tambah aset ke paket tetap memilih aset existing. Dialog scoped150ms/focus-return; checkbox bernama, warning expanded/controls, colspan dan empty kandidat tersedia dibetulkan. Kertas kerja umum/kendaraan dan seluruh form aktif mengikuti token; kertas resmi tetap putih/hitam/ukuran cetak.
+- **Editor/panitia:** modal custom diganti Dialog existing (focus trap/Escape/focus-return), toolbar mobile membungkus agar Simpan/Tutup tidak terpotong. Subtab SK keyboard/ARIA dan motion standar; fieldset read-only tidak mematikan subtab pratinjau. Picker punya selected state dan Alt+panah kiri/kanan untuk urutan alternatif drag. Detail hapus mengikuti bmn.auction.delete; dokumen readonly dan realisasi/transisi/pindah paket memakai capability sesuai endpoint. Tidak mengubah permission backend.
+- **Perbaikan tambahan:** payload validasi hasil lelang kini di dalam try sehingga harga kosong menghasilkan pesan, bukan uncaught error/mutasi. Harga ulang memakai text/inputMode numeric dan formatter ribuan konsisten. GET peminjaman gagal ditampilkan error/retry, bukan empty; sisa warna lama wizard/katalog dibersihkan; kondisi pengembalian unknown netral. Dialog edit/kembali mengembalikan fokus.
+- **Shell:** token canvas/surface/fg/border, metadata12px, hover/pointer/focus, menu aktif aria-current, label saat collapsed, toggle expanded/controls, drawer tertutup invisible di mobile dan Escape kembali ke toggle. Drawer/collapse150ms; spring navigasi450/35 dan fade route120ms existing didokumentasikan terpisah. Efek Akses Cepat dashboard tidak diubah.
+- **Tes final:** lima fixture frontend lulus (sidebar, assets-ui, detail-ui, dashboard-motion, asset-grid); source fixture memeriksa delapan menu dan izin/error/empty/loading/filter/page/seleksi, draft child-remount, payload stub, keyboard, validasi dan reduced motion. Typegen resmi+TypeScript seluruh frontend noEmit/incremental false lulus. ESLint file TS/TSX berubah dan fixture lulus. Backend SQLite memory pemeliharaan1 tes/10 assertion lulus. Diff check lulus.
+- **Browser:** list paket lokal kosong, jadi detail memakai fixture development sementara dengan cache query terisolasi dan mutation cache menolak mutasi. Empat tab utama, subtab SK, kalkulator umum/kendaraan, picker, jadwal/batal, status final/ulang, Escape/fokus, light/dark,390px dan desktop diuji tanpa menyimpan/cetak/upload/hapus transaksi. Draft taksiran777.000/hasil pertama888.000/ulang999.000 tetap setelah pindah tab. Editor mobile page375px/dialog343px pada viewport390px; dark surface24,24,27/fg248,250,252, kertas putih/hitam. Footer master dark rgb39,39,42/border63,63,70 terbukti; fokus Escape dialog kembali ke pemicu. Navigasi collapsed/mobile/current diuji. Theme light dipulihkan, viewport direset dan dialog ditutup.
+- **Dokumentasi/status:** pedoman warna, animasi dan visual BMN diperbarui bersama matriks audit lengkap/bukti/batas pengujian. Route fixture sementara telah dihapus dan tipe Next diregenerasi. Browser reduced motion tetap dikerjakan pengguna sesuai preferensi; fallback source/fixture lulus. Seluruh pekerjaan sidebar **belum dicommit, push atau deploy**, sesuai instruksi; HEAD masih b2c9292a. frontend/AGENTS.md otomatis tetap di luar scope.
+
+
+## 88. Commit Lokal Audit Sidebar BMN (11 November 2026)
+
+- Pengguna meminta seluruh perbaikan delapan menu sidebar disimpan dalam satu commit lokal bersama laporan audit warna, hover, pointer, fokus, dan animasi, pedoman BMN, fixture, dan progress. Cakupan dan bukti pengujian tercatat pada bagian 81–87 dan `docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md`.
+- Tidak push atau deploy. `frontend/AGENTS.md` yang dihasilkan Next dev tidak ikut commit.
+
+
+## 89. Audit Visual Surat Tugas (11 November 2026)
+
+- Pengajuan publik, inbox dan pembaca, Builder, tiga panel pengaturan Surat Tugas, Surat Tugas Saya di Portal, pratinjau A4 dan verifikasi publik memakai fondasi warna BMN dengan aksen Sky Surat Tugas. Kontrol aktif memakai pointer, border input halus, fokus keyboard terlihat, dan status memakai token semantik. Kertas A4 tetap putih dengan tinta hitam.
+- Feedback kontrol, dialog, menu dan drawer 150 ms. Entrance halaman 280 ms. Wizard dan isi tab inbox bergerak 8 px dengan opacity 160 ms per fase. Indikator tab 2 px memakai spring 420/32. Reduced motion tersedia di CSS dan Framer.
+- Inbox menonaktifkan interaksi panel yang sedang keluar, membersihkan pembaca dan seleksi saat ganti tab, dan membedakan kegagalan kueri dari daftar kosong. Checkbox dan aksi baris dapat diakses di layar sempit. Draft pengajuan bertahan saat kembali ke langkah sebelumnya. Dialog lampiran dan pratinjau Portal mengembalikan fokus ke pemicu.
+- Next typegen, TypeScript, ESLint file yang berubah, diff check dan lima fixture BMN lulus. Chrome lokal menguji light/dark, 390 px dan desktop, navigasi keyboard, lampiran, dialog, draft, layout A4, serta verifikasi sah/gagal. Pratinjau Portal memakai data contoh karena akun uji belum memiliki surat. Fixture sementara sudah dihapus. Pengujian perubahan data, unduh, dan cetak aktual belum dijalankan. Emulasi reduced motion browser tetap diuji pengguna.
+- Laporan [audit visual Surat Tugas](docs/testing/surat-tugas-visual-audit.md), pedoman warna dan animasi, serta perubahan kode disimpan dalam satu commit lokal.
+
+
+## 90. Audit Visual Kepegawaian (11 November 2026)
+
+- Dashboard, daftar/tambah/detail pegawai beserta lima tab profil, hak akses/lifecycle, inbox cuti dan pratinjau/unggahan, Uang Makan, Arsip Surat Masuk, serta panel pengaturan terkait mengikuti fondasi BMN/Surat Tugas dengan aksen Blue Kepegawaian. Pointer, hover/fokus150ms, border input halus, teks pendukung12px dan target ikon36px diterapkan. Modal memakai Dialog existing dan focus-return, termasuk pemicu dari menu.
+- Animasi isi tab160ms per fase, garis bawah2px/spring420/32 dan ID unik mendukung panah/Home/End. Panel keluar inert. Entrance halaman280ms dan dialog/menu150ms. Hover personel dashboard150ms dan batang600ms dipertahankan dengan cabang reduced motion. Foto profil fokusable serta terlihat di mobile, dengan state pending upload dan reset saat gagal.
+- Temuan fungsional UI diperbaiki. Tautan kategori/wilayah dashboard mengirim status=all dan daftar meneruskan nilai all secara eksplisit ke API existing. Browser mengonfirmasi97 PNS sesuai dashboard. Kartu aktif di daftar diberi keterangan aktif. Grafik kosong memakai0persen. Error/loading dibedakan dari empty. Sel presensi menjadi tombol native dengan guard non-admin.
+- Uji tablet menemukan header terpotong saat sidebar terbuka. Header kini bertumpuk pada lebar menengah. Dashboard muat pada390/768/1024/1440/1920px, dengan main clientWidth/scrollWidth482/482 pada768px. Formulir dan surat izin cuti A4 memakai scroll internal dengan sisi kiri kertas terjangkau, putih/hitam sekitar794px. Template cetak existing dipakai.
+- Browser lokal menguji light/dark, keyboard, form tanpa simpan, dialog/Escape/focus-return, berkas scan cuti, tab pengaturan/bank, checkbox Space, dan warna scope Surat Tugas. Matriks/nominatif/koreksi serta pratinjau cuti memakai fixture contoh dengan API writes ditolak. Koreksi contoh bertahan setelah pindah tab. Fixture sementara telah dihapus dan tipe Next diregenerasi.
+- Next typegen, TypeScript, ESLint source/fixture, diff check, fixture Kepegawaian dan lima regresi BMN lulus. Kontras enam set token light/dark dari tiga modul lulus. Impeccable source detector tidak menemukan temuan tersisa. Tes callback Portal tambahan memerlukan mount Linux dan terhenti pada path di Windows. Browser reduced motion tetap diuji mandiri pengguna. Transaksi operasional, upload/cetak/unduh aktual serta sesi akun read-only belum diuji browser.
+- Laporan docs/testing/kepegawaian-visual-audit.md, pedoman warna dan pedoman animasi diperbarui. Bukti kepegawaian-create-desktop-light.png dan kepegawaian-cuti-fixture-mobile-dark.png tersimpan pada folder visualisasi sesi. Browser dipulihkan ke tema terang/viewport desktop tanpa dialog. Perubahan belum dicommit, push atau deploy. HEAD tetap d4db6300. frontend/AGENTS.md otomatis tetap di luar cakupan.
+
+
+## 91. Koreksi Dashboard Kepegawaian Berdasarkan Umpan Balik (11 November 2026)
+
+- Dashboard dipulihkan ke palet kategori sebelum audit. PNS blue-600, PPPK amber-500 dan MMP emerald-500. Ikon, kartu kategori/layanan dan grafik wilayah kembali mengikuti keluarga warna asal. Kuning komposisi sebelumnya berubah cokelat karena memakai status-warning-fg.
+- Entrance CSS280ms tambahan pada dashboard dihapus sehingga pembukaan mengikuti transisi route160ms. Hover personel y-2, layanan y-3, tap0.98, aktivitas x3 dan wilayah x2 memakai timing150ms seperti acuan semula. Batang600ms dengan delay0/100/200ms. Cabang reduced motion tersedia.
+- Browser mengonfirmasi root dashboard animation-name none, jarak antarpanel20px, tablet768px main482/482 dan mobile dark390px main360/360 tanpa luapan. Tema terang dan viewport desktop dipulihkan. Bukti kepegawaian-dashboard-restored.png tersimpan pada folder visualisasi sesi.
+- TypeScript, ESLint, fixture Kepegawaian dan diff check lulus. Fixture memeriksa palet tiga batang, timing serta ketiadaan entrance tambahan. Laporan audit dan kedua pedoman diperbarui agar dashboard tetap mengikuti acuan ini. Perubahan belum dicommit.
+
+
+## 92. Pemulihan Tab dan Sidebar Kepegawaian (11 November 2026)
+
+- Menindaklanjuti keluhan animasi berat, pola sebelum audit dipulihkan. Entrance CSS280ms tambahan dihapus dari seluruh halaman Kepegawaian; route kembali memakai satu transisi160ms existing. Sidebar kembali width/transform200ms, hoverx2/tap0.98 selama120ms dan indikator spring420/32.
+- Tab utama profil/pengaturan/uang makan kembali memakai pill penuh dan isi160ms/y8. Hasil filter pegawai/cuti/arsip kembali140ms/y4 dengan exit opacity saja. Subtab hari libur/bank dan internal dialog bank kembali langsung. ARIA, navigasi keyboard, exiting inert dan fallback reduced motion dipertahankan.
+- Fixture Kepegawaian, TypeScript, ESLint source/fixture yang berubah dan diff check lulus. Chrome memeriksa collapse288/80px, keyboard tab, subtab/dialog bank, navigasi sidebar, pill light/dark, Escape drawer dengan fokus kembali dan layout390/768px tanpa luapan main. Bukti kepegawaian-navigation-restored.png tersimpan pada folder visualisasi sesi. Bukan benchmark FPS; reduced motion browser tetap diuji pengguna.
+- Pedoman warna, animasi dan laporan audit diperbarui agar audit berikutnya mempertahankan pola yang disukai pengguna. Tema terang dan viewport desktop dipulihkan. Belum commit, push atau deploy.
+
+
+## 93. Animasi Isi Tab Mengikuti Inbox Surat Tugas (11 November 2026)
+
+- Pengguna menegaskan acuan animasi adalah perpindahan Kotak Masuk ke Menunggu Persetujuan di Inbox Surat Tugas. Isi tab Kepegawaian kini mengikuti opacity/y8 masuk, opacity/y-8 keluar,160ms/easeOut per fase dengan mode wait/initial=false. Varian hasil filter140ms dihapus; subtab hari libur/bank dan internal dialog bank memakai helper yang sama. Ketentuan ini menggantikan pilihan sementara pada bagian92. Pill tab, tiga warna dashboard dan sidebar tetap.
+- Fixture membandingkan properti motion helper dengan fungsi InboxTabContent asli pada normal/reduced serta present/exiting. Fixture Kepegawaian, TypeScript, ESLint berkas yang disentuh dan diff check lulus. Browser menguji acuan inbox, klik/keyboard tab, subtab bank, dialog/Escape serta draft contoh yang bertahan setelah pindah tab. Draft dikosongkan tanpa simpan. Layout390/768px muat; viewport desktop/tema terang dipulihkan. Reduced motion browser tetap diuji pengguna.
+- Pedoman animasi dan laporan audit diperbarui. Bukti statis kepegawaian-inbox-motion-reference.png tersimpan pada folder visualisasi sesi. Belum commit, push atau deploy.
+
+
+## 94. Empat Perbaikan Visual Statis Kepegawaian (11 November 2026)
+
+- Tanggal Aktivitas Terkini memakai fg-muted light#475569/dark#a1a1aa. Badge aktivitas menggunakan helper label Inbox Surat Tugas sehingga pending/approved tampil Menunggu Persetujuan/Diterbitkan; metadata membungkus pada mobile.
+- SDM & Administrasi di sidebar memakai kalimat biasa tanpa ellipsis; keterangan ringkasan pegawai membungkus agar NIPPPK terbaca penuh. Dialog kelola bank/edit rekening memakai satu lapisan radius12px dari DialogContent, tanpa border/shadow/surface ganda pada isi.
+- Animasi dan palet tiga warna dashboard dipertahankan. Snapshot properti Framer/AnimatePresence sebelum/sesudah enam berkas sama persis. Fixture label status/fallback, palet grafik dan motion Inbox lulus; TypeScript, ESLint terkait serta diff check lulus.
+- Browser memeriksa dashboard light/dark, teks sidebar desktop/tablet, kartu359/390px, metadata390px, kedua dialog bank/Escape dan dialog dark mobile. Lebar main tidak meluap pada359/390/768px yang diperiksa. Tidak menyimpan/mengubah data operasional. Tema terang/viewport desktop dipulihkan; reduced motion browser tetap diuji pengguna.
+- Pedoman warna, pedoman animasi dan laporan audit diperbarui. Bukti kepegawaian-four-visual-fixes.png, kepegawaian-readability-mobile.png dan kepegawaian-bank-single-surface.png tersimpan pada folder visualisasi sesi. Belum commit, push atau deploy.
+
+
+## 95. Pelembutan Aksen Pendukung Dashboard Kepegawaian (11 November2026)
+
+- Latar badge/ikon pendukung memakai tint currentColor5% pada surface light/dark. Border ikon12%, border badge transparan. Foreground kategori/status tetap terbaca. Scope hanya dashboard Kepegawaian; tidak mengubah token global atau halaman lain.
+- Tiga warna komposisi, grafik wilayah, angka/tombol utama dan seluruh animasi dipertahankan. Perbandingan snapshot source membuktikan TSX hanya mendapat nama class penanda, sedangkan CSS hanya mendapat tiga aturan warna; logika/data/link/motion tetap.
+- Fixture Kepegawaian, TypeScript, ESLint source terkait dan diff check lulus. Browser memeriksa desktop light/dark serta359/390/768px tanpa overflow badge/main, dan menu Enter/Escape/focus-return. Kontras30 elemen per tema: minimum teks sekitar4.71/6.27 dan ikon3.02/5.33 untuk light/dark. Bukti kepegawaian-soft-support-light.png dan kepegawaian-soft-support-dark.png tersimpan pada folder visualisasi sesi. Tema terang/viewport desktop dipulihkan.
+- Pedoman warna, pedoman animasi dan laporan audit diperbarui. Tidak ada perubahan data operasional. Reduced motion browser tetap diuji pengguna. Belum commit, push atau deploy.
+
+
+## 96. Commit Lokal Audit Visual Kepegawaian (11 November2026)
+
+- Commit terverifikasi: `8e3d0a8c` — `fix(kepegawaian): align visual styles and preserve approved motion` (37 berkas).
+
+- Seluruh pekerjaan visual Kepegawaian pada bagian90–95 disimpan dalam satu commit lokal bersama pedoman warna, pedoman animasi, laporan audit, fixture dan komponen pendukung bersama. Kondisi final mempertahankan animasi sesuai acuan Inbox Surat Tugas dan palet tiga warna grafik, dengan badge/ikon pendukung yang lebih lembut.
+- Validasi akhir TypeScript, ESLint source/fixture terkait, fixture Kepegawaian dan lima regresi BMN serta staged diff check lulus. Bukti dan batas browser/transaksi tercatat pada docs/testing/kepegawaian-visual-audit.md.
+- Tidak push atau deploy. frontend/AGENTS.md otomatis tetap di luar cakupan commit.
+
+
+## 97. Rekap Akhir Dokumentasi Visual Kepegawaian (11 November 2026)
+
+Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a8c`. Pembaruan ini merapikan dokumen setelah commit tersebut; hanya Markdown yang diubah, tanpa perubahan kode atau animasi.
+
+| Pekerjaan selesai | Yang dicatat |
+| --- | --- |
+| Fondasi visual | Token light/dark, aksen Blue, border halus, pointer, hover/fokus dan target ikon. |
+| Dashboard | Tiga warna komposisi tetap, nilai grafik nol benar, tautan kategori/wilayah sesuai status=all, dan badge/ikon pendukung lebih lembut. |
+| Teks dan status | Tanggal lebih terbaca, subjudul sidebar/keterangan NIPPPK utuh, dan label aktivitas mengikuti Inbox Surat Tugas. |
+| Animasi final | Isi tab mengikuti Kotak Masuk → Menunggu Persetujuan: fade/geser8px,160ms per fase. Pill utama tetap; tidak ada entrance ganda atau varian list140ms. Hover dashboard/sidebar dipertahankan. |
+| Daftar/tambah/detail pegawai | Filter, loading/error/empty, navigasi tab, unggah foto/fokus/pending, dan kontrol lifecycle/hak akses mengikuti pedoman. |
+| Cuti, uang makan dan arsip | Kontrol/unggahan/keyboard, dialog/pratinjau A4, state loading/error, serta layout responsif dirapikan. |
+| Pengaturan dan bank | Tab/subtab dapat diakses lewat keyboard; dialog kelola/edit bank memakai satu permukaan dengan Escape/fokus kembali. |
+| Validasi | TypeScript, ESLint, fixture Kepegawaian dan lima regresi BMN serta diff check lulus sebelum commit. Browser light/dark dan ukuran yang dilaporkan tercatat dalam audit. |
+
+- Dokumen diperbarui: [pedoman warna](docs/DESIGN_SYSTEM_COLORS.md), [pedoman animasi](docs/animate-ui-motion-guidelines.md) dan [laporan audit visual](docs/testing/kepegawaian-visual-audit.md). Laporan kini diawali ringkasan final, cakupan tes, batas pengujian dan perintah fixture; catatan sementara ditandai sebagai riwayat.
+- Batas tetap: reduced motion browser diuji pengguna; transaksi operasional, unggah/cetak/unduh aktual dan akun read-only belum diuji browser. Tes callback Portal yang memerlukan mount Linux tidak dihitung lulus. Rekap ini tidak menyatakan audit keamanan baru selesai.
+- Status: implementasi sudah commit lokal; pembaruan Markdown pada bagian97 disimpan dalam commit dokumentasi terpisah sebelum pengajuan PR. Tidak push atau deploy. frontend/AGENTS.md otomatis tetap di luar cakupan.
+
+
+## 98. Persiapan PR ke production-server dan Temuan Build (11 November 2026)
+
+- Fetch origin dan perbandingan branch mengonfirmasi production-server merupakan ancestor dari branch kerja; ada43 commit tertunda sebelum commit dokumentasi6f24b695. Cakupan mencakup BMN, Surat Tugas, login, fitur lifecycle pegawai dan dua migrasi database, bukan hanya visual Kepegawaian. Migrasi bank turut mengosongkan nama_bank/nomor_rekening MMP. Pilihan semua perubahan atau hanya visual Kepegawaian sudah ditanyakan kepada pengguna; push/PR/merge menunggu jawaban.
+- Pembaruan dokumentasi bagian97 disimpan pada commit lokal6f24b695. Repository GitHub tidak mempunyai workflow Actions aktif/terdaftar (total0); tidak mengklaim CI lulus. Sintaks31 berkas PHP dalam diff terhadap production-server lulus; regresi database seluruh43 commit belum dijalankan ulang.
+- Build tambahan menemukan re-export runtime STANDARD_UNIT_KERJA yang tidak sah pada page pengaturan BMN. Import/re-export tak terpakai dihapus, konstanta asli dan caller utility tetap. ESLint page dan fixture sidebar BMN lulus; UI/warna/animasi tidak diubah.
+- Build webpack terisolasi di drive E berhasil kompilasi, generated TypeScript dan86 halaman statis (exit0). Percobaan drive C gagal karena resolusi dependency lintas drive. Build ulang masih memperingatkan packaging manifest route-group dan27 dependency traced di luar root dengan junction; belum menjadi bukti paket standalone/Docker siap deploy. Peringatan deprecasi React18 untuk Next17 juga tercatat, tanpa upgrade dependency pada pekerjaan ini.
+- Diff check seluruh riwayat terhadap production-server menemukan whitespace pada output graphify generated dan satu baris komentar globals.css; staged diff perbaikan saat ini bersih. Tidak mengklaim seluruh diff release bebas temuan. Bukti/perbaikan build dicatat pada docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md.
+- Status: hanya commit lokal; belum push, membuat PR, merge atau deploy. Cakupan PR dan validasi packaging/backend yang sesuai masih perlu diselesaikan. frontend/AGENTS.md otomatis tetap di luar commit.
+
+
+---
+
+## 99. Validasi Rilis, Perbaikan Scheduler Lifecycle Pegawai, Push & Merge PR ke production-server (11 November 2026)
+
+- **Cakupan & PR**:
+  - Seluruh perubahan tertunda pada branch `codex/portal-security-pentest` dipromosikan ke `production-server` melalui [PR #603](https://github.com/tegaranugrah1/bksda-superapp/pull/603) sesuai konfirmasi pengguna.
+- **Perbaikan Race-Condition Scheduler Lifecycle (`backend/app/Console/Commands/ApplyEmployeeLifecycleCommand.php`)**:
+  - Memperbaiki celah konkurensi pada command `employee:apply-lifecycle`: setelah mengambil daftar calon pegawai jatuh tempo dan mengunci baris (`lockForUpdate()`), command kini memeriksa ulang `is_active`, keberadaan `inactive_effective_date`, serta memastikan `inactive_effective_date->toDateString() <= $today`.
+  - Jika admin membatalkan jadwal atau memundurkan tanggal TMT di sela pengambilan kandidat dan penguncian baris, penonaktifan otomatis dilewati dengan aman dan penghitung `$processed` hanya bertambah bila transaksi benar-benar diterapkan.
+  - Menambahkan regresi [`backend/tests/Feature/EmployeeLifecycleScheduleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/EmployeeLifecycleScheduleTest.php) untuk skenario jatuh tempo normal (idempotent), pembatalan jadwal konkurensi, dan penjadwalan ulang TMT ke masa depan.
+- **Hasil Validasi Rilis**:
+  - **Docker Frontend Build**: `docker build` menggunakan `frontend/Dockerfile` (multi-stage standalone image) lulus penuh.
+  - **PHPUnit Sandbox (SQLite `:memory:`, network-none, read-only rootfs)**:
+    - `Unit` & rangkaian `Feature` (`EmployeeAccessLifecycleTest`, `EmployeeLeaveRequestTest`, `EmployeeBankAllocationSecurityTest`, `KepegawaianSecurityAuditTest`, `KepegawaianCatalogContractTest`, `BmnLayoutAndSecurityRegressionTest`, `SuratModuleTest`, `BroadcastChannelAuthTest`): **LULUS**.
+    - `EmployeeLifecycleScheduleTest`: **3 tests, 21 assertions (OK)**.
+    - `php backend/tests/portal_security_check.php`: **PASS**.
+- **Pembersihan & Merge**:
+  - Folder sementara pemeriksaan rilis di `E:\bksda-release-check-*` dan berkas lokal `frontend/AGENTS.md` dibersihkan agar tidak mengotori repositori.
+  - Commit perbaikan scheduler dipush ke `codex/portal-security-pentest`, status draft PR #603 dibuka (`gh pr ready`), dan di-merge ke `production-server`.

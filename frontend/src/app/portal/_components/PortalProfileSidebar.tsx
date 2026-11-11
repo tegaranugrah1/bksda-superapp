@@ -337,15 +337,18 @@ export function PortalProfileSidebar({
         </p>
 
         {/* 1 s.d. 7: Vertical Nav Items with Sliding Indicator */}
-        {[
-          { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
-          { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
-          { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
-          { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
-          { id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount },
-          { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-          { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd]" },
-        ].map((item) => {
+        {(() => {
+          const isMmp = Boolean(employee?.nip && employee.nip.toUpperCase().startsWith("MMP-"));
+          return [
+            { id: "dashboard", label: "Dashboard Utama", icon: LayoutDashboard, count: 0 },
+            { id: "pinjaman", label: "Pinjaman Aktif", icon: HandHelping, count: pinjamanCount },
+            { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
+            { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
+            ...(!isMmp ? [{ id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount }] : []),
+            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
+            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd]" },
+          ];
+        })().map((item) => {
           const Icon = item.icon;
           const isActive = activeNavTab === item.id && !isInlineReportOpen;
           return (

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
+
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   Search,
@@ -14,6 +16,7 @@ import {
   ShieldCheck,
   Briefcase,
   UserCheck,
+  UserX,
   Eye,
   X,
 } from "lucide-react";
@@ -30,6 +33,10 @@ import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
 
 interface EmployeeCounts {
   total: number;
+  active?: number;
+  scheduled?: number;
+  pensiun?: number;
+  inactive?: number;
   pns: number;
   pppk: number;
   mmp: number;
@@ -48,7 +55,7 @@ interface ApiResponse {
 }
 
 const VALID_JENIS = new Set(["PNS", "PPPK", "MMP"]);
-const VALID_STATUS = new Set(["all", "active", "inactive", "trashed"]);
+const VALID_STATUS = new Set(["all", "active", "scheduled", "pensiun", "inactive", "trashed"]);
 
 function getInitials(name?: string): string {
   if (!name) return "PG";
@@ -72,7 +79,7 @@ export default function EmployeeListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [jenisFilter, setJenisFilter] = useState<string>("");
   const [wilayahFilter, setWilayahFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -94,6 +101,7 @@ export default function EmployeeListPage() {
     nama_lengkap: string;
   } | null>(null);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const accessTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const confirm = useConfirm();
   const [restoringId, setRestoringId] = useState<string | null>(null);
@@ -105,6 +113,8 @@ export default function EmployeeListPage() {
 
   const handleSoftDelete = async (emp: Employee) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Hapus Data Pegawai?",
       description: `Pindahkan data pegawai "${emp.nama_lengkap}" ke Data Terhapus? Akun akses sistemnya akan dinonaktifkan.`,
       confirmText: "Hapus Pegawai",
@@ -126,6 +136,8 @@ export default function EmployeeListPage() {
 
   const handleRestore = async (emp: Employee) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Pulihkan Data Pegawai?",
       description: `Pulihkan data pegawai "${emp.nama_lengkap}"? Aktivasi akun aplikasi diatur terpisah oleh Super Admin melalui Manajemen Hak Akses.`,
       confirmText: "Pulihkan Pegawai",
@@ -150,6 +162,8 @@ export default function EmployeeListPage() {
 
   const handleForceDelete = async (emp: Employee) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Hapus Permanen Data Pegawai?",
       description: `Tindakan ini tidak dapat dibatalkan. Data pegawai "${emp.nama_lengkap}", akun login, dan berkas terkait akan dihapus secara permanen.`,
       confirmText: "Hapus Permanen",
@@ -177,7 +191,7 @@ export default function EmployeeListPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isPlaceholderData, isFetching, refetch } = useQuery({
     queryKey: ["employees", page, perPage, debouncedSearch, jenisFilter, wilayahFilter, statusFilter],
     queryFn: async () => {
       const { data } = await api.get<ApiResponse>(`/kepegawaian/employees`, {
@@ -187,7 +201,7 @@ export default function EmployeeListPage() {
           search: debouncedSearch || undefined,
           jenis_pegawai: jenisFilter || undefined,
           wilayah: wilayahFilter || undefined,
-          status: statusFilter !== "all" ? statusFilter : undefined,
+          status: statusFilter,
         },
       });
       return data;
@@ -209,14 +223,14 @@ export default function EmployeeListPage() {
     Boolean(searchInput) ||
     Boolean(jenisFilter) ||
     Boolean(wilayahFilter) ||
-    statusFilter !== "all";
+    statusFilter !== "active";
 
   const resetFilters = () => {
     setSearchInput("");
     setDebouncedSearch("");
     setJenisFilter("");
     setWilayahFilter("");
-    setStatusFilter("all");
+    setStatusFilter("active");
     setPage(1);
   };
 
@@ -227,66 +241,82 @@ export default function EmployeeListPage() {
 
   const statCards = [
     {
-      key: "TOTAL",
-      label: "Total Pegawai",
+      key: "ACTIVE",
+      label: "Pegawai Aktif",
       subtitle: "Personil Aktif",
-      count: counts.total,
+      count: counts.active ?? counts.total,
       icon: Users,
-      active: !isTrashedView && jenisFilter === "",
-      activeClass: "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-zinc-900 dark:border-white shadow-sm",
-      hoverClass: "hover:border-slate-300 dark:hover:border-zinc-700",
-      iconBadgeClass: "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "",
+      activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+      hoverClass: "hover:border-[var(--ds-border-subtle)] ",
+      iconBadgeClass: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]  ",
       onClick: () => {
         setJenisFilter("");
-        setStatusFilter("all");
+        setStatusFilter("active");
         setPage(1);
       },
     },
     {
       key: "PNS",
       label: "Pegawai PNS",
-      subtitle: "ASN pemilik NIP",
+      subtitle: "ASN aktif pemilik NIP",
       count: counts.pns,
       icon: ShieldCheck,
-      active: !isTrashedView && jenisFilter === "PNS",
-      activeClass: "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/20",
-      hoverClass: "hover:border-blue-300 dark:hover:border-blue-800",
-      iconBadgeClass: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "PNS",
+      activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+      hoverClass: "hover:border-[var(--ds-accent-soft-border)] ",
+      iconBadgeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  ",
       onClick: () => {
         setJenisFilter("PNS");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
         setPage(1);
       },
     },
     {
       key: "PPPK",
       label: "Pegawai PPPK",
-      subtitle: "ASN pemilik NIPPPK",
+      subtitle: "ASN aktif pemilik NIPPPK",
       count: counts.pppk,
       icon: Briefcase,
-      active: !isTrashedView && jenisFilter === "PPPK",
-      activeClass: "bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/20",
-      hoverClass: "hover:border-amber-300 dark:hover:border-amber-800",
-      iconBadgeClass: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "PPPK",
+      activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+      hoverClass: "hover:border-[var(--ds-status-warning-border)] ",
+      iconBadgeClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ",
       onClick: () => {
         setJenisFilter("PPPK");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
         setPage(1);
       },
     },
     {
       key: "MMP",
       label: "Personil MMP",
-      subtitle: "Masyarakat Mitra Polhut",
+      subtitle: "Mitra Polhut aktif",
       count: counts.mmp,
       icon: UserCheck,
-      active: !isTrashedView && jenisFilter === "MMP",
-      activeClass: "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/20",
-      hoverClass: "hover:border-emerald-300 dark:hover:border-emerald-800",
-      iconBadgeClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+      active: !isTrashedView && statusFilter === "active" && jenisFilter === "MMP",
+      activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+      hoverClass: "hover:border-[var(--ds-status-success-border)] ",
+      iconBadgeClass: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  ",
       onClick: () => {
         setJenisFilter("MMP");
-        if (isTrashedView) setStatusFilter("all");
+        if (statusFilter !== "active" || isTrashedView) setStatusFilter("active");
+        setPage(1);
+      },
+    },
+    {
+      key: "INACTIVE",
+      label: "Purna / Keluar",
+      subtitle: "Pensiun & Nonaktif",
+      count: counts.inactive ?? 0,
+      icon: UserX,
+      active: !isTrashedView && (statusFilter === "inactive" || statusFilter === "pensiun"),
+      activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+      hoverClass: "hover:border-[var(--ds-border-subtle)] ",
+      iconBadgeClass: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]  ",
+      onClick: () => {
+        setJenisFilter("");
+        setStatusFilter("inactive");
         setPage(1);
       },
     },
@@ -299,11 +329,11 @@ export default function EmployeeListPage() {
             count: counts.trashed,
             icon: Trash2,
             active: isTrashedView,
-            activeClass: "bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/20",
-            hoverClass: "hover:border-rose-300 dark:hover:border-rose-800",
-            iconBadgeClass: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400",
+            activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
+            hoverClass: "hover:border-[var(--ds-status-danger-border)] ",
+            iconBadgeClass: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]  ",
             onClick: () => {
-              setStatusFilter(isTrashedView ? "all" : "trashed");
+              setStatusFilter(isTrashedView ? "active" : "trashed");
               setPage(1);
             },
           },
@@ -312,45 +342,37 @@ export default function EmployeeListPage() {
   ];
 
   return (
-    <div className="p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
+    <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7 space-y-5 text-[var(--ds-fg)]">
       {/* 1. Unified Clean Enterprise Header Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-              SDM &amp; Kepegawaian
-            </span>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Daftar Pegawai
             </h1>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Kelola informasi personil PNS, PPPK, MMP, dan hak akses sistem.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
-          <Link href="/kepegawaian/cuti">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-            >
-              <Inbox className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <Link href="/kepegawaian/cuti" className="flex items-center gap-2 px-4 py-2.5 kpg-secondary text-[var(--ds-fg)] rounded-xl text-xs font-bold transition-colors cursor-pointer">
+
+              <Inbox className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               <span>Inbox Surat Cuti</span>
-            </button>
+
           </Link>
           {canWrite && (
-            <Link href="/kepegawaian/employees/create">
-              <button
-                type="button"
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm shadow-blue-600/20 cursor-pointer"
-              >
+            <Link href="/kepegawaian/employees/create" className="flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer">
+
                 <Plus className="w-4 h-4" />
                 <span>Tambah Pegawai</span>
-              </button>
+
             </Link>
           )}
         </div>
@@ -359,36 +381,35 @@ export default function EmployeeListPage() {
       {/* 2. Clickable Summary Stat Cards (Data-driven Ponytail + Clean Enterprise Pro Max) */}
       <div
         className={`grid grid-cols-2 sm:grid-cols-3 ${
-          canWrite ? "xl:grid-cols-5 lg:grid-cols-3" : "xl:grid-cols-4 lg:grid-cols-2"
+          canWrite ? "xl:grid-cols-6 lg:grid-cols-3" : "xl:grid-cols-5 lg:grid-cols-3"
         } gap-3`}
       >
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <motion.button
+            <button
               key={card.key}
+              aria-pressed={card.active}
               type="button"
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+
               onClick={card.onClick}
-              className={`text-left p-4 rounded-2xl border transition-colors cursor-pointer ${
+              className={`kpg-filter-card text-left p-4 rounded-2xl border transition-colors cursor-pointer ${
                 card.active
                   ? card.activeClass
-                  : `bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800/80 shadow-2xs ${card.hoverClass}`
+                  : `bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  shadow-2xs ${card.hoverClass}`
               }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-wider ${
-                    card.active ? "opacity-85" : "text-slate-500 dark:text-zinc-400"
+                  className={`text-xs font-bold uppercase tracking-wider ${
+                    card.active ? "opacity-85" : "text-[var(--ds-fg-muted)] "
                   }`}
                 >
                   {card.label}
                 </span>
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    card.active ? "bg-white/20 text-current" : card.iconBadgeClass
+                    card.active ? "bg-[var(--ds-surface)] text-current" : card.iconBadgeClass
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -396,36 +417,36 @@ export default function EmployeeListPage() {
               </div>
               <p className="text-2xl font-bold tracking-tight mt-1.5">{card.count}</p>
               <p
-                className={`text-[11px] mt-0.5 truncate ${
-                  card.active ? "opacity-80" : "text-slate-500 dark:text-zinc-400"
+                className={`text-xs mt-0.5 whitespace-normal wrap-break-word ${
+                  card.active ? "opacity-80" : "text-[var(--ds-fg-muted)] "
                 }`}
               >
                 {card.subtitle}
               </p>
-            </motion.button>
+            </button>
           );
         })}
       </div>
 
       {/* 3. Filter Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           {/* Search */}
           <div className="relative md:col-span-4">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
             <input
               type="text"
               placeholder="Cari Nama, NIP/NIPPPK, Jabatan, Satker..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-8 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              className="w-full pl-10 pr-8 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none transition-colors" aria-label="Cari Nama, NIP/NIPPPK, Jabatan, Satker..."
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={() => setSearchInput("")}
                 title="Bersihkan pencarian"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -440,7 +461,7 @@ export default function EmployeeListPage() {
                 setJenisFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
+              className="w-full px-3 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Jenis pegawai"
             >
               <option value="">Semua Kategori</option>
               <option value="PNS">PNS ({counts.pns})</option>
@@ -457,7 +478,7 @@ export default function EmployeeListPage() {
                 setWilayahFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
+              className="w-full px-3 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Wilayah kerja"
             >
               <option value="">Semua Wilayah &amp; Satuan Kerja</option>
               <optgroup label="Wilayah Utama">
@@ -484,11 +505,13 @@ export default function EmployeeListPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
+              className="w-full px-3 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Status pegawai"
             >
-              <option value="all">Semua Pegawai</option>
-              <option value="active">Status: Aktif</option>
-              <option value="inactive">Status: Non-Aktif</option>
+              <option value="active">Status: Aktif Bertugas ({counts.active ?? counts.total})</option>
+              <option value="inactive">Status: Purna / Non-Aktif ({counts.inactive ?? 0})</option>
+              <option value="scheduled">Status: Terjadwal Nonaktif ({counts.scheduled ?? 0})</option>
+              <option value="pensiun">Status: Purna Tugas / Pensiun ({counts.pensiun ?? 0})</option>
+              <option value="all">Semua Status (Aktif & Nonaktif)</option>
               {canWrite && <option value="trashed">Data Terhapus ({counts.trashed})</option>}
             </select>
 
@@ -497,7 +520,7 @@ export default function EmployeeListPage() {
                 type="button"
                 onClick={resetFilters}
                 title="Reset Filter"
-                className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+                className="px-3 py-2.5 kpg-secondary text-[var(--ds-fg-muted)] rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
               >
                 Reset
               </button>
@@ -508,34 +531,47 @@ export default function EmployeeListPage() {
 
       {/* 4. Table Card with Motion Glide Transition */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <KepegawaianTabContent
           key={`${jenisFilter}-${statusFilter}-${wilayahFilter}`}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.14, ease: "easeOut" }}
-          className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs min-h-[460px] flex flex-col justify-between"
+
+          className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-2xs min-h-[460px] flex flex-col justify-between"
         >
-          {isTrashedView && (
-            <div className="flex items-center justify-between px-4 py-2.5 bg-rose-50 dark:bg-rose-950/30 border-b border-rose-200/60 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs font-medium">
+          {isTrashedView ? (
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--ds-status-danger-bg)] border-b border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] text-xs font-medium">
               <span>
                 Menampilkan <strong>Data Pegawai Terhapus (Soft Delete)</strong>. Anda dapat memulihkan pegawai kembali ke daftar aktif atau menghapusnya secara permanen.
               </span>
               <button
                 type="button"
                 onClick={() => {
-                  setStatusFilter("all");
+                  setStatusFilter("active");
                   setPage(1);
                 }}
                 className="font-bold underline ml-4 shrink-0 cursor-pointer"
               >
-                Kembali ke Daftar Aktif
+                Kembali ke Pegawai Aktif
               </button>
             </div>
-          )}
+          ) : (statusFilter === "inactive" || statusFilter === "pensiun") ? (
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg)] text-xs font-medium">
+              <span>
+                Menampilkan <strong>Daftar Pegawai Purna Tugas / Non-Aktif ({counts.inactive ?? 0} orang)</strong>. Pegawai di daftar ini diarsipkan, tidak aktif dalam operasional baru, dan akun dinonaktifkan.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter("active");
+                  setPage(1);
+                }}
+                className="font-bold underline ml-4 shrink-0 cursor-pointer text-[var(--ds-accent-fg)]"
+              >
+                Kembali ke Pegawai Aktif
+              </button>
+            </div>
+          ) : null}
           <div className="overflow-x-auto flex-1">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50/80 dark:bg-zinc-800/50 border-b border-slate-200/80 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-bold text-[10px] uppercase tracking-widest">
+            <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-bold text-xs uppercase tracking-widest">
               <tr>
                 <th className="px-6 py-3.5">Profil Pegawai</th>
                 <th className="px-6 py-3.5">NIP / NIPPPK / Kategori</th>
@@ -544,32 +580,33 @@ export default function EmployeeListPage() {
                 <th className="px-6 py-3.5 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/50">
-              {isLoading ? (
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              {isLoading || isPlaceholderData ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={5} className="px-6 py-4">
-                      <div className="h-10 bg-slate-100 dark:bg-zinc-800 rounded-xl" />
+                      <div className="h-10 bg-[var(--ds-surface-muted)] rounded-xl" />
                     </td>
                   </tr>
                 ))
               ) : isError ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-rose-500 font-medium">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[var(--ds-status-danger-fg)] font-medium">
                     Gagal memuat data pegawai.
+                    <button type="button" className="kpg-secondary ml-3 rounded-lg px-3 py-2" onClick={() => refetch()}>Coba lagi</button>
                   </td>
                 </tr>
               ) : data?.data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-20 text-center text-[var(--ds-fg-muted)]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <Inbox className="w-10 h-10 text-slate-300 dark:text-zinc-600" />
-                      <p className="font-bold text-sm text-slate-700 dark:text-zinc-300">
+                      <Inbox className="w-10 h-10 text-[var(--ds-fg-muted)]" />
+                      <p className="font-bold text-sm text-[var(--ds-fg)]">
                         {isTrashedView
                           ? "Tidak ada data pegawai di tempat sampah."
                           : "Tidak ada pegawai ditemukan sesuai filter."}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-[var(--ds-fg-muted)]">
                         {isTrashedView
                           ? "Semua data pegawai saat ini berstatus aktif atau arsip bersih."
                           : "Coba ubah kata kunci pencarian atau reset filter."}
@@ -582,15 +619,15 @@ export default function EmployeeListPage() {
                   const mmp = isMmpEmployee(emp);
                   const pppk = !mmp && isPppk(emp);
                   const avatarTone = mmp
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/20"
+                    ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
                     : pppk
-                    ? "bg-amber-50 text-amber-700 border-amber-200/70 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/20"
-                    : "bg-blue-50 text-blue-700 border-blue-200/70 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/20";
+                    ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   "
+                    : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   ";
 
                   return (
                     <tr
                       key={emp.id}
-                      className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/30 transition-colors group"
+                      className="hover:bg-[var(--ds-surface)] transition-colors group"
                     >
                       <td className="px-6 py-3.5">
                         <div className="flex items-center gap-3">
@@ -601,63 +638,72 @@ export default function EmployeeListPage() {
                           </div>
                           <div className="min-w-0">
                             {isTrashedView ? (
-                              <p className="font-bold text-slate-900 dark:text-white truncate">
+                              <p className="font-bold text-[var(--ds-fg)] truncate">
                                 {emp.nama_lengkap}
                               </p>
                             ) : (
                               <Link href={`/kepegawaian/employees/${emp.id}`}>
-                                <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors cursor-pointer truncate">
+                                <p className="font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer truncate">
                                   {emp.nama_lengkap}
                                 </p>
                               </Link>
                             )}
-                            <p className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
+                            <p className="text-xs text-[var(--ds-fg-muted)] truncate">
                               {emp.satuan_kerja || "Satuan Kerja Belum Diatur"}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-3.5 font-mono text-xs text-slate-600 dark:text-zinc-400">
+                      <td className="px-6 py-3.5 font-mono text-xs text-[var(--ds-fg-muted)]">
                         {mmp ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                               MMP
                             </span>
-                            <span className="text-slate-400">Mitra Polhut</span>
+                            <span className="text-[var(--ds-fg-muted)]">Mitra Polhut</span>
                           </span>
                         ) : pppk ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                               NIPPPK
                             </span>
                             <span>{emp.nip}</span>
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                            <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                               NIP
                             </span>
                             <span>{emp.nip}</span>
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-3.5 text-xs font-medium text-slate-700 dark:text-zinc-300">
+                      <td className="px-6 py-3.5 text-xs font-medium text-[var(--ds-fg)]">
                         {emp.jabatan || "-"}
                       </td>
                       <td className="px-6 py-3.5">
                         {isTrashedView ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/50">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)]">
                             Terhapus
                           </span>
-                        ) : (
+                        ) : emp.status_badge?.state === "scheduled_inactive" ? (
                           <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                              emp.is_active
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-800/50"
-                                : "bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-800/50"
-                            }`}
+                            title={`TMT: ${emp.status_badge.effective_date || "-"}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]"
                           >
-                            {emp.is_active ? "Aktif" : "Non-Aktif"}
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-status-warning-fg)] animate-pulse" />
+                            {emp.status_badge.label}
+                          </span>
+                        ) : !emp.is_active ? (
+                          <span
+                            title={emp.inactive_effective_date ? `TMT: ${emp.inactive_effective_date}` : undefined}
+                            className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border border-[var(--ds-border-subtle)]"
+                          >
+                            {emp.status_badge?.label || "Non-Aktif"}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]">
+                            Aktif
                           </span>
                         )}
                       </td>
@@ -671,7 +717,7 @@ export default function EmployeeListPage() {
                                   disabled={restoringId === emp.id}
                                   onClick={() => handleRestore(emp)}
                                   title="Pulihkan Pegawai"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-emerald-200/60 dark:border-emerald-800/50 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] rounded-xl text-[var(--ds-status-success-fg)] text-xs font-bold transition-colors cursor-pointer"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" />
                                   <span>{restoringId === emp.id ? "..." : "Pulihkan"}</span>
@@ -680,7 +726,7 @@ export default function EmployeeListPage() {
                                   type="button"
                                   onClick={() => handleForceDelete(emp)}
                                   title="Hapus Permanen"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200/60 dark:border-rose-800/50 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-xl text-[var(--ds-status-danger-fg)] text-xs font-bold transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>Hapus Permanen</span>
@@ -692,7 +738,7 @@ export default function EmployeeListPage() {
                               <Link
                                 href={`/kepegawaian/employees/${emp.id}`}
                                 title="Lihat Detail Pegawai"
-                                className="p-2 bg-slate-50 hover:bg-blue-50 dark:bg-zinc-800/70 dark:hover:bg-blue-500/15 border border-slate-200/70 dark:border-zinc-700/70 rounded-xl text-slate-600 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                                className="p-2 bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border-subtle)] rounded-xl text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                               >
                                 <Eye className="w-4 h-4" />
                               </Link>
@@ -700,11 +746,12 @@ export default function EmployeeListPage() {
                                 <button
                                   type="button"
                                   title="Kelola Hak Akses"
-                                  onClick={() => {
+                                  onClick={(event) => {
+                                    accessTriggerRef.current = event.currentTarget;
                                     setSelectedEmployee(emp);
                                     setAccessSheetOpen(true);
                                   }}
-                                  className="p-2 bg-slate-50 hover:bg-amber-50 dark:bg-zinc-800/70 dark:hover:bg-amber-500/15 border border-slate-200/70 dark:border-zinc-700/70 rounded-xl text-slate-600 hover:text-amber-600 dark:text-zinc-300 dark:hover:text-amber-400 transition-colors cursor-pointer"
+                                  className="p-2 bg-[var(--ds-surface)] hover:bg-[var(--ds-status-warning-bg)] border border-[var(--ds-border-subtle)] rounded-xl text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] transition-colors cursor-pointer"
                                 >
                                   <UserCog className="w-4 h-4" />
                                 </button>
@@ -714,7 +761,7 @@ export default function EmployeeListPage() {
                                   type="button"
                                   onClick={() => handleSoftDelete(emp)}
                                   title="Hapus Pegawai"
-                                  className="p-2 bg-slate-50 hover:bg-rose-50 dark:bg-zinc-800/70 dark:hover:bg-rose-500/15 border border-slate-200/70 dark:border-zinc-700/70 rounded-xl text-slate-600 hover:text-rose-600 dark:text-zinc-300 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                                  className="p-2 bg-[var(--ds-surface)] hover:bg-[var(--ds-status-danger-bg)] border border-[var(--ds-border-subtle)] rounded-xl text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -733,17 +780,17 @@ export default function EmployeeListPage() {
 
         {/* Pagination Footer */}
         {data && (
-          <div className="px-6 py-4 border-t border-slate-200/80 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-zinc-800/20">
+          <div className="px-6 py-4 border-t border-[var(--ds-border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[var(--ds-surface)]">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-500">Tampilkan:</span>
+                <span className="text-xs font-bold text-[var(--ds-fg-muted)]">Tampilkan:</span>
                 <select
                   value={perPage}
                   onChange={(e) => {
                     setPerPage(e.target.value);
                     setPage(1);
                   }}
-                  className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-200 outline-none focus:border-blue-500 cursor-pointer"
+                  className="px-2.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Jumlah per halaman"
                 >
                   <option value="10">10 baris</option>
                   <option value="20">20 baris</option>
@@ -751,9 +798,9 @@ export default function EmployeeListPage() {
                   <option value="all">Semua ({totalItems})</option>
                 </select>
               </div>
-              <p className="text-[11px] font-bold text-slate-500">
-                Menampilkan <span className="text-slate-900 dark:text-white">{startItem}–{endItem}</span> dari{" "}
-                <span className="text-slate-900 dark:text-white">{totalItems}</span> pegawai (Halaman {page} dari {data.meta.last_page})
+              <p className="text-xs font-bold text-[var(--ds-fg-muted)]">
+                Menampilkan <span className="text-[var(--ds-fg)]">{startItem}–{endItem}</span> dari{" "}
+                <span className="text-[var(--ds-fg)]">{totalItems}</span> pegawai (Halaman {page} dari {data.meta.last_page})
               </p>
             </div>
 
@@ -761,29 +808,30 @@ export default function EmployeeListPage() {
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:cursor-not-allowed"
+                disabled={isFetching || page === 1}
+                className="px-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-[var(--ds-surface)] transition-colors shadow-2xs cursor-pointer disabled:cursor-not-allowed"
               >
                 Sebelumnya
               </button>
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.min(data.meta.last_page, p + 1))}
-                disabled={page >= data.meta.last_page}
-                className="px-4 py-2 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:cursor-not-allowed"
+                disabled={isFetching || page >= data.meta.last_page}
+                className="px-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-[var(--ds-surface)] transition-colors shadow-2xs cursor-pointer disabled:cursor-not-allowed"
               >
                 Berikutnya
               </button>
             </div>
           </div>
         )}
-        </motion.div>
+        </KepegawaianTabContent>
       </AnimatePresence>
 
       {canManageAccess && (
         <EmployeeAccessSheet
           employee={selectedEmployee}
           open={accessSheetOpen}
+          returnFocusRef={accessTriggerRef}
           onOpenChange={setAccessSheetOpen}
         />
       )}

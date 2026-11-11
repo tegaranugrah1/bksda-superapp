@@ -16,17 +16,17 @@ export function needsBuilderCompletion(letter: AssignmentLetter): boolean {
 export function getStatusStyle(status: string) {
   switch (status) {
     case "draft":
-      return "bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-200 dark:border-slate-500/20";
+      return "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border-[var(--ds-status-neutral-border)]";
     case "pending":
-      return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20";
+      return "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]";
     case "approved":
-      return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20";
+      return "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]";
     case "completed":
-      return "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20";
+      return "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]";
     case "rejected":
-      return "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-500/20";
+      return "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]";
     default:
-      return "bg-slate-50 dark:bg-slate-500/10 text-slate-500 border-slate-100 dark:border-slate-500/20";
+      return "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border-[var(--ds-status-neutral-border)]";
   }
 }
 

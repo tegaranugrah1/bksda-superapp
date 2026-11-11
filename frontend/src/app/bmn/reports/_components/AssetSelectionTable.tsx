@@ -27,10 +27,11 @@ export function AssetSelectionTable<T extends { id: string }>({
   maxHeightClass = "max-h-96",
   minWidthClass = "min-w-[640px]",
 }: AssetSelectionTableProps<T>) {
+  const labelId = React.useId();
   return (
-    <div className={`${maxHeightClass} overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800`}>
-      <table className={`w-full ${minWidthClass} text-left text-xs`}>
-        <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+    <div className={`${maxHeightClass} overflow-auto rounded-xl border border-[var(--ds-border-subtle)] `}>
+      <table className={`w-full ${items.length > 0 ? minWidthClass : ""} text-left text-xs`}>
+        <thead className={`${items.length === 0 ? "hidden sm:table-header-group" : ""} sticky top-0 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]`}>
           <tr>
             <th className="w-10 px-3 py-2"></th>
             {columns.map((col, index) => (
@@ -40,10 +41,10 @@ export function AssetSelectionTable<T extends { id: string }>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <tbody className="divide-y divide-[var(--ds-border-subtle)] ">
           {items.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-zinc-500">
+              <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-[var(--ds-fg-muted)]">
                 {emptyMessage}
               </td>
             </tr>
@@ -51,16 +52,17 @@ export function AssetSelectionTable<T extends { id: string }>({
             items.map((item) => {
               const isSelected = selectedIds.includes(item.id);
               return (
-                <tr key={item.id} className="text-zinc-700 dark:text-zinc-200">
+                <tr key={item.id} aria-selected={isSelected} className="bmn-table-row text-[var(--ds-fg-secondary)]">
                   <td className="px-3 py-2">
                     <input
+                      aria-labelledby={`${labelId}-${item.id}`}
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onToggle(item.id)}
                     />
                   </td>
                   {columns.map((col, index) => (
-                    <td key={index} className={`px-3 py-2 ${col.className || ""}`}>
+                    <td id={index === 0 ? `${labelId}-${item.id}` : undefined} key={index} className={`px-3 py-2 ${col.className || ""}`}>
                       {col.render(item)}
                     </td>
                   ))}

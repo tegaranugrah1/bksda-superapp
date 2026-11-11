@@ -13,9 +13,11 @@ use App\Modules\SuratTugas\Models\AssignmentLetter;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
@@ -38,9 +40,13 @@ class EmployeeController extends Controller
 
         $counts = [
             'total' => (clone $baseQuery)->count(),
-            'pns' => (clone $baseQuery)->ofJenis('PNS')->count(),
-            'pppk' => (clone $baseQuery)->ofJenis('PPPK')->count(),
-            'mmp' => (clone $baseQuery)->ofJenis('MMP')->count(),
+            'active' => (clone $baseQuery)->effectiveActive()->count(),
+            'pns' => (clone $baseQuery)->effectiveActive()->ofJenis('PNS')->count(),
+            'pppk' => (clone $baseQuery)->effectiveActive()->ofJenis('PPPK')->count(),
+            'mmp' => (clone $baseQuery)->effectiveActive()->ofJenis('MMP')->count(),
+            'scheduled' => (clone $baseQuery)->scheduledInactive()->count(),
+            'pensiun' => (clone $baseQuery)->where('inactive_reason', 'pensiun')->count(),
+            'inactive' => (clone $baseQuery)->where('is_active', false)->count(),
             'trashed' => $canViewTrashed ? (clone $baseQuery)->onlyTrashed()->count() : 0,
         ];
 
@@ -50,12 +56,19 @@ class EmployeeController extends Controller
         $query = clone $baseQuery;
         if ($isTrashedView) {
             $query->onlyTrashed();
-        } elseif ($statusFilter === 'active') {
-            $query->where('is_active', true);
+        } elseif ($statusFilter === 'all') {
+            // Tampilkan semua (aktif dan nonaktif) jika diminta eksplisit
+        } elseif ($statusFilter === 'scheduled') {
+            $query->scheduledInactive();
+        } elseif ($statusFilter === 'pensiun') {
+            $query->where('inactive_reason', 'pensiun');
         } elseif ($statusFilter === 'inactive') {
             $query->where('is_active', false);
-        } elseif ($request->has('is_active')) {
+        } elseif ($request->has('is_active') && ! $request->has('status')) {
             $query->where('is_active', $request->boolean('is_active'));
+        } else {
+            // Default (tanpa status atau status=active): hanya pegawai efektif aktif
+            $query->effectiveActive();
         }
 
         $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));
@@ -410,6 +423,13 @@ class EmployeeController extends Controller
             ], 403);
         }
 
+        // doc.md §8 & HIST-01: Pegawai pensiun/keluar dan pegawai yang memiliki riwayat operasional tidak boleh dihapus permanen
+        if ($employee->hasOperationalHistory() || $employee->inactive_reason !== null) {
+            return response()->json([
+                'message' => 'Pegawai memiliki riwayat operasional atau berstatus purna tugas/keluar sehingga tidak dapat dihapus permanen. Gunakan penonaktifan status untuk mengarsipkan pegawai.',
+            ], 422);
+        }
+
         $filesToDelete = [];
         $leaveRequests = EmployeeLeaveRequest::withTrashed()
             ->where('employee_id', $employee->id)
@@ -448,9 +468,10 @@ class EmployeeController extends Controller
     public function select(Request $request): JsonResponse
     {
         $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
+        $asOf = $request->input('as_of') ? \Illuminate\Support\Carbon::parse($request->input('as_of')) : null;
 
         $query = Employee::query()
-            ->where('is_active', true)
+            ->effectiveActive($asOf)
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%');
@@ -609,6 +630,159 @@ class EmployeeController extends Controller
     }
 
     /**
+     * POST /api/kepegawaian/employees/{id}/lifecycle
+     * Kelola status lifecycle pegawai: nonaktifkan (pensiun/keluar/dsb), batalkan jadwal, atau aktifkan kembali.
+     */
+    public function updateLifecycle(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+        $currentUser = $request->user();
+
+        // EMP-04: Mencegah menonaktifkan akun sendiri
+        if ($currentUser && ($currentUser->username === $employee->nip || (int) $currentUser->employee_id === (int) $employee->id)) {
+            return response()->json([
+                'message' => 'Anda tidak dapat mengubah status lifecycle akun Anda sendiri.',
+            ], 403);
+        }
+
+        // EMP-04: Mencegah admin non-super_admin menonaktifkan akun super_admin
+        $nip = trim((string) $employee->nip);
+        $targetUser = $nip !== '' ? User::where('username', $nip)->first() : null;
+        if ($targetUser && $targetUser->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
+            return response()->json([
+                'message' => 'Hanya Super Admin yang dapat mengubah status akun Super Admin.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'action' => ['required', 'string', Rule::in(['deactivate', 'cancel_schedule', 'reactivate'])],
+            'inactive_reason' => [
+                Rule::requiredIf($request->input('action') === 'deactivate'),
+                'nullable',
+                'string',
+                Rule::in(Employee::ALLOWED_INACTIVE_REASONS),
+            ],
+            'inactive_effective_date' => [
+                Rule::requiredIf($request->input('action') === 'deactivate'),
+                'nullable',
+                'date_format:Y-m-d',
+            ],
+            'notes' => [
+                'nullable',
+                'string',
+                'max:1000',
+                Rule::requiredIf(function () use ($request) {
+                    $action = $request->input('action');
+                    $reason = $request->input('inactive_reason');
+                    $date = $request->input('inactive_effective_date');
+
+                    if ($action === 'reactivate') {
+                        return true;
+                    }
+                    if ($action === 'deactivate') {
+                        if ($reason === 'lainnya') {
+                            return true;
+                        }
+                        if (! empty($date)) {
+                            $parsed = Carbon::parse($date);
+                            if ($parsed->toDateString() < now()->toDateString()) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }),
+            ],
+        ], [
+            'notes.required' => 'Catatan wajib diisi jika alasan adalah lainnya, TMT berlaku mundur (backdate), atau saat mengaktifkan kembali pegawai.',
+        ]);
+
+        $employee->applyLifecycleStatus(
+            action: $validated['action'],
+            reason: $validated['inactive_reason'] ?? null,
+            effectiveDate: $validated['inactive_effective_date'] ?? null,
+            notes: $validated['notes'] ?? null,
+            actor: $currentUser
+        );
+
+        $actionMessages = [
+            'deactivate' => 'Status pegawai berhasil diperbarui.',
+            'cancel_schedule' => 'Jadwal penonaktifan berhasil dibatalkan.',
+            'reactivate' => 'Pegawai berhasil diaktifkan kembali. Akun portal tetap nonaktif sampai diatur melalui modul IAM.',
+        ];
+
+        return response()->json([
+            'message' => $actionMessages[$validated['action']] ?? 'Status lifecycle pegawai berhasil diperbarui.',
+            'data' => $employee->fresh(),
+        ]);
+    }
+
+    /**
+     * GET /api/kepegawaian/employees/{id}/bmn-clearance
+     * Menghitung dan memeriksa tanggungan BMN unik (pinjaman aktif & pegangan langsung) sebelum nonaktif.
+     */
+    public function bmnClearance(Request $request, $id): JsonResponse
+    {
+        $employee = Employee::findOrFail($id);
+
+        try {
+            // 1. Pinjaman aktif (status dipinjam atau terlambat)
+            $loanAssets = DB::table('bmn_asset_loans')
+                ->join('bmn_assets', 'bmn_asset_loans.asset_id', '=', 'bmn_assets.id')
+                ->where('bmn_asset_loans.employee_id', $employee->id)
+                ->whereIn(DB::raw('LOWER(bmn_asset_loans.status)'), ['dipinjam', 'terlambat'])
+                ->select(
+                    'bmn_assets.id',
+                    'bmn_assets.nama_barang',
+                    'bmn_assets.kode_barang',
+                    'bmn_assets.nup',
+                    DB::raw("'pinjaman' as tipe_tanggungan")
+                )
+                ->get();
+
+            // 2. Aset yang dipegang langsung (employee_id di bmn_assets)
+            $heldAssets = DB::table('bmn_assets')
+                ->where('employee_id', $employee->id)
+                ->select(
+                    'id',
+                    'nama_barang',
+                    'kode_barang',
+                    'nup',
+                    DB::raw("'pegangan' as tipe_tanggungan")
+                )
+                ->get();
+
+            // Gabungkan dan hitung aset unik berdasarkan id
+            $allAssets = $loanAssets->concat($heldAssets);
+            $uniqueAssets = $allAssets->unique('id')->values();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'employee_id' => $employee->id,
+                    'employee_name' => $employee->nama_lengkap,
+                    'unique_asset_count' => $uniqueAssets->count(),
+                    'assets' => $uniqueAssets,
+                    'status_check' => 'ok',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            // doc.md §7: Jika pembacaan ringkasan BMN gagal, tampilkan status belum dapat diperiksa, bukan angka nol
+            return response()->json([
+                'status' => 'partial',
+                'data' => [
+                    'employee_id' => $employee->id,
+                    'employee_name' => $employee->nama_lengkap,
+                    'unique_asset_count' => null,
+                    'assets' => [],
+                    'status_check' => 'error',
+                    'message' => 'Status tanggungan belum dapat diperiksa.',
+                ],
+            ]);
+        }
+    }
+
+    /**
      * GET /api/kepegawaian/employees/{id}/assignment-letters
      * Mengambil riwayat surat tugas khusus untuk pegawai ini
      */
@@ -649,6 +823,19 @@ class EmployeeController extends Controller
     {
         $employee = Employee::findOrFail($id);
         $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
+
+        if ($employee->is_mmp) {
+            return response()->json([
+                'message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas uang makan.',
+                'data' => [],
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $perPage,
+                    'total' => 0,
+                ],
+            ]);
+        }
 
         $items = MealAllowanceItem::with('batch')
             ->where(function ($q) use ($employee) {

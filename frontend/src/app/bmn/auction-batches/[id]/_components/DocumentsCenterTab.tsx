@@ -34,7 +34,9 @@ import { EMPTY_DOC_NUMBER_GAP } from "../../../auction-candidates/_lib/auction-h
 import type { Employee } from "./workflow/types";
 
 interface DocumentsCenterTabProps {
+  formState: ReturnType<typeof useDocumentsCenterFormState>;
   batch: AuctionBatch;
+  readOnly: boolean;
   phaseFilter?: AuctionDocumentPhase;
   checklist?: ChecklistResponse | null;
   onRefetch?: () => void;
@@ -105,11 +107,17 @@ function isLegacyKapPlaceholder(value: unknown) {
   return typeof value === "string" && ["balai", "bksda", "bksda kaltim"].includes(value.trim().toLowerCase());
 }
 
-export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }: DocumentsCenterTabProps) {
+export function useDocumentsCenterFormState() {
   const [printingDocKey, setPrintingDocKey] = useState<string | null>(null);
   const [editingDoc, setEditingDoc] = useState<DocumentItem | null>(null);
   const [isKepalaPickerOpen, setIsKepalaPickerOpen] = useState(false);
   const [kepalaSearch, setKepalaSearch] = useState("");
+
+  return { printingDocKey, setPrintingDocKey, editingDoc, setEditingDoc, isKepalaPickerOpen, setIsKepalaPickerOpen, kepalaSearch, setKepalaSearch };
+}
+
+export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, formState, readOnly }: DocumentsCenterTabProps) {
+  const { printingDocKey, setPrintingDocKey, editingDoc, setEditingDoc, isKepalaPickerOpen, setIsKepalaPickerOpen, kepalaSearch, setKepalaSearch } = formState;
 
   // Load document context
   const { data: contextResponse, isLoading, error, refetch: refetchContext } = useQuery({
@@ -214,6 +222,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
 
   const handleSaveDocumentContent = async (docKey: string, newContent: any) => {
     const currentContents = (batch.metadata as Record<string, any>)?.document_contents || {};
+    if (readOnly) return;
     await updateDocumentFieldsMutation.mutateAsync({
       document_contents: {
         ...currentContents,
@@ -276,20 +285,21 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   if (isLoading) {
     return (
       <div className="flex h-60 flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
-        <p className="text-xs text-zinc-500">Memuat berkas dokumen...</p>
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--ds-accent-fg)]" />
+        <p className="text-xs text-[var(--ds-fg-muted)]">Memuat berkas dokumen...</p>
       </div>
     );
   }
 
   if (error || !context) {
     return (
-      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-red-50 dark:bg-red-950/10 rounded-2xl">
-        <AlertTriangle className="h-8 w-8 text-red-500" />
-        <h3 className="font-bold text-xs text-zinc-900 dark:text-zinc-50">Gagal Memuat Dokumen</h3>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-[var(--ds-status-danger-bg)] rounded-2xl">
+        <AlertTriangle className="h-8 w-8 text-[var(--ds-status-danger-fg)]" />
+        <h3 className="font-bold text-xs text-[var(--ds-fg)]">Gagal Memuat Dokumen</h3>
+        <p className="text-xs text-[var(--ds-fg-muted)]">
           Silakan muat ulang halaman ini atau pastikan data paket lengkap.
         </p>
+        <Button variant="outline" onClick={() => refetchContext()}>Coba lagi</Button>
       </div>
     );
   }
@@ -297,10 +307,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
   // Check Schema Version
   if (context.metadata_schema_version && ![1, 2].includes(context.metadata_schema_version)) {
     return (
-      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-amber-50 dark:bg-amber-950/10 rounded-2xl border border-amber-200">
-        <AlertTriangle className="h-8 w-8 text-amber-500" />
-        <h3 className="font-bold text-xs text-zinc-900 dark:text-zinc-50">Skema Metadata Tidak Didukung</h3>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md">
+      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-[var(--ds-status-warning-bg)] rounded-2xl border border-[var(--ds-status-warning-border)]">
+        <AlertTriangle className="h-8 w-8 text-[var(--ds-status-warning-fg)]" />
+        <h3 className="font-bold text-xs text-[var(--ds-fg)]">Skema Metadata Tidak Didukung</h3>
+        <p className="text-xs text-[var(--ds-fg-muted)] max-w-md">
           Dokumen ini dibuat menggunakan skema metadata versi {context.metadata_schema_version} yang belum didukung oleh sistem cetak saat ini.
         </p>
       </div>
@@ -425,7 +435,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
     jabatanKegiatan: person.jabatanKegiatan || person.jabatan_kegiatan || getCommitteeRole(index),
     keterangan: person.keterangan || "",
   }));
-  const signatoryFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || isLoadingEmployees;
+  const signatoryFieldDisabled = readOnly || batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || isLoadingEmployees;
 
   const getDocumentNumber = (key: string, fallback = EMPTY_DOC_NUMBER_GAP) => meta.document_numbers?.[key] || fallback;
   const getDocumentKap = (key: string, fallback = defaultDocumentKaps[key] || DEFAULT_GENERAL_KAP) => {
@@ -507,24 +517,24 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
     const valuationItems = checklist.sections?.find((section) => section.key === "valuation")?.items ?? [];
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 shadow-xs dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+        <div className="rounded-2xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-5 text-[var(--ds-status-warning-fg)] shadow-xs">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--ds-status-warning-fg)]" />
             <div>
               <h2 className="text-sm font-bold">Dokumen setelah taksiran belum dibuka</h2>
-              <p className="mt-1 text-xs leading-relaxed text-amber-800/80 dark:text-amber-200/80">
+              <p className="mt-1 text-xs leading-relaxed text-[var(--ds-status-warning-fg)]">
                 Selesaikan nilai taksiran seluruh aset terlebih dahulu. Setelah itu Nota Dinas KSDAE dan permohonan KPKNL dapat diproses.
               </p>
             </div>
           </div>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">Checklist nilai taksiran</h3>
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">Checklist nilai taksiran</h3>
           <div className="mt-4 space-y-2">
             {valuationItems.map((item) => (
-              <div key={item.key} className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900">
-                <p className="font-semibold text-zinc-800 dark:text-zinc-200">{item.label}</p>
-                {item.message && <p className="mt-0.5 text-[11px] text-zinc-500">{item.message}</p>}
+              <div key={item.key} className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
+                <p className="font-semibold text-[var(--ds-fg)]">{item.label}</p>
+                {item.message && <p className="mt-0.5 text-xs text-[var(--ds-fg-muted)]">{item.message}</p>}
               </div>
             ))}
           </div>
@@ -535,24 +545,24 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs">
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-5 rounded-2xl shadow-xs">
+        <h2 className="text-base font-bold text-[var(--ds-fg)]">
           {phaseTitle}
         </h2>
-        <p className="text-xs text-zinc-500 mt-0.5">
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
           {phaseDescription}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-start">
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Penandatangan & Panitia Dokumen</p>
-            <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">Kepala Balai</h3>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Penandatangan & Panitia Dokumen</p>
+            <h3 className="mt-1 text-sm font-bold text-[var(--ds-fg)]">Kepala Balai</h3>
+            <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
               {kepalaBalai.nama !== "-" ? `${kepalaBalai.nama}${kepalaBalai.nip ? ` - NIP. ${kepalaBalai.nip}` : ""}` : "Belum dipilih"}
             </p>
-            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-zinc-500">
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[var(--ds-fg-muted)]">
               Panitia yang dipilih di sini dipakai langsung untuk lampiran SK Panitia Penghapusan, SK Panitia Penaksir Harga, Surat Tugas Pemeriksaan-Penilaian, dan BA Pemeriksaan.
             </p>
           </div>
@@ -562,10 +572,11 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               <Button
                 type="button"
                 variant="outline"
+                aria-label="Pilih Kepala Balai"
                 role="combobox"
                 aria-expanded={isKepalaPickerOpen}
                 disabled={signatoryFieldDisabled}
-                className="h-auto min-h-11 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
+                className="h-auto min-h-11 w-full justify-between rounded-xl border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-left text-xs font-normal"
               >
                 <span className="min-w-0 truncate">
                   {selectedKepalaBalai
@@ -574,14 +585,15 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     ? `${getEmployeeLabel(defaultKepalaBalai)} (default)`
                     : "-- Pilih Kepala Balai --"}
                 </span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[min(560px,calc(100vw-2rem))] p-0" align="end">
-              <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+            <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(560px,calc(100vw-2rem))] p-0" align="end">
+              <div className="border-b border-[var(--ds-border-subtle)] px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                  <Search className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                   <Input
+                    aria-label="Cari Kepala Balai"
                     value={kepalaSearch}
                     onChange={(event) => setKepalaSearch(event.target.value)}
                     placeholder="Cari nama, NIP, atau jabatan..."
@@ -591,7 +603,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               </div>
               <div className="max-h-72 overflow-y-auto p-1.5">
                 {filteredKepalaBalaiEmployees.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
+                  <div className="px-3 py-6 text-center text-xs text-[var(--ds-fg-muted)]">Pegawai tidak ditemukan.</div>
                 ) : (
                   filteredKepalaBalaiEmployees.map((employee) => {
                     const employeeId = String(employee.id);
@@ -600,20 +612,22 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     return (
                       <button
                         key={employee.id}
+                        aria-pressed={isSelected}
+                        disabled={signatoryFieldDisabled}
                         type="button"
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        className="bmn-choice-card flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-[var(--ds-surface-muted)]"
                         onClick={() => {
                           updateDocumentFieldsMutation.mutate({ kepalaBalaiId: employeeId });
                           setKepalaSearch("");
                           setIsKepalaPickerOpen(false);
                         }}
                       >
-                        <Check className={`h-4 w-4 shrink-0 text-emerald-600 ${isSelected ? "opacity-100" : "opacity-0"}`} />
+                        <Check className={`h-4 w-4 shrink-0 text-[var(--ds-accent-fg)] ${isSelected ? "opacity-100" : "opacity-0"}`} />
                         <span className="min-w-0">
-                          <span className="block truncate font-semibold text-zinc-850 dark:text-zinc-100">
+                          <span className="block truncate font-semibold text-[var(--ds-fg)]">
                             {getEmployeeName(employee)}
                           </span>
-                          <span className="block truncate font-mono text-[10px] text-zinc-400">
+                          <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)]">
                             NIP. {employee.nip || "-"}
                             {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
                           </span>
@@ -657,7 +671,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
 
       {groupedDocuments.map((group) => (
         <section key={group.key} className="space-y-3">
-          <h3 className="text-[11px] font-bold uppercase text-zinc-400">{group.label}</h3>
+          <h3 className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">{group.label}</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {group.documents.map((doc) => {
               const isPrintingThis = printingDocKey === doc.key;
@@ -665,8 +679,8 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               const progress = meta.workflow?.documents?.[workflowKey];
               const status = progress?.status || "not_started";
               const waitingForValuation = Boolean(doc.requiresValuation && !valuationComplete);
-              const workflowDisabled = batch.status !== "DRAFT" || updateWorkflowMutation.isPending || waitingForValuation;
-              const documentFieldDisabled = batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || waitingForValuation;
+              const workflowDisabled = readOnly || batch.status !== "DRAFT" || updateWorkflowMutation.isPending || waitingForValuation;
+              const documentFieldDisabled = readOnly || batch.status !== "DRAFT" || updateDocumentFieldsMutation.isPending || waitingForValuation;
               const documentNumber = doc.numberKey ? meta.document_numbers?.[doc.numberKey] ?? "" : "";
               const documentKap = doc.numberKey
                 ? getDocumentKap(doc.numberKey, defaultDocumentKaps[doc.numberKey] || defaultDocumentKaps[doc.key] || DEFAULT_GENERAL_KAP)
@@ -676,40 +690,41 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
               return (
                 <div
                   key={workflowKey}
-                  className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-950"
+                  className="flex flex-col justify-between rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500">
+                      <span className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">
                         {channelLabels[doc.channel || ""] || doc.category}
                       </span>
                       {doc.requiresValuation && (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-200">
+                        <span className="rounded-full bg-[var(--ds-status-warning-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-warning-fg)] ring-1 ring-[var(--ds-status-warning-border)]">
                           Setelah taksiran
                         </span>
                       )}
                       {waitingForValuation && (
-                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
+                        <span className="rounded-full bg-[var(--ds-status-danger-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-danger-fg)] ring-1 ring-[var(--ds-status-danger-border)]">
                           Menunggu Nilai Taksiran
                         </span>
                       )}
                       {!doc.printable && (
-                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold text-zinc-500 ring-1 ring-zinc-200">
+                        <span className="rounded-full bg-[var(--ds-surface-muted)] px-2 py-0.5 text-xs font-bold text-[var(--ds-fg-muted)] ring-1 ring-[var(--ds-border-subtle)]">
                           Status saja
                         </span>
                       )}
                     </div>
-                    <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-50">{doc.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500 max-w-52">{doc.description}</p>
+                    <h3 className="mt-1 text-sm font-bold text-[var(--ds-fg)]">{doc.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--ds-fg-muted)] max-w-52">{doc.description}</p>
                     {(doc.numberKey || doc.dateKey) && (
                       <div className="mt-4 space-y-3">
                         {doc.numberKey && (
                           <div className="space-y-2">
                             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
                               <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold uppercase text-zinc-400">Nomor Dokumen</label>
+                                <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Nomor Dokumen</label>
                                 <Input
                                   key={`${workflowKey}-number-${documentNumber}`}
+                                  aria-label={`Nomor dokumen ${doc.title}`}
                                   defaultValue={documentNumber}
                                   disabled={documentFieldDisabled}
                                   placeholder="Masukkan nomor"
@@ -733,9 +748,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                                 />
                               </div>
                               <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold uppercase text-zinc-400">KAP</label>
+                                <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KAP</label>
                                 <Input
                                   key={`${workflowKey}-kap-${documentKap}`}
+                                  aria-label={`KAP ${doc.title}`}
                                   defaultValue={documentKap}
                                   disabled={documentFieldDisabled}
                                   placeholder="KAP"
@@ -759,17 +775,18 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                                 />
                               </div>
                             </div>
-                            <p className="truncate rounded-lg bg-zinc-50 px-2 py-1 font-mono text-[10px] font-semibold text-zinc-500 dark:bg-zinc-900">
+                            <p className="truncate rounded-lg bg-[var(--ds-surface-muted)] px-2 py-1 font-mono text-xs font-semibold text-[var(--ds-fg-muted)]">
                               {buildDocumentNumberPreview(doc.key, documentNumber, documentKap)}
                             </p>
                           </div>
                         )}
                         {doc.dateKey && (
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase text-zinc-400">Tanggal</label>
+                            <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Tanggal</label>
                             <Input
                               key={`${workflowKey}-date-${documentDate}`}
                               type="date"
+                              aria-label={`Tanggal ${doc.title}`}
                               defaultValue={documentDate}
                               disabled={documentFieldDisabled}
                               onChange={(event) => {
@@ -791,20 +808,20 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
                     )}
                   </div>
 
-                  <div className="mt-5 flex items-center justify-end gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setEditingDoc(doc)}
                       disabled={waitingForValuation || isLoadingEmployees || !hasPrintableKepalaBalai}
-                      className="flex items-center gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      className="flex items-center gap-1.5 rounded-xl border-[var(--ds-border-subtle)] text-xs font-semibold text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
                     >
-                      <FileEdit className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <FileEdit className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                       Edit Isi & Pratinjau
                     </Button>
                     <Button
                       onClick={() => handlePrint(doc)}
-                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                      className="flex items-center gap-1.5 rounded-xl bg-[var(--ds-accent-solid)] text-xs font-semibold text-white hover:bg-[var(--ds-accent-hover)]"
                       disabled={!!printingDocKey || !doc.printable || waitingForValuation || isLoadingEmployees || !hasPrintableKepalaBalai}
                     >
                       {isPrintingThis ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
@@ -843,6 +860,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch }:
       {/* Document Content Editor & Live Preview Modal */}
       {editingDoc && (
         <DocumentContentEditorModal
+          readOnly={readOnly || batch.status !== "DRAFT"}
           open={!!editingDoc}
           onClose={() => setEditingDoc(null)}
           doc={editingDoc}

@@ -65,18 +65,56 @@ class AssignmentLetterConflictService
             return ['has_conflict' => false, 'conflicts' => []];
         }
 
-        // Fetch employee info for human-readable messages
-        $empNames = Employee::whereIn('id', array_keys($normalizedList))
-            ->pluck('nama_lengkap', 'id')
-            ->toArray();
+        // Fetch employee info for human-readable messages and lifecycle check
+        $employeesMap = Employee::whereIn('id', array_keys($normalizedList))
+            ->get(['id', 'nama_lengkap', 'is_active', 'inactive_effective_date', 'inactive_reason'])
+            ->keyBy('id');
 
         $activeStStatuses = ['pending', 'approved', 'published', 'diterbitkan', 'completed'];
         $activeLeaveStatuses = ['approved', 'disetujui'];
 
         foreach ($normalizedList as $empId => $data) {
-            $empName = $empNames[$empId] ?? "Pegawai ID {$empId}";
+            $emp = $employeesMap[$empId] ?? null;
+            $empName = $emp?->nama_lengkap ?? "Pegawai ID {$empId}";
             $reqMulai = $data['mulai'];
             $reqSelesai = $data['selesai'];
+
+            // 0. Check Employee Lifecycle (non-active or TMT during/before assignment)
+            if ($emp && ! $emp->is_active) {
+                $reasonLabel = $emp->inactive_reason ? " ({$emp->inactive_reason})" : '';
+                $conflicts[] = [
+                    'employee_id' => $empId,
+                    'employee_name' => $empName,
+                    'type' => 'inactive_employee',
+                    'reference_id' => null,
+                    'nomor' => 'STATUS_NONAKTIF',
+                    'keterangan' => "Pegawai '{$empName}' tidak dapat ditugaskan karena berstatus nonaktif{$reasonLabel}.",
+                    'status' => 'nonaktif',
+                    'tanggal_mulai' => $reqMulai,
+                    'tanggal_selesai' => $reqSelesai,
+                    'range_formatted' => 'Status Non-Aktif',
+                ];
+                continue;
+            }
+
+            if ($emp && $emp->inactive_effective_date) {
+                $tmt = $emp->inactive_effective_date->toDateString();
+                if ($reqSelesai >= $tmt) {
+                    $conflicts[] = [
+                        'employee_id' => $empId,
+                        'employee_name' => $empName,
+                        'type' => 'tmt_inactive_conflict',
+                        'reference_id' => null,
+                        'nomor' => 'TMT_NONAKTIF',
+                        'keterangan' => "Pegawai '{$empName}' memiliki jadwal TMT nonaktif per {$tmt} di dalam atau sebelum periode dinas.",
+                        'status' => 'terjadwal_nonaktif',
+                        'tanggal_mulai' => $reqMulai,
+                        'tanggal_selesai' => $reqSelesai,
+                        'range_formatted' => "TMT Nonaktif: {$tmt}",
+                    ];
+                    continue;
+                }
+            }
 
             // 1. Check conflicts with other active Assignment Letters
             $stQuery = DB::table('st_assignment_letters as sal')

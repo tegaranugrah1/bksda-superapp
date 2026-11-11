@@ -1610,6 +1610,17 @@ function GenerateSuratDinasContent() {
                       className="mt-1 text-xs"
                     />
                   </div>
+                  {data.jenisCuti?.toLowerCase().includes("tahunan") && (
+                    <div>
+                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Akumulasi Tahun Cuti (Opsional)</label>
+                      <Input
+                        value={data.tahunCutiText || ""}
+                        onChange={(e) => updateField("tahunCutiText", e.target.value)}
+                        placeholder="Contoh: untuk tahun 2025 dan tahun 2026"
+                        className="mt-1 text-xs"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

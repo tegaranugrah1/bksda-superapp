@@ -37,6 +37,7 @@ import {
 } from "../_lib/types";
 
 export interface HandoverAgreementTabProps {
+  formState: ReturnType<typeof useHandoverAgreementFormState>;
   employees: EmployeeOption[];
   loadingEmployees?: boolean;
   canGenerate?: boolean;
@@ -45,14 +46,8 @@ export interface HandoverAgreementTabProps {
   onRefetchHistory?: () => Promise<void> | void;
 }
 
-export function HandoverAgreementTab({
-  employees,
-  loadingEmployees = false,
-  canGenerate = true,
-  editingDocument,
-  onClearEditing,
-  onRefetchHistory,
-}: HandoverAgreementTabProps) {
+export function useHandoverAgreementFormState(editingDocument?: EditingDocumentState | null) {
+  const editingAppliedRef = useRef<EditingDocumentState | null | undefined>(undefined);
   const initialItem =
     editingDocument && editingDocument.type === "handover"
       ? (editingDocument.item as HandoverAgreementHistory | undefined)
@@ -138,6 +133,70 @@ export function HandoverAgreementTab({
   const [generalAssetSearch, setGeneralAssetSearch] = useState("");
   const [debouncedGeneralAssetSearch] = useDebounce(generalAssetSearch, 300);
   const [savingHandoverAgreement, setSavingHandoverAgreement] = useState(false);
+
+  return {
+    editingAppliedRef, debouncedGeneralAssetSearch,
+    handoverVariant, setHandoverVariant,
+    handoverTitle, setHandoverTitle,
+    handoverSequence, setHandoverSequence,
+    handoverKap, setHandoverKap,
+    handoverDate, setHandoverDate,
+    handoverFirstEmployeeId, setHandoverFirstEmployeeId,
+    handoverSecondEmployeeId, setHandoverSecondEmployeeId,
+    handoverFirstPartyType, setHandoverFirstPartyType,
+    handoverSecondPartyType, setHandoverSecondPartyType,
+    handoverFirstParty, setHandoverFirstParty,
+    handoverSecondParty, setHandoverSecondParty,
+    handoverReceiptClause, setHandoverReceiptClause,
+    handoverSignerCount, setHandoverSignerCount,
+    handoverWitnessEmployeeId, setHandoverWitnessEmployeeId,
+    handoverWitness, setHandoverWitness,
+    handoverItems, setHandoverItems,
+    selectedVehicleAssetIds, setSelectedVehicleAssetIds,
+    handoverGeneralDescription, setHandoverGeneralDescription,
+    handoverVehicleDescription, setHandoverVehicleDescription,
+    vehicleSearch, setVehicleSearch,
+    openGeneralAssetPicker, setOpenGeneralAssetPicker,
+    generalAssetSearch, setGeneralAssetSearch,
+    savingHandoverAgreement, setSavingHandoverAgreement,
+  };
+}
+
+export function HandoverAgreementTab({
+  formState,
+  employees,
+  loadingEmployees = false,
+  canGenerate = true,
+  editingDocument,
+  onClearEditing,
+  onRefetchHistory,
+}: HandoverAgreementTabProps) {
+  const {
+    editingAppliedRef, debouncedGeneralAssetSearch,
+    handoverVariant, setHandoverVariant,
+    handoverTitle, setHandoverTitle,
+    handoverSequence, setHandoverSequence,
+    handoverKap, setHandoverKap,
+    handoverDate, setHandoverDate,
+    handoverFirstEmployeeId, setHandoverFirstEmployeeId,
+    handoverSecondEmployeeId, setHandoverSecondEmployeeId,
+    handoverFirstPartyType, setHandoverFirstPartyType,
+    handoverSecondPartyType, setHandoverSecondPartyType,
+    handoverFirstParty, setHandoverFirstParty,
+    handoverSecondParty, setHandoverSecondParty,
+    handoverReceiptClause, setHandoverReceiptClause,
+    handoverSignerCount, setHandoverSignerCount,
+    handoverWitnessEmployeeId, setHandoverWitnessEmployeeId,
+    handoverWitness, setHandoverWitness,
+    handoverItems, setHandoverItems,
+    selectedVehicleAssetIds, setSelectedVehicleAssetIds,
+    handoverGeneralDescription, setHandoverGeneralDescription,
+    handoverVehicleDescription, setHandoverVehicleDescription,
+    vehicleSearch, setVehicleSearch,
+    openGeneralAssetPicker, setOpenGeneralAssetPicker,
+    generalAssetSearch, setGeneralAssetSearch,
+    savingHandoverAgreement, setSavingHandoverAgreement,
+  } = formState;
 
   const applyDataToForm = (item: HandoverAgreementHistory, isDuplicate = false) => {
     setHandoverVariant(item.variant || "general_goods");
@@ -225,34 +284,19 @@ export function HandoverAgreementTab({
     setHandoverVehicleDescription("kendaraan");
   };
 
-  // Fetch detail from backend if editing existing document
-  useQuery({
-    queryKey: ["bmn-handover-agreement-detail", editingDocument?.id],
-    queryFn: async () => {
-      if (!editingDocument?.id || editingDocument.type !== "handover") return null;
-      try {
-        const response = await api.get(`/bmn/handover-agreements/${editingDocument.id}`);
-        const data = response.data?.data;
-        if (data) {
-          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
-        }
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    enabled: Boolean(editingDocument?.id && editingDocument.type === "handover"),
-  });
+  // History resources include full snapshots; synchronize edit mode once, without refetch overwriting a draft.
 
   useEffect(() => {
+    if (editingAppliedRef.current === editingDocument) return;
+    editingAppliedRef.current = editingDocument;
     if (editingDocument && editingDocument.type === "handover" && editingDocument.item) {
       applyDataToForm(editingDocument.item as HandoverAgreementHistory, Boolean(editingDocument.isDuplicate));
     } else if (!editingDocument) {
       resetForm();
     }
-  }, [editingDocument]);
+  }, [editingDocument, editingAppliedRef]);
 
-  const { data: vehicleAssets = [], isLoading: loadingVehicleAssets } = useQuery<BmnAssetOption[]>({
+  const { data: vehicleAssets = [], isLoading: loadingVehicleAssets, isError: vehicleAssetsError, refetch: refetchVehicleAssets } = useQuery<BmnAssetOption[]>({
     queryKey: ["bmn-report-vehicle-assets"],
     queryFn: async () => {
       const response = await api.get("/bmn/assets", {
@@ -262,7 +306,7 @@ export function HandoverAgreementTab({
     },
   });
 
-  const { data: generalAssetOptions = [], isLoading: loadingGeneralAssetOptions } = useQuery<BmnAssetOption[]>({
+  const { data: generalAssetOptions = [], isLoading: loadingGeneralAssetOptions, isError: generalAssetsError, refetch: refetchGeneralAssets } = useQuery<BmnAssetOption[]>({
     queryKey: ["bmn-report-general-asset-options", debouncedGeneralAssetSearch],
     queryFn: async () => {
       const params: Record<string, string | number> = { page: 1, per_page: 50 };
@@ -520,10 +564,10 @@ export function HandoverAgreementTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
         <div>
-          <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate BA Serah Terima</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullHandoverNumber}</p>
+          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate BA Serah Terima</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)]">{fullHandoverNumber}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
@@ -542,7 +586,7 @@ export function HandoverAgreementTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+            className="rounded-xl gap-2"
             onClick={() => handlePrintHandoverAgreement()}
           >
             <Printer className="w-4 h-4" />
@@ -551,10 +595,10 @@ export function HandoverAgreementTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
         <div className="mb-4">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">1. Tipe Serah Terima</h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">1. Tipe Serah Terima</h3>
+          <p className="text-xs text-[var(--ds-fg-muted)]">
             Barang umum bisa ditambah manual. Kendaraan wajib dipilih dari data BMN.
           </p>
         </div>
@@ -566,15 +610,16 @@ export function HandoverAgreementTab({
             <button
               key={variant}
               type="button"
+              aria-pressed={handoverVariant === variant}
               onClick={() => handleHandoverVariantChange(variant)}
-              className={`rounded-xl border p-4 text-left transition ${
+              className={`rounded-xl border p-4 text-left transition-colors duration-150 ease-out ${
                 handoverVariant === variant
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+                  ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                  : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]   "
               }`}
             >
               <span className="block text-sm font-bold">{label}</span>
-              <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">{description}</span>
+              <span className="mt-1 block text-xs text-[var(--ds-fg-muted)]">{description}</span>
             </button>
           ))}
         </div>
@@ -582,47 +627,47 @@ export function HandoverAgreementTab({
 
       <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-5">
         <div className="order-3 space-y-5">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">3. Detail Dokumen</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">3. Detail Dokumen</h3>
             <div className="space-y-3">
               <label className="block">
-                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Judul BA</span>
+                <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Judul BA</span>
                 <input
                   value={handoverTitle}
                   onChange={(event) => setHandoverTitle(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                 />
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Nomor BA</span>
+                  <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Nomor BA</span>
                   <input
                     value={handoverSequence}
                     onChange={(event) => setHandoverSequence(event.target.value)}
                     placeholder="contoh: 129"
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">KAP</span>
+                  <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">KAP</span>
                   <input
                     value={handoverKap}
                     onChange={(event) => setHandoverKap(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                   />
                 </label>
               </div>
               <label className="block">
-                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Tanggal Dokumen</span>
+                <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Tanggal Dokumen</span>
                 <input
                   type="date"
                   value={handoverDate}
                   onChange={(event) => setHandoverDate(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                   Jenis Barang Pada Kalimat BA
                 </span>
                 <textarea
@@ -638,14 +683,14 @@ export function HandoverAgreementTab({
                   placeholder={
                     handoverVariant === "vehicle" ? "contoh: kendaraan roda dua" : "contoh: perlengkapan kebakaran"
                   }
-                  className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                 />
               </label>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">4. Para Pihak</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">4. Para Pihak</h3>
             <div className="space-y-4">
               {([
                 [
@@ -667,36 +712,38 @@ export function HandoverAgreementTab({
                   setHandoverSecondPartyType,
                 ],
               ] as const).map(([role, label, employeeId, party, setParty, partyType, setPartyType]) => (
-                <div key={role} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                <div key={role} className="rounded-xl border border-[var(--ds-border-subtle)] p-3">
                   <div className="mb-2.5 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg-secondary)]">
                       <UserRound className="w-3.5 h-3.5" /> {label}
                     </div>
-                    <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div className="flex flex-wrap rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface-muted)]">
                       <button
                         type="button"
+                        aria-pressed={partyType === "internal"}
                         onClick={() => {
                           setPartyType("internal");
                           setParty({ ...party, idType: "NIP" });
                         }}
-                        className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
                           partyType === "internal"
-                            ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
                         }`}
                       >
                         Pegawai (NIP)
                       </button>
                       <button
                         type="button"
+                        aria-pressed={partyType === "external"}
                         onClick={() => {
                           setPartyType("external");
                           setParty({ ...party, idType: "NIK" });
                         }}
-                        className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
                           partyType === "external"
-                            ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
                         }`}
                       >
                         Pihak Luar (NIK)
@@ -706,10 +753,11 @@ export function HandoverAgreementTab({
 
                   {partyType === "internal" && (
                     <select
-                      value={employeeId}
+                      aria-label={`Pegawai ${label}`}
+                    value={employeeId}
                       onChange={(event) => handleHandoverPartyEmployeeChange(role, event.target.value)}
                       disabled={loadingEmployees}
-                      className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                     >
                       <option value="">
                         {loadingEmployees
@@ -727,78 +775,85 @@ export function HandoverAgreementTab({
                   )}
 
                   <input
+                    aria-label={`Nama ${label}`}
                     value={party.name}
                     onChange={(event) => setParty({ ...party, name: event.target.value })}
                     placeholder="Nama"
-                    className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
+                    aria-label={`Identitas ${label}`}
                     value={party.nip || ""}
                     onChange={(event) => setParty({ ...party, nip: event.target.value })}
                     placeholder={partyType === "external" ? "NIK" : "NIP"}
-                    className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
+                    aria-label={`Jabatan ${label}`}
                     value={party.position || ""}
                     onChange={(event) => setParty({ ...party, position: event.target.value })}
                     placeholder={partyType === "external" ? "Jabatan / Pekerjaan" : "Jabatan"}
-                    className="mb-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
+                    aria-label={`Alamat ${label}`}
                     value={party.address || ""}
                     onChange={(event) => setParty({ ...party, address: event.target.value })}
                     placeholder="Alamat"
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">5. Klausul Tanggung Jawab</h3>
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)]">5. Klausul Tanggung Jawab</h3>
               <button
                 type="button"
                 onClick={() => setHandoverReceiptClause(DEFAULT_HANDOVER_RECEIPT_CLAUSE)}
-                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                className="text-xs font-semibold text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)]"
               >
                 Reset Default
               </button>
             </div>
-            <p className="text-xs text-zinc-500 mb-2 dark:text-zinc-400">
+            <p className="text-xs text-[var(--ds-fg-muted)] mb-2">
               Klausul penerimaan dan tanggung jawab barang (kata PIHAK KESATU & KEDUA otomatis dicetak tebal).
             </p>
             <textarea
-              value={handoverReceiptClause}
+              aria-label="Klausul tanggung jawab"
+                  value={handoverReceiptClause}
               onChange={(event) => setHandoverReceiptClause(event.target.value)}
               rows={4}
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs leading-relaxed outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs leading-relaxed outline-none"
             />
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">6. Konfigurasi Tanda Tangan</h3>
-              <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)]">6. Konfigurasi Tanda Tangan</h3>
+              <div className="flex flex-wrap rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface-muted)]">
                 <button
                   type="button"
+                  aria-pressed={handoverSignerCount === 2}
                   onClick={() => setHandoverSignerCount(2)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
                     handoverSignerCount === 2
-                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
                   }`}
                 >
                   2 TTD
                 </button>
                 <button
                   type="button"
+                  aria-pressed={handoverSignerCount === 3}
                   onClick={() => setHandoverSignerCount(3)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
                     handoverSignerCount === 3
-                      ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
                   }`}
                 >
                   3 TTD (+ Mengetahui)
@@ -807,13 +862,14 @@ export function HandoverAgreementTab({
             </div>
 
             {handoverSignerCount === 3 && (
-              <div className="space-y-2.5 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/30">
-                <div className="text-xs font-bold text-zinc-700 dark:text-zinc-200">Penandatangan Mengetahui</div>
+              <div className="space-y-2.5 rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)]">
+                <div className="text-xs font-bold text-[var(--ds-fg-secondary)]">Penandatangan Mengetahui</div>
                 <select
+                  aria-label="Pilih penandatangan mengetahui"
                   value={handoverWitnessEmployeeId}
                   onChange={(event) => handleHandoverWitnessEmployeeChange(event.target.value)}
                   disabled={loadingEmployees}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 >
                   <option value="">
                     {loadingEmployees
@@ -829,22 +885,25 @@ export function HandoverAgreementTab({
                   ))}
                 </select>
                 <input
+                  aria-label="Nama penandatangan mengetahui"
                   value={handoverWitness?.name || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, name: event.target.value })}
                   placeholder="Nama Penandatangan Mengetahui"
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 />
                 <input
+                  aria-label="NIP penandatangan mengetahui"
                   value={handoverWitness?.nip || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, nip: event.target.value })}
                   placeholder="NIP Penandatangan Mengetahui"
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 />
                 <input
+                  aria-label="Jabatan penandatangan mengetahui"
                   value={handoverWitness?.position || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, position: event.target.value })}
                   placeholder="Jabatan Mengetahui (contoh: KEPALA BALAI,)"
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 />
               </div>
             )}
@@ -852,11 +911,11 @@ export function HandoverAgreementTab({
         </div>
 
         <div className="contents">
-          <div className="order-2 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900 2xl:col-span-2">
+          <div className="order-2 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 2xl:col-span-2">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">2. Barang Diserahterimakan</h3>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                <h3 className="text-sm font-bold text-[var(--ds-fg)]">2. Barang Diserahterimakan</h3>
+                <p className="text-xs text-[var(--ds-fg-muted)]">
                   {handoverVariant === "vehicle"
                     ? `${selectedVehicleAssetIds.length} dari ${vehicleAssets.length} kendaraan dipilih`
                     : `${handoverItems.filter((item) => String(item.name || "").trim()).length} barang terisi`}
@@ -871,18 +930,20 @@ export function HandoverAgreementTab({
 
             {handoverVariant === "vehicle" ? (
               <div className="space-y-3">
+                {vehicleAssetsError && <div role="alert" className="text-sm text-[var(--ds-status-danger-fg)]">Daftar kendaraan gagal dimuat. <Button variant="outline" onClick={() => refetchVehicleAssets()}>Coba lagi</Button></div>}
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
                   <input
-                    value={vehicleSearch}
+                    aria-label="Cari kendaraan"
+                  value={vehicleSearch}
                     onChange={(event) => setVehicleSearch(event.target.value)}
                     placeholder="Cari kendaraan, merk, atau no polisi..."
-                    className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="h-10 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none"
                   />
                 </div>
-                <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <table className="w-full table-fixed text-left text-xs">
-                    <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                <div className="max-h-96 overflow-auto rounded-xl border border-[var(--ds-border-subtle)]">
+                  <table className={`${filteredVehicleAssets.length > 0 ? "bmn-wide-table" : ""} w-full table-fixed text-left text-xs`}>
+                    <thead className="sticky top-0 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                       <tr>
                         <th className="w-10 px-2 py-2"></th>
                         <th className="px-3 py-2">Kendaraan</th>
@@ -893,10 +954,10 @@ export function HandoverAgreementTab({
                         <th className="w-28 px-2 py-2">No. Rangka</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                       {filteredVehicleAssets.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-3 py-8 text-center text-zinc-500">
+                          <td colSpan={7} className="px-3 py-8 text-center text-[var(--ds-fg-muted)]">
                             {loadingVehicleAssets
                               ? "Memuat kendaraan..."
                               : "Tidak ada kendaraan yang sesuai pencarian."}
@@ -904,10 +965,11 @@ export function HandoverAgreementTab({
                         </tr>
                       ) : (
                         filteredVehicleAssets.map((asset) => (
-                          <tr key={asset.id} className="text-zinc-700 dark:text-zinc-200">
+                          <tr key={asset.id} aria-selected={selectedVehicleAssetIds.includes(asset.id)} className="bmn-table-row text-[var(--ds-fg-secondary)]">
                             <td className="px-2 py-2">
                               <input
                                 type="checkbox"
+                                aria-label={`Pilih kendaraan ${asset.nama_barang} NUP ${asset.nup || "-"}`}
                                 checked={selectedVehicleAssetIds.includes(asset.id)}
                                 onChange={() => toggleVehicleAsset(asset.id)}
                               />
@@ -916,19 +978,19 @@ export function HandoverAgreementTab({
                               {asset.nama_barang}
                             </td>
                             <td
-                              className="px-3 py-2 text-zinc-500 truncate"
+                              className="px-3 py-2 text-[var(--ds-fg-muted)] truncate"
                               title={asset.merk_tipe || asset.merk || "-"}
                             >
                               {asset.merk_tipe || asset.merk || "-"}
                             </td>
-                            <td className="px-2 py-2 text-zinc-500">{asset.nup || "-"}</td>
-                            <td className="px-2 py-2 text-zinc-500 truncate" title={asset.no_polisi || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)]">{asset.nup || "-"}</td>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_polisi || "-"}>
                               {asset.no_polisi || "-"}
                             </td>
-                            <td className="px-2 py-2 text-zinc-500 truncate" title={asset.no_mesin || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_mesin || "-"}>
                               {asset.no_mesin || "-"}
                             </td>
-                            <td className="px-2 py-2 text-zinc-500 truncate" title={asset.no_rangka || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_rangka || "-"}>
                               {asset.no_rangka || "-"}
                             </td>
                           </tr>
@@ -940,8 +1002,8 @@ export function HandoverAgreementTab({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                  <div className="mb-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
+                <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3">
+                  <div className="mb-2 text-xs font-semibold text-[var(--ds-fg-secondary)]">
                     Tambah dari data BMN
                   </div>
                   <Popover open={openGeneralAssetPicker} onOpenChange={setOpenGeneralAssetPicker}>
@@ -949,43 +1011,45 @@ export function HandoverAgreementTab({
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-11 w-full justify-between rounded-lg bg-white px-3 text-left text-xs font-normal dark:bg-zinc-900"
+                        className="h-11 w-full justify-between rounded-lg bg-[var(--ds-surface)] px-3 text-left text-xs font-normal"
                         disabled={loadingGeneralAssetOptions}
                       >
-                        <span className="flex items-center gap-2 truncate text-zinc-600 dark:text-zinc-300">
-                          <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                        <span className="flex items-center gap-2 truncate text-[var(--ds-fg-secondary)]">
+                          <Search className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                           {loadingGeneralAssetOptions ? (
-                            <span className="text-zinc-500">Memuat barang BMN...</span>
+                            <span className="text-[var(--ds-fg-muted)]">Memuat barang BMN...</span>
                           ) : selectedGeneralAssetIds.size > 0 ? (
                             <span>
-                              <strong className="text-emerald-600 dark:text-emerald-400">
+                              <strong className="text-[var(--ds-accent-fg)]">
                                 {selectedGeneralAssetIds.size} barang BMN terpilih
                               </strong>{" "}
                               (klik untuk cari & tambah lagi)
                             </span>
                           ) : (
-                            <span className="text-zinc-500">Cari nama barang, merk, atau NUP...</span>
+                            <span className="text-[var(--ds-fg-muted)]">Cari nama barang, merk, atau NUP...</span>
                           )}
                         </span>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[min(680px,95vw)] p-0 shadow-xl" align="start">
+                    <PopoverContent data-module="bmn" aria-label="Pilih barang dari data BMN" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[680px] max-w-[calc(100vw-2rem)] p-0" align="start">
                       <div className="flex max-h-125 flex-col">
                         <div className="flex items-center border-b px-3 py-2.5">
-                          <Search className="mr-2 h-4 w-4 shrink-0 text-zinc-400" />
+                          <Search className="mr-2 h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                           <Input
-                            className="h-9 border-0 bg-transparent px-0 text-sm shadow-none outline-none focus-visible:ring-0"
+                            className="h-9 border-0 bg-transparent px-0 text-sm shadow-none outline-none"
                             placeholder="Ketik nama barang, merk/tipe, atau NUP..."
-                            value={generalAssetSearch}
+                            aria-label="Cari barang BMN"
+                  value={generalAssetSearch}
                             onChange={(event) => setGeneralAssetSearch(event.target.value)}
                             autoFocus
                           />
                           {generalAssetSearch && (
                             <button
                               type="button"
+                              aria-label="Bersihkan pencarian barang"
                               onClick={() => setGeneralAssetSearch("")}
-                              className="ml-2 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                              className="ml-2 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)]"
                             >
                               Hapus
                             </button>
@@ -993,14 +1057,14 @@ export function HandoverAgreementTab({
                         </div>
 
                         {!loadingGeneralAssetOptions && generalAssetOptions.length > 0 && (
-                          <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/80 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/60">
+                          <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs text-[var(--ds-fg-muted)]">
                             <span>
                               Ditemukan <strong>{generalAssetOptions.length}</strong> barang
                             </span>
                             <button
                               type="button"
                               onClick={toggleAllVisibleGeneralAssets}
-                              className="font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                              className="font-semibold text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)]"
                             >
                               {generalAssetOptions.every((a) => selectedGeneralAssetIds.has(a.id))
                                 ? "Batalkan Semua Hasil Ini"
@@ -1009,15 +1073,16 @@ export function HandoverAgreementTab({
                           </div>
                         )}
 
-                        <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-zinc-100 dark:divide-zinc-800/60 max-h-85">
+                        <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-[var(--ds-border-subtle)] max-h-85">
                           {loadingGeneralAssetOptions && (
-                            <div className="py-8 text-center text-sm text-zinc-500">
-                              <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-emerald-600" />
+                            <div className="py-8 text-center text-sm text-[var(--ds-fg-muted)]">
+                              <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-[var(--ds-accent-fg)]" />
                               Mencari data BMN...
                             </div>
                           )}
-                          {!loadingGeneralAssetOptions && generalAssetOptions.length === 0 && (
-                            <div className="py-8 text-center text-sm text-zinc-400">
+                          {generalAssetsError && <div role="alert" className="p-4 text-sm text-[var(--ds-status-danger-fg)]">Daftar barang BMN gagal dimuat. <Button variant="outline" className="mt-2" onClick={() => refetchGeneralAssets()}>Coba lagi</Button></div>}
+                          {!loadingGeneralAssetOptions && !generalAssetsError && generalAssetOptions.length === 0 && (
+                            <div className="py-8 text-center text-sm text-[var(--ds-fg-muted)]">
                               Tidak ada aset yang sesuai kata kunci pencarian.
                             </div>
                           )}
@@ -1026,78 +1091,74 @@ export function HandoverAgreementTab({
                               const isSelected = selectedGeneralAssetIds.has(asset.id);
                               const merkTipe = asset.merk_tipe || asset.merk || asset.tipe || "-";
                               return (
-                                <div
+                                <label
                                   key={asset.id}
-                                  onClick={() => toggleGeneralAssetItem(asset)}
-                                  className={`flex cursor-pointer items-start gap-3 rounded-lg p-2.5 transition select-none ${
+                                  data-selected={isSelected}
+                                  className={`bmn-choice-card flex cursor-pointer items-start gap-3 rounded-lg p-2.5 select-none ${
                                     isSelected
-                                      ? "bg-emerald-50/80 dark:bg-emerald-950/30"
-                                      : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                                      ? "bg-[var(--ds-accent-soft)] "
+                                      : "hover:bg-[var(--ds-surface-muted)] "
                                   }`}
                                 >
                                   <input
                                     type="checkbox"
+                                    aria-label={`Pilih ${asset.nama_barang} NUP ${asset.nup || "-"}`}
                                     checked={isSelected}
-                                    onChange={() => {}}
-                                    className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900"
+                                    onChange={() => toggleGeneralAssetItem(asset)}
+                                    className="mt-0.5 h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)]"
                                   />
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                       <span
                                         className={`block text-xs font-bold leading-tight ${
                                           isSelected
-                                            ? "text-emerald-900 dark:text-emerald-200"
-                                            : "text-zinc-900 dark:text-zinc-100"
+                                            ? "text-[var(--ds-accent-fg)] "
+                                            : "text-[var(--ds-fg)] "
                                         }`}
                                       >
                                         {asset.nama_barang}
                                       </span>
                                       {isSelected && (
-                                        <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                        <span className="shrink-0 rounded-full bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
                                           ✓ Dipilih
                                         </span>
                                       )}
                                     </div>
-                                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ds-fg-muted)]">
                                       <span>
                                         Merk/Tipe:{" "}
-                                        <b className="font-semibold text-zinc-700 dark:text-zinc-200">{merkTipe}</b>
+                                        <b className="font-semibold text-[var(--ds-fg-secondary)]">{merkTipe}</b>
                                       </span>
                                       <span>
                                         NUP:{" "}
-                                        <b className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <b className="font-semibold text-[var(--ds-accent-fg)]">
                                           {asset.nup || "-"}
                                         </b>
                                       </span>
                                       {asset.kode_barang && (
-                                        <span className="text-zinc-400 dark:text-zinc-500">
+                                        <span className="text-[var(--ds-fg-muted)]">
                                           Kode: {asset.kode_barang}
                                         </span>
                                       )}
                                       {asset.kondisi && (
                                         <span
-                                          className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                            /baik/i.test(asset.kondisi)
-                                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                              : /rusak berat/i.test(asset.kondisi)
-                                              ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                                              : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                                          }`}
+                                          data-status={asset.kondisi.trim().toLowerCase() === "baik" ? "success" : asset.kondisi.trim().toLowerCase() === "rusak berat" ? "danger" : asset.kondisi.trim().toLowerCase() === "rusak ringan" ? "warning" : "neutral"}
+                                          className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium"
                                         >
                                           {asset.kondisi}
                                         </span>
                                       )}
                                     </div>
                                   </div>
-                                </div>
+                                </label>
                               );
                             })}
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-50/90 px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-950">
-                          <span className="text-zinc-600 dark:text-zinc-300">
+                        <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
+                          <span className="text-[var(--ds-fg-secondary)]">
                             Total terpilih:{" "}
-                            <strong className="font-bold text-emerald-600 dark:text-emerald-400">
+                            <strong className="font-bold text-[var(--ds-accent-fg)]">
                               {selectedGeneralAssetIds.size}
                             </strong>{" "}
                             barang
@@ -1105,7 +1166,7 @@ export function HandoverAgreementTab({
                           <Button
                             type="button"
                             size="sm"
-                            className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
+                            className="h-8 rounded-lg bg-[var(--ds-accent-soft)] px-3 text-xs font-semibold text-white hover:bg-[var(--ds-accent-soft)]"
                             onClick={() => setOpenGeneralAssetPicker(false)}
                           >
                             Selesai
@@ -1116,9 +1177,9 @@ export function HandoverAgreementTab({
                   </Popover>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <table className="w-full table-fixed text-left text-xs">
-                    <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+                <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)]">
+                  <table className="bmn-wide-table w-full table-fixed text-left text-xs">
+                    <thead className="bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                       <tr>
                         <th className="w-40 px-3 py-2">Nama Barang</th>
                         <th className="w-32 px-2 py-2">Merk / Tipe</th>
@@ -1128,7 +1189,7 @@ export function HandoverAgreementTab({
                         <th className="w-16 px-3 py-2 text-right">Aksi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                       {handoverItems.map((item, index) => (
                         <tr key={index}>
                           <td className="px-3 py-2">
@@ -1136,7 +1197,7 @@ export function HandoverAgreementTab({
                               value={item.name || ""}
                               onChange={(event) => updateHandoverItem(index, "name", event.target.value)}
                               placeholder="Nama barang"
-                              className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1144,7 +1205,7 @@ export function HandoverAgreementTab({
                               value={item.merk_tipe || ""}
                               onChange={(event) => updateHandoverItem(index, "merk_tipe", event.target.value)}
                               placeholder="Merk / Tipe"
-                              className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1153,7 +1214,7 @@ export function HandoverAgreementTab({
                               value={item.quantity ?? ""}
                               onChange={(event) => updateHandoverItem(index, "quantity", event.target.value)}
                               placeholder="Contoh: 1 Box"
-                              className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1161,16 +1222,16 @@ export function HandoverAgreementTab({
                               value={item.nup || ""}
                               onChange={(event) => updateHandoverItem(index, "nup", event.target.value)}
                               placeholder="-"
-                              className="w-full rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
                             />
                           </td>
-                          <td className="px-2 py-2 text-zinc-500">{item.asset_id ? "BMN" : "Manual"}</td>
+                          <td className="px-2 py-2 text-[var(--ds-fg-muted)]">{item.asset_id ? "BMN" : "Manual"}</td>
                           <td className="px-3 py-2 text-right">
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-7 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                              className="bmn-icon-danger h-7 rounded-lg px-2 text-xs"
                               onClick={() => removeHandoverItem(index)}
                               disabled={handoverItems.length === 1}
                             >
@@ -1186,12 +1247,12 @@ export function HandoverAgreementTab({
             )}
           </div>
 
-          <div className="order-5 min-w-0 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="order-5 min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">5. Preview Dokumen</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullHandoverNumber}</p>
+              <h3 className="text-sm font-bold text-[var(--ds-fg)]">5. Preview Dokumen</h3>
+              <p className="text-xs text-[var(--ds-fg-muted)]">{fullHandoverNumber}</p>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4">
               <HandoverAgreementDocument
                 number={fullHandoverNumber}
                 title={handoverTitle}

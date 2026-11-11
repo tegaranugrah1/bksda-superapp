@@ -48,10 +48,9 @@ Penerapan standar UI-UX-Pro-Max dan efisiensi Ponytail pada halaman katalog dan 
 ## Fase 3: Penataan Sub-Halaman Internal ("Jeroan" BMN)
 Penyelesaian isu dark mode, stepper, error handling, dan responsivitas halaman detail & wizard.
 
-- [x] **3.1. Wizard Tambah Aset (`assets/create/page.tsx`)**:
-  - [x] Terapkan Dark Mode Zinc pada seluruh 5 step wizard (hilangkan hardcoded putih terang).
-  - [x] Ubah baris stepper 5 tombol menjadi responsif di layar ponsel `< 640px` (badge step ringkas).
-  - [x] Ubah grid form menjadi `grid-cols-1 sm:grid-cols-2` agar tidak terjepit.
+- [x] **3.1. Penambahan Aset Melalui Impor Excel SIMAN (revisi10 November2026)**:
+  - [x] Hapus formulir manual dan pintasan Tambah Aset; blueprint wizard lama dibatalkan atas keputusan pengguna.
+  - [x] Arahkan URL create lama ke Data Aset, pertahankan Impor Excel/review dan izin existing.
 - [x] **3.2. Formulir Peminjaman Baru (`loans/create/page.tsx`)**:
   - [x] Saring opsi aset agar aset berstatus `active_loan` atau `Rusak Berat` diberi penanda non-aktif.
   - [x] Perbaiki penanganan error agar pesan validasi backend ditampilkan ke pengguna via toast.

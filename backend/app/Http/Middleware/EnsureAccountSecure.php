@@ -22,7 +22,13 @@ class EnsureAccountSecure
         }
 
         // Deactivation applies to every credential path, including recovery allowlisted routes.
-        if (! $user->is_active) {
+        $employee = $user->employee;
+        $isInactiveByEmployee = $employee && ! $employee->isEffectiveActive();
+
+        if (! $user->is_active || $isInactiveByEmployee) {
+            if ($user->is_active && $isInactiveByEmployee) {
+                $user->update(['is_active' => false]);
+            }
             $user->tokens()->delete();
             \Illuminate\Support\Facades\Auth::guard('web')->logout();
             if ($request->hasSession()) {

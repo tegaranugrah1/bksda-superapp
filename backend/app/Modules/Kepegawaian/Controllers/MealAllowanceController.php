@@ -510,7 +510,8 @@ class MealAllowanceController extends Controller
         $query = Employee::select([
             'id', 'nip', 'nama_lengkap', 'jabatan', 'pangkat_golongan',
             'satuan_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'is_active',
-        ])->where('is_active', true);
+            'inactive_reason', 'inactive_effective_date',
+        ])->effectiveActive();
 
         if ($request->filled('search')) {
             $s = trim((string) $request->input('search'));
@@ -673,7 +674,7 @@ class MealAllowanceController extends Controller
             ->get();
 
         // Hitung pegawai aktif per bank
-        $counts = Employee::where('is_active', true)
+        $counts = Employee::effectiveActive()
             ->whereNotNull('nama_bank')
             ->select('nama_bank', DB::raw('count(*) as count'))
             ->groupBy('nama_bank')
@@ -758,7 +759,7 @@ class MealAllowanceController extends Controller
         $cleanBank = trim(urldecode($bank));
 
         // Cek apakah bank masih dipakai oleh pegawai aktif
-        $count = Employee::where('is_active', true)
+        $count = Employee::effectiveActive()
             ->whereRaw('LOWER(nama_bank) = ?', [strtolower($cleanBank)])
             ->count();
 

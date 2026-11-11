@@ -32,21 +32,17 @@ export function AssetTagsList({
 
   return (
     <div className={`flex flex-wrap items-center gap-1 mt-1.5 ${className || ""}`}>
-      {visibleTags.map((tag) => (
-        <span
+      {visibleTags.map((tag) => onManageTags ? (
+        <button
           key={tag.id}
-          onClick={(e) => {
-            if (onManageTags) {
-              e.stopPropagation();
-              onManageTags();
-            }
-          }}
-          className={onManageTags ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
-          title={onManageTags ? `Klik untuk kelola tag aset ini` : undefined}
+          type="button"
+          onClick={(event) => { event.stopPropagation(); onManageTags(); }}
+          aria-label={`Kelola tag ${tag.label}`}
+          className="rounded-full cursor-pointer hover:brightness-95"
         >
-          <TagBadge tag={tag} size="sm" />
-        </span>
-      ))}
+          <TagBadge tag={tag} size="sm" className="text-xs" />
+        </button>
+      ) : <TagBadge key={tag.id} tag={tag} size="sm" className="text-xs" />)}
 
       {remainingCount > 0 && (
         <Popover open={open} onOpenChange={setOpen}>
@@ -60,12 +56,13 @@ export function AssetTagsList({
             </button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-64 p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+            data-module="bmn"
+            className="bmn-assets-ui bmn-popover w-64 p-3 rounded-xl shadow-lg border"
             align="start"
           >
             <div className="flex items-center justify-between gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-800 mb-2.5">
               <span className="flex items-center gap-1.5">
-                <TagIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <TagIcon className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                 <span>Semua Tag Aset ({tags.length})</span>
               </span>
               {onManageTags && (
@@ -75,7 +72,7 @@ export function AssetTagsList({
                     setOpen(false);
                     onManageTags();
                   }}
-                  className="text-[11px] text-emerald-600 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-[11px] text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1 font-semibold"
                 >
                   <Settings2 className="w-3 h-3" /> Kelola
                 </button>

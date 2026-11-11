@@ -10,6 +10,10 @@ Route::middleware(['auth:sanctum', 'module.access:surat'])->group(function () {
     Route::get('surat-masuk/next-agenda', [SuratMasukController::class, 'nextAgenda'])
         ->middleware('permission:surat.view');
 
+    // Master lokasi / ruangan penerus untuk disposisi surat
+    Route::get('surat-masuk/locations', [SuratMasukController::class, 'locations'])
+        ->middleware('permission:surat.view');
+
     // Export (requires export permission)
     Route::get('surat-masuk/export/excel', [SuratMasukController::class, 'exportExcel'])
         ->middleware('permission:surat.export|surat.manage');

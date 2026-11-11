@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -75,6 +77,7 @@ export default function InboxSuratCutiPage() {
   const [approveMode, setApproveMode] = useState<"approve" | "regenerate">("approve");
   const [digitalSuratItem, setDigitalSuratItem] = useState<LeaveRequestItem | null>(null);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRequestItem | null>(null);
+  const viewerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const [isCatatModalOpen, setIsCatatModalOpen] = useState(false);
 
@@ -90,7 +93,7 @@ export default function InboxSuratCutiPage() {
     masa_kerja: "",
   });
 
-  const { data: responseData, isLoading } = useQuery({
+  const { data: responseData, isLoading, isError, isPlaceholderData, refetch } = useQuery({
     queryKey: ["inboxLeaveRequests", debouncedSearch, page, perPage, selectedYear, selectedStatus],
     queryFn: async () => {
       const { data } = await api.get(`/kepegawaian/leave-requests`, {
@@ -113,33 +116,19 @@ export default function InboxSuratCutiPage() {
     queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 
-  const lastSummaryCountsRef = useRef({
-    all: 0,
-    PENGAJUAN: 0,
-    DISETUJUI: 0,
-    DITOLAK: 0,
-  });
-
-  const lastTotalRecordsRef = useRef(0);
-
-  if (responseData?.summary_counts) {
-    lastSummaryCountsRef.current = responseData.summary_counts;
-  }
-  if (responseData?.total !== undefined) {
-    lastTotalRecordsRef.current = responseData.total;
-  }
-
-  const list: LeaveRequestItem[] = responseData?.data || (Array.isArray(responseData) ? responseData : []);
-  const totalRecords: number = responseData?.total ?? (lastTotalRecordsRef.current || list.length);
+  const list: LeaveRequestItem[] = isPlaceholderData ? [] : responseData?.data || (Array.isArray(responseData) ? responseData : []);
+  const totalRecords: number = responseData?.total ?? list.length;
   const lastPage: number = responseData?.last_page ?? 1;
   const fromRecord: number = responseData?.from ?? (list.length > 0 ? (page - 1) * perPage + 1 : 0);
   const toRecord: number = responseData?.to ?? (fromRecord + list.length - (list.length > 0 ? 1 : 0));
-  const summaryCounts = responseData?.summary_counts ?? (lastSummaryCountsRef.current.all > 0 ? lastSummaryCountsRef.current : {
+  const summaryCounts = responseData?.summary_counts ?? {
     all: totalRecords,
     DISETUJUI: list.filter((x) => (x.status || "").toUpperCase() === "DISETUJUI").length,
     PENGAJUAN: list.filter((x) => !x.status || (x.status || "").toUpperCase() === "PENGAJUAN").length,
     DITOLAK: list.filter((x) => (x.status || "").toUpperCase() === "DITOLAK").length,
-  });
+  };
+
+  const closeViewer = useCallback(() => setViewerModal(null), []);
 
   // Toggle Status (PENGAJUAN <-> DISETUJUI / DITOLAK)
   const toggleStatusMutation = useMutation({
@@ -263,6 +252,8 @@ export default function InboxSuratCutiPage() {
 
   const handleDeleteLeave = async (item: LeaveRequestItem) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Hapus Pengajuan Cuti?",
       description: `Hapus pengajuan cuti milik "${item.employee?.nama_lengkap}"? Pengajuan pada portal pegawai juga akan dihapus.`,
       confirmText: "Hapus Pengajuan",
@@ -282,6 +273,8 @@ export default function InboxSuratCutiPage() {
 
   const handleRevertStatus = async (item: LeaveRequestItem) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Kembalikan Status Pengajuan?",
       description: `Kembalikan pengajuan cuti milik "${item.employee?.nama_lengkap}" ke status PENGAJUAN? Kuota cuti tahunan yang terpotong akan dikembalikan ke saldo pegawai.`,
       confirmText: "Kembalikan Status",
@@ -293,6 +286,8 @@ export default function InboxSuratCutiPage() {
 
   const handleRejectLeave = async (item: LeaveRequestItem) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Tolak Pengajuan Cuti?",
       description: `Tolak pengajuan cuti milik "${item.employee?.nama_lengkap}"?`,
       confirmText: "Tolak Pengajuan",
@@ -318,23 +313,18 @@ export default function InboxSuratCutiPage() {
   };
 
   return (
-    <div className="p-5 md:p-7 space-y-5">
+    <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7 space-y-5">
       {/* Header Bar - Clean Enterprise Pro Max */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
             <Inbox className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
-                SDM &amp; Kepegawaian
-              </span>
-            </div>
-            <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-0.5">
+            <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight mt-0.5">
               Inbox &amp; Riwayat Surat Cuti Pegawai
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Kelola pengajuan cuti mandiri, penerbitan Surat Izin (SI) resmi, dan arsip berkas scan pegawai.
             </p>
           </div>
@@ -344,7 +334,7 @@ export default function InboxSuratCutiPage() {
           <Button
             type="button"
             onClick={() => setIsCatatModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl gap-1.5 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-xl gap-1.5 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Catat Surat Izin
@@ -360,83 +350,82 @@ export default function InboxSuratCutiPage() {
             label: "Total Data Cuti",
             count: summaryCounts.all,
             icon: Inbox,
-            activeClass: "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-blue-500/20",
-            iconClass: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+            activeClass: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  ring-1 ring-[var(--ds-accent-soft-border)]",
+            iconClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  ",
           },
           {
             key: "PENGAJUAN",
             label: "Menunggu Persetujuan",
             count: summaryCounts.PENGAJUAN,
             icon: Clock,
-            activeClass: "border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-1 ring-amber-500/20",
-            iconClass: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400",
+            activeClass: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]  ring-1 ring-[var(--ds-status-warning-border)]",
+            iconClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ",
           },
           {
             key: "DISETUJUI",
             label: "Disetujui (Resmi)",
             count: summaryCounts.DISETUJUI,
             icon: CheckCircle2,
-            activeClass: "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-1 ring-emerald-500/20",
-            iconClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
+            activeClass: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]  ring-1 ring-[var(--ds-status-success-border)]",
+            iconClass: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  ",
           },
           {
             key: "DITOLAK",
             label: "Ditolak / Batal",
             count: summaryCounts.DITOLAK,
             icon: XCircle,
-            activeClass: "border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 ring-1 ring-rose-500/20",
-            iconClass: "bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400",
+            activeClass: "border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)]  ring-1 ring-[var(--ds-status-danger-border)]",
+            iconClass: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]  ",
           },
         ].map((card) => {
           const Icon = card.icon;
           const isActive = selectedStatus === card.key;
           return (
-            <motion.button
+            <button
               key={card.key}
+              aria-pressed={isActive}
               type="button"
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+
               onClick={() => setSelectedStatus(card.key)}
               className={cn(
                 "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer",
                 isActive
                   ? card.activeClass
-                  : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)] "
               )}
             >
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-1.5">
                   {card.key === "PENGAJUAN" && card.count > 0 && (
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--ds-status-warning-fg)]" />
                     </span>
                   )}
                   {card.label}
                 </p>
-                <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
+                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-0.5 tabular-nums">
                   {card.count}
                 </p>
               </div>
               <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", card.iconClass)}>
                 <Icon className="w-4 h-4" />
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-xs">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 shadow-xs">
         <div className="flex flex-1 flex-col sm:flex-row items-center gap-2.5">
           <div className="relative flex-1 w-full max-w-md">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--ds-fg-muted)]" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari nama pegawai, NIP, no. surat, jenis cuti..."
-              className="pl-9 h-9 text-xs border-slate-200 focus-visible:ring-blue-500"
+              className="pl-9 h-9 text-xs border-[var(--ds-border-subtle)] focus-visible:ring-[var(--ds-accent-soft-border)]"
             />
           </div>
 
@@ -445,7 +434,7 @@ export default function InboxSuratCutiPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-slate-200 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none"
+              className="h-9 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Tahun"
             >
               <option value="all">Semua Tahun</option>
               <option value="2026">Tahun 2026</option>
@@ -457,7 +446,7 @@ export default function InboxSuratCutiPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-slate-200 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none"
+              className="h-9 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Status cuti"
             >
               <option value="all">Semua Status</option>
               <option value="DISETUJUI">Disetujui (Resmi)</option>
@@ -469,8 +458,8 @@ export default function InboxSuratCutiPage() {
             <select
               value={perPage}
               onChange={(e) => setPerPage(Number(e.target.value))}
-              className="h-9 px-2.5 rounded-xl border border-slate-200 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none"
-              title="Jumlah baris per halaman"
+              className="h-9 px-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none"
+              title="Jumlah baris per halaman" aria-label="Jumlah per halaman"
             >
               <option value={15}>15 / hal</option>
               <option value={25}>25 / hal</option>
@@ -481,37 +470,39 @@ export default function InboxSuratCutiPage() {
         </div>
 
         <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end px-1">
-          <span className="text-xs font-semibold text-slate-500 shrink-0">
-            Menampilkan <span className="font-bold text-slate-900 dark:text-slate-100">{totalRecords}</span> Data Cuti
+          <span className="text-xs font-semibold text-[var(--ds-fg-muted)] shrink-0">
+            Menampilkan <span className="font-bold text-[var(--ds-fg)]">{totalRecords}</span> Data Cuti
           </span>
         </div>
       </div>
 
       {/* Data Table Container with Motion Glide Transition */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={`${selectedStatus}-${selectedYear}`}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.14, ease: "easeOut" }}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
+        <KepegawaianTabContent
+          key={`${selectedStatus}-${selectedYear}-${page}`}
+
+          className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
         >
-        {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-xs text-slate-400">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        {isLoading || isPlaceholderData ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-xs text-[var(--ds-fg-muted)]">
+            <div className="w-6 h-6 border-2 border-[var(--ds-accent-soft-border)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Memuat riwayat surat cuti...
+          </div>
+        ) : isError ? (
+          <div role="alert" className="p-12 text-center text-sm text-[var(--ds-status-danger-fg)]">
+            Gagal memuat daftar cuti.
+            <button type="button" className="kpg-secondary ml-3 rounded-lg px-3 py-2" onClick={() => refetch()}>Coba lagi</button>
           </div>
         ) : list.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-3">
-            <Inbox className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Belum Ada Data Cuti</h3>
-            <p className="text-xs text-slate-400">Tidak ada data cuti yang sesuai dengan filter pencarian ini.</p>
+            <Inbox className="w-10 h-10 text-[var(--ds-fg-muted)] mx-auto" />
+            <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum Ada Data Cuti</h3>
+            <p className="text-xs text-[var(--ds-fg-muted)]">Tidak ada data cuti yang sesuai dengan filter pencarian ini.</p>
           </div>
         ) : (
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
                 <tr>
                   <th className="p-3.5 w-[20%]">Pegawai Pemohon</th>
                   <th className="p-3.5 w-[16%]">Surat & Jenis Cuti</th>
@@ -522,20 +513,20 @@ export default function InboxSuratCutiPage() {
                   <th className="p-3.5 text-right w-[14%]">Aksi & Verifikasi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {list.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={item.id} className="hover:bg-[var(--ds-surface)] transition-colors">
                     {/* Pegawai Pemohon */}
                     <td className="p-3.5 align-middle">
-                      <div className="font-bold text-slate-900 dark:text-slate-100 leading-snug">
+                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
                         {item.employee?.nama_lengkap || "Pegawai"}
                       </div>
-                      <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-0.5">
+                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-0.5">
                         {item.employee?.nip}
                       </div>
                       {item.employee?.satuan_kerja && (
                         <div
-                          className="text-[11px] text-slate-400 dark:text-slate-500 truncate max-w-52 mt-0.5"
+                          className="text-xs text-[var(--ds-fg-muted)] truncate max-w-52 mt-0.5"
                           title={item.employee?.satuan_kerja}
                         >
                           {item.employee?.satuan_kerja}
@@ -545,15 +536,15 @@ export default function InboxSuratCutiPage() {
 
                     {/* Surat & Jenis Cuti */}
                     <td className="p-3.5 align-middle">
-                      <div className="font-semibold text-blue-700 dark:text-blue-400 leading-snug">
+                      <div className="font-semibold text-[var(--ds-accent-fg)] leading-snug">
                         {item.jenis_cuti}
                       </div>
                       {item.nomor_pengajuan ? (
-                        <span className="font-mono text-[10px] text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 px-2 py-0.5 rounded-md mt-1 inline-block border border-slate-200 dark:border-slate-700 font-medium whitespace-pre">
+                        <span className="font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-border-subtle)] font-medium whitespace-pre">
                           {item.nomor_pengajuan}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-amber-700 bg-amber-50 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-md mt-1 inline-block border border-amber-200/60 dark:border-amber-900 font-medium">
+                        <span className="text-xs text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-status-warning-border)] font-medium">
                           Belum Ada Nomor
                         </span>
                       )}
@@ -561,10 +552,10 @@ export default function InboxSuratCutiPage() {
 
                     {/* Masa Pelaksanaan */}
                     <td className="p-3.5 align-middle">
-                      <div className="font-bold text-slate-800 dark:text-slate-200 leading-snug">
+                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
                         {item.jumlah_hari} Hari
                       </div>
-                      <span className="text-[11px] text-slate-400 block mt-0.5 whitespace-nowrap">
+                      <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 whitespace-nowrap">
                         {item.tanggal_mulai} s/d {item.tanggal_selesai}
                       </span>
                     </td>
@@ -572,14 +563,14 @@ export default function InboxSuratCutiPage() {
                     {/* Alasan Cuti */}
                     <td className="p-3.5 max-w-44 align-middle">
                       {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
-                        <span className="text-slate-400 italic text-[11px]">-</span>
+                        <span className="text-[var(--ds-fg-muted)] italic text-xs">-</span>
                       ) : (
-                        <span className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
+                        <span className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
                           {item.alasan_cuti}
                         </span>
                       )}
                       {item.catatan_atasan && (
-                        <div className="mt-1 text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800 truncate" title={`Catatan Atasan: ${item.catatan_atasan}`}>
+                        <div className="mt-1 text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded border border-[var(--ds-status-success-border)] truncate" title={`Catatan Atasan: ${item.catatan_atasan}`}>
                           <span className="font-semibold">Catatan:</span> {item.catatan_atasan}
                         </div>
                       )}
@@ -587,7 +578,7 @@ export default function InboxSuratCutiPage() {
 
                     {/* Alamat Selama Cuti */}
                     <td className="p-3.5 max-w-44 align-middle">
-                      <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate block" title={item.alamat_menjalankan_cuti || "-"}>
+                      <span className="text-xs text-[var(--ds-fg-muted)] truncate block" title={item.alamat_menjalankan_cuti || "-"}>
                         {item.alamat_menjalankan_cuti || "-"}
                       </span>
                     </td>
@@ -619,13 +610,13 @@ export default function InboxSuratCutiPage() {
                             }}
                             disabled={!canWrite || toggleStatusMutation.isPending || approveMutation.isPending}
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-2xs border",
-                              canWrite && "cursor-pointer hover:scale-105 active:scale-95",
+                              "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs border",
+                              canWrite && "cursor-pointer  ",
                               isApproved
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+                                ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
                                 : isRejected
-                                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800"
-                                : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
+                                ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]   "
+                                : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   "
                             )}
                             title={
                               isApproved
@@ -635,16 +626,19 @@ export default function InboxSuratCutiPage() {
                                 : "Menunggu persetujuan — klik untuk menyetujui & terbitkan Surat Izin"
                             }
                           >
-                            <span
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                isApproved
-                                  ? "bg-emerald-600 animate-pulse"
-                                  : isRejected
-                                  ? "bg-rose-500"
-                                  : "bg-amber-500"
-                              )}
-                            />
+                            {st === "PENGAJUAN" ? (
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--ds-status-warning-fg)]" />
+                              </span>
+                            ) : (
+                              <span
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full shrink-0",
+                                  isApproved ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-danger-solid)]"
+                                )}
+                              />
+                            )}
                             {isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Pengajuan"}
                           </button>
                         );
@@ -663,37 +657,40 @@ export default function InboxSuratCutiPage() {
                         const uploadedCount = (hasDigitalSurat ? 1 : 0) + (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
                         return (
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div data-module="kepegawaian" className="kpg-ui flex items-center justify-end gap-1.5">
                             {/* 1. Berkas Dropdown Menu */}
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                              <DropdownMenuTrigger asChild
+                                      onPointerDownCapture={(event) => { viewerTriggerRef.current = event.currentTarget; }}
+                                      onKeyDownCapture={(event) => { viewerTriggerRef.current = event.currentTarget; }}
+                                    >
                                 <Button
                                   type="button"
                                   variant="outline"
                                   size="sm"
                                   className={cn(
-                                    "h-8 px-2.5 text-xs font-semibold rounded-xl gap-1.5 shadow-2xs transition-all cursor-pointer",
+                                    "h-8 px-2.5 text-xs font-semibold rounded-xl gap-1.5 shadow-2xs transition-colors cursor-pointer",
                                     hasDigitalSurat
-                                      ? "text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                                      ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)]   "
                                       : uploadedCount > 0
-                                      ? "text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
-                                      : "text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800"
+                                      ? "text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:bg-[var(--ds-status-warning-bg)]   "
+                                      : "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]   "
                                   )}
                                   title="Kelola & Lihat Berkas Cuti (Digital & Fisik)"
                                 >
                                   {hasDigitalSurat ? (
-                                    <FileBadge className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    <FileBadge className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                                   ) : uploadedCount > 0 ? (
-                                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                                    <Clock className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
                                   ) : (
-                                    <FileUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                                    <FileUp className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                                   )}
                                   <span>{hasDigitalSurat ? "Surat Izin (TTE)" : uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
                                   <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 py-1.5">
+                              <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-64 p-1.5 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+                                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] px-2.5 py-1.5">
                                   Naskah &amp; Berkas Cuti
                                 </DropdownMenuLabel>
 
@@ -711,15 +708,15 @@ export default function InboxSuratCutiPage() {
                                   className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileBadge className={cn("w-4 h-4", hasDigitalSurat ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500")} />
-                                    <span className="font-semibold text-slate-800 dark:text-slate-200">Surat Izin (Digital TTE)</span>
+                                    <FileBadge className={cn("w-4 h-4", hasDigitalSurat ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-status-warning-fg)]")} />
+                                    <span className="font-semibold text-[var(--ds-fg)]">Surat Izin (Digital TTE)</span>
                                   </div>
                                   {hasDigitalSurat ? (
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                                       Generate
                                     </span>
                                   )}
@@ -732,71 +729,67 @@ export default function InboxSuratCutiPage() {
                                       setApproveMode("regenerate");
                                       setApproveItem(item);
                                     }}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
                                   >
-                                    <RefreshCw className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                    <RefreshCw className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                                     <span>Generate Ulang Surat Izin</span>
                                   </DropdownMenuItem>
                                 )}
 
-                                <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
 
                                 <DropdownMenuItem
                                   disabled={!hasFormulir}
-                                  onClick={() =>
-                                    setViewerModal({
+                                  onClick={() => setViewerModal({
                                       url: `/kepegawaian/leave-requests/${item.id}/scan-formulir`,
                                       fileName: item.scan_formulir_nama,
                                       title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
-                                    })
-                                  }
+                                    })}
                                   className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileText className={cn("w-4 h-4", hasFormulir ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-                                    <span className={cn("font-medium", !hasFormulir && "text-slate-400")}>Formulir (Scan Basah)</span>
+                                    <FileText className={cn("w-4 h-4", hasFormulir ? "text-[var(--ds-accent-fg)] " : "text-[var(--ds-fg-muted)]")} />
+                                    <span className={cn("font-medium", !hasFormulir && "text-[var(--ds-fg-muted)]")}>Formulir (Scan Basah)</span>
                                   </div>
                                   {hasFormulir ? (
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                    <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum ada</span>
                                   )}
                                 </DropdownMenuItem>
 
                                 <DropdownMenuItem
                                   disabled={!hasSuratIzin}
-                                  onClick={() =>
-                                    setViewerModal({
+                                  onClick={() => setViewerModal({
                                       url: `/kepegawaian/leave-requests/${item.id}/scan-surat-izin`,
                                       fileName: item.scan_surat_izin_nama || item.scan_surat_nama,
                                       title: "Scan Surat Izin Fisik (TTD Basah)",
-                                    })
-                                  }
+                                    })}
                                   className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400")} />
-                                    <span className={cn("font-medium", !hasSuratIzin && "text-slate-400")}>Surat Izin (Scan Fisik)</span>
+                                    <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-fg-muted)]")} />
+                                    <span className={cn("font-medium", !hasSuratIzin && "text-[var(--ds-fg-muted)]")}>Surat Izin (Scan Fisik)</span>
                                   </div>
                                   {hasSuratIzin ? (
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 italic">Belum ada</span>
+                                    <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum ada</span>
                                   )}
                                 </DropdownMenuItem>
 
                                 {canWrite && (
                                   <>
-                                    <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                    <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
                                     <DropdownMenuItem
                                       onClick={() => setUploadScanItem(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50 cursor-pointer font-semibold"
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer font-semibold"
                                     >
-                                      <FileUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                      <FileUp className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                                       <span>Unggah / Kelola Berkas Fisik</span>
                                     </DropdownMenuItem>
                                   </>
@@ -810,34 +803,37 @@ export default function InboxSuratCutiPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => setPrintItem(item)}
-                              className="h-8 px-2.5 text-xs font-semibold text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 rounded-xl gap-1.5 shadow-2xs cursor-pointer"
+                              className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1.5 shadow-2xs cursor-pointer"
                               title="Lihat / Cetak Hasil Formulir Cuti"
                             >
-                              <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                              <Eye className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                               Form Cuti
                             </Button>
 
                             {/* 3. More Actions Dropdown Menu (...) */}
                             {canWrite && (
                               <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                                <DropdownMenuTrigger asChild
+                                      onPointerDownCapture={(event) => { viewerTriggerRef.current = event.currentTarget; }}
+                                      onKeyDownCapture={(event) => { viewerTriggerRef.current = event.currentTarget; }}
+                                    >
                                   <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
+                                    className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl cursor-pointer"
                                     title="Aksi Lainnya"
                                   >
                                     <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-52 p-1 rounded-2xl shadow-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-52 p-1 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
                                   <DropdownMenuItem
                                     onClick={() => {
                                       setApproveMode(isApproved ? "regenerate" : "approve");
                                       setApproveItem(item);
                                     }}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
                                   >
                                     <RefreshCw className="w-3.5 h-3.5" />
                                     <span>{isApproved ? "Generate Ulang Surat" : "Setujui & Terbitkan Surat"}</span>
@@ -846,7 +842,7 @@ export default function InboxSuratCutiPage() {
                                   {isApproved && (
                                     <DropdownMenuItem
                                       onClick={() => handleRevertStatus(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] font-medium"
                                     >
                                       <RotateCcw className="w-3.5 h-3.5" />
                                       <span>Kembalikan ke Pengajuan</span>
@@ -856,25 +852,25 @@ export default function InboxSuratCutiPage() {
                                   {!isRejected && (
                                     <DropdownMenuItem
                                       onClick={() => handleRejectLeave(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
+                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
                                     >
                                       <XCircle className="w-3.5 h-3.5" />
                                       <span>Tolak Pengajuan</span>
                                     </DropdownMenuItem>
                                   )}
 
-                                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                  <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
                                   <DropdownMenuItem
                                     onClick={() => openEditModal(item)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] font-medium"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                     <span>Edit Pengajuan</span>
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="my-1 border-slate-100 dark:border-slate-800" />
+                                  <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
                                   <DropdownMenuItem
                                     onClick={() => handleDeleteLeave(item)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                     <span>Hapus Pengajuan</span>
@@ -892,9 +888,9 @@ export default function InboxSuratCutiPage() {
             </table>
 
             {/* Pagination Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-xs">
-              <span className="text-slate-500 text-[11px]">
-                Menampilkan <span className="font-bold text-slate-800 dark:text-slate-200">{fromRecord}</span> - <span className="font-bold text-slate-800 dark:text-slate-200">{toRecord}</span> dari <span className="font-bold text-slate-800 dark:text-slate-200">{totalRecords}</span> riwayat &amp; surat cuti
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs">
+              <span className="text-[var(--ds-fg-muted)] text-xs">
+                Menampilkan <span className="font-bold text-[var(--ds-fg)]">{fromRecord}</span> - <span className="font-bold text-[var(--ds-fg)]">{toRecord}</span> dari <span className="font-bold text-[var(--ds-fg)]">{totalRecords}</span> riwayat &amp; surat cuti
               </span>
 
               <div className="flex items-center gap-2">
@@ -908,8 +904,8 @@ export default function InboxSuratCutiPage() {
                 >
                   Sebelumnya
                 </Button>
-                <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 px-2">
-                  Halaman <b className="text-slate-900 dark:text-slate-100">{page}</b> dari <b className="text-slate-900 dark:text-slate-100">{lastPage}</b>
+                <span className="text-xs font-medium text-[var(--ds-fg-muted)] px-2">
+                  Halaman <b className="text-[var(--ds-fg)]">{page}</b> dari <b className="text-[var(--ds-fg)]">{lastPage}</b>
                 </span>
                 <Button
                   type="button"
@@ -925,7 +921,7 @@ export default function InboxSuratCutiPage() {
             </div>
           </div>
         )}
-        </motion.div>
+        </KepegawaianTabContent>
       </AnimatePresence>
 
       {/* Modals Cuti */}
@@ -1000,7 +996,9 @@ export default function InboxSuratCutiPage() {
         scanUrl={viewerModal?.url || null}
         fileName={viewerModal?.fileName}
         title={viewerModal?.title}
-        onClose={() => setViewerModal(null)}
+        onClose={closeViewer}
+        contentModule="kepegawaian"
+        returnFocusRef={viewerTriggerRef}
       />
 
       {/* Catat Surat Izin Penetapan Cuti Modal */}

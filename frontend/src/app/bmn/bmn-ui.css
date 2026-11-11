@@ -1,0 +1,77 @@
+/* Shared BMN controls for the remaining sidebar pages and their portaled controls. */
+.bmn-standard-ui :is(button, a[href], [role="option"], [role="checkbox"]):not(:disabled):not([aria-disabled="true"]):not([data-disabled]) { cursor: pointer; }
+.bmn-standard-ui :is(button, a, [role="checkbox"]):is(:disabled, [aria-disabled="true"], [data-disabled]) { cursor: default; }
+.bmn-standard-ui :is(button, a)[data-variant] { min-height: 36px; }
+.bmn-standard-ui button[aria-pressed] { min-height: 36px; }
+.bmn-standard-ui :is(.bmn-icon-action, .bmn-icon-danger) { min-width: 36px; min-height: 36px; }
+.bmn-standard-ui :is(.bmn-icon-action, .bmn-icon-danger):disabled { color: var(--ds-disabled-fg); background: var(--ds-disabled-bg); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger) { background: var(--ds-accent-solid); color: var(--ds-accent-on-solid); border-color: transparent; }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger):hover { background: var(--ds-accent-hover); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger):active { background: var(--ds-accent-active); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger) { background: var(--ds-secondary-bg); color: var(--ds-secondary-fg); border-color: transparent; }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):hover { background: var(--ds-secondary-hover); border-color: var(--ds-accent-soft-border); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):active { background: var(--ds-secondary-active); }
+.bmn-standard-ui :is(button, a)[data-variant].bmn-icon-danger { color: var(--ds-status-danger-fg); background: transparent; border-color: transparent; }
+.bmn-standard-ui :is(button, a)[data-variant].bmn-icon-danger:hover { background: var(--ds-status-danger-bg); border-color: var(--ds-status-danger-border); }
+.bmn-standard-ui :is(button, a)[data-variant].bmn-icon-danger:focus-visible { outline-color: var(--ds-danger-focus); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="ghost"]:not(.bmn-icon-danger):not(.bmn-danger) { color: var(--ds-accent-fg); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="ghost"]:not(.bmn-icon-danger):not(.bmn-danger):hover { background: var(--ds-accent-soft); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="destructive"] { background: var(--ds-danger-solid); color: var(--ds-danger-on-solid); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="destructive"]:hover { background: var(--ds-danger-hover); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="destructive"]:active { background: var(--ds-danger-active); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="destructive"]:focus-visible { outline-color: var(--ds-danger-focus); }
+.bmn-standard-ui :is(button, a)[data-variant]:disabled { background: var(--ds-disabled-bg) !important; color: var(--ds-disabled-fg) !important; opacity: 1; transform: none; }
+.bmn-standard-ui :is(input:not([type="checkbox"]), select, textarea, [data-slot="select-trigger"]) { background: var(--ds-surface); color: var(--ds-fg); border-color: var(--ds-border-subtle); min-height: 36px; }
+.bmn-standard-ui textarea { transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out; }
+.bmn-standard-ui textarea:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; box-shadow: none; }
+.bmn-standard-ui [role="tabpanel"]:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; border-radius: 8px; }
+.bmn-standard-ui [role="tablist"] { padding: 4px; scroll-padding-inline: 4px; }
+.bmn-standard-ui [role="tab"] { scroll-margin-inline: 4px; }
+.bmn-standard-ui[data-slot="dialog-content"] { background: var(--ds-surface); color: var(--ds-fg); border-color: var(--ds-border-subtle); backdrop-filter: none; }
+.bmn-standard-ui [data-slot="dialog-title"] { color: var(--ds-fg); }
+.bmn-standard-ui [data-slot="dialog-description"] { color: var(--ds-fg-muted); }
+.bmn-standard-ui [data-slot="dialog-description"] > div { color: inherit; }
+.bmn-standard-ui [data-slot="dialog-footer"] { background: var(--ds-surface-muted); border-color: var(--ds-border-subtle); }
+.bmn-standard-ui :is(input, textarea)::placeholder { color: var(--ds-fg-muted); opacity: 1; }
+.bmn-standard-ui input[type="file"] { cursor: pointer; }
+.bmn-standard-ui input[type="file"]::file-selector-button { color: var(--ds-accent-fg); cursor: pointer; }
+.bmn-standard-ui :is(select, input[type="checkbox"], input[type="radio"]):not(:disabled) { cursor: pointer; }
+.bmn-standard-ui :is(select, input[type="checkbox"], input[type="radio"]):disabled { cursor: default; }
+.bmn-standard-ui [data-slot="select-item"]:is(:hover, [data-highlighted]) { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }
+.bmn-standard-ui [data-slot="checkbox"] { border-color: var(--ds-border-control); background: var(--ds-surface); }
+.bmn-standard-ui [data-slot="checkbox"]:is([data-state="checked"], [data-state="indeterminate"]) { border-color: var(--ds-accent-solid); background: var(--ds-accent-solid); color: var(--ds-accent-on-solid); }
+.bmn-standard-ui [data-slot="checkbox"]:disabled { background: var(--ds-disabled-bg); color: var(--ds-disabled-fg); border-color: var(--ds-border-subtle); }
+.bmn-standard-ui .bmn-wide-table { min-width: 720px; }
+.bmn-standard-ui .bmn-choice-card { transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.bmn-standard-ui .bmn-choice-card:hover:not([aria-disabled="true"]) { border-color: var(--ds-accent-fg); background: var(--ds-accent-soft); }
+.bmn-standard-ui .bmn-choice-card[aria-checked="true"] { border-color: var(--ds-accent-fg); background: var(--ds-accent-soft); }
+.bmn-standard-ui .bmn-choice-card[data-selected="true"] { border-color: var(--ds-accent-fg); background: var(--ds-accent-soft); }
+.bmn-standard-ui .bmn-choice-card:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; }
+.bmn-standard-ui .bmn-upload-field { cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out; }
+.bmn-standard-ui .bmn-upload-field:not([aria-disabled="true"]):is(:hover, :focus-within) { background: var(--ds-accent-soft); color: var(--ds-accent-fg); border-color: var(--ds-accent-fg); }
+.bmn-standard-ui .bmn-upload-field:focus-within { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; }
+.bmn-standard-ui .bmn-upload-field[aria-disabled="true"] { background: var(--ds-disabled-bg); color: var(--ds-disabled-fg); cursor: default; }
+.bmn-standard-ui input[type="file"]:disabled { cursor: default; }
+.bmn-standard-ui [aria-disabled="true"] { cursor: default; }
+.bmn-standard-ui ::selection { background: var(--ds-accent-soft-border); color: var(--ds-fg); }
+.bmn-standard-ui :is(input, textarea) { caret-color: var(--ds-accent-fg); }
+@media (prefers-reduced-motion: reduce) {
+  .bmn-standard-ui, .bmn-standard-ui * { animation: none !important; transition-duration: 0ms !important; }
+}
+
+.bmn-standard-ui .bmn-workflow-tabs [role="tab"] { background: transparent; color: var(--ds-fg-secondary); box-shadow: none; border-color: transparent; min-height: 36px; transition: color 150ms ease-out, background-color 150ms ease-out; }
+.bmn-standard-ui .bmn-workflow-tabs [role="tab"]:hover { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }
+.bmn-standard-ui .bmn-workflow-tabs [role="tab"][aria-selected="true"] { background: transparent; color: var(--ds-accent-fg); }
+.bmn-standard-ui .bmn-workflow-tabs [role="tab"]:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; box-shadow: none; }
+
+.bmn-standard-ui .kk-page :is(input:not([type="checkbox"]), textarea, select) { background: #fff; color: #111; border-color: #c8c8c8; min-height: 16px; caret-color: #047857; }
+.bmn-standard-ui .kk-page :is(input, textarea)::placeholder { color: #52525b; }
+.bmn-standard-ui .kk-page :is(input, textarea, select):focus-visible { outline-color: #047857; }
+
+.bmn-standard-ui .bmn-status-toggle:hover { border-color: var(--ds-status-warning-fg); }
+
+.bmn-shell > aside :is(a, button):focus-visible, .bmn-shell > div > header button:focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; box-shadow: none; }
+.bmn-shell > aside button, .bmn-shell > div > header button { cursor: pointer; transition: color 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out; }
+.bmn-shell > aside button:disabled { cursor: default; }
+.bmn-shell > aside nav a { min-height: 36px; }
+@media (prefers-reduced-motion: reduce) { .bmn-shell > aside, .bmn-shell > aside *, .bmn-shell > div > header * { animation: none !important; transition-duration: 0ms !important; } }

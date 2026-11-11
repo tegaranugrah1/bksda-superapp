@@ -5,6 +5,14 @@
 export const formatRupiah = (angka?: number | null) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka || 0);
 
+export function getAssetUser(asset: {
+  pengguna?: string | null;
+  nama_pengguna?: string | null;
+  penanggung_jawab?: { nama_lengkap: string } | null;
+}): string | null {
+  return asset.pengguna || asset.nama_pengguna || asset.penanggung_jawab?.nama_lengkap || null;
+}
+
 /** Remove duplicate words in merk_tipe (e.g. "Sanyo Sanyo" → "Sanyo") */
 export function deduplicateMerkTipe(value?: string | null): string {
   if (!value) return "-";

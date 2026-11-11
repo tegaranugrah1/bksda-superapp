@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogTitle } from "@/components/ui/dialog";
+import { SuratTugasDialog } from "@/app/surat-tugas/_components/SuratTugasDialog";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import {
   AlertCircle,
@@ -598,16 +600,16 @@ export function StTemplatesTab() {
       {/* Top Banner & Search Bar when list view is shown */}
       {!isTemplateFormOpen && (
         <>
-          <div className="p-4 rounded-2xl bg-linear-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200 dark:border-blue-900/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-4 rounded-2xl bg-linear-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-[var(--ds-accent-soft-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
+              <div className="p-2.5 rounded-xl shrink-0 mt-0.5 st-primary">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
+                <h3 className="text-base font-semibold text-[var(--ds-fg)]">
                   Master Template Surat Tugas (ST)
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-zinc-400 mt-0.5">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                   Atur susunan kop surat, format penomoran, konsiderans (Menimbang &amp; Dasar), klausul penugasan, pejabat penandatangan, dan tembusan.
                 </p>
               </div>
@@ -620,7 +622,7 @@ export function StTemplatesTab() {
                   setActiveCard(1);
                   setIsTemplateFormOpen(true);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer shrink-0"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md transition-colors cursor-pointer shrink-0 st-primary"
               >
                 <Plus className="w-4 h-4" /> Buat Template ST
               </button>
@@ -629,29 +631,29 @@ export function StTemplatesTab() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={templateSearch}
                 onChange={(e) => setTemplateSearch(e.target.value)}
                 placeholder="Cari nama template, kode, deskripsi..."
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent-fg)] transition-colors"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-              <span className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
+              <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 shrink-0">
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Status:
               </span>
-              <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs">
+              <div className="inline-flex p-1 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs">
                 <button
                   type="button"
                   onClick={() => setTemplateStatusFilter("all")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                     templateStatusFilter === "all"
-                      ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
-                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Semua ({templates.length})
@@ -661,8 +663,8 @@ export function StTemplatesTab() {
                   onClick={() => setTemplateStatusFilter("active")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                     templateStatusFilter === "active"
-                      ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs"
-                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-status-success-fg)] shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Aktif ({templates.filter((t) => t.is_active).length})
@@ -672,8 +674,8 @@ export function StTemplatesTab() {
                   onClick={() => setTemplateStatusFilter("inactive")}
                   className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                     templateStatusFilter === "inactive"
-                      ? "bg-white dark:bg-zinc-800 text-rose-600 dark:text-rose-400 shadow-xs"
-                      : "text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-status-danger-fg)] shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Nonaktif ({templates.filter((t) => !t.is_active).length})
@@ -686,23 +688,23 @@ export function StTemplatesTab() {
 
       {isTemplateFormOpen ? (
         <div className="grid gap-6 lg:grid-cols-2 items-start">
-          <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <section className="space-y-5 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-6 shadow-sm">
             {/* STICKY HEADER & QUICK-JUMP PILL BAR */}
             <div
               id="template-form-sticky-header"
-              className="sticky top-0 z-30 -mt-6 -mx-6 px-6 pt-5 pb-3.5 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-zinc-800 rounded-t-2xl space-y-3 shadow-xs"
+              className="sticky top-0 z-30 -mt-6 -mx-6 px-6 pt-5 pb-3.5 bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] rounded-t-2xl space-y-3 shadow-xs"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold text-[var(--ds-fg)] flex items-center gap-2">
                     {editTemplateId ? "Edit Template Surat Tugas" : "Buat Template Surat Tugas Baru"}
                     {templateCode && (
-                      <span className="hidden sm:inline-block font-mono text-[11px] font-normal px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500">
+                      <span className="hidden sm:inline-block font-mono text-xs font-normal px-2 py-0.5 rounded bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                         {templateCode}
                       </span>
                     )}
                   </h2>
-                  <p className="text-xs text-slate-400 hidden sm:block">
+                  <p className="text-xs text-[var(--ds-fg-muted)] hidden sm:block">
                     Pengaturan susunan naskah dinas dari Kepala hingga Tembusan
                   </p>
                 </div>
@@ -710,7 +712,7 @@ export function StTemplatesTab() {
                   <button
                     type="button"
                     onClick={resetTemplateForm}
-                    className="rounded-xl px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition cursor-pointer"
+                    className="rounded-xl px-3 py-1.5 text-xs font-medium text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] transition cursor-pointer"
                   >
                     Batal
                   </button>
@@ -718,7 +720,7 @@ export function StTemplatesTab() {
                     type="button"
                     onClick={() => void handleTemplateSubmit()}
                     disabled={isTemplateSubmitting}
-                    className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold shadow-xs disabled:opacity-50 transition cursor-pointer st-primary"
                   >
                     {isTemplateSubmitting ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -730,7 +732,7 @@ export function StTemplatesTab() {
                   <button
                     type="button"
                     onClick={resetTemplateForm}
-                    className="rounded-full p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-zinc-800 transition ml-1 cursor-pointer"
+                    className="rounded-full p-1.5 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] transition ml-1 cursor-pointer"
                     title="Tutup form"
                   >
                     <X className="h-4 w-4" />
@@ -755,8 +757,8 @@ export function StTemplatesTab() {
                     onClick={() => scrollToCard(pill.id)}
                     className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                       activeCard === pill.id
-                        ? "bg-blue-600 text-white shadow-xs font-semibold"
-                        : "bg-slate-100/80 text-slate-600 hover:bg-slate-200 hover:text-slate-900 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                        ? "shadow-xs font-semibold st-primary"
+                        : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
                     }`}
                   >
                     {pill.label}
@@ -770,29 +772,29 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-1"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   1
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Identitas &amp; Konfigurasi Template
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Pengaturan nama tampilan, kode sistem, tipe template, dan status.
                   </p>
                 </div>
               </div>
 
               {!editTemplateId && templates.length > 0 && (
-                <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-3 rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold text-blue-950 dark:text-blue-200">
+                    <p className="text-xs font-bold text-[var(--ds-accent-fg)]">
                       Buat Cepat: Salin Isian Awal dari Template yang Sudah Ada
                     </p>
-                    <p className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                    <p className="text-xs text-[var(--ds-accent-fg)]">
                       Menyalin otomatis Menimbang, Dasar, Untuk, Kop, dan Tembusan agar Anda tinggal mengubah bagian yang berbeda saja.
                     </p>
                   </div>
@@ -805,7 +807,7 @@ export function StTemplatesTab() {
                         toast.success(`Isian awal disalin dari template "${found.name}"`);
                       }
                     }}
-                    className="rounded-xl border border-blue-300 bg-white px-3 py-2 text-xs font-semibold text-blue-900 outline-none focus:border-blue-500 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-200 cursor-pointer shrink-0"
+                    className="rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] px-3 py-2 text-xs font-semibold text-[var(--ds-accent-fg)] outline-none focus:border-[var(--ds-accent-fg)] cursor-pointer shrink-0"
                   >
                     <option value="">-- Pilih Template untuk Disalin --</option>
                     {templates.map((t) => (
@@ -818,7 +820,7 @@ export function StTemplatesTab() {
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                   Nama Template
                   <input
                     value={templateName}
@@ -828,24 +830,24 @@ export function StTemplatesTab() {
                       if (!editTemplateId) setTemplateCode(templateCodeFromName(value));
                     }}
                     placeholder="Perjalanan Dinas Biasa"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none focus:border-[var(--ds-accent-fg)]"
                   />
                 </label>
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
-                  Kode Template <span className="font-normal text-slate-400">(otomatis)</span>
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
+                  Kode Template <span className="font-normal text-[var(--ds-fg-muted)]">(otomatis)</span>
                   <input
                     value={editTemplateId ? templateCode : templateCodeFromName(templateName)}
                     readOnly
                     placeholder="dibuat dari nama template"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-slate-500 outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2.5 text-[var(--ds-fg-muted)] outline-none"
                   />
                 </label>
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                   Tipe Template
                   <select
                     value={templateType}
                     onChange={(event) => setTemplateType(event.target.value as TemplateKind)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none"
                   >
                     {TEMPLATE_TYPES.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -854,41 +856,41 @@ export function StTemplatesTab() {
                     ))}
                   </select>
                   {templateType === "beda_hari" && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-[var(--ds-status-warning-fg)] mt-1 leading-relaxed">
                       Template Beda Hari otomatis menyertakan <b>Lampiran Surat Tugas (Halaman 2)</b> untuk tabel jadwal masing-masing personil, dan bagian &ldquo;Kepada&rdquo; di halaman 1 otomatis bertuliskan <i>&ldquo;Daftar nama terlampir.&rdquo;</i>.
                     </p>
                   )}
                 </label>
                 <div className="flex flex-col justify-center space-y-2 pt-2 sm:pt-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[var(--ds-fg-muted)]">
                     <input
                       type="checkbox"
                       checked={templateIsActive}
                       onChange={(event) => setTemplateIsActive(event.target.checked)}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                     />
                     Aktif (tersedia untuk pembuatan ST)
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[var(--ds-fg-muted)]">
                     <input
                       type="checkbox"
                       checked={templateIsDefault}
                       onChange={(event) => setTemplateIsDefault(event.target.checked)}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                     />
                     Jadikan template default
                   </label>
                 </div>
               </div>
 
-              <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+              <label className="block space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                 Deskripsi Template
                 <textarea
                   value={templateDescription}
                   onChange={(event) => setTemplateDescription(event.target.value)}
                   rows={2}
                   placeholder="Keterangan singkat peruntukan template ini..."
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none focus:border-[var(--ds-accent-fg)]"
                 />
               </label>
             </div>
@@ -898,35 +900,35 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-2"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   2
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Kepala Surat &amp; Format Nomor
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Kop surat resmi, aturan nomor surat, dan judul pejabat pemberi tugas.
                   </p>
                 </div>
               </div>
 
               {/* Kop Surat */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900 space-y-3">
+              <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <h4 className="text-sm font-semibold text-[var(--ds-fg)] flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                       Kop Surat
                     </h4>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Pilih kop standar Balai atau upload kop khusus untuk template ini.
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                  <div className="flex items-center gap-1 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-0.5 text-xs font-medium">
                     <button
                       type="button"
                       onClick={() => {
@@ -935,8 +937,8 @@ export function StTemplatesTab() {
                       }}
                       className={`rounded-md px-2.5 py-1 transition-all ${
                         kopMode === "default"
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                          ? "shadow-sm st-primary"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       }`}
                     >
                       Standar (BKSDA)
@@ -946,8 +948,8 @@ export function StTemplatesTab() {
                       onClick={() => setKopMode("custom")}
                       className={`rounded-md px-2.5 py-1 transition-all ${
                         kopMode === "custom"
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
+                          ? "shadow-sm st-primary"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       }`}
                     >
                       Upload Kop Khusus
@@ -956,15 +958,15 @@ export function StTemplatesTab() {
                 </div>
 
                 {kopMode === "custom" && (
-                  <div className="mt-3 space-y-3 pt-3 border-t border-slate-200/60 dark:border-zinc-700/60">
+                  <div className="mt-3 space-y-3 pt-3 border-t border-[var(--ds-border-subtle)]">
                     <div className="flex items-start gap-4">
                       <div className="flex-1">
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 bg-slate-50 dark:bg-zinc-800 dark:border-zinc-700 hover:bg-blue-50/20 transition-all">
-                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
-                          <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-[var(--ds-border-subtle)] rounded-xl p-4 text-center cursor-pointer hover:border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] transition-colors">
+                          <Upload className="w-5 h-5 text-[var(--ds-fg-muted)] mb-1" />
+                          <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                             {isUploadingKop ? "Mengunggah..." : "Pilih file gambar Kop"}
                           </span>
-                          <span className="text-[11px] text-slate-400 mt-0.5">
+                          <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                             PNG, JPG, WEBP (Max 5MB, resolusi tinggi)
                           </span>
                           <input
@@ -978,7 +980,7 @@ export function StTemplatesTab() {
                       </div>
                       {kopImageUrl && (
                         <div className="flex flex-col items-center gap-1.5 shrink-0">
-                          <div className="relative w-44 h-16 border rounded-lg overflow-hidden bg-white shadow-sm p-1 flex items-center justify-center">
+                          <div className="relative w-44 h-16 border rounded-lg overflow-hidden bg-[var(--ds-surface)] shadow-sm p-1 flex items-center justify-center">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={resolveKopImageUrl(kopImageUrl)}
@@ -992,7 +994,7 @@ export function StTemplatesTab() {
                               setKopImageUrl(null);
                               setKopMode("default");
                             }}
-                            className="text-[11px] text-red-600 hover:underline flex items-center gap-1"
+                            className="text-xs text-[var(--ds-status-danger-fg)] hover:underline flex items-center gap-1"
                           >
                             <RotateCcw className="w-3 h-3" /> Hapus / Gunakan Standar
                           </button>
@@ -1004,12 +1006,12 @@ export function StTemplatesTab() {
               </div>
 
               {/* Format Nomor Surat */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900 space-y-3">
+              <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                  <h4 className="text-sm font-semibold text-[var(--ds-fg)]">
                     Format &amp; Tipe Nomor Surat
                   </h4>
-                  <p className="text-xs font-normal text-slate-400">
+                  <p className="text-xs font-normal text-[var(--ds-fg-muted)]">
                     Pilih skema penomoran default untuk naskah surat tugas dari template ini.
                   </p>
                 </div>
@@ -1019,8 +1021,8 @@ export function StTemplatesTab() {
                   <label
                     className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-sm transition-all ${
                       nomorNumberingType === "st_pattern"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 shadow-xs"
-                        : "border-slate-200 hover:border-slate-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] shadow-xs"
+                        : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
                     }`}
                   >
                     <input
@@ -1028,13 +1030,13 @@ export function StTemplatesTab() {
                       name="settings-nomor-numbering-type"
                       checked={nomorNumberingType === "st_pattern"}
                       onChange={() => setNomorNumberingType("st_pattern")}
-                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                      className="mt-0.5 text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                     />
                     <div>
-                      <strong className="block text-xs font-bold text-slate-800 dark:text-zinc-200">
+                      <strong className="block text-xs font-bold text-[var(--ds-fg)]">
                         Pola Standar ST (ST.01/...)
                       </strong>
-                      <span className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                      <span className="text-xs text-[var(--ds-fg-muted)] leading-tight block mt-0.5">
                         Pola berawalan ST. dengan nomor urut, kode balai, dan klasifikasi.
                       </span>
                     </div>
@@ -1043,8 +1045,8 @@ export function StTemplatesTab() {
                   <label
                     className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-sm transition-all ${
                       nomorNumberingType === "naskah_auto"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 shadow-xs"
-                        : "border-slate-200 hover:border-slate-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] shadow-xs"
+                        : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
                     }`}
                   >
                     <input
@@ -1052,13 +1054,13 @@ export function StTemplatesTab() {
                       name="settings-nomor-numbering-type"
                       checked={nomorNumberingType === "naskah_auto"}
                       onChange={() => setNomorNumberingType("naskah_auto")}
-                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                      className="mt-0.5 text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                     />
                     <div>
-                      <strong className="block text-xs font-bold text-slate-800 dark:text-zinc-200">
+                      <strong className="block text-xs font-bold text-[var(--ds-fg)]">
                         Nomor Naskah Otomatis (${"{nomor_naskah}"})
                       </strong>
-                      <span className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight block mt-0.5">
+                      <span className="text-xs text-[var(--ds-fg-muted)] leading-tight block mt-0.5">
                         Format: Nomor : ${"{nomor_naskah}"} dari sistem eksternal (Srikandi / TTE / dsb).
                       </span>
                     </div>
@@ -1066,13 +1068,13 @@ export function StTemplatesTab() {
                 </div>
 
                 {nomorNumberingType === "st_pattern" ? (
-                  <div className="space-y-3 pt-1 border-t border-slate-100 dark:border-zinc-800">
+                  <div className="space-y-3 pt-1 border-t border-[var(--ds-border-subtle)]">
                     <div className="grid gap-2 md:grid-cols-2">
                       <label
                         className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
                           nomorFormatMode === "default"
-                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                            : "border-slate-200 dark:border-zinc-700"
+                            ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : "border-[var(--ds-border-subtle)]"
                         }`}
                       >
                         <input
@@ -1095,8 +1097,8 @@ export function StTemplatesTab() {
                       <label
                         className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
                           nomorFormatMode === "manual"
-                            ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                            : "border-slate-200 dark:border-zinc-700"
+                            ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : "border-[var(--ds-border-subtle)]"
                         }`}
                       >
                         <input
@@ -1118,10 +1120,10 @@ export function StTemplatesTab() {
                           value={nomorSuratFormat}
                           onChange={(event) => setNomorSuratFormat(event.target.value)}
                           placeholder="/K.18/TU/{klasifikasi}/B/{bulan}/{tahun}"
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none font-mono text-xs focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                          className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none font-mono text-xs focus:border-[var(--ds-accent-fg)]"
                         />
                         <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-                          <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
+                          <span className="text-xs text-[var(--ds-fg-muted)] font-medium">Sisipkan variabel:</span>
                           {[
                             { tag: "{klasifikasi}", desc: "Kode Klasifikasi" },
                             { tag: "{bulan}", desc: "Bulan Romawi / Angka" },
@@ -1133,7 +1135,7 @@ export function StTemplatesTab() {
                               onClick={() =>
                                 setNomorSuratFormat((prev) => (prev ? `${prev}/${chip.tag}` : chip.tag))
                               }
-                              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-medium text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-colors cursor-pointer"
                               title={`Klik untuk menambahkan ${chip.tag} (${chip.desc})`}
                             >
                               + {chip.tag}
@@ -1144,8 +1146,8 @@ export function StTemplatesTab() {
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-xs text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 flex items-start gap-2.5">
-                    <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                  <div className="rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-3 text-xs text-[var(--ds-accent-fg)] flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-[var(--ds-accent-fg)] mt-0.5 shrink-0" />
                     <div className="leading-relaxed">
                       Format penomoran naskah &amp; lampiran akan menjadi <strong>Nomor : ${"{nomor_naskah}"}</strong>. 
                       Di Builder ST, admin cukup menginput nomor utuh dari sistem luar tanpa perlu menyusun prefix/klasifikasi manual.
@@ -1157,17 +1159,17 @@ export function StTemplatesTab() {
               {/* Header Atas Surat */}
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-sm font-medium text-[var(--ds-fg-muted)]">
                     Header Atas Surat (di bawah Nomor, sebelum Menimbang)
                   </label>
                   <div className="flex items-center gap-1.5 text-xs">
                     <button
                       type="button"
                       onClick={applyItalicToHeader}
-                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 font-serif text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                      className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 font-serif text-xs font-semibold text-[var(--ds-fg-muted)] shadow-sm hover:bg-[var(--ds-surface-muted)]"
                       title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
                     >
-                      <Italic className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                      <Italic className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
                       <span className="italic font-bold">Miringkan (*I*)</span>
                     </button>
                     <button
@@ -1177,7 +1179,7 @@ export function StTemplatesTab() {
                           "KEPALA UPT SELAKU\nPELAKSANA SATUAN KERJA *IMPLEMENTING PARTNER* FOLU NC 2&3"
                         )
                       }
-                      className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      className="inline-flex items-center rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs font-medium text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]"
                       title="Salin contoh format FOLU"
                     >
                       + Contoh FOLU
@@ -1185,9 +1187,9 @@ export function StTemplatesTab() {
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                <p className="text-xs text-[var(--ds-fg-muted)]">
                   Judul pejabat/kegiatan. Gunakan tanda bintang{" "}
-                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-blue-600 dark:bg-zinc-800 dark:text-blue-400">
+                  <code className="rounded bg-[var(--ds-surface-muted)] px-1 py-0.5 font-mono text-[var(--ds-accent-fg)]">
                     *kata miring*
                   </code>{" "}
                   atau tombol <strong>Miringkan (Ctrl+I)</strong> untuk tulisan miring.
@@ -1205,7 +1207,7 @@ export function StTemplatesTab() {
                   }}
                   rows={2}
                   placeholder="KEPALA BALAI,"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-bold text-sm tracking-wide outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 font-bold text-sm tracking-wide outline-none focus:border-[var(--ds-accent-fg)]"
                 />
               </div>
             </div>
@@ -1215,37 +1217,37 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-3"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   3
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Konsiderans — Menimbang (Pertimbangan Penugasan)
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Landasan pertimbangan penugasan (huruf a, b, c...) yang selalu diambil dari Template ST ini.
                   </p>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-[11px] text-slate-600 dark:text-zinc-300 space-y-1 leading-relaxed">
+              <div className="p-3 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-fg-muted)] space-y-1 leading-relaxed">
                 <p>
-                  <b className="text-blue-950 dark:text-blue-200">Cara Penggunaan Menimbang:</b> Gunakan{" "}
-                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                  <b className="text-[var(--ds-accent-fg)]">Cara Penggunaan Menimbang:</b> Gunakan{" "}
+                  <code className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border font-mono text-[var(--ds-accent-fg)]">
                     {"{nama kegiatan}"}
                   </code>{" "}
                   agar otomatis terisi dengan nama kegiatan surat di Builder, serta{" "}
-                  <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">
+                  <code className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border font-mono text-[var(--ds-accent-fg)]">
                     *kata miring*
                   </code>{" "}
-                  (atau blok teks + <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-[10px]">Ctrl+I</kbd>) untuk istilah asing seperti <i>*Project Management Unit*</i>.
+                  (atau blok teks + <kbd className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border font-mono text-xs">Ctrl+I</kbd>) untuk istilah asing seperti <i>*Project Management Unit*</i>.
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+              <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
                 <EditableItemListSection
                   title="Daftar Poin Menimbang (Huruf a, b, dst.)"
                   items={menimbangItems}
@@ -1282,49 +1284,49 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-4"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   4
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Konsiderans — Dasar Hukum &amp; Regulasi
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Landasan hukum/regulasi (angka 1, 2, 3...) yang selalu ditempatkan di urutan paling atas bagian Dasar.
                   </p>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-xs space-y-1.5">
-                <p className="font-bold text-blue-950 dark:text-blue-200">
+              <div className="p-3.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs space-y-1.5">
+                <p className="font-bold text-[var(--ds-accent-fg)]">
                   Aturan 3 Lapis Urutan Otomatis Bagian Dasar di ST Builder:
                 </p>
                 <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
-                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-blue-200/70 dark:border-blue-800/60">
-                    <b className="text-blue-700 dark:text-blue-300 block">1. Paling Atas (1..k)</b>
-                    <span className="text-slate-600 dark:text-zinc-400">
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)]">
+                    <b className="text-[var(--ds-accent-fg)] block">1. Paling Atas (1..k)</b>
+                    <span className="text-[var(--ds-fg-muted)]">
                       Semua butir Dasar dari <b>Template ST</b> ini.
                     </span>
                   </div>
-                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-emerald-200/70 dark:border-emerald-800/60">
-                    <b className="text-emerald-700 dark:text-emerald-300 block">2. Tengah (Opsional)</b>
-                    <span className="text-slate-600 dark:text-zinc-400">
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-status-success-border)]">
+                    <b className="text-[var(--ds-status-success-fg)] block">2. Tengah (Opsional)</b>
+                    <span className="text-[var(--ds-fg-muted)]">
                       Butir Dasar yang ditambah manual di <b>ST Builder</b>.
                     </span>
                   </div>
-                  <div className="p-2 rounded-lg bg-white/90 dark:bg-zinc-900 border border-amber-200/70 dark:border-amber-800/60">
-                    <b className="text-amber-700 dark:text-amber-300 block">3. Paling Bawah (Terakhir)</b>
-                    <span className="text-slate-600 dark:text-zinc-400">
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)]">
+                    <b className="text-[var(--ds-status-warning-fg)] block">3. Paling Bawah (Terakhir)</b>
+                    <span className="text-[var(--ds-fg-muted)]">
                       Dasar DIPA/PKS dari <b>Template Biaya &amp; Sumber Dana</b> (jika ada).
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+              <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
                 <EditableItemListSection
                   title="Daftar Poin Dasar (Angka 1, 2, dst. — Paling Atas)"
                   items={dasarItems}
@@ -1348,14 +1350,14 @@ export function StTemplatesTab() {
                   getItemBadge={(item) => {
                     if (isFundingDasarText(item.text, expenseTemplates)) {
                       return (
-                        <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md w-fit">
-                          <Banknote className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] px-2 py-0.5 rounded-md w-fit">
+                          <Banknote className="w-3 h-3 text-[var(--ds-status-warning-fg)]" />
                           <span>Otomatis Sinkron Sumber Dana (Paling Bawah)</span>
                         </div>
                       );
                     }
                     return (
-                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md w-fit">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] px-2 py-0.5 rounded-md w-fit">
                         <span>1. Bawaan Template ST (Paling Atas)</span>
                       </div>
                     );
@@ -1369,29 +1371,29 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-5"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   5
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Diktum Penugasan (Untuk &amp; Pembebanan Biaya)
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Pola butir 1 tugas pokok, klausul butir tambahan, dan sumber dana default.
                   </p>
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                   Default Jenis Tugas
                   <select
                     value={defaultJenisTugas}
                     onChange={(event) => handleDefaultJenisTugasChange(event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none font-medium cursor-pointer"
                   >
                     {availableTaskTypes.length > 0 ? (
                       availableTaskTypes.map((tt) => (
@@ -1419,14 +1421,14 @@ export function StTemplatesTab() {
                       )}
                   </select>
                 </label>
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                   Mode Input Butir 1 Bawaan
                   <select
                     value={defaultModeKegiatan}
                     onChange={(event) =>
                       setDefaultModeKegiatan(event.target.value as "structured" | "manual")
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium cursor-pointer"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none font-medium cursor-pointer"
                   >
                     <option value="structured">
                       Detail Terstruktur (Otomatis Gabungan Jenis Tugas + Lokasi + Waktu)
@@ -1440,23 +1442,23 @@ export function StTemplatesTab() {
 
               {/* Info Ringkas Jenis Tugas Terpilih */}
               {activeTaskType && defaultModeKegiatan === "structured" && (
-                <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 rounded-xl border border-blue-200/60 dark:border-blue-900/40 text-xs space-y-1.5 animate-in fade-in duration-200">
+                <div className="p-3 bg-[var(--ds-accent-soft)] rounded-xl border border-[var(--ds-accent-soft-border)] text-xs space-y-1.5 duration-200">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-blue-950 dark:text-blue-100">{activeTaskType.nama}</span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 uppercase tracking-wider">
+                    <span className="font-bold text-[var(--ds-accent-fg)]">{activeTaskType.nama}</span>
+                    <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] uppercase tracking-wider">
                       {activeTaskType.mode_lokasi === "dalam_kawasan"
                         ? "Dalam Kawasan"
                         : activeTaskType.mode_lokasi === "tempat_saja"
                         ? "Tempat Saja (Pada / Di)"
                         : "Luar Wilayah (Dari / Ke)"}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-200/70 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                       {activeTaskType.aturan_durasi === "wajib_1_hari" ? "Wajib 1 Hari" : "Durasi Fleksibel"}
                     </span>
                   </div>
                   {activeTaskType.contoh_format && (
-                    <div className="text-[11px] text-blue-800/80 dark:text-blue-300/80 font-mono bg-white/70 dark:bg-zinc-900/50 p-2 rounded-lg border border-blue-100 dark:border-zinc-800">
-                      <span className="font-sans font-bold text-slate-500 dark:text-zinc-400 mr-1">Pola Diktum:</span>
+                    <div className="text-xs text-[var(--ds-accent-fg)] font-mono bg-[var(--ds-surface)] p-2 rounded-lg border border-[var(--ds-accent-soft-border)]">
+                      <span className="font-sans font-bold text-[var(--ds-fg-muted)] mr-1">Pola Diktum:</span>
                       {activeTaskType.contoh_format}
                     </div>
                   )}
@@ -1464,11 +1466,11 @@ export function StTemplatesTab() {
               )}
 
               {defaultModeKegiatan === "manual" && (
-                <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200/70 dark:border-amber-900/40 text-xs space-y-1 animate-in fade-in duration-200">
-                  <p className="font-bold text-amber-900 dark:text-amber-200">
+                <div className="p-3 bg-[var(--ds-status-warning-bg)] rounded-xl border border-[var(--ds-status-warning-border)] text-xs space-y-1 duration-200">
+                  <p className="font-bold text-[var(--ds-status-warning-fg)]">
                     Mode Tulis Manual Aktif (Seperti PLH / Penugasan Khusus):
                   </p>
-                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                  <p className="text-xs text-[var(--ds-status-warning-fg)] leading-relaxed">
                     <b>Default Uraian Tugas</b> di bawah akan selalu menjadi kalimat utama <b>Butir 1</b> di Builder (tanpa dibungkus awalan Perjalanan Dinas), dan sistem <b>tetap otomatis menambahkan rentang waktu</b> di akhir kalimat:{" "}
                     <i>&quot;, selama 3 (tiga) hari terhitung mulai tanggal 15 September sampai dengan 17 September {currentYear};&quot;</i>.
                   </p>
@@ -1477,20 +1479,20 @@ export function StTemplatesTab() {
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-sm font-medium text-[var(--ds-fg-muted)]">
                     Default Uraian Tugas / Pola Butir 1 {defaultModeKegiatan === "manual" ? "(Kalimat Utama Butir 1)" : "(Opsional)"}
                   </label>
                   <button
                     type="button"
                     onClick={applyItalicToDefaultKegiatan}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 font-serif text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 font-serif text-xs font-semibold text-[var(--ds-fg-muted)] shadow-sm hover:bg-[var(--ds-surface-muted)] cursor-pointer"
                     title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
                   >
-                    <Italic className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                    <Italic className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
                     <span className="italic font-bold">Miringkan (*I*)</span>
                   </button>
                 </div>
-                <span className="block text-xs font-normal text-slate-400">
+                <span className="block text-xs font-normal text-[var(--ds-fg-muted)]">
                   {defaultModeKegiatan === "manual"
                     ? "Tulis kalimat utama penugasan (tanpa tanggal). Tanggal & lama hari akan ditempel otomatis di ujung kalimat saat surat dibuat."
                     : "Teks awal maksud/kegiatan pada formulir penugasan. Mendukung huruf miring (*kata*) dan placeholder di bawah."}
@@ -1507,10 +1509,10 @@ export function StTemplatesTab() {
                   }}
                   rows={2}
                   placeholder="Contoh: Melaksanakan tugas sehari-hari sebagai pelaksana harian Kepala Seksi Konservasi Sumber Daya Alam Wilayah {wilayah}"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white text-sm"
+                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none focus:border-[var(--ds-accent-fg)] text-sm"
                 />
                 <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-                  <span className="text-[11px] text-slate-400 font-medium">Sisipkan placeholder:</span>
+                  <span className="text-xs text-[var(--ds-fg-muted)] font-medium">Sisipkan placeholder:</span>
                   {[
                     { tag: "{wilayah}", desc: "Nama Wilayah / Seksi (contoh: Wilayah I Berau)" },
                     { tag: "{pejabat}", desc: "Jabatan Pejabat yang Digantikan" },
@@ -1522,7 +1524,7 @@ export function StTemplatesTab() {
                       onClick={() =>
                         setDefaultKegiatan((prev) => (prev ? `${prev} ${chip.tag}` : chip.tag))
                       }
-                      className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-medium text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-colors cursor-pointer"
                       title={`Klik untuk menyisipkan ${chip.tag} (${chip.desc})`}
                     >
                       + {chip.tag}
@@ -1532,7 +1534,7 @@ export function StTemplatesTab() {
               </div>
 
               {/* Default Butir Tambahan Untuk */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-700/60 dark:bg-zinc-900">
+              <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
                 <EditableItemListSection
                   title="Default Butir Tambahan (Untuk — Mulai Nomor 2 dst.)"
                   items={untukItems}
@@ -1540,11 +1542,11 @@ export function StTemplatesTab() {
                   marker="number"
                   startIndex={1}
                   description={
-                    <div className="text-xs text-slate-500 dark:text-zinc-400 space-y-1">
+                    <div className="text-xs text-[var(--ds-fg-muted)] space-y-1">
                       <p>
                         Klausul penugasan tambahan mulai <strong>Butir ke-2</strong>. Saat template ini dipilih di Builder, daftar di sini akan <strong>menimpa seluruh butir tambahan Untuk sebelumnya</strong>.
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-[var(--ds-fg-muted)]">
                         * Urutan Otomatis Bagian Untuk: <strong>1. Tugas Utama &amp; Waktu</strong> → <strong>2..k. Butir Tambahan (Untuk)</strong> → <strong>Biaya (Otomatis turun ke bawah Butir Tambahan)</strong> → <strong>Laporan Tertulis (Selalu Terakhir)</strong>.
                       </p>
                     </div>
@@ -1553,12 +1555,12 @@ export function StTemplatesTab() {
               </div>
 
               {/* Toggle Kewajiban Membuat Laporan Tertulis Bawaan */}
-              <div className="p-3 bg-slate-100/70 dark:bg-zinc-800/60 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
+              <div className="p-3 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border-subtle)] flex items-center justify-between gap-3">
                 <div>
-                  <label htmlFor="chk_template_laporan" className="text-xs font-bold text-slate-800 dark:text-zinc-200 block cursor-pointer">
+                  <label htmlFor="chk_template_laporan" className="text-xs font-bold text-[var(--ds-fg)] block cursor-pointer">
                     Kewajiban Membuat Laporan Tertulis Bawaan
                   </label>
-                  <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                     Menyertakan klausul laporan (paling lambat 7 hari kerja) otomatis di baris paling akhir pada bagian Untuk.
                   </p>
                 </div>
@@ -1567,17 +1569,17 @@ export function StTemplatesTab() {
                   id="chk_template_laporan"
                   checked={defaultSertakanLaporan}
                   onChange={(e) => setDefaultSertakanLaporan(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)] cursor-pointer"
                 />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                   Sumber Dana Default
                   <select
                     value={defaultSumberDana}
                     onChange={(event) => setDefaultSumberDana(event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white font-medium"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 outline-none font-medium"
                   >
                     <option value="">Pilih Sumber Dana Default (Opsional)</option>
                     {expenseTemplates.map((exp) => (
@@ -1586,27 +1588,27 @@ export function StTemplatesTab() {
                       </option>
                     ))}
                   </select>
-                  <span className="block text-xs font-normal text-slate-400">
+                  <span className="block text-xs font-normal text-[var(--ds-fg-muted)]">
                     Terhubung 2 arah: sumber dana ini otomatis terpilih saat template ST digunakan, dan pengajuan dari <code>/surat-tugas</code> atau Builder dengan sumber dana ini otomatis memilih template ST ini.
                   </span>
                 </label>
 
                 <div className="space-y-1">
-                  <label className="space-y-1 text-sm font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="space-y-1 text-sm font-medium text-[var(--ds-fg-muted)]">
                     Biaya Khusus Template Ini (Opsional Penimpa)
                     <textarea
                       value={templateBiayaText}
                       onChange={(event) => setTemplateBiayaText(event.target.value)}
                       rows={2}
                       placeholder="Segala biaya yang timbul dibebankan pada ... Tahun Anggaran {tahun};"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                      className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs font-mono outline-none focus:border-[var(--ds-accent-fg)]"
                     />
-                    <span className="block text-[11px] font-normal text-slate-400">
+                    <span className="block text-xs font-normal text-[var(--ds-fg-muted)]">
                       Jika diisi, menimpa teks klausul pembebanan sumber dana umum.
                     </span>
                   </label>
                   <div className="flex items-center gap-1.5 pt-0.5 text-xs">
-                    <span className="text-[11px] text-slate-400 font-medium">Sisipkan variabel:</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)] font-medium">Sisipkan variabel:</span>
                     <button
                       type="button"
                       onClick={() =>
@@ -1614,7 +1616,7 @@ export function StTemplatesTab() {
                           prev ? `${prev} {tahun}` : "Tahun Anggaran {tahun};"
                         )
                       }
-                      className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-mono text-[11px] font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-300 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-medium text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-colors cursor-pointer"
                       title="Klik untuk menyisipkan {tahun}"
                     >
                       + {"{tahun}"}
@@ -1629,17 +1631,17 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-6"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+              <div className="flex items-center gap-2.5 pb-2 border-b border-[var(--ds-border-subtle)]">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                   6
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Kaki Surat &amp; Pengesahan (Tanda Tangan)
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Kalimat penutup, tanggal penetapan, pejabat penandatangan default, dan mandat
                     wewenang.
                   </p>
@@ -1648,7 +1650,7 @@ export function StTemplatesTab() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Kalimat Penutup Surat
                   </label>
                   <div className="flex gap-2">
@@ -1657,11 +1659,11 @@ export function StTemplatesTab() {
                       onClick={() =>
                         setPenutupText("Demikian untuk dilaksanakan dengan penuh tanggung jawab.")
                       }
-                      className="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
+                      className="text-xs font-medium text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
                     >
                       Reset Standar BKSDA
                     </button>
-                    <span className="text-slate-300 dark:text-zinc-600">|</span>
+                    <span className="text-[var(--ds-fg-muted)]">|</span>
                     <button
                       type="button"
                       onClick={() =>
@@ -1669,7 +1671,7 @@ export function StTemplatesTab() {
                           "Demikian Surat Perintah Tugas ini dibuat, untuk dapat dipergunakan sebagaimana mestinya dan kepada instansi yang dikunjungi dimohon bantuan seperlunya demi kelancaran pelaksanaan tugas."
                         )
                       }
-                      className="text-[11px] font-medium text-emerald-600 hover:underline dark:text-emerald-400 cursor-pointer"
+                      className="text-xs font-medium text-[var(--ds-status-success-fg)] hover:underline cursor-pointer"
                     >
                       Gunakan Standar FOLU
                     </button>
@@ -1679,21 +1681,21 @@ export function StTemplatesTab() {
                   value={penutupText}
                   onChange={(e) => setPenutupText(e.target.value)}
                   rows={2}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white leading-relaxed"
+                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none focus:border-[var(--ds-accent-fg)] leading-relaxed"
                 />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Gaya Format Tanggal Surat
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <label
                       className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-xs ${
                         dateFormatStyle === "inline"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                          : "border-slate-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]"
                       }`}
                     >
                       <input
@@ -1705,7 +1707,7 @@ export function StTemplatesTab() {
                       <span>
                         <strong>Biasa (Inline)</strong>
                         <br />
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-xs text-[var(--ds-fg-muted)]">
                           Samarinda, 28 September {currentYear}
                         </span>
                       </span>
@@ -1713,8 +1715,8 @@ export function StTemplatesTab() {
                     <label
                       className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2.5 text-xs ${
                         dateFormatStyle === "tabular"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                          : "border-slate-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]"
                       }`}
                     >
                       <input
@@ -1726,7 +1728,7 @@ export function StTemplatesTab() {
                       <span>
                         <strong>Tabular (FOLU)</strong>
                         <br />
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-xs text-[var(--ds-fg-muted)]">
                           Dikeluarkan di / Pada tanggal
                         </span>
                       </span>
@@ -1734,12 +1736,12 @@ export function StTemplatesTab() {
                   </div>
                 </div>
 
-                <label className="space-y-1 text-xs font-medium text-slate-700 dark:text-zinc-300">
+                <label className="space-y-1 text-xs font-medium text-[var(--ds-fg-muted)]">
                   Penandatangan Default
                   <select
                     value={signerId}
                     onChange={(event) => setSignerId(event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                   >
                     <option value="">Gunakan default manual</option>
                     {employees.map((employee) => (
@@ -1748,7 +1750,7 @@ export function StTemplatesTab() {
                       </option>
                     ))}
                   </select>
-                  <span className="block text-[10px] text-slate-400">
+                  <span className="block text-xs text-[var(--ds-fg-muted)]">
                     Pejabat yang ditugaskan menandatangani surat tugas ini secara default.
                   </span>
                 </label>
@@ -1756,22 +1758,22 @@ export function StTemplatesTab() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Jabatan Penandatangan
                   </label>
                   <input
                     value={signerTitle}
                     onChange={(e) => setSignerTitle(e.target.value)}
                     placeholder="Kepala Balai,"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none focus:border-[var(--ds-accent-fg)]"
                   />
-                  <span className="block text-[10px] text-slate-400">
+                  <span className="block text-xs text-[var(--ds-fg-muted)]">
                     Default: Kepala Balai, (atau Plh. Kepala Balai,, Kepala Subbagian Tata Usaha,, dll)
                   </span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Teks Mandat / Pelimpahan Wewenang (a.n. ...)
                   </label>
                   <textarea
@@ -1779,9 +1781,9 @@ export function StTemplatesTab() {
                     onChange={(e) => setSignerAuthorityMandate(e.target.value)}
                     rows={2}
                     placeholder="Contoh: a.n. Sekretaris Direktorat Jenderal KSDAE&#10;selaku Koordinator Kegiatan Implementing Partner FOLU NC 2&3"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs font-mono outline-none focus:border-[var(--ds-accent-fg)]"
                   />
-                  <span className="block text-[10px] text-slate-400">
+                  <span className="block text-xs text-[var(--ds-fg-muted)]">
                     Opsional, kosongkan jika ditandatangani langsung oleh Kepala Balai.
                   </span>
                 </div>
@@ -1793,16 +1795,16 @@ export function StTemplatesTab() {
             {/* ========================================================================= */}
             <div
               id="card-template-7"
-              className="scroll-mt-36 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 dark:border-zinc-800 dark:bg-zinc-800/40 space-y-4"
+              className="scroll-mt-36 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 space-y-4"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-zinc-700/60">
+              <div className="flex items-center justify-between pb-2 border-b border-[var(--ds-border-subtle)]">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black st-primary">
                     7
                   </span>
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Tembusan</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                    <h3 className="text-sm font-bold text-[var(--ds-fg)]">Tembusan</h3>
+                    <p className="text-xs text-[var(--ds-fg-muted)]">
                       Daftar penerima tembusan dan tata letak cetak pada dokumen.
                     </p>
                   </div>
@@ -1810,7 +1812,7 @@ export function StTemplatesTab() {
                 <button
                   type="button"
                   onClick={() => setTembusanItems([...tembusanItems, ""])}
-                  className="flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 cursor-pointer"
+                  className="flex items-center gap-1 rounded-lg bg-[var(--ds-accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Tambah Tembusan
@@ -1819,15 +1821,15 @@ export function StTemplatesTab() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Posisi Layout Tembusan
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <label
                       className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-xs ${
                         tembusanPosition === "beside"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                          : "border-slate-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]"
                       }`}
                     >
                       <input
@@ -1839,14 +1841,14 @@ export function StTemplatesTab() {
                       <span>
                         <strong>Samping TTD</strong>
                         <br />
-                        <span className="text-[10px] text-slate-500">Sejajar kiri NIP</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)]">Sejajar kiri NIP</span>
                       </span>
                     </label>
                     <label
                       className={`flex cursor-pointer items-start gap-2 rounded-lg border p-2 text-xs ${
                         tembusanPosition === "bottom"
-                          ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                          : "border-slate-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]"
                       }`}
                     >
                       <input
@@ -1858,21 +1860,21 @@ export function StTemplatesTab() {
                       <span>
                         <strong>Bawah TTD (FOLU)</strong>
                         <br />
-                        <span className="text-[10px] text-slate-500">Full-width di bawah NIP</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)]">Full-width di bawah NIP</span>
                       </span>
                     </label>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                     Judul / Label Tembusan
                   </label>
                   <input
                     value={tembusanLabel}
                     onChange={(e) => setTembusanLabel(e.target.value)}
                     placeholder="Tembusan: atau Tembusan Kepada :"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none focus:border-[var(--ds-accent-fg)]"
                   />
                 </div>
               </div>
@@ -1881,7 +1883,7 @@ export function StTemplatesTab() {
                 <div className="space-y-2">
                   {tembusanItems.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <span className="w-5 text-right text-xs font-semibold text-slate-400">
+                      <span className="w-5 text-right text-xs font-semibold text-[var(--ds-fg-muted)]">
                         {idx + 1}.
                       </span>
                       <input
@@ -1892,12 +1894,12 @@ export function StTemplatesTab() {
                           setTembusanItems(next);
                         }}
                         placeholder={`Tembusan ${idx + 1}`}
-                        className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                        className="flex-1 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none focus:border-[var(--ds-accent-fg)]"
                       />
                       <button
                         type="button"
                         onClick={() => setTembusanItems(tembusanItems.filter((_, i) => i !== idx))}
-                        className="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"
+                        className="p-1.5 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -1905,23 +1907,23 @@ export function StTemplatesTab() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs italic text-slate-400">
+                <p className="text-xs italic text-[var(--ds-fg-muted)]">
                   Belum ada tembusan default untuk template ini.
                 </p>
               )}
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-zinc-800">
+            <div className="flex justify-end gap-3 border-t border-[var(--ds-border-subtle)] pt-4">
               <button
                 onClick={resetTemplateForm}
-                className="rounded-xl px-5 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer"
+                className="rounded-xl px-5 py-2 text-sm text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={() => void handleTemplateSubmit()}
                 disabled={isTemplateSubmitting}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-medium disabled:opacity-50 cursor-pointer st-primary"
               >
                 {isTemplateSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -1935,22 +1937,22 @@ export function StTemplatesTab() {
 
           {/* KOLOM KANAN: LIVE PREVIEW LEMBAR A4 */}
           <div className="lg:sticky lg:top-4 z-20 space-y-3 self-start">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                  <FileText className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg)]">
                     Live Preview (Lembar A4)
                   </span>
                 </div>
                 {/* Word-like Zoom Controls */}
-                <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-800 rounded-lg px-2 py-1 text-xs">
+                <div className="flex items-center gap-2 bg-[var(--ds-surface-muted)] rounded-lg px-2 py-1 text-xs">
                   <button
                     type="button"
                     onClick={() =>
                       setPreviewScale((prev) => Math.max(0.4, Number((prev - 0.05).toFixed(2))))
                     }
-                    className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-slate-600 dark:text-zinc-300 transition-colors"
+                    className="p-1 hover:bg-[var(--ds-surface)] rounded text-[var(--ds-fg-muted)] transition-colors"
                     title="Perkecil"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
@@ -1962,7 +1964,7 @@ export function StTemplatesTab() {
                     step="0.05"
                     value={previewScale}
                     onChange={(e) => setPreviewScale(parseFloat(e.target.value))}
-                    className="w-16 sm:w-24 accent-blue-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-zinc-700 rounded-lg"
+                    className="w-16 sm:w-24 accent-blue-600 cursor-pointer h-1.5 bg-[var(--ds-surface-muted)] rounded-lg"
                     title="Zoom Slider"
                   />
                   <button
@@ -1970,22 +1972,22 @@ export function StTemplatesTab() {
                     onClick={() =>
                       setPreviewScale((prev) => Math.min(1.2, Number((prev + 0.05).toFixed(2))))
                     }
-                    className="p-1 hover:bg-white dark:hover:bg-zinc-700 rounded text-slate-600 dark:text-zinc-300 transition-colors"
+                    className="p-1 hover:bg-[var(--ds-surface)] rounded text-[var(--ds-fg-muted)] transition-colors"
                     title="Perbesar"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                   </button>
-                  <span className="font-semibold text-slate-700 dark:text-zinc-200 min-w-[38px] text-right">
+                  <span className="font-semibold text-[var(--ds-fg-muted)] min-w-[38px] text-right">
                     {Math.round(previewScale * 100)}%
                   </span>
-                  <div className="hidden sm:flex items-center gap-1 border-l border-slate-200 dark:border-zinc-700 pl-2 ml-1">
+                  <div className="hidden sm:flex items-center gap-1 border-l border-[var(--ds-border-subtle)] pl-2 ml-1">
                     <button
                       type="button"
                       onClick={() => setPreviewScale(0.7)}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                         previewScale === 0.7
-                          ? "bg-blue-600 text-white"
-                          : "hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                          ? "st-primary"
+                          : "hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                       }`}
                     >
                       Pas (70%)
@@ -1995,8 +1997,8 @@ export function StTemplatesTab() {
                       onClick={() => setPreviewScale(1.0)}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                         previewScale === 1.0
-                          ? "bg-blue-600 text-white"
-                          : "hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                          ? "st-primary"
+                          : "hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                       }`}
                     >
                       100%
@@ -2006,7 +2008,7 @@ export function StTemplatesTab() {
               </div>
 
               {/* Wrapper Scroll & Scaled Preview Container (Word-like Canvas) */}
-              <div className="overflow-x-auto max-h-[calc(100vh-140px)] overflow-y-auto p-4 sm:p-6 flex justify-center bg-slate-200/80 dark:bg-zinc-950 rounded-xl border border-slate-300/80 dark:border-zinc-800 shadow-inner">
+              <div className="overflow-x-auto max-h-[calc(100vh-140px)] overflow-y-auto p-4 sm:p-6 flex justify-center bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border-subtle)] shadow-inner">
                 <div
                   style={{
                     width: `${210 * previewScale}mm`,
@@ -2193,10 +2195,10 @@ export function StTemplatesTab() {
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-950 overflow-hidden shadow-xs">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 dark:bg-zinc-900/50 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
+              <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4 w-12 text-center">No</th>
                   <th className="py-3.5 px-4 min-w-[260px]">Template Surat Tugas</th>
@@ -2206,18 +2208,18 @@ export function StTemplatesTab() {
                   {canWrite && <th className="py-3.5 px-4 w-32 text-center">Aksi</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {isLoadingTemplates ? (
                   <tr>
-                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-slate-400">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
+                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--ds-accent-fg)] mb-2" />
                       Memuat daftar template Surat Tugas...
                     </td>
                   </tr>
                 ) : filteredTemplates.length === 0 ? (
                   <tr>
-                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-slate-400">
-                      <AlertCircle className="w-8 h-8 text-slate-300 dark:text-zinc-700 mx-auto mb-2" />
+                    <td colSpan={canWrite ? 6 : 5} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                      <AlertCircle className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
                       {templateSearch || templateStatusFilter !== "all"
                         ? "Tidak ada template Surat Tugas yang sesuai kriteria pencarian."
                         : "Belum ada template Surat Tugas."}
@@ -2227,54 +2229,54 @@ export function StTemplatesTab() {
                   filteredTemplates.map((template, index) => (
                     <tr
                       key={template.id}
-                      className="hover:bg-slate-50/60 dark:hover:bg-zinc-900/40 transition-colors"
+                      className="hover:bg-[var(--ds-surface-muted)] transition-colors"
                     >
-                      <td className="py-3.5 px-4 text-center font-mono text-slate-400">
+                      <td className="py-3.5 px-4 text-center font-mono text-[var(--ds-fg-muted)]">
                         {index + 1}
                       </td>
 
                       <td className="py-3.5 px-4">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
+                          <span className="font-semibold text-[var(--ds-fg)] text-sm">
                             {template.name}
                           </span>
                           {template.code && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 font-mono text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                            <span className="px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-mono text-xs font-bold border border-[var(--ds-accent-soft-border)]">
                               {template.code}
                             </span>
                           )}
                           {template.is_default && (
-                            <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold border border-indigo-200 dark:border-indigo-800">
+                            <span className="px-2 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] text-xs font-bold border border-[var(--ds-accent-soft-border)]">
                               Default
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="text-xs text-[var(--ds-fg-muted)] font-mono">
                             v{template.version} · {template.is_system ? "Sistem" : "Custom"}
                           </span>
                         </div>
-                        <div className="mt-1 max-w-2xl text-xs text-slate-500 dark:text-zinc-400 line-clamp-2">
+                        <div className="mt-1 max-w-2xl text-xs text-[var(--ds-fg-muted)] line-clamp-2">
                           {template.description || "—"}
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4">
                         {template.type === "beda_hari" ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                             Beda Hari • Lampiran
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 uppercase font-mono">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] uppercase font-mono">
                             {template.type}
                           </span>
                         )}
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="font-medium text-zinc-800 dark:text-zinc-200">
+                        <div className="font-medium text-[var(--ds-fg)]">
                           {template.default_signer_name || "Default manual"}
                         </div>
                         {template.default_signer_nip && (
-                          <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+                          <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-0.5">
                             NIP. {template.default_signer_nip}
                           </div>
                         )}
@@ -2290,8 +2292,8 @@ export function StTemplatesTab() {
                             canWrite ? "cursor-pointer" : "cursor-default"
                           } ${
                             template.is_active
-                              ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
-                              : "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200"
+                              ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)]"
+                              : "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]"
                           }`}
                         >
                           {template.is_active ? (
@@ -2313,7 +2315,7 @@ export function StTemplatesTab() {
                               type="button"
                               title="Edit Template"
                               onClick={() => handleEditTemplate(template)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
@@ -2322,7 +2324,7 @@ export function StTemplatesTab() {
                               title="Jadikan Default"
                               onClick={() => void handleSetDefaultTemplate(template.id)}
                               disabled={template.is_default || !template.is_active}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-30 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] disabled:opacity-30 transition-colors cursor-pointer"
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -2330,7 +2332,7 @@ export function StTemplatesTab() {
                               type="button"
                               title="Duplikasi Template"
                               onClick={() => void handleDuplicateTemplate(template.id)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] transition-colors cursor-pointer"
                             >
                               <Copy className="w-4 h-4" />
                             </button>
@@ -2339,7 +2341,7 @@ export function StTemplatesTab() {
                               title="Hapus Template"
                               onClick={() => setDeleteTarget(template)}
                               disabled={template.is_system}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-30 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] disabled:opacity-30 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -2357,17 +2359,16 @@ export function StTemplatesTab() {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl p-6 space-y-4">
+        <SuratTugasDialog onClose={() => setDeleteTarget(null)} busy={isDeleting} className="sm:max-w-md">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
                   Hapus Template Surat Tugas?
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                </DialogTitle>
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1 leading-relaxed">
                   Template <strong>{deleteTarget.name}</strong> akan dihapus. Surat tugas yang sudah pernah dibuat dengan template ini tetap aman.
                 </p>
               </div>
@@ -2377,7 +2378,7 @@ export function StTemplatesTab() {
                 type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
               >
                 Batal
               </button>
@@ -2385,14 +2386,13 @@ export function StTemplatesTab() {
                 type="button"
                 onClick={() => void handleDeleteTemplate()}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer st-danger"
               >
                 {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Ya, Hapus Template
               </button>
             </div>
-          </div>
-        </div>
+        </SuratTugasDialog>
       )}
     </div>
   );

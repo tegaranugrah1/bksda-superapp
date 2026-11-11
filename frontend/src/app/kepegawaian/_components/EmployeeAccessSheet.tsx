@@ -69,10 +69,11 @@ const BMN_PERMISSIONS = [
 interface EmployeeAccessSheetProps {
   employee: { id: string; nip: string; nama_lengkap: string } | null;
   open: boolean;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
   onOpenChange: (open: boolean) => void;
 }
 
-export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAccessSheetProps) {
+export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusRef }: EmployeeAccessSheetProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<AccessFormValues>({
@@ -144,10 +145,16 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        onCloseAutoFocus={(event) => {
+          if (!returnFocusRef?.current) return;
+          event.preventDefault();
+          returnFocusRef.current.focus();
+        }}
+        data-module="kepegawaian" className="kpg-ui sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)]">
               <Shield className="w-4 h-4" />
             </div>
             Manajemen Hak Akses
@@ -157,24 +164,27 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
 
         {/* Employee Info Card */}
         {employee && (
-          <div className="p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold shrink-0">
+          <div className="p-3 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)] font-bold shrink-0">
               {employee.nama_lengkap.charAt(0)}
             </div>
             <div>
-              <p className="font-semibold text-sm text-slate-900 dark:text-zinc-100 leading-tight">{employee.nama_lengkap}</p>
-              <p className="text-xs text-slate-500 mt-0.5 font-mono">NIP: {employee.nip}</p>
+              <p className="font-semibold text-sm text-[var(--ds-fg)] leading-tight">{employee.nama_lengkap}</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 font-mono">
+                {employee.nip.toUpperCase().startsWith("MMP-") ? "Username Portal: " : "NIP: "}
+                <span className="font-semibold text-[var(--ds-fg)]">{employee.nip}</span>
+              </p>
             </div>
           </div>
         )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
-            <p className="text-sm font-medium text-slate-500">Memuat data akses...</p>
+            <Loader2 className="w-7 h-7 animate-spin text-[var(--ds-accent-fg)]" />
+            <p className="text-sm font-medium text-[var(--ds-fg-muted)]">Memuat data akses...</p>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 text-red-500 bg-red-50 dark:bg-red-500/5 rounded-xl border border-red-100">
+          <div className="flex flex-col items-center justify-center py-12 gap-3 text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] rounded-xl border border-[var(--ds-status-danger-border)]">
             <AlertCircle className="w-8 h-8 opacity-50" />
             <p className="text-sm font-semibold">Gagal memuat data akses</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>Coba Lagi</Button>
@@ -193,14 +203,14 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       <select
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
-                        className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        className="w-full h-10 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)]"
                       >
                         <option value="user">User (Pegawai Biasa)</option>
                         <option value="admin">Admin (Pengelola Modul)</option>
                         <option value="super_admin">Super Admin (Akses Penuh)</option>
                       </select>
                     </FormControl>
-                    <FormMessage className="text-[11px]" />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
@@ -211,7 +221,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                     <FormControl><input type="checkbox" checked={field.value} onChange={event => field.onChange(event.target.checked)} /></FormControl>
                     Aktifkan akun akses aplikasi
                   </FormLabel>
-                  <p className="text-xs text-slate-500">Akun nonaktif tidak dapat login. Menonaktifkan akun mencabut sesi aksesnya.</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)]">Akun nonaktif tidak dapat login. Menonaktifkan akun mencabut sesi aksesnya.</p>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -220,7 +230,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-bold">Akses Modul</label>
-                  <Badge variant="outline" className="text-[10px] font-bold">{accessModules.length} Terpilih</Badge>
+                  <Badge variant="outline" className="text-xs font-bold">{accessModules.length} Terpilih</Badge>
                 </div>
                 <div className="grid gap-2">
                   {AVAILABLE_MODULES.map((module) => {
@@ -229,8 +239,8 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       <div
                         key={module.id}
                         className={cn(
-                          "flex flex-row items-center gap-3 rounded-xl border p-3 transition-all cursor-pointer select-none",
-                          isSelected ? "bg-blue-50 border-blue-200" : "bg-white border-slate-100 hover:border-slate-200"
+                          "flex flex-row items-center gap-3 rounded-xl border p-3 transition-colors cursor-pointer select-none",
+                          isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
                         )}
                         onClick={() => {
                           const current = form.getValues("access_modules") || [];
@@ -242,20 +252,20 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                       >
                         <div className={cn(
                           "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                          isSelected ? "bg-blue-600 border-blue-600" : "border-slate-300"
+                          isSelected ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)]" : "border-[var(--ds-border-subtle)]"
                         )}>
-                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                          {isSelected && <Check className="w-3 h-3 text-[var(--ds-accent-on-solid)]" />}
                         </div>
                         <div className="flex-1">
-                          <p className={cn("text-sm font-semibold", isSelected ? "text-blue-700" : "text-slate-700")}>{module.label}</p>
-                          <p className="text-[10px] text-slate-500">{module.description}</p>
+                          <p className={cn("text-sm font-semibold", isSelected ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>{module.label}</p>
+                          <p className="text-xs text-[var(--ds-fg-muted)]">{module.description}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
                 {form.formState.errors.access_modules && (
-                  <p className="text-[11px] text-red-500">{form.formState.errors.access_modules.message}</p>
+                  <p className="text-xs text-[var(--ds-status-danger-fg)]">{form.formState.errors.access_modules.message}</p>
                 )}
               </div>
 
@@ -263,9 +273,9 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
               {accessModules.includes("bmn") && selectedRole === "admin" && (
                 <div className="space-y-2 border-t pt-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-slate-800 dark:text-zinc-200">Hak Akses Granular BMN</label>
+                    <label className="text-sm font-bold text-[var(--ds-fg)]">Hak Akses Granular BMN</label>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[var(--ds-surface)] p-3 rounded-xl border border-[var(--ds-border-subtle)]">
                     {BMN_PERMISSIONS.map((perm) => {
                       const currentPerms = form.getValues("permissions") || [];
                       const isPermSelected = currentPerms.includes(perm.id);
@@ -273,10 +283,10 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                         <div
                           key={perm.id}
                           className={cn(
-                            "flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer select-none transition-all",
-                            isPermSelected 
-                              ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400" 
-                              : "bg-white border-slate-200 dark:bg-zinc-900 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-50/50"
+                            "flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer select-none transition-colors",
+                            isPermSelected
+                              ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)]   text-[var(--ds-status-success-fg)] "
+                              : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]   text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface)]"
                           )}
                           onClick={() => {
                             const current = form.getValues("permissions") || [];
@@ -288,7 +298,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
                         >
                           <div className={cn(
                             "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                            isPermSelected ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300 dark:border-zinc-700"
+                            isPermSelected ? "bg-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] text-[var(--ds-accent-on-solid)]" : "border-[var(--ds-border-subtle)] "
                           )}>
                             {isPermSelected && <Check className="w-2.5 h-2.5" />}
                           </div>
@@ -305,7 +315,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange }: EmployeeAc
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button type="button" variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => onOpenChange(false)}>Batal</Button>
-                <Button type="submit" className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold" disabled={mutation.isPending}>
+                <Button type="submit" className="flex-1 h-10 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold" disabled={mutation.isPending}>
                   {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
                   {isNewAccount ? "Terbitkan Akses" : "Simpan"}
                 </Button>

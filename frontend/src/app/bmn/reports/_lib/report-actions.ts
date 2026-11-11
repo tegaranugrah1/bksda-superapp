@@ -6,6 +6,8 @@ export interface ConfirmAndDeleteOptions {
     title: string;
     description: string;
     confirmText?: string;
+    contentModule?: string;
+    contentClassName?: string;
     variant?: "default" | "danger";
   }) => Promise<boolean>;
   endpoint: string;
@@ -31,6 +33,8 @@ export async function confirmAndDeleteDocument({
     description: `Riwayat ${number} akan dihapus permanen dari daftar ${documentLabel}.`,
     confirmText: "Ya, Hapus",
     variant: "danger",
+    contentModule: "bmn",
+    contentClassName: "bmn-assets-ui bmn-standard-ui bmn-popover",
   });
   if (!ok) return false;
 

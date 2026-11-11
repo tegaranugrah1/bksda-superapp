@@ -107,3 +107,47 @@ export function calculateMasaKerja(nip?: string | null, namaLengkap?: string | n
 
   return `${years} Tahun ${months} Bulan`;
 }
+
+/**
+ * Menghitung tanggal mulai berhak Cuti Tahunan (1 tahun masa kerja sejak NIP diangkat).
+ * - MMP: null (tidak ada hak cuti)
+ * - PPPK: 1 Januari tahun berikutnya setelah tahun pengangkatan (NIP digit 9-12).
+ * - CPNS/PNS: 1 tahun setelah bulan pengangkatan (NIP digit 9-14: YYYYMM -> YYYY+1, MM, 1).
+ */
+export function getAnnualLeaveEligibleDate(
+  emp?: { nip?: string | null; is_mmp?: boolean | null; is_pppk?: boolean | null; jenis_pegawai?: string | null; pangkat_golongan?: string | null; jabatan?: string | null } | null
+): Date | null {
+  if (!emp || !emp.nip || isMmpEmployee(emp)) return null;
+  const digits = emp.nip.replace(/\D/g, "");
+  const type = detectEmployeeType(emp);
+
+  if (type === "PPPK") {
+    if (digits.length >= 12) {
+      const year = parseInt(digits.substring(8, 12), 10);
+      if (year >= 2000 && year <= 2100) {
+        return new Date(year + 1, 0, 1);
+      }
+    }
+    return null;
+  }
+
+  if (digits.length >= 14) {
+    const y = parseInt(digits.substring(8, 12), 10);
+    const m = parseInt(digits.substring(12, 14), 10);
+    if (y >= 1950 && y <= 2100 && m >= 1 && m <= 12) {
+      return new Date(y + 1, m - 1, 1);
+    }
+  }
+
+  return null;
+}
+
+export function isEligibleForAnnualLeave(
+  emp?: { nip?: string | null; is_mmp?: boolean | null; is_pppk?: boolean | null; jenis_pegawai?: string | null; pangkat_golongan?: string | null; jabatan?: string | null } | null,
+  targetDate: Date = new Date()
+): boolean {
+  if (!emp || isMmpEmployee(emp)) return false;
+  const eligibleDate = getAnnualLeaveEligibleDate(emp);
+  if (!eligibleDate) return true;
+  return targetDate.getTime() >= eligibleDate.getTime();
+}

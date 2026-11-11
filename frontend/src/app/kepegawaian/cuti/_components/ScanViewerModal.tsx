@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Download, ExternalLink, FileText, Loader2, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -12,6 +13,8 @@ interface ScanViewerModalProps {
   scanUrl: string | null;
   fileName?: string | null;
   onClose: () => void;
+  contentModule?: "surat-tugas" | "kepegawaian";
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 function base64ToBlobUrl(base64DataUrl: string): string {
@@ -36,6 +39,8 @@ export function ScanViewerModal({
   scanUrl,
   fileName,
   onClose,
+  contentModule,
+  returnFocusRef,
 }: ScanViewerModalProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [resolvedFileName, setResolvedFileName] = useState<string | null>(fileName || null);
@@ -109,8 +114,6 @@ export function ScanViewerModal({
     };
   }, [isOpen, scanUrl, fileName, onClose]);
 
-  if (!isOpen) return null;
-
   const currentDisplayName = resolvedFileName || fileName;
 
   const handleDownload = () => {
@@ -127,22 +130,16 @@ export function ScanViewerModal({
     if (previewUrl) window.open(previewUrl, "_blank", "noopener,noreferrer");
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+  const viewer = (
+      <div className="scan-viewer flex w-full max-w-4xl max-h-[92dvh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         {/* Header */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="scan-viewer-header p-4 bg-slate-900 text-white flex flex-wrap gap-2 items-center justify-between border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <div className="scan-viewer-icon w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <FileText className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-100">{title}</h3>
+              {contentModule ? <DialogTitle className="text-sm font-bold">{title}</DialogTitle> : <h3 className="text-sm font-bold text-slate-100">{title}</h3>}
               {currentDisplayName && (
                 <p className="text-[11px] text-slate-400 font-mono truncate max-w-md">
                   {currentDisplayName}
@@ -181,6 +178,7 @@ export function ScanViewerModal({
               type="button"
               variant="ghost"
               size="sm"
+              aria-label="Tutup pratinjau"
               onClick={onClose}
               className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8 p-0 rounded-xl cursor-pointer"
             >
@@ -190,7 +188,7 @@ export function ScanViewerModal({
         </div>
 
         {/* Content Viewer */}
-        <div className="flex-1 p-4 bg-slate-100 dark:bg-slate-950/60 overflow-y-auto flex items-center justify-center min-h-[50vh]">
+        <div className="scan-viewer-body flex-1 p-4 bg-slate-100 dark:bg-slate-950/60 overflow-y-auto flex items-center justify-center min-h-[50vh]">
           {isLoading ? (
             <div className="text-center py-16 space-y-3">
               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
@@ -218,6 +216,35 @@ export function ScanViewerModal({
           )}
         </div>
       </div>
+  );
+
+  if (contentModule) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent
+          data-module={contentModule}
+          showCloseButton={false}
+          aria-describedby={undefined}
+          onCloseAutoFocus={(event) => {
+            if (!returnFocusRef?.current) return;
+            event.preventDefault();
+            returnFocusRef.current.focus();
+          }}
+          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl`}
+        >
+          {viewer}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (!isOpen) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 overflow-y-auto"
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      {viewer}
     </div>
   );
 }

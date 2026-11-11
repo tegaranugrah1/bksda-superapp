@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -54,6 +55,26 @@ class Employee extends Model
     // Rule 3.7: Prefix kpg_
     protected $table = 'kpg_employees';
 
+    public const ALLOWED_INACTIVE_REASONS = [
+        'pensiun',
+        'mengundurkan_diri',
+        'habis_kontrak',
+        'mutasi',
+        'meninggal',
+        'diberhentikan',
+        'lainnya',
+    ];
+
+    public const INACTIVE_REASON_LABELS = [
+        'pensiun' => 'Pensiun / Purna Tugas',
+        'mengundurkan_diri' => 'Mengundurkan Diri',
+        'habis_kontrak' => 'Selesai Masa Kontrak',
+        'mutasi' => 'Mutasi / Pindah Instansi',
+        'meninggal' => 'Meninggal Dunia',
+        'diberhentikan' => 'Diberhentikan',
+        'lainnya' => 'Lainnya',
+    ];
+
     // Rule 1.3: Keamanan tingkat tinggi, tolak semua input KECUALI daftar di bawah ini
     protected $fillable = [
         'nip',
@@ -68,6 +89,9 @@ class Employee extends Model
         'email',
         'masa_kerja',
         'is_active',
+        'inactive_reason',
+        'inactive_effective_date',
+        'inactive_notes',
         'foto_profil',
     ];
 
@@ -135,6 +159,7 @@ class Employee extends Model
     // Konversi otomatis string 0/1 dari database menjadi boolean true/false di PHP
     protected $casts = [
         'is_active' => 'boolean',
+        'inactive_effective_date' => 'date:Y-m-d',
     ];
 
     protected $appends = [
@@ -146,6 +171,8 @@ class Employee extends Model
         'nip_label',
         'is_cpns2025',
         'foto_url',
+        'inactive_reason_label',
+        'status_badge',
     ];
 
     public function getFotoUrlAttribute(): ?string
@@ -261,6 +288,60 @@ class Employee extends Model
     /**
      * Accessor: Cek apakah pegawai merupakan CPNS pengangkatan 2025 (NIP mengandung 202506)
      */
+    /**
+     * Tanggal mulai berhak cuti tahunan (1 tahun setelah pengangkatan dari NIP).
+     * CPNS/PNS: digit 9-14 (YYYYMM) + 1 tahun (misal 202506 -> 2026-06-01).
+     * PPPK: digit 9-12 (YYYY) + 1 tahun kalender (misal 2024 -> 2025-01-01).
+     * MMP: null (tidak ada hak cuti).
+     */
+    public function getAnnualLeaveEligibleDateAttribute(): ?Carbon
+    {
+        if ($this->is_mmp || empty($this->nip)) {
+            return null;
+        }
+
+        $cleanNip = preg_replace('/\s+/', '', (string) $this->nip);
+
+        if ($this->is_pppk) {
+            if (strlen($cleanNip) >= 12 && ctype_digit(substr($cleanNip, 8, 4))) {
+                $year = (int) substr($cleanNip, 8, 4);
+                if ($year >= 2000 && $year <= 2100) {
+                    return Carbon::create($year + 1, 1, 1)->startOfDay();
+                }
+            }
+            return null;
+        }
+
+        if (strlen($cleanNip) >= 14 && ctype_digit(substr($cleanNip, 8, 6))) {
+            $ym = substr($cleanNip, 8, 6);
+            $y = (int) substr($ym, 0, 4);
+            $m = (int) substr($ym, 4, 2);
+            if ($y >= 1950 && $y <= 2100 && $m >= 1 && $m <= 12) {
+                return Carbon::create($y, $m, 1)->addYear()->startOfDay();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Cek apakah pegawai sudah memenuhi syarat 1 tahun masa kerja untuk Cuti Tahunan
+     */
+    public function isEligibleForAnnualLeave(?Carbon $asOf = null): bool
+    {
+        if ($this->is_mmp) {
+            return false;
+        }
+
+        $eligibleDate = $this->annual_leave_eligible_date;
+        if (! $eligibleDate) {
+            return true;
+        }
+
+        $target = $asOf ? $asOf->copy()->startOfDay() : Carbon::now()->startOfDay();
+        return $target->gte($eligibleDate);
+    }
+
     public function getIsCpns2025Attribute(): bool
     {
         if (empty($this->nip)) {
@@ -334,6 +415,13 @@ class Employee extends Model
                 ->where('nama_lengkap', 'NOT LIKE', '%Administrator Pusat%')
                 ->where('nama_lengkap', 'NOT LIKE', '%administrator%');
         });
+
+        static::saving(function (Employee $employee) {
+            if ($employee->is_mmp) {
+                $employee->nama_bank = null;
+                $employee->nomor_rekening = null;
+            }
+        });
     }
 
     /**
@@ -385,5 +473,254 @@ class Employee extends Model
     public function histories(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(EmployeeHistory::class, 'employee_id')->latest('created_at');
+    }
+
+    /**
+     * Memeriksa apakah pegawai secara efektif aktif pada tanggal tertentu (default: hari ini).
+     * Jika is_active = false, atau tanggal sudah mencapai/melewati inactive_effective_date (TMT),
+     * maka bernilai false.
+     */
+    public function isEffectiveActive(\DateTimeInterface|string|null $asOf = null): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->inactive_effective_date) {
+            $checkDate = $asOf instanceof \DateTimeInterface
+                ? $asOf->format('Y-m-d')
+                : ($asOf ? Carbon::parse($asOf)->toDateString() : now()->toDateString());
+            if ($checkDate >= $this->inactive_effective_date->toDateString()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Memeriksa apakah pegawai memiliki jadwal nonaktif di masa mendatang.
+     */
+    public function isScheduledInactive(): bool
+    {
+        return $this->is_active
+            && $this->inactive_effective_date !== null
+            && $this->inactive_effective_date->toDateString() > now()->toDateString();
+    }
+
+    /**
+     * Scope untuk query pegawai yang efektif aktif pada tanggal tertentu.
+     */
+    public function scopeEffectiveActive($query, \DateTimeInterface|string|null $asOf = null)
+    {
+        $date = $asOf instanceof \DateTimeInterface
+            ? $asOf->format('Y-m-d')
+            : ($asOf ? Carbon::parse($asOf)->toDateString() : now()->toDateString());
+
+        return $query->where('is_active', true)
+            ->where(function ($q) use ($date) {
+                $q->whereNull('inactive_effective_date')
+                    ->orWhere('inactive_effective_date', '>', $date);
+            });
+    }
+
+    /**
+     * Scope untuk query pegawai yang dijadwalkan nonaktif di masa mendatang.
+     */
+    public function scopeScheduledInactive($query)
+    {
+        $today = now()->toDateString();
+
+        return $query->where('is_active', true)
+            ->whereNotNull('inactive_effective_date')
+            ->where('inactive_effective_date', '>', $today);
+    }
+
+    public function getInactiveReasonLabelAttribute(): ?string
+    {
+        if (! $this->inactive_reason) {
+            return null;
+        }
+
+        return static::INACTIVE_REASON_LABELS[$this->inactive_reason] ?? ucfirst(str_replace('_', ' ', $this->inactive_reason));
+    }
+
+    public function getStatusBadgeAttribute(): array
+    {
+        if ($this->isEffectiveActive()) {
+            if ($this->isScheduledInactive()) {
+                return [
+                    'state' => 'scheduled_inactive',
+                    'label' => 'Akan Nonaktif (' . $this->inactive_effective_date?->format('d M Y') . ')',
+                    'color' => 'amber',
+                    'is_active' => true,
+                    'reason' => $this->inactive_reason,
+                    'effective_date' => $this->inactive_effective_date?->format('Y-m-d'),
+                ];
+            }
+
+            return [
+                'state' => 'active',
+                'label' => 'Aktif Bertugas',
+                'color' => 'emerald',
+                'is_active' => true,
+            ];
+        }
+
+        // Nonaktif
+        $reason = $this->inactive_reason_label;
+        $label = $reason ? "Nonaktif • {$reason}" : 'Nonaktif — Data Belum Lengkap';
+
+        return [
+            'state' => 'inactive',
+            'label' => $label,
+            'color' => 'slate',
+            'is_active' => false,
+            'reason' => $this->inactive_reason,
+            'effective_date' => $this->inactive_effective_date?->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Memeriksa apakah pegawai memiliki jejak historis operasional (SPT, Cuti, BMN, dll).
+     */
+    public function hasOperationalHistory(): bool
+    {
+        if (DB::table('st_assignment_letter_employees')->where('employee_id', $this->id)->exists()) {
+            return true;
+        }
+
+        $nip = trim((string) $this->nip);
+        if ($nip !== '') {
+            $userId = DB::table('users')->where('username', $nip)->value('id');
+            if ($userId && DB::table('st_assignment_letters')->where('created_by', $userId)->exists()) {
+                return true;
+            }
+        }
+
+        if (DB::table('kpg_employee_leave_requests')->where('employee_id', $this->id)->exists()) {
+            return true;
+        }
+
+        if (DB::table('kpg_employee_leaves')
+            ->where('employee_id', $this->id)
+            ->where(function ($q) {
+                $q->where('cuti_terpakai_n0', '>', 0)
+                    ->orWhere('cuti_terpakai_n1', '>', 0)
+                    ->orWhere('cuti_terpakai_n2', '>', 0);
+            })
+            ->exists()) {
+            return true;
+        }
+
+        if (DB::table('kpg_meal_allowance_items')->where('employee_id', $this->id)->exists()) {
+            return true;
+        }
+
+        if (DB::table('bmn_asset_loans')->where('employee_id', $this->id)->exists()) {
+            return true;
+        }
+
+        if (DB::table('kpg_employee_histories')->where('employee_id', $this->id)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Transisi status lifecycle pegawai secara atomik & terkoordinasi (doc.md §5 & §6).
+     */
+    public function applyLifecycleStatus(
+        string $action,
+        ?string $reason = null,
+        ?string $effectiveDate = null,
+        ?string $notes = null,
+        ?User $actor = null
+    ): self {
+        return DB::transaction(function () use ($action, $reason, $effectiveDate, $notes, $actor) {
+            $locked = static::lockForUpdate()->findOrFail($this->id);
+            $oldActive = $locked->is_active;
+            $oldReason = $locked->inactive_reason;
+            $oldDate = $locked->inactive_effective_date?->toDateString();
+            $oldNotes = $locked->inactive_notes;
+
+            $nip = trim((string) $locked->nip);
+            $user = $nip !== '' ? User::where('username', $nip)->lockForUpdate()->first() : null;
+
+            if ($action === 'deactivate') {
+                $effDateCarbon = $effectiveDate ? Carbon::parse($effectiveDate) : now();
+                $isEffectiveNow = $effDateCarbon->toDateString() <= now()->toDateString();
+
+                $locked->update([
+                    'is_active' => ! $isEffectiveNow,
+                    'inactive_reason' => $reason,
+                    'inactive_effective_date' => $effDateCarbon->toDateString(),
+                    'inactive_notes' => $notes,
+                ]);
+
+                if ($isEffectiveNow && $user) {
+                    $user->update(['is_active' => false]);
+                    $user->tokens()->delete();
+                }
+
+                EmployeeHistory::create([
+                    'employee_id' => $locked->id,
+                    'user_id' => $actor?->id,
+                    'action' => $isEffectiveNow ? 'DEACTIVATE_EMPLOYEE' : 'SCHEDULE_INACTIVE_EMPLOYEE',
+                    'changes' => [
+                        'is_active' => ['old' => $oldActive, 'new' => ! $isEffectiveNow],
+                        'inactive_reason' => ['old' => $oldReason, 'new' => $reason],
+                        'inactive_effective_date' => ['old' => $oldDate, 'new' => $effDateCarbon->toDateString()],
+                        'inactive_notes' => ['old' => $oldNotes, 'new' => $notes],
+                    ],
+                    'notes' => $notes ?: ($isEffectiveNow ? "Penonaktifan pegawai ({$reason})" : "Penjadwalan nonaktif pegawai ({$reason}) per {$effDateCarbon->toDateString()}"),
+                    'created_at' => now(),
+                ]);
+            } elseif ($action === 'cancel_schedule') {
+                $locked->update([
+                    'is_active' => true,
+                    'inactive_reason' => null,
+                    'inactive_effective_date' => null,
+                    'inactive_notes' => null,
+                ]);
+
+                EmployeeHistory::create([
+                    'employee_id' => $locked->id,
+                    'user_id' => $actor?->id,
+                    'action' => 'CANCEL_SCHEDULE_INACTIVE',
+                    'changes' => [
+                        'inactive_reason' => ['old' => $oldReason, 'new' => null],
+                        'inactive_effective_date' => ['old' => $oldDate, 'new' => null],
+                        'inactive_notes' => ['old' => $oldNotes, 'new' => null],
+                    ],
+                    'notes' => $notes ?: 'Pembatalan jadwal penonaktifan pegawai',
+                    'created_at' => now(),
+                ]);
+            } elseif ($action === 'reactivate') {
+                $locked->update([
+                    'is_active' => true,
+                    'inactive_reason' => null,
+                    'inactive_effective_date' => null,
+                    'inactive_notes' => $notes,
+                ]);
+
+                // Sesuai doc.md: Pengaktifan kembali pegawai TIDAK otomatis mengaktifkan akun user
+                EmployeeHistory::create([
+                    'employee_id' => $locked->id,
+                    'user_id' => $actor?->id,
+                    'action' => 'REACTIVATE_EMPLOYEE',
+                    'changes' => [
+                        'is_active' => ['old' => false, 'new' => true],
+                        'inactive_reason' => ['old' => $oldReason, 'new' => null],
+                        'inactive_effective_date' => ['old' => $oldDate, 'new' => null],
+                    ],
+                    'notes' => $notes ?: 'Pengaktifan kembali pegawai (Akun user tetap non-aktif sampai dikelola via IAM)',
+                    'created_at' => now(),
+                ]);
+            }
+
+            return $locked->fresh(['user']);
+        });
     }
 }

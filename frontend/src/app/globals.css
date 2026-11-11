@@ -132,6 +132,151 @@
 
 
 /* Marquee animation for photo gallery */
+/* 
+ * Design System Module Tokens (docs/DESIGN_SYSTEM_COLORS.md)
+ * Scoped tokens per data-module attribute
+ */
+[data-module="bmn"],
+[data-module="surat-tugas"],
+[data-module="kepegawaian"] {
+  --ds-canvas: #f8fafc;
+  --ds-surface: #ffffff;
+  --ds-fg: #0f172a;
+  --ds-fg-muted: #475569;
+  --ds-accent-on-solid: #ffffff;
+  --ds-surface-raised: #ffffff;
+  --ds-surface-muted: #f1f5f9;
+  --ds-border-subtle: #e2e8f0;
+  --ds-border-control: #7c899a;
+  --ds-secondary-bg: #f1f5f9;
+  --ds-secondary-hover: #e2e8f0;
+  --ds-secondary-active: #cbd5e1;
+  --ds-secondary-fg: #0f172a;
+  --ds-disabled-bg: #f1f5f9;
+  --ds-disabled-fg: #64748b;
+  --ds-danger-solid: #be123c;
+  --ds-danger-hover: #9f1239;
+  --ds-danger-active: #881337;
+  --ds-danger-on-solid: #ffffff;
+  --ds-danger-focus: #be123c;
+  --ds-status-success-bg: #ecfdf5;
+  --ds-status-success-fg: #047857;
+  --ds-status-success-border: #a7f3d0;
+  --ds-status-warning-bg: #fffbeb;
+  --ds-status-warning-fg: #92400e;
+  --ds-status-warning-border: #fde68a;
+  --ds-status-danger-bg: #fff1f2;
+  --ds-status-danger-fg: #be123c;
+  --ds-status-danger-border: #fecdd3;
+  --ds-status-info-bg: #eff6ff;
+  --ds-status-info-fg: #1d4ed8;
+  --ds-status-info-border: #bfdbfe;
+  --ds-status-neutral-bg: #f1f5f9;
+  --ds-status-neutral-fg: #475569;
+  --ds-status-neutral-border: #e2e8f0;
+}
+
+[data-module="bmn"] {
+  --ds-accent-solid: #047857;
+  --ds-accent-hover: #065f46;
+  --ds-accent-active: #064e3b;
+  --ds-accent-fg: #047857;
+  --ds-accent-soft: #ecfdf5;
+  --ds-accent-soft-border: #a7f3d0;
+}
+
+[data-module="surat-tugas"] {
+  --ds-accent-solid: #0369a1;
+  --ds-accent-hover: #075985;
+  --ds-accent-active: #0c4a6e;
+  --ds-accent-fg: #0369a1;
+  --ds-accent-soft: #f0f9ff;
+  --ds-accent-soft-border: #bae6fd;
+}
+
+[data-module="kepegawaian"] {
+  --ds-accent-solid: #2563eb;
+  --ds-accent-hover: #1d4ed8;
+  --ds-accent-active: #1e40af;
+  --ds-accent-fg: #2563eb;
+  --ds-accent-soft: #eff6ff;
+  --ds-accent-soft-border: #bfdbfe;
+}
+
+.dark[data-module="bmn"],
+.dark [data-module="bmn"],
+.dark[data-module="surat-tugas"],
+.dark [data-module="surat-tugas"],
+.dark[data-module="kepegawaian"],
+.dark [data-module="kepegawaian"] {
+  --ds-canvas: #09090b;
+  --ds-surface: #18181b;
+  --ds-fg: #f8fafc;
+  --ds-fg-muted: #a1a1aa;
+  --ds-accent-on-solid: #0f172a;
+  --ds-surface-raised: #27272a;
+  --ds-surface-muted: #27272a;
+  --ds-border-subtle: #3f3f46;
+  --ds-border-control: #71717a;
+  --ds-secondary-bg: #27272a;
+  --ds-secondary-hover: #3f3f46;
+  --ds-secondary-active: #52525b;
+  --ds-secondary-fg: #f8fafc;
+  --ds-disabled-bg: #27272a;
+  --ds-disabled-fg: #71717a;
+  --ds-danger-solid: #fb7185;
+  --ds-danger-hover: #fda4af;
+  --ds-danger-active: #fecdd3;
+  --ds-danger-on-solid: #0f172a;
+  --ds-danger-focus: #fda4af;
+  --ds-status-success-bg: #022c22;
+  --ds-status-success-fg: #6ee7b7;
+  --ds-status-success-border: #065f46;
+  --ds-status-warning-bg: #451a03;
+  --ds-status-warning-fg: #fcd34d;
+  --ds-status-warning-border: #92400e;
+  --ds-status-danger-bg: #4c0519;
+  --ds-status-danger-fg: #fda4af;
+  --ds-status-danger-border: #9f1239;
+  --ds-status-info-bg: #172554;
+  --ds-status-info-fg: #93c5fd;
+  --ds-status-info-border: #1e40af;
+  --ds-status-neutral-bg: #27272a;
+  --ds-status-neutral-fg: #d4d4d8;
+  --ds-status-neutral-border: #52525b;
+}
+
+.dark[data-module="bmn"],
+.dark [data-module="bmn"] {
+  --ds-accent-solid: #34d399;
+  --ds-accent-hover: #6ee7b7;
+  --ds-accent-active: #a7f3d0;
+  --ds-accent-fg: #6ee7b7;
+  --ds-accent-soft: #022c22;
+  --ds-accent-soft-border: #065f46;
+}
+
+.dark[data-module="surat-tugas"],
+.dark [data-module="surat-tugas"] {
+  --ds-accent-solid: #38bdf8;
+  --ds-accent-hover: #7dd3fc;
+  --ds-accent-active: #bae6fd;
+  --ds-accent-fg: #7dd3fc;
+  --ds-accent-soft: #082f49;
+  --ds-accent-soft-border: #075985;
+}
+
+.dark[data-module="kepegawaian"],
+.dark [data-module="kepegawaian"] {
+  --ds-accent-solid: #60a5fa;
+  --ds-accent-hover: #93c5fd;
+  --ds-accent-active: #bfdbfe;
+  --ds-accent-fg: #93c5fd;
+  --ds-accent-soft: #172554;
+  --ds-accent-soft-border: #1e40af;
+}
+
+/* Marquee animation for photo gallery */
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -144,3 +289,93 @@
 .prose .ql-align-center { text-align: center !important; }
 .prose .ql-align-right { text-align: right !important; }
 .prose .ql-align-justify { text-align: justify !important; }
+
+/* View Transitions API for Animate UI Theme Toggler (Day / Night Wipe) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+:root:active-view-transition-type(animate-ui-theme) body,
+:root:active-view-transition-type(animate-ui-theme) body * {
+  view-transition-name: none !important;
+}
+
+/* BMN action feedback: spatial motion is opt-in to the user's preference. */
+[data-module="bmn"] .bmn-motion-action {
+  transition-property: background-color, color, border-color, box-shadow, transform;
+  transition-duration: 140ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-module="bmn"] .bmn-motion-action:focus-visible {
+  outline: 2px solid var(--ds-accent-fg);
+  outline-offset: 2px;
+}
+
+[data-module="bmn"] .bmn-metric-card {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms ease-out, border-color 150ms ease-out;
+}
+
+/* Stronger feedback for navigation, keeping the quick-action highlight unchanged. */
+[data-module="bmn"] .bmn-hover-link {
+  transition-duration: 150ms;
+}
+
+@keyframes bmn-dashboard-enter {
+  from { opacity: 0.85; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bmn-chart-enter {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-module="bmn"] .bmn-metric-card:hover,
+  [data-module="bmn"] .bmn-metric-card:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px -8px rgb(15 23 42 / 0.24);
+  }
+
+  [data-module="bmn"] .bmn-motion-action:hover {
+    transform: translateY(-1px);
+  }
+
+  [data-module="bmn"] .bmn-hover-link:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-module="bmn"].bmn-dashboard-enter {
+    animation: bmn-dashboard-enter 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-module="bmn"] .bmn-chart-enter {
+    animation: bmn-chart-enter 600ms ease-out;
+  }
+
+  [data-module="bmn"] .bmn-motion-action:active {
+    transform: scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-module="bmn"] .bmn-motion-action,
+  [data-module="bmn"] .bmn-metric-card {
+    transition-duration: 0ms;
+  }
+
+  [data-module="bmn"].bmn-dashboard-enter,
+  [data-module="bmn"] .bmn-chart-enter {
+    animation: none;
+  }
+}

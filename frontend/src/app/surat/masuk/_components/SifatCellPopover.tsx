@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Tag, Check, Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import type { SuratMasuk } from "../../_lib/surat-types";
@@ -37,28 +38,11 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
     return Array.isArray(item.sifat_json) && item.sifat_json.length > 0 ? item.sifat_json[0] : "Penting";
   });
 
-  const popoverRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (Array.isArray(item.sifat_json) && item.sifat_json.length > 0) {
       setSelectedSifat(item.sifat_json[0]);
     }
   }, [item.sifat_json]);
-
-  // Outside click handler
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
 
   const selectSifatOption = async (sifat: string) => {
     setSelectedSifat(sifat);
@@ -69,16 +53,30 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
         no_agenda: item.no_agenda,
         no_surat: item.no_surat,
         tanggal_agenda: item.tanggal_agenda,
+        tanggal_surat: item.tanggal_surat,
+        tanggal_penyelesaian: item.tanggal_penyelesaian,
+        indeks: item.indeks,
+        kode: item.kode,
+        referensi: item.referensi,
+        asal_surat: item.asal_surat,
+        isi_ringkas: item.isi_ringkas,
+        lampiran: item.lampiran,
+        catatan: item.catatan,
         sifat_json: [sifat],
-        disposisi: item.disposisi ? {
-          diteruskan_json: item.disposisi.diteruskan_json || [],
-          catatan: item.disposisi.catatan || "",
-        } : undefined,
+        disposisi: item.disposisi
+          ? {
+              diteruskan_json: item.disposisi.diteruskan_json || [],
+              instruksi_json: item.disposisi.instruksi_json || [],
+              catatan: item.disposisi.catatan || "",
+              ka_subbag_tu_id: item.disposisi.ka_subbag_tu_id || null,
+              kepala_balai_id: item.disposisi.kepala_balai_id || null,
+            }
+          : undefined,
       };
 
       let resData = { ...item, sifat_json: [sifat] };
       if (item.id) {
-        const res = await api.put(`/api/surat-masuk/${item.id}`, payload);
+        const res = await api.put(`/surat-masuk/${item.id}`, payload);
         if (res.data?.data) {
           resData = res.data.data;
         }
@@ -114,56 +112,62 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
   };
 
   return (
-    <div className="relative inline-block" ref={popoverRef}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       {/* Trigger: Clickable Badge (Single select) */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="cursor-pointer flex flex-wrap gap-1 hover:opacity-80 transition-opacity"
-        title="Klik untuk mengubah sifat surat arahan pimpinan (Pilih 1)"
-      >
-        <span
-          className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors ${getSifatBadgeStyle(
-            selectedSifat
-          )}`}
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="cursor-pointer flex flex-wrap gap-1 hover:opacity-80 transition-opacity bg-transparent border-none p-0 outline-none"
+          title="Klik untuk mengubah sifat surat arahan pimpinan (Pilih 1)"
         >
-          {selectedSifat}
-        </span>
-      </div>
+          <span
+            className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors ${getSifatBadgeStyle(
+              selectedSifat
+            )}`}
+          >
+            {selectedSifat}
+          </span>
+        </button>
+      </PopoverTrigger>
 
-      {/* Popover Dropdown (Radio-like selection) */}
-      {isOpen && (
-        <div className="absolute left-0 mt-2 w-48 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-150">
-          <div className="flex items-center justify-between pb-1.5 border-b border-zinc-100 dark:border-zinc-800">
-            <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
-              <Tag className="h-3 w-3 text-emerald-600" />
-              Pilih 1 Sifat Surat
-            </span>
-            {isSaving && <Loader2 className="h-3 w-3 animate-spin text-emerald-600" />}
-          </div>
-
-          <div className="space-y-1">
-            {SIFAT_OPTIONS.map((opt) => {
-              const isChecked = selectedSifat === opt;
-              return (
-                <div
-                  key={opt}
-                  onClick={() => selectSifatOption(opt)}
-                  className={`flex items-center justify-between p-1.5 rounded-lg cursor-pointer text-xs transition-colors ${
-                    isChecked
-                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-semibold"
-                      : "hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300"
-                  }`}
-                >
-                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] border ${getSifatBadgeStyle(opt)}`}>
-                    {opt}
-                  </span>
-                  {isChecked && <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3]" />}
-                </div>
-              );
-            })}
-          </div>
+      {/* Popover Dropdown (Radio-like selection, Portaled to document.body, collision-aware) */}
+      <PopoverContent
+        align="start"
+        side="bottom"
+        sideOffset={6}
+        collisionPadding={16}
+        className="w-48 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 p-2.5 space-y-2"
+      >
+        <div className="flex items-center justify-between pb-1.5 border-b border-zinc-100 dark:border-zinc-800">
+          <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
+            <Tag className="h-3 w-3 text-emerald-600" />
+            Pilih 1 Sifat Surat
+          </span>
+          {isSaving && <Loader2 className="h-3 w-3 animate-spin text-emerald-600" />}
         </div>
-      )}
-    </div>
+
+        <div className="space-y-1">
+          {SIFAT_OPTIONS.map((opt) => {
+            const isChecked = selectedSifat === opt;
+            return (
+              <div
+                key={opt}
+                onClick={() => selectSifatOption(opt)}
+                className={`flex items-center justify-between p-1.5 rounded-lg cursor-pointer text-xs transition-colors ${
+                  isChecked
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-semibold"
+                    : "hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300"
+                }`}
+              >
+                <span className={`px-2 py-0.5 rounded-md text-[10.5px] border ${getSifatBadgeStyle(opt)}`}>
+                  {opt}
+                </span>
+                {isChecked && <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[3]" />}
+              </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

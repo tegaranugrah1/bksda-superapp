@@ -90,6 +90,10 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['error' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
+        if ($employee->is_mmp) {
+            return response()->json(['message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki hak cuti kepegawaian.'], 422);
+        }
+
         return app(EmployeeLeaveController::class)->show($request, $employee->id);
     }
 
@@ -135,6 +139,10 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['error' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
+        if ($employee->is_mmp) {
+            return response()->json(['message' => 'Personil Masyarakat Mitra Polhut (MMP) tidak memiliki hak cuti kepegawaian.'], 422);
+        }
+
         $validated = $request->validate([
             'jenis_cuti' => 'required|string|max:150',
             'alasan_cuti' => 'required|string|max:1000',
@@ -147,11 +155,34 @@ class EmployeeLeaveRequestController extends Controller
         DB::beginTransaction();
         try {
             $employee = Employee::lockForLeaveUpdate($employee->id);
+
+            if (! $employee->is_active) {
+                DB::rollBack();
+                return response()->json(['message' => 'Pegawai berstatus nonaktif tidak dapat mengajukan cuti.'], 422);
+            }
+
+            if ($employee->inactive_effective_date && Carbon::parse($validated['tanggal_selesai'])->toDateString() >= $employee->inactive_effective_date->toDateString()) {
+                $tmt = $employee->inactive_effective_date->toDateString();
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Permohonan cuti tidak dapat diajukan melintasi tanggal TMT nonaktif ({$tmt}).",
+                ], 422);
+            }
+
             $leaveType = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveType->nama;
 
             $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
             $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
 
             if ($start->year !== $end->year) {
                 DB::rollBack();
@@ -1045,6 +1076,46 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Preview Data & Suggested Auto Number for Surat Izin Cuti Resmi
      */
+    /**
+     * Teks tahun akumulasi cuti tahunan (N-2, N-1, N) untuk butir 1 Surat Izin Cuti
+     */
+    private function resolveTahunCutiText(EmployeeLeaveRequest $leaveReq): ?string
+    {
+        if (! $leaveReq->isAnnual()) {
+            return null;
+        }
+
+        $currentN = (int) Carbon::parse($leaveReq->tanggal_mulai)->year;
+        $sisaN1 = (int) ($leaveReq->sisa_n1 ?? 0);
+        $sisaN2 = (int) ($leaveReq->sisa_n2 ?? 0);
+
+        if ($sisaN1 === 0 && $sisaN2 === 0) {
+            $leaveBalance = EmployeeLeave::where('employee_id', $leaveReq->employee_id)->where('year', $currentN)->first();
+            $sisaN1 = (int) ($leaveBalance->hak_n1_diakui ?? 0);
+            $sisaN2 = (int) ($leaveBalance->hak_n2_diakui ?? 0);
+        }
+
+        $years = [];
+        if ($sisaN2 > 0) {
+            $years[] = "tahun " . ($currentN - 2);
+        }
+        if ($sisaN1 > 0) {
+            $years[] = "tahun " . ($currentN - 1);
+        }
+
+        if (empty($years)) {
+            return null;
+        }
+
+        $years[] = "tahun " . $currentN;
+        if (count($years) === 2) {
+            return "untuk " . $years[0] . " dan " . $years[1];
+        }
+
+        $last = array_pop($years);
+        return "untuk " . implode(', ', $years) . " dan " . $last;
+    }
+
     public function previewSuratIzin(int $id): JsonResponse
     {
         $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
@@ -1143,6 +1214,7 @@ class EmployeeLeaveRequestController extends Controller
             'request' => $leaveReq,
             'terbilang_hari' => $terbilangHari,
             'kepala_balai' => $kepalaBalai,
+            'tahun_cuti_text' => $this->resolveTahunCutiText($leaveReq),
         ]);
     }
 
@@ -1223,6 +1295,7 @@ class EmployeeLeaveRequestController extends Controller
                 'terbilangHari' => $terbilangHari,
                 'tanggalMulai' => $tglMulaiFormatted,
                 'tanggalSelesai' => $tglSelesaiFormatted,
+                'tahunCutiText' => $this->resolveTahunCutiText($leaveReq),
                 'pegawai' => [
                     'nama' => $leaveReq->employee ? $leaveReq->employee->nama_lengkap : '-',
                     'nip' => $leaveReq->employee ? $leaveReq->employee->nip : '-',

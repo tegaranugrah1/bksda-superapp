@@ -40,6 +40,7 @@ import {
 
 export interface DocumentHistoryTabProps {
   canWrite?: boolean;
+  canDelete?: boolean;
   employees: EmployeeOption[];
   vehicleAssetOptions?: BmnAssetOption[];
   onEdit: (item: DocumentHistoryItem) => void;
@@ -48,6 +49,7 @@ export interface DocumentHistoryTabProps {
 
 export function DocumentHistoryTab({
   canWrite = false,
+  canDelete = false,
   employees,
   vehicleAssetOptions = [],
   onEdit,
@@ -71,6 +73,7 @@ export function DocumentHistoryTab({
     data: documentHistory,
     isLoading: loadingDocumentHistory,
     isFetching: fetchingDocumentHistory,
+    isError: historyError,
     refetch: refetchDocumentHistory,
   } = useQuery<PaginatedDocumentHistory>({
     queryKey: [
@@ -186,6 +189,7 @@ export function DocumentHistoryTab({
   };
 
   const handleDelete = async (item: DocumentHistoryItem) => {
+    if (!canDelete) return;
     let endpoint = "";
     let label = "";
     if (isUsageHistoryItem(item)) {
@@ -220,14 +224,14 @@ export function DocumentHistoryTab({
 
   return (
     <section className="space-y-4">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] ">
             <FileClock className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-white">Riwayat Dokumen</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <h2 className="text-base font-bold text-[var(--ds-fg)] ">Riwayat Dokumen</h2>
+            <p className="text-xs text-[var(--ds-fg-muted)] ">
               Semua dokumen dinas BMN yang pernah digenerate, dengan filter dan pencarian.
             </p>
           </div>
@@ -244,6 +248,7 @@ export function DocumentHistoryTab({
             <button
               key={value}
               type="button"
+              aria-pressed={historyDocumentType === value}
               onClick={() => {
                 setHistoryDocumentType(value);
                 setHistoryPage(1);
@@ -251,8 +256,8 @@ export function DocumentHistoryTab({
               }}
               className={`h-9 rounded-xl border px-3 text-xs font-semibold transition ${
                 historyDocumentType === value
-                  ? "border-emerald-600 bg-emerald-600 text-white"
-                  : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                  ? "border-transparent bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                  : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]   "
               }`}
             >
               {label}
@@ -262,25 +267,27 @@ export function DocumentHistoryTab({
 
         <div className="grid grid-cols-1 md:grid-cols-[1fr_260px_160px] gap-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
             <input
+              aria-label="Cari riwayat dokumen"
               value={historySearch}
               onChange={(event) => {
                 setHistorySearch(event.target.value);
                 setHistoryPage(1);
               }}
               placeholder="Cari nomor dokumen, nama pegawai, pembuat..."
-              className="h-12 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none      "
             />
           </div>
 
           <select
+            aria-label="Filter pegawai dokumen"
             value={historyEmployeeFilter}
             onChange={(event) => {
               setHistoryEmployeeFilter(event.target.value);
               setHistoryPage(1);
             }}
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm outline-none      "
           >
             <option value="">Semua Pegawai</option>
             {employees.map((employee) => (
@@ -291,12 +298,13 @@ export function DocumentHistoryTab({
           </select>
 
           <select
+            aria-label="Jumlah dokumen per halaman"
             value={historyPerPage}
             onChange={(event) => {
               setHistoryPerPage(Number(event.target.value));
               setHistoryPage(1);
             }}
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm outline-none      "
           >
             {[10, 25, 50].map((value) => (
               <option key={value} value={value}>
@@ -307,11 +315,11 @@ export function DocumentHistoryTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Daftar Riwayat Dokumen</h3>
-            <p className="text-xs text-zinc-500">
+            <h3 className="text-sm font-bold text-[var(--ds-fg)] ">Daftar Riwayat Dokumen</h3>
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               {documentHistoryMeta.total === 0
                 ? "0 dokumen"
                 : `${documentHistoryMeta.from || 0}-${documentHistoryMeta.to || 0} dari ${
@@ -320,12 +328,12 @@ export function DocumentHistoryTab({
             </p>
           </div>
           {(loadingDocumentHistory || fetchingDocumentHistory) && (
-            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+            <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
           )}
         </div>
-        <div className="max-h-96 overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full min-w-260 text-left text-xs">
-            <thead className="sticky top-0 bg-zinc-50 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+        <div className="max-h-96 overflow-auto rounded-xl border border-[var(--ds-border-subtle)] ">
+          <table className={`${documentHistoryItems.length > 0 ? "min-w-260" : ""} w-full text-left text-xs`}>
+            <thead className={`${documentHistoryItems.length === 0 ? "hidden sm:table-header-group" : ""} sticky top-0 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]`}>
               <tr>
                 <th className="px-3 py-2">Jenis</th>
                 <th className="px-3 py-2">Nomor</th>
@@ -337,10 +345,14 @@ export function DocumentHistoryTab({
                 <th className="px-3 py-2 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {documentHistoryItems.length === 0 ? (
+            <tbody className="divide-y divide-[var(--ds-border-subtle)] ">
+              {historyError ? (
+                <tr><td colSpan={8} className="p-6 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Riwayat dokumen gagal dimuat.</p><Button variant="outline" className="mt-3" onClick={() => refetchDocumentHistory()}>Coba lagi</Button></td></tr>
+              ) : loadingDocumentHistory ? (
+                <tr><td colSpan={8} className="p-6 text-center" role="status">Memuat riwayat dokumen...</td></tr>
+              ) : documentHistoryItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-zinc-500">
+                  <td colSpan={8} className="px-3 py-8 text-center text-[var(--ds-fg-muted)]">
                     Belum ada riwayat dokumen yang sesuai filter.
                   </td>
                 </tr>
@@ -348,26 +360,13 @@ export function DocumentHistoryTab({
                 documentHistoryItems.map((item) => (
                   <tr
                     key={item.id}
-                    className={`text-zinc-700 dark:text-zinc-200 ${
-                      selectedHistoryAgreement?.id === item.id ||
-                      selectedHandoverAgreement?.id === item.id ||
-                      selectedPowerOfAttorney?.id === item.id ||
-                      selectedCoveringLetter?.id === item.id
-                        ? "bg-emerald-50/70 dark:bg-emerald-500/10"
-                        : ""
-                    }`}
+                    aria-selected={selectedHistoryAgreement?.id === item.id || selectedHandoverAgreement?.id === item.id || selectedPowerOfAttorney?.id === item.id || selectedCoveringLetter?.id === item.id}
+                    className="bmn-table-row text-[var(--ds-fg-secondary)]"
                   >
                     <td className="px-3 py-2">
                       <span
-                        className={`rounded-full px-2 py-1 text-[11px] font-semibold ${
-                          isUsageHistoryItem(item)
-                            ? "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"
-                            : isPowerOfAttorneyHistoryItem(item)
-                            ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
-                            : isCoveringLetterHistoryItem(item)
-                            ? "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"
-                            : "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                        }`}
+                        data-status="neutral"
+                        className="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
                       >
                         {documentTypeLabel(item)}
                       </span>
@@ -375,8 +374,8 @@ export function DocumentHistoryTab({
                     <td className="px-3 py-2 font-semibold">
                       {isDraftNumber(item.number) ? (
                         <div>
-                          <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{item.number}</span>
-                          <span className="block text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                          <span className="font-mono text-xs text-[var(--ds-fg-secondary)] ">{item.number}</span>
+                          <span className="block text-xs font-medium text-[var(--ds-status-warning-fg)] ">
                             Belum ada nomor
                           </span>
                         </div>
@@ -386,36 +385,28 @@ export function DocumentHistoryTab({
                     </td>
                     <td className="px-3 py-2">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          item.status === "draft" || isDraftNumber(item.number)
-                            ? "border border-amber-200/60 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
-                            : "border border-emerald-200/60 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
-                        }`}
+                        data-status={item.status === "draft" || isDraftNumber(item.number) ? "warning" : "success"}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
                       >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            item.status === "draft" || isDraftNumber(item.number) ? "bg-amber-500" : "bg-emerald-500"
-                          }`}
-                        />
                         {item.status === "draft" || isDraftNumber(item.number) ? "Draf" : "Terbit"}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-zinc-500">{formatDate(item.document_date)}</td>
-                    <td className="px-3 py-2 text-zinc-500">{documentPartiesLabel(item)}</td>
-                    <td className="px-3 py-2 text-zinc-500">{documentItemCountLabel(item)}</td>
-                    <td className="px-3 py-2 text-zinc-500">{item.generator?.name || "-"}</td>
+                    <td className="px-3 py-2 text-[var(--ds-fg-muted)]">{formatDate(item.document_date)}</td>
+                    <td className="px-3 py-2 text-[var(--ds-fg-muted)]">{documentPartiesLabel(item)}</td>
+                    <td className="px-3 py-2 text-[var(--ds-fg-muted)]">{documentItemCountLabel(item)}</td>
+                    <td className="px-3 py-2 text-[var(--ds-fg-muted)]">{item.generator?.name || "-"}</td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-2">
-                        <Button
+                        {canWrite && <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="h-8 rounded-lg border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                          className="h-8 rounded-lg border-[var(--ds-accent-soft-border)] px-2 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]   "
                           onClick={() => onEdit(item)}
                         >
                           <Pencil className="mr-1 h-3.5 w-3.5" />
                           Edit
-                        </Button>
+                        </Button>}
                         <Button
                           type="button"
                           variant="outline"
@@ -429,13 +420,13 @@ export function DocumentHistoryTab({
                         <Button
                           type="button"
                           size="sm"
-                          className="h-8 rounded-lg bg-emerald-600 px-2 text-xs hover:bg-emerald-500"
+                          className="h-8 rounded-lg bg-[var(--ds-accent-soft)] px-2 text-xs hover:bg-[var(--ds-accent-soft)]"
                           onClick={() => printDocumentDirect(item)}
                         >
                           <Printer className="mr-1 h-3.5 w-3.5" />
                           Cetak
                         </Button>
-                        <Button
+                        {canWrite && <Button
                           type="button"
                           variant="outline"
                           size="sm"
@@ -444,13 +435,13 @@ export function DocumentHistoryTab({
                         >
                           <FileText className="mr-1 h-3.5 w-3.5" />
                           Duplikasi
-                        </Button>
-                        {canWrite && (
+                        </Button>}
+                        {canDelete && (
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="h-8 rounded-lg border-rose-200 px-2 text-xs text-rose-600 hover:bg-rose-50"
+                            className="bmn-icon-danger h-8 rounded-lg px-2 text-xs"
                             onClick={() => handleDelete(item)}
                           >
                             <Trash2 className="mr-1 h-3.5 w-3.5" />
@@ -465,7 +456,7 @@ export function DocumentHistoryTab({
             </tbody>
           </table>
         </div>
-        <div className="mt-4 flex flex-col gap-3 border-t border-zinc-100 pt-4 text-xs text-zinc-500 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 border-t border-[var(--ds-border-subtle)] pt-4 text-xs text-[var(--ds-fg-muted)]  sm:flex-row sm:items-center sm:justify-between">
           <span>
             Halaman {documentHistoryMeta.current_page} dari {documentHistoryMeta.last_page || 1}
           </span>
@@ -501,23 +492,23 @@ export function DocumentHistoryTab({
       </div>
 
       {selectedHistoryAgreement && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip BA</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)] ">Preview Arsip BA</h3>
+              <p className="text-xs text-[var(--ds-fg-muted)] ">
                 {selectedHistoryAgreement.number} - {formatDate(selectedHistoryAgreement.document_date)}
               </p>
             </div>
             <Button
-              className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+              className="rounded-xl gap-2 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
               onClick={() => handlePrintUsageAgreement("ba-pemakaian-history-print-root")}
             >
               <Printer className="w-4 h-4" />
               Cetak Arsip
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4  ">
             <UsageAgreementDocument
               documentId="ba-pemakaian-history-print-root"
               number={selectedHistoryAgreement.number}
@@ -534,23 +525,23 @@ export function DocumentHistoryTab({
       )}
 
       {selectedHandoverAgreement && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip BA Serah Terima</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)] ">Preview Arsip BA Serah Terima</h3>
+              <p className="text-xs text-[var(--ds-fg-muted)] ">
                 {selectedHandoverAgreement.number} - {formatDate(selectedHandoverAgreement.document_date)}
               </p>
             </div>
             <Button
-              className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+              className="rounded-xl gap-2 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
               onClick={() => handlePrintHandoverAgreement("ba-serah-terima-history-print-root")}
             >
               <Printer className="w-4 h-4" />
               Cetak Arsip
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4  ">
             <HandoverAgreementDocument
               documentId="ba-serah-terima-history-print-root"
               number={selectedHandoverAgreement.number}
@@ -573,23 +564,23 @@ export function DocumentHistoryTab({
       )}
 
       {selectedPowerOfAttorney && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip Surat Kuasa</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)] ">Preview Arsip Surat Kuasa</h3>
+              <p className="text-xs text-[var(--ds-fg-muted)] ">
                 {selectedPowerOfAttorney.number} - {formatDate(selectedPowerOfAttorney.document_date)}
               </p>
             </div>
             <Button
-              className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+              className="rounded-xl gap-2 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
               onClick={() => handlePrintPowerOfAttorney("power-of-attorney-history-print-root")}
             >
               <Printer className="w-4 h-4" />
               Cetak Arsip
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4  ">
             <PowerOfAttorneyDocument
               documentId="power-of-attorney-history-print-root"
               number={selectedPowerOfAttorney.number}
@@ -618,23 +609,23 @@ export function DocumentHistoryTab({
       )}
 
       {selectedCoveringLetter && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5  ">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Preview Arsip Surat Pengantar</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)] ">Preview Arsip Surat Pengantar</h3>
+              <p className="text-xs text-[var(--ds-fg-muted)] ">
                 {selectedCoveringLetter.number} - {formatDate(selectedCoveringLetter.document_date)}
               </p>
             </div>
             <Button
-              className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+              className="rounded-xl gap-2 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
               onClick={() => handlePrintCoveringLetter("covering-letter-history-print-root")}
             >
               <Printer className="w-4 h-4" />
               Cetak Arsip
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4  ">
             <CoveringLetterDocument
               documentId="covering-letter-history-print-root"
               number={selectedCoveringLetter.number}

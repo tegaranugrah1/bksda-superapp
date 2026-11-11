@@ -46,7 +46,7 @@ interface GmailReaderViewProps {
   onReject?: (letter: AssignmentLetter) => void;
   onEdit?: (letter: AssignmentLetter) => void;
   onDownload?: (letter: AssignmentLetter) => void;
-  onViewDoc?: (letter: AssignmentLetter) => void;
+  onViewDoc?: (letter: AssignmentLetter, trigger: HTMLButtonElement) => void;
   onDelete?: (id: string) => void;
   onRestore?: (id: string) => void;
   onForceDelete?: (id: string) => void;
@@ -103,15 +103,15 @@ export function GmailReaderView({
     employees.some((e) => Boolean(e.tanggal_mulai && e.tanggal_selesai));
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-900 overflow-hidden select-text">
+    <div className="flex flex-col h-full bg-[var(--ds-surface)] overflow-hidden select-text">
       {/* Top Action Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/40 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shrink-0">
         {/* Left: Navigation (Back & Prev/Next) */}
         <div className="flex items-center gap-1">
           {onBack && !isSplitView && (
             <button
               onClick={onBack}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-slate-200/70 dark:hover:bg-zinc-700/60 rounded-xl text-slate-700 dark:text-zinc-200 text-xs font-semibold mr-1 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 hover:bg-[var(--ds-surface-muted)] rounded-xl text-[var(--ds-fg-muted)] text-xs font-semibold mr-1 transition-colors"
               title="Kembali ke daftar surat tugas"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -119,12 +119,12 @@ export function GmailReaderView({
             </button>
           )}
 
-          <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-zinc-700 pl-1">
+          <div className="flex items-center gap-0.5 border-l border-[var(--ds-border-subtle)] pl-1">
             {onPrev && (
               <button
                 disabled={!hasPrev}
                 onClick={onPrev}
-                className="p-1.5 hover:bg-slate-200/70 dark:hover:bg-zinc-700/60 disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-slate-600 dark:text-zinc-300 transition-colors"
+                className="p-1.5 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
                 title="Surat sebelumnya"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -134,7 +134,7 @@ export function GmailReaderView({
               <button
                 disabled={!hasNext}
                 onClick={onNext}
-                className="p-1.5 hover:bg-slate-200/70 dark:hover:bg-zinc-700/60 disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-slate-600 dark:text-zinc-300 transition-colors"
+                className="p-1.5 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
                 title="Surat berikutnya"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -150,7 +150,7 @@ export function GmailReaderView({
             <button
               disabled={updatingStatus}
               onClick={() => onApprove(letter)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] disabled:opacity-50 text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold shadow-sm transition-colors"
               title={needsCompletion ? "Lengkapi Surat Tugas di Builder sebelum diterbitkan" : "Setujui & Terbitkan Surat Tugas"}
             >
               {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -163,7 +163,7 @@ export function GmailReaderView({
             <button
               disabled={updatingStatus}
               onClick={() => onReject(letter)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 disabled:opacity-50 rounded-xl text-xs font-bold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] disabled:opacity-50 rounded-xl text-xs font-bold transition-colors"
               title="Tolak Pengajuan Surat Tugas"
             >
               <XCircle className="w-3.5 h-3.5" />
@@ -175,7 +175,7 @@ export function GmailReaderView({
           {["diterbitkan", "approved", "completed", "published"].includes((letter.status || "").toLowerCase()) ? (
             <button
               onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-xl text-xs font-bold transition-colors"
               title="Buka Pratinjau Surat Tugas"
             >
               <Eye className="w-3.5 h-3.5" />
@@ -184,7 +184,7 @@ export function GmailReaderView({
           ) : onEdit ? (
             <button
               onClick={() => onEdit(letter)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl text-xs font-bold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 st-secondary rounded-xl text-xs font-bold transition-colors"
               title="Edit di Dokumen Builder"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export function GmailReaderView({
           {hasPlhInfo && onCreatePlh && (
             <button
               onClick={() => (existingPlh && onOpenExistingPlh ? onOpenExistingPlh(existingPlh) : onCreatePlh(letter))}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-xl text-xs font-bold transition-colors"
               title={existingPlh ? "Buka Draf ST PLH" : "Buat Draf ST PLH"}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -206,7 +206,7 @@ export function GmailReaderView({
 
           {/* Separator before Delete Action */}
           {(onDelete || onRestore) && (
-            <div className="h-4 w-px bg-slate-200 dark:bg-zinc-700 mx-0.5" />
+            <div className="h-4 w-px bg-[var(--ds-surface-muted)] mx-0.5" />
           )}
 
           {/* Delete / Restore Action (Destructive separated with red/rose accent) */}
@@ -214,7 +214,7 @@ export function GmailReaderView({
             onRestore && (
               <button
                 onClick={() => onRestore(letter.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] rounded-xl text-xs font-bold transition-colors"
                 title="Pulihkan dari sampah"
               >
                 <Undo2 className="w-3.5 h-3.5" />
@@ -225,7 +225,7 @@ export function GmailReaderView({
             onDelete && (
               <button
                 onClick={() => onDelete?.(letter.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-xl text-xs font-bold transition-colors"
                 title="Pindahkan ke sampah"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -236,7 +236,7 @@ export function GmailReaderView({
           {isTrashView && onForceDelete && (
             <button
               onClick={() => onForceDelete(letter.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] rounded-xl text-xs font-bold transition-colors cursor-pointer"
               title="Hapus permanen dari arsip"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -246,7 +246,7 @@ export function GmailReaderView({
           {false && onDelete && ((
               <button
                 onClick={() => onDelete?.(letter.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-xl text-xs font-bold transition-colors"
                 title="Pindahkan ke sampah"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -258,9 +258,9 @@ export function GmailReaderView({
       </div>
 
       {/* Main Document Body */}
-      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar bg-slate-50/30 dark:bg-zinc-950/40">
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar bg-[var(--ds-surface)]">
         {/* Title & Status Header Card */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-[var(--ds-surface)] p-6 rounded-2xl border border-[var(--ds-border-subtle)] shadow-sm space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -273,31 +273,31 @@ export function GmailReaderView({
                 </span>
 
                 {letter.template_type === "bmn-pemeriksaan" && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
+                  <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                     Template BMN
                   </span>
                 )}
 
                 {letter.template_type === "plh" && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-300">
+                  <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                     Template PLH
                   </span>
                 )}
 
-                <span className="text-xs text-slate-400 font-medium">
+                <span className="text-xs text-[var(--ds-fg-muted)] font-medium">
                   Dibuat {formatDateIndonesian(letter.created_at)}
                 </span>
               </div>
 
               {/* H1 Main Title: Core Activity extracted from "dalam rangka" */}
-              <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight leading-snug">
+              <h1 className="text-xl md:text-2xl font-black text-[var(--ds-fg)] tracking-tight leading-snug">
                 {mainTitle}
               </h1>
 
               {/* Cleaned Context Text (without boilerplate "Membuat laporan..." or "Segala biaya...") */}
               {cleanedContext && (
-                <div className="mt-3 p-3.5 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-800/80 text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
-                  <span className="font-bold text-slate-400 dark:text-zinc-400 text-[10px] uppercase tracking-wider block mb-1">
+                <div className="mt-3 p-3.5 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] leading-relaxed">
+                  <span className="font-bold text-[var(--ds-fg-muted)] text-xs uppercase tracking-wider block mb-1">
                     Maksud Perjalanan Dinas:
                   </span>
                   {cleanedContext}
@@ -307,27 +307,27 @@ export function GmailReaderView({
           </div>
 
           {/* Quick Meta Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-zinc-800 text-xs">
-            <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-300">
-              <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-[var(--ds-border-subtle)] text-xs">
+            <div className="flex items-center gap-2 text-[var(--ds-fg-muted)]">
+              <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
               <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Nomor Surat</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-bold uppercase">Nomor Surat</p>
                 <p className="font-mono font-bold truncate">{letter.nomor_surat || "Belum Terbit"}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-300">
-              <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+            <div className="flex items-center gap-2 text-[var(--ds-fg-muted)]">
+              <MapPin className="w-4 h-4 text-[var(--ds-status-success-fg)] shrink-0" />
               <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Tempat Tujuan</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-bold uppercase">Tempat Tujuan</p>
                 <p className="font-bold truncate">{tujuan || "-"}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-300">
-              <Calendar className="w-4 h-4 text-purple-500 shrink-0" />
+            <div className="flex items-center gap-2 text-[var(--ds-fg-muted)]">
+              <Calendar className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
               <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Tanggal Tugas</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-bold uppercase">Tanggal Tugas</p>
                 <p
                   className="font-bold truncate"
                   title={formatDateRangeIndonesian(letter.tanggal_mulai, letter.tanggal_selesai)}
@@ -337,10 +337,10 @@ export function GmailReaderView({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-600 dark:text-zinc-300">
-              <Wallet className="w-4 h-4 text-amber-500 shrink-0" />
+            <div className="flex items-center gap-2 text-[var(--ds-fg-muted)]">
+              <Wallet className="w-4 h-4 text-[var(--ds-status-warning-fg)] shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Sumber Dana</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-bold uppercase">Sumber Dana</p>
                 <p
                   className="font-bold truncate"
                   title={formatFormalSumberDana(letter.sumber_dana, letter.sumber_dana_other)}
@@ -353,10 +353,10 @@ export function GmailReaderView({
         </div>
 
         {/* Assigned Personnel Table */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm space-y-3">
+        <div className="bg-[var(--ds-surface)] p-6 rounded-2xl border border-[var(--ds-border-subtle)] shadow-sm space-y-3">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
+            <Users className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+            <h3 className="text-sm font-bold text-[var(--ds-fg)] uppercase tracking-wider">
               Personel yang Ditugaskan ({employees.length})
             </h3>
           </div>
@@ -364,7 +364,7 @@ export function GmailReaderView({
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-zinc-800 text-slate-400 font-bold">
+                <tr className="border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-bold">
                   <th className="py-2 px-3 w-8">No</th>
                   <th className="py-2 px-3">Nama Pegawai</th>
                   <th className="py-2 px-3">NIP</th>
@@ -372,19 +372,19 @@ export function GmailReaderView({
                   {hasBedaHari && <th className="py-2 px-3">Jadwal Tugas</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {employees.map((emp, idx) => (
-                  <tr key={emp.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
-                    <td className="py-2.5 px-3 font-mono text-slate-400">{idx + 1}</td>
-                    <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-zinc-100">
+                  <tr key={emp.id || idx} className="hover:bg-[var(--ds-surface-muted)]">
+                    <td className="py-2.5 px-3 font-mono text-[var(--ds-fg-muted)]">{idx + 1}</td>
+                    <td className="py-2.5 px-3 font-bold text-[var(--ds-fg)]">
                       {emp.nama_lengkap}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-zinc-400">{formatNIP(emp.nip)}</td>
-                    <td className="py-2.5 px-3 text-slate-600 dark:text-zinc-400">
+                    <td className="py-2.5 px-3 font-mono text-[var(--ds-fg-muted)]">{formatNIP(emp.nip)}</td>
+                    <td className="py-2.5 px-3 text-[var(--ds-fg-muted)]">
                       {emp.jabatan || "-"} {emp.satuan_kerja ? `(${emp.satuan_kerja})` : ""}
                     </td>
                     {hasBedaHari && (
-                      <td className="py-2.5 px-3 font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap text-xs">
+                      <td className="py-2.5 px-3 font-semibold text-[var(--ds-accent-fg)] whitespace-nowrap text-xs">
                         {emp.tanggal_mulai && emp.tanggal_selesai
                           ? formatDateRangeIndonesian(emp.tanggal_mulai, emp.tanggal_selesai)
                           : "-"}
@@ -399,27 +399,27 @@ export function GmailReaderView({
 
         {/* Card Keterangan (Tampil full-width jika ada PLH Kasubbag TU/Kasi agar leluasa dibaca) */}
         {hasPlhInfo && (
-          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm space-y-3">
+          <div className="p-6 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-sm space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] flex items-center justify-center text-[var(--ds-status-warning-fg)] shrink-0">
                 <StickyNote className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-status-warning-fg)] block">
                   Catatan & Keterangan
                 </span>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                <h4 className="text-sm font-bold text-[var(--ds-fg)] truncate mt-0.5">
                   Keterangan Surat Tugas
                 </h4>
               </div>
             </div>
 
             {letter.keterangan && letter.keterangan.trim() ? (
-              <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3.5 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium">
+              <div className="text-xs text-[var(--ds-fg-muted)] whitespace-pre-line leading-relaxed bg-[var(--ds-surface)] p-3.5 rounded-xl border border-[var(--ds-border-subtle)] font-medium">
                 {letter.keterangan}
               </div>
             ) : (
-              <div className="py-2.5 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+              <div className="py-2.5 px-3 bg-[var(--ds-surface)] rounded-xl border border-dashed border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] text-xs italic">
                 Tidak ada catatan atau keterangan tambahan
               </div>
             )}
@@ -430,23 +430,23 @@ export function GmailReaderView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* 1. Card Pelaksana Harian (PLH) ATAU Card Keterangan jika tanpa PLH */}
           {hasPlhInfo ? (
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
+            <div className="p-6 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-sm flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
                     <Users className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 block">
+                    <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-accent-fg)] block">
                       Pelaksana Harian (PLH)
                     </span>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5" title={letter.nama_plh || undefined}>
+                    <h4 className="text-sm font-bold text-[var(--ds-fg)] truncate mt-0.5" title={letter.nama_plh || undefined}>
                       {letter.nama_plh ? letter.nama_plh : "Belum Ditentukan"}
                     </h4>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+                <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                   {hasPejabatStruktural
                     ? "Kasubbag TU atau Kepala Seksi melaksanakan perjalanan dinas. Penunjukan PLH diperlukan untuk operasional harian."
                     : "Petugas yang ditunjuk sebagai pelaksana tugas harian selama dinas berlangsung."}
@@ -456,13 +456,13 @@ export function GmailReaderView({
                   <div
                     className={`p-2.5 rounded-xl border flex items-center gap-2 text-xs font-bold ${
                       letter.tanda_setuju === "sudah"
-                        ? "bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40"
-                        : "bg-amber-50/80 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/40"
+                        ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                        : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
                     }`}
                   >
                     <div
                       className={`w-2 h-2 rounded-full shrink-0 ${
-                        letter.tanda_setuju === "sudah" ? "bg-emerald-500" : "bg-amber-500"
+                        letter.tanda_setuju === "sudah" ? "bg-[var(--ds-status-success-bg)]" : "bg-[var(--ds-status-warning-bg)]"
                       }`}
                     />
                     <span className="truncate">
@@ -477,7 +477,7 @@ export function GmailReaderView({
               {onCreatePlh ? (
                 <button
                   onClick={() => (existingPlh && onOpenExistingPlh ? onOpenExistingPlh(existingPlh) : onCreatePlh(letter))}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-colors"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   <span>{existingPlh ? "Buka Draf ST PLH" : "Buat ST PLH"}</span>
@@ -487,28 +487,28 @@ export function GmailReaderView({
               )}
             </div>
           ) : (
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
+            <div className="p-6 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-sm flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] flex items-center justify-center text-[var(--ds-status-warning-fg)] shrink-0">
                     <StickyNote className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 block">
+                    <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-status-warning-fg)] block">
                       Catatan & Keterangan
                     </span>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                    <h4 className="text-sm font-bold text-[var(--ds-fg)] truncate mt-0.5">
                       Keterangan Surat Tugas
                     </h4>
                   </div>
                 </div>
 
                 {letter.keterangan && letter.keterangan.trim() ? (
-                  <div className="text-xs text-slate-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed bg-slate-50/80 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-100 dark:border-zinc-800 font-medium max-h-48 overflow-y-auto custom-scrollbar">
+                  <div className="text-xs text-[var(--ds-fg-muted)] whitespace-pre-line leading-relaxed bg-[var(--ds-surface)] p-3 rounded-xl border border-[var(--ds-border-subtle)] font-medium max-h-48 overflow-y-auto custom-scrollbar">
                     {letter.keterangan}
                   </div>
                 ) : (
-                  <div className="py-3 px-3 bg-slate-50/60 dark:bg-zinc-800/40 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 text-xs italic">
+                  <div className="py-3 px-3 bg-[var(--ds-surface)] rounded-xl border border-dashed border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] text-xs italic">
                     Tidak ada catatan atau keterangan tambahan
                   </div>
                 )}
@@ -517,23 +517,23 @@ export function GmailReaderView({
           )}
 
           {/* 2. Card Dokumen Dasar Surat */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between gap-4">
+          <div className="p-6 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-sm flex flex-col justify-between gap-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500 block">
+                  <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-fg-muted)] block">
                     Dokumen Pendukung
                   </span>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 truncate mt-0.5">
+                  <h4 className="text-sm font-bold text-[var(--ds-fg)] truncate mt-0.5">
                     Dokumen Dasar Surat
                   </h4>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                 {letter.file_surat_path
                   ? "PDF Dokumen Pendukung / Surat Permohonan Pengajuan"
                   : "Tidak ada file lampiran dokumen pendukung"}
@@ -544,18 +544,18 @@ export function GmailReaderView({
               <div className="grid grid-cols-2 gap-2">
                 {onViewDoc && (
                   <button
-                    onClick={() => onViewDoc(letter)}
-                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-100 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200/80 dark:border-zinc-700 active:scale-95"
+                    onClick={(event) => onViewDoc(letter, event.currentTarget)}
+                    className="st-secondary w-full py-2.5 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
                     title="Lihat Pratinjau Dokumen Dasar"
                   >
-                    <Eye className="w-4 h-4 text-blue-500" />
+                    <Eye className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                     <span>LIHAT DOKUMEN</span>
                   </button>
                 )}
                 {onDownload && (
                   <button
                     onClick={() => onDownload(letter)}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="w-full py-2.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     title="Unduh Berkas Dokumen Dasar"
                   >
                     <Download className="w-4 h-4" />
@@ -564,8 +564,8 @@ export function GmailReaderView({
                 )}
               </div>
             ) : (
-              <div className="py-3 bg-slate-50 dark:bg-zinc-800/60 rounded-xl border border-dashed border-slate-200 dark:border-zinc-700 text-center">
-                <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">
+              <div className="py-3 bg-[var(--ds-surface)] rounded-xl border border-dashed border-[var(--ds-border-subtle)] text-center">
+                <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                   Tidak ada lampiran dokumen
                 </span>
               </div>
@@ -573,17 +573,17 @@ export function GmailReaderView({
           </div>
 
           {/* 3. Group Action Buttons Panel (Edit / Lihat Surat, Tolak, Arsipkan) */}
-          <div className="flex flex-col justify-between gap-4 p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm">
+          <div className="flex flex-col justify-between gap-4 p-6 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-sm">
             {isTrashView ? (
               <>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500 block">
+                  <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-fg-muted)] block">
                     Manajemen Arsip
                   </span>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                  <h4 className="text-sm font-bold text-[var(--ds-fg)]">
                     Tindakan Dokumen
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                     Dokumen ini berada di arsip sampah. Anda dapat memulihkan atau menghapusnya secara permanen.
                   </p>
                 </div>
@@ -592,7 +592,7 @@ export function GmailReaderView({
                   {onRestore && (
                     <button
                       onClick={() => onRestore(letter.id)}
-                      className="h-11 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] tracking-widest uppercase shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                      className="h-11 w-full rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-black text-xs tracking-widest uppercase shadow-md flex items-center justify-center gap-2 transition-colors"
                     >
                       <Undo2 className="w-4 h-4" />
                       <span>Pulihkan Surat</span>
@@ -601,7 +601,7 @@ export function GmailReaderView({
                   {onDelete && (
                     <button
                       onClick={() => onDelete?.(letter.id)}
-                      className="h-10 w-full rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-black text-[10px] tracking-widest uppercase flex items-center justify-center gap-2 transition-all"
+                      className="h-10 w-full rounded-xl border border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-black text-xs tracking-widest uppercase flex items-center justify-center gap-2 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Hapus Permanen</span>
@@ -612,13 +612,13 @@ export function GmailReaderView({
             ) : (
               <>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500 block">
+                  <span className="text-xs font-black uppercase tracking-widest text-[var(--ds-fg-muted)] block">
                     Aksi Surat Tugas
                   </span>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                  <h4 className="text-sm font-bold text-[var(--ds-fg)]">
                     Otorisasi & Pemrosesan
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                     Kelola naskah surat dinas, persetujuan, penolakan, atau pengarsipan dokumen.
                   </p>
                 </div>
@@ -628,7 +628,7 @@ export function GmailReaderView({
                   {letter.status === "pending" ? (
                     <button
                       onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-                      className="h-12 w-full rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-all active:scale-95"
+                      className="h-12 w-full rounded-xl st-primary shadow-md flex items-center justify-center gap-2 font-black text-xs tracking-wider uppercase transition-colors"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Otorisasi ST</span>
@@ -636,7 +636,7 @@ export function GmailReaderView({
                   ) : ["diterbitkan", "approved", "completed", "published"].includes((letter.status || "").toLowerCase()) ? (
                     <button
                       onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-                      className="h-12 w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs tracking-wider shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 uppercase transition-all active:scale-95"
+                      className="h-12 w-full rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-black text-xs tracking-wider shadow-md flex items-center justify-center gap-2 uppercase transition-colors"
                     >
                       <Eye className="w-4 h-4" />
                       <span>LIHAT SURAT TUGAS</span>
@@ -644,7 +644,7 @@ export function GmailReaderView({
                   ) : (
                     <button
                       onClick={() => router.push(`/kepegawaian/surat-tugas/builder/${letter.id}`)}
-                      className="h-12 w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs tracking-wider shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 uppercase transition-all active:scale-95"
+                      className="h-12 w-full rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-black text-xs tracking-wider shadow-md flex items-center justify-center gap-2 uppercase transition-colors"
                     >
                       <Pencil className="w-4 h-4" />
                       <span>EDIT SURAT TUGAS</span>
@@ -656,14 +656,14 @@ export function GmailReaderView({
                     <button
                       onClick={() => onReject && onReject(letter)}
                       disabled={updatingStatus || ["rejected", "approved", "completed"].includes(letter.status)}
-                      className="h-10 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-40 disabled:hover:bg-transparent font-black text-[10px] tracking-wider uppercase flex items-center justify-center gap-1 transition-all"
+                      className="h-10 rounded-xl border border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] disabled:opacity-40 disabled:hover:bg-transparent font-black text-xs tracking-wider uppercase flex items-center justify-center gap-1 transition-colors"
                     >
                       <XCircle className="w-3.5 h-3.5" />
                       <span>Tolak</span>
                     </button>
                     <button
                       onClick={() => onDelete && onDelete(letter.id)}
-                      className="h-10 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 font-black text-[10px] tracking-wider uppercase flex items-center justify-center gap-1 transition-all"
+                      className="h-10 rounded-xl border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-black text-xs tracking-wider uppercase flex items-center justify-center gap-1 transition-colors"
                       title="Pindahkan dokumen ke sampah"
                     >
                       <Trash2 className="w-3.5 h-3.5 shrink-0" />

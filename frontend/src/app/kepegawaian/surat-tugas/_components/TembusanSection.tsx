@@ -18,7 +18,7 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
           <button
             type="button"
             onClick={() => onChange([...items, ""])}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
           >
             <Plus className="w-3 h-3" /> Tambah
           </button>
@@ -27,13 +27,13 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
     >
       <div className="space-y-2">
         {items.length === 0 && (
-          <p className="text-[11px] text-slate-400 italic">
+          <p className="text-xs text-[var(--ds-fg-muted)] italic">
             Belum ada tembusan.
           </p>
         )}
         {items.map((item, idx) => (
           <div key={idx} className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-slate-400 w-4">{idx + 1}.</span>
+            <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-4">{idx + 1}.</span>
             <input
               value={item ?? ""}
               disabled={disabled}
@@ -43,14 +43,14 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
                 onChange(updated);
               }}
               placeholder="Nama penerima tembusan..."
-              className="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-zinc-800/70 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs outline-none focus:border-blue-500 text-slate-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60 disabled:cursor-not-allowed"
             />
             {!disabled && (
               <button
                 type="button"
                 onClick={() => onChange(items.filter((_, i) => i !== idx))}
                 title="Hapus tembusan"
-                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-1.5 rounded-lg transition-colors cursor-pointer"
+                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] p-1.5 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

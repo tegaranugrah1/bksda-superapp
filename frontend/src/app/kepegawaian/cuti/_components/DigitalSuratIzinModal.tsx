@@ -1,5 +1,7 @@
 "use client";
 
+import { KepegawaianDialog } from "../../_components/KepegawaianDialog";
+
 import React from "react";
 import Link from "next/link";
 import { Printer, X, RefreshCw, ExternalLink, FileBadge } from "lucide-react";
@@ -31,6 +33,23 @@ export function DigitalSuratIzinModal({
   const payload = item.surat_keluar?.document_payload;
   const nomorSurat = item.nomor_pengajuan || item.surat_keluar?.no_surat || "SI..../K.18/TU/PEG.11.01/B/...";
 
+  // Resolve tahun cuti text if Cuti Tahunan has N-1 / N-2
+  let resolvedTahunCutiText = payload?.tahunCutiText || null;
+  if (!resolvedTahunCutiText && item.jenis_cuti?.toLowerCase().includes("tahunan") && item.tanggal_mulai) {
+    const curYear = new Date(item.tanggal_mulai).getFullYear();
+    const s1 = (item.sisa_n1 || 0) > 0;
+    const s2 = (item.sisa_n2 || 0) > 0;
+    const years: string[] = [];
+    if (s2) years.push(`tahun ${curYear - 2}`);
+    if (s1) years.push(`tahun ${curYear - 1}`);
+    if (years.length > 0) {
+      years.push(`tahun ${curYear}`);
+      resolvedTahunCutiText = years.length === 2
+        ? `untuk ${years[0]} dan ${years[1]}`
+        : `untuk ${years.slice(0, -1).join(", ")} dan ${years[years.length - 1]}`;
+    }
+  }
+
   const docData: SuratDinasData = {
     templateType: "surat_izin_cuti",
     nomor: nomorSurat,
@@ -40,6 +59,7 @@ export function DigitalSuratIzinModal({
     terbilangHari: payload?.terbilangHari || `${item.jumlah_hari}`,
     tanggalMulai: payload?.tanggalMulai || item.tanggal_mulai,
     tanggalSelesai: payload?.tanggalSelesai || item.tanggal_selesai,
+    tahunCutiText: resolvedTahunCutiText,
     pegawai: {
       nama: item.employee?.nama_lengkap || "-",
       nip: item.employee?.nip || "-",
@@ -55,28 +75,23 @@ export function DigitalSuratIzinModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
+    <KepegawaianDialog title="Pratinjau surat izin cuti" onClose={onClose} busy={false} className="sm:max-w-5xl">
+      <div className="bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
         {/* Header Toolbar */}
-        <div className="p-3.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+        <div className="p-3.5 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ds-border-subtle)] shrink-0">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center">
               <FileBadge className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-[var(--ds-fg)] flex flex-wrap items-center gap-2">
                 Surat Izin Cuti Resmi (TTE)
-                <span className="font-mono text-[10px] text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800 whitespace-pre">
+                <span className="font-mono text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full border border-[var(--ds-status-success-border)] whitespace-pre">
                   {nomorSurat}
                 </span>
               </h3>
-              <p className="text-[11px] text-slate-400">
-                Pemohon: <span className="text-slate-200 font-semibold">{item.employee?.nama_lengkap}</span> • {item.jenis_cuti}
+              <p className="text-xs text-[var(--ds-fg-muted)]">
+                Pemohon: <span className="text-[var(--ds-fg-muted)] font-semibold">{item.employee?.nama_lengkap}</span> • {item.jenis_cuti}
               </p>
             </div>
           </div>
@@ -90,10 +105,10 @@ export function DigitalSuratIzinModal({
                   onClose();
                   onRegenerate(item);
                 }}
-                className="h-8 px-2.5 text-xs font-semibold text-amber-300 border-amber-800/80 bg-amber-950/40 hover:bg-amber-900/60 rounded-xl gap-1.5"
+                className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:bg-[var(--ds-status-warning-bg)] rounded-xl gap-1.5"
                 title="Generate Ulang / Ubah Nomor Surat Izin"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+                <RefreshCw className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
                 <span className="hidden sm:inline">Generate Ulang</span>
               </Button>
             )}
@@ -101,7 +116,7 @@ export function DigitalSuratIzinModal({
             <Button
               size="sm"
               onClick={handlePrintSuratDinas}
-              className="h-8 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl gap-1.5 shadow-sm"
+              className="h-8 px-3 text-xs font-semibold bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] rounded-xl gap-1.5 shadow-sm"
               title="Cetak Naskah Dinas Resmi (PDF/Print)"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -113,11 +128,11 @@ export function DigitalSuratIzinModal({
                 asChild
                 size="sm"
                 variant="ghost"
-                className="h-8 px-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl gap-1"
+                className="h-8 px-2 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl gap-1"
                 title="Buka di Modul Persuratan Tata Naskah Dinas"
               >
                 <Link href={`/surat/keluar/dinas?template=surat_izin_cuti&id=${item.surat_keluar_id}`} target="_blank">
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                  <ExternalLink className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                   <span className="hidden md:inline">Modul Persuratan</span>
                 </Link>
               </Button>
@@ -127,7 +142,7 @@ export function DigitalSuratIzinModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+              className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl" aria-label="Tutup"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -135,12 +150,14 @@ export function DigitalSuratIzinModal({
         </div>
 
         {/* Document Viewer Body */}
-        <div className="p-4 sm:p-8 bg-slate-200/70 dark:bg-slate-950 overflow-y-auto flex-1 flex justify-center">
-          <div className="bg-white shadow-xl rounded-md my-auto">
+        <div role="region" aria-label="Dokumen surat izin cuti, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="p-4 sm:p-8 bg-[var(--ds-surface-muted)] overflow-auto min-h-0 flex-1 focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]">
+          <div className="flex w-max min-w-full justify-center">
+          <div className="shrink-0 bg-white text-black shadow-xl rounded-md">
             <SuratDinasDocument data={docData} />
+          </div>
           </div>
         </div>
       </div>
-    </div>
+    </KepegawaianDialog>
   );
 }

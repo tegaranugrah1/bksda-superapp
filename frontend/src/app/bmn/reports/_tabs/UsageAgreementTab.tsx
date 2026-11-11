@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,10 +31,12 @@ import {
 } from "../_lib/types";
 
 export interface UsageAgreementTabProps {
+  formState: ReturnType<typeof useUsageAgreementFormState>;
   employees: EmployeeOption[];
   loadingEmployees?: boolean;
   canGenerate?: boolean;
   canWrite?: boolean;
+  canDelete?: boolean;
   editingDocument?: EditingDocumentState | null;
   onSetEditingDocument?: (doc: EditingDocumentState) => void;
   onClearEditing?: () => void;
@@ -43,19 +44,8 @@ export interface UsageAgreementTabProps {
   onRefetchHistory?: () => Promise<void> | void;
 }
 
-export function UsageAgreementTab({
-  employees,
-  loadingEmployees = false,
-  canGenerate = true,
-  canWrite = false,
-  editingDocument,
-  onSetEditingDocument,
-  onClearEditing,
-  onViewHistory,
-  onRefetchHistory,
-}: UsageAgreementTabProps) {
-  const confirm = useConfirm();
-
+export function useUsageAgreementFormState(editingDocument?: EditingDocumentState | null) {
+  const editingAppliedRef = useRef<EditingDocumentState | null | undefined>(undefined);
   const initialItem =
     editingDocument && editingDocument.type === "usage"
       ? (editingDocument.item as UsageAgreementHistory | undefined)
@@ -91,6 +81,54 @@ export function UsageAgreementTab({
       "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
   );
 
+  return {
+    editingAppliedRef, selectedEmployeeId,
+    setSelectedEmployeeId, assets,
+    setAssets, selectedAssetIds,
+    setSelectedAssetIds, history,
+    setHistory, loadingUsageData,
+    setLoadingUsageData, savingUsageAgreement,
+    setSavingUsageAgreement, baSequence,
+    setBaSequence, kap,
+    setKap, documentDate,
+    setDocumentDate, firstPartyEmployeeId,
+    setFirstPartyEmployeeId, firstParty,
+    setFirstParty, notes,
+    setNotes,
+  };
+}
+
+export function UsageAgreementTab({
+  formState,
+  employees,
+  loadingEmployees = false,
+  canGenerate = true,
+  canWrite = false,
+  canDelete = false,
+  editingDocument,
+  onSetEditingDocument,
+  onClearEditing,
+  onViewHistory,
+  onRefetchHistory,
+}: UsageAgreementTabProps) {
+  const confirm = useConfirm();
+
+  const {
+    editingAppliedRef, selectedEmployeeId,
+    setSelectedEmployeeId, assets,
+    setAssets, selectedAssetIds,
+    setSelectedAssetIds, history,
+    setHistory, loadingUsageData,
+    setLoadingUsageData, savingUsageAgreement,
+    setSavingUsageAgreement, baSequence,
+    setBaSequence, kap,
+    setKap, documentDate,
+    setDocumentDate, firstPartyEmployeeId,
+    setFirstPartyEmployeeId, firstParty,
+    setFirstParty, notes,
+    setNotes,
+  } = formState;
+
   const selectedEmployee = useMemo(
     () => employees.find((employee) => String(employee.id) === selectedEmployeeId) || null,
     [employees, selectedEmployeeId]
@@ -118,7 +156,7 @@ export function UsageAgreementTab({
     [history]
   );
 
-  const loadUsageData = useCallback(async (employeeId: string) => {
+  const loadUsageData = useCallback(async (employeeId: string, agreement?: UsageAgreementHistory) => {
     if (!employeeId) {
       setAssets([]);
       setSelectedAssetIds([]);
@@ -133,8 +171,9 @@ export function UsageAgreementTab({
         api.get("/bmn/usage-agreements", { params: { employee_id: employeeId, per_page: 20 } }),
       ]);
       const nextAssets = assetsResponse.data.data || [];
-      setAssets(nextAssets);
-      setSelectedAssetIds(nextAssets.map((asset: UsageAgreementAsset) => asset.id));
+      const snapshotAssets = agreement?.assets_snapshot || [];
+      setAssets(Array.from(new Map<string, UsageAgreementAsset>([...nextAssets, ...snapshotAssets].map((asset: UsageAgreementAsset) => [asset.id, asset])).values()));
+      setSelectedAssetIds(agreement ? agreement.asset_ids || snapshotAssets.map((asset) => asset.id) : nextAssets.map((asset: UsageAgreementAsset) => asset.id));
       const nextHistory = historyResponse.data.data || [];
       setHistory(nextHistory);
     } catch {
@@ -153,7 +192,7 @@ export function UsageAgreementTab({
     const empId = item.employee?.id || item.second_party_snapshot?.id;
     if (empId) {
       setSelectedEmployeeId(String(empId));
-      loadUsageData(String(empId));
+      loadUsageData(String(empId), item);
     }
 
     setBaSequence(isDuplicate ? "" : extractDocumentSequence(item.number));
@@ -193,47 +232,28 @@ export function UsageAgreementTab({
     );
   };
 
-  useQuery({
-    queryKey: ["bmn-usage-agreement-detail", editingDocument?.id],
-    queryFn: async () => {
-      if (!editingDocument?.id || editingDocument.type !== "usage") return null;
-      try {
-        const response = await api.get(`/bmn/usage-agreements/${editingDocument.id}`);
-        const data = response.data?.data;
-        if (data) {
-          applyDataToForm(data, Boolean(editingDocument.isDuplicate));
-        }
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    enabled: Boolean(editingDocument?.id && editingDocument.type === "usage"),
-  });
+  // History resources include full snapshots; synchronize edit mode once, without refetch overwriting a draft.
 
   useEffect(() => {
+    if (editingAppliedRef.current === editingDocument) return;
+    editingAppliedRef.current = editingDocument;
     if (editingDocument && editingDocument.type === "usage" && editingDocument.item) {
       applyDataToForm(editingDocument.item as UsageAgreementHistory, Boolean(editingDocument.isDuplicate));
     } else if (!editingDocument) {
       resetForm();
     }
-  }, [editingDocument, loadUsageData]);
+  }, [editingDocument, loadUsageData, editingAppliedRef]);
 
-  useEffect(() => {
-    if (!firstPartyEmployeeId) {
-      return;
-    }
-
-    const employee = employees.find((item) => String(item.id) === firstPartyEmployeeId);
-    if (!employee) return;
-
-    setFirstParty({
+  const handleFirstPartyChange = (employeeId: string) => {
+    setFirstPartyEmployeeId(employeeId);
+    const employee = employees.find((item) => String(item.id) === employeeId);
+    setFirstParty(employee ? {
       name: employee.nama_lengkap,
       nip: formatNip(employee.nip),
       rank: employee.pangkat_golongan || "-",
       position: employee.jabatan || "-",
-    });
-  }, [employees, firstPartyEmployeeId]);
+    } : DEFAULT_FIRST_PARTY);
+  };
 
   const toggleAsset = (assetId: string) => {
     setSelectedAssetIds((current) =>
@@ -395,10 +415,10 @@ export function UsageAgreementTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
         <div>
-          <h2 className="text-base font-bold text-zinc-900 dark:text-white">Generate BA Pemakaian BMN</h2>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate BA Pemakaian BMN</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)]">
             {selectedEmployee ? fullBaNumber : "Pilih pegawai untuk mulai membuat dokumen."}
           </p>
         </div>
@@ -419,7 +439,7 @@ export function UsageAgreementTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2 bg-emerald-600 hover:bg-emerald-500"
+            className="rounded-xl gap-2"
             onClick={() => handlePrintUsageAgreement()}
             disabled={!selectedEmployee}
           >
@@ -429,19 +449,20 @@ export function UsageAgreementTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">1. Pilih Pegawai</h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Aset dan riwayat BA akan dimuat otomatis dari pegawai terpilih.</p>
+            <h3 className="text-sm font-bold text-[var(--ds-fg)]">1. Pilih Pegawai</h3>
+            <p className="text-xs text-[var(--ds-fg-muted)]">Aset dan riwayat BA akan dimuat otomatis dari pegawai terpilih.</p>
           </div>
-          {loadingUsageData && <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />}
+          {loadingUsageData && <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />}
         </div>
         <select
-          value={selectedEmployeeId}
+          aria-label="Pegawai pemakai BMN"
+                  value={selectedEmployeeId}
           onChange={(event) => handleEmployeeChange(event.target.value)}
           disabled={loadingEmployees}
-          className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm outline-none"
         >
           <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
           {employees.map((employee) => (
@@ -453,12 +474,12 @@ export function UsageAgreementTab({
       </div>
 
       {!selectedEmployee ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10">
+        <div className="rounded-2xl border border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-10 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
             <Archive className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Belum ada dokumen yang dibuat</h3>
-          <p className="mx-auto mt-1 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum ada dokumen yang dibuat</h3>
+          <p className="mx-auto mt-1 max-w-md text-xs text-[var(--ds-fg-muted)]">
             Pilih pegawai terlebih dahulu. Setelah itu kamu bisa memilih aset, melengkapi nomor BA, lalu preview dan cetak dokumen.
           </p>
         </div>
@@ -472,6 +493,7 @@ export function UsageAgreementTab({
             emptyMessage="Belum ada BA Pemakaian yang pernah digenerate untuk pegawai ini."
             loading={loadingUsageData}
             canWrite={canWrite}
+            canDelete={canDelete}
             onEdit={editUsageAgreement}
             onView={(item) => {
               if (onViewHistory) onViewHistory(item);
@@ -481,11 +503,11 @@ export function UsageAgreementTab({
             onDelete={deleteHistoryAgreement}
           />
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">2. Pilih Aset Dipakai</h3>
-                <p className="text-xs text-zinc-500">{selectedAssets.length} dari {assets.length} aset dipilih</p>
+                <h3 className="text-sm font-bold text-[var(--ds-fg)]">2. Pilih Aset Dipakai</h3>
+                <p className="text-xs text-[var(--ds-fg-muted)]">{selectedAssets.length} dari {assets.length} aset dipilih</p>
               </div>
             </div>
             <AssetSelectionTable
@@ -500,64 +522,65 @@ export function UsageAgreementTab({
                 },
                 {
                   header: "Kode",
-                  className: "text-zinc-500",
-                  render: (asset) => <span className="text-zinc-500">{asset.kode_barang}</span>,
+                  className: "text-[var(--ds-fg-muted)]",
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.kode_barang}</span>,
                 },
                 {
                   header: "NUP",
-                  className: "text-zinc-500",
-                  render: (asset) => <span className="text-zinc-500">{asset.nup}</span>,
+                  className: "text-[var(--ds-fg-muted)]",
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.nup}</span>,
                 },
                 {
                   header: "Kondisi",
-                  className: "text-zinc-500",
-                  render: (asset) => <span className="text-zinc-500">{asset.kondisi || "-"}</span>,
+                  className: "text-[var(--ds-fg-muted)]",
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.kondisi || "-"}</span>,
                 },
               ]}
             />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-5">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="mb-4 text-sm font-bold text-zinc-900 dark:text-white">3. Detail BA</h3>
+            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+              <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">3. Detail BA</h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
-                    <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Nomor BA</span>
+                    <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Nomor BA</span>
                     <input
                       value={baSequence}
                       onChange={(event) => setBaSequence(event.target.value)}
                       placeholder="contoh: 015"
-                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                     />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">KAP</span>
+                    <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">KAP</span>
                     <input
                       value={kap}
                       onChange={(event) => setKap(event.target.value)}
                       placeholder="KAP.03.02"
-                      className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                      className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                     />
                   </label>
                 </div>
 
                 <label className="block">
-                  <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">Tanggal BA</span>
+                  <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Tanggal BA</span>
                   <input
                     type="date"
                     value={documentDate}
                     onChange={(event) => setDocumentDate(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                   />
                 </label>
 
-                <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800 space-y-2">
-                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Pihak Pertama (Kepala Balai)</p>
+                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 space-y-2">
+                  <p className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Pihak Pertama (Kepala Balai)</p>
                   <select
-                    value={firstPartyEmployeeId}
-                    onChange={(event) => setFirstPartyEmployeeId(event.target.value)}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    aria-label="Pilih pihak pertama"
+                  value={firstPartyEmployeeId}
+                    onChange={(event) => handleFirstPartyChange(event.target.value)}
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   >
                     <option value="">Default Kepala Balai - M. Ari Wibawanto</option>
                     {employees.map((employee) => (
@@ -567,45 +590,50 @@ export function UsageAgreementTab({
                     ))}
                   </select>
                   <input
-                    value={firstParty.name}
+                    aria-label="Nama pihak pertama"
+                  value={firstParty.name}
                     onChange={(event) => setFirstParty({ ...firstParty, name: event.target.value })}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
-                    value={firstParty.nip || ""}
+                    aria-label="NIP pihak pertama"
+                  value={firstParty.nip || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, nip: event.target.value })}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
-                    value={firstParty.rank || ""}
+                    aria-label="Pangkat pihak pertama"
+                  value={firstParty.rank || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, rank: event.target.value })}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <textarea
-                    value={firstParty.position || ""}
+                    aria-label="Jabatan pihak pertama"
+                  value={firstParty.position || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, position: event.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                 </div>
 
                 <textarea
+                  aria-label="Catatan BA Pemakaian"
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                 />
               </div>
             </div>
 
-            <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">4. Preview Dokumen</h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{fullBaNumber}</p>
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">4. Preview Dokumen</h3>
+                  <p className="text-xs text-[var(--ds-fg-muted)]">{fullBaNumber}</p>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-100 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4">
                 <UsageAgreementDocument
                   number={fullBaNumber}
                   documentDate={documentDate}
