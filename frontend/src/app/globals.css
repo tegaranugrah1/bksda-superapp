@@ -136,18 +136,13 @@
  * Design System Module Tokens (docs/DESIGN_SYSTEM_COLORS.md)
  * Scoped tokens per data-module attribute
  */
-[data-module="bmn"] {
+[data-module="bmn"],
+[data-module="surat-tugas"] {
   --ds-canvas: #f8fafc;
   --ds-surface: #ffffff;
   --ds-fg: #0f172a;
   --ds-fg-muted: #475569;
-  --ds-accent-solid: #047857;
-  --ds-accent-hover: #065f46;
-  --ds-accent-active: #064e3b;
   --ds-accent-on-solid: #ffffff;
-  --ds-accent-fg: #047857;
-  --ds-accent-soft: #ecfdf5;
-  --ds-accent-soft-border: #a7f3d0;
   --ds-surface-raised: #ffffff;
   --ds-surface-muted: #f1f5f9;
   --ds-border-subtle: #e2e8f0;
@@ -180,19 +175,33 @@
   --ds-status-neutral-border: #e2e8f0;
 }
 
+[data-module="bmn"] {
+  --ds-accent-solid: #047857;
+  --ds-accent-hover: #065f46;
+  --ds-accent-active: #064e3b;
+  --ds-accent-fg: #047857;
+  --ds-accent-soft: #ecfdf5;
+  --ds-accent-soft-border: #a7f3d0;
+}
+
+[data-module="surat-tugas"] {
+  --ds-accent-solid: #0369a1;
+  --ds-accent-hover: #075985;
+  --ds-accent-active: #0c4a6e;
+  --ds-accent-fg: #0369a1;
+  --ds-accent-soft: #f0f9ff;
+  --ds-accent-soft-border: #bae6fd;
+}
+
 .dark[data-module="bmn"],
-.dark [data-module="bmn"] {
+.dark [data-module="bmn"],
+.dark[data-module="surat-tugas"],
+.dark [data-module="surat-tugas"] {
   --ds-canvas: #09090b;
   --ds-surface: #18181b;
   --ds-fg: #f8fafc;
   --ds-fg-muted: #a1a1aa;
-  --ds-accent-solid: #34d399;
-  --ds-accent-hover: #6ee7b7;
-  --ds-accent-active: #a7f3d0;
   --ds-accent-on-solid: #0f172a;
-  --ds-accent-fg: #6ee7b7;
-  --ds-accent-soft: #022c22;
-  --ds-accent-soft-border: #065f46;
   --ds-surface-raised: #27272a;
   --ds-surface-muted: #27272a;
   --ds-border-subtle: #3f3f46;
@@ -223,6 +232,26 @@
   --ds-status-neutral-bg: #27272a;
   --ds-status-neutral-fg: #d4d4d8;
   --ds-status-neutral-border: #52525b;
+}
+
+.dark[data-module="bmn"],
+.dark [data-module="bmn"] {
+  --ds-accent-solid: #34d399;
+  --ds-accent-hover: #6ee7b7;
+  --ds-accent-active: #a7f3d0;
+  --ds-accent-fg: #6ee7b7;
+  --ds-accent-soft: #022c22;
+  --ds-accent-soft-border: #065f46;
+}
+
+.dark[data-module="surat-tugas"],
+.dark [data-module="surat-tugas"] {
+  --ds-accent-solid: #38bdf8;
+  --ds-accent-hover: #7dd3fc;
+  --ds-accent-active: #bae6fd;
+  --ds-accent-fg: #7dd3fc;
+  --ds-accent-soft: #082f49;
+  --ds-accent-soft-border: #075985;
 }
 
 /* Marquee animation for photo gallery */

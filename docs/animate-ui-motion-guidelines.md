@@ -270,3 +270,10 @@ Kandidat Rusak Berat memakai entrance halaman280ms sekali; checkbox, search, per
 - Sidebar mempertahankan spring navigasi existing450/35, bukan pola tab isi. Drawer/collapse150ms; fade keluar route existing120ms terpisah dari entrance halaman. Reduced motion: CSS durasi0 dan Framer duration0; nav/menu aktif memakai aria-current/expanded dan fokus kembali setelah Escape mobile. Efek Akses Cepat dashboard tetap seperti semula.
 
 Fixture/source memverifikasi fallback reduced motion; emulasi browser tetap dikerjakan pengguna sesuai preferensi. Rincian pengujian aktual ada di [audit sidebar](bmn-ui-ux-modernization/remaining-sidebar-audit.md).
+
+## Surat Tugas — 11 November 2026
+
+- Terapkan feedback hover, pressed dan fokus 150 ms pada kontrol Surat Tugas. Kontrol aktif memakai pointer dan kontrol disabled memakai cursor default. Baris dan kartu memakai perubahan warna tanpa lift atau stagger. Entrance 280 ms hanya untuk pembukaan halaman.
+- Gunakan pola **animasi di dalam tab** untuk panel status inbox. Isi keluar dan masuk dengan opacity dan perpindahan vertikal 8 px selama 160 ms per fase. Panel keluar bersifat inert. Garis bawah 2 px memakai spring 420/32, dengan ID per instance. Pertahankan fokus saat navigasi dengan panah/Home/End. Wizard pengajuan memakai durasi dan perpindahan yang sama, dengan draft berada di induk.
+- Dialog, drawer dan dropdown memakai 150 ms. Tutup dengan Escape dan kembalikan fokus ke kontrol pemicu. Dialog A4 native Portal memakai fade 150 ms. Kertas tetap stabil dan dapat digulir di dalam pratinjau pada mobile.
+- Scope CSS `.st-ui` mematikan animasi dan transisi saat reduced motion. Cabang Framer memakai durasi 0. Hasil browser dan cakupan fixture tersedia di [audit visual Surat Tugas](testing/surat-tugas-visual-audit.md).

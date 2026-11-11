@@ -2047,3 +2047,12 @@
 
 - Pengguna meminta seluruh perbaikan delapan menu sidebar disimpan dalam satu commit lokal bersama laporan audit warna, hover, pointer, fokus, dan animasi, pedoman BMN, fixture, dan progress. Cakupan dan bukti pengujian tercatat pada bagian 81–87 dan `docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md`.
 - Tidak push atau deploy. `frontend/AGENTS.md` yang dihasilkan Next dev tidak ikut commit.
+
+
+## 89. Audit Visual Surat Tugas (11 November 2026)
+
+- Pengajuan publik, inbox dan pembaca, Builder, tiga panel pengaturan Surat Tugas, Surat Tugas Saya di Portal, pratinjau A4 dan verifikasi publik memakai fondasi warna BMN dengan aksen Sky Surat Tugas. Kontrol aktif memakai pointer, border input halus, fokus keyboard terlihat, dan status memakai token semantik. Kertas A4 tetap putih dengan tinta hitam.
+- Feedback kontrol, dialog, menu dan drawer 150 ms. Entrance halaman 280 ms. Wizard dan isi tab inbox bergerak 8 px dengan opacity 160 ms per fase. Indikator tab 2 px memakai spring 420/32. Reduced motion tersedia di CSS dan Framer.
+- Inbox menonaktifkan interaksi panel yang sedang keluar, membersihkan pembaca dan seleksi saat ganti tab, dan membedakan kegagalan kueri dari daftar kosong. Checkbox dan aksi baris dapat diakses di layar sempit. Draft pengajuan bertahan saat kembali ke langkah sebelumnya. Dialog lampiran dan pratinjau Portal mengembalikan fokus ke pemicu.
+- Next typegen, TypeScript, ESLint file yang berubah, diff check dan lima fixture BMN lulus. Chrome lokal menguji light/dark, 390 px dan desktop, navigasi keyboard, lampiran, dialog, draft, layout A4, serta verifikasi sah/gagal. Pratinjau Portal memakai data contoh karena akun uji belum memiliki surat. Fixture sementara sudah dihapus. Pengujian perubahan data, unduh, dan cetak aktual belum dijalankan. Emulasi reduced motion browser tetap diuji pengguna.
+- Laporan [audit visual Surat Tugas](docs/testing/surat-tugas-visual-audit.md), pedoman warna dan animasi, serta perubahan kode disimpan dalam satu commit lokal.

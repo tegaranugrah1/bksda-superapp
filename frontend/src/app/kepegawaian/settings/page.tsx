@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Settings, FileText, Banknote, Calendar, Briefcase, Coins } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { StTemplatesTab } from "./st-templates/_components/StTemplatesTab";
 import { ExpenseTemplatesTab } from "./st-templates/_components/ExpenseTemplatesTab";
@@ -12,6 +12,7 @@ import { TaskTypesTab } from "./st-templates/_components/TaskTypesTab";
 import { MealAllowanceHolidaysTab } from "./_components/MealAllowanceHolidaysTab";
 
 function KepegawaianSettingsContent() {
+  const reducedMotion = useReducedMotion();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
 
@@ -69,7 +70,8 @@ function KepegawaianSettingsContent() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id as any)}
+              aria-pressed={isActive}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={cn(
                 "relative px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer select-none",
                 isActive
@@ -81,7 +83,7 @@ function KepegawaianSettingsContent() {
                 <motion.span
                   layoutId="activeSettingsTabIndicator"
                   className="absolute inset-0 bg-blue-600 rounded-xl shadow-xs"
-                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                 />
               )}
               <Icon className="w-3.5 h-3.5 relative z-10" />
@@ -95,14 +97,14 @@ function KepegawaianSettingsContent() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.16, ease: "easeOut" }}
+          exit={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -8 }}
+          transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
         >
-          {activeTab === "st_templates" && <StTemplatesTab />}
-          {activeTab === "task_types" && <TaskTypesTab />}
-          {activeTab === "expense_templates" && <ExpenseTemplatesTab />}
+          {activeTab === "st_templates" && <div data-module="surat-tugas" className="st-ui"><StTemplatesTab /></div>}
+          {activeTab === "task_types" && <div data-module="surat-tugas" className="st-ui"><TaskTypesTab /></div>}
+          {activeTab === "expense_templates" && <div data-module="surat-tugas" className="st-ui"><ExpenseTemplatesTab /></div>}
           {activeTab === "leave_types" && <LeaveTypesTab />}
           {activeTab === "uang_makan" && <MealAllowanceHolidaysTab />}
         </motion.div>

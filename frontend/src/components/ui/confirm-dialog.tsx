@@ -68,6 +68,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     setOpen(false);
   };
 
+  const tokenized = options?.contentModule === "bmn" || options?.contentModule === "surat-tugas";
   const variant = options?.variant || "danger";
 
   const iconColorMap = {
@@ -88,10 +89,10 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     <ConfirmDialogContext.Provider value={{ confirm }}>
       {children}
       <Dialog open={open} onOpenChange={(v) => { if (!v) handleCancel(); }}>
-        <DialogContent onCloseAutoFocus={(event) => { if (options?.contentModule === "bmn") { event.preventDefault(); openerRef.current?.focus(); } }} data-module={options?.contentModule} className={`sm:max-w-[420px] rounded-2xl border border-white/40 bg-white/95 backdrop-blur-2xl shadow-2xl shadow-gray-300/40 p-0 gap-0 overflow-hidden dark:bg-slate-900/95 dark:border-slate-800 dark:shadow-black/50 ${options?.contentClassName || ""}`}>
+        <DialogContent onCloseAutoFocus={(event) => { if (tokenized) { event.preventDefault(); openerRef.current?.focus(); } }} data-module={options?.contentModule} className={`sm:max-w-[420px] rounded-2xl border border-white/40 bg-white/95 backdrop-blur-2xl shadow-2xl shadow-gray-300/40 p-0 gap-0 overflow-hidden dark:bg-slate-900/95 dark:border-slate-800 dark:shadow-black/50 ${options?.contentClassName || ""}`}>
           <div className="px-6 pt-6 pb-4">
             <DialogHeader className="flex flex-col items-center text-center gap-3">
-              <div data-status={options?.contentModule === "bmn" ? variant === "danger" ? "danger" : variant === "warning" ? "warning" : "info" : undefined} className={`h-14 w-14 rounded-2xl flex items-center justify-center ring-1 ${iconColorMap[variant]}`}>
+              <div data-status={tokenized ? variant === "danger" ? "danger" : variant === "warning" ? "warning" : "info" : undefined} className={`h-14 w-14 rounded-2xl flex items-center justify-center ring-1 ${iconColorMap[variant]}`}>
                 {options?.icon ? (
                   options.icon
                 ) : variant === "danger" ? (
@@ -120,7 +121,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               {options?.cancelText || "Batal"}
             </Button>
             <Button
-              variant={options?.contentModule === "bmn" && variant === "danger" ? "destructive" : "default"}
+              variant={tokenized && variant === "danger" ? "destructive" : "default"}
               onClick={handleConfirm}
               className={`flex-1 h-11 rounded-xl font-bold text-sm ${buttonColorMap[variant]}`}
               disabled={loading}

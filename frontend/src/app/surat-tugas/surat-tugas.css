@@ -1,0 +1,134 @@
+/* Surat Tugas screens and their portaled controls use the same light/dark tokens. */
+.st-ui { color: var(--ds-fg); color-scheme: light; }
+.dark .st-ui { color-scheme: dark; }
+
+.st-ui :is(button, a[href], select, label[for], input[type="file"], input[type="checkbox"], input[type="radio"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not([data-disabled]) {
+  cursor: pointer;
+}
+.st-ui :is(button, a, input, select, textarea, [role="menuitem"]):is(:disabled, [aria-disabled="true"], [data-disabled]) {
+  cursor: default;
+}
+.st-ui :is(button, a[href], input, select, textarea, [role="menuitem"], .st-upload, .st-letter-row, label:has(input[type="radio"])) {
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+}
+.st-ui :is(button, a[href], input, select, textarea, [role="menuitem"]):focus-visible,
+.st-ui label:has(input:is([type="radio"], [type="checkbox"]):focus-visible),
+.st-ui input[type="file"]:focus-visible + .st-upload {
+  outline: 2px solid var(--ds-accent-fg);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.st-ui :is(button, a)[data-variant] { min-height: 36px; }
+.st-ui :is(.st-letter-row button, .st-status-tabs button) { min-height: 36px; }
+.st-ui .st-row-actions button { min-width: 36px; }
+.st-ui .st-status-tabs { scroll-padding-inline: 6px; }
+.st-ui :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--ds-accent-solid); }
+.st-ui :is(input:not([type="checkbox"], [type="radio"], [type="file"]), textarea, select) {
+  border-color: var(--ds-border-subtle);
+  background-color: var(--ds-surface);
+  color: var(--ds-fg);
+  caret-color: var(--ds-accent-fg);
+  min-height: 36px;
+}
+.st-ui :is(input, textarea)::placeholder { color: var(--ds-fg-muted); opacity: 1; }
+.st-ui :is(input, select, textarea):is(:disabled, [readonly]) {
+  background-color: var(--ds-disabled-bg);
+  color: var(--ds-fg-muted);
+}
+.st-ui :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary) {
+  background: var(--ds-accent-solid);
+  color: var(--ds-accent-on-solid);
+}
+.st-ui :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary):hover { background: var(--ds-accent-hover); }
+.st-ui :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary):active { background: var(--ds-accent-active); }
+.st-ui :where(:is(button, a)[data-variant="destructive"], .st-danger) {
+  background: var(--ds-danger-solid);
+  color: var(--ds-danger-on-solid);
+}
+.st-ui :where(:is(button, a)[data-variant="destructive"], .st-danger):hover { background: var(--ds-danger-hover); }
+.st-ui :where(:is(button, a)[data-variant="destructive"], .st-danger):active { background: var(--ds-danger-active); }
+.st-ui :is(button, a)[data-variant="destructive"]:focus-visible, .st-ui .st-danger:focus-visible { outline-color: var(--ds-danger-focus); }
+.st-ui :where(:is(button, a)[data-variant="outline"], .st-secondary) {
+  background: var(--ds-secondary-bg);
+  color: var(--ds-secondary-fg);
+  border-color: transparent;
+}
+.st-ui :where(:is(button, a)[data-variant="outline"], .st-secondary):hover { background: var(--ds-secondary-hover); }
+.st-ui :where(:is(button, a)[data-variant="outline"], .st-secondary):active { background: var(--ds-secondary-active); }
+.st-ui :where(:is(button, a)[data-variant="ghost"]):hover,
+.st-ui [role="menuitem"]:is(:hover, [data-highlighted]):not([data-disabled]) { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }
+.st-ui button:disabled {
+  background: var(--ds-disabled-bg);
+  color: var(--ds-disabled-fg);
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.st-ui input[type="file"]:not(:disabled) + .st-upload:is(:hover, :focus-within),
+.st-ui input[type="file"]:focus-visible + .st-upload {
+  background: var(--ds-accent-soft);
+  border-color: var(--ds-accent-fg);
+}
+.st-ui input[type="file"]:disabled + .st-upload { cursor: default; background: var(--ds-disabled-bg); }
+.st-ui[data-slot="dialog-content"] { background: var(--ds-surface); color: var(--ds-fg); border-color: var(--ds-border-subtle); backdrop-filter: none; }
+.st-ui:is([data-slot="dialog-content"], [data-slot="dropdown-menu-content"])[data-state="open"] { animation: st-fade-in 150ms ease-out both; }
+.st-ui:is([data-slot="dialog-content"], [data-slot="dropdown-menu-content"])[data-state="closed"] { animation: st-fade-out 150ms ease-in both; }
+.st-ui [data-slot="dialog-title"] { color: var(--ds-fg); }
+.st-ui [data-slot="dialog-description"] { color: var(--ds-fg-muted); }
+.st-ui [data-slot="dialog-footer"] { background: var(--ds-surface-muted); }
+.st-ui [data-status="danger"] { color: var(--ds-status-danger-fg); background: var(--ds-status-danger-bg); --tw-ring-color: var(--ds-status-danger-border); }
+.st-ui [data-status="warning"] { color: var(--ds-status-warning-fg); background: var(--ds-status-warning-bg); --tw-ring-color: var(--ds-status-warning-border); }
+.st-ui [data-status="info"] { color: var(--ds-status-info-fg); background: var(--ds-status-info-bg); --tw-ring-color: var(--ds-status-info-border); }
+
+.st-inbox-list { container-type: inline-size; }
+@container (max-width: 1120px) {
+  .st-letter-row { flex-wrap: wrap; }
+  .st-letter-row > .st-row-meta { display: none; }
+  .st-row-person { flex: 1; min-width: 0; }
+  .st-row-subject { flex: 0 0 100%; order: 2; }
+  .st-row-actions { flex: 0 0 100%; order: 3; justify-content: space-between; }
+}
+
+.st-page-enter { animation: st-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.st-panel-enter { animation: st-enter 150ms ease-out both; }
+@keyframes st-enter {
+  from { opacity: 0.85; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-ui, .st-ui * { animation: none !important; transition-duration: 0ms !important; }
+}
+@media print {
+  .st-ui.st-portal-preview[data-module] {
+    --ds-fg: #000;
+    --ds-fg-muted: #334155;
+    --ds-surface: #fff;
+    --ds-surface-muted: #f8fafc;
+    --ds-border-subtle: #cbd5e1;
+    --ds-status-success-fg: #047857;
+    --ds-accent-fg: #0369a1;
+    animation: none;
+    color-scheme: light;
+  }
+}
+
+.st-ui .scan-viewer { background: var(--ds-surface); border-color: var(--ds-border-subtle); }
+.st-ui .scan-viewer-header { background: var(--ds-surface); border-color: var(--ds-border-subtle); color: var(--ds-fg); }
+.st-ui .scan-viewer-icon { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }
+.st-ui .scan-viewer-header p, .st-ui .scan-viewer-body p { color: var(--ds-fg-muted); }
+.st-ui .scan-viewer-header :is(button, [data-slot="dialog-title"]) { min-width: 0; }
+.st-ui .scan-viewer-body { background: var(--ds-surface-muted); }
+
+.st-ui .st-portal-row { transition: background-color 150ms ease-out; }
+.st-ui .st-portal-row:focus-within { background: var(--ds-surface-muted); }
+.st-ui .st-portal-row button { min-width: 36px; min-height: 36px; }
+.st-status-tabs { scrollbar-width: thin; }
+.st-native-preview[open] { animation: st-fade-in 150ms ease-out both; }
+@keyframes st-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes st-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .st-native-preview[open] { animation: none; }
+}
+@media print {
+  .st-native-preview[open] { animation: none; }
+}

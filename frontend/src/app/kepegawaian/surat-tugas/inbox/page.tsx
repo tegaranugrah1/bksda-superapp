@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ import type {
 } from "./_lib/types";
 
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useIsPresent, useReducedMotion } from "framer-motion";
 import { GmailInboxHeader } from "./_components/GmailInboxHeader";
 import { GmailStatusTabs } from "./_components/GmailStatusTabs";
 import { GmailToolbar } from "./_components/GmailToolbar";
@@ -28,8 +28,26 @@ import { GmailRowItem } from "./_components/GmailRowItem";
 import { GmailReaderView } from "./_components/GmailReaderView";
 import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 
+function InboxTabContent({ children, reducedMotion }: { children: React.ReactNode; reducedMotion: boolean | null }) {
+  const isPresent = useIsPresent();
+
+  return (
+    <motion.div
+      inert={!isPresent}
+      initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -8 }}
+      transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
+      className="flex-1 flex flex-col min-h-0"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function SuratTugasInbox() {
   const router = useRouter();
+  const reducedMotion = useReducedMotion();
   const { canWrite } = useRole();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -39,6 +57,7 @@ export default function SuratTugasInbox() {
   const [splitView, setSplitView] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState<AssignmentLetter | null>(null);
   const [previewModalLetter, setPreviewModalLetter] = useState<AssignmentLetter | null>(null);
+  const previewTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   // Pagination & Search States
   const [page, setPage] = useState(1);
@@ -55,6 +74,7 @@ export default function SuratTugasInbox() {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSelectedIds([]);
     }, 300);
     return () => clearTimeout(handler);
   }, [search]);
@@ -64,9 +84,7 @@ export default function SuratTugasInbox() {
     setActiveTab(newTab);
     setPage(1);
     setSelectedIds([]);
-    if (!splitView) {
-      setSelectedLetter(null);
-    }
+    setSelectedLetter(null);
   };
 
   const handleFiltersChange = (newFilters: AdvancedFilters) => {
@@ -80,6 +98,7 @@ export default function SuratTugasInbox() {
     setSearch("");
     setDebouncedSearch("");
     setPage(1);
+    setSelectedIds([]);
   };
 
   const isTrashView = activeTab === "trashed";
@@ -99,6 +118,9 @@ export default function SuratTugasInbox() {
   const {
     data: listResponse,
     isLoading: loading,
+    isFetching,
+    isPlaceholderData,
+    isError,
     refetch: fetchLetters,
   } = useQuery<{ data: AssignmentLetter[]; meta: PaginationMeta }>({
     queryKey: [
@@ -141,10 +163,10 @@ export default function SuratTugasInbox() {
   });
 
   const letters: AssignmentLetter[] = useMemo(
-    () => listResponse?.data || [],
-    [listResponse?.data]
+    () => isPlaceholderData ? [] : listResponse?.data || [],
+    [isPlaceholderData, listResponse?.data]
   );
-  const meta: PaginationMeta | undefined = listResponse?.meta;
+  const meta: PaginationMeta | undefined = isPlaceholderData ? undefined : listResponse?.meta;
 
   // Real-time inbox update via WebSocket
   useAdminInboxLive(
@@ -231,6 +253,8 @@ export default function SuratTugasInbox() {
       ? `Nomor ${letter.nomor_surat}`
       : (letter.maksud_tujuan || "dokumen ini");
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Terbitkan Surat Tugas?",
       description: `Surat tugas (${ident}) akan diterbitkan dan disetujui secara resmi. Pastikan isi dan nomor surat sudah benar.`,
       confirmText: "Terbitkan Sekarang",
@@ -278,6 +302,8 @@ export default function SuratTugasInbox() {
       ? `Nomor ${letter.nomor_surat}`
       : (letter.maksud_tujuan || "dokumen ini");
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Tolak Pengajuan Surat Tugas?",
       description: `Pengajuan surat tugas (${ident}) akan ditolak dan dikembalikan untuk diperbaiki oleh pembuat surat.`,
       confirmText: "Tolak Pengajuan",
@@ -296,6 +322,8 @@ export default function SuratTugasInbox() {
       ? `Nomor ${target.nomor_surat}`
       : (target?.maksud_tujuan || "Surat tugas ini");
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Pindahkan ke Sampah?",
       description: `${ident} akan dipindahkan ke folder sampah. Anda masih dapat memulihkannya kapan saja dari tab Sampah.`,
       confirmText: "Pindahkan ke Sampah",
@@ -329,6 +357,8 @@ export default function SuratTugasInbox() {
       ? `Nomor ${target.nomor_surat}`
       : (target?.maksud_tujuan || "Surat tugas ini");
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Pulihkan Surat Tugas?",
       description: `${ident} akan dipulihkan dan dikembalikan ke daftar surat tugas aktif.`,
       confirmText: "Pulihkan Dokumen",
@@ -361,6 +391,8 @@ export default function SuratTugasInbox() {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: `Pindahkan ${count} Dokumen ke Sampah?`,
       description: `${count} surat tugas terpilih akan dipindahkan ke folder sampah. Dokumen masih dapat dipulihkan sewaktu-waktu.`,
       confirmText: `Pindahkan ${count} Dokumen`,
@@ -393,6 +425,8 @@ export default function SuratTugasInbox() {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: `Pulihkan ${count} Dokumen?`,
       description: `${count} surat tugas terpilih akan dipulihkan dan dikembalikan ke daftar surat aktif.`,
       confirmText: `Pulihkan ${count} Dokumen`,
@@ -427,6 +461,8 @@ export default function SuratTugasInbox() {
       ? `Nomor ${target.nomor_surat}`
       : (target?.maksud_tujuan || "Surat tugas ini");
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: "Hapus Permanen Surat Tugas?",
       description: `Tindakan ini tidak dapat dibatalkan. Berkas arsip dan data ${ident} akan dimusnahkan secara permanen dari server database.`,
       confirmText: "Hapus Permanen",
@@ -459,6 +495,8 @@ export default function SuratTugasInbox() {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
     const ok = await confirm({
+      contentModule: "surat-tugas",
+      contentClassName: "st-ui",
       title: `Hapus Permanen ${count} Dokumen?`,
       description: `Tindakan ini permanen dan tidak dapat dibatalkan. Seluruh berkas arsip dan data ${count} dokumen terpilih akan dimusnahkan dari database.`,
       confirmText: `Hapus Permanen ${count} Dokumen`,
@@ -488,11 +526,12 @@ export default function SuratTugasInbox() {
     }
   };
 
-  const handleViewDoc = (letter: AssignmentLetter) => {
+  const handleViewDoc = (letter: AssignmentLetter, trigger: HTMLButtonElement) => {
     if (!letter.file_surat_path) {
       toast.error("Surat tugas ini tidak memiliki lampiran dokumen dasar.");
       return;
     }
+    previewTriggerRef.current = trigger;
     setPreviewModalLetter(letter);
   };
 
@@ -619,6 +658,7 @@ export default function SuratTugasInbox() {
 
   const hasActiveFilters = Object.values(filters).some((v) => Boolean(v));
 
+  const closePreview = useCallback(() => setPreviewModalLetter(null), []);
   const previewModalElement = (
     <ScanViewerModal
       isOpen={Boolean(previewModalLetter)}
@@ -629,7 +669,9 @@ export default function SuratTugasInbox() {
           ? `Dokumen_Dasar_${previewModalLetter.nomor_surat ? previewModalLetter.nomor_surat.replace(/\//g, "_") : previewModalLetter.id}.pdf`
           : null
       }
-      onClose={() => setPreviewModalLetter(null)}
+      onClose={closePreview}
+      contentModule="surat-tugas"
+      returnFocusRef={previewTriggerRef}
     />
   );
 
@@ -637,13 +679,13 @@ export default function SuratTugasInbox() {
   if (!splitView && selectedLetter) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 6 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
-        className="p-6 space-y-6"
+                transition={{ duration: reducedMotion ? 0 : 0.28, ease: "easeOut" }}
+        data-module="surat-tugas"
+        className="st-ui p-4 md:p-6 space-y-6"
       >
-        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden h-[calc(100vh-140px)] min-h-175 flex flex-col">
+        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm overflow-hidden min-h-96 lg:h-[max(28rem,calc(100dvh-140px))] flex flex-col">
           <GmailReaderView
             letter={selectedLetter}
             onBack={() => setSelectedLetter(null)}
@@ -673,19 +715,19 @@ export default function SuratTugasInbox() {
   }
 
   return (
-    <div className="p-5 md:p-7 space-y-5">
+    <div data-module="surat-tugas" className="st-ui st-page-enter p-4 md:p-7 space-y-5">
       {/* Header Top Section: Title & Compose Button (Matching /kepegawaian/cuti) */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
               <Inbox className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <h1 className="text-xl font-bold text-[var(--ds-fg)]">
               Inbox Surat Tugas Pegawai
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Daftar pengajuan & arsip surat tugas pegawai (Otorisasi, Cetak, Buat PLH, dan Kelola Arsip).
           </p>
         </div>
@@ -693,7 +735,7 @@ export default function SuratTugasInbox() {
         {/* Compose Button ala Gmail "Tulis" */}
         <button
           onClick={() => router.push("/surat-tugas")}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all shrink-0"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-md transition-colors shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Surat Tugas</span>
@@ -712,7 +754,7 @@ export default function SuratTugasInbox() {
       />
 
       {/* Main Gmail Box Container */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-160 h-[calc(100vh-240px)]">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-sm flex flex-col min-h-96 lg:h-[max(28rem,calc(100dvh-240px))]">
         {/* Horizontal Status Tabs ala Gmail */}
         <GmailStatusTabs
           activeTab={activeTab}
@@ -723,17 +765,18 @@ export default function SuratTugasInbox() {
         {/* Gmail Toolbar: Checkbox master, Refresh, Bulk actions, Pagination */}
         <GmailToolbar
           meta={meta}
-          loading={loading}
+          loading={isFetching}
           onRefresh={() => {
             fetchLetters();
             fetchCounts();
           }}
           page={page}
           perPage={perPage}
-          onPageChange={setPage}
+          onPageChange={(nextPage) => { setPage(nextPage); setSelectedIds([]); }}
           onPerPageChange={(newPerPage) => {
             setPerPage(newPerPage);
             setPage(1);
+            setSelectedIds([]);
           }}
           selectedCount={selectedIds.length}
           totalOnPage={letters.length}
@@ -754,33 +797,37 @@ export default function SuratTugasInbox() {
         />
 
         {/* Content Area: Full Table vs Split Pane */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex min-h-0 flex-col lg:flex-row overflow-hidden">
           {/* Table / List View with Motion Glide Transition */}
           <div
-            className={`flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar ${
-              splitView ? "max-w-105 lg:max-w-120 border-r border-slate-200 dark:border-zinc-800" : ""
+            role="tabpanel"
+            id="st-inbox-panel"
+            aria-labelledby={`st-status-${activeTab}`}
+            aria-busy={isFetching}
+            className={`st-inbox-list flex-1 min-w-0 flex flex-col min-h-0 overflow-y-auto custom-scrollbar ${
+              splitView ? "lg:max-w-120 lg:border-r border-[var(--ds-border-subtle)]" : ""
             }`}
           >
             <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.16, ease: "easeOut" }}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                {loading ? (
-                  <div className="divide-y divide-slate-100 dark:divide-zinc-800/60 animate-pulse p-2">
+              <InboxTabContent key={activeTab} reducedMotion={reducedMotion}>
+                {loading || isPlaceholderData ? (
+                  <div className="divide-y divide-[var(--ds-border-subtle)] animate-pulse p-2">
                     {[...Array(10)].map((_, i) => (
-                      <div key={i} className="h-11 bg-slate-50 dark:bg-zinc-800/40 rounded-lg my-1" />
+                      <div key={i} className="h-11 bg-[var(--ds-surface)] rounded-lg my-1" />
                     ))}
                   </div>
+                ) : isError ? (
+                  <div role="alert" className="p-6 text-center">
+                    <p className="text-sm text-[var(--ds-status-danger-fg)]">Gagal memuat daftar surat tugas.</p>
+                    <button type="button" onClick={() => fetchLetters()} className="st-secondary mt-3 px-4 rounded-lg text-xs font-semibold">
+                      Coba lagi
+                    </button>
+                  </div>
                 ) : letters.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                  <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-[var(--ds-fg-muted)]">
                     <Inbox className="w-12 h-12 stroke-[1.2] opacity-20 mb-3" />
-                    <p className="font-bold text-sm text-slate-600 dark:text-zinc-300">Tidak ada surat tugas</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="font-bold text-sm text-[var(--ds-fg-muted)]">Tidak ada surat tugas</p>
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                       {hasActiveFilters || debouncedSearch
                         ? "Coba ubah kata kunci atau bersihkan filter penelusuran Anda."
                         : "Belum ada dokumen yang sesuai dengan kategori ini."}
@@ -788,14 +835,14 @@ export default function SuratTugasInbox() {
                     {(hasActiveFilters || debouncedSearch) && (
                       <button
                         onClick={handleResetFilters}
-                        className="mt-4 px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-zinc-300"
+                        className="st-secondary mt-4 px-4 py-1.5 rounded-xl text-xs font-bold"
                       >
                         Reset Filter
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                  <div className="divide-y divide-[var(--ds-border-subtle)]">
                     {letters.map((letter) => (
                       <GmailRowItem
                         key={letter.id}
@@ -815,13 +862,13 @@ export default function SuratTugasInbox() {
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </InboxTabContent>
             </AnimatePresence>
           </div>
 
           {/* Right Pane (Only in Split-Pane Mode) */}
           {splitView && (
-            <div className="flex-1 min-w-0 flex flex-col min-h-0 bg-white dark:bg-zinc-900">
+            <div className="flex-1 min-w-0 flex flex-col min-h-0 bg-[var(--ds-surface)]">
               {selectedLetter ? (
                 <GmailReaderView
                   letter={selectedLetter}
@@ -845,12 +892,12 @@ export default function SuratTugasInbox() {
                   isSplitView={true}
                 />
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-[var(--ds-fg-muted)]">
                   <Inbox className="w-12 h-12 stroke-[1.2] opacity-20 mb-3" />
-                  <p className="font-bold text-sm text-slate-600 dark:text-zinc-300">
+                  <p className="font-bold text-sm text-[var(--ds-fg-muted)]">
                     Pilih surat tugas untuk membaca
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                     Klik pada salah satu baris di panel sebelah kiri.
                   </p>
                 </div>

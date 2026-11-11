@@ -28,9 +28,9 @@ export default function STCreatePremiumPage() {
 
   if (!isPlhFromInbox) {
     return (
-      <div className="h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-950 gap-2">
-        <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-        <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+      <div data-module="surat-tugas" className="st-ui h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center bg-[var(--ds-surface)] gap-2">
+        <Loader2 className="w-6 h-6 text-[var(--ds-accent-fg)] animate-spin" />
+        <p className="text-xs font-semibold text-[var(--ds-fg-muted)]">
           Mengalihkan ke Form Pengajuan Surat Tugas...
         </p>
       </div>

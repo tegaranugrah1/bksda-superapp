@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogTitle } from "@/components/ui/dialog";
+import { SuratTugasDialog } from "@/app/surat-tugas/_components/SuratTugasDialog";
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Briefcase,
@@ -224,16 +226,16 @@ export function TaskTypesTab() {
   return (
     <div className="space-y-4">
       {/* Banner Header Identik dengan LeaveTypesTab */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-[var(--ds-fg)] rounded-2xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-xs text-blue-100 text-[11px] font-semibold tracking-wide">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] text-xs font-semibold tracking-wide">
             <Briefcase className="w-3.5 h-3.5" />
             <span>Master Klasifikasi Penugasan</span>
           </div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight">
             Klasifikasi Jenis Surat Tugas
           </h2>
-          <p className="text-xs md:text-sm text-blue-100/90 leading-relaxed font-normal">
+          <p className="text-xs md:text-sm text-[var(--ds-accent-fg)] leading-relaxed font-normal">
             Kelola kategori jenis penugasan resmi, mode input lokasi (Luar Wilayah, Dalam Kawasan, Tempat Saja), aturan durasi hari, dan format baku diktum tugas.
           </p>
         </div>
@@ -242,7 +244,7 @@ export function TaskTypesTab() {
           <button
             type="button"
             onClick={openCreateModal}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs shadow-md transition-all shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] font-bold text-xs shadow-md transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Jenis Tugas</span>
@@ -251,27 +253,27 @@ export function TaskTypesTab() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-3 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari jenis tugas, kode, atau keterangan..."
-            className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-900 text-slate-900 dark:text-white placeholder:text-slate-400 transition-colors font-medium"
+            className="w-full pl-9 pr-3.5 py-2 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] focus:bg-[var(--ds-accent-fg)] text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] transition-colors font-medium"
           />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <div className="inline-flex p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl text-xs font-semibold">
+          <div className="inline-flex p-1 bg-[var(--ds-surface-muted)] rounded-xl text-xs font-semibold">
             <button
               type="button"
               onClick={() => setFilterStatus("all")}
               className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 filterStatus === "all"
-                  ? "bg-white dark:bg-zinc-900 text-blue-600 shadow-2xs font-bold"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900"
+                  ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-2xs font-bold"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
               }`}
             >
               Semua ({items.length})
@@ -281,8 +283,8 @@ export function TaskTypesTab() {
               onClick={() => setFilterStatus("active")}
               className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 filterStatus === "active"
-                  ? "bg-white dark:bg-zinc-900 text-blue-600 shadow-2xs font-bold"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900"
+                  ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-2xs font-bold"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
               }`}
             >
               Aktif ({activeCount})
@@ -292,8 +294,8 @@ export function TaskTypesTab() {
               onClick={() => setFilterStatus("inactive")}
               className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 filterStatus === "inactive"
-                  ? "bg-white dark:bg-zinc-900 text-blue-600 shadow-2xs font-bold"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900"
+                  ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-2xs font-bold"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
               }`}
             >
               Nonaktif ({items.length - activeCount})
@@ -303,10 +305,10 @@ export function TaskTypesTab() {
       </div>
 
       {/* Enterprise Data Table */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800 text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+            <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">No</th>
                 <th className="py-3 px-4">Nama Jenis Tugas</th>
@@ -317,22 +319,22 @@ export function TaskTypesTab() {
                 <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
+                  <td colSpan={7} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[var(--ds-accent-fg)]" />
                     <span>Memuat master jenis tugas...</span>
                   </td>
                 </tr>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <AlertCircle className="w-8 h-8 text-slate-300 dark:text-zinc-600 mx-auto mb-2" />
-                    <p className="font-semibold text-slate-600 dark:text-zinc-300">
+                  <td colSpan={7} className="py-12 text-center text-[var(--ds-fg-muted)]">
+                    <AlertCircle className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
+                    <p className="font-semibold text-[var(--ds-fg-muted)]">
                       Tidak ada jenis tugas ditemukan
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       {search ? "Coba kata kunci pencarian lain." : "Belum ada master jenis tugas yang tersimpan."}
                     </p>
                   </td>
@@ -341,21 +343,21 @@ export function TaskTypesTab() {
                 filteredItems.map((item, idx) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors"
+                    className="hover:bg-[var(--ds-surface-muted)] transition-colors"
                   >
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-400">
+                    <td className="py-3.5 px-4 text-center font-bold text-[var(--ds-fg-muted)]">
                       {item.urutan || idx + 1}
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-slate-900 dark:text-white leading-tight">
+                      <div className="font-bold text-[var(--ds-fg)] leading-tight">
                         {item.nama}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">
+                        <span className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                           {item.kode}
                         </span>
                         {item.keterangan && (
-                          <span className="text-[11px] text-slate-400 truncate max-w-xs">
+                          <span className="text-xs text-[var(--ds-fg-muted)] truncate max-w-xs">
                             • {item.keterangan}
                           </span>
                         )}
@@ -363,17 +365,17 @@ export function TaskTypesTab() {
                     </td>
                     <td className="py-3.5 px-4">
                       {item.mode_lokasi === "dalam_kawasan" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]">
                           <MapPin className="w-3 h-3" />
                           Dalam Kawasan / Wilayah
                         </span>
                       ) : item.mode_lokasi === "luar_wilayah" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                           <MapPin className="w-3 h-3" />
                           Luar Wilayah (Dari - Ke)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                           <FileText className="w-3 h-3" />
                           Tempat Saja / Internal
                         </span>
@@ -381,12 +383,12 @@ export function TaskTypesTab() {
                     </td>
                     <td className="py-3.5 px-4">
                       {item.aturan_durasi === "wajib_1_hari" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                           <Calendar className="w-3 h-3" />
                           Wajib 1 Hari
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                           <Calendar className="w-3 h-3" />
                           Fleksibel (1 s/d N Hari)
                         </span>
@@ -394,12 +396,12 @@ export function TaskTypesTab() {
                     </td>
                     <td className="py-3.5 px-4">
                       {item.default_sertakan_laporan ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-status-success-fg)]">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Laporan Wajib (Paling Akhir)
                         </span>
                       ) : (
-                        <span className="text-[11px] font-medium text-slate-400">
+                        <span className="text-xs font-medium text-[var(--ds-fg-muted)]">
                           Opsional
                         </span>
                       )}
@@ -411,8 +413,8 @@ export function TaskTypesTab() {
                         onClick={() => handleToggleActive(item)}
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
                           item.is_active
-                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 hover:bg-emerald-100"
-                            : "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 hover:bg-slate-200"
+                            ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)]"
+                            : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]"
                         }`}
                       >
                         {item.is_active ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
@@ -426,7 +428,7 @@ export function TaskTypesTab() {
                             <button
                               type="button"
                               onClick={() => openEditModal(item)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                               title="Edit Jenis Tugas"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -434,7 +436,7 @@ export function TaskTypesTab() {
                             <button
                               type="button"
                               onClick={() => setDeleteTarget(item)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] transition-colors cursor-pointer"
                               title="Hapus Jenis Tugas"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -453,18 +455,17 @@ export function TaskTypesTab() {
 
       {/* Modal Tambah / Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-zinc-800 space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+        <SuratTugasDialog onClose={() => setIsModalOpen(false)} busy={isSubmitting} className="sm:max-w-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center font-bold">
                   <Briefcase className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
                     {editingItem ? "Edit Jenis Tugas" : "Tambah Jenis Tugas Baru"}
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
+                  </DialogTitle>
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Konfigurasi nama, pola diktum, dan mode input lokasi
                   </p>
                 </div>
@@ -472,7 +473,9 @@ export function TaskTypesTab() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center cursor-pointer"
+                disabled={isSubmitting}
+                aria-label="Tutup formulir jenis tugas"
+                className="w-8 h-8 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -480,8 +483,8 @@ export function TaskTypesTab() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                  Nama Jenis Tugas <span className="text-red-500">*</span>
+                <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
+                  Nama Jenis Tugas <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <input
                   type="text"
@@ -489,13 +492,13 @@ export function TaskTypesTab() {
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder="Contoh: Perjalanan Dinas Dalam Kawasan / Wilayah"
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-slate-900 dark:text-white font-medium"
+                  className="w-full px-3.5 py-2.5 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] focus:bg-[var(--ds-accent-fg)] text-[var(--ds-fg)] font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Kode Unik / Slug
                   </label>
                   <input
@@ -503,15 +506,15 @@ export function TaskTypesTab() {
                     value={kode}
                     onChange={(e) => setKode(e.target.value)}
                     placeholder="Contoh: dalam_kawasan (opsional)"
-                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-slate-900 dark:text-white font-mono"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] focus:bg-[var(--ds-accent-fg)] text-[var(--ds-fg)] font-mono"
                   />
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Otomatis dibuat dari nama jika dikosongkan.
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Urutan Tampilan
                   </label>
                   <input
@@ -519,14 +522,14 @@ export function TaskTypesTab() {
                     min={1}
                     value={urutan}
                     onChange={(e) => setUrutan(Number(e.target.value) || 1)}
-                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-slate-900 dark:text-white font-medium"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] focus:bg-[var(--ds-accent-fg)] text-[var(--ds-fg)] font-medium"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                  Mode Input Lokasi <span className="text-red-500">*</span>
+                <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
+                  Mode Input Lokasi <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
@@ -534,12 +537,12 @@ export function TaskTypesTab() {
                     onClick={() => handleModeLokasiChange("luar_wilayah")}
                     className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                       modeLokasi === "luar_wilayah"
-                        ? "border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 ring-1 ring-blue-500/20"
-                        : "border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] ring-1 ring-[var(--ds-accent-soft-border)]"
+                        : "border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                     }`}
                   >
                     <div className="font-bold text-xs">Luar Wilayah</div>
-                    <div className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Rute Dari (Asal) ke (Tujuan)
                     </div>
                   </button>
@@ -549,12 +552,12 @@ export function TaskTypesTab() {
                     onClick={() => handleModeLokasiChange("dalam_kawasan")}
                     className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                       modeLokasi === "dalam_kawasan"
-                        ? "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 ring-1 ring-emerald-500/20"
-                        : "border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
+                        ? "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] ring-1 ring-[var(--ds-status-success-border)]"
+                        : "border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                     }`}
                   >
                     <div className="font-bold text-xs">Dalam Kawasan</div>
-                    <div className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Wilayah Kab/Kota &amp; Kawasan
                     </div>
                   </button>
@@ -564,12 +567,12 @@ export function TaskTypesTab() {
                     onClick={() => handleModeLokasiChange("tempat_saja")}
                     className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                       modeLokasi === "tempat_saja"
-                        ? "border-purple-500 bg-purple-50/70 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 ring-1 ring-purple-500/20"
-                        : "border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] ring-1 ring-[var(--ds-accent-soft-border)]"
+                        : "border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                     }`}
                   >
                     <div className="font-bold text-xs">Tempat Saja</div>
-                    <div className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Pada (Tempat) di (Kota)
                     </div>
                   </button>
@@ -578,13 +581,13 @@ export function TaskTypesTab() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Aturan Durasi Tanggal
                   </label>
                   <select
                     value={aturanDurasi}
                     onChange={(e) => setAturanDurasi(e.target.value as "fleksibel" | "wajib_1_hari")}
-                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none font-semibold text-slate-800 dark:text-zinc-200"
+                    className="w-full px-3.5 py-2.5 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none font-semibold text-[var(--ds-fg)]"
                   >
                     <option value="fleksibel">Fleksibel (Bisa 1 hari atau multi-hari)</option>
                     <option value="wajib_1_hari">Wajib 1 Hari (Kunci tanggal mulai = selesai)</option>
@@ -592,26 +595,26 @@ export function TaskTypesTab() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                  <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Klausul Laporan Default
                   </label>
-                  <label className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 cursor-pointer">
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={defaultSertakanLaporan}
                       onChange={(e) => setDefaultSertakanLaporan(e.target.checked)}
-                      className="rounded text-blue-600 focus:ring-blue-500"
+                      className="rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                     />
-                    <span className="text-xs font-medium text-slate-700 dark:text-zinc-300">
+                    <span className="text-xs font-medium text-[var(--ds-fg-muted)]">
                       Wajib buat laporan tertulis
                     </span>
                   </label>
                 </div>
               </div>
 
-              <div className="space-y-2 p-3.5 rounded-xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/15">
+              <div className="space-y-2 p-3.5 rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                  <label className="text-xs font-bold text-[var(--ds-fg)]">
                     Pola Format Diktum (Kalimat Untuk — Butir 1)
                   </label>
                   <button
@@ -622,17 +625,17 @@ export function TaskTypesTab() {
                         toggleItalicInTextarea(contohFormatRef.current, contohFormat, setContohFormat);
                       }
                     }}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 font-serif text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-0.5 font-serif text-xs font-semibold text-[var(--ds-fg-muted)] shadow-2xs hover:bg-[var(--ds-surface-muted)] cursor-pointer"
                     title="Blok teks lalu klik ini atau tekan Ctrl+I untuk memiringkan (*kata*)"
                   >
-                    <Italic className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    <Italic className="h-3 w-3 text-[var(--ds-accent-fg)]" />
                     <span className="italic font-bold">Miringkan (*I*)</span>
                   </button>
                 </div>
 
                 {/* Preset Pola Cepat */}
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">
+                  <span className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Pola Cepat:
                   </span>
                   {[
@@ -667,7 +670,7 @@ export function TaskTypesTab() {
                         setModeLokasi(preset.mode);
                         setContohFormat(preset.pattern);
                       }}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:border-blue-400 hover:text-blue-600 cursor-pointer"
+                      className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)] cursor-pointer"
                     >
                       + {preset.label}
                     </button>
@@ -688,12 +691,12 @@ export function TaskTypesTab() {
                     }
                   }}
                   placeholder="Contoh: Melaksanakan Perjalanan Dinas dari {asal} ke {tujuan} untuk {untuk} dalam rangka {kegiatan} di {tempat}"
-                  className="w-full px-3.5 py-2 text-xs bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 text-slate-900 dark:text-white font-mono resize-none"
+                  className="w-full px-3.5 py-2 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] font-mono resize-none"
                 />
 
                 {/* Tombol Sisipkan Placeholder */}
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400">
+                  <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                     Sisipkan Placeholder:
                   </span>
                   {[
@@ -713,7 +716,7 @@ export function TaskTypesTab() {
                           prev ? `${prev}${prev.endsWith(" ") ? "" : " "}${chip.tag}` : chip.tag
                         )
                       }
-                      className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white dark:bg-zinc-800 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 cursor-pointer"
+                      className="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer"
                       title={chip.desc}
                     >
                       + {chip.tag}
@@ -722,10 +725,10 @@ export function TaskTypesTab() {
                 </div>
 
                 {/* Info Koneksi Otomatis ke /surat-tugas & Builder */}
-                <div className="text-[10px] text-slate-600 dark:text-zinc-400 space-y-1 pt-1 border-t border-blue-200/60 dark:border-blue-900/40 leading-relaxed">
+                <div className="text-xs text-[var(--ds-fg-muted)] space-y-1 pt-1 border-t border-[var(--ds-accent-soft-border)] leading-relaxed">
                   <p>
                     • <b>Otomatis Terkoneksi ke Form Publik (<code>/surat-tugas</code>) &amp; Builder:</b> Jika pola mengandung{" "}
-                    <code className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border font-mono text-blue-600">{"{untuk}"}</code>, sistem otomatis memunculkan kolom input{" "}
+                    <code className="px-1 py-0.5 rounded bg-[var(--ds-surface)] border font-mono text-[var(--ds-accent-fg)]">{"{untuk}"}</code>, sistem otomatis memunculkan kolom input{" "}
                     <b>&quot;Untuk (Jenis Kegiatan / Tugas)&quot;</b> sebelum <i>dalam rangka</i>.
                   </p>
                   <p>
@@ -734,11 +737,11 @@ export function TaskTypesTab() {
                 </div>
 
                 {/* Live Preview Kalimat Untuk Butir 1 */}
-                <div className="p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200/70 dark:border-blue-900/50 space-y-1">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">
+                <div className="p-2.5 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] space-y-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] block">
                     Pratinjau Hasil Kalimat Untuk (Butir 1):
                   </span>
-                  <p className="text-[11px] font-serif text-slate-800 dark:text-zinc-200 leading-relaxed">
+                  <p className="text-xs font-serif text-[var(--ds-fg)] leading-relaxed">
                     <b className="mr-1.5">1.</b>
                     {renderFormattedItalic(
                       `${buildKegiatanDiktumText({
@@ -762,7 +765,7 @@ export function TaskTypesTab() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                <label className="text-xs font-bold text-[var(--ds-fg-muted)]">
                   Keterangan / Catatan Admin
                 </label>
                 <input
@@ -770,19 +773,19 @@ export function TaskTypesTab() {
                   value={keterangan}
                   onChange={(e) => setKeterangan(e.target.value)}
                   placeholder="Deskripsi peruntukan jenis tugas ini (opsional)"
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-slate-900 dark:text-white font-medium"
+                  className="w-full px-3.5 py-2.5 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] focus:bg-[var(--ds-accent-fg)] text-[var(--ds-fg)] font-medium"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-3">
+              <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="rounded text-blue-600 focus:ring-blue-500"
+                    className="rounded text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-fg)]"
                   />
-                  <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                  <span className="text-xs font-bold text-[var(--ds-fg-muted)]">
                     Status Aktif (Tampil di form pengajuan)
                   </span>
                 </label>
@@ -791,14 +794,14 @@ export function TaskTypesTab() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 text-xs font-bold rounded-xl text-slate-600 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                    className="px-4 py-2 text-xs font-bold rounded-xl text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs disabled:opacity-60 cursor-pointer"
+                    className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl shadow-xs disabled:opacity-60 cursor-pointer st-primary"
                   >
                     {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     <span>{editingItem ? "Simpan Perubahan" : "Simpan Jenis Tugas"}</span>
@@ -806,24 +809,22 @@ export function TaskTypesTab() {
                 </div>
               </div>
             </form>
-          </div>
-        </div>
+        </SuratTugasDialog>
       )}
 
       {/* Custom Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-zinc-800 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+        <SuratTugasDialog onClose={() => setDeleteTarget(null)} busy={isDeleting} className="sm:max-w-md">
+            <div className="w-12 h-12 rounded-xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
                 Hapus Jenis Tugas?
-              </h3>
-              <p className="text-xs text-slate-500">
+              </DialogTitle>
+              <p className="text-xs text-[var(--ds-fg-muted)]">
                 Apakah Anda yakin ingin menghapus jenis tugas{" "}
-                <span className="font-bold text-slate-900 dark:text-white">
+                <span className="font-bold text-[var(--ds-fg)]">
                   &quot;{deleteTarget.nama}&quot;
                 </span>
                 ? Data yang sudah tersimpan tidak dapat dikembalikan.
@@ -833,7 +834,7 @@ export function TaskTypesTab() {
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
               >
                 Batal
               </button>
@@ -841,14 +842,13 @@ export function TaskTypesTab() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDelete}
-                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-xs disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl shadow-xs disabled:opacity-60 cursor-pointer st-danger"
               >
                 {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Ya, Hapus</span>
               </button>
             </div>
-          </div>
-        </div>
+        </SuratTugasDialog>
       )}
     </div>
   );

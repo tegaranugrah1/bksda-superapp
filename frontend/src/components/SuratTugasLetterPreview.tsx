@@ -102,6 +102,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
     return () => dialog?.close();
   }, []);
 
+  const closePreview = () => {
+    dialogRef.current?.close();
+    onClose();
+  };
+
   const config = data.template_snapshot?.configuration || data.template?.configuration || {};
   const headerTitle = typeof config.header_title === "string" ? config.header_title : "KEPALA BALAI,";
   const penutupText = typeof config.penutup_text === "string" ? config.penutup_text : "Demikian untuk dilaksanakan dengan penuh tanggung jawab.";
@@ -189,15 +194,16 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       ref={dialogRef}
       data-print-root
       aria-labelledby="st-preview-title"
-      className="fixed inset-0 z-[100] m-0 h-dvh max-h-none w-full max-w-none border-0 p-0 flex flex-col items-center bg-zinc-900/90 backdrop-blur-sm overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto"
-      onCancel={(event) => { event.preventDefault(); onClose(); }}
-      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      data-module="surat-tugas"
+      className="st-ui st-native-preview fixed inset-0 z-[100] m-0 h-dvh max-h-none w-full max-w-none border-0 p-0 flex flex-col items-center bg-[var(--ds-canvas)] overflow-y-auto print:static print:bg-white print:block print:w-auto print:h-auto"
+      onCancel={(event) => { event.preventDefault(); closePreview(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) closePreview(); }}
     >
       {/* Toolbar */}
-      <div className="sticky top-0 w-full z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-zinc-900/95 border-b border-zinc-800 shadow-2xl print:hidden backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
-        <div className="min-w-0 flex-1 text-white font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-          <h2 id="st-preview-title" className="text-sm text-zinc-300 uppercase tracking-widest font-bold">Pratinjau Surat Tugas</h2>
-          <span className="text-blue-400 font-mono text-sm break-all">
+      <div className="sticky top-0 w-full z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] shadow-sm print:hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="min-w-0 flex-1 text-[var(--ds-fg)] font-medium flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+          <h2 id="st-preview-title" className="text-sm text-[var(--ds-fg)] uppercase tracking-widest font-bold">Pratinjau Surat Tugas</h2>
+          <span className="text-[var(--ds-accent-fg)] font-mono text-sm break-all">
             {data.nomor_surat || "DRAFT"}
           </span>
         </div>
@@ -206,15 +212,15 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
             type="button"
             aria-label="Cetak Surat Tugas (A4)"
             onClick={handlePrint}
-            className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 shadow-lg shadow-blue-500/20"
+            className="flex min-h-11 min-w-11 items-center justify-center gap-2 px-5 py-2.5 st-primary rounded-xl text-sm font-bold"
           >
             <Printer className="w-4 h-4" /> <span className="hidden md:inline">Cetak (A4)</span>
           </button>
           <button
             type="button"
             aria-label="Tutup pratinjau Surat Tugas"
-            onClick={onClose}
-            className="min-h-11 min-w-11 p-2.5 text-zinc-400 hover:text-white hover:bg-red-500 rounded-xl transition-all"
+            onClick={closePreview}
+            className="min-h-11 min-w-11 p-2.5 st-secondary rounded-xl"
             title="Tutup"
           >
             <X className="w-5 h-5" />
@@ -223,7 +229,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
       </div>
 
       {/* Letter Content */}
-      <div data-print-content role="region" aria-label="Dokumen Surat Tugas, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="py-6 sm:py-10 print:py-0 w-full overflow-x-auto shrink-0 focus-visible:outline-2 focus-visible:outline-blue-400">
+      <div data-print-content role="region" aria-label="Dokumen Surat Tugas, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="py-6 sm:py-10 print:py-0 w-full overflow-x-auto shrink-0 focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]">
         <div className="flex w-max min-w-full justify-center print:block print:w-auto">
         <div
           onClick={(e) => e.stopPropagation()}

@@ -83,9 +83,16 @@ function reset(search = '') { state = []; params = new URLSearchParams(search); 
 
 // Check the real solid token pairs used by Data Aset, without rounding into a pass.
 const css = fs.readFileSync(path.join(__dirname, '../src/app/globals.css'), 'utf8');
-const themeBlocks = [...css.matchAll(/\[data-module="bmn"\]\s*\{([^}]+)\}/g)].map(match => Object.fromEntries(
-  [...match[1].matchAll(/--ds-([\w-]+):\s*(#[a-f0-9]{6})/gi)].map(pair => [pair[1], pair[2]])
-));
+// Resolve the common foundation and the module overrides in stylesheet order.
+const themeBlocks = ['bmn', 'surat-tugas'].flatMap(module => [false, true].map(dark => {
+  const tokens = {};
+  const scope = `[data-module="${module}"]`;
+  for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]+)\}/g)) {
+    if (!selectors.split(',').some(selector => selector.trim().endsWith(scope) && selector.includes('.dark') === dark)) continue;
+    for (const [, name, value] of body.matchAll(/--ds-([\w-]+):\s*(#[a-f0-9]{6})/gi)) tokens[name] = value;
+  }
+  return tokens;
+}));
 function luminance(hex) {
   const [r, g, b] = hex.slice(1).match(/../g).map(value => parseInt(value, 16) / 255)
     .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
@@ -95,7 +102,7 @@ function contrast(a, b) {
   const x = luminance(a), y = luminance(b);
   return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
 }
-assert.equal(themeBlocks.length, 2);
+assert.equal(themeBlocks.length, 4);
 for (const tokens of themeBlocks) {
   for (const bg of ['canvas', 'surface', 'surface-raised', 'surface-muted']) {
     assert(contrast(tokens.fg, tokens[bg]) >= 4.5, `Foreground on ${bg}`);

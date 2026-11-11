@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Download,
   ExternalLink,
@@ -46,6 +46,16 @@ export function DokumenDasarDrawer({
   hasFile = true,
   fileName,
 }: DokumenDasarDrawerProps) {
+  const reducedMotion = useReducedMotion();
+  const closeButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    closeButton.current?.focus();
+    return () => opener?.focus();
+  }, [isOpen]);
+
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [resolvedFileName, setResolvedFileName] = useState<string | null>(fileName || null);
@@ -141,36 +151,37 @@ export function DokumenDasarDrawer({
     <AnimatePresence>
       {isOpen && (
         <motion.aside
-          initial={{ opacity: 0, x: 40 }}
+          initial={{ opacity: reducedMotion ? 1 : 0, x: reducedMotion ? 0 : 12 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 40 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="fixed top-14 right-0 bottom-0 z-30 w-[640px] xl:w-[750px] 2xl:w-[850px] max-w-[calc(100vw-32rem)] bg-white dark:bg-zinc-900 border-l border-slate-200/90 dark:border-zinc-800 shadow-2xl flex flex-col overflow-hidden"
+          exit={{ opacity: reducedMotion ? 1 : 0, x: reducedMotion ? 0 : 12 }}
+          transition={{ duration: reducedMotion ? 0 : 0.15, ease: "easeOut" }}
+          className="fixed top-14 right-0 bottom-0 z-30 w-[640px] xl:w-[750px] 2xl:w-[850px] max-w-full lg:max-w-[calc(100vw-28rem)] bg-[var(--ds-surface)] border-l border-[var(--ds-border-subtle)] shadow-2xl flex flex-col overflow-hidden"
           aria-label="Panel Dokumen Dasar"
+          onKeyDown={(event) => { if (event.key === "Escape") onClose(); }}
         >
           {/* Header Panel */}
-          <div className="px-5 py-3 bg-white dark:bg-zinc-900 flex items-center justify-between border-b border-slate-200/80 dark:border-zinc-800 shrink-0">
+          <div className="px-5 py-3 bg-[var(--ds-surface)] flex items-center justify-between border-b border-[var(--ds-border-subtle)] shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-700 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-[var(--ds-border-subtle)] flex items-center justify-center shrink-0">
                 <Paperclip className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-100 truncate">
+                  <h3 className="text-xs font-bold text-[var(--ds-fg)] truncate">
                     Dokumen Dasar Permohonan
                   </h3>
                   {hasFile && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 shrink-0">
+                    <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-[var(--ds-border-subtle)] shrink-0">
                       {isPdf ? "PDF" : "Gambar"}
                     </span>
                   )}
                 </div>
                 {currentDisplayName ? (
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 truncate max-w-md" title={currentDisplayName}>
+                  <p className="text-xs text-[var(--ds-fg-muted)] truncate max-w-md" title={currentDisplayName}>
                     {currentDisplayName}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-slate-400">Berkas rujukan penugasan dari pemohon</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)]">Berkas rujukan penugasan dari pemohon</p>
                 )}
               </div>
             </div>
@@ -183,10 +194,10 @@ export function DokumenDasarDrawer({
                     size="sm"
                     variant="outline"
                     onClick={handleOpenExternal}
-                    className="h-8 px-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-200 border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer gap-1.5"
+                    className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-1.5"
                     title="Buka Berkas di Tab Baru (Layar Penuh)"
                   >
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    <ExternalLink className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                     <span>Tab Baru</span>
                   </Button>
                   <Button
@@ -194,10 +205,10 @@ export function DokumenDasarDrawer({
                     size="sm"
                     variant="outline"
                     onClick={handleDownload}
-                    className="h-8 px-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-200 border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer gap-1.5"
+                    className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-1.5"
                     title="Unduh Berkas Dasar"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-500" />
+                    <Download className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                     <span>Unduh</span>
                   </Button>
                 </>
@@ -206,8 +217,10 @@ export function DokumenDasarDrawer({
                 type="button"
                 variant="ghost"
                 size="sm"
+                ref={closeButton}
+                aria-label="Tutup panel dokumen dasar"
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 h-8 w-8 p-0 rounded-lg cursor-pointer"
+                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] h-8 w-8 p-0 rounded-lg cursor-pointer"
                 title="Tutup Panel Dasar Surat (Kembali ke Pratinjau ST)"
               >
                 <X className="w-4 h-4" />
@@ -216,11 +229,11 @@ export function DokumenDasarDrawer({
           </div>
 
           {/* Document Content Viewer - Full Width & Height */}
-          <div className="flex-1 bg-slate-100 dark:bg-zinc-950 flex flex-col items-center justify-center overflow-hidden p-2">
+          <div className="flex-1 bg-[var(--ds-surface-muted)] flex flex-col items-center justify-center overflow-hidden p-2">
             {isLoading ? (
               <div className="text-center py-16 space-y-3">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
-                <p className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                <Loader2 className="w-8 h-8 text-[var(--ds-accent-fg)] animate-spin mx-auto" />
+                <p className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                   Memuat berkas pratinjau dokumen dasar...
                 </p>
               </div>
@@ -235,7 +248,7 @@ export function DokumenDasarDrawer({
                       : undefined
                   }
                   title="Pratinjau Dokumen Dasar"
-                  className="w-full h-full rounded-xl border border-slate-200/80 dark:border-zinc-800 bg-white shadow-sm"
+                  className="w-full h-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm"
                 />
               ) : (
                 <div className="w-full h-full overflow-auto flex items-center justify-center p-3">
@@ -244,17 +257,17 @@ export function DokumenDasarDrawer({
                   <img
                     src={blobUrl || dataUrl || undefined}
                     alt="Pratinjau Dokumen Dasar"
-                    className="max-h-full max-w-full object-contain rounded-xl shadow-md border border-slate-200 dark:border-zinc-800"
+                    className="max-h-full max-w-full object-contain rounded-xl shadow-md border border-[var(--ds-border-subtle)]"
                   />
                 </div>
               )
             ) : (
-              <div className="text-center py-16 px-6 max-w-md space-y-3 text-slate-500 dark:text-zinc-400">
-                <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-zinc-800 flex items-center justify-center mx-auto text-slate-400">
+              <div className="text-center py-16 px-6 max-w-md space-y-3 text-[var(--ds-fg-muted)]">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--ds-surface-muted)] flex items-center justify-center mx-auto text-[var(--ds-fg-muted)]">
                   <FileQuestion className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-700 dark:text-zinc-300">
+                  <p className="text-sm font-bold text-[var(--ds-fg-muted)]">
                     Berkas Fisik Tidak Tersedia
                   </p>
                   <p className="text-xs leading-relaxed">

@@ -1,7 +1,7 @@
 # Panduan Warna BKSDA SuperApp
 
 Tanggal revisi: **11 November 2026**.
-Status: **spesifikasi token untuk penerapan bertahap; sebagian telah diterapkan pada BMN, lihat bagian 9.1**.
+Status **penerapan bertahap pada BMN dan Surat Tugas**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
 
 Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
 
@@ -31,7 +31,7 @@ Aksen boleh dipakai untuk tautan, focus ring, selected state, dan grafik yang re
 
 Source saat revisi memakai Tailwind v4, dengan palet bawaan OKLCH pada `frontend/node_modules/tailwindcss/theme.css`. Rasio hex di dokumen ini tidak otomatis membuktikan kontras kelas Tailwind yang sedang terpasang. Saat implementasi, gunakan token aplikasi eksplisit atau hitung kembali warna computed yang benar-benar dirender. Jangan mengganti palet global Tailwind hanya untuk menyamakan nama kelas dengan tabel ini.
 
-Gunakan namespace **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Alias BMN sudah aktif pada scope `[data-module="bmn"]`; jangan menganggap semua token/modul pada dokumen ini sudah dimigrasikan.
+Gunakan namespace **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Token fondasi aktif pada scope `[data-module="bmn"]` dan `[data-module="surat-tugas"]`. Masing-masing scope menetapkan aksennya sendiri.
 
 - Konvensi tema web yang sudah ada adalah class `.dark`; tidak perlu menambah theme provider baru.
 - `globals.css` saat ini menyimpan token shadcn seperti `--primary` sebagai channel HSL dan memanggil `hsl(var(--primary))`. **Jangan langsung mengisi token HSL itu dengan hex**, karena formatnya tidak cocok. Gunakan namespace baru atau adapter eksplisit saat migrasi per komponen.
@@ -287,3 +287,9 @@ Delapan menu tersisa mengikuti token BMN, termasuk daftar/dialog/portal dan kont
 Status paket: Draft netral, Diajukan warning, Jadwal Ditetapkan info, Lelang Ulang warning (perlu tindakan lanjutan), Realisasi success, Batal danger. Aksi buat/edit/jadwal/lanjut memakai Emerald atau secondary; hapus/pembatalan memakai danger. Kode aset bukan error. Label dan ikon tetap menyertai status. Status pengembalian yang tidak dikenal netral, bukan otomatis rusak berat.
 
 Editor, picker panitia/Kepala Balai dan kalkulator memakai pasangan light/dark BMN; area kertas resmi tetap putih/hitam. Khusus input di .kk-page: putih/#111, border #c8c8c8, ukuran cetak existing16px dan focus #047857; jangan menerapkan min-height kontrol aplikasi36px ke sel kertas cetak. Warna tag konfigurasi pengguna tetap mengikuti palette existing.
+
+## Surat Tugas — 11 November 2026
+
+Gunakan `.st-ui[data-module="surat-tugas"]` pada pengajuan, inbox, Builder, panel pengaturan Surat Tugas, bagian Surat Tugas di Portal, verifikasi publik dan konten dialog/menu yang dirender melalui portal. Token fondasi, sekunder, disabled dan semantik dibagi dengan BMN. Aksen Surat Tugas memakai Sky sesuai bagian 4.
+
+Tombol utama light memakai `#0369a1` dengan teks putih, hover `#075985` dan active `#0c4a6e`. Dark memakai `#38bdf8` dengan teks `#0f172a`, hover `#7dd3fc` dan active `#bae6fd`. Input memakai border-subtle, tombol sekunder memakai border transparan, dan fokus memakai outline aksen 2 px. Pilihan tab memakai Sky. Menunggu memakai warning, diterbitkan memakai success, ditolak memakai danger, dan draf memakai neutral. Hapus permanen memakai Rose. Gunakan putih dan hitam untuk kertas resmi di kedua tema. Cakupan dan hasil uji tersedia di [audit visual Surat Tugas](testing/surat-tugas-visual-audit.md).
