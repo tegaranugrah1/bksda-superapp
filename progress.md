@@ -2167,3 +2167,17 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - **Pembersihan & Merge**:
   - Folder sementara pemeriksaan rilis di `E:\bksda-release-check-*` dan berkas lokal `frontend/AGENTS.md` dibersihkan agar tidak mengotori repositori.
   - Commit perbaikan scheduler dipush ke `codex/portal-security-pentest`, status draft PR #603 dibuka (`gh pr ready`), dan di-merge ke `production-server`.
+
+---
+
+## 100. Penyempurnaan Kontras Badge Tab Aktif, Kesejajaran Tabel, Optimasi Viewport 1366x768, dan Harmonisasi Sidebar Kepegawaian (11 November 2026)
+
+- **Kontras Badge Tab Aktif Kepegawaian (`kepegawaian.css`, `employees/[id]/page.tsx`, `uang-makan/page.tsx`)**:
+  - Memperbaiki spesifisitas CSS pada `.kpg-ui [role="tab"][aria-selected="true"] > span` yang sebelumnya menimpa warna angka badge (`rounded-full`) menjadi putih di atas latar terang. Angka jumlah pada tab aktif (`Riwayat Penugasan`, `Cuti Pegawai`, dan `Presensi & Uang Makan`) kini menggunakan `color: var(--ds-accent-fg)` di atas `background: var(--ds-surface)` baik pada mode terang maupun malam.
+- **Kesejajaran Tabel Riwayat Cuti & Inbox Surat Tugas (`EmployeeLeaveTab.tsx`, `GmailRowItem.tsx`, `surat-tugas.css`)**:
+  - Merapikan tabel `EmployeeLeaveTab.tsx` menjadi 5 kolom (`No`, `Surat Persetujuan (SI / ST)`, `Jenis & Alasan Cuti`, `Pelaksanaan & Durasi`, `Status & Aksi`) dengan teks 2-baris rata kiri yang sejajar penuh secara horizontal maupun vertikal.
+  - Mengembalikan lebar tetap (`shrink-0`) pada kolom-kolom kanan `GmailRowItem.tsx` (`Lokasi`, `Nomor Surat`, `Sumber Dana`, `Status`, dan `Tanggal/Aksi`) dengan aksi cepat berupa overlay saat *hover*/fokus keyboard di layar lebar sehingga seluruh kolom sejajar dari atas ke bawah.
+- **Optimasi Resolusi 1366 × 768 (100%) (`GmailRowItem.tsx`, `surat-tugas/inbox/page.tsx`, `cuti/page.tsx`, `surat-masuk/page.tsx`)**:
+  - Mengkalibrasi lebar kolom `Inbox Surat Tugas`, menggabungkan kolom `Alasan & Alamat Cuti` pada `Inbox Surat Cuti`, serta menghapus `min-w-[1050px]` dan menggabungkan `Agenda & Kategori` pada `Arsip Surat Masuk` agar ketiganya muat di layar 1366 × 768 tanpa *scroll* horizontal.
+- **Harmonisasi Sidebar Kepegawaian dengan Standar BMN (`kepegawaian/layout.tsx`, `kepegawaian.css`)**:
+  - Menyamakan struktur dan gaya visual sidebar Kepegawaian dengan BMN: menggunakan titik indikator aktif di sisi kanan (`w-1.5 h-1.5 rounded-full`), menghapus efek geser `x: 2` dan garis kiri, menyamakan tipografi subjudul/label grup (`text-[var(--ds-fg-secondary)]`), permukaan footer (`bg-[var(--ds-surface-muted)]`), serta mengganti tombol mengambang (FAB) mobile dengan *top header bar* bersih.
