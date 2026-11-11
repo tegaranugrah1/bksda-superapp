@@ -45,10 +45,11 @@ class ApplyEmployeeLifecycleCommand extends Command
 
         foreach ($dueEmployees as $employee) {
             try {
-                DB::transaction(function () use ($employee) {
+                $applied = DB::transaction(function () use ($employee, $today): bool {
                     $locked = Employee::lockForUpdate()->find($employee->id);
-                    if (! $locked || ! $locked->is_active) {
-                        return; // Sudah diproses worker lain (idempotent)
+                    if (! $locked || ! $locked->is_active || ! $locked->inactive_effective_date
+                        || $locked->inactive_effective_date->toDateString() > $today) {
+                        return false; // Worker lain/admin dapat mengubah jadwal setelah daftar dibaca.
                     }
 
                     $nip = trim((string) $locked->nip);
@@ -75,10 +76,14 @@ class ApplyEmployeeLifecycleCommand extends Command
                         'notes' => "Eksekusi otomatis scheduler penonaktifan pegawai per TMT {$locked->inactive_effective_date?->toDateString()} ({$locked->inactive_reason})",
                         'created_at' => now(),
                     ]);
+
+                    return true;
                 });
 
-                $this->line(" - Pegawai ID {$employee->id} ({$employee->nama_lengkap}) berhasil dinonaktifkan.");
-                $processed++;
+                if ($applied) {
+                    $this->line(" - Pegawai ID {$employee->id} ({$employee->nama_lengkap}) berhasil dinonaktifkan.");
+                    $processed++;
+                }
             } catch (\Throwable $e) {
                 $this->error(" Gagal memproses Pegawai ID {$employee->id}: {$e->getMessage()}");
                 Log::error("ApplyEmployeeLifecycleCommand error for employee {$employee->id}: " . $e->getMessage(), [

@@ -2146,3 +2146,24 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - Build webpack terisolasi di drive E berhasil kompilasi, generated TypeScript dan86 halaman statis (exit0). Percobaan drive C gagal karena resolusi dependency lintas drive. Build ulang masih memperingatkan packaging manifest route-group dan27 dependency traced di luar root dengan junction; belum menjadi bukti paket standalone/Docker siap deploy. Peringatan deprecasi React18 untuk Next17 juga tercatat, tanpa upgrade dependency pada pekerjaan ini.
 - Diff check seluruh riwayat terhadap production-server menemukan whitespace pada output graphify generated dan satu baris komentar globals.css; staged diff perbaikan saat ini bersih. Tidak mengklaim seluruh diff release bebas temuan. Bukti/perbaikan build dicatat pada docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md.
 - Status: hanya commit lokal; belum push, membuat PR, merge atau deploy. Cakupan PR dan validasi packaging/backend yang sesuai masih perlu diselesaikan. frontend/AGENTS.md otomatis tetap di luar commit.
+
+
+---
+
+## 99. Validasi Rilis, Perbaikan Scheduler Lifecycle Pegawai, Push & Merge PR ke production-server (11 November 2026)
+
+- **Cakupan & PR**:
+  - Seluruh perubahan tertunda pada branch `codex/portal-security-pentest` dipromosikan ke `production-server` melalui [PR #603](https://github.com/tegaranugrah1/bksda-superapp/pull/603) sesuai konfirmasi pengguna.
+- **Perbaikan Race-Condition Scheduler Lifecycle (`backend/app/Console/Commands/ApplyEmployeeLifecycleCommand.php`)**:
+  - Memperbaiki celah konkurensi pada command `employee:apply-lifecycle`: setelah mengambil daftar calon pegawai jatuh tempo dan mengunci baris (`lockForUpdate()`), command kini memeriksa ulang `is_active`, keberadaan `inactive_effective_date`, serta memastikan `inactive_effective_date->toDateString() <= $today`.
+  - Jika admin membatalkan jadwal atau memundurkan tanggal TMT di sela pengambilan kandidat dan penguncian baris, penonaktifan otomatis dilewati dengan aman dan penghitung `$processed` hanya bertambah bila transaksi benar-benar diterapkan.
+  - Menambahkan regresi [`backend/tests/Feature/EmployeeLifecycleScheduleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/EmployeeLifecycleScheduleTest.php) untuk skenario jatuh tempo normal (idempotent), pembatalan jadwal konkurensi, dan penjadwalan ulang TMT ke masa depan.
+- **Hasil Validasi Rilis**:
+  - **Docker Frontend Build**: `docker build` menggunakan `frontend/Dockerfile` (multi-stage standalone image) lulus penuh.
+  - **PHPUnit Sandbox (SQLite `:memory:`, network-none, read-only rootfs)**:
+    - `Unit` & rangkaian `Feature` (`EmployeeAccessLifecycleTest`, `EmployeeLeaveRequestTest`, `EmployeeBankAllocationSecurityTest`, `KepegawaianSecurityAuditTest`, `KepegawaianCatalogContractTest`, `BmnLayoutAndSecurityRegressionTest`, `SuratModuleTest`, `BroadcastChannelAuthTest`): **LULUS**.
+    - `EmployeeLifecycleScheduleTest`: **3 tests, 21 assertions (OK)**.
+    - `php backend/tests/portal_security_check.php`: **PASS**.
+- **Pembersihan & Merge**:
+  - Folder sementara pemeriksaan rilis di `E:\bksda-release-check-*` dan berkas lokal `frontend/AGENTS.md` dibersihkan agar tidak mengotori repositori.
+  - Commit perbaikan scheduler dipush ke `codex/portal-security-pentest`, status draft PR #603 dibuka (`gh pr ready`), dan di-merge ke `production-server`.
