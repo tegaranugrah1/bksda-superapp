@@ -2181,3 +2181,25 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Mengkalibrasi lebar kolom `Inbox Surat Tugas`, menggabungkan kolom `Alasan & Alamat Cuti` pada `Inbox Surat Cuti`, serta menghapus `min-w-[1050px]` dan menggabungkan `Agenda & Kategori` pada `Arsip Surat Masuk` agar ketiganya muat di layar 1366 × 768 tanpa *scroll* horizontal.
 - **Harmonisasi Sidebar Kepegawaian dengan Standar BMN (`kepegawaian/layout.tsx`, `kepegawaian.css`)**:
   - Menyamakan struktur dan gaya visual sidebar Kepegawaian dengan BMN: menggunakan titik indikator aktif di sisi kanan (`w-1.5 h-1.5 rounded-full`), menghapus efek geser `x: 2` dan garis kiri, menyamakan tipografi subjudul/label grup (`text-[var(--ds-fg-secondary)]`), permukaan footer (`bg-[var(--ds-surface-muted)]`), serta mengganti tombol mengambang (FAB) mobile dengan *top header bar* bersih.
+
+---
+
+## 101. Audit Visual & Penyelarasan Modul Persuratan dengan Standar BMN & Kepegawaian (`/ponytail`) (11 November 2026)
+
+- **Dokumentasi Audit & Standar Warna**:
+  - Menyusun dokumen audit lengkap di [`docs/testing/persuratan-visual-audit.md`](file:///e:/bksda-superapp/docs/testing/persuratan-visual-audit.md) yang merinci 12 poin ketidaksesuaian modul Persuratan beserta matriks penyelarasan terhadap BMN dan Kepegawaian.
+  - Memperbarui [`docs/DESIGN_SYSTEM_COLORS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_COLORS.md) dengan bagian `## Persuratan — 11 November 2026`.
+- **Fondasi Token Indigo & Reuse CSS Bersama (`globals.css`, `surat-tugas.css`, `kepegawaian.css`)**:
+  - Menambahkan scope `[data-module="persuratan"]` (Light: `#4f46e5`/`#ffffff`, Dark: `#818cf8`/`#0f172a`) dan `--ds-fg-secondary` di [`frontend/src/app/globals.css`](file:///e:/bksda-superapp/frontend/src/app/globals.css).
+  - Sesuai prinsip `/ponytail` (Rung 2: reuse tanpa file CSS duplikat baru), memperluas selektor `:is(.st-ui, .kpg-ui, .psr-ui)` di [`frontend/src/app/surat-tugas/surat-tugas.css`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/surat-tugas.css) serta `:is(.kpg-shell, .psr-shell)` dan `:is(.kpg-ui.kpg-dashboard, .psr-ui.psr-dashboard)` di [`frontend/src/app/kepegawaian/kepegawaian.css`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/kepegawaian.css).
+- **Penyelarasan Layout, Sidebar, Dashboard, Tabel 1366×768, Dialog & Popover (`frontend/src/app/surat/*`)**:
+  - **Sidebar & Shell (`surat/layout.tsx`)**: Diselaraskan 1:1 dengan BMN dan Kepegawaian (`data-module="persuratan"`, `psr-shell`, `MotionConfig reducedMotion="user"`, indikator spring `450/35` + titik kanan aktif, `Escape` close & pengembalian fokus ke tombol menu mobile).
+  - **Dashboard (`surat/page.tsx`, `SuratHubComponents.tsx`)**: Menggunakan `.psr-ui.psr-dashboard`, `.kpg-support-icon`/`.kpg-support-badge`, guard izin tulis (`canCreate`), dan pemulihan error (`Coba lagi`).
+  - **Surat Masuk, Popover & Modal (`surat/masuk/*`, `LembarDisposisiForm.tsx`)**: Mengoptimalkan kepadatan tabel untuk layar `1366 x 768` (100%) tanpa `min-w-[1050px]`, meneruskan `data-module="persuratan"` ke `PopoverContent` (`SifatCellPopover`, `DiteruskanCellPopover`), menggunakan `useKepegawaianTabs` dan tombol `<button aria-pressed>`, serta memakai ulang `KepegawaianDialog` (`module="persuratan"`) pada `ExportSuratMasukModal` dan `BatchPrintDisposisiModal` dengan tetap menjaga `#batch-print-portal-root` dan kertas `LembarDisposisiSheet` tetap putih/hitam.
+  - **Surat Keluar, Katalog 20 Format & Pengaturan (`surat/keluar/*`, `TemplatePickerModal.tsx`, `surat/settings/page.tsx`)**: Menghapus penelanan error di `useQuery` agar banner error + `Coba lagi` berfungsi, menerapkan `useKepegawaianTabs` + `KepegawaianTabContent` + `useDialogFocusReturn`, meneruskan `data-module="persuratan"` ke seluruh portal `DialogContent`/`DropdownMenuContent`/`useConfirm`, mengganti `window.confirm()` native di `settings/page.tsx` dengan `useConfirm()`, dan menjaga kertas A4 `SuratDinasDocument` tetap putih/hitam.
+- **Verifikasi & Regresi**:
+  - Menambahkan satu runnable check [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
+  - `node frontend/tests/nota-dinas-template-check.cjs`: **PASSED**.
+  - `node frontend/tests/kepegawaian-ui.cjs`: **PASSED**.
+  - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **PASSED (0 errors)**.
+

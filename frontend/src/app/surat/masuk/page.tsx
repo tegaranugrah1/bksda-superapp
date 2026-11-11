@@ -18,6 +18,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ export default function SuratMasukListPage() {
     data: apiResponse,
     isLoading,
     isFetching,
+    isError,
     refetch,
   } = useQuery({
     queryKey: ["surat-masuk", { page, perPage, search: searchInput, sifat: sifatParam }],
@@ -180,7 +182,7 @@ export default function SuratMasukListPage() {
     setSelectedIds(new Set());
   };
 
-  const handleItemUpdated = (updatedItem: SuratMasuk) => {
+  const handleItemUpdated = () => {
     queryClient.invalidateQueries({ queryKey: ["surat-masuk"] });
   };
 
@@ -191,15 +193,17 @@ export default function SuratMasukListPage() {
   const handleDeleteSurat = async (item: SuratMasuk) => {
     const ok = await confirm({
       title: "Hapus Surat Masuk",
+      contentModule: "persuratan",
+      contentClassName: "psr-ui",
       description: (
         <div className="space-y-3 pt-1">
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          <p className="text-sm text-[var(--ds-fg-muted)]">
             Apakah Anda yakin ingin menghapus data surat masuk ini?
           </p>
-          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-xs font-mono font-semibold text-zinc-800 dark:text-zinc-200 break-all text-center select-all">
+          <div className="p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs font-mono font-semibold text-[var(--ds-fg)] break-all text-center select-all">
             {item.no_surat ? `${item.no_surat}` : `Agenda #${item.no_agenda}`}
           </div>
-          <p className="text-xs text-rose-500 font-medium">
+          <p className="text-xs text-[var(--ds-status-danger-fg)] font-medium">
             Tindakan ini akan mengarsipkan surat dan relasi disposisinya.
           </p>
         </div>
@@ -224,61 +228,62 @@ export default function SuratMasukListPage() {
   };
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
+    <div className="psr-ui w-full p-4 md:p-5 space-y-3 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/60 p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-900/40 text-emerald-600 dark:text-emerald-400">
-              <Inbox className="h-6 w-6" />
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]">
+              <Inbox className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
                 Agenda Surat Masuk
               </h1>
-              <p className="text-xs md:text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                 Penatausahaan surat masuk, pencatatan agenda, dan penerbitan lembar disposisi resmi.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 self-stretch sm:self-auto">
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsExportModalOpen(true)}
-              className="h-9 px-3.5 text-xs font-semibold border-emerald-200 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/80 dark:border-emerald-900/60 dark:text-emerald-300 dark:bg-emerald-950/30 rounded-xl gap-1.5"
+              className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5"
             >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <FileSpreadsheet className="h-4 w-4 text-[var(--ds-accent-fg)]" />
               Export Excel
             </Button>
 
-            <Link href="/surat/masuk/create">
-              <Button className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs shadow-emerald-600/20 gap-1.5">
+            <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
+              <Link href="/surat/masuk/create">
                 <Plus className="h-4 w-4" />
                 Input Surat Masuk
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2.5 px-3.5">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-zinc-500" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ds-fg-muted)]" />
           <Input
             value={searchInput}
             onChange={handleSearchChange}
             placeholder="Cari no surat, no agenda, pengirim, perihal..."
-            className="pl-9 h-9 text-xs border-slate-200 dark:border-zinc-700 focus-visible:ring-emerald-500"
+            aria-label="Cari surat masuk"
+            className="pl-9 h-9 text-xs"
           />
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400">
+        <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-[var(--ds-fg-muted)]">
           {isFetching && (
-            <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
-              <RefreshCw className="h-3 w-3 animate-spin" />
+            <span className="flex items-center gap-1.5 text-xs text-[var(--ds-accent-fg)]">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
               Menyinkronkan...
             </span>
           )}
@@ -289,40 +294,64 @@ export default function SuratMasukListPage() {
             onClick={() => refetch()}
             disabled={isFetching}
             title="Segarkan data agenda surat masuk"
-            className="h-8 w-8 p-0 text-slate-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
+            aria-label="Segarkan data agenda surat masuk"
+            className="h-9 w-9 p-0 rounded-lg"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-emerald-600" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-[var(--ds-accent-fg)]" : ""}`} />
           </Button>
           <span>
-            Total <span className="text-slate-900 font-bold dark:text-white">{totalCount}</span> Surat Masuk
+            Total <span className="text-[var(--ds-fg)] font-bold tabular-nums">{totalCount}</span> Surat Masuk
           </span>
         </div>
       </div>
 
+      {/* Error State Banner */}
+      {isError && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-2.5 text-xs font-semibold text-[var(--ds-status-danger-fg)]">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>Gagal memuat data agenda surat masuk dari server.</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="kpg-secondary h-8 px-3 text-xs font-bold rounded-xl gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Coba lagi
+          </Button>
+        </div>
+      )}
+
       {/* Tabel Master (Desktop) & Kartu Tumpuk (Mobile) */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden">
         {isLoading ? (
-          <div className="p-4 space-y-2.5">
+          <div className="p-4 space-y-2">
             {[1, 2, 3, 4, 5].map((n) => (
-              <div key={n} className="h-12 w-full animate-pulse rounded-xl bg-slate-100 dark:bg-zinc-800/60" />
+              <div key={n} className="h-11 w-full animate-pulse rounded-xl bg-[var(--ds-surface-muted)]" />
             ))}
           </div>
         ) : suratList.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <Inbox className="h-10 w-10 text-slate-300 dark:text-zinc-600 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-700 dark:text-zinc-300">Belum Ada Surat Masuk Terarsip</h3>
-            <p className="text-xs text-slate-400 dark:text-zinc-500">
+          <div className="p-10 text-center space-y-2.5">
+            <Inbox className="h-9 w-9 text-[var(--ds-fg-muted)] mx-auto" />
+            <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum Ada Surat Masuk Terarsip</h3>
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Data surat masuk yang diinput akan muncul di sini.
             </p>
           </div>
         ) : (
           <>
-            {/* Desktop Table View */}
+            {/* Desktop Table View (Compact for 1366x768) */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-zinc-800/40 border-b border-slate-200/80 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold uppercase tracking-wider text-[10.5px]">
+                <thead className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-bold uppercase tracking-wider text-xs">
                   <tr>
-                    <th className="py-2.5 px-3.5 w-10 text-center">
+                    <th className="py-2.5 px-3 w-10 text-center">
                       <input
                         type="checkbox"
                         checked={
@@ -331,174 +360,182 @@ export default function SuratMasukListPage() {
                         }
                         onChange={toggleSelectAll}
                         aria-label="Pilih semua surat"
-                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
+                        className="h-4 w-4 rounded cursor-pointer"
                       />
                     </th>
-                    <th className="py-2.5 px-3.5">No Agenda</th>
-                    <th className="py-2.5 px-3.5">Nomor & Tanggal Surat</th>
-                    <th className="py-2.5 px-3.5">Asal Surat / Pengirim</th>
-                    <th className="py-2.5 px-3.5">Isi Ringkas / Perihal</th>
-                    <th className="py-2.5 px-3.5">Sifat</th>
-                    <th className="py-2.5 px-3.5">Diteruskan Ke</th>
-                    <th className="py-2.5 px-3.5 text-right">Aksi</th>
+                    <th className="py-2.5 px-3">No Agenda</th>
+                    <th className="py-2.5 px-3">Nomor &amp; Tanggal Surat</th>
+                    <th className="py-2.5 px-3">Asal Surat &amp; Lampiran</th>
+                    <th className="py-2.5 px-3">Isi Ringkas / Perihal</th>
+                    <th className="py-2.5 px-3">Sifat</th>
+                    <th className="py-2.5 px-3">Diteruskan Ke</th>
+                    <th className="py-2.5 px-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                  {suratList.map((item) => (
-                    <tr
-                      key={item.id}
-                      className={`hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors ${
-                        selectedIds.has(String(item.id || item.no_agenda))
-                          ? "bg-emerald-50/40 dark:bg-emerald-950/20"
-                          : ""
-                      }`}
-                    >
-                      <td className="py-3 px-3.5 text-center align-middle">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(String(item.id || item.no_agenda))}
-                          onChange={() => toggleSelectItem(item)}
-                          aria-label={`Pilih surat agenda ${item.no_agenda}`}
-                          className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer accent-emerald-600"
-                        />
-                      </td>
-                      <td className="py-3 px-3.5 align-middle font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-[13px]">
-                          <FileText className="h-3.5 w-3.5 shrink-0" />
-                          <span>{item.no_agenda}</span>
-                        </div>
-                        <span className="text-[11px] font-normal text-slate-400 dark:text-zinc-500 block mt-0.5">
-                          {formatDisplayDate(item.tanggal_agenda)}
-                        </span>
-                      </td>
+                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                  {suratList.map((item) => {
+                    const isSelected = selectedIds.has(String(item.id || item.no_agenda));
+                    return (
+                      <tr
+                        key={item.id}
+                        aria-selected={isSelected}
+                        className={`transition-colors ${
+                          isSelected ? "bg-[var(--ds-accent-soft)]" : ""
+                        }`}
+                      >
+                        <td className="py-2.5 px-3 text-center align-middle">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectItem(item)}
+                            aria-label={`Pilih surat agenda ${item.no_agenda}`}
+                            className="h-4 w-4 rounded cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 font-semibold text-[var(--ds-accent-fg)] tabular-nums">
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            <span>{item.no_agenda}</span>
+                          </div>
+                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 tabular-nums">
+                            {formatDisplayDate(item.tanggal_agenda)}
+                          </span>
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle min-w-36">
-                        <span className="font-bold text-[13px] text-slate-900 dark:text-zinc-100 block truncate max-w-54">
-                          {item.no_surat || "-"}
-                        </span>
-                        <span className="text-[11px] text-slate-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
-                          <Calendar className="h-3 w-3 text-slate-400" /> {formatDisplayDate(item.tanggal_surat)}
-                        </span>
-                      </td>
+                        <td className="py-2.5 px-3 align-middle max-w-[190px]">
+                          <span className="font-semibold text-[var(--ds-fg)] block truncate" title={item.no_surat}>
+                            {item.no_surat || "-"}
+                          </span>
+                          <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 mt-0.5 tabular-nums">
+                            <Calendar className="h-3 w-3 shrink-0" /> {formatDisplayDate(item.tanggal_surat)}
+                          </span>
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle max-w-56">
-                        <span className="font-semibold text-[13px] text-slate-800 dark:text-zinc-200 flex items-center gap-1.5">
-                          <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">{item.asal_surat || "-"}</span>
-                        </span>
-                        <span className="text-[11px] text-slate-400 dark:text-zinc-500 block mt-0.5 truncate">
-                          Lampiran: {item.lampiran || "-"}
-                        </span>
-                      </td>
+                        <td className="py-2.5 px-3 align-middle max-w-[180px]">
+                          <span className="font-semibold text-[var(--ds-fg)] flex items-center gap-1.5">
+                            <Building2 className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
+                            <span className="truncate" title={item.asal_surat}>{item.asal_surat || "-"}</span>
+                          </span>
+                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 truncate">
+                            Lampiran: {item.lampiran || "-"}
+                          </span>
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle max-w-72">
-                        <p className="text-[12px] text-slate-700 dark:text-zinc-300 line-clamp-2 leading-relaxed">
-                          {item.isi_ringkas || "-"}
-                        </p>
-                      </td>
+                        <td className="py-2.5 px-3 align-middle max-w-[230px]">
+                          <p className="text-xs text-[var(--ds-fg-secondary)] line-clamp-2 leading-snug" title={item.isi_ringkas}>
+                            {item.isi_ringkas || "-"}
+                          </p>
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle whitespace-nowrap">
-                        <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
-                      </td>
+                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                          <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle">
-                        <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
-                      </td>
+                        <td className="py-2.5 px-3 align-middle">
+                          <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
+                        </td>
 
-                      <td className="py-3 px-3.5 align-middle text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Link href={`/surat/masuk/create?id=${item.id}`}>
+                        <td className="py-2.5 px-3 align-middle text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
                             <Button
+                              asChild
                               variant="outline"
                               size="sm"
-                              className="h-8 px-2.5 text-xs font-semibold text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/60 rounded-lg"
+                              className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
                             >
-                              <Pencil className="mr-1 h-3 w-3" />
-                              Edit
+                              <Link href={`/surat/masuk/create?id=${item.id}`} title="Edit Surat Masuk">
+                                <Pencil className="mr-1 h-3 w-3" />
+                                Edit
+                              </Link>
                             </Button>
-                          </Link>
 
-                          <Link href={`/surat/masuk/create?id=${item.id}`}>
                             <Button
+                              asChild
                               variant="outline"
                               size="sm"
-                              className="h-8 px-2.5 text-xs font-semibold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/60 rounded-lg"
+                              className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg text-[var(--ds-accent-fg)]"
                             >
-                              <Printer className="mr-1 h-3 w-3" />
-                              Cetak
+                              <Link href={`/surat/masuk/create?id=${item.id}`} title="Cetak Disposisi">
+                                <Printer className="mr-1 h-3 w-3" />
+                                Cetak
+                              </Link>
                             </Button>
-                          </Link>
 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteSurat(item)}
-                            className="h-8 w-8 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 rounded-lg"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteSurat(item)}
+                              aria-label={`Hapus surat agenda ${item.no_agenda}`}
+                              title="Hapus Surat Masuk"
+                              className="h-9 w-9 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Stacked Card View (< sm) */}
-            <div className="sm:hidden divide-y divide-slate-100 dark:divide-zinc-800">
+            <div className="sm:hidden divide-y divide-[var(--ds-border-subtle)]">
               {suratList.map((item) => (
-                <div key={item.id} className="p-4 space-y-3">
+                <div key={item.id} className="p-3.5 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(String(item.id || item.no_agenda))}
                         onChange={() => toggleSelectItem(item)}
-                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
+                        aria-label={`Pilih surat agenda ${item.no_agenda}`}
+                        className="h-4 w-4 rounded"
                       />
-                      <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                      <span className="font-bold text-xs text-[var(--ds-accent-fg)] tabular-nums">
                         Agenda #{item.no_agenda}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-400 dark:text-zinc-500">
+                    <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                       {formatDisplayDate(item.tanggal_agenda)}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">
+                    <h3 className="font-bold text-xs text-[var(--ds-fg)] leading-snug">
                       {item.no_surat}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                       Asal: {item.asal_surat || "-"} • Tanggal: {formatDisplayDate(item.tanggal_surat)}
                     </p>
-                    <p className="text-xs text-slate-700 dark:text-zinc-300 mt-1.5 line-clamp-2">
+                    <p className="text-xs text-[var(--ds-fg-secondary)] mt-1 line-clamp-2">
                       {item.isi_ringkas}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                     <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
                     <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800/80">
-                    <Link href={`/surat/masuk/create?id=${item.id}`}>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs font-semibold rounded-lg">
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--ds-border-subtle)]">
+                    <Button asChild variant="outline" size="sm" className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg">
+                      <Link href={`/surat/masuk/create?id=${item.id}`}>
                         <Pencil className="mr-1 h-3 w-3" /> Edit
-                      </Button>
-                    </Link>
-                    <Link href={`/surat/masuk/create?id=${item.id}`}>
-                      <Button variant="outline" size="sm" className="h-8 px-3 text-xs font-semibold rounded-lg text-emerald-600">
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg text-[var(--ds-accent-fg)]">
+                      <Link href={`/surat/masuk/create?id=${item.id}`}>
                         <Printer className="mr-1 h-3 w-3" /> Cetak
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteSurat(item)}
-                      className="h-8 px-2 text-rose-500"
+                      aria-label={`Hapus surat agenda ${item.no_agenda}`}
+                      className="h-9 w-9 p-0 text-[var(--ds-status-danger-fg)]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -511,25 +548,27 @@ export default function SuratMasukListPage() {
 
         {/* Server-Side Pagination Footer */}
         {!isLoading && totalCount > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:px-5 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/40 text-xs">
-            <div className="text-slate-500 dark:text-zinc-400 font-medium">
-              Menampilkan <span className="font-bold text-slate-900 dark:text-zinc-100">{startRecord}</span> -{" "}
-              <span className="font-bold text-slate-900 dark:text-zinc-100">{endRecord}</span> dari{" "}
-              <span className="font-bold text-slate-900 dark:text-zinc-100">{totalCount}</span> Surat Masuk
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3 sm:px-4 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] text-xs">
+            <div className="text-[var(--ds-fg-muted)] font-medium">
+              Menampilkan <span className="font-bold text-[var(--ds-fg)] tabular-nums">{startRecord}</span> -{" "}
+              <span className="font-bold text-[var(--ds-fg)] tabular-nums">{endRecord}</span> dari{" "}
+              <span className="font-bold text-[var(--ds-fg)] tabular-nums">{totalCount}</span> Surat Masuk
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-500 dark:text-zinc-400 text-[11px] font-semibold">Tampilkan:</span>
-                <div className="flex items-center gap-1 bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 p-0.5 rounded-lg shadow-2xs">
+                <span className="text-[var(--ds-fg-muted)] text-xs font-semibold">Tampilkan:</span>
+                <div className="flex items-center gap-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-0.5 rounded-lg">
                   {PER_PAGE_OPTIONS.map((opt) => (
                     <button
                       key={opt}
+                      type="button"
+                      aria-pressed={perPage === opt}
                       onClick={() => handlePerPageChange(opt)}
-                      className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded-md text-xs font-bold transition-colors ${
                         perPage === opt
-                          ? "bg-emerald-600 text-white shadow-2xs"
-                          : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900"
+                          ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                          : "text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]"
                       }`}
                     >
                       {opt === "all" ? "Semua" : opt}
@@ -545,13 +584,13 @@ export default function SuratMasukListPage() {
                     size="sm"
                     onClick={() => handlePageChange(page - 1)}
                     disabled={safePage <= 1}
-                    className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+                    className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
                   >
                     <ChevronLeft className="h-4 w-4 mr-0.5" />
                     Sebelumnya
                   </Button>
 
-                  <span className="px-2 text-[11px] font-bold text-slate-700 dark:text-zinc-300">
+                  <span className="px-2 text-xs font-bold text-[var(--ds-fg-secondary)] tabular-nums">
                     Halaman {safePage} dari {totalPages}
                   </span>
 
@@ -560,7 +599,7 @@ export default function SuratMasukListPage() {
                     size="sm"
                     onClick={() => handlePageChange(page + 1)}
                     disabled={safePage >= totalPages}
-                    className="h-8 px-2.5 text-xs font-semibold rounded-lg"
+                    className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
                   >
                     Selanjutnya
                     <ChevronRight className="h-4 w-4 ml-0.5" />
@@ -582,9 +621,9 @@ export default function SuratMasukListPage() {
 
       {/* Floating Batch Selection Toolbar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-900/95 dark:bg-zinc-800/95 text-white shadow-2xl backdrop-blur-md border border-slate-700 dark:border-zinc-700 animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-2xl border border-[var(--ds-accent-soft-border)] animate-in slide-in-from-bottom-5 duration-150">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ds-accent-solid)] text-xs font-bold text-[var(--ds-accent-on-solid)] tabular-nums">
               {selectedIds.size}
             </span>
             <span className="text-xs font-semibold">
@@ -592,13 +631,13 @@ export default function SuratMasukListPage() {
             </span>
           </div>
 
-          <div className="h-4 w-px bg-slate-700 dark:bg-zinc-700" />
+          <div className="h-4 w-px bg-[var(--ds-border-subtle)]" />
 
           <Button
             type="button"
             size="sm"
             onClick={() => setIsBatchPrintModalOpen(true)}
-            className="h-8 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-xs gap-1.5"
+            className="h-8 px-3.5 text-xs font-bold rounded-xl gap-1.5"
           >
             <Printer className="h-3.5 w-3.5" />
             Cetak 2-Up ({selectedIds.size} Surat)
@@ -609,7 +648,7 @@ export default function SuratMasukListPage() {
             variant="ghost"
             size="sm"
             onClick={handleClearSelection}
-            className="h-8 px-2 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
+            className="h-8 px-2.5 text-xs rounded-xl"
           >
             Batal
           </Button>

@@ -37,8 +37,8 @@ function EditSuratMasukContent() {
 
   if (idParam && isLoading) {
     return (
-      <div className="p-12 text-center text-xs font-semibold text-zinc-500 flex items-center justify-center gap-2">
-        <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+      <div className="psr-ui p-12 text-center text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center justify-center gap-2">
+        <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
         Memuat data surat masuk untuk diedit...
       </div>
     );
@@ -51,23 +51,23 @@ function EditSuratMasukContent() {
     : undefined;
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
+    <div className="psr-ui w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)]">
       {/* Header Breadcrumb */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/surat/masuk">
-            <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl">
+            <Button variant="outline" size="sm" aria-label="Kembali ke Arsip Surat Masuk" className="kpg-secondary h-9 w-9 p-0 rounded-xl">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <Inbox className="h-4 w-4 text-emerald-600" />
-              <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              <Inbox className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+              <h1 className="text-lg font-bold text-[var(--ds-fg)]">
                 {idParam ? "Edit Surat Masuk & Lembar Disposisi" : "Input Surat Masuk Baru & Lembar Disposisi"}
               </h1>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Form Lembar Disposisi presisi BKSDA KALTIM (Ukuran Kertas Letter dibagi 2).
             </p>
           </div>
@@ -87,8 +87,8 @@ export default function CreateSuratMasukPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-6 text-xs text-zinc-500 flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+        <div className="psr-ui p-6 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
           Memuat...
         </div>
       }

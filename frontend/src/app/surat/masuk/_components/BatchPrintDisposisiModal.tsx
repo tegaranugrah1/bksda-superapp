@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Printer, X, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { KepegawaianDialog } from "@/app/kepegawaian/_components/KepegawaianDialog";
 import type { SuratMasuk } from "../../_lib/surat-types";
 import { LembarDisposisiSheet } from "../../_components/LembarDisposisiSheet";
 
@@ -163,76 +164,81 @@ export function BatchPrintDisposisiModal({
   return (
     <>
       {/* ── Screen Modal UI (Preview on Screen Only, Hidden via .no-print on Print) ── */}
-      <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
-        <div className="relative w-full max-w-6xl max-h-[92vh] flex flex-col rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-5 py-3.5 bg-zinc-50/80 dark:bg-zinc-900/60">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                <Printer className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                  Pratinjau Cetak 2-Up ({selectedSurat.length} Surat)
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold">
-                    {sheets.length} Lembar Kertas
-                  </span>
-                </h2>
-                <p className="text-xs text-zinc-500">
-                  Format kertas Letter/Folio Landscape (330mm x 215mm) dibagi dua berdampingan.
-                </p>
-              </div>
+      <KepegawaianDialog
+        title={`Pratinjau Cetak 2-Up (${selectedSurat.length} Surat)`}
+        onClose={onClose}
+        module="persuratan"
+        className="no-print sm:max-w-6xl max-h-[92vh] flex flex-col overflow-hidden"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] px-5 py-3.5 bg-[var(--ds-surface-muted)]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+              <Printer className="h-5 w-5" />
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onClose}
-                className="h-9 px-3 text-xs font-semibold rounded-xl"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Tutup
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={handlePrint}
-                className="h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20"
-              >
-                <Printer className="h-4 w-4 mr-1.5" />
-                Cetak Sekarang ({sheets.length} Lembar)
-              </Button>
+            <div>
+              <h2 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                Pratinjau Cetak 2-Up ({selectedSurat.length} Surat)
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] font-semibold">
+                  {sheets.length} Lembar Kertas
+                </span>
+              </h2>
+              <p className="text-xs text-[var(--ds-fg-muted)]">
+                Format kertas Letter/Folio Landscape (330mm x 215mm) dibagi dua berdampingan.
+              </p>
             </div>
           </div>
 
-          {/* Odd Tail Info Note */}
-          {selectedSurat.length % 2 !== 0 && (
-            <div className="mx-5 mt-3 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-600" />
-              <span>
-                Jumlah surat ganjil ({selectedSurat.length} surat). Lembar ke-{sheets.length} mencetak Surat Agenda #{sheets[sheets.length - 1]?.left.no_agenda} di sisi kiri saja, dan sisi kanan kosong agar separuh kertas dapat digunakan lagi.
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="kpg-secondary h-9 px-3 text-xs font-semibold rounded-xl"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Tutup
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handlePrint}
+              className="h-9 px-4 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl"
+            >
+              <Printer className="h-4 w-4 mr-1.5" />
+              Cetak Sekarang ({sheets.length} Lembar)
+            </Button>
+          </div>
+        </div>
 
-          {/* Scrollable Screen Preview */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-zinc-100/60 dark:bg-zinc-900/40">
-            {sheets.map((sheet, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-500">
-                  <span className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
-                    <FileText className="h-3.5 w-3.5 text-emerald-600" />
-                    Lembar Ke-{sheet.sheetIndex} dari {sheets.length}
-                  </span>
-                  <span>
-                    Kiri: #{sheet.left.no_agenda} {sheet.right ? `| Kanan: #${sheet.right.no_agenda}` : "| Kanan: (Kosong)"}
-                  </span>
-                </div>
+        {/* Odd Tail Info Note */}
+        {selectedSurat.length % 2 !== 0 && (
+          <div className="mx-5 mt-3 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-600" />
+            <span>
+              Jumlah surat ganjil ({selectedSurat.length} surat). Lembar ke-{sheets.length} mencetak Surat Agenda #{sheets[sheets.length - 1]?.left.no_agenda} di sisi kiri saja, dan sisi kanan kosong agar separuh kertas dapat digunakan lagi.
+            </span>
+          </div>
+        )}
 
-                {/* Screen Preview Container */}
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white p-3 shadow-md grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3">
+        {/* Scrollable Screen Preview */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-[var(--ds-surface-muted)]">
+          {sheets.map((sheet, idx) => (
+            <div key={idx} className="space-y-2">
+              <div className="flex items-center justify-between px-1 text-xs font-semibold text-[var(--ds-fg-muted)]">
+                <span className="flex items-center gap-1.5 text-[var(--ds-fg)]">
+                  <FileText className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
+                  Lembar Ke-{sheet.sheetIndex} dari {sheets.length}
+                </span>
+                <span>
+                  Kiri: #{sheet.left.no_agenda} {sheet.right ? `| Kanan: #${sheet.right.no_agenda}` : "| Kanan: (Kosong)"}
+                </span>
+              </div>
+
+              {/* Screen Preview Container */}
+              <div className="overflow-x-auto">
+                <div className="min-w-[880px] rounded-xl border border-[var(--ds-border-subtle)] bg-white p-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3">
                   {/* Left */}
                   <div className="w-full h-full flex flex-col">
                     <LembarDisposisiSheet
@@ -266,10 +272,10 @@ export function BatchPrintDisposisiModal({
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </KepegawaianDialog>
 
       {/* ── Teleport Clean Print Root Directly to document.body ── */}
       {mounted && typeof document !== "undefined" && createPortal(printPortalContent, document.body)}

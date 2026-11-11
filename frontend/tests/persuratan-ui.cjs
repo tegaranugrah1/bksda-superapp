@@ -1,0 +1,238 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Runnable Node regression check for Persuratan UI/UX parity. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const srcRoot = path.join(__dirname, '../src');
+const read = (relPath) => fs.readFileSync(path.join(srcRoot, relPath), 'utf8');
+
+function srgbToLinear(c) {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+}
+
+function luminance(hex) {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(hex1, hex2) {
+  const l1 = luminance(hex1);
+  const l2 = luminance(hex2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// 1. Token & WCAG contrast verification in globals.css
+const globalsCss = read('app/globals.css');
+assert(
+  globalsCss.includes('[data-module="persuratan"]'),
+  'globals.css must declare [data-module="persuratan"] token scope.'
+);
+assert(
+  globalsCss.includes('--ds-accent-solid: #4f46e5;') &&
+    globalsCss.includes('--ds-accent-hover: #4338ca;') &&
+    globalsCss.includes('--ds-accent-active: #3730a3;') &&
+    globalsCss.includes('--ds-accent-soft: #eef2ff;') &&
+    globalsCss.includes('--ds-accent-soft-border: #c7d2fe;'),
+  'globals.css must define light Indigo tokens for Persuratan.'
+);
+assert(
+  globalsCss.includes('--ds-accent-solid: #818cf8;') &&
+    globalsCss.includes('--ds-accent-hover: #a5b4fc;') &&
+    globalsCss.includes('--ds-accent-active: #c7d2fe;') &&
+    globalsCss.includes('--ds-accent-soft: #1e1b4b;') &&
+    globalsCss.includes('--ds-accent-soft-border: #3730a3;'),
+  'globals.css must define dark Indigo tokens for Persuratan.'
+);
+
+assert(
+  contrastRatio('#4f46e5', '#ffffff') >= 4.5,
+  'Light Indigo primary (#4f46e5 on #ffffff) must pass WCAG AA 4.5:1.'
+);
+assert(
+  contrastRatio('#818cf8', '#18181b') >= 4.5,
+  'Dark Indigo accent text (#818cf8 on #18181b) must pass WCAG AA 4.5:1.'
+);
+assert(
+  contrastRatio('#818cf8', '#0f172a') >= 4.5,
+  'Dark Indigo solid button (#818cf8 with #0f172a text) must pass WCAG AA 4.5:1.'
+);
+
+// 2. Ponytail CSS reuse (no new CSS file, shared rules in surat-tugas.css and kepegawaian.css)
+assert(
+  !fs.existsSync(path.join(srcRoot, 'app/surat/persuratan.css')),
+  'Ponytail rule: do not create a duplicate persuratan.css file; reuse shared rules.'
+);
+const suratTugasCss = read('app/surat-tugas/surat-tugas.css');
+assert(
+  suratTugasCss.includes(':is(.st-ui, .kpg-ui, .psr-ui)'),
+  'surat-tugas.css must share control foundation rules with .psr-ui.'
+);
+const kepegawaianCss = read('app/kepegawaian/kepegawaian.css');
+assert(
+  kepegawaianCss.includes(':is(.kpg-shell, .psr-shell)') &&
+    kepegawaianCss.includes(':is(.kpg-ui.kpg-dashboard, .psr-ui.psr-dashboard)'),
+  'kepegawaian.css must share shell and dashboard soft-badge rules with Persuratan.'
+);
+
+// 3. Sidebar & Shell Parity in app/surat/layout.tsx
+const layoutSource = read('app/surat/layout.tsx');
+assert(
+  layoutSource.includes('data-module="persuratan"') &&
+    layoutSource.includes('psr-shell') &&
+    layoutSource.includes('reducedMotion="user"') &&
+    layoutSource.includes('stiffness: 450, damping: 35') &&
+    layoutSource.includes('w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)]') &&
+    layoutSource.includes('text-[var(--ds-fg-secondary)]') &&
+    layoutSource.includes('event.key === "Escape"') &&
+    layoutSource.includes('menuButton.current?.focus()'),
+  'surat/layout.tsx must match BMN and Kepegawaian sidebar/shell architecture.'
+);
+
+// 4. Hub & Dashboard parity
+const hubPageSource = read('app/surat/page.tsx');
+const hubComponentsSource = read('app/surat/_components/SuratHubComponents.tsx');
+assert(
+  hubPageSource.includes('psr-ui psr-dashboard') &&
+    hubPageSource.includes('kpg-support-icon') &&
+    hubComponentsSource.includes('kpg-support-badge'),
+  'surat/page.tsx and SuratHubComponents.tsx must use .psr-ui.psr-dashboard and soft support icon/badge classes.'
+);
+assert(
+  hubComponentsSource.includes('isError') &&
+    hubComponentsSource.includes('Coba lagi') &&
+    hubComponentsSource.includes('kpg-support-icon'),
+  'SuratHubComponents.tsx must provide error recovery (Coba lagi) and soft support icons.'
+);
+
+// 5. Surat Masuk & Popover/Modal portal token propagation + 1366x768 fit
+const suratMasukSource = read('app/surat/masuk/page.tsx');
+assert(
+  suratMasukSource.includes('psr-ui') &&
+    suratMasukSource.includes('contentModule: "persuratan"') &&
+    suratMasukSource.includes('Coba lagi') &&
+    !suratMasukSource.includes('min-w-[1050px]'),
+  'surat/masuk/page.tsx must use psr-ui, persuratan confirm scope, error retry, and fit 1366x768.'
+);
+
+const sifatPopoverSource = read('app/surat/masuk/_components/SifatCellPopover.tsx');
+assert(
+  sifatPopoverSource.includes('data-module="persuratan"') &&
+    sifatPopoverSource.includes('psr-ui') &&
+    sifatPopoverSource.includes('aria-pressed'),
+  'SifatCellPopover.tsx must propagate data-module="persuratan" and keyboard-accessible buttons.'
+);
+
+const diteruskanPopoverSource = read('app/surat/masuk/_components/DiteruskanCellPopover.tsx');
+assert(
+  diteruskanPopoverSource.includes('data-module="persuratan"') &&
+    diteruskanPopoverSource.includes('psr-ui') &&
+    diteruskanPopoverSource.includes('useKepegawaianTabs') &&
+    diteruskanPopoverSource.includes('tabs.tabListProps') &&
+    diteruskanPopoverSource.includes('aria-pressed'),
+  'DiteruskanCellPopover.tsx must propagate data-module="persuratan" and use accessible tabs/buttons.'
+);
+
+const exportModalSource = read('app/surat/masuk/_components/ExportSuratMasukModal.tsx');
+const batchPrintModalSource = read('app/surat/masuk/_components/BatchPrintDisposisiModal.tsx');
+assert(
+  exportModalSource.includes('KepegawaianDialog') &&
+    exportModalSource.includes('module="persuratan"'),
+  'ExportSuratMasukModal.tsx must reuse KepegawaianDialog with module="persuratan".'
+);
+assert(
+  batchPrintModalSource.includes('KepegawaianDialog') &&
+    batchPrintModalSource.includes('module="persuratan"') &&
+    batchPrintModalSource.includes('id="batch-print-portal-root"'),
+  'BatchPrintDisposisiModal.tsx must reuse KepegawaianDialog while preserving #batch-print-portal-root.'
+);
+
+// 6. Surat Keluar, TemplatePickerModal, Dinas Generator, and Settings parity
+const suratKeluarSource = read('app/surat/keluar/page.tsx');
+assert(
+  suratKeluarSource.includes('psr-ui') &&
+    suratKeluarSource.includes('useKepegawaianTabs') &&
+    suratKeluarSource.includes('KepegawaianTabContent') &&
+    suratKeluarSource.includes('useDialogFocusReturn') &&
+    suratKeluarSource.includes('data-module="persuratan"') &&
+    suratKeluarSource.includes('Perlu Nomor Definitif') &&
+    suratKeluarSource.includes('Coba lagi'),
+  'surat/keluar/page.tsx must use psr-ui, accessible tabs, dialog focus return, and error retry.'
+);
+
+const templatePickerSource = read('app/surat/_components/TemplatePickerModal.tsx');
+assert(
+  templatePickerSource.includes('data-module="persuratan"') &&
+    templatePickerSource.includes('psr-ui') &&
+    templatePickerSource.includes('useKepegawaianTabs') &&
+    templatePickerSource.includes('useDialogFocusReturn'),
+  'TemplatePickerModal.tsx must use data-module="persuratan", accessible tabs, and focus return.'
+);
+
+const dinasPageSource = read('app/surat/keluar/dinas/page.tsx');
+assert(
+  dinasPageSource.includes('psr-ui') &&
+    dinasPageSource.includes('data-module="persuratan"'),
+  'surat/keluar/dinas/page.tsx must use psr-ui and propagate data-module="persuratan" to dropdown portals.'
+);
+
+const settingsPageSource = read('app/surat/settings/page.tsx');
+assert(
+  settingsPageSource.includes('psr-ui') &&
+    settingsPageSource.includes('useConfirm') &&
+    settingsPageSource.includes('KepegawaianDialog') &&
+    settingsPageSource.includes('useKepegawaianTabs') &&
+    !settingsPageSource.includes('if (confirm('),
+  'surat/settings/page.tsx must replace native confirm() and custom modal divs with useConfirm and KepegawaianDialog.'
+);
+
+// 7. Physical print paper components must remain white/black in both themes
+const disposisiSheetSource = read('app/surat/_components/LembarDisposisiSheet.tsx');
+const suratDinasDocSource = read('app/surat/_components/SuratDinasDocument.tsx');
+assert(
+  disposisiSheetSource.includes('bg-white') && disposisiSheetSource.includes('text-black'),
+  'LembarDisposisiSheet.tsx must stay white/black for physical 2-Up printing.'
+);
+assert(
+  suratDinasDocSource.includes('bg-white') &&
+    suratDinasDocSource.includes('text-black') &&
+    !suratDinasDocSource.includes('shadow-xl ring-1'),
+  'SuratDinasDocument.tsx must stay white/black for A4 official document printing without heavy border shadows.'
+);
+
+// 8. Verify no undefined --ds-* tokens or solid-on-solid contrast bugs exist in app/surat
+function listTsxFiles(dir) {
+  let out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out = out.concat(listTsxFiles(full));
+    else if (full.endsWith('.tsx')) out.push(full);
+  }
+  return out;
+}
+
+const forbiddenTokens = [
+  '--ds-accent-border',
+  '--ds-accent-text',
+  '--ds-accent-solid-hover',
+  '--ds-surface-hover',
+  '--ds-fg-subtle',
+];
+
+for (const file of listTsxFiles(path.join(srcRoot, 'app/surat'))) {
+  const content = fs.readFileSync(file, 'utf8');
+  const rel = path.relative(srcRoot, file);
+  for (const bad of forbiddenTokens) {
+    assert(
+      !content.includes(bad),
+      `${rel} must not reference undefined token ${bad}.`
+    );
+  }
+}
+
+console.log('persuratan-ui.cjs: ALL CHECKS PASSED');

@@ -1477,7 +1477,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
   return (
     <div
       id="surat-dinas-print-root"
-      className="surat-dinas-print-root pkpknl-page w-[210mm] max-w-[210mm] mx-auto bg-white text-black shadow-xl ring-1 ring-zinc-200 rounded-xs selection:bg-blue-100"
+      className="surat-dinas-print-root pkpknl-page w-[210mm] max-w-[210mm] mx-auto bg-white text-black border border-[var(--ds-border-subtle)] rounded-xs selection:bg-blue-100"
       style={{
         padding: "0 0 1.5cm 0",
         fontFamily: "Arial, Helvetica, sans-serif",

@@ -138,10 +138,12 @@
  */
 [data-module="bmn"],
 [data-module="surat-tugas"],
-[data-module="kepegawaian"] {
+[data-module="kepegawaian"],
+[data-module="persuratan"] {
   --ds-canvas: #f8fafc;
   --ds-surface: #ffffff;
   --ds-fg: #0f172a;
+  --ds-fg-secondary: #334155;
   --ds-fg-muted: #475569;
   --ds-accent-on-solid: #ffffff;
   --ds-surface-raised: #ffffff;
@@ -203,15 +205,27 @@
   --ds-accent-soft-border: #bfdbfe;
 }
 
+[data-module="persuratan"] {
+  --ds-accent-solid: #4f46e5;
+  --ds-accent-hover: #4338ca;
+  --ds-accent-active: #3730a3;
+  --ds-accent-fg: #4f46e5;
+  --ds-accent-soft: #eef2ff;
+  --ds-accent-soft-border: #c7d2fe;
+}
+
 .dark[data-module="bmn"],
 .dark [data-module="bmn"],
 .dark[data-module="surat-tugas"],
 .dark [data-module="surat-tugas"],
 .dark[data-module="kepegawaian"],
-.dark [data-module="kepegawaian"] {
+.dark [data-module="kepegawaian"],
+.dark[data-module="persuratan"],
+.dark [data-module="persuratan"] {
   --ds-canvas: #09090b;
   --ds-surface: #18181b;
   --ds-fg: #f8fafc;
+  --ds-fg-secondary: #d4d4d8;
   --ds-fg-muted: #a1a1aa;
   --ds-accent-on-solid: #0f172a;
   --ds-surface-raised: #27272a;
@@ -274,6 +288,16 @@
   --ds-accent-fg: #93c5fd;
   --ds-accent-soft: #172554;
   --ds-accent-soft-border: #1e40af;
+}
+
+.dark[data-module="persuratan"],
+.dark [data-module="persuratan"] {
+  --ds-accent-solid: #818cf8;
+  --ds-accent-hover: #a5b4fc;
+  --ds-accent-active: #c7d2fe;
+  --ds-accent-fg: #a5b4fc;
+  --ds-accent-soft: #1e1b4b;
+  --ds-accent-soft-border: #3730a3;
 }
 
 /* Marquee animation for photo gallery */

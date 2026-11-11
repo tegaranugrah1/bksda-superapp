@@ -326,3 +326,15 @@ Dashboard Kepegawaian mempertahankan palet kategori yang dipilih pengguna. Kompo
 - Pertahankan foreground kategori/status agar label tetap terbaca dan makna semantik tidak hilang. Jangan menurunkan opacity seluruh elemen. CurrentColor mengikuti keluarga warna existing dan surface mengikuti light/dark; warna aksen tetap ada sebagai tint tipis.
 - Grafik komposisi tetap blue-600/amber-500/emerald-500. Grafik wilayah, angka utama, teks penting, tombol utama, hover dan seluruh motion tetap. Pelembutan hanya untuk dekorasi pendukung yang ditandai.
 - Kontras dari30 elemen aktual per tema (16 badge dan14 ikon) dihitung dari sRGB mix yang dilaporkan Chrome: minimum teks sekitar4.71:1 light/6.27:1 dark, ikon3.02:1 light/5.33:1 dark. Perhitungan menginversi campuran5% foreground/95% surface dan mengikuti pembulatan CSSOM; bukan sertifikasi seluruh halaman. Bukti dan batas ada pada laporan audit visual Kepegawaian.
+
+## Persuratan — 11 November 2026
+
+Gunakan scope `[data-module="persuratan"]` dengan `.psr-ui` pada halaman dan konten portal (Dialog, Popover, DropdownMenu, ConfirmDialog, KepegawaianDialog). Shell memakai `.psr-shell` dan mewarisi aturan fondasi bersama `.st-ui`/`.kpg-ui` tanpa membuat berkas CSS baru.
+
+- **Aksen Indigo (bagian 4.2):**
+  - Light: `--ds-accent-solid: #4f46e5` (6,29:1 pada putih), `--ds-accent-hover: #4338ca`, `--ds-accent-active: #3730a3`, `--ds-accent-on-solid: #ffffff`, `--ds-accent-fg: #4f46e5`, `--ds-accent-soft: #eef2ff`, `--ds-accent-soft-border: #c7d2fe`.
+  - Dark: `--ds-accent-solid: #818cf8` (8,89:1 pada `#18181b`, 5,98:1 terhadap `#0f172a`), `--ds-accent-hover: #a5b4fc`, `--ds-accent-active: #c7d2fe`, `--ds-accent-on-solid: #0f172a`, `--ds-accent-fg: #818cf8`, `--ds-accent-soft: #1e1b4b`, `--ds-accent-soft-border: #3730a3`.
+- **Sidebar & Header (`.psr-shell`):** Diselaraskan 1:1 dengan BMN dan Kepegawaian: subjudul `BKSDA Kalimantan Timur` uppercase tebal (`text-[11px] font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]`), judul grup `text-[var(--ds-fg-secondary)]`, indikator aktif spring (`stiffness: 450, damping: 35`) dengan titik aksen kanan (`w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)]`), footer `bg-[var(--ds-surface-muted)]`, dan drawer mobile yang menutup saat `Escape` serta mengembalikan fokus ke tombol menu.
+- **Dashboard (`.psr-ui.psr-dashboard`):** Memakai `.kpg-support-icon` dan `.kpg-support-badge` untuk pelembutan latar ikon/badge pendukung tanpa menghilangkan warna kategori kartu layanan (Surat Masuk, Surat Keluar, Surat Tugas).
+- **Kertas Cetak Resmi (`LembarDisposisiSheet`, `SuratDinasDocument`):** Tetap putih (`bg-white`) dan hitam (`text-black`) pada mode terang maupun gelap agar sesuai standar cetak fisik Letter 2-Up dan A4 Permen Kehutanan No. 1/2025. Rincian audit, ergonomi `1366 x 768` (100%), dan verifikasi tercatat di [audit visual Persuratan](testing/persuratan-visual-audit.md).
+

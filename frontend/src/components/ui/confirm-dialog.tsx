@@ -68,7 +68,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
     setOpen(false);
   };
 
-  const tokenized = ["bmn", "surat-tugas", "kepegawaian"].includes(options?.contentModule || "");
+  const tokenized = ["bmn", "surat-tugas", "kepegawaian", "persuratan"].includes(options?.contentModule || "");
   const variant = options?.variant || "danger";
 
   const iconColorMap = {

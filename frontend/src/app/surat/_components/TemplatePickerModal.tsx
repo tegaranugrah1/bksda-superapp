@@ -24,7 +24,6 @@ import {
   ClipboardList,
   Handshake,
   Medal,
-  CheckCircle2,
   Star,
 } from "lucide-react";
 import {
@@ -36,6 +35,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useKepegawaianTabs } from "@/app/kepegawaian/_lib/useKepegawaianTabs";
+import { KepegawaianTabContent } from "@/app/kepegawaian/_components/KepegawaianTabContent";
+import { useDialogFocusReturn } from "@/components/ui/use-dialog-focus-return";
 
 import { TemplateType } from "./SuratDinasDocument";
 
@@ -304,13 +306,22 @@ export const ALL_TEMPLATES: TemplateItem[] = [
   },
 ];
 
-const CATEGORY_TABS: { id: TemplateCategory; label: string; activeClass: string }[] = [
-  { id: "all", label: `Semua (${ALL_TEMPLATES.length})`, activeClass: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" },
-  { id: "favorit", label: "⭐ Favorit (3)", activeClass: "bg-amber-500 text-white shadow-xs font-bold" },
-  { id: "korespondensi", label: `Korespondensi (${ALL_TEMPLATES.filter((t) => t.category === "korespondensi").length})`, activeClass: "bg-blue-600 text-white" },
-  { id: "administrasi", label: `Administrasi & Tugas (${ALL_TEMPLATES.filter((t) => t.category === "administrasi").length})`, activeClass: "bg-emerald-600 text-white" },
-  { id: "regulasi", label: `Regulatif & Telaah (${ALL_TEMPLATES.filter((t) => t.category === "regulasi").length})`, activeClass: "bg-amber-600 text-white" },
-  { id: "kemitraan", label: `PKS & Apresiasi (${ALL_TEMPLATES.filter((t) => t.category === "kemitraan").length})`, activeClass: "bg-teal-600 text-white" },
+const CATEGORY_KEYS: readonly TemplateCategory[] = [
+  "all",
+  "favorit",
+  "korespondensi",
+  "administrasi",
+  "regulasi",
+  "kemitraan",
+];
+
+const CATEGORY_TABS: { id: TemplateCategory; label: string }[] = [
+  { id: "all", label: `Semua (${ALL_TEMPLATES.length})` },
+  { id: "favorit", label: "⭐ Favorit (3)" },
+  { id: "korespondensi", label: `Korespondensi (${ALL_TEMPLATES.filter((t) => t.category === "korespondensi").length})` },
+  { id: "administrasi", label: `Administrasi & Tugas (${ALL_TEMPLATES.filter((t) => t.category === "administrasi").length})` },
+  { id: "regulasi", label: `Regulatif & Telaah (${ALL_TEMPLATES.filter((t) => t.category === "regulasi").length})` },
+  { id: "kemitraan", label: `PKS & Apresiasi (${ALL_TEMPLATES.filter((t) => t.category === "kemitraan").length})` },
 ];
 
 interface TemplatePickerModalProps {
@@ -322,6 +333,8 @@ interface TemplatePickerModalProps {
 export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: TemplatePickerModalProps) {
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const focusReturn = useDialogFocusReturn();
+  const tabs = useKepegawaianTabs(activeCategory, "Filter kategori tata naskah dinas");
 
   const filteredTemplates = React.useMemo(() => {
     let list = ALL_TEMPLATES.filter((tpl) => {
@@ -357,21 +370,25 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl sm:max-w-5xl p-6 bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800">
-        <DialogHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+      <DialogContent
+        data-module="persuratan"
+        {...focusReturn}
+        className="psr-ui max-w-4xl sm:max-w-5xl p-5 md:p-6 bg-[var(--ds-surface)] rounded-2xl shadow-2xl border border-[var(--ds-border-subtle)]"
+      >
+        <DialogHeader className="pb-3 border-b border-[var(--ds-border-subtle)]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <DialogTitle className="text-base sm:text-lg font-bold text-[var(--ds-fg)] flex items-center gap-2">
                   Katalog Tata Naskah Dinas Resmi
-                  <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold">
+                  <Badge variant="outline" className="text-[10px] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-semibold">
                     Permen Kehutanan 1/2025
                   </Badge>
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                   20 format baku naskah dinas Kementerian Kehutanan & BKSDA Kalimantan Timur.
                 </DialogDescription>
               </div>
@@ -382,85 +399,96 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                 placeholder="Cari jenis naskah..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 text-xs bg-zinc-50 dark:bg-zinc-900"
+                className="h-8 text-xs"
               />
             </div>
           </div>
 
           {/* Filter Categories Tabs */}
-          <div className="flex items-center gap-1.5 pt-3 overflow-x-auto">
-            {CATEGORY_TABS.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                  activeCategory === cat.id
-                    ? cat.activeClass
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          <div
+            {...tabs.tabListProps}
+            className="kpg-pill-tabs flex items-center gap-1 pt-2 p-1 rounded-xl overflow-x-auto"
+          >
+            {CATEGORY_TABS.map((cat) => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  {...tabs.tabProps(cat.id)}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                    isActive
+                      ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
         </DialogHeader>
 
         {/* Grid Template Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 py-3 max-h-[60vh] overflow-y-auto pr-1">
-          {filteredTemplates.map((tpl) => {
-            const Icon = tpl.icon;
-            return (
-              <Link
-                key={tpl.id}
-                href={`/surat/keluar/dinas?template=${tpl.id}`}
-                onClick={(e) => handleCardClick(e, tpl.id)}
-                className="group relative flex flex-col justify-between p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white hover:bg-zinc-50 dark:bg-zinc-900/60 dark:hover:bg-zinc-900 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 hover:shadow-md transition-all duration-200 text-left"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
-                        <Icon className="h-4 w-4" />
+        <div {...tabs.panelProps}>
+          <KepegawaianTabContent key={activeCategory}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 py-3 max-h-[60vh] overflow-y-auto pr-1">
+            {filteredTemplates.map((tpl) => {
+              const Icon = tpl.icon;
+              return (
+                <Link
+                  key={tpl.id}
+                  href={`/surat/keluar/dinas?template=${tpl.id}`}
+                  onClick={(e) => handleCardClick(e, tpl.id)}
+                  className="kpg-card group relative flex flex-col justify-between p-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-150 text-left"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        {tpl.isFavorite && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
+                            <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                            Favorit
+                          </span>
+                        )}
                       </div>
-                      {tpl.isFavorite && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
-                          <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                          Favorit
-                        </span>
-                      )}
+                      <span className="text-[10px] font-mono text-[var(--ds-fg-muted)] font-semibold">
+                        Hal. {tpl.hal}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-mono text-zinc-400 font-semibold">
-                      Hal. {tpl.hal}
-                    </span>
+
+                    <h3 className="text-xs font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
+                      {tpl.name}
+                    </h3>
+
+                    <div className="text-[9.5px] font-mono text-[var(--ds-fg-muted)] mt-1 mb-1.5 bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded inline-block">
+                      {tpl.prefix}
+                    </div>
+
+                    <p className="text-[11px] text-[var(--ds-fg-muted)] leading-snug line-clamp-2">
+                      {tpl.description}
+                    </p>
                   </div>
 
-                  <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {tpl.name}
-                  </h3>
-
-                  <div className="text-[9.5px] font-mono text-zinc-500 dark:text-zinc-400 mt-1 mb-1.5 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded inline-block">
-                    {tpl.prefix}
+                  <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[var(--ds-border-subtle)] text-[11px] font-semibold text-[var(--ds-accent-fg)]">
+                    <span>Buat Dokumen</span>
+                    <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
                   </div>
-
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-snug line-clamp-2">
-                    {tpl.description}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-zinc-100 dark:border-zinc-800 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  <span>Buat Dokumen</span>
-                  <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
+          </div>
+          </KepegawaianTabContent>
         </div>
 
         {/* Footer Info */}
-        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+        <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-[11px] text-[var(--ds-fg-muted)]">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+            <ShieldCheck className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
             <span>Format baku resmi Balai KSDA Kalimantan Timur</span>
           </div>
           <span className="text-[10.5px]">20 Jenis Format Tersedia</span>

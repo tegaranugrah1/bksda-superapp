@@ -351,43 +351,47 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   };
 
   return (
-    <div className="space-y-6">
+    <div className="psr-ui space-y-5">
       {/* ── Action Toolbar ── */}
-      <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-emerald-600" />
+      <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+            <FileText className="h-4 w-4" />
+          </div>
           <div>
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+            <h2 className="text-sm font-bold text-[var(--ds-fg)]">
               Form Lembar Disposisi (BKSDA KALTIM)
             </h2>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Form isian informasi surat masuk untuk dicetak 2-Up (Letter dibagi 2).
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isTwoUpMode && (
-            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
-              <span className="px-2 text-[10px] text-zinc-500 font-bold">Posisi 1-Up:</span>
+            <div className="flex items-center gap-1 bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] p-0.5 rounded-xl text-xs font-semibold">
+              <span className="px-2 text-[10px] text-[var(--ds-fg-muted)] font-bold">Posisi 1-Up:</span>
               <button
                 type="button"
+                aria-pressed={oneUpPosition === "kiri"}
                 onClick={() => setOneUpPosition("kiri")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   oneUpPosition === "kiri"
-                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
                 ⬅️ Kiri
               </button>
               <button
                 type="button"
+                aria-pressed={oneUpPosition === "kanan"}
                 onClick={() => setOneUpPosition("kanan")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   oneUpPosition === "kanan"
-                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
                 Kanan ➡️
@@ -399,8 +403,13 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             type="button"
             variant="outline"
             size="sm"
+            aria-pressed={isTwoUpMode}
             onClick={handleToggleTwoUpMode}
-            className={`h-9 text-xs font-semibold ${isTwoUpMode ? "border-emerald-600 text-emerald-700 bg-emerald-50" : ""}`}
+            className={`h-9 text-xs font-semibold rounded-xl ${
+              isTwoUpMode
+                ? "border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)]"
+                : "kpg-secondary"
+            }`}
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             {isTwoUpMode ? "Mode 2-Up Aktif (2 Form)" : "Aktifkan Input 2 Form"}
@@ -411,7 +420,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             variant="outline"
             size="sm"
             onClick={handlePrint}
-            className="h-9 text-xs font-semibold text-zinc-700 hover:bg-zinc-100"
+            className="kpg-secondary h-9 text-xs font-semibold rounded-xl"
           >
             <Printer className="mr-1.5 h-3.5 w-3.5" />
             {isTwoUpMode ? "Cetak 2-Up (2 Disposisi Side-by-Side)" : "Cetak 1-Up (1 Disposisi)"}
@@ -421,7 +430,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             type="button"
             onClick={() => handleSubmit()}
             disabled={loading}
-            className="h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            className="h-9 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl"
           >
             <Save className="mr-1.5 h-3.5 w-3.5" />
             {loading ? "Menyimpan..." : "Simpan Surat Masuk"}
@@ -430,14 +439,14 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       </div>
 
       {/* ── Form Input Fields (Form 1) ── */}
-      <div className="no-print grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="no-print grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Form 1 Input Card */}
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-            <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider">
-              1. Informai Agenda & Header
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
+            <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
+              1. Informasi Agenda & Header
             </span>
-            <span className="text-[11px] text-zinc-400">Lembar 1 (Utama)</span>
+            <span className="text-[11px] text-[var(--ds-fg-muted)]">Lembar 1 (Utama)</span>
           </div>
 
           {/* Agenda & Tanggal Atas */}
@@ -475,8 +484,8 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           </div>
 
           {/* Detail Surat */}
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-3">
-            <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider block">
+          <div className="border-t border-[var(--ds-border-subtle)] pt-3 space-y-3">
+            <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider block">
               2. Informasi Naskah Surat
             </span>
 
@@ -560,9 +569,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
           </div>
 
           {/* Manager Penerus "DITERUSKAN KEPADA YTH" */}
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
+          <div className="border-t border-[var(--ds-border-subtle)] pt-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider">
+              <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
                 3. Daftar Penerus (Diteruskan Kepada Yth)
               </span>
               <div className="flex items-center gap-1.5">
@@ -571,7 +580,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   variant="outline"
                   size="sm"
                   onClick={handleSaveDefaultRecipients1}
-                  className="h-6 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+                  className="h-6 text-[10px] font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] hover:opacity-90"
                 >
                   <Save className="mr-1 h-3 w-3" />
                   Simpan Default ({diteruskanList1.length})
@@ -581,7 +590,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   variant="ghost"
                   size="sm"
                   onClick={handleResetRecipients1}
-                  className="h-6 text-[10px] text-zinc-500 hover:text-zinc-900"
+                  className="h-6 text-[10px] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 >
                   <RotateCcw className="mr-1 h-3 w-3" />
                   Reset Bawaan
@@ -607,7 +616,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 type="button"
                 size="sm"
                 onClick={handleAddRecipient1}
-                className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="h-8 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
               >
                 <Plus className="mr-1 h-3 w-3" />
                 Tambah
@@ -615,13 +624,13 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             </div>
 
             {/* Daftar Item Penerus Editable */}
-            <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-zinc-200 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/50">
+            <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface-muted)]">
               {diteruskanList1.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <Input
                     value={item}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient1(idx, e.target.value)}
-                    className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
+                    className="h-7 text-xs bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]"
                   />
                   <Button
                     type="button"
@@ -640,9 +649,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
 
         {/* Form 2 Input Card (Optional 2-Up Mode) */}
         {isTwoUpMode ? (
-          <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider">
+          <div className="space-y-4 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
+              <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
                 Disposisi 2 (Form Kanan 2-Up)
               </span>
               <Button
@@ -650,7 +659,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyForm1ToForm2}
-                className="h-7 text-[11px] font-semibold text-blue-600 hover:bg-blue-50"
+                className="h-7 text-[11px] font-semibold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]"
               >
                 <Copy className="mr-1 h-3 w-3" />
                 Salin dari Form 1
@@ -803,13 +812,13 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
               </div>
 
               {/* Daftar Item Penerus Editable Form 2 */}
-              <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-zinc-200 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/50">
+              <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface-muted)]">
                 {diteruskanList2.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Input
                       value={item}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient2(idx, e.target.value)}
-                      className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
+                      className="h-7 text-xs bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]"
                     />
                     <Button
                       type="button"
@@ -826,18 +835,18 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-zinc-200 rounded-2xl bg-zinc-50/50 text-center">
-            <Shield className="h-10 w-10 text-zinc-300 mb-2" />
-            <h4 className="font-bold text-xs text-zinc-700">Pratinjau Cetak Lembar Disposisi 2-Up</h4>
-            <p className="text-[11px] text-zinc-500 max-w-xs mt-1 leading-relaxed">
-              Secara bawaan, cetakan akan merender **2-Up (salinan duplikat Form 1)** pada 1 halaman kertas Letter Landscape agar pas dibagi 2.
+          <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-[var(--ds-border-subtle)] rounded-2xl bg-[var(--ds-surface-muted)] text-center">
+            <Shield className="h-10 w-10 text-[var(--ds-fg-muted)] mb-2" />
+            <h4 className="font-bold text-xs text-[var(--ds-fg)]">Pratinjau Cetak Lembar Disposisi 2-Up</h4>
+            <p className="text-[11px] text-[var(--ds-fg-muted)] max-w-xs mt-1 leading-relaxed">
+              Secara bawaan, cetakan akan merender <strong>2-Up (salinan duplikat Form 1)</strong> pada 1 halaman kertas Letter Landscape agar pas dibagi 2.
             </p>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsTwoUpMode(true)}
-              className="mt-4 h-8 text-xs font-semibold"
+              className="kpg-secondary mt-4 h-8 text-xs font-semibold rounded-xl"
             >
               Input Disposisi Kedua Berbeda
             </Button>
@@ -848,24 +857,26 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       {/* ── Live Print Layout Preview (1-Up or 2-Up) ── */}
       <div className="space-y-2">
         <div className="no-print flex items-center justify-between px-1">
-          <span className="font-bold text-xs text-zinc-700 uppercase tracking-wider">
+          <span className="font-bold text-xs text-[var(--ds-fg-muted)] uppercase tracking-wider">
             {isTwoUpMode ? "Pratinjau Cetak Fisik 2-Up (Letter Landscape)" : "Pratinjau Cetak Fisik 1-Up (1 Lembar Disposisi)"}
           </span>
-          <span className="text-[11px] text-zinc-400">
+          <span className="text-[11px] text-[var(--ds-fg-muted)]">
             {isTwoUpMode ? "Ukuran Kertas: Letter divided by 2 (Side-by-side)" : "Ukuran Kertas: 1 Lembar Disposisi"}
           </span>
         </div>
 
-        <LembarDisposisi2UpPrint
-          surat1={formData1}
-          diteruskan1={diteruskanList1}
-          catatan1={catatanDisposisi1}
-          surat2={isTwoUpMode ? formData2 : undefined}
-          diteruskan2={isTwoUpMode ? diteruskanList2 : undefined}
-          catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
-          isTwoUpMode={isTwoUpMode}
-          oneUpPosition={oneUpPosition}
-        />
+        <div className="overflow-x-auto pb-2">
+          <LembarDisposisi2UpPrint
+            surat1={formData1}
+            diteruskan1={diteruskanList1}
+            catatan1={catatanDisposisi1}
+            surat2={isTwoUpMode ? formData2 : undefined}
+            diteruskan2={isTwoUpMode ? diteruskanList2 : undefined}
+            catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
+            isTwoUpMode={isTwoUpMode}
+            oneUpPosition={oneUpPosition}
+          />
+        </div>
       </div>
     </div>
   );

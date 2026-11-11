@@ -57,32 +57,32 @@ export default function CreateSuratKeluarPage() {
   };
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-4 text-[var(--ds-fg)]">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/surat/keluar">
-          <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl">
+          <Button variant="outline" size="sm" aria-label="Kembali ke Daftar Surat Keluar" className="kpg-secondary h-9 w-9 p-0 rounded-xl">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
           <div className="flex items-center gap-2">
-            <Send className="h-4 w-4 text-blue-600" />
-            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+            <Send className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+            <h1 className="text-lg font-bold text-[var(--ds-fg)]">
               Input Surat Keluar Baru
             </h1>
           </div>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--ds-fg-muted)]">
             Pencatatan & Pengagendaan naskah dinas keluar resmi.
           </p>
         </div>
       </div>
 
       {/* Form Card */}
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Nomor Surat Keluar *</label>
+            <label className="text-xs font-semibold text-[var(--ds-fg)]">Nomor Surat Keluar *</label>
             <Input
               value={formData.no_surat}
               onChange={(e) => setFormData({ ...formData, no_surat: e.target.value })}
@@ -93,7 +93,7 @@ export default function CreateSuratKeluarPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Surat *</label>
+            <label className="text-xs font-semibold text-[var(--ds-fg)]">Tanggal Surat *</label>
             <Input
               type="date"
               value={formData.tanggal_surat}
@@ -106,7 +106,7 @@ export default function CreateSuratKeluarPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Kode Klasifikasi</label>
+            <label className="text-xs font-semibold text-[var(--ds-fg)]">Kode Klasifikasi</label>
             <Input
               value={formData.kode_klasifikasi}
               onChange={(e) => setFormData({ ...formData, kode_klasifikasi: e.target.value })}
@@ -116,11 +116,11 @@ export default function CreateSuratKeluarPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Sifat Surat</label>
+            <label className="text-xs font-semibold text-[var(--ds-fg)]">Sifat Surat</label>
             <select
               value={formData.sifat}
               onChange={(e) => setFormData({ ...formData, sifat: e.target.value })}
-              className="mt-1 flex h-9 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              className="mt-1 flex h-9 w-full rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-1 text-xs text-[var(--ds-fg)] transition-colors"
             >
               <option value="Biasa">Biasa</option>
               <option value="Penting">Penting</option>
@@ -133,7 +133,7 @@ export default function CreateSuratKeluarPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Tujuan / Penerima Surat *</label>
+          <label className="text-xs font-semibold text-[var(--ds-fg)]">Tujuan / Penerima Surat *</label>
           <Input
             value={formData.tujuan_surat}
             onChange={(e) => setFormData({ ...formData, tujuan_surat: e.target.value })}
@@ -144,7 +144,7 @@ export default function CreateSuratKeluarPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Perihal Surat *</label>
+          <label className="text-xs font-semibold text-[var(--ds-fg)]">Perihal Surat *</label>
           <Textarea
             value={formData.perihal}
             onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
@@ -156,7 +156,7 @@ export default function CreateSuratKeluarPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Jumlah Lampiran</label>
+          <label className="text-xs font-semibold text-[var(--ds-fg)]">Jumlah Lampiran</label>
           <Input
             value={formData.lampiran}
             onChange={(e) => setFormData({ ...formData, lampiran: e.target.value })}
@@ -166,28 +166,34 @@ export default function CreateSuratKeluarPage() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Unggah Berkas Naskah Dinas (PDF/Gambar)</label>
-          <div className="flex items-center gap-3 p-3 border border-dashed border-zinc-300 rounded-xl bg-zinc-50/50">
-            <Upload className="h-5 w-5 text-zinc-400 shrink-0" />
+          <label htmlFor="surat-keluar-file-upload" className="text-xs font-semibold text-[var(--ds-fg)] block mb-1">
+            Unggah Berkas Naskah Dinas (PDF/Gambar)
+          </label>
+          <label
+            htmlFor="surat-keluar-file-upload"
+            className="kpg-upload flex items-center gap-3 p-3 border border-dashed border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface-muted)] cursor-pointer transition-colors"
+          >
+            <Upload className="h-5 w-5 text-[var(--ds-fg-muted)] shrink-0" />
             <input
+              id="surat-keluar-file-upload"
               type="file"
               accept=".pdf,.jpg,.jpeg,.png,.webp"
               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-              className="text-xs text-zinc-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="text-xs text-[var(--ds-fg-muted)] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--ds-accent-soft)] file:text-[var(--ds-accent-fg)] hover:file:opacity-90"
             />
-          </div>
+          </label>
         </div>
 
-        <div className="pt-4 flex items-center justify-end gap-3 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-[var(--ds-border-subtle)]">
           <Link href="/surat/keluar">
-            <Button type="button" variant="ghost" className="h-9 text-xs">
+            <Button type="button" variant="outline" className="kpg-secondary h-9 text-xs rounded-xl">
               Batal
             </Button>
           </Link>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+            className="h-9 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl"
           >
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
             Simpan Surat Keluar
