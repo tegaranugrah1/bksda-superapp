@@ -84,7 +84,7 @@ function reset(search = '') { state = []; params = new URLSearchParams(search); 
 // Check the real solid token pairs used by Data Aset, without rounding into a pass.
 const css = fs.readFileSync(path.join(__dirname, '../src/app/globals.css'), 'utf8');
 // Resolve the common foundation and the module overrides in stylesheet order.
-const themeBlocks = ['bmn', 'surat-tugas'].flatMap(module => [false, true].map(dark => {
+const themeBlocks = ['bmn', 'surat-tugas', 'kepegawaian'].flatMap(module => [false, true].map(dark => {
   const tokens = {};
   const scope = `[data-module="${module}"]`;
   for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]+)\}/g)) {
@@ -102,7 +102,7 @@ function contrast(a, b) {
   const x = luminance(a), y = luminance(b);
   return (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
 }
-assert.equal(themeBlocks.length, 4);
+assert.equal(themeBlocks.length, 6);
 for (const tokens of themeBlocks) {
   for (const bg of ['canvas', 'surface', 'surface-raised', 'surface-muted']) {
     assert(contrast(tokens.fg, tokens[bg]) >= 4.5, `Foreground on ${bg}`);

@@ -137,7 +137,8 @@
  * Scoped tokens per data-module attribute
  */
 [data-module="bmn"],
-[data-module="surat-tugas"] {
+[data-module="surat-tugas"],
+[data-module="kepegawaian"] {
   --ds-canvas: #f8fafc;
   --ds-surface: #ffffff;
   --ds-fg: #0f172a;
@@ -193,10 +194,21 @@
   --ds-accent-soft-border: #bae6fd;
 }
 
+[data-module="kepegawaian"] {
+  --ds-accent-solid: #2563eb;
+  --ds-accent-hover: #1d4ed8;
+  --ds-accent-active: #1e40af;
+  --ds-accent-fg: #2563eb;
+  --ds-accent-soft: #eff6ff;
+  --ds-accent-soft-border: #bfdbfe;
+}
+
 .dark[data-module="bmn"],
 .dark [data-module="bmn"],
 .dark[data-module="surat-tugas"],
-.dark [data-module="surat-tugas"] {
+.dark [data-module="surat-tugas"],
+.dark[data-module="kepegawaian"],
+.dark [data-module="kepegawaian"] {
   --ds-canvas: #09090b;
   --ds-surface: #18181b;
   --ds-fg: #f8fafc;
@@ -252,6 +264,16 @@
   --ds-accent-fg: #7dd3fc;
   --ds-accent-soft: #082f49;
   --ds-accent-soft-border: #075985;
+}
+
+.dark[data-module="kepegawaian"],
+.dark [data-module="kepegawaian"] {
+  --ds-accent-solid: #60a5fa;
+  --ds-accent-hover: #93c5fd;
+  --ds-accent-active: #bfdbfe;
+  --ds-accent-fg: #93c5fd;
+  --ds-accent-soft: #172554;
+  --ds-accent-soft-border: #1e40af;
 }
 
 /* Marquee animation for photo gallery */

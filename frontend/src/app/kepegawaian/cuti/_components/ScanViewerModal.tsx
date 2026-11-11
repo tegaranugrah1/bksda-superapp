@@ -13,7 +13,7 @@ interface ScanViewerModalProps {
   scanUrl: string | null;
   fileName?: string | null;
   onClose: () => void;
-  contentModule?: "surat-tugas";
+  contentModule?: "surat-tugas" | "kepegawaian";
   returnFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
@@ -230,7 +230,7 @@ export function ScanViewerModal({
             event.preventDefault();
             returnFocusRef.current.focus();
           }}
-          className="st-ui w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl"
+          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl`}
         >
           {viewer}
         </DialogContent>

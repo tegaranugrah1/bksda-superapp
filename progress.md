@@ -2056,3 +2056,61 @@
 - Inbox menonaktifkan interaksi panel yang sedang keluar, membersihkan pembaca dan seleksi saat ganti tab, dan membedakan kegagalan kueri dari daftar kosong. Checkbox dan aksi baris dapat diakses di layar sempit. Draft pengajuan bertahan saat kembali ke langkah sebelumnya. Dialog lampiran dan pratinjau Portal mengembalikan fokus ke pemicu.
 - Next typegen, TypeScript, ESLint file yang berubah, diff check dan lima fixture BMN lulus. Chrome lokal menguji light/dark, 390 px dan desktop, navigasi keyboard, lampiran, dialog, draft, layout A4, serta verifikasi sah/gagal. Pratinjau Portal memakai data contoh karena akun uji belum memiliki surat. Fixture sementara sudah dihapus. Pengujian perubahan data, unduh, dan cetak aktual belum dijalankan. Emulasi reduced motion browser tetap diuji pengguna.
 - Laporan [audit visual Surat Tugas](docs/testing/surat-tugas-visual-audit.md), pedoman warna dan animasi, serta perubahan kode disimpan dalam satu commit lokal.
+
+
+## 90. Audit Visual Kepegawaian (11 November 2026)
+
+- Dashboard, daftar/tambah/detail pegawai beserta lima tab profil, hak akses/lifecycle, inbox cuti dan pratinjau/unggahan, Uang Makan, Arsip Surat Masuk, serta panel pengaturan terkait mengikuti fondasi BMN/Surat Tugas dengan aksen Blue Kepegawaian. Pointer, hover/fokus150ms, border input halus, teks pendukung12px dan target ikon36px diterapkan. Modal memakai Dialog existing dan focus-return, termasuk pemicu dari menu.
+- Animasi isi tab160ms per fase, garis bawah2px/spring420/32 dan ID unik mendukung panah/Home/End. Panel keluar inert. Entrance halaman280ms dan dialog/menu150ms. Hover personel dashboard150ms dan batang600ms dipertahankan dengan cabang reduced motion. Foto profil fokusable serta terlihat di mobile, dengan state pending upload dan reset saat gagal.
+- Temuan fungsional UI diperbaiki. Tautan kategori/wilayah dashboard mengirim status=all dan daftar meneruskan nilai all secara eksplisit ke API existing. Browser mengonfirmasi97 PNS sesuai dashboard. Kartu aktif di daftar diberi keterangan aktif. Grafik kosong memakai0persen. Error/loading dibedakan dari empty. Sel presensi menjadi tombol native dengan guard non-admin.
+- Uji tablet menemukan header terpotong saat sidebar terbuka. Header kini bertumpuk pada lebar menengah. Dashboard muat pada390/768/1024/1440/1920px, dengan main clientWidth/scrollWidth482/482 pada768px. Formulir dan surat izin cuti A4 memakai scroll internal dengan sisi kiri kertas terjangkau, putih/hitam sekitar794px. Template cetak existing dipakai.
+- Browser lokal menguji light/dark, keyboard, form tanpa simpan, dialog/Escape/focus-return, berkas scan cuti, tab pengaturan/bank, checkbox Space, dan warna scope Surat Tugas. Matriks/nominatif/koreksi serta pratinjau cuti memakai fixture contoh dengan API writes ditolak. Koreksi contoh bertahan setelah pindah tab. Fixture sementara telah dihapus dan tipe Next diregenerasi.
+- Next typegen, TypeScript, ESLint source/fixture, diff check, fixture Kepegawaian dan lima regresi BMN lulus. Kontras enam set token light/dark dari tiga modul lulus. Impeccable source detector tidak menemukan temuan tersisa. Tes callback Portal tambahan memerlukan mount Linux dan terhenti pada path di Windows. Browser reduced motion tetap diuji mandiri pengguna. Transaksi operasional, upload/cetak/unduh aktual serta sesi akun read-only belum diuji browser.
+- Laporan docs/testing/kepegawaian-visual-audit.md, pedoman warna dan pedoman animasi diperbarui. Bukti kepegawaian-create-desktop-light.png dan kepegawaian-cuti-fixture-mobile-dark.png tersimpan pada folder visualisasi sesi. Browser dipulihkan ke tema terang/viewport desktop tanpa dialog. Perubahan belum dicommit, push atau deploy. HEAD tetap d4db6300. frontend/AGENTS.md otomatis tetap di luar cakupan.
+
+
+## 91. Koreksi Dashboard Kepegawaian Berdasarkan Umpan Balik (11 November 2026)
+
+- Dashboard dipulihkan ke palet kategori sebelum audit. PNS blue-600, PPPK amber-500 dan MMP emerald-500. Ikon, kartu kategori/layanan dan grafik wilayah kembali mengikuti keluarga warna asal. Kuning komposisi sebelumnya berubah cokelat karena memakai status-warning-fg.
+- Entrance CSS280ms tambahan pada dashboard dihapus sehingga pembukaan mengikuti transisi route160ms. Hover personel y-2, layanan y-3, tap0.98, aktivitas x3 dan wilayah x2 memakai timing150ms seperti acuan semula. Batang600ms dengan delay0/100/200ms. Cabang reduced motion tersedia.
+- Browser mengonfirmasi root dashboard animation-name none, jarak antarpanel20px, tablet768px main482/482 dan mobile dark390px main360/360 tanpa luapan. Tema terang dan viewport desktop dipulihkan. Bukti kepegawaian-dashboard-restored.png tersimpan pada folder visualisasi sesi.
+- TypeScript, ESLint, fixture Kepegawaian dan diff check lulus. Fixture memeriksa palet tiga batang, timing serta ketiadaan entrance tambahan. Laporan audit dan kedua pedoman diperbarui agar dashboard tetap mengikuti acuan ini. Perubahan belum dicommit.
+
+
+## 92. Pemulihan Tab dan Sidebar Kepegawaian (11 November 2026)
+
+- Menindaklanjuti keluhan animasi berat, pola sebelum audit dipulihkan. Entrance CSS280ms tambahan dihapus dari seluruh halaman Kepegawaian; route kembali memakai satu transisi160ms existing. Sidebar kembali width/transform200ms, hoverx2/tap0.98 selama120ms dan indikator spring420/32.
+- Tab utama profil/pengaturan/uang makan kembali memakai pill penuh dan isi160ms/y8. Hasil filter pegawai/cuti/arsip kembali140ms/y4 dengan exit opacity saja. Subtab hari libur/bank dan internal dialog bank kembali langsung. ARIA, navigasi keyboard, exiting inert dan fallback reduced motion dipertahankan.
+- Fixture Kepegawaian, TypeScript, ESLint source/fixture yang berubah dan diff check lulus. Chrome memeriksa collapse288/80px, keyboard tab, subtab/dialog bank, navigasi sidebar, pill light/dark, Escape drawer dengan fokus kembali dan layout390/768px tanpa luapan main. Bukti kepegawaian-navigation-restored.png tersimpan pada folder visualisasi sesi. Bukan benchmark FPS; reduced motion browser tetap diuji pengguna.
+- Pedoman warna, animasi dan laporan audit diperbarui agar audit berikutnya mempertahankan pola yang disukai pengguna. Tema terang dan viewport desktop dipulihkan. Belum commit, push atau deploy.
+
+
+## 93. Animasi Isi Tab Mengikuti Inbox Surat Tugas (11 November 2026)
+
+- Pengguna menegaskan acuan animasi adalah perpindahan Kotak Masuk ke Menunggu Persetujuan di Inbox Surat Tugas. Isi tab Kepegawaian kini mengikuti opacity/y8 masuk, opacity/y-8 keluar,160ms/easeOut per fase dengan mode wait/initial=false. Varian hasil filter140ms dihapus; subtab hari libur/bank dan internal dialog bank memakai helper yang sama. Ketentuan ini menggantikan pilihan sementara pada bagian92. Pill tab, tiga warna dashboard dan sidebar tetap.
+- Fixture membandingkan properti motion helper dengan fungsi InboxTabContent asli pada normal/reduced serta present/exiting. Fixture Kepegawaian, TypeScript, ESLint berkas yang disentuh dan diff check lulus. Browser menguji acuan inbox, klik/keyboard tab, subtab bank, dialog/Escape serta draft contoh yang bertahan setelah pindah tab. Draft dikosongkan tanpa simpan. Layout390/768px muat; viewport desktop/tema terang dipulihkan. Reduced motion browser tetap diuji pengguna.
+- Pedoman animasi dan laporan audit diperbarui. Bukti statis kepegawaian-inbox-motion-reference.png tersimpan pada folder visualisasi sesi. Belum commit, push atau deploy.
+
+
+## 94. Empat Perbaikan Visual Statis Kepegawaian (11 November 2026)
+
+- Tanggal Aktivitas Terkini memakai fg-muted light#475569/dark#a1a1aa. Badge aktivitas menggunakan helper label Inbox Surat Tugas sehingga pending/approved tampil Menunggu Persetujuan/Diterbitkan; metadata membungkus pada mobile.
+- SDM & Administrasi di sidebar memakai kalimat biasa tanpa ellipsis; keterangan ringkasan pegawai membungkus agar NIPPPK terbaca penuh. Dialog kelola bank/edit rekening memakai satu lapisan radius12px dari DialogContent, tanpa border/shadow/surface ganda pada isi.
+- Animasi dan palet tiga warna dashboard dipertahankan. Snapshot properti Framer/AnimatePresence sebelum/sesudah enam berkas sama persis. Fixture label status/fallback, palet grafik dan motion Inbox lulus; TypeScript, ESLint terkait serta diff check lulus.
+- Browser memeriksa dashboard light/dark, teks sidebar desktop/tablet, kartu359/390px, metadata390px, kedua dialog bank/Escape dan dialog dark mobile. Lebar main tidak meluap pada359/390/768px yang diperiksa. Tidak menyimpan/mengubah data operasional. Tema terang/viewport desktop dipulihkan; reduced motion browser tetap diuji pengguna.
+- Pedoman warna, pedoman animasi dan laporan audit diperbarui. Bukti kepegawaian-four-visual-fixes.png, kepegawaian-readability-mobile.png dan kepegawaian-bank-single-surface.png tersimpan pada folder visualisasi sesi. Belum commit, push atau deploy.
+
+
+## 95. Pelembutan Aksen Pendukung Dashboard Kepegawaian (11 November2026)
+
+- Latar badge/ikon pendukung memakai tint currentColor5% pada surface light/dark. Border ikon12%, border badge transparan. Foreground kategori/status tetap terbaca. Scope hanya dashboard Kepegawaian; tidak mengubah token global atau halaman lain.
+- Tiga warna komposisi, grafik wilayah, angka/tombol utama dan seluruh animasi dipertahankan. Perbandingan snapshot source membuktikan TSX hanya mendapat nama class penanda, sedangkan CSS hanya mendapat tiga aturan warna; logika/data/link/motion tetap.
+- Fixture Kepegawaian, TypeScript, ESLint source terkait dan diff check lulus. Browser memeriksa desktop light/dark serta359/390/768px tanpa overflow badge/main, dan menu Enter/Escape/focus-return. Kontras30 elemen per tema: minimum teks sekitar4.71/6.27 dan ikon3.02/5.33 untuk light/dark. Bukti kepegawaian-soft-support-light.png dan kepegawaian-soft-support-dark.png tersimpan pada folder visualisasi sesi. Tema terang/viewport desktop dipulihkan.
+- Pedoman warna, pedoman animasi dan laporan audit diperbarui. Tidak ada perubahan data operasional. Reduced motion browser tetap diuji pengguna. Belum commit, push atau deploy.
+
+
+## 96. Commit Lokal Audit Visual Kepegawaian (11 November2026)
+
+- Seluruh pekerjaan visual Kepegawaian pada bagian90–95 disimpan dalam satu commit lokal bersama pedoman warna, pedoman animasi, laporan audit, fixture dan komponen pendukung bersama. Kondisi final mempertahankan animasi sesuai acuan Inbox Surat Tugas dan palet tiga warna grafik, dengan badge/ikon pendukung yang lebih lembut.
+- Validasi akhir TypeScript, ESLint source/fixture terkait, fixture Kepegawaian dan lima regresi BMN serta staged diff check lulus. Bukti dan batas browser/transaksi tercatat pada docs/testing/kepegawaian-visual-audit.md.
+- Tidak push atau deploy. frontend/AGENTS.md otomatis tetap di luar cakupan commit.

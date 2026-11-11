@@ -1,5 +1,11 @@
 "use client";
 
+import { useKepegawaianTabs } from "../../_lib/useKepegawaianTabs";
+
+import { KepegawaianTabContent } from "../../_components/KepegawaianTabContent";
+
+import { KepegawaianDialog } from "../../_components/KepegawaianDialog";
+
 import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
@@ -53,8 +59,8 @@ import {
   isAutoMmpJabatan,
 } from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
-import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
@@ -98,46 +104,27 @@ function getWaLink(phone?: string | null): string | null {
   return `https://wa.me/${international}`;
 }
 
-function CopyIcon({ copied, checkClass = "text-emerald-600" }: { copied: boolean; checkClass?: string }) {
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      {copied ? (
-        <motion.span
-          key="check"
-          initial={{ scale: 0.5, rotate: -15 }}
-          animate={{ scale: 1, rotate: 0 }}
-          exit={{ scale: 0.5 }}
-          transition={{ type: "spring", stiffness: 500, damping: 22 }}
-          className="inline-flex"
-        >
-          <Check className={cn("w-3.5 h-3.5", checkClass)} />
-        </motion.span>
-      ) : (
-        <motion.span
-          key="copy"
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          exit={{ scale: 0.8 }}
-          className="inline-flex"
-        >
-          <Copy className="w-3.5 h-3.5" />
-        </motion.span>
-      )}
-    </AnimatePresence>
-  );
+function CopyIcon({ copied, checkClass = "text-[var(--ds-status-success-fg)]" }: { copied: boolean; checkClass?: string }) {
+  return copied
+    ? <Check className={cn("w-3.5 h-3.5", checkClass)} />
+    : <Copy className="w-3.5 h-3.5" />;
 }
 
 export default function EmployeeDetailPage() {
   const { id } = useParams();
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
+  const accessTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
 
   // Tab utama default: Biodata Lengkap
   const [activeTab, setActiveTab] = useState<
     "biodata" | "history" | "leave" | "meal_allowance" | "audit"
   >("biodata");
+
+  const tabs = useKepegawaianTabs(activeTab, "Dossier pegawai");
 
   const { canManageAccess, canWrite, isAdmin } = useRole();
 
@@ -162,6 +149,7 @@ export default function EmployeeDetailPage() {
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   // Reset password state
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -416,14 +404,14 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full min-h-screen">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+      <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6     w-full min-h-screen">
+        <div className="h-8 w-48 bg-[var(--ds-surface-muted)] rounded-xl animate-pulse" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-4 xl:col-span-3 h-[600px] bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+          <div className="lg:col-span-4 xl:col-span-3 h-[600px] bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
           <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-            <div className="h-24 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
-            <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
-            <div className="h-[460px] bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+            <div className="h-24 bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
+            <div className="h-12 bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
+            <div className="h-[460px] bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
           </div>
         </div>
       </div>
@@ -432,12 +420,12 @@ export default function EmployeeDetailPage() {
 
   if (isError || !employee) {
     return (
-      <div className="p-6 md:p-10 py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-md mx-auto">
-        <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-4">
+      <div data-module="kepegawaian" className="kpg-ui p-6 md:p-10 py-20 text-center     max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] mx-auto flex items-center justify-center mb-4">
           <User className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Pegawai Tidak Ditemukan</h2>
-        <p className="text-xs text-slate-500 mt-1 mb-6">
+        <h2 className="text-xl font-bold text-[var(--ds-fg)]">Pegawai Tidak Ditemukan</h2>
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-1 mb-6">
           Data pegawai yang Anda cari mungkin telah dinonaktifkan atau dihapus dari sistem.
         </p>
         <Button variant="default" className="rounded-xl" onClick={() => router.push("/kepegawaian/employees")}>
@@ -457,32 +445,32 @@ export default function EmployeeDetailPage() {
   const latestAllowance = allowancesData?.data?.[0];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full min-h-screen">
+    <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6     w-full min-h-screen">
       {/* Top Breadcrumb & Quick Actions Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/kepegawaian/employees"
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-800 transition-all shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] hover:border-[var(--ds-status-success-border)] transition-colors shadow-2xs cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Kembali ke Daftar Pegawai</span>
           </Link>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className="text-xs font-medium text-slate-500 truncate max-w-[200px] sm:max-w-md">
+          <span className="text-[var(--ds-fg-muted)]">/</span>
+          <span className="text-xs font-medium text-[var(--ds-fg-muted)] truncate max-w-[200px] sm:max-w-md">
             {employee.nama_lengkap}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {canWrite && (
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-warning-border)] hover:bg-[var(--ds-status-warning-bg)] text-[var(--ds-fg)] cursor-pointer"
               onClick={() => setResetDialogOpen(true)}
             >
-              <KeyRound className="w-3.5 h-3.5 text-amber-500" />
+              <KeyRound className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
               <span>Reset Password</span>
             </Button>
           )}
@@ -490,10 +478,10 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
-              onClick={() => setAccessSheetOpen(true)}
+              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-fg)] cursor-pointer"
+              onClick={(event) => { accessTriggerRef.current = event.currentTarget; setAccessSheetOpen(true); }}
             >
-              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <Shield className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
               <span>Kelola Akses (IAM)</span>
             </Button>
           )}
@@ -501,10 +489,10 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-slate-200 dark:border-slate-800 hover:border-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-700 dark:text-slate-300 cursor-pointer"
+              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-danger-border)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-fg)] cursor-pointer"
               onClick={() => setLifecycleModalOpen(true)}
             >
-              <UserX className="w-3.5 h-3.5 text-rose-500" />
+              <UserX className="w-3.5 h-3.5 text-[var(--ds-status-danger-fg)]" />
               <span>Status & Pensiun</span>
             </Button>
           )}
@@ -518,12 +506,12 @@ export default function EmployeeDetailPage() {
         {/* ======================================================== */}
         <div className="lg:col-span-4 xl:col-span-3 space-y-5 lg:sticky lg:top-6">
           {/* Cockpit Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-t-4 border-t-emerald-600 dark:border-t-emerald-500 rounded-3xl p-6 shadow-xs">
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
 
             {/* Profile Avatar & Primary Badges */}
-            <div className="flex flex-col items-center text-center pb-5 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col items-center text-center pb-5 border-b border-[var(--ds-border-subtle)]">
               <div className="relative group mb-4">
-                <div className="w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                <div className="w-24 h-24 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] overflow-hidden flex items-center justify-center">
                   {employee.foto_url ? (
                     <Image
                       src={employee.foto_url}
@@ -533,7 +521,7 @@ export default function EmployeeDetailPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-3xl font-black text-slate-400">
+                    <span className="text-3xl font-black text-[var(--ds-fg-muted)]">
                       {employee.nama_lengkap.charAt(0)}
                     </span>
                   )}
@@ -542,23 +530,25 @@ export default function EmployeeDetailPage() {
                 {/* Status Dot */}
                 <span
                   className={cn(
-                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-xs",
-                    employee.is_active ? "bg-emerald-500" : "bg-rose-500"
+                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white  flex items-center justify-center shadow-xs",
+                    employee.is_active ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-danger-solid)]"
                   )}
                   title={employee.is_active ? "Status: Pegawai Aktif" : "Status: Non-Aktif"}
                 >
-                  <span className="w-2 h-2 rounded-full bg-white" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--ds-surface)]" />
                 </span>
 
                 {/* Upload Photo Overlay (for admins) */}
                 {canManageAccess && (
-                  <label className="absolute inset-0 bg-black/60 rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-[10px] font-semibold">
+                  <label className="kpg-photo-upload absolute inset-0 bg-black/75 rounded-2xl flex flex-col items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 cursor-pointer text-white text-xs font-semibold">
                     <User className="w-6 h-6 mb-1" />
-                    <span>Ubah Foto</span>
+                    <span>{photoUploading ? "Mengunggah..." : "Ubah Foto"}</span>
                     <input
                       type="file"
+                      disabled={photoUploading}
+                      aria-label="Unggah foto profil pegawai"
                       accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
+                      className="sr-only"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
@@ -568,12 +558,15 @@ export default function EmployeeDetailPage() {
                         }
                         const fd = new FormData();
                         fd.append("foto", file);
+                        setPhotoUploading(true);
                         try {
                           await api.post(`/kepegawaian/employees/${id}/photo`, fd);
                           toast.success("Foto profil berhasil diperbarui!");
                           queryClient.invalidateQueries({ queryKey: ["employee", id] });
                         } catch {
                           toast.error("Gagal mengupload foto.");
+                        } finally {
+                          setPhotoUploading(false);
                         }
                       }}
                     />
@@ -582,19 +575,19 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* Name & Category Badges */}
-              <h1 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+              <h1 className="text-lg font-black text-[var(--ds-fg)] leading-tight">
                 {employee.nama_lengkap}
               </h1>
 
               <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
                 <span
                   className={cn(
-                    "inline-flex items-center text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider",
+                    "inline-flex items-center text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider",
                     empCategory === "MMP"
-                      ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      ? "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  border border-[var(--ds-status-success-border)] "
                       : empCategory === "PPPK"
-                      ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
-                      : "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                      ? "bg-[var(--ds-status-warning-bg)]  text-[var(--ds-status-warning-fg)]  border border-[var(--ds-status-warning-border)] "
+                      : "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border border-[var(--ds-accent-soft-border)] "
                   )}
                 >
                   {empCategory === "PPPK" ? "PPPK (P3K)" : empCategory}
@@ -602,12 +595,12 @@ export default function EmployeeDetailPage() {
 
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full",
+                    "inline-flex items-center gap-1 text-xs font-extrabold px-2.5 py-0.5 rounded-full",
                     employee.status_badge?.color === "emerald"
-                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      ? "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  border border-[var(--ds-status-success-border)] "
                       : employee.status_badge?.color === "amber"
-                      ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                      ? "bg-[var(--ds-status-warning-bg)]  text-[var(--ds-status-warning-fg)]  border border-[var(--ds-status-warning-border)] "
+                      : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)]  border border-[var(--ds-border-subtle)] "
                   )}
                 >
                   <BadgeCheck className="w-3 h-3" />
@@ -616,7 +609,7 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* NIP / Username with 1-click Copy */}
-              <div className="mt-2.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 px-3 py-1 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div className="mt-2.5 flex items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface)] px-3 py-1 rounded-xl border border-[var(--ds-border-subtle)]">
                 <span>
                   {empCategory === "MMP"
                     ? `Username: ${employee.nip}`
@@ -626,7 +619,7 @@ export default function EmployeeDetailPage() {
                   <button
                     type="button"
                     onClick={() => handleCopy(employee.nip, "nip")}
-                    className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-0.5 rounded cursor-pointer"
+                    className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors p-0.5 rounded cursor-pointer"
                     title={empCategory === "MMP" ? "Salin Username Portal" : "Salin NIP"}
                   >
                     <CopyIcon copied={copiedField === "nip"} />
@@ -636,28 +629,28 @@ export default function EmployeeDetailPage() {
             </div>
 
             {/* Info Details List (Mirip Portal, Natural & Terpadu) */}
-            <div className="py-3.5 space-y-3 text-xs border-b border-slate-100 dark:border-slate-800">
+            <div className="py-3.5 space-y-3 text-xs border-b border-[var(--ds-border-subtle)]">
               {/* Jabatan */}
-              <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-                <Briefcase className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
+                <Briefcase className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
+                  <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Jabatan</span>
+                  <span className="font-semibold text-[var(--ds-fg)] truncate block">
                     {employee.jabatan || "-"}
                   </span>
                 </div>
               </div>
 
               {/* Unit Kerja */}
-              <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-                <Building2 className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
+                <Building2 className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
+                  <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Unit Kerja</span>
+                  <span className="font-semibold text-[var(--ds-fg)] truncate block">
                     {employee.satuan_kerja || "-"}
                   </span>
                   {employee.resor && (
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                    <span className="text-xs text-[var(--ds-fg-muted)] block">
                       Resor: {RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
                     </span>
                   )}
@@ -666,11 +659,11 @@ export default function EmployeeDetailPage() {
 
               {/* Pangkat & Golongan (Non-MMP) */}
               {empCategory !== "MMP" && (
-                <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-                  <Hash className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
+                  <Hash className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Pangkat & Golongan</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                    <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Pangkat & Golongan</span>
+                    <span className="font-semibold text-[var(--ds-fg)] block">
                       {employee.pangkat_golongan || "-"}
                     </span>
                   </div>
@@ -678,23 +671,23 @@ export default function EmployeeDetailPage() {
               )}
 
               {/* Email Resmi */}
-              <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+              <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <Mail className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <Mail className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Email Akun Resmi</span>
+                    <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Email Akun Resmi</span>
                     {validEmail ? (
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                      <span className="font-semibold text-[var(--ds-fg)] truncate block font-mono text-xs">
                         {validEmail}
                       </span>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 italic">Belum diatur</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum diatur</span>
                         {canWrite && (
                           <button
                             type="button"
                             onClick={startEditing}
-                            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                            className="text-xs font-bold text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
                           >
                             + Tambah
                           </button>
@@ -708,33 +701,33 @@ export default function EmployeeDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleCopy(employee.email!, "email")}
-                      className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                       title="Salin Alamat Email"
                     >
-                      <CopyIcon copied={copiedField === "email"} checkClass="text-blue-600" />
+                      <CopyIcon copied={copiedField === "email"} checkClass="text-[var(--ds-accent-fg)]" />
                     </button>
                   </div>
                 )}
               </div>
 
               {/* Telepon / WhatsApp */}
-              <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+              <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <Phone className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <Phone className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
+                    <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Telepon / WhatsApp</span>
                     {validTelepon ? (
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                      <span className="font-semibold text-[var(--ds-fg)] truncate block font-mono text-xs">
                         {validTelepon}
                       </span>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 italic">Belum diatur</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum diatur</span>
                         {canWrite && (
                           <button
                             type="button"
                             onClick={startEditing}
-                            className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                            className="text-xs font-bold text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
                           >
                             + Tambah
                           </button>
@@ -748,7 +741,7 @@ export default function EmployeeDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleCopy(employee.telepon!, "telepon")}
-                      className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                       title="Salin Nomor HP"
                     >
                       <CopyIcon copied={copiedField === "telepon"} />
@@ -759,28 +752,28 @@ export default function EmployeeDetailPage() {
 
               {/* Rekening Penyalur Uang Makan (Non-MMP) */}
               {!isMmp && (
-                <div className="flex items-start justify-between gap-2 text-slate-600 dark:text-slate-300">
+                <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <CreditCard className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <CreditCard className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Rekening Penyalur</span>
-                        <span className={cn("px-1.5 py-0.2 rounded text-[9px] font-black border", bankTheme.bgBadge)}>
+                        <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)]">Rekening Penyalur</span>
+                        <span className={cn("px-1.5 py-0.2 rounded text-xs font-black border", bankTheme.bgBadge)}>
                           {employee.nama_bank || "BRI"}
                         </span>
                       </div>
                       {validRekening ? (
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block font-mono text-xs">
+                        <span className="font-semibold text-[var(--ds-fg)] truncate block font-mono text-xs">
                           {validRekening}
                         </span>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-400 italic">Belum diinput</span>
+                          <span className="text-xs text-[var(--ds-fg-muted)] italic">Belum diinput</span>
                           {canWrite && (
                             <button
                               type="button"
                               onClick={startEditing}
-                              className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                              className="text-xs font-bold text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
                             >
                               + Tambah
                             </button>
@@ -794,7 +787,7 @@ export default function EmployeeDetailPage() {
                       <button
                         type="button"
                         onClick={() => handleCopy(validRekening, "rekening")}
-                        className="p-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                         title="Salin Nomor Rekening"
                       >
                         <CopyIcon copied={copiedField === "rekening"} />
@@ -811,7 +804,7 @@ export default function EmployeeDetailPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full rounded-xl gap-2 font-bold text-xs h-9 border-[#dce8dd] dark:border-slate-700 hover:bg-[#edf3ee] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 transition-colors cursor-pointer"
+                  className="w-full rounded-xl gap-2 font-bold text-xs h-9 border-[#dce8dd] hover:bg-[#edf3ee] text-[var(--ds-fg)] hover:text-[#1e5433] transition-colors cursor-pointer"
                   onClick={startEditing}
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -829,114 +822,111 @@ export default function EmployeeDetailPage() {
           {/* Top 4 Metric Summary Cards */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5">
             {/* Metric 1: Masa Kerja */}
-            <motion.div
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+            <div
+
               onClick={() => setActiveTab("biodata")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+                aria-pressed={activeTab === "biodata"}
+              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-warning-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Masa Kerja</span>
-                <div className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Masa Kerja</span>
+                <div className="w-7 h-7 rounded-xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Award className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-lg xl:text-xl font-black text-slate-900 dark:text-white truncate">
+              <div className="text-lg xl:text-xl font-black text-[var(--ds-fg)] truncate">
                 {empCategory === "MMP"
                   ? "-"
                   : employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap)}
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Pengabdian Resmi</p>
-            </motion.div>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Pengabdian Resmi</p>
+            </div>
 
             {/* Metric 2: Riwayat Penugasan */}
-            <motion.div
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+            <div
+
               onClick={() => setActiveTab("history")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+                aria-pressed={activeTab === "history"}
+              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Penugasan</span>
-                <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Penugasan</span>
+                <div className="w-7 h-7 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <FileText className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-xl font-black text-slate-900 dark:text-white">
+              <div className="text-xl font-black text-[var(--ds-fg)]">
                 {assignmentsData?.meta?.total ?? 0}
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Total Surat Tugas</p>
-            </motion.div>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Total Surat Tugas</p>
+            </div>
 
             {/* Metric 3: Sisa Cuti PNS */}
             {!isMmp && (
-            <motion.div
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+            <div
+
               onClick={() => setActiveTab("leave")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+                aria-pressed={activeTab === "leave"}
+              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Cuti</span>
-                <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Sisa Cuti</span>
+                <div className="w-7 h-7 rounded-xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Calendar className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-xl font-black text-slate-900 dark:text-white">
+              <div className="text-xl font-black text-[var(--ds-fg)]">
                 {leaveBalance?.sisa_cuti_tersedia ?? 12}{" "}
-                <span className="text-xs font-semibold text-slate-400">Hari</span>
+                <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Hari</span>
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Tahun {currentYear}</p>
-            </motion.div>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Tahun {currentYear}</p>
+            </div>
             )}
 
             {/* Metric 4: Uang Makan Terakhir */}
             {!isMmp && (
-            <motion.div
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+            <div
+
               onClick={() => setActiveTab("meal_allowance")}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+                aria-pressed={activeTab === "meal_allowance"}
+              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Uang Makan</span>
-                <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Uang Makan</span>
+                <div className="w-7 h-7 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Receipt className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <div className="text-base font-black text-emerald-600 dark:text-emerald-400 truncate">
+              <div className="text-base font-black text-[var(--ds-status-success-fg)] truncate">
                 {latestAllowance ? formatRupiah(latestAllowance.uang_makan_netto) : "Rp 0"}
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">
                 {latestAllowance?.batch?.periode_bulan || "Bulan berjalan"}
               </p>
-            </motion.div>
+            </div>
             )}
           </div>
 
           {/* Dynamic Tabs Navigation Bar (WRAP 2-TINGKAT, TANPA SCROLL HORIZONTAL) */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 shadow-2xs">
-            <div className="flex flex-wrap items-center gap-1.5">
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-1.5 shadow-2xs">
+            <div {...tabs.tabListProps} className="kpg-pill-tabs flex flex-wrap items-center gap-1.5">
               {/* Tab 1: Biodata Lengkap (UTAMA - DEFAULT AKTIF) */}
               <button
                 type="button"
                 onClick={() => setActiveTab("biodata")}
+                {...tabs.tabProps("biodata")}
                 className={cn(
                   "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "biodata"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+                    ? "text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
                 )}
               >
                 {activeTab === "biodata" && (
                   <motion.span
-                    layoutId="activeTabIndicator"
-                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    layoutId={tabs.indicatorId}
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <User className="w-3.5 h-3.5 relative z-10" />
@@ -947,18 +937,19 @@ export default function EmployeeDetailPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("history")}
+                {...tabs.tabProps("history")}
                 className={cn(
                   "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "history"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+                    ? "text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
                 )}
               >
                 {activeTab === "history" && (
                   <motion.span
-                    layoutId="activeTabIndicator"
-                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    layoutId={tabs.indicatorId}
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <FileText className="w-3.5 h-3.5 relative z-10" />
@@ -966,8 +957,8 @@ export default function EmployeeDetailPage() {
                 {assignmentsData?.meta && (
                   <span
                     className={cn(
-                      "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
-                      activeTab === "history" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600"
+                      "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
+                      activeTab === "history" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
                     )}
                   >
                     {assignmentsData.meta.total}
@@ -980,28 +971,29 @@ export default function EmployeeDetailPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("leave")}
+                {...tabs.tabProps("leave")}
                 className={cn(
                   "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "leave"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+                    ? "text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
                 )}
               >
                 {activeTab === "leave" && (
                   <motion.span
-                    layoutId="activeTabIndicator"
-                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    layoutId={tabs.indicatorId}
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <Calendar className="w-3.5 h-3.5 relative z-10" />
                 <span className="relative z-10">Cuti Pegawai (PNS)</span>
                 <span
                   className={cn(
-                    "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
+                    "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
                     activeTab === "leave"
-                      ? "bg-white/20 text-white"
-                      : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]"
+                      : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  "
                   )}
                 >
                   {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
@@ -1014,18 +1006,19 @@ export default function EmployeeDetailPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("meal_allowance")}
+                {...tabs.tabProps("meal_allowance")}
                 className={cn(
                   "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "meal_allowance"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+                    ? "text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
                 )}
               >
                 {activeTab === "meal_allowance" && (
                   <motion.span
-                    layoutId="activeTabIndicator"
-                    className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    layoutId={tabs.indicatorId}
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <UtensilsCrossed className="w-3.5 h-3.5 relative z-10" />
@@ -1033,8 +1026,8 @@ export default function EmployeeDetailPage() {
                 {allowancesData?.meta?.total !== undefined && allowancesData.meta.total > 0 && (
                   <span
                     className={cn(
-                      "relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-black",
-                      activeTab === "meal_allowance" ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                      "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
+                      activeTab === "meal_allowance" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
                     )}
                   >
                     {allowancesData.meta.total} Batch
@@ -1048,18 +1041,19 @@ export default function EmployeeDetailPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("audit")}
+                {...tabs.tabProps("audit")}
                   className={cn(
                     "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                     activeTab === "audit"
-                      ? "text-white"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+                      ? "text-[var(--ds-accent-on-solid)]"
+                      : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
                   )}
                 >
                   {activeTab === "audit" && (
                     <motion.span
-                      layoutId="activeTabIndicator"
-                      className="absolute inset-0 bg-emerald-600 text-white shadow-xs rounded-xl"
-                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                      layoutId={tabs.indicatorId}
+                      className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                      transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                     />
                   )}
                   <History className="w-3.5 h-3.5 relative z-10" />
@@ -1071,23 +1065,21 @@ export default function EmployeeDetailPage() {
 
           {/* Tab Content Panels with Motion Glide Transition */}
           <AnimatePresence mode="wait" initial={false}>
-            <motion.div
+            <KepegawaianTabContent
+          panelProps={tabs.panelProps}
               key={activeTab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.16, ease: "easeOut" }}
+
             >
               {/* TAB 1: BIODATA LENGKAP (DEFAULT AKTIF) */}
           {activeTab === "biodata" && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--ds-border-subtle)]">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <User className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                    <User className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                     Identitas & Data Lengkap Pegawai
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
                     {isMmp
                       ? "Informasi profil resmi, unit kerja penempatan, serta kontak WhatsApp & Email"
                       : "Informasi profil resmi, unit kerja penempatan, kontak WhatsApp & Email, serta rekening bank uang makan"}
@@ -1098,10 +1090,10 @@ export default function EmployeeDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-xl gap-1.5 text-xs font-bold hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400 cursor-pointer"
+                    className="rounded-xl gap-1.5 text-xs font-bold hover:bg-[var(--ds-status-success-bg)] hover:text-[var(--ds-status-success-fg)] hover:border-[var(--ds-status-success-border)] cursor-pointer"
                     onClick={startEditing}
                   >
-                    <Pencil className="w-3.5 h-3.5 text-emerald-600" />
+                    <Pencil className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                     <span>Edit Biodata</span>
                   </Button>
                 )}
@@ -1120,7 +1112,7 @@ export default function EmployeeDetailPage() {
                     </Button>
                     <Button
                       size="sm"
-                      className="rounded-xl gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer"
+                      className="rounded-xl gap-1.5 text-xs bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] font-bold cursor-pointer"
                       onClick={handleSave}
                       disabled={saving}
                     >
@@ -1135,8 +1127,8 @@ export default function EmployeeDetailPage() {
                 <div className="space-y-6">
                   {/* Bagian 1: Data Kepegawaian Utama */}
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                       Data Kepegawaian & Penempatan
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
@@ -1202,17 +1194,17 @@ export default function EmployeeDetailPage() {
 
                   {/* Bagian 2: Kontak & Komunikasi */}
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                       Kontak WhatsApp & Email
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Nomor WhatsApp / HP
                           </p>
-                          <p className={cn("text-sm mt-0.5", validTelepon ? "font-mono font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-400")}>
+                          <p className={cn("text-sm mt-0.5", validTelepon ? "font-mono font-bold text-[var(--ds-fg)] " : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validTelepon || "Belum diatur"}
                           </p>
                         </div>
@@ -1221,11 +1213,11 @@ export default function EmployeeDetailPage() {
                             <button
                               type="button"
                               onClick={() => handleCopy(employee.telepon!, "bio-tel")}
-                              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                               title="Salin Nomor HP"
                             >
                               {copiedField === "bio-tel" ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <Check className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
@@ -1235,7 +1227,7 @@ export default function EmployeeDetailPage() {
                                 href={waLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                className="p-1.5 rounded-lg bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-status-success-fg)] transition-colors"
                                 title="Chat WhatsApp"
                               >
                                 <MessageCircle className="w-3.5 h-3.5" />
@@ -1245,12 +1237,12 @@ export default function EmployeeDetailPage() {
                         )}
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Alamat Email Resmi
                           </p>
-                          <p className={cn("text-sm mt-0.5", validEmail ? "font-mono font-bold text-slate-800 dark:text-slate-200" : "font-medium text-slate-400")}>
+                          <p className={cn("text-sm mt-0.5", validEmail ? "font-mono font-bold text-[var(--ds-fg)] " : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validEmail || "Belum diatur"}
                           </p>
                         </div>
@@ -1259,18 +1251,18 @@ export default function EmployeeDetailPage() {
                             <button
                               type="button"
                               onClick={() => handleCopy(employee.email!, "bio-mail")}
-                              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                               title="Salin Alamat Email"
                             >
                               {copiedField === "bio-mail" ? (
-                                <Check className="w-3.5 h-3.5 text-blue-600" />
+                                <Check className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                             </button>
                             <a
                               href={`mailto:${employee.email}`}
-                              className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                              className="p-1.5 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] transition-colors"
                               title="Kirim Email"
                             >
                               <Mail className="w-3.5 h-3.5" />
@@ -1284,14 +1276,14 @@ export default function EmployeeDetailPage() {
                   {/* Bagian 3: Finansial & Rekening Uang Makan */}
                   {!isMmp && (
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                       Rekening Bank Penyalur Uang Makan
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Bank Penyalur
                           </p>
                           <div className="mt-1 flex items-center gap-2">
@@ -1303,19 +1295,19 @@ export default function EmployeeDetailPage() {
                             >
                               {employee.nama_bank || "BRI"}
                             </span>
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-xs text-[var(--ds-fg-muted)]">
                               (Pemisahan nominatif otomatis)
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Nomor Rekening Bank
                           </p>
-                          <p className={cn("text-sm mt-0.5", validRekening ? "font-mono font-bold text-slate-800 dark:text-slate-200 tracking-wider" : "font-medium text-slate-400")}>
+                          <p className={cn("text-sm mt-0.5", validRekening ? "font-mono font-bold text-[var(--ds-fg)]  tracking-wider" : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validRekening || "Belum diatur"}
                           </p>
                         </div>
@@ -1323,11 +1315,11 @@ export default function EmployeeDetailPage() {
                           <button
                             type="button"
                             onClick={() => handleCopy(employee.nomor_rekening!, "bio-rek")}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                             title="Salin Nomor Rekening"
                           >
                             {copiedField === "bio-rek" ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
                             ) : (
                               <Copy className="w-3.5 h-3.5" />
                             )}
@@ -1352,17 +1344,17 @@ export default function EmployeeDetailPage() {
                             type="button"
                             onClick={() => handleEditJenisChange(opt.value)}
                             className={cn(
-                              "flex flex-col items-start p-3 rounded-2xl border text-left transition-all cursor-pointer",
+                              "flex flex-col items-start p-3 rounded-2xl border text-left transition-colors cursor-pointer",
                               isSelected
-                                ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20"
-                                : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                ? "bg-[var(--ds-status-success-bg)]  border-[var(--ds-status-success-border)] ring-2 ring-[var(--ds-status-success-border)]"
+                                : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)]"
                             )}
                           >
                             <div className="flex items-center justify-between w-full mb-0.5">
                               <span
                                 className={cn(
                                   "text-xs font-bold",
-                                  isSelected ? "text-emerald-700 dark:text-emerald-400" : "text-slate-900 dark:text-white"
+                                  isSelected ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-fg)] "
                                 )}
                               >
                                 {opt.label}
@@ -1370,11 +1362,11 @@ export default function EmployeeDetailPage() {
                               <span
                                 className={cn(
                                   "w-2 h-2 rounded-full",
-                                  isSelected ? "bg-emerald-600" : "bg-slate-300 dark:bg-slate-600"
+                                  isSelected ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-surface-muted)] "
                                 )}
                               />
                             </div>
-                            <span className="text-[10px] text-slate-500">{opt.desc}</span>
+                            <span className="text-xs text-[var(--ds-fg-muted)]">{opt.desc}</span>
                           </button>
                         );
                       })}
@@ -1394,7 +1386,7 @@ export default function EmployeeDetailPage() {
                               ? "19930425 202421 2 053..."
                               : "19800101 200501 1 001..."
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white font-mono"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] font-mono" aria-label="NIP atau NIPPPK"
                         />
                       </BioField>
                     )}
@@ -1407,7 +1399,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, nama_lengkap: e.target.value })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Nama lengkap pegawai"
                         />
                       </BioField>
                     </div>
@@ -1418,7 +1410,7 @@ export default function EmployeeDetailPage() {
                           type="text"
                           value={editForm.jabatan}
                           onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Jabatan"
                         />
                       </BioField>
                     </div>
@@ -1435,7 +1427,7 @@ export default function EmployeeDetailPage() {
                             onChange={(e) =>
                               setEditForm({ ...editForm, pangkat_golongan: e.target.value })
                             }
-                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                            className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Pangkat atau golongan"
                           >
                             <option value="">
                               {editJenis === "PPPK"
@@ -1448,7 +1440,7 @@ export default function EmployeeDetailPage() {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                         </div>
                       </BioField>
                     )}
@@ -1458,7 +1450,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.satuan_kerja}
                           onChange={(e) => handleEditSatkerChange(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Satuan kerja"
                         >
                           <option value="">Pilih Unit Kerja</option>
                           {UNIT_KERJA_OPTIONS.map((opt) => (
@@ -1467,7 +1459,7 @@ export default function EmployeeDetailPage() {
                             </option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                       </div>
                     </BioField>
 
@@ -1516,8 +1508,8 @@ export default function EmployeeDetailPage() {
                               className={cn(
                                 "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
                                 isBalai
-                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-slate-200 dark:border-slate-700"
-                                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 dark:text-white"
+                                  ? "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)] cursor-not-allowed border-[var(--ds-border-subtle)] "
+                                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-[var(--ds-fg)] "
                               )}
                             >
                               {isBalai ? (
@@ -1533,7 +1525,7 @@ export default function EmployeeDetailPage() {
                                 </>
                               )}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                           </div>
                         </BioField>
                       );
@@ -1548,7 +1540,7 @@ export default function EmployeeDetailPage() {
                               value={editForm.masa_kerja}
                               onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
                               placeholder="Contoh: 4 Tahun 5 Bulan"
-                              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-semibold text-slate-900 dark:text-white outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-sm font-semibold text-[var(--ds-fg)] outline-none transition-colors" aria-label="Masa kerja"
                             />
                             <Button
                               type="button"
@@ -1559,14 +1551,14 @@ export default function EmployeeDetailPage() {
                                 setEditForm({ ...editForm, masa_kerja: autoVal });
                                 toast.info(`Masa kerja direset ke hitungan otomatis: ${autoVal}`);
                               }}
-                              className="shrink-0 h-11 px-3 text-xs font-semibold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 rounded-xl gap-1.5 cursor-pointer"
+                              className="shrink-0 h-11 px-3 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1.5 cursor-pointer"
                               title="Hitung ulang otomatis berdasarkan NIP & Gelar"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                               <span>Reset Otomatis</span>
                             </Button>
                           </div>
-                          <p className="text-[11px] text-slate-400">
+                          <p className="text-xs text-[var(--ds-fg-muted)]">
                             Terisi otomatis dari NIP & gelar. Admin dapat menyesuaikan jika terdapat penyesuaian masa kerja (PMK).
                           </p>
                         </div>
@@ -1581,11 +1573,11 @@ export default function EmployeeDetailPage() {
                           value={editForm.telepon}
                           onChange={(e) => setEditForm({ ...editForm, telepon: e.target.value })}
                           placeholder="Misal: 081234567890"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor telepon"
                         />
-                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none" />
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-status-success-fg)] pointer-events-none" />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Format nomor HP lokal diawali 08 (misal: 081234567890).
                       </p>
                     </BioField>
@@ -1598,11 +1590,11 @@ export default function EmployeeDetailPage() {
                           value={editForm.email}
                           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                           placeholder="Misal: nama@kemenlhk.go.id atau @bksda.local"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Email pegawai"
                         />
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 pointer-events-none" />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Email login dan notifikasi persuratan resmi pegawai.
                       </p>
                     </BioField>
@@ -1615,7 +1607,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.nama_bank}
                           onChange={(e) => setEditForm({ ...editForm, nama_bank: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Bank pembayaran"
                         >
                           {availableBanks.map((b) => (
                             <option key={b} value={b}>
@@ -1623,14 +1615,14 @@ export default function EmployeeDetailPage() {
                             </option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400 mt-1.5">
+                      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-1 text-xs text-[var(--ds-fg-muted)] mt-1.5">
                         <span>Pilihan bank tersinkronisasi otomatis dari Pengaturan.</span>
                         <Link
                           href="/kepegawaian/settings?tab=uang_makan&sub=banks"
-                          className="text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 w-fit"
+                          className="text-[var(--ds-accent-fg)] hover:underline font-semibold flex items-center gap-1 w-fit"
                           target="_blank"
                         >
                           <span>+ Daftarkan bank baru di Pengaturan</span>
@@ -1647,11 +1639,11 @@ export default function EmployeeDetailPage() {
                           value={editForm.nomor_rekening}
                           onChange={(e) => setEditForm({ ...editForm, nomor_rekening: e.target.value })}
                           placeholder="Nomor rekening tanpa spasi / tanda hubung"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold font-mono text-slate-900 dark:text-white"
+                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor rekening"
                         />
-                        <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500 pointer-events-none" />
+                        <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Nomor rekening buku tabungan atas nama pegawai yang bersangkutan.
                       </p>
                     </BioField>
@@ -1665,12 +1657,12 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, is_active: e.target.value === "active" })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900 dark:text-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
                         >
                           <option value="active">Aktif Bertugas</option>
                           <option value="inactive">Non-Aktif</option>
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                       </div>
                     </BioField>
                   </div>
@@ -1681,14 +1673,14 @@ export default function EmployeeDetailPage() {
 
           {/* TAB 2: RIWAYAT PENUGASAN */}
           {activeTab === "history" && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
               <AssignmentLetterHistory employeeId={String(employee.id)} />
             </div>
           )}
 
           {/* TAB 3: CUTI PEGAWAI */}
           {activeTab === "leave" && !isMmp && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
               <EmployeeLeaveTab employeeId={employee.id} />
             </div>
           )}
@@ -1700,29 +1692,29 @@ export default function EmployeeDetailPage() {
 
           {/* TAB 5: RIWAYAT PERUBAHAN (ADMIN ONLY) */}
           {activeTab === "audit" && isAdmin && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
               <EmployeeAuditHistoryTab employeeId={employee.id} />
             </div>
           )}
-            </motion.div>
+            </KepegawaianTabContent>
           </AnimatePresence>
         </div>
       </div>
 
       {/* Reset Password Dialog */}
       {resetDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Reset Password</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+        <KepegawaianDialog title="Reset password pegawai" onClose={() => setResetDialogOpen(false)} busy={resetting} className="sm:max-w-md">
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
+            <h3 className="text-base font-bold text-[var(--ds-fg)]">Reset Password</h3>
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Masukkan password baru untuk akun pegawai{" "}
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="font-semibold text-[var(--ds-fg)]">
                 {employee.nama_lengkap}
               </span>.
             </p>
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-500">{empCategory === "MMP" ? "Username Portal:" : "Username / NIP:"}</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">{employee.nip}</span>
+            <div className="p-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between text-xs font-mono">
+              <span className="text-[var(--ds-fg-muted)]">{empCategory === "MMP" ? "Username Portal:" : "Username / NIP:"}</span>
+              <span className="font-bold text-[var(--ds-fg)]">{employee.nip}</span>
             </div>
             <input
               type="password"
@@ -1731,7 +1723,7 @@ export default function EmployeeDetailPage() {
               placeholder="Minimal 8 karakter"
               minLength={8}
               autoComplete="new-password"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-amber-500 text-slate-900 dark:text-white"
+              className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none focus:border-[var(--ds-status-warning-border)] text-[var(--ds-fg)]" aria-label="Minimal 8 karakter"
             />
             <div className="flex items-center gap-2 justify-end pt-2">
               <Button
@@ -1745,7 +1737,7 @@ export default function EmployeeDetailPage() {
               </Button>
               <Button
                 size="sm"
-                className="rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold cursor-pointer"
+                className="rounded-xl bg-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-fg)] text-[var(--ds-accent-on-solid)] text-xs font-bold cursor-pointer"
                 onClick={handleResetPassword}
                 disabled={resetting}
               >
@@ -1753,7 +1745,7 @@ export default function EmployeeDetailPage() {
               </Button>
             </div>
           </div>
-        </div>
+        </KepegawaianDialog>
       )}
 
       {/* IAM Access Sheet Modal */}
@@ -1761,6 +1753,7 @@ export default function EmployeeDetailPage() {
         <EmployeeAccessSheet
           employee={employee}
           open={accessSheetOpen}
+          returnFocusRef={accessTriggerRef}
           onOpenChange={setAccessSheetOpen}
         />
       )}
@@ -1779,9 +1772,9 @@ export default function EmployeeDetailPage() {
 
 function BioItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{value}</p>
+    <div  className="p-3.5 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+      <p className="text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)] mb-1">{label}</p>
+      <p className="text-xs font-bold text-[var(--ds-fg)]">{value}</p>
     </div>
   );
 }
@@ -1789,7 +1782,7 @@ function BioItem({ label, value }: { label: string; value: string }) {
 function BioField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)] mb-1.5">{label}</p>
       {children}
     </div>
   );

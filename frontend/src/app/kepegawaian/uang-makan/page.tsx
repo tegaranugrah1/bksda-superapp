@@ -1,5 +1,11 @@
 "use client";
 
+import { useKepegawaianTabs } from "../_lib/useKepegawaianTabs";
+
+import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
+
+import { KepegawaianDialog } from "../_components/KepegawaianDialog";
+
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
@@ -42,17 +48,17 @@ import { api } from "@/lib/api";
 import { useRole } from "@/hooks/useRole";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 // Status options for daily attendance
 const STATUS_OPTIONS = [
-  { code: "H", label: "Hadir (Dapat Uang Makan)", desc: "Pegawai hadir di kantor / WFO / WFH sah", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300" },
-  { code: "PD", label: "Perjalanan Dinas (SPPD)", desc: "Dinas luar kota (uang saku masuk di SPPD)", color: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300" },
-  { code: "CT", label: "Cuti Sah", desc: "Cuti Tahunan, Alasan Penting, Bersalin", color: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300" },
-  { code: "S", label: "Sakit", desc: "Sakit dengan bukti surat keterangan dokter", color: "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-300" },
-  { code: "I", label: "Izin Resmi", desc: "Izin kedinasan resmi tertulis", color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border-cyan-300" },
-  { code: "TK", label: "Tanpa Keterangan / Alpa", desc: "Tidak ada presensi masuk & tidak ada keterangan", color: "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300" },
-  { code: "-", label: "Hari Libur / Akhir Pekan", desc: "Sabtu, Minggu, atau Hari Libur Nasional SKB", color: "bg-slate-200/80 text-slate-500 dark:bg-zinc-800 dark:text-zinc-400 border-slate-300" },
+  { code: "H", label: "Hadir (Dapat Uang Makan)", desc: "Pegawai hadir di kantor / WFO / WFH sah", color: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]   border-[var(--ds-status-success-border)]" },
+  { code: "PD", label: "Perjalanan Dinas (SPPD)", desc: "Dinas luar kota (uang saku masuk di SPPD)", color: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]   border-[var(--ds-status-warning-border)]" },
+  { code: "CT", label: "Cuti Sah", desc: "Cuti Tahunan, Alasan Penting, Bersalin", color: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   border-[var(--ds-accent-soft-border)]" },
+  { code: "S", label: "Sakit", desc: "Sakit dengan bukti surat keterangan dokter", color: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   border-[var(--ds-accent-soft-border)]" },
+  { code: "I", label: "Izin Resmi", desc: "Izin kedinasan resmi tertulis", color: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   border-[var(--ds-accent-soft-border)]" },
+  { code: "TK", label: "Tanpa Keterangan / Alpa", desc: "Tidak ada presensi masuk & tidak ada keterangan", color: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]   border-[var(--ds-status-danger-border)]" },
+  { code: "-", label: "Hari Libur / Akhir Pekan", desc: "Sabtu, Minggu, atau Hari Libur Nasional SKB", color: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]   border-[var(--ds-border-subtle)]" },
 ];
 
 export interface ReconciledEmployeeItem {
@@ -98,6 +104,7 @@ export interface SavedBatchSummary {
 
 export default function UangMakanPage() {
   const { role, isAdmin } = useRole();
+  const reducedMotion = useReducedMotion();
   const confirm = useConfirm();
 
   const [activeTab, setActiveTab] = useState<"upload" | "matrix" | "nominatif" | "history">("upload");
@@ -115,6 +122,8 @@ export default function UangMakanPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+
+  const tabs = useKepegawaianTabs(activeTab, "Data uang makan");
 
   // Modal Peringatan Beda Periode Bulan saat Upload Bareng
   const [mismatchedModal, setMismatchedModal] = useState<{
@@ -215,17 +224,14 @@ export default function UangMakanPage() {
   // Saved Batches State
   const [savedBatches, setSavedBatches] = useState<SavedBatchSummary[]>([]);
   const [loadingBatches, setLoadingBatches] = useState(false);
+  const [batchesError, setBatchesError] = useState(false);
   const [currentBatchTitle, setCurrentBatchTitle] = useState("Rekonsiliasi Uang Makan BKSDA Kaltim");
 
   // Load saved batches on mount and history tab switch
-  useEffect(() => {
-    if (activeTab === "history") {
-      fetchBatches();
-    }
-  }, [activeTab]);
 
   const fetchBatches = async () => {
     setLoadingBatches(true);
+    setBatchesError(false);
     try {
       const res = await api.get("/kepegawaian/uang-makan/batches");
       if (res.data?.success) {
@@ -243,11 +249,17 @@ export default function UangMakanPage() {
         );
       }
     } catch {
-      // ignore
+      setBatchesError(true);
     } finally {
       setLoadingBatches(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      fetchBatches();
+    }
+  }, [activeTab]);
 
   // Normalizer: Menjembatani format backend dan frontend
   const normalizeEmployeeItem = (it: any): ReconciledEmployeeItem => {
@@ -523,13 +535,15 @@ export default function UangMakanPage() {
   const handleResetAll = async () => {
     if (items.length > 0) {
       const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
         title: "Kosongkan Data Pratinjau Presensi?",
         description: (
           <div className="space-y-2 text-left">
             <p>
               Seluruh matriks presensi dari <b>{items.length} pegawai</b> yang sedang ditampilkan serta koreksi manual yang belum disimpan akan dikosongkan.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Anda dapat mengunggah berkas SIKADIR baru atau memuat berkas contoh setelahnya.
             </p>
           </div>
@@ -537,7 +551,7 @@ export default function UangMakanPage() {
         confirmText: "Kosongkan Data",
         cancelText: "Batal",
         variant: "danger",
-        icon: <RotateCcw className="h-7 w-7 text-rose-600" />,
+        icon: <RotateCcw className="h-7 w-7 text-[var(--ds-status-danger-fg)]" />,
       });
       if (!ok) return;
     }
@@ -616,13 +630,15 @@ export default function UangMakanPage() {
   // Hapus batch dari database dengan UI Dialog Modul Kepegawaian
   const handleDeleteBatch = async (id: number, batchTitle?: string) => {
     const ok = await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
       title: "Hapus Batch dari Database?",
       description: (
         <div className="space-y-2 text-left">
           <p>
             Batch <b>&quot;{batchTitle || "Rekonsiliasi Uang Makan"}&quot;</b> beserta seluruh catatan riwayat absensi dan log override per pegawai akan dihapus permanen.
           </p>
-          <p className="text-xs text-rose-500 font-medium">
+          <p className="text-xs text-[var(--ds-status-danger-fg)] font-medium">
             Tindakan ini tidak dapat dibatalkan.
           </p>
         </div>
@@ -696,29 +712,22 @@ export default function UangMakanPage() {
   const grandTotalNetto = items.reduce((sum, it) => sum + it.total_netto, 0);
 
   return (
-    <div className="p-4 md:p-6 w-full max-w-[1700px] mx-auto space-y-6">
+    <div data-module="kepegawaian" className="kpg-ui p-4 md:p-6 w-full max-w-[1700px] mx-auto space-y-6">
       {/* Top Header Card */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-[var(--ds-surface)] p-6 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] flex items-center justify-center border border-[var(--ds-status-warning-border)] shadow-xs">
             <UtensilsCrossed className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold text-[var(--ds-fg)]">
                 Hitung &amp; Rekonsiliasi Uang Makan
               </h1>
-              <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
-                10/10 Precision Engine
-              </Badge>
-              {isAdmin && (
-                <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] font-bold flex items-center gap-1">
-                  <Edit3 className="w-3 h-3" />
-                  Admin Edit Enabled
-                </Badge>
-              )}
+
+
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Otomasi komparasi presensi SIKADIR Kemenhut vs Surat Tugas resmi untuk mencegah temuan dobel bayar BPK/Itjen.
             </p>
           </div>
@@ -726,12 +735,12 @@ export default function UangMakanPage() {
 
         {/* Month & Year Selectors */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-zinc-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-700">
-            <Calendar className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-1.5 bg-[var(--ds-surface)] px-3 py-2 rounded-xl border border-[var(--ds-border-subtle)]">
+            <Calendar className="w-4 h-4 text-[var(--ds-fg-muted)]" />
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-700 dark:text-zinc-300 focus:outline-hidden cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-[var(--ds-fg)] focus:outline-hidden cursor-pointer" aria-label="Bulan"
             >
               <option value="01">Januari</option>
               <option value="02">Februari</option>
@@ -749,7 +758,7 @@ export default function UangMakanPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-700 dark:text-zinc-300 focus:outline-hidden cursor-pointer ml-1"
+              className="bg-transparent text-xs font-semibold text-[var(--ds-fg)] focus:outline-hidden cursor-pointer ml-1" aria-label="Tahun"
             >
               <option value="2025">2025</option>
               <option value="2026">2026</option>
@@ -762,71 +771,67 @@ export default function UangMakanPage() {
       {/* Metric Counters Banner (Visible when data exists) */}
       {items.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ duration: 0.15 }}
-            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          <div
+
+            className="bg-[var(--ds-surface)] p-4 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs flex items-center justify-between"
           >
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Pegawai</p>
-              <p className="text-xl font-bold text-slate-900 dark:text-white mt-1">{totalEmployees} Orang</p>
+              <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">Total Pegawai</p>
+              <p className="text-xl font-bold text-[var(--ds-fg)] mt-1">{totalEmployees} Orang</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ duration: 0.15 }}
-            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          <div
+
+            className="bg-[var(--ds-surface)] p-4 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs flex items-center justify-between"
           >
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Hari Hadir</p>
-              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{totalHadirAll} Hari</p>
+              <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">Total Hari Hadir</p>
+              <p className="text-xl font-bold text-[var(--ds-status-success-fg)] mt-1">{totalHadirAll} Hari</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ duration: 0.15 }}
-            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          <div
+
+            className="bg-[var(--ds-surface)] p-4 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs flex items-center justify-between"
           >
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Potongan PPh 21</p>
-              <p className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">
+              <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">Potongan PPh 21</p>
+              <p className="text-xl font-bold text-[var(--ds-status-danger-fg)] mt-1">
                 Rp {grandTotalPph.toLocaleString("id-ID")}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center">
               <Coins className="w-5 h-5" />
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ duration: 0.15 }}
-            className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between"
+          <div
+
+            className="bg-[var(--ds-surface)] p-4 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs flex items-center justify-between"
           >
             <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Hak Bersih (Netto)</p>
-              <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+              <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">Total Hak Bersih (Netto)</p>
+              <p className="text-xl font-bold text-[var(--ds-accent-fg)] mt-1">
                 Rp {grandTotalNetto.toLocaleString("id-ID")}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <Download className="w-5 h-5" />
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* Navigation Tabs Bar with Sliding Indicator */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-zinc-800 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] pb-2">
+        <div {...tabs.tabListProps} className="kpg-pill-tabs flex max-w-full flex-wrap items-center gap-2">
           {[
             { id: "upload", label: "Upload Presensi", icon: UploadCloud },
             { id: "matrix", label: "Pratinjau Matriks (Sheet 1)", icon: FileSpreadsheet, count: items.length },
@@ -839,18 +844,19 @@ export default function UangMakanPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
+                {...tabs.tabProps(tab.id)}
                 className={cn(
                   "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
                   isActive
-                    ? "text-white"
-                    : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                    ? "text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface-muted)] "
                 )}
               >
                 {isActive && (
                   <motion.span
-                    layoutId="activeUangMakanTabIndicator"
-                    className="absolute inset-0 bg-blue-600 rounded-xl shadow-xs"
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    layoutId={tabs.indicatorId}
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
                 <Icon className="w-4 h-4 relative z-10" />
@@ -858,8 +864,8 @@ export default function UangMakanPage() {
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
                     className={cn(
-                      "relative z-10 ml-1.5 px-2 py-0.5 rounded-full text-[10px]",
-                      isActive ? "bg-white/20 text-white" : "bg-slate-200 dark:bg-zinc-700 text-slate-700 dark:text-zinc-300"
+                      "relative z-10 ml-1.5 px-2 py-0.5 rounded-full text-xs",
+                      isActive ? "bg-[var(--ds-surface)] text-[var(--ds-accent-on-solid)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)] "
                     )}
                   >
                     {tab.count}
@@ -877,7 +883,7 @@ export default function UangMakanPage() {
               onClick={handleResetAll}
               variant="outline"
               size="sm"
-              className="text-xs h-9 rounded-xl border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-zinc-800 font-semibold"
+              className="text-xs h-9 rounded-xl border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-semibold"
             >
               <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
               Reset Ulang Data
@@ -886,15 +892,15 @@ export default function UangMakanPage() {
               onClick={handleSaveBatch}
               variant="outline"
               size="sm"
-              className="text-xs h-9 rounded-xl border-slate-200 dark:border-zinc-700 font-semibold"
+              className="text-xs h-9 rounded-xl border-[var(--ds-border-subtle)] font-semibold"
             >
-              <Save className="w-3.5 h-3.5 mr-1.5 text-blue-600" />
+              <Save className="w-3.5 h-3.5 mr-1.5 text-[var(--ds-accent-fg)]" />
               Simpan Batch ke DB
             </Button>
             <Button
               onClick={handleExportExcel}
               size="sm"
-              className="text-xs h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs"
+              className="text-xs h-9 rounded-xl bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] font-bold shadow-xs"
             >
               <Download className="w-3.5 h-3.5 mr-1.5" />
               Download .xlsx (2 Sheets)
@@ -905,12 +911,10 @@ export default function UangMakanPage() {
 
       {/* Tab Panels with Motion Glide Transition ala Detail Pegawai */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <KepegawaianTabContent
+          panelProps={tabs.panelProps}
           key={activeTab}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.16, ease: "easeOut" }}
+
         >
           {/* Tab 1: Upload & Reconciliation Drag-and-Drop */}
           {activeTab === "upload" && (
@@ -928,29 +932,31 @@ export default function UangMakanPage() {
                 processUploadedFiles(Array.from(e.dataTransfer.files));
               }
             }}
-            className={`border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center text-center transition-all ${
+            className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-colors ${
               isDragging
-                ? "border-blue-500 bg-blue-50/60 dark:bg-blue-950/20"
-                : "border-slate-300 dark:border-zinc-700 bg-slate-50/50 dark:bg-zinc-900/50 hover:border-blue-500/50"
+                ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] "
+                : "border-[var(--ds-border-subtle)]  bg-[var(--ds-surface)]  hover:border-[var(--ds-accent-soft-border)]"
             }`}
           >
-            <div className="w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-4 shadow-xs">
               <UploadCloud className="w-8 h-8" />
             </div>
 
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-base font-bold text-[var(--ds-fg)]">
               Tarik atau Pilih File Rekap Presensi SIKADIR Kemenhut
             </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-md mt-1 leading-relaxed">
+            <p className="text-xs text-[var(--ds-fg-muted)] max-w-md mt-1 leading-relaxed">
               Mendukung berkas HTML export (.xls), berkas Excel (.xlsx), atau arsip ZIP berisi presensi seluruh pegawai per bulan.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <label className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer flex items-center gap-2">
+              <label className="kpg-file-control px-5 py-2.5 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold shadow-md transition-colors cursor-pointer flex items-center gap-2">
                 <FileUp className="w-4 h-4" />
                 {isProcessing ? "Memproses..." : "Pilih File dari Komputer"}
                 <input
                   type="file"
+                  disabled={isProcessing}
+                  aria-label="Pilih berkas presensi SIKADIR"
                   multiple
                   accept=".xls,.xlsx,.zip"
                   onChange={(e) => {
@@ -958,7 +964,7 @@ export default function UangMakanPage() {
                       processUploadedFiles(Array.from(e.target.files));
                     }
                   }}
-                  className="hidden"
+                  className="sr-only"
                 />
               </label>
 
@@ -966,14 +972,14 @@ export default function UangMakanPage() {
                 type="button"
                 variant="outline"
                 onClick={handleLoadSampleData}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-xs font-semibold"
+                className="px-4 py-2.5 rounded-xl border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] text-xs font-semibold"
               >
                 Muat Contoh Riil SIKADIR (syafey.xls)
               </Button>
             </div>
 
             {isProcessing && (
-              <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-blue-400 animate-pulse">
+              <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)] animate-pulse">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>Sedang membaca berkas dan mengomparasi dengan Surat Tugas aktif...</span>
               </div>
@@ -982,32 +988,32 @@ export default function UangMakanPage() {
 
           {/* Rule Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-2">
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+            <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xs space-y-2">
+              <div className="flex items-center gap-2 text-[var(--ds-accent-fg)]">
                 <ShieldCheck className="w-4 h-4" />
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">Cross-Check Surat Tugas</h4>
+                <h4 className="text-xs font-bold text-[var(--ds-fg)]">Cross-Check Surat Tugas</h4>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Otomatis meng-override absensi Hadir (<span className="font-semibold text-emerald-600">H</span>) menjadi Perjalanan Dinas (<span className="font-semibold text-amber-600">PD</span>) jika terdaftar di Surat Tugas terbit demi mencegah temuan dobel bayar BPK.
+              <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
+                Otomatis meng-override absensi Hadir (<span className="font-semibold text-[var(--ds-status-success-fg)]">H</span>) menjadi Perjalanan Dinas (<span className="font-semibold text-[var(--ds-status-warning-fg)]">PD</span>) jika terdaftar di Surat Tugas terbit demi mencegah temuan dobel bayar BPK.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-2">
-              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+            <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xs space-y-2">
+              <div className="flex items-center gap-2 text-[var(--ds-status-success-fg)]">
                 <CheckCircle2 className="w-4 h-4" />
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">Tarif SBM &amp; Pajak PPh 21</h4>
+                <h4 className="text-xs font-bold text-[var(--ds-fg)]">Tarif SBM &amp; Pajak PPh 21</h4>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                 Gol I/II &amp; PPPK: Rp35.000 (0%), Gol III: Rp37.000 (5%), Gol IV: Rp41.000 (15%) dihitung presisi netto.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-2">
-              <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+            <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xs space-y-2">
+              <div className="flex items-center gap-2 text-[var(--ds-accent-fg)]">
                 <Download className="w-4 h-4" />
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">2-Sheet Excel Generator</h4>
+                <h4 className="text-xs font-bold text-[var(--ds-fg)]">2-Sheet Excel Generator</h4>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-[var(--ds-fg-muted)] leading-relaxed">
                 Format keluaran Excel identik dengan berkas resmi BKSDA: Sheet Matriks Presensi + Sheet Daftar Nominatif bertandatangan Kasubbag TU.
               </p>
             </div>
@@ -1017,23 +1023,23 @@ export default function UangMakanPage() {
 
       {/* Tab 2: Interactive Matrix View (Full Screen UX) */}
       {activeTab === "matrix" && (
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs space-y-4">
           {/* Admin Edit Mode Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 p-3.5 rounded-2xl text-xs text-amber-800 dark:text-amber-300">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] p-3.5 rounded-2xl text-xs text-[var(--ds-status-warning-fg)]">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <AlertTriangle className="w-4 h-4 shrink-0 text-[var(--ds-status-warning-fg)]" />
               <span>
                 <b>Mode Pratinjau &amp; Verifikasi:</b> Klik sembarang sel tanggal di bawah ini untuk mengedit manual status presensi (Khusus <b>Admin / Super Admin</b>) sebelum men-download Excel atau menyimpan ke database.
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {isAdmin ? (
-                <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                <Badge className="bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] text-xs font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Izin Edit Aktif ({role})
                 </Badge>
               ) : (
-                <Badge className="bg-slate-200 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 text-[10px] flex items-center gap-1">
+                <Badge className="bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs flex items-center gap-1">
                   <Lock className="w-3 h-3" />
                   Mode Baca Saja ({role})
                 </Badge>
@@ -1042,40 +1048,40 @@ export default function UangMakanPage() {
           </div>
 
           {/* Controls & Filter Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-64">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[var(--ds-fg-muted)]" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari nama atau NIP..."
-                  className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800"
+                  className="pl-9 text-xs h-9 rounded-xl bg-[var(--ds-surface)]"
                 />
               </div>
 
               {/* Group filter pills */}
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl text-xs font-semibold">
+              <div className="flex items-center gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-xl text-xs font-semibold">
                 <button
                   onClick={() => setFilterGroup("all")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    filterGroup === "all" ? "bg-white dark:bg-zinc-700 shadow-xs text-blue-600" : "text-slate-600 dark:text-zinc-400"
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    filterGroup === "all" ? "bg-[var(--ds-surface)]  shadow-xs text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)] "
                   }`}
                 >
                   Semua ({items.length})
                 </button>
                 <button
                   onClick={() => setFilterGroup("pns")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    filterGroup === "pns" ? "bg-white dark:bg-zinc-700 shadow-xs text-blue-600" : "text-slate-600 dark:text-zinc-400"
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    filterGroup === "pns" ? "bg-[var(--ds-surface)]  shadow-xs text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)] "
                   }`}
                 >
                   PNS
                 </button>
                 <button
                   onClick={() => setFilterGroup("pppk")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    filterGroup === "pppk" ? "bg-white dark:bg-zinc-700 shadow-xs text-blue-600" : "text-slate-600 dark:text-zinc-400"
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    filterGroup === "pppk" ? "bg-[var(--ds-surface)]  shadow-xs text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)] "
                   }`}
                 >
                   PPPK
@@ -1085,10 +1091,10 @@ export default function UangMakanPage() {
               {/* Filter only overrides */}
               <button
                 onClick={() => setOnlyOverrides(!onlyOverrides)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors flex items-center gap-1.5 ${
                   onlyOverrides
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
-                    : "border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50"
+                    ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] "
+                    : "border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface)]"
                 }`}
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
@@ -1097,24 +1103,24 @@ export default function UangMakanPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 dark:text-zinc-400">
+              <span className="text-xs text-[var(--ds-fg-muted)]">
                 Menampilkan <b>{filteredItems.length}</b> dari {items.length} pegawai
               </span>
             </div>
           </div>
 
           {/* Matrix Table with CSS Sticky Columns */}
-          <div className="relative border border-slate-200 dark:border-zinc-800 rounded-xl overflow-x-auto max-h-[650px] shadow-xs">
+          <div className="relative border border-[var(--ds-border-subtle)] rounded-xl overflow-x-auto max-h-[650px] shadow-xs">
             <table className="w-full text-xs text-center border-collapse">
-              <thead className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold sticky top-0 z-20 shadow-xs">
+              <thead className="bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-bold sticky top-0 z-20 shadow-xs">
                 <tr>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 w-12 sticky left-0 bg-slate-100 dark:bg-zinc-800 z-30">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] w-12 sticky left-0 bg-[var(--ds-surface-muted)] z-30">
                     NO
                   </th>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 text-left min-w-[200px] sticky left-12 bg-slate-100 dark:bg-zinc-800 z-30">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] text-left min-w-[200px] sticky left-12 bg-[var(--ds-surface-muted)] z-30">
                     NAMA / NIP
                   </th>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 min-w-[130px] sticky left-[248px] bg-slate-100 dark:bg-zinc-800 z-30">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] min-w-[130px] sticky left-[248px] bg-[var(--ds-surface-muted)] z-30">
                     GOLONGAN
                   </th>
 
@@ -1128,75 +1134,76 @@ export default function UangMakanPage() {
                     const dayNames = ["Mg", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"];
                     const dayName = dayNames[dayOfWeek] || "";
 
-                    let headerBg = "hover:bg-blue-100 dark:hover:bg-zinc-700 bg-white dark:bg-zinc-900";
-                    let textClass = "text-slate-700 dark:text-zinc-200";
+                    let headerBg = "hover:bg-[var(--ds-accent-soft)]  bg-[var(--ds-surface)] ";
+                    let textClass = "text-[var(--ds-fg)] ";
                     let tooltip = `Tanggal ${day}: Hari Kerja. Klik untuk toggle libur.`;
 
                     if (isHoliday) {
-                      headerBg = "bg-rose-100/90 dark:bg-rose-950/70 hover:bg-rose-200 border-rose-300 dark:border-rose-900";
-                      textClass = "text-rose-700 dark:text-rose-300 font-extrabold";
+                      headerBg = "bg-[var(--ds-status-danger-bg)]  hover:bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] ";
+                      textClass = "text-[var(--ds-status-danger-fg)]  font-extrabold";
                       tooltip = `Tanggal ${day}: ${holidayInfo.name} (${holidayInfo.is_cuti_bersama ? "Cuti Bersama" : "Hari Libur Nasional"})`;
                     } else if (dayOfWeek === 0) {
-                      headerBg = "bg-red-50 dark:bg-red-950/50 hover:bg-red-100 border-red-200 dark:border-red-900";
-                      textClass = "text-red-600 dark:text-red-400 font-bold";
+                      headerBg = "bg-[var(--ds-status-danger-bg)]  hover:bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] ";
+                      textClass = "text-[var(--ds-status-danger-fg)]  font-bold";
                       tooltip = `Tanggal ${day}: Hari Minggu (Akhir Pekan)`;
                     } else if (dayOfWeek === 6) {
-                      headerBg = "bg-slate-100 dark:bg-zinc-800/80 hover:bg-slate-200 border-slate-300 dark:border-zinc-700";
-                      textClass = "text-slate-500 dark:text-zinc-400 font-semibold";
+                      headerBg = "kpg-secondary border-[var(--ds-border-subtle)] ";
+                      textClass = "text-[var(--ds-fg-muted)]  font-semibold";
                       tooltip = `Tanggal ${day}: Hari Sabtu (Akhir Pekan)`;
                     }
 
                     return (
                       <th
                         key={day}
-                        onClick={() => handleToggleColumnHoliday(day)}
                         title={tooltip}
-                        className={`p-1 border border-slate-200 dark:border-zinc-700 w-8 cursor-pointer transition-colors ${headerBg}`}
+                        className={`p-0 border border-[var(--ds-border-subtle)] w-8 ${headerBg}`}
                       >
-                        <div className={`text-[8px] uppercase font-semibold leading-tight ${dayOfWeek === 0 || isHoliday ? "text-rose-600 dark:text-rose-400" : "text-slate-400"}`}>
+                        <button type="button" className="kpg-presence-button w-full min-w-8 min-h-9 p-1" disabled={!isAdmin} onClick={() => handleToggleColumnHoliday(day)} aria-label={`Ubah hari kerja tanggal ${day}`}>
+                        <span className={`block text-xs uppercase font-semibold leading-tight ${dayOfWeek === 0 || isHoliday ? "text-[var(--ds-status-danger-fg)] " : "text-[var(--ds-fg-muted)]"}`}>
                           {dayName}
-                        </div>
-                        <div className={`text-[10px] leading-tight font-bold ${textClass}`}>{day}</div>
+                        </span>
+                        <span className={`block text-xs leading-tight font-bold ${textClass}`}>{day}</span>
                         {isHoliday && (
-                          <span className="block w-1.5 h-1.5 rounded-full bg-rose-500 mx-auto mt-0.5" />
+                          <span className="block w-1.5 h-1.5 rounded-full bg-[var(--ds-danger-solid)] mx-auto mt-0.5" />
                         )}
+                        </button>
                       </th>
                     );
                   })}
 
                   {/* Summary Totals Columns */}
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold w-12">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] font-bold w-12">
                     H
                   </th>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-bold w-12">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] font-bold w-12">
                     PD
                   </th>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-bold w-12">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold w-12">
                     CT
                   </th>
-                  <th className="p-2 border border-slate-200 dark:border-zinc-700 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 font-bold w-12">
+                  <th className="p-2 border border-[var(--ds-border-subtle)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold w-12">
                     TK
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {filteredItems.map((emp, idx) => (
-                  <tr key={emp.nip} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors">
+                  <tr key={emp.nip} className="hover:bg-[var(--ds-surface)] transition-colors">
                     {/* Sticky No */}
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 font-semibold sticky left-0 bg-white dark:bg-zinc-900 z-10">
+                    <td className="p-2 border border-[var(--ds-border-subtle)] font-semibold sticky left-0 bg-[var(--ds-surface)] z-10">
                       {idx + 1}
                     </td>
 
                     {/* Sticky Nama & NIP */}
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 text-left sticky left-12 bg-white dark:bg-zinc-900 z-10">
-                      <div className="font-bold text-slate-900 dark:text-white whitespace-nowrap">{emp.nama}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{emp.nip}</div>
+                    <td className="p-2 border border-[var(--ds-border-subtle)] text-left sticky left-12 bg-[var(--ds-surface)] z-10">
+                      <div className="font-bold text-[var(--ds-fg)] whitespace-nowrap">{emp.nama}</div>
+                      <div className="text-xs text-[var(--ds-fg-muted)] font-mono">{emp.nip}</div>
                     </td>
 
                     {/* Sticky Golongan */}
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 sticky left-[248px] bg-white dark:bg-zinc-900 z-10 text-slate-600 dark:text-zinc-300">
-                      <span className="text-[11px] font-semibold">{emp.golongan}</span>
+                    <td className="p-2 border border-[var(--ds-border-subtle)] sticky left-[248px] bg-[var(--ds-surface)] z-10 text-[var(--ds-fg-muted)]">
+                      <span className="text-xs font-semibold">{emp.golongan}</span>
                     </td>
 
                     {/* Interactive Days Cells */}
@@ -1210,18 +1217,18 @@ export default function UangMakanPage() {
                       const isHoliday = !!holidayInfo;
 
                       // Determine cell styling
-                      let cellStyle = "text-slate-400 bg-slate-100/50 dark:bg-zinc-800/30";
-                      if (cleanVal === "H") cellStyle = "text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50/70";
-                      else if (cleanVal === "PD") cellStyle = "text-amber-800 dark:text-amber-300 font-bold bg-amber-100/80";
-                      else if (cleanVal === "CT") cellStyle = "text-blue-700 dark:text-blue-300 font-semibold bg-blue-50/70";
-                      else if (cleanVal === "S") cellStyle = "text-purple-700 dark:text-purple-300 font-semibold bg-purple-50/70";
-                      else if (cleanVal === "I") cellStyle = "text-cyan-700 dark:text-cyan-300 font-semibold bg-cyan-50/70";
-                      else if (cleanVal === "TK") cellStyle = "text-rose-700 dark:text-rose-300 font-bold bg-rose-100/80";
+                      let cellStyle = "text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] ";
+                      if (cleanVal === "H") cellStyle = "text-[var(--ds-status-success-fg)]  font-bold bg-[var(--ds-status-success-bg)]";
+                      else if (cleanVal === "PD") cellStyle = "text-[var(--ds-status-warning-fg)]  font-bold bg-[var(--ds-status-warning-bg)]";
+                      else if (cleanVal === "CT") cellStyle = "text-[var(--ds-accent-fg)]  font-semibold bg-[var(--ds-accent-soft)]";
+                      else if (cleanVal === "S") cellStyle = "text-[var(--ds-accent-fg)]  font-semibold bg-[var(--ds-accent-soft)]";
+                      else if (cleanVal === "I") cellStyle = "text-[var(--ds-accent-fg)]  font-semibold bg-[var(--ds-accent-soft)]";
+                      else if (cleanVal === "TK") cellStyle = "text-[var(--ds-status-danger-fg)]  font-bold bg-[var(--ds-status-danger-bg)]";
                       else if (cleanVal === "-") {
                         if (isHoliday || dayOfWeek === 0) {
-                          cellStyle = "text-rose-400 bg-rose-50/30 dark:bg-rose-950/20";
+                          cellStyle = "text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] ";
                         } else if (dayOfWeek === 6) {
-                          cellStyle = "text-slate-400 bg-slate-100/60 dark:bg-zinc-800/40";
+                          cellStyle = "text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] ";
                         }
                       }
 
@@ -1236,28 +1243,25 @@ export default function UangMakanPage() {
                       return (
                         <td
                           key={day}
-                          onClick={() => handleCellClick(emp, day)}
-                          className={`p-1 border border-slate-200 dark:border-zinc-800 text-[11px] ${
-                            isAdmin ? "cursor-pointer hover:ring-2 hover:ring-blue-500 hover:z-20" : "cursor-default"
-                          } transition-all ${cellStyle}`}
+                          className={`p-0 border border-[var(--ds-border-subtle)] text-xs ${cellStyle}`}
                           title={`${dayTooltip} ${isAdmin ? "(Klik untuk koreksi status admin)" : ""}`}
                         >
-                          <span>{rawVal}</span>
+                          <button type="button" className="kpg-presence-button w-full min-w-8 min-h-9 p-1" disabled={!isAdmin} onClick={() => handleCellClick(emp, day)} aria-label={`Koreksi presensi ${emp.nama} tanggal ${day}, ${rawVal}`}>{rawVal}</button>
                         </td>
                       );
                     })}
 
                     {/* Summary Counters */}
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 font-bold text-emerald-600 bg-emerald-50/30">
+                    <td className="p-2 border border-[var(--ds-border-subtle)] font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)]">
                       {emp.total_hadir}
                     </td>
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 font-bold text-amber-600 bg-amber-50/30">
+                    <td className="p-2 border border-[var(--ds-border-subtle)] font-bold text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)]">
                       {emp.total_pd}
                     </td>
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 font-bold text-blue-600 bg-blue-50/30">
+                    <td className="p-2 border border-[var(--ds-border-subtle)] font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)]">
                       {emp.total_cuti}
                     </td>
-                    <td className="p-2 border border-slate-200 dark:border-zinc-800 font-bold text-rose-600 bg-rose-50/30">
+                    <td className="p-2 border border-[var(--ds-border-subtle)] font-bold text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)]">
                       {emp.total_alpa}
                     </td>
                   </tr>
@@ -1266,8 +1270,8 @@ export default function UangMakanPage() {
             </table>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-zinc-400">
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 text-xs text-[var(--ds-fg-muted)]">
+            <div className="flex items-center gap-2 text-[var(--ds-status-warning-fg)]">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>
                 <b>PD*</b> = Otomatis di-override dari <b>Hadir (SIKADIR)</b> ke <b>Perjalanan Dinas</b> karena tercatat dalam Surat Tugas resmi.
@@ -1278,93 +1282,93 @@ export default function UangMakanPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-slate-600 dark:text-zinc-400 border-t border-slate-100 dark:border-zinc-800">
-            <span className="font-semibold text-slate-700 dark:text-zinc-300">Legenda Presensi:</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-emerald-100 border border-emerald-300 text-[9px] font-bold text-emerald-800 flex items-center justify-center">H</span> Hadir (Uang Makan)</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-amber-100 border border-amber-300 text-[9px] font-bold text-amber-800 flex items-center justify-center">PD</span> Perjalanan Dinas</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-blue-100 border border-blue-300 text-[9px] font-bold text-blue-800 flex items-center justify-center">CT</span> Cuti Sah</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-purple-100 border border-purple-300 text-[9px] font-bold text-purple-800 flex items-center justify-center">S</span> Sakit</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-cyan-100 border border-cyan-300 text-[9px] font-bold text-cyan-800 flex items-center justify-center">I</span> Izin</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-rose-100 border border-rose-300 text-[9px] font-bold text-rose-800 flex items-center justify-center">TK</span> Alpa</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-red-100 border border-red-300 text-[9px] font-bold text-red-700 flex items-center justify-center">Mg</span> Libur Nasional / Cuti Bersama SKB / Minggu</span>
-            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-slate-200 border border-slate-300 text-[9px] font-bold text-slate-600 flex items-center justify-center">Sb</span> Sabtu</span>
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-[var(--ds-fg-muted)] border-t border-[var(--ds-border-subtle)]">
+            <span className="font-semibold text-[var(--ds-fg)]">Legenda Presensi:</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-xs font-bold text-[var(--ds-status-success-fg)] flex items-center justify-center">H</span> Hadir (Uang Makan)</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] text-xs font-bold text-[var(--ds-status-warning-fg)] flex items-center justify-center">PD</span> Perjalanan Dinas</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs font-bold text-[var(--ds-accent-fg)] flex items-center justify-center">CT</span> Cuti Sah</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs font-bold text-[var(--ds-accent-fg)] flex items-center justify-center">S</span> Sakit</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs font-bold text-[var(--ds-accent-fg)] flex items-center justify-center">I</span> Izin</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-xs font-bold text-[var(--ds-status-danger-fg)] flex items-center justify-center">TK</span> Alpa</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-xs font-bold text-[var(--ds-status-danger-fg)] flex items-center justify-center">Mg</span> Libur Nasional / Cuti Bersama SKB / Minggu</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-4 h-4 rounded-sm bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg-muted)] flex items-center justify-center">Sb</span> Sabtu</span>
           </div>
         </div>
       )}
 
       {/* Tab 3: Daftar Nominatif (Sheet 2) */}
       {activeTab === "nominatif" && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-[var(--ds-surface)] p-6 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs space-y-4">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                 Daftar Nominatif Pembayaran Uang Makan Pegawai
               </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
+              <p className="text-xs text-[var(--ds-fg-muted)]">
                 Perhitungan total hak uang makan berdasarkan tarif SBM per golongan dan potongan PPh 21.
               </p>
             </div>
             <Button
               onClick={handleExportExcel}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+              className="bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] text-xs font-bold"
             >
               <Download className="w-4 h-4 mr-1.5" />
               Export Nominatif Excel
             </Button>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-zinc-800 shadow-xs">
+          <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] shadow-xs">
             <table className="w-full text-xs border-collapse">
-              <thead className="bg-slate-100 dark:bg-zinc-800 font-bold text-slate-700 dark:text-zinc-300 text-center">
+              <thead className="bg-[var(--ds-surface-muted)] font-bold text-[var(--ds-fg)] text-center">
                 <tr>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 w-12">NO</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 text-left">NAMA / NIP</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700">GOLONGAN</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700">JML HARI</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 text-right">TARIF SBM</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 text-right">KOTOR (BRUTO)</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700">PPH 21</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 text-right">POTONGAN</th>
-                  <th className="p-3 border border-slate-200 dark:border-zinc-700 text-right font-bold text-emerald-700 dark:text-emerald-400">
+                  <th className="p-3 border border-[var(--ds-border-subtle)] w-12">NO</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)] text-left">NAMA / NIP</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)]">GOLONGAN</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)]">JML HARI</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)] text-right">TARIF SBM</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)] text-right">KOTOR (BRUTO)</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)]">PPH 21</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)] text-right">POTONGAN</th>
+                  <th className="p-3 border border-[var(--ds-border-subtle)] text-right font-bold text-[var(--ds-status-success-fg)]">
                     JUMLAH DITERIMA (NETTO)
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {filteredItems.map((emp, idx) => (
-                  <tr key={emp.nip} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
-                    <td className="p-3 text-center font-semibold border border-slate-200 dark:border-zinc-800">
+                  <tr key={emp.nip} className="hover:bg-[var(--ds-surface)]">
+                    <td className="p-3 text-center font-semibold border border-[var(--ds-border-subtle)]">
                       {idx + 1}
                     </td>
-                    <td className="p-3 border border-slate-200 dark:border-zinc-800">
-                      <div className="font-bold text-slate-900 dark:text-white">{emp.nama}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{emp.nip}</div>
+                    <td className="p-3 border border-[var(--ds-border-subtle)]">
+                      <div className="font-bold text-[var(--ds-fg)]">{emp.nama}</div>
+                      <div className="text-xs text-[var(--ds-fg-muted)] font-mono">{emp.nip}</div>
                     </td>
-                    <td className="p-3 text-center border border-slate-200 dark:border-zinc-800 font-semibold text-slate-700 dark:text-zinc-300">
+                    <td className="p-3 text-center border border-[var(--ds-border-subtle)] font-semibold text-[var(--ds-fg)]">
                       {emp.golongan}
                     </td>
-                    <td className="p-3 text-center font-bold border border-slate-200 dark:border-zinc-800">
+                    <td className="p-3 text-center font-bold border border-[var(--ds-border-subtle)]">
                       {emp.total_hadir} Hari
                     </td>
-                    <td className="p-3 text-right font-mono border border-slate-200 dark:border-zinc-800">
+                    <td className="p-3 text-right font-mono border border-[var(--ds-border-subtle)]">
                       Rp {emp.tarif.toLocaleString("id-ID")}
                     </td>
-                    <td className="p-3 text-right font-mono font-semibold border border-slate-200 dark:border-zinc-800">
+                    <td className="p-3 text-right font-mono font-semibold border border-[var(--ds-border-subtle)]">
                       Rp {emp.total_bruto.toLocaleString("id-ID")}
                     </td>
-                    <td className="p-3 text-center border border-slate-200 dark:border-zinc-800 font-bold">
+                    <td className="p-3 text-center border border-[var(--ds-border-subtle)] font-bold">
                       {(emp.pph_rate * 100).toFixed(0)}%
                     </td>
-                    <td className="p-3 text-right font-mono border border-slate-200 dark:border-zinc-800 text-rose-600">
+                    <td className="p-3 text-right font-mono border border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)]">
                       Rp {emp.total_pph.toLocaleString("id-ID")}
                     </td>
-                    <td className="p-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-zinc-800">
+                    <td className="p-3 text-right font-mono font-bold text-[var(--ds-status-success-fg)] border border-[var(--ds-border-subtle)]">
                       Rp {emp.total_netto.toLocaleString("id-ID")}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-slate-100 dark:bg-zinc-800 font-bold text-slate-900 dark:text-white">
+              <tfoot className="bg-[var(--ds-surface-muted)] font-bold text-[var(--ds-fg)]">
                 <tr>
                   <td colSpan={6} className="p-3 text-center uppercase tracking-wider">
                     Total Keseluruhan ({filteredItems.length} Pegawai)
@@ -1373,10 +1377,10 @@ export default function UangMakanPage() {
                     Rp {filteredItems.reduce((s, it) => s + it.total_bruto, 0).toLocaleString("id-ID")}
                   </td>
                   <td className="p-3 text-center">-</td>
-                  <td className="p-3 text-right font-mono text-rose-600">
+                  <td className="p-3 text-right font-mono text-[var(--ds-status-danger-fg)]">
                     Rp {filteredItems.reduce((s, it) => s + it.total_pph, 0).toLocaleString("id-ID")}
                   </td>
-                  <td className="p-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-extrabold">
+                  <td className="p-3 text-right font-mono text-[var(--ds-status-success-fg)] font-extrabold">
                     Rp {filteredItems.reduce((s, it) => s + it.total_netto, 0).toLocaleString("id-ID")}
                   </td>
                 </tr>
@@ -1388,13 +1392,13 @@ export default function UangMakanPage() {
 
       {/* Tab 4: History Batches */}
       {activeTab === "history" && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+        <div className="bg-[var(--ds-surface)] p-6 rounded-2xl border border-[var(--ds-border-subtle)] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                 Riwayat Perhitungan Uang Makan Tersimpan
               </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
+              <p className="text-xs text-[var(--ds-fg-muted)]">
                 Daftar batch rekonsiliasi yang telah disimpan permanen ke database BKSDA.
               </p>
             </div>
@@ -1402,15 +1406,19 @@ export default function UangMakanPage() {
               onClick={fetchBatches}
               variant="outline"
               size="sm"
-              className="text-xs h-9 rounded-xl border-slate-200 dark:border-zinc-700"
+              className="text-xs h-9 rounded-xl border-[var(--ds-border-subtle)]"
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loadingBatches ? "animate-spin" : ""}`} />
               Refresh
             </Button>
           </div>
 
-          {savedBatches.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 text-xs">
+          {loadingBatches ? (
+            <p role="status" className="p-8 text-sm text-[var(--ds-fg-muted)]">Memuat riwayat batch...</p>
+          ) : batchesError ? (
+            <div role="alert" className="p-8 text-sm text-[var(--ds-status-danger-fg)]">Gagal memuat riwayat batch. <button type="button" className="kpg-secondary ml-2 rounded-lg px-3 py-2" onClick={fetchBatches}>Coba lagi</button></div>
+          ) : savedBatches.length === 0 ? (
+            <div className="p-12 text-center text-[var(--ds-fg-muted)] text-xs">
               Belum ada batch yang disimpan secara permanen ke database. Silakan unggah presensi di tab Upload Presensi lalu klik &quot;Simpan Batch ke DB&quot;.
             </div>
           ) : (
@@ -1418,24 +1426,24 @@ export default function UangMakanPage() {
               {savedBatches.map((batch) => (
                 <div
                   key={batch.id}
-                  className="p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/40 hover:border-blue-500/50 transition-all space-y-3"
+                  className="p-5 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-accent-soft-border)] transition-colors space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{batch.title}</h4>
-                      <p className="text-[11px] text-slate-500">
+                      <h4 className="text-sm font-bold text-[var(--ds-fg)]">{batch.title}</h4>
+                      <p className="text-xs text-[var(--ds-fg-muted)]">
                         Periode: Bulan {batch.month} Tahun {batch.year}
                       </p>
                     </div>
-                    <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px]">
+                    <Badge className="bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] text-xs">
                       {batch.total_employees} Pegawai
                     </Badge>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 dark:border-zinc-700 flex items-center justify-between">
+                  <div className="pt-2 border-t border-[var(--ds-border-subtle)] flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] text-slate-400">Total Netto</p>
-                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                      <p className="text-xs text-[var(--ds-fg-muted)]">Total Netto</p>
+                      <p className="text-sm font-bold text-[var(--ds-status-success-fg)] font-mono">
                         Rp {Number(batch.grand_total_netto).toLocaleString("id-ID")}
                       </p>
                     </div>
@@ -1445,7 +1453,7 @@ export default function UangMakanPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleLoadBatch(batch.id)}
-                        className="h-8 px-2.5 text-xs text-blue-600 hover:bg-blue-50 dark:hover:bg-zinc-700 rounded-lg"
+                        className="h-8 px-2.5 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg"
                       >
                         Buka
                       </Button>
@@ -1453,7 +1461,7 @@ export default function UangMakanPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDeleteBatch(batch.id, batch.title)}
-                        className="h-8 px-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-zinc-700 rounded-lg"
+                        className="h-8 px-2 text-xs text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg" aria-label="Hapus"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -1465,37 +1473,37 @@ export default function UangMakanPage() {
           )}
         </div>
       )}
-        </motion.div>
+        </KepegawaianTabContent>
       </AnimatePresence>
 
       {/* Modal Koreksi Presensi Khusus Admin & Super Admin */}
       {editingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-slate-200 dark:border-zinc-800 shadow-2xl max-w-lg w-full space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-zinc-800">
+        <KepegawaianDialog title="Koreksi presensi" onClose={() => setEditingModal(null)} busy={false} className="sm:max-w-lg">
+          <div className="bg-[var(--ds-surface)] rounded-2xl p-6 border border-[var(--ds-border-subtle)] shadow-2xl max-w-lg w-full space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center font-bold">
                   {editingModal.day}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-[var(--ds-fg)]">
                     Koreksi Status Presensi (Admin Edit)
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     {editingModal.item.nama} • {editingModal.item.golongan}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingModal(null)}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                className="w-8 h-8 rounded-lg hover:bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)]" aria-label="Tutup"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg)]">
                 Pilih Status Absensi Tanggal {editingModal.day}:
               </label>
               <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
@@ -1506,10 +1514,10 @@ export default function UangMakanPage() {
                       key={opt.code}
                       type="button"
                       onClick={() => setEditingModal({ ...editingModal, currentCode: opt.code })}
-                      className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all ${
+                      className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-colors ${
                         isSelected
-                          ? "border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200 ring-2 ring-blue-500/20"
-                          : "border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  ring-2 ring-[var(--ds-accent-soft-border)]"
+                          : "border-[var(--ds-border-subtle)]  hover:bg-[var(--ds-surface)]  text-[var(--ds-fg)] "
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
@@ -1518,17 +1526,17 @@ export default function UangMakanPage() {
                         </span>
                         <div>
                           <p className="text-xs font-bold">{opt.label}</p>
-                          <p className="text-[10px] text-slate-400">{opt.desc}</p>
+                          <p className="text-xs text-[var(--ds-fg-muted)]">{opt.desc}</p>
                         </div>
                       </div>
-                      {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
+                      {isSelected && <Check className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />}
                     </button>
                   );
                 })}
               </div>
 
               <div className="pt-2">
-                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                <label className="text-xs font-semibold text-[var(--ds-fg)]">
                   Catatan / Alasan Koreksi (Opsional):
                 </label>
                 <Input
@@ -1540,7 +1548,7 @@ export default function UangMakanPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -1552,69 +1560,69 @@ export default function UangMakanPage() {
               <Button
                 size="sm"
                 onClick={() => handleSaveModalEdit(editingModal.currentCode, editingModal.reason)}
-                className="text-xs h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                className="text-xs h-9 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold"
               >
                 Terapkan Perubahan
               </Button>
             </div>
           </div>
-        </div>
+        </KepegawaianDialog>
       )}
       {/* Modal Peringatan Beda Periode Bulan saat Upload Bareng */}
       {mismatchedModal.open && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-rose-200 dark:border-rose-900/50 space-y-5 animate-in fade-in-50 zoom-in-95">
+        <KepegawaianDialog title="Perbedaan periode berkas" onClose={() => setMismatchedModal({ open: false, message: '', groups: [] })} busy={false} className="sm:max-w-3xl">
+          <div className="bg-[var(--ds-surface)] rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[var(--ds-status-danger-border)] space-y-5  -50 ">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center shrink-0 border border-[var(--ds-status-danger-border)]">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="text-base font-bold text-[var(--ds-fg)]">
                   Peringatan: Berkas Memiliki Periode Bulan Berbeda!
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1 leading-relaxed">
                   {mismatchedModal.message}
                 </p>
               </div>
               <button
                 onClick={() => setMismatchedModal({ open: false, message: "", groups: [] })}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                className="w-8 h-8 rounded-lg hover:bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)]" aria-label="Tutup"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-              <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+              <p className="text-xs font-semibold text-[var(--ds-fg)]">
                 Rincian berkas berdasarkan periode bulan terdeteksi:
               </p>
               {mismatchedModal.groups.map((group, gIdx) => (
                 <div
                   key={gIdx}
-                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-800/40 space-y-2"
+                  className="p-3.5 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] space-y-2"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                      <Calendar className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+                      <span className="text-xs font-bold text-[var(--ds-fg)]">
                         {group.label} ({group.periode})
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-bold">
+                    <Badge variant="outline" className="text-xs font-bold">
                       {group.files.length} Berkas
                     </Badge>
                   </div>
 
-                  <div className="divide-y divide-slate-200/60 dark:divide-zinc-700/60">
+                  <div className="divide-y divide-[var(--ds-border-subtle)]">
                     {group.files.map((f, fIdx) => (
                       <div key={fIdx} className="py-1.5 flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <FileSpreadsheet className="w-3.5 h-3.5 text-slate-400" />
-                          <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+                          <span className="font-semibold text-[var(--ds-fg)]">
                             {f.filename}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-500 dark:text-zinc-400">
+                        <span className="text-xs text-[var(--ds-fg-muted)]">
                           {f.nama} ({f.nip})
                         </span>
                       </div>
@@ -1624,20 +1632,20 @@ export default function UangMakanPage() {
               ))}
             </div>
 
-            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+            <div className="p-3 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] text-xs text-[var(--ds-status-warning-fg)] leading-relaxed">
               💡 <b>Solusi:</b> Silakan pisahkan berkas berdasarkan bulannya masing-masing. Unggah berkas presensi untuk satu periode bulan sekaligus agar perhitungan uang makan, pemotongan PPh 21, dan kalender hari kerja terhitung tepat.
             </div>
 
-            <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-end">
+            <div className="pt-2 border-t border-[var(--ds-border-subtle)] flex items-center justify-end">
               <Button
                 onClick={() => setMismatchedModal({ open: false, message: "", groups: [] })}
-                className="text-xs h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900 font-bold"
+                className="text-xs h-9 rounded-xl bg-[var(--ds-fg)] hover:bg-[var(--ds-fg)] text-[var(--ds-accent-on-solid)] font-bold"
               >
                 Mengerti, Saya Akan Periksa Ulang
               </Button>
             </div>
           </div>
-        </div>
+        </KepegawaianDialog>
       )}
     </div>
   );

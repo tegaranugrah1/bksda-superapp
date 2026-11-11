@@ -1,5 +1,9 @@
 "use client";
 
+import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
+
+import { KepegawaianDialog } from "../_components/KepegawaianDialog";
+
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -65,11 +69,11 @@ const CATEGORIES: Category[] = ["Mahasiswa", "Instansi", "Internal", "Masyarakat
 const FILE_ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png";
 
 const CATEGORY_STYLES: Record<Category, { badge: string }> = {
-  Mahasiswa: { badge: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800" },
-  Instansi: { badge: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800" },
-  Internal: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800" },
-  Masyarakat: { badge: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800" },
-  Lainnya: { badge: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700" },
+  Mahasiswa: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   " },
+  Instansi: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   " },
+  Internal: { badge: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   " },
+  Masyarakat: { badge: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   " },
+  Lainnya: { badge: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-[var(--ds-border-subtle)]   " },
 };
 
 const UPLOAD_CONFIG: Record<AttachmentType, { title: string; description: string; hint: string; card: string; icon: string }> = {
@@ -77,22 +81,22 @@ const UPLOAD_CONFIG: Record<AttachmentType, { title: string; description: string
     title: "Surat Masuk Utama",
     description: "Upload berkas surat atau dokumen utama yang diterima.",
     hint: "PDF, DOC, XLS, JPG, PNG (Maks 20MB)",
-    card: "border-blue-200 bg-blue-50/50 hover:border-blue-400 dark:border-blue-900 dark:bg-blue-950/30",
-    icon: "bg-blue-600 text-white",
+    card: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]  ",
+    icon: "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]",
   },
   supporting: {
     title: "Dokumen Pendukung",
     description: "Proposal, lampiran teknis, materi PPT, atau berkas tambahan.",
     hint: "PPT, PPTX, PDF, DOC, XLS, JPG, PNG",
-    card: "border-amber-200 bg-amber-50/50 hover:border-amber-400 dark:border-amber-900 dark:bg-amber-950/30",
-    icon: "bg-amber-500 text-white",
+    card: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:border-[var(--ds-status-warning-border)]  ",
+    icon: "bg-[var(--ds-status-warning-fg)] text-[var(--ds-accent-on-solid)]",
   },
   reply: {
     title: "Surat Balasan Balai",
     description: "Upload salinan surat balasan yang sudah diterbitkan.",
     hint: "PDF, DOC, JPG, PNG",
-    card: "border-emerald-200 bg-emerald-50/50 hover:border-emerald-400 dark:border-emerald-900 dark:bg-emerald-950/30",
-    icon: "bg-emerald-600 text-white",
+    card: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:border-[var(--ds-status-success-border)]  ",
+    icon: "bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)]",
   },
 };
 
@@ -133,6 +137,7 @@ export default function EmployeeIncomingLettersPage() {
 
   const [items, setItems] = useState<IncomingLetter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -153,7 +158,6 @@ export default function EmployeeIncomingLettersPage() {
     replied: 0,
     this_month: 0,
   });
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<IncomingLetter | null>(null);
@@ -185,6 +189,7 @@ export default function EmployeeIncomingLettersPage() {
 
   const loadItems = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const response = await api.get("/kepegawaian/surat-masuk", {
         params: {
@@ -205,10 +210,10 @@ export default function EmployeeIncomingLettersPage() {
         setSummaryCounts(response.data.meta.summary_counts);
       }
     } catch {
+      setLoadError(true);
       toast.error("Gagal memuat arsip surat.");
     } finally {
       setLoading(false);
-      setIsFirstLoad(false);
     }
   }, [debouncedSearch, endDate, kategori, page, perPage, startDate, statusBalasan]);
 
@@ -371,6 +376,8 @@ export default function EmployeeIncomingLettersPage() {
   const handleDelete = async (item: IncomingLetter) => {
     if (
       !(await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
         title: "Hapus Arsip Surat",
         description: `Hapus arsip agenda ${item.no_agenda} (${item.asal_surat})? Seluruh berkas lampiran di storage juga akan dihapus permanen.`,
         confirmText: "Hapus",
@@ -434,6 +441,8 @@ export default function EmployeeIncomingLettersPage() {
     if (
       !editing ||
       !(await confirm({
+      contentModule: "kepegawaian",
+      contentClassName: "kpg-ui",
         title: "Hapus Lampiran",
         description: `Hapus ${attachment.original_name} dari arsip ini? Berkas storage juga akan dihapus.`,
         confirmText: "Hapus",
@@ -461,23 +470,18 @@ export default function EmployeeIncomingLettersPage() {
   const isThisMonthFilter = startDate === thisMonthFirst && endDate === thisMonthLast;
 
   return (
-    <div className="p-5 md:p-7 space-y-5">
+    <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7 space-y-5">
       {/* Header Halaman - Clean Enterprise Pro Max */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col gap-4 xl:flex-row xl:items-center sm:justify-between">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
             <Inbox className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
-                SDM &amp; Kepegawaian
-              </span>
-            </div>
-            <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mt-0.5">
+            <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight mt-0.5">
               Arsip Surat Masuk
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
               Pencatatan agenda surat masuk, pengelolaan berkas lampiran, dan penelusuran status balasan balai.
             </p>
           </div>
@@ -489,14 +493,14 @@ export default function EmployeeIncomingLettersPage() {
             onClick={() => setExportOpen(true)}
             className="h-9 px-3.5 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            <FileSpreadsheet className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
             <span>Export Excel</span>
           </Button>
           {canWrite && (
             <Button
               size="sm"
               onClick={openCreate}
-              className="h-9 px-4 rounded-xl gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
+              className="h-9 px-4 rounded-xl gap-1.5 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-xs cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Tambah Arsip</span>
@@ -520,8 +524,8 @@ export default function EmployeeIncomingLettersPage() {
               setEndDate("");
               setPage(1);
             },
-            activeClass: "border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-blue-500/20",
-            iconClass: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400",
+            activeClass: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  ring-1 ring-[var(--ds-accent-soft-border)]",
+            iconClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  ",
           },
           {
             key: "pending",
@@ -533,8 +537,8 @@ export default function EmployeeIncomingLettersPage() {
               setStatusBalasan(statusBalasan === "pending" ? "" : "pending");
               setPage(1);
             },
-            activeClass: "border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-1 ring-amber-500/20",
-            iconClass: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400",
+            activeClass: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]  ring-1 ring-[var(--ds-status-warning-border)]",
+            iconClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ",
           },
           {
             key: "replied",
@@ -546,8 +550,8 @@ export default function EmployeeIncomingLettersPage() {
               setStatusBalasan(statusBalasan === "replied" ? "" : "replied");
               setPage(1);
             },
-            activeClass: "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-1 ring-emerald-500/20",
-            iconClass: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400",
+            activeClass: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]  ring-1 ring-[var(--ds-status-success-border)]",
+            iconClass: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  ",
           },
           {
             key: "this_month",
@@ -565,64 +569,63 @@ export default function EmployeeIncomingLettersPage() {
               }
               setPage(1);
             },
-            activeClass: "border-purple-500 bg-purple-50/40 dark:bg-purple-950/20 ring-1 ring-purple-500/20",
-            iconClass: "bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400",
+            activeClass: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  ring-1 ring-[var(--ds-accent-soft-border)]",
+            iconClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  ",
           },
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <motion.button
+            <button
               key={card.key}
+              aria-pressed={card.isActive}
               type="button"
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.15 }}
+
               onClick={card.onClick}
-              className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+              className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer ${
                 card.isActive
                   ? card.activeClass
-                  : "bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
+                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)] "
               }`}
             >
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-1.5">
                   {card.key === "pending" && card.count > 0 && (
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--ds-status-warning-fg)]" />
                     </span>
                   )}
                   {card.label}
                 </p>
-                <p className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 tabular-nums">
+                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-0.5 tabular-nums">
                   {card.count}
                 </p>
               </div>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.iconClass}`}>
                 <Icon className="w-4 h-4" />
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>
 
       {/* Filter Bar */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 shadow-xs">
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-12 items-center">
           {/* Search Input */}
           <div className="relative sm:col-span-2 lg:col-span-3">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari agenda, nomor, pengirim, perihal..."
-              className="pl-9 pr-8 h-9 text-xs border-slate-200 dark:border-zinc-800"
+              className="pl-9 pr-8 h-9 text-xs border-[var(--ds-border-subtle)]"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-2 rounded-full p-1 text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                className="absolute right-2.5 top-2 rounded-full p-1 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -637,7 +640,7 @@ export default function EmployeeIncomingLettersPage() {
                 setKategori(event.target.value);
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
+              className="h-9 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Kategori surat"
             >
               <option value="">Semua Kategori</option>
               {CATEGORIES.map((value) => (
@@ -656,7 +659,7 @@ export default function EmployeeIncomingLettersPage() {
                 setStatusBalasan(event.target.value as "" | "pending" | "replied");
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition focus:border-blue-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
+              className="h-9 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Status balasan"
             >
               <option value="">Semua Status Balasan</option>
               <option value="pending">Menunggu Balasan</option>
@@ -674,7 +677,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Dari Tanggal Diterima"
-              className="h-9 text-xs border-slate-200 dark:border-zinc-800"
+              className="h-9 text-xs border-[var(--ds-border-subtle)]"
             />
             <Input
               type="date"
@@ -684,7 +687,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Sampai Tanggal Diterima"
-              className="h-9 text-xs border-slate-200 dark:border-zinc-800"
+              className="h-9 text-xs border-[var(--ds-border-subtle)]"
             />
           </div>
 
@@ -697,7 +700,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Jumlah baris per halaman"
-              className="h-9 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none dark:border-zinc-800 dark:bg-zinc-800 dark:text-slate-200"
+              className="h-9 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Jumlah per halaman"
             >
               <option value="10">10 / hal</option>
               <option value="20">20 / hal</option>
@@ -709,7 +712,7 @@ export default function EmployeeIncomingLettersPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleResetFilters}
-                className="h-9 px-2.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-xl"
+                className="h-9 px-2.5 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-xl"
                 title="Reset Semua Filter"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
@@ -722,25 +725,24 @@ export default function EmployeeIncomingLettersPage() {
 
       {/* Tabel Arsip Surat */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <KepegawaianTabContent
           key={`${statusBalasan}-${kategori}-${page}-${isThisMonthFilter}-${debouncedSearch}`}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.14, ease: "easeOut" }}
-          className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900 min-h-[460px] flex flex-col justify-between"
+
+          className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs min-h-[460px] flex flex-col justify-between"
         >
           <div className="overflow-x-auto flex-1 flex flex-col">
-            {loading && isFirstLoad ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-xs text-zinc-500 space-y-2">
-                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-xs text-[var(--ds-fg-muted)] space-y-2">
+                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[var(--ds-accent-soft-border)] border-t-transparent" />
                 <p>Memuat arsip surat masuk...</p>
               </div>
+            ) : loadError ? (
+              <div role="alert" className="p-12 text-center text-sm text-[var(--ds-status-danger-fg)]">Gagal memuat arsip surat. <button type="button" className="kpg-secondary ml-2 rounded-lg px-3 py-2" onClick={loadItems}>Coba lagi</button></div>
             ) : items.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-sm text-zinc-500 space-y-3">
-                <Inbox className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-700" />
-                <div className="font-semibold text-zinc-700 dark:text-zinc-300">Belum ada arsip surat masuk</div>
-                <p className="text-xs max-w-sm mx-auto text-zinc-400">
+              <div className="flex-1 flex flex-col items-center justify-center p-16 text-center text-sm text-[var(--ds-fg-muted)] space-y-3">
+                <Inbox className="mx-auto h-12 w-12 text-[var(--ds-fg-muted)]" />
+                <div className="font-semibold text-[var(--ds-fg)]">Belum ada arsip surat masuk</div>
+                <p className="text-xs max-w-sm mx-auto text-[var(--ds-fg-muted)]">
                   {hasActiveFilters
                     ? "Tidak ditemukan surat yang cocok dengan filter aktif. Coba ubah kata kunci atau reset filter."
                     : "Mulai pencatatan dengan menekan tombol Tambah Arsip di atas."}
@@ -754,7 +756,7 @@ export default function EmployeeIncomingLettersPage() {
             ) : (
               <div className="flex-1 flex flex-col justify-between">
               <table className="w-full min-w-[1050px] text-left text-sm">
-                <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/50">
+                <thead className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   <tr>
                     <th className="py-3.5 px-4 w-32"># Agenda</th>
                     <th className="py-3.5 px-3 w-32">Kategori</th>
@@ -766,7 +768,7 @@ export default function EmployeeIncomingLettersPage() {
                     <th className="py-3.5 px-4 w-28 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                   {items.map((item) => {
                     const isReplied = Boolean(item.has_reply || (item.no_surat_balasan && item.no_surat_balasan.trim()));
                     const catStyle = CATEGORY_STYLES[item.kategori] || CATEGORY_STYLES.Lainnya;
@@ -775,14 +777,14 @@ export default function EmployeeIncomingLettersPage() {
                       <tr
                         key={item.id}
                         onClick={() => setDetailItem(item)}
-                        className="group cursor-pointer transition-colors hover:bg-blue-50/40 dark:hover:bg-zinc-800/50"
+                        className="group cursor-pointer transition-colors hover:bg-[var(--ds-accent-soft)]"
                       >
                         {/* Kolom Agenda */}
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="inline-block rounded-md border border-blue-200 bg-blue-50/80 px-2 py-0.5 font-mono text-xs font-bold text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+                          <span className="inline-block rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
                             #{item.no_agenda || "-"}
                           </span>
-                          <div className="mt-1 text-[11px] text-zinc-400 font-medium">
+                          <div className="mt-1 text-xs text-[var(--ds-fg-muted)] font-medium">
                             Diterima: {item.tanggal_diterima || "-"}
                           </div>
                         </td>
@@ -790,7 +792,7 @@ export default function EmployeeIncomingLettersPage() {
                         {/* Kolom Kategori */}
                         <td className="py-3 px-3">
                           <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${catStyle.badge}`}
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${catStyle.badge}`}
                           >
                             {item.kategori}
                           </span>
@@ -798,25 +800,25 @@ export default function EmployeeIncomingLettersPage() {
 
                         {/* Kolom Nomor & Tanggal Surat */}
                         <td className="py-3 px-4">
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2 text-xs">
+                          <div className="font-medium text-[var(--ds-fg)] line-clamp-2 text-xs">
                             {item.no_surat_masuk ? (
                               item.no_surat_masuk
                             ) : (
-                              <span className="text-zinc-400 italic">Tanpa nomor surat</span>
+                              <span className="text-[var(--ds-fg-muted)] italic">Tanpa nomor surat</span>
                             )}
                           </div>
-                          <div className="mt-0.5 text-[11px] text-zinc-500">
-                            Tgl Surat: {item.tanggal_surat || <span className="text-zinc-400">-</span>}
+                          <div className="mt-0.5 text-xs text-[var(--ds-fg-muted)]">
+                            Tgl Surat: {item.tanggal_surat || <span className="text-[var(--ds-fg-muted)]">-</span>}
                           </div>
                         </td>
 
                         {/* Kolom Pengirim */}
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-2 text-xs">
+                          <div className="font-semibold text-[var(--ds-fg)] line-clamp-2 text-xs">
                             {item.asal_surat}
                           </div>
                           {item.catatan ? (
-                            <div className="mt-0.5 text-[11px] text-zinc-400 line-clamp-1 italic">
+                            <div className="mt-0.5 text-xs text-[var(--ds-fg-muted)] line-clamp-1 italic">
                               Catatan: {item.catatan}
                             </div>
                           ) : null}
@@ -824,8 +826,8 @@ export default function EmployeeIncomingLettersPage() {
 
                         {/* Kolom Perihal */}
                         <td className="py-3 px-4">
-                          <p className="line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                            {item.perihal || <span className="text-zinc-400">-</span>}
+                          <p className="line-clamp-2 text-xs leading-relaxed text-[var(--ds-fg-muted)]">
+                            {item.perihal || <span className="text-[var(--ds-fg-muted)]">-</span>}
                           </p>
                         </td>
 
@@ -833,22 +835,22 @@ export default function EmployeeIncomingLettersPage() {
                         <td className="py-3 px-4">
                           {isReplied ? (
                             <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-success-fg)]">
+                                <CheckCircle2 className="h-3 w-3 text-[var(--ds-status-success-fg)]" />
                                 Sudah Dibalas
                               </span>
                               {item.no_surat_balasan && (
-                                <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-44">
+                                <div className="text-xs font-semibold text-[var(--ds-fg)] truncate max-w-44">
                                   {item.no_surat_balasan}
                                 </div>
                               )}
                               {item.tanggal_surat_balasan && (
-                                <div className="text-[11px] text-zinc-400">Tgl: {item.tanggal_surat_balasan}</div>
+                                <div className="text-xs text-[var(--ds-fg-muted)]">Tgl: {item.tanggal_surat_balasan}</div>
                               )}
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
-                              <Clock className="h-3 w-3 text-zinc-400" />
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2 py-0.5 text-xs font-medium text-[var(--ds-fg-muted)]">
+                              <Clock className="h-3 w-3 text-[var(--ds-fg-muted)]" />
                               Belum Dibalas
                             </span>
                           )}
@@ -864,13 +866,13 @@ export default function EmployeeIncomingLettersPage() {
                                 setDetailItem(item);
                               }}
                               title="Klik untuk melihat berkas lampiran"
-                              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-700 dark:hover:bg-blue-950/40"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-fg)] transition hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]"
                             >
-                              <Paperclip className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                              <Paperclip className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
                               <span>{item.attachments.length} Berkas</span>
                             </button>
                           ) : (
-                            <span className="text-xs text-zinc-400">-</span>
+                            <span className="text-xs text-[var(--ds-fg-muted)]">-</span>
                           )}
                         </td>
 
@@ -885,7 +887,7 @@ export default function EmployeeIncomingLettersPage() {
                               size="sm"
                               onClick={() => setDetailItem(item)}
                               title="Lihat Detail Lengkap"
-                              className="h-8 w-8 p-0 text-zinc-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl"
+                              className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-xl"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -896,7 +898,7 @@ export default function EmployeeIncomingLettersPage() {
                                   size="sm"
                                   onClick={() => openEdit(item)}
                                   title="Edit Arsip"
-                                  className="h-8 w-8 p-0 text-zinc-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl"
+                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] rounded-xl"
                                 >
                                   <Pencil className="h-3.5 w-3.5" />
                                 </Button>
@@ -905,9 +907,9 @@ export default function EmployeeIncomingLettersPage() {
                                   size="sm"
                                   onClick={() => handleDelete(item)}
                                   title="Hapus Arsip"
-                                  className="h-8 w-8 p-0 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl"
+                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-xl"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                                  <Trash2 className="h-3.5 w-3.5 text-[var(--ds-status-danger-fg)]" />
                                 </Button>
                               </>
                             )}
@@ -920,21 +922,21 @@ export default function EmployeeIncomingLettersPage() {
               </table>
 
               {/* Pagination Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-slate-200/80 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30 text-xs">
-                <div className="flex items-center gap-2 text-[11px] text-slate-500">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs">
+                <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-muted)]">
                   <span>
                     Menampilkan{" "}
-                    <b className="text-slate-800 dark:text-slate-200">
+                    <b className="text-[var(--ds-fg)]">
                       {total > 0 ? (page - 1) * perPage + 1 : 0}
                     </b>{" "}
                     -{" "}
-                    <b className="text-slate-800 dark:text-slate-200">
+                    <b className="text-[var(--ds-fg)]">
                       {Math.min(page * perPage, total)}
                     </b>{" "}
-                    dari <b className="text-slate-800 dark:text-slate-200">{total}</b> arsip surat
+                    dari <b className="text-[var(--ds-fg)]">{total}</b> arsip surat
                   </span>
                   {hasActiveFilters && (
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                    <span className="inline-flex items-center rounded-full bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
                       Terfilter
                     </span>
                   )}
@@ -950,9 +952,9 @@ export default function EmployeeIncomingLettersPage() {
                   >
                     Sebelumnya
                   </Button>
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 px-2">
-                    Halaman <b className="text-slate-900 dark:text-slate-100">{page}</b> dari{" "}
-                    <b className="text-slate-900 dark:text-slate-100">{lastPage}</b>
+                  <span className="text-xs font-medium text-[var(--ds-fg-muted)] px-2">
+                    Halaman <b className="text-[var(--ds-fg)]">{page}</b> dari{" "}
+                    <b className="text-[var(--ds-fg)]">{lastPage}</b>
                   </span>
                   <Button
                     variant="outline"
@@ -968,33 +970,21 @@ export default function EmployeeIncomingLettersPage() {
             </div>
           )}
         </div>
-      </motion.div>
+      </KepegawaianTabContent>
     </AnimatePresence>
 
       {/* MODAL POP-UP DETAIL SURAT (Tengah Layar) */}
       <AnimatePresence>
         {detailItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setDetailItem(null);
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 flex flex-col max-h-[90vh]"
+          <KepegawaianDialog title="Detail surat masuk" onClose={() => setDetailItem(null)} busy={false} className="sm:max-w-3xl">
+            <div
+
+              className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl flex flex-col max-h-[90vh]"
             >
             {/* Header Modal Detail */}
-            <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-4">
               <div className="flex items-center gap-3">
-                <span className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 font-mono text-xs font-bold text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
+                <span className="rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2.5 py-1 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
                   #{detailItem.no_agenda}
                 </span>
                 <span
@@ -1005,12 +995,12 @@ export default function EmployeeIncomingLettersPage() {
                   {detailItem.kategori}
                 </span>
                 {detailItem.has_reply || detailItem.no_surat_balasan ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2.5 py-0.5 text-xs font-bold text-[var(--ds-status-success-fg)]">
+                    <CheckCircle2 className="h-3 w-3 text-[var(--ds-status-success-fg)]" />
                     Sudah Dibalas
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2.5 py-0.5 text-xs font-medium text-[var(--ds-fg-muted)]">
                     <Clock className="h-3 w-3" />
                     Menunggu Balasan
                   </span>
@@ -1019,7 +1009,7 @@ export default function EmployeeIncomingLettersPage() {
               <button
                 type="button"
                 onClick={() => setDetailItem(null)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1028,62 +1018,62 @@ export default function EmployeeIncomingLettersPage() {
             {/* Isi Detail Surat */}
             <div className="overflow-y-auto p-6 space-y-5">
               {/* Grid Metadata Utama */}
-              <div className="grid gap-3 sm:grid-cols-2 rounded-xl border border-zinc-100 bg-zinc-50/40 p-4 dark:border-zinc-800/80 dark:bg-zinc-900/30">
+              <div className="grid gap-3 sm:grid-cols-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Nomor Surat Masuk</div>
-                  <div className="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">
-                    {detailItem.no_surat_masuk || <span className="text-zinc-400 italic">Tanpa nomor surat</span>}
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Nomor Surat Masuk</div>
+                  <div className="mt-1 font-semibold text-[var(--ds-fg)]">
+                    {detailItem.no_surat_masuk || <span className="text-[var(--ds-fg-muted)] italic">Tanpa nomor surat</span>}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Tanggal Surat</div>
-                  <div className="mt-1 font-medium text-zinc-800 dark:text-zinc-200">
-                    {detailItem.tanggal_surat || <span className="text-zinc-400">-</span>}
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Tanggal Surat</div>
+                  <div className="mt-1 font-medium text-[var(--ds-fg)]">
+                    {detailItem.tanggal_surat || <span className="text-[var(--ds-fg-muted)]">-</span>}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Asal / Pengirim Surat</div>
-                  <div className="mt-1 font-bold text-zinc-900 dark:text-zinc-100">{detailItem.asal_surat}</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Asal / Pengirim Surat</div>
+                  <div className="mt-1 font-bold text-[var(--ds-fg)]">{detailItem.asal_surat}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Tanggal Diterima Balai</div>
-                  <div className="mt-1 font-medium text-zinc-800 dark:text-zinc-200">{detailItem.tanggal_diterima}</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Tanggal Diterima Balai</div>
+                  <div className="mt-1 font-medium text-[var(--ds-fg)]">{detailItem.tanggal_diterima}</div>
                 </div>
                 {detailItem.catatan && (
-                  <div className="sm:col-span-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Catatan Khusus Pengirim</div>
-                    <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-300 italic">{detailItem.catatan}</div>
+                  <div className="sm:col-span-2 pt-2 border-t border-[var(--ds-border-subtle)]">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Catatan Khusus Pengirim</div>
+                    <div className="mt-1 text-xs text-[var(--ds-fg-muted)] italic">{detailItem.catatan}</div>
                   </div>
                 )}
               </div>
 
               {/* Perihal */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Perihal / Ringkasan Surat</h4>
-                <div className="mt-2 rounded-xl border border-zinc-200 bg-white p-3.5 text-sm leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-200">
-                  {detailItem.perihal || <span className="text-zinc-400 italic">Tidak ada catatan perihal.</span>}
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Perihal / Ringkasan Surat</h4>
+                <div className="mt-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3.5 text-sm leading-relaxed text-[var(--ds-fg)]">
+                  {detailItem.perihal || <span className="text-[var(--ds-fg-muted)] italic">Tidak ada catatan perihal.</span>}
                 </div>
               </div>
 
               {/* Status Balasan */}
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 dark:border-emerald-950 dark:bg-emerald-950/20 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <div className="rounded-xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-4 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-status-success-fg)]">
+                  <CheckCircle2 className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
                   <span>Surat Balasan Balai BKSDA</span>
                 </div>
                 {detailItem.no_surat_balasan ? (
-                  <div className="grid gap-2 sm:grid-cols-2 text-xs text-zinc-700 dark:text-zinc-300 pt-1">
+                  <div className="grid gap-2 sm:grid-cols-2 text-xs text-[var(--ds-fg)] pt-1">
                     <div>
-                      <span className="text-zinc-500">Nomor Surat Balasan: </span>
-                      <b className="font-semibold text-emerald-900 dark:text-emerald-300">{detailItem.no_surat_balasan}</b>
+                      <span className="text-[var(--ds-fg-muted)]">Nomor Surat Balasan: </span>
+                      <b className="font-semibold text-[var(--ds-status-success-fg)]">{detailItem.no_surat_balasan}</b>
                     </div>
                     <div>
-                      <span className="text-zinc-500">Tanggal Balasan: </span>
+                      <span className="text-[var(--ds-fg-muted)]">Tanggal Balasan: </span>
                       <b>{detailItem.tanggal_surat_balasan || "-"}</b>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     Belum ada nomor atau berkas surat balasan yang dicatatkan.
                   </p>
                 )}
@@ -1092,12 +1082,12 @@ export default function EmployeeIncomingLettersPage() {
               {/* Daftar Berkas Lampiran */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Berkas Lampiran ({detailItem.attachments?.length || 0})
                   </h4>
                 </div>
                 {!detailItem.attachments || detailItem.attachments.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-200 p-6 text-center text-xs text-zinc-400 dark:border-zinc-800">
+                  <div className="rounded-xl border border-dashed border-[var(--ds-border-subtle)] p-6 text-center text-xs text-[var(--ds-fg-muted)]">
                     Tidak ada file lampiran pada surat ini.
                   </div>
                 ) : (
@@ -1105,18 +1095,18 @@ export default function EmployeeIncomingLettersPage() {
                     {detailItem.attachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 text-xs dark:border-zinc-800 dark:bg-zinc-900/60"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 text-xs"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                             <FileText className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-zinc-800 dark:text-zinc-200 truncate max-w-sm sm:max-w-md">
+                            <div className="font-bold text-[var(--ds-fg)] truncate max-w-sm sm:max-w-md">
                               {attachment.original_name}
                             </div>
-                            <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-400">
-                              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--ds-fg-muted)]">
+                              <span className="font-semibold text-[var(--ds-accent-fg)]">
                                 {attachmentLabel(attachment.type)}
                               </span>
                               <span>•</span>
@@ -1139,7 +1129,7 @@ export default function EmployeeIncomingLettersPage() {
                             type="button"
                             size="sm"
                             onClick={() => download(attachment)}
-                            className="h-8 gap-1.5 bg-blue-600 hover:bg-blue-700 text-xs text-white"
+                            className="h-8 gap-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
                           >
                             <Download className="h-3.5 w-3.5" />
                             Unduh
@@ -1153,7 +1143,7 @@ export default function EmployeeIncomingLettersPage() {
             </div>
 
             {/* Footer Modal Detail */}
-            <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 px-6 py-3.5 dark:border-zinc-800">
+            <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3.5">
               <div>
                 {canWrite && (
                   <Button
@@ -1161,7 +1151,7 @@ export default function EmployeeIncomingLettersPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(detailItem)}
-                    className="gap-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 text-xs"
+                    className="gap-1.5 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] text-xs"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Hapus Arsip
@@ -1177,7 +1167,7 @@ export default function EmployeeIncomingLettersPage() {
                     type="button"
                     size="sm"
                     onClick={() => openEdit(detailItem)}
-                    className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-xs text-white"
+                    className="gap-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                     Edit Arsip
@@ -1185,46 +1175,31 @@ export default function EmployeeIncomingLettersPage() {
                 )}
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </KepegawaianDialog>
       )}
     </AnimatePresence>
 
       {/* MODAL TAMBAH & EDIT ARSIP (Wide Side-by-Side Tanpa Scroll Layar) */}
       <AnimatePresence>
         {formOpen && canWrite && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-5 backdrop-blur-sm"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) {
-                setEditing(null);
-                setFormOpen(false);
-              }
-            }}
-          >
-            <motion.form
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+          <KepegawaianDialog title="Form arsip surat masuk" onClose={() => { setEditing(null); setFormOpen(false); }} busy={saving} className="sm:max-w-6xl">
+            <form
+
               onSubmit={handleSave}
-              className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+              className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl"
             >
             {/* Header Modal Form (Fixed Top) */}
-            <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/70 px-6 py-3.5 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3.5 shrink-0">
               <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm shadow-blue-600/20">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm">
                   {editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </span>
                 <div>
                   <h2 className="text-base font-bold sm:text-lg">
                     {editing ? `Edit Arsip Agenda #${editing.no_agenda}` : "Tambah Arsip Surat Masuk"}
                   </h2>
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-xs text-[var(--ds-fg-muted)]">
                     {editing
                       ? "Perbarui informasi atau kelola berkas lampiran surat masuk."
                       : "Lengkapi data pokok surat dan lampirkan berkas yang bersangkutan."}
@@ -1237,7 +1212,7 @@ export default function EmployeeIncomingLettersPage() {
                   setEditing(null);
                   setFormOpen(false);
                 }}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1248,15 +1223,15 @@ export default function EmployeeIncomingLettersPage() {
               {/* Kolom Kiri (7/12): Data Pokok Surat & Status Balasan */}
               <div className="lg:col-span-7 flex flex-col gap-3.5">
                 {/* Data Pokok Surat */}
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/40 p-4 dark:border-zinc-800 dark:bg-zinc-900/30 space-y-2.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-2.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Informasi Identitas Surat
                   </h3>
                   <div className="grid gap-2.5 sm:grid-cols-3">
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Agenda *</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950 font-mono"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)] font-mono"
                         placeholder="Contoh: 1432"
                         value={form.no_agenda}
                         onChange={(event) => setField("no_agenda", event.target.value)}
@@ -1268,7 +1243,7 @@ export default function EmployeeIncomingLettersPage() {
                       <select
                         value={form.kategori}
                         onChange={(event) => setField("kategori", event.target.value as Category)}
-                        className="h-8.5 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-xs font-medium dark:border-zinc-800 dark:bg-zinc-950"
+                        className="h-8.5 w-full rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 text-xs font-medium"
                       >
                         {CATEGORIES.map((value) => (
                           <option key={value} value={value}>
@@ -1280,7 +1255,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Surat Asal</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         placeholder="Jika ada nomor"
                         value={form.no_surat_masuk || ""}
                         onChange={(event) => setField("no_surat_masuk", event.target.value)}
@@ -1289,7 +1264,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
                       <span>Asal Surat / Nama Pengirim *</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: Ditjen KSDAE / Nama Instansi / Pribadi"
                         value={form.asal_surat}
                         onChange={(event) => setField("asal_surat", event.target.value)}
@@ -1299,7 +1274,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Diterima *</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_diterima}
                         onChange={(event) => setField("tanggal_diterima", event.target.value)}
@@ -1309,7 +1284,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
                       <span>Catatan Tambahan Pengirim</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: Pengirim dari SKW III Berau"
                         value={form.catatan || ""}
                         onChange={(event) => setField("catatan", event.target.value)}
@@ -1318,7 +1293,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Surat</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_surat || ""}
                         onChange={(event) => setField("tanggal_surat", event.target.value)}
@@ -1331,17 +1306,17 @@ export default function EmployeeIncomingLettersPage() {
                         placeholder="Tuliskan uraian ringkas maksud atau perihal surat..."
                         value={form.perihal || ""}
                         onChange={(event) => setField("perihal", event.target.value)}
-                        className="w-full resize-none rounded-md border border-zinc-200 bg-white p-2 text-xs outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-950"
+                        className="w-full resize-none rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-xs outline-none transition focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor Agenda"
                       />
                     </label>
                   </div>
                 </div>
 
                 {/* Status Balasan Balai */}
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-3.5 dark:border-emerald-950 dark:bg-emerald-950/20 space-y-2">
+                <div className="rounded-xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-3.5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-status-success-fg)]">
                       Status Balasan Balai (Opsional)
                     </h3>
                   </div>
@@ -1349,7 +1324,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Surat Balasan</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: S.123/K.18/TU/KSA/10/2026"
                         value={form.no_surat_balasan || ""}
                         onChange={(event) => setField("no_surat_balasan", event.target.value)}
@@ -1358,7 +1333,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Surat Balasan</span>
                       <Input
-                        className="h-8.5 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_surat_balasan || ""}
                         onChange={(event) => setField("tanggal_surat_balasan", event.target.value)}
@@ -1372,26 +1347,26 @@ export default function EmployeeIncomingLettersPage() {
               <div className="lg:col-span-5 flex flex-col gap-3">
                 {/* Lampiran Tersimpan di Storage (Khusus Edit) */}
                 {editing && editing.attachments && editing.attachments.length > 0 && (
-                  <div className="rounded-xl border border-zinc-200/90 bg-zinc-50/50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30 space-y-2">
+                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                         Lampiran Tersimpan ({editing.attachments.length})
                       </h3>
-                      <span className="text-[10px] text-zinc-400">Klik ikon sampah untuk menghapus</span>
+                      <span className="text-xs text-[var(--ds-fg-muted)]">Klik ikon sampah untuk menghapus</span>
                     </div>
                     <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
                       {editing.attachments.map((attachment) => (
                         <div
                           key={attachment.id}
-                          className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200/80 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                          className="flex items-center justify-between gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1.5 text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
                             <div className="min-w-0">
-                              <p className="font-semibold truncate max-w-[170px] sm:max-w-[210px] text-[11px]">
+                              <p className="font-semibold truncate max-w-[170px] sm:max-w-[210px] text-xs">
                                 {attachment.original_name}
                               </p>
-                              <p className="text-[10px] text-zinc-400">
+                              <p className="text-xs text-[var(--ds-fg-muted)]">
                                 {attachmentLabel(attachment.type)} • {formatBytes(attachment.size)}
                               </p>
                             </div>
@@ -1401,7 +1376,7 @@ export default function EmployeeIncomingLettersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeAttachment(attachment)}
-                            className="h-6 w-6 p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                            className="h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)]"
                             title="Hapus berkas ini dari arsip"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -1415,10 +1390,10 @@ export default function EmployeeIncomingLettersPage() {
                 {/* Dropzone Upload Lampiran Baru (Compact Row-Based Cards) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Upload Lampiran Baru
                     </h3>
-                    <span className="text-[10px] text-zinc-400">Maks 20 MB/file</span>
+                    <span className="text-xs text-[var(--ds-fg-muted)]">Maks 20 MB/file</span>
                   </div>
 
                   <div className="space-y-2">
@@ -1440,7 +1415,7 @@ export default function EmployeeIncomingLettersPage() {
                               </div>
                               <div className="min-w-0">
                                 <h4 className="text-xs font-bold leading-tight">{config.title}</h4>
-                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
+                                <p className="text-xs text-[var(--ds-fg-muted)] truncate">
                                   {config.hint}
                                 </p>
                               </div>
@@ -1448,9 +1423,9 @@ export default function EmployeeIncomingLettersPage() {
 
                             <label
                               htmlFor={`attachment-${type}`}
-                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 shrink-0"
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-fg)] shadow-2xs transition hover:bg-[var(--ds-surface)] shrink-0"
                             >
-                              <Upload className="h-3 w-3 text-blue-600" />
+                              <Upload className="h-3 w-3 text-[var(--ds-accent-fg)]" />
                               <span>Pilih File</span>
                               <input
                                 id={`attachment-${type}`}
@@ -1469,17 +1444,17 @@ export default function EmployeeIncomingLettersPage() {
                               {stagedFiles.map((file, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-center justify-between rounded-md bg-white/90 px-2 py-1 text-[11px] shadow-2xs dark:bg-zinc-950/80"
+                                  className="flex items-center justify-between rounded-md bg-[var(--ds-surface)] px-2 py-1 text-xs shadow-2xs"
                                 >
                                   <span className="truncate max-w-[180px] font-medium" title={file.name}>
                                     {file.name}
                                   </span>
                                   <div className="flex items-center gap-1.5 shrink-0 ml-1">
-                                    <span className="text-[10px] text-zinc-400">{formatBytes(file.size)}</span>
+                                    <span className="text-xs text-[var(--ds-fg-muted)]">{formatBytes(file.size)}</span>
                                     <button
                                       type="button"
                                       onClick={() => removeStagedFile(type, idx)}
-                                      className="p-0.5 text-zinc-400 hover:text-red-500"
+                                      className="p-0.5 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)]"
                                       title="Batal pilih berkas ini"
                                     >
                                       <X className="h-3 w-3" />
@@ -1498,8 +1473,8 @@ export default function EmployeeIncomingLettersPage() {
             </div>
 
             {/* Footer Form Action (Fixed Bottom) */}
-            <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/70 px-6 py-3 dark:border-zinc-800 dark:bg-zinc-900/50 shrink-0">
-              <span className="text-[11px] text-zinc-400 hidden sm:inline">
+            <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3 shrink-0">
+              <span className="text-xs text-[var(--ds-fg-muted)] hidden sm:inline">
                 Format didukung: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG
               </span>
               <div className="flex items-center gap-2.5 ml-auto">
@@ -1519,43 +1494,31 @@ export default function EmployeeIncomingLettersPage() {
                   type="submit"
                   disabled={saving}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white min-w-28 text-xs font-semibold shadow-sm"
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] min-w-28 text-xs font-semibold shadow-sm"
                 >
                   {saving ? "Menyimpan..." : editing ? "Perbarui Arsip" : "Simpan Arsip"}
                 </Button>
               </div>
             </div>
-          </motion.form>
-        </motion.div>
+          </form>
+        </KepegawaianDialog>
       )}
     </AnimatePresence>
 
       {/* MODAL PRATINJAU LAMPIRAN */}
       <AnimatePresence>
         {preview && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) closePreview();
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-950"
+          <KepegawaianDialog title="Pratinjau berkas surat masuk" onClose={closePreview} busy={false} className="sm:max-w-5xl">
+            <div
+
+              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-[var(--ds-surface)] shadow-2xl"
             >
-            <div className="flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-bold" title={preview.attachment.original_name}>
                   {preview.attachment.original_name}
                 </h3>
-                <p className="mt-0.5 truncate text-xs text-zinc-500">
+                <p className="mt-0.5 truncate text-xs text-[var(--ds-fg-muted)]">
                   {attachmentLabel(preview.attachment.type)} • Pratinjau Berkas
                 </p>
               </div>
@@ -1563,19 +1526,19 @@ export default function EmployeeIncomingLettersPage() {
                 type="button"
                 aria-label="Tutup pratinjau"
                 onClick={closePreview}
-                className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                className="rounded-lg p-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex min-h-[420px] flex-1 items-center justify-center overflow-auto bg-zinc-100 p-4 dark:bg-zinc-900">
+            <div className="flex min-h-[420px] flex-1 items-center justify-center overflow-auto bg-[var(--ds-surface-muted)] p-4">
               {previewLoading ? (
-                <div className="text-sm text-zinc-500">Memuat isi lampiran...</div>
+                <div className="text-sm text-[var(--ds-fg-muted)]">Memuat isi lampiran...</div>
               ) : preview.dataUrl && preview.attachment.mime_type === "application/pdf" ? (
                 <iframe
                   title={preview.attachment.original_name}
                   src={preview.dataUrl}
-                  className="h-[70vh] w-full rounded-lg bg-white"
+                  className="h-[70vh] w-full rounded-lg bg-[var(--ds-surface)]"
                 />
               ) : preview.dataUrl ? (
                 // Native blob/data preview; sending this to the Next image optimizer is unnecessary.
@@ -1587,66 +1550,54 @@ export default function EmployeeIncomingLettersPage() {
                 />
               ) : (
                 <div className="max-w-sm text-center">
-                  <FileText className="mx-auto h-12 w-12 text-zinc-400" />
+                  <FileText className="mx-auto h-12 w-12 text-[var(--ds-fg-muted)]" />
                   <p className="mt-3 text-sm font-semibold">{previewMessage(preview.attachment.mime_type)}</p>
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
                     Berkas tersimpan aman di storage. Gunakan tombol Unduh Berkas untuk membukanya secara lokal.
                   </p>
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800">
+            <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] p-3">
               <Button type="button" variant="outline" onClick={closePreview}>
                 Tutup
               </Button>
               <Button
                 type="button"
                 onClick={() => download(preview.attachment)}
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                className="gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
               >
                 <Download className="h-4 w-4" />
                 Unduh Berkas
               </Button>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </KepegawaianDialog>
       )}
     </AnimatePresence>
 
       {/* MODAL EXPORT EXCEL */}
       <AnimatePresence>
         {exportOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setExportOpen(false);
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 10 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+          <KepegawaianDialog title="Export arsip surat masuk" onClose={() => setExportOpen(false)} busy={false} className="sm:max-w-lg">
+            <div
+
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl"
             >
-            <div className="flex items-center justify-between border-b border-zinc-100 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent px-6 py-4 dark:border-zinc-800">
+            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-md">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold">Export Arsip Surat Masuk</h2>
-                  <p className="text-xs text-zinc-500">Unduh rekapitulasi arsip ke format Excel (.xlsx)</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)]">Unduh rekapitulasi arsip ke format Excel (.xlsx)</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setExportOpen(false)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1654,7 +1605,7 @@ export default function EmployeeIncomingLettersPage() {
 
             <div className="space-y-5 p-6">
               <div className="space-y-3">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Pilih Rentang / Periode Data
                 </label>
                 <div className="grid gap-2.5 sm:grid-cols-2">
@@ -1662,16 +1613,16 @@ export default function EmployeeIncomingLettersPage() {
                     <button
                       type="button"
                       onClick={() => setExportPeriod("current_filter")}
-                      className={`col-span-full flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                      className={`col-span-full flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
                         exportPeriod === "current_filter"
-                          ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300"
-                          : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
                       }`}
                     >
-                      <Filter className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                      <Filter className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
                       <div className="text-xs">
                         <div className="font-semibold">Filter Pencarian Saat Ini</div>
-                        <div className="mt-0.5 text-[11px] opacity-75">
+                        <div className="mt-0.5 text-xs opacity-75">
                           Sesuai kriteria pencarian, status balasan, dan tanggal yang sedang aktif
                         </div>
                       </div>
@@ -1680,31 +1631,31 @@ export default function EmployeeIncomingLettersPage() {
                   <button
                     type="button"
                     onClick={() => setExportPeriod("all")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
                       exportPeriod === "all"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300"
-                        : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
                     }`}
                   >
-                    <TableProperties className="mt-0.5 h-4 w-4 text-blue-600" />
+                    <TableProperties className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Semua Data</div>
-                      <div className="mt-0.5 text-[11px] opacity-75">Seluruh arsip surat masuk</div>
+                      <div className="mt-0.5 text-xs opacity-75">Seluruh arsip surat masuk</div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setExportPeriod("this_month")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
                       exportPeriod === "this_month"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300"
-                        : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
                     }`}
                   >
-                    <Calendar className="mt-0.5 h-4 w-4 text-blue-600" />
+                    <Calendar className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Bulan Ini</div>
-                      <div className="mt-0.5 text-[11px] opacity-75">
+                      <div className="mt-0.5 text-xs opacity-75">
                         {new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date())}
                       </div>
                     </div>
@@ -1712,67 +1663,67 @@ export default function EmployeeIncomingLettersPage() {
                   <button
                     type="button"
                     onClick={() => setExportPeriod("this_year")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
                       exportPeriod === "this_year"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-500/80 dark:bg-blue-950/30 dark:text-blue-300"
-                        : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
                     }`}
                   >
-                    <Calendar className="mt-0.5 h-4 w-4 text-blue-600" />
+                    <Calendar className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Tahun {new Date().getFullYear()}</div>
-                      <div className="mt-0.5 text-[11px] opacity-75">Rekap 1 tahun anggaran</div>
+                      <div className="mt-0.5 text-xs opacity-75">Rekap 1 tahun anggaran</div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setExportPeriod("custom")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
                       exportPeriod === "custom"
-                        ? "border-blue-500 bg-blue-50/70 text-blue-900 dark:border-blue-300 dark:bg-blue-950/30 dark:text-blue-300"
-                        : "border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/50"
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
+                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
                     }`}
                   >
-                    <Filter className="mt-0.5 h-4 w-4 text-blue-600" />
+                    <Filter className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Rentang Kustom</div>
-                      <div className="mt-0.5 text-[11px] opacity-75">Pilih tanggal spesifik</div>
+                      <div className="mt-0.5 text-xs opacity-75">Pilih tanggal spesifik</div>
                     </div>
                   </button>
                 </div>
               </div>
 
               {exportPeriod === "custom" && (
-                <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+                <div className="space-y-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="space-y-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                    <label className="space-y-1.5 text-xs font-medium text-[var(--ds-fg-muted)]">
                       Dari Tanggal
                       <Input
                         type="date"
                         value={exportStartDate}
                         onChange={(event) => setExportStartDate(event.target.value)}
-                        className="bg-white text-xs dark:bg-zinc-950"
+                        className="bg-[var(--ds-surface)] text-xs"
                       />
                     </label>
-                    <label className="space-y-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                    <label className="space-y-1.5 text-xs font-medium text-[var(--ds-fg-muted)]">
                       Sampai Tanggal
                       <Input
                         type="date"
                         value={exportEndDate}
                         onChange={(event) => setExportEndDate(event.target.value)}
-                        className="bg-white text-xs dark:bg-zinc-950"
+                        className="bg-[var(--ds-surface)] text-xs"
                       />
                     </label>
                   </div>
                 </div>
               )}
 
-              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 dark:border-blue-950/60 dark:bg-blue-950/20">
-                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-blue-900 dark:text-blue-300">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600" />
+              <div className="rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-3.5">
+                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)]">
+                  <CheckCircle2 className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                   <span>Format 11 Kolom Excel:</span>
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-zinc-600 dark:text-zinc-400">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--ds-fg-muted)]">
                   <div>1. <b>No Agenda</b></div>
                   <div>2. <b>Tanggal Diterima</b></div>
                   <div>3. <b>Tanggal Surat</b></div>
@@ -1788,21 +1739,21 @@ export default function EmployeeIncomingLettersPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800">
+            <div className="flex items-center justify-end gap-3 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-4">
               <Button type="button" variant="outline" onClick={() => setExportOpen(false)}>
                 Batal
               </Button>
               <Button
                 type="button"
                 onClick={exportExcel}
-                className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
+                className="gap-2 bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
               >
                 <Download className="h-4 w-4" />
                 Download Excel (.xlsx)
               </Button>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </KepegawaianDialog>
       )}
     </AnimatePresence>
     </div>

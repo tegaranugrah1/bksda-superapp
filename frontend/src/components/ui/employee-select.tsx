@@ -93,7 +93,7 @@ export function EmployeeSelect({
         <Button
           variant="outline"
           role="combobox"
-          aria-label={ariaLabel}
+          aria-label={ariaLabel || placeholder}
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
           disabled={disabled}
@@ -113,6 +113,7 @@ export function EmployeeSelect({
             <Input
               className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0 px-0"
               placeholder="Cari nama atau NIP..."
+              aria-label="Cari pegawai berdasarkan nama atau NIP"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -131,8 +132,8 @@ export function EmployeeSelect({
           <div className="overflow-y-auto flex-1 p-1">
             {/* Clear option */}
             {clearable && !loading && (
-              <div
-                className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-red-50 hover:text-red-600 text-red-500 border-b border-gray-100 mb-1"
+              <button type="button"
+                className="w-full text-left relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-red-50 hover:text-red-600 text-red-500 border-b border-gray-100 mb-1"
                 onClick={() => {
                   onChange(null);
                   setOpen(false);
@@ -140,7 +141,7 @@ export function EmployeeSelect({
               >
                 <X className="mr-2 h-4 w-4" />
                 <span className="font-medium">Hapus Pengguna</span>
-              </div>
+              </button>
             )}
             {loading ? (
               <div className="py-6 text-center text-sm text-muted-foreground flex items-center justify-center">
@@ -153,10 +154,11 @@ export function EmployeeSelect({
               </div>
             ) : (
               employees.map((employee) => (
-                <div
+                <button type="button"
                   key={employee.id}
+                  aria-pressed={value === employee.id}
                   className={cn(
-                    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
+                    "w-full text-left relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
                     value === employee.id && "bg-accent text-accent-foreground",
                   )}
                   onClick={() => {
@@ -170,15 +172,15 @@ export function EmployeeSelect({
                       value === employee.id ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  <div className="flex flex-col">
+                  <span className="flex flex-col">
                     <span className="font-medium">{employee.name}</span>
                     {employee.nip && (
                       <span className="text-xs text-muted-foreground">
                         {formatNipLabel(employee, true)} {employee.nip}
                       </span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </button>
               ))
             )}
           </div>

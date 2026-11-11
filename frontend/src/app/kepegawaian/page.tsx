@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   LayoutDashboard,
-  Shield,
   ShieldCheck,
   Briefcase,
   UserCheck,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
 import {
   RecentActivitiesFeedCard,
@@ -64,8 +63,9 @@ const DEFAULT_SATKER_BREAKDOWN = [
 
 export default function KepegawaianDashboardPage() {
   const { canWrite } = useRole();
+  const reducedMotion = useReducedMotion();
 
-  const { data: statsResponse } = useQuery({
+  const { data: statsResponse, isLoading, isError, refetch } = useQuery({
     queryKey: ["kepegawaian-dashboard-stats"],
     queryFn: async () => {
       const { data } = await api.get<{ data: KepegawaianDashboardStats }>("/kepegawaian/dashboard-stats");
@@ -84,32 +84,24 @@ export default function KepegawaianDashboardPage() {
   const approvedCutiCount = statsResponse?.approved_cuti ?? 0;
   const totalSuratMasuk = statsResponse?.total_surat_masuk ?? 0;
   const unrepliedSuratMasuk = statsResponse?.unreplied_surat_masuk ?? 0;
-  const activeRate = statsResponse?.active_rate ?? "100%";
+  const activeRate = statsResponse?.active_rate ?? "0%";
   const satkerBreakdown = statsResponse?.satker_breakdown ?? DEFAULT_SATKER_BREAKDOWN;
   const stList = statsResponse?.recent_activities ?? [];
 
   const denom = Math.max(1, totalEmployees);
   const pnsPct = Math.round((pnsCount / denom) * 100);
   const pppkPct = Math.round((pppkCount / denom) * 100);
-  const mmpPct = Math.max(0, 100 - pnsPct - pppkPct);
+  const mmpPct = Math.round((mmpCount / denom) * 100);
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
+    <div data-module="kepegawaian" className="kpg-ui kpg-dashboard w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
       {/* 1. Unified Clean Enterprise Header Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+          <div className="kpg-support-icon w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
             <LayoutDashboard className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                SDM &amp; Kepegawaian
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/20 px-2 py-0.2 rounded-full">
-                <Shield className="w-2.5 h-2.5" /> Live System
-              </span>
-            </div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Dashboard Kepegawaian
             </h1>
@@ -120,48 +112,36 @@ export default function KepegawaianDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <Link href="/kepegawaian/employees">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-            >
-              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>Daftar Pegawai</span>
-            </button>
+          <Link href="/kepegawaian/employees" className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span>Daftar Pegawai</span>
           </Link>
           {canWrite && (
             <>
-              <Link href="/kepegawaian/employees/create">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Tambah Pegawai</span>
-                </button>
+              <Link href="/kepegawaian/employees/create" className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                <UserPlus className="w-4 h-4" />
+                <span>Tambah Pegawai</span>
               </Link>
-              <Link href="/surat-tugas">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-600/20 cursor-pointer"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Buat Surat Tugas</span>
-                </button>
+              <Link href="/surat-tugas" className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-600/20 cursor-pointer">
+                <FileText className="w-4 h-4" />
+                <span>Buat Surat Tugas</span>
               </Link>
             </>
           )}
         </div>
       </div>
 
+      {isError && <div role="alert" className="p-4 text-sm text-[var(--ds-status-danger-fg)]">Gagal memuat ringkasan Kepegawaian. <button className="kpg-secondary rounded-lg px-3 py-2 ml-2" onClick={() => refetch()}>Coba lagi</button></div>}
+      {isLoading && <p role="status" className="text-sm text-[var(--ds-fg-muted)]">Memuat ringkasan Kepegawaian...</p>}
+      <div aria-busy={isLoading} className={isLoading || isError ? "hidden" : "space-y-5"}>
       {/* 2. Top Bento Grid: Left (Komposisi Personil 2-row height) + Right (2x2 Layanan & Keaktifan) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left Column: Komposisi SDM (spans 6 cols, full height of the 2 rows on the right) */}
         <div className="lg:col-span-6 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-5 shadow-2xs flex flex-col justify-between gap-4">
           <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
                   Komposisi Personil BKSDA Kalimantan Timur
                 </span>
                 <div className="flex items-baseline gap-2.5 mt-0.5">
@@ -175,7 +155,7 @@ export default function KepegawaianDashboardPage() {
               </div>
 
               <Link
-                href="/kepegawaian/employees"
+                href="/kepegawaian/employees?status=all"
                 className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 cursor-pointer shrink-0"
               >
                 <span>Kelola Semua Personil</span>
@@ -189,21 +169,21 @@ export default function KepegawaianDashboardPage() {
                 className="h-full bg-blue-600"
                 initial={{ width: 0 }}
                 animate={{ width: `${pnsPct}%` }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+                transition={{ duration: reducedMotion ? 0 : 0.6, ease: "easeOut" }}
                 title={`PNS: ${pnsCount} (${pnsPct}%)`}
               />
               <motion.div
                 className="h-full bg-amber-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${pppkPct}%` }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                transition={{ duration: reducedMotion ? 0 : 0.6, ease: "easeOut", delay: reducedMotion ? 0 : 0.1 }}
                 title={`PPPK: ${pppkCount} (${pppkPct}%)`}
               />
               <motion.div
                 className="h-full bg-emerald-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${mmpPct}%` }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                transition={{ duration: reducedMotion ? 0 : 0.6, ease: "easeOut", delay: reducedMotion ? 0 : 0.2 }}
                 title={`MMP: ${mmpCount} (${mmpPct}%)`}
               />
             </div>
@@ -211,13 +191,13 @@ export default function KepegawaianDashboardPage() {
 
           {/* 3 Interactive Category Cards */}
           <div className="grid grid-cols-1 gap-2.5">
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+            <motion.div whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }}>
               <Link
-                href="/kepegawaian/employees?jenis=PNS"
+                href="/kepegawaian/employees?jenis=PNS&status=all"
                 className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-blue-300/70 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                  <div className="kpg-support-icon w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
@@ -225,11 +205,11 @@ export default function KepegawaianDashboardPage() {
                       <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         Pegawai PNS
                       </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      <span className="kpg-support-badge text-xs font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                         {pnsPct}%
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIP</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">ASN pemilik NIP</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -239,41 +219,41 @@ export default function KepegawaianDashboardPage() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+            <motion.div whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }}>
               <Link
-                href="/kepegawaian/employees?jenis=PPPK"
+                href="/kepegawaian/employees?jenis=PPPK&status=all"
                 className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-amber-300/70 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
+                  <div className="kpg-support-icon w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
                     <Briefcase className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors">
                         Pegawai PPPK (P3K)
                       </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      <span className="kpg-support-badge text-xs font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                         {pppkPct}%
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">ASN pemilik NIPPPK</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">ASN pemilik NIPPPK</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xl font-bold text-slate-900 dark:text-white">{pppkCount}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-800 transition-colors" />
                 </div>
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>
+            <motion.div whileHover={reducedMotion ? undefined : { y: -2 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }}>
               <Link
-                href="/kepegawaian/employees?jenis=MMP"
+                href="/kepegawaian/employees?jenis=MMP&status=all"
                 className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-emerald-300/70 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <div className="kpg-support-icon w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
                     <UserCheck className="w-4 h-4" />
                   </div>
                   <div>
@@ -281,11 +261,11 @@ export default function KepegawaianDashboardPage() {
                       <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                         Personil MMP
                       </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      <span className="kpg-support-badge text-xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                         {mmpPct}%
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">Masyarakat Mitra Polhut</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">Masyarakat Mitra Polhut</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -299,16 +279,16 @@ export default function KepegawaianDashboardPage() {
 
         {/* Right Column: 2x2 Grid for Surat Tugas, Layanan Cuti, Surat Masuk, Status Keaktifan */}
         <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
             <Link
               href="/kepegawaian/surat-tugas/inbox"
               className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-blue-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
             >
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
+                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
                   <Inbox className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
                   Surat Tugas
                 </span>
               </div>
@@ -317,7 +297,7 @@ export default function KepegawaianDashboardPage() {
                   <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     {activeStCount}
                   </p>
-                  <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                  <span className="kpg-support-badge text-xs font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
                     {pendingStCount} Draft/Pending
                   </span>
                 </div>
@@ -328,16 +308,16 @@ export default function KepegawaianDashboardPage() {
             </Link>
           </motion.div>
 
-          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
             <Link
               href="/kepegawaian/cuti"
               className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-amber-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
             >
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
+                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
                   Layanan Cuti
                 </span>
               </div>
@@ -346,7 +326,7 @@ export default function KepegawaianDashboardPage() {
                   <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     {pendingCutiCount}
                   </p>
-                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                  <span className="kpg-support-badge text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
                     {approvedCutiCount} Disetujui
                   </span>
                 </div>
@@ -357,16 +337,16 @@ export default function KepegawaianDashboardPage() {
             </Link>
           </motion.div>
 
-          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
             <Link
               href="/kepegawaian/surat-masuk"
               className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-indigo-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
             >
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
+                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
                   <Archive className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
                   Surat Masuk
                 </span>
               </div>
@@ -375,7 +355,7 @@ export default function KepegawaianDashboardPage() {
                   <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     {totalSuratMasuk}
                   </p>
-                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
+                  <span className="kpg-support-badge text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
                     {unrepliedSuratMasuk} Belum Dibalas
                   </span>
                 </div>
@@ -386,16 +366,16 @@ export default function KepegawaianDashboardPage() {
             </Link>
           </motion.div>
 
-          <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
             <Link
               href="/kepegawaian/employees?status=active"
               className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-emerald-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
             >
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center">
+                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
                   Keaktifan
                 </span>
               </div>
@@ -404,7 +384,7 @@ export default function KepegawaianDashboardPage() {
                   <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     {activeRate}
                   </p>
-                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                  <span className="kpg-support-badge text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
                     Aktif
                   </span>
                 </div>
@@ -421,6 +401,7 @@ export default function KepegawaianDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SatkerDistributionCard satkerBreakdown={satkerBreakdown} />
         <RecentActivitiesFeedCard activities={stList} />
+      </div>
       </div>
     </div>
   );

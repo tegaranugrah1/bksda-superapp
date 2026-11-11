@@ -1,7 +1,7 @@
 # Panduan Warna BKSDA SuperApp
 
 Tanggal revisi: **11 November 2026**.
-Status **penerapan bertahap pada BMN dan Surat Tugas**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
+Status **penerapan bertahap pada BMN, Surat Tugas dan Kepegawaian**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
 
 Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
 
@@ -31,7 +31,7 @@ Aksen boleh dipakai untuk tautan, focus ring, selected state, dan grafik yang re
 
 Source saat revisi memakai Tailwind v4, dengan palet bawaan OKLCH pada `frontend/node_modules/tailwindcss/theme.css`. Rasio hex di dokumen ini tidak otomatis membuktikan kontras kelas Tailwind yang sedang terpasang. Saat implementasi, gunakan token aplikasi eksplisit atau hitung kembali warna computed yang benar-benar dirender. Jangan mengganti palet global Tailwind hanya untuk menyamakan nama kelas dengan tabel ini.
 
-Gunakan namespace **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Token fondasi aktif pada scope `[data-module="bmn"]` dan `[data-module="surat-tugas"]`. Masing-masing scope menetapkan aksennya sendiri.
+Gunakan namespace **`--ds-*`** dengan nilai warna lengkap, misalnya `--ds-canvas: #f8fafc`. Token fondasi aktif pada scope `[data-module="bmn"]`, `[data-module="surat-tugas"]` dan `[data-module="kepegawaian"]`. Masing-masing scope menetapkan aksennya sendiri.
 
 - Konvensi tema web yang sudah ada adalah class `.dark`; tidak perlu menambah theme provider baru.
 - `globals.css` saat ini menyimpan token shadcn seperti `--primary` sebagai channel HSL dan memanggil `hsl(var(--primary))`. **Jangan langsung mengisi token HSL itu dengan hex**, karena formatnya tidak cocok. Gunakan namespace baru atau adapter eksplisit saat migrasi per komponen.
@@ -293,3 +293,34 @@ Editor, picker panitia/Kepala Balai dan kalkulator memakai pasangan light/dark B
 Gunakan `.st-ui[data-module="surat-tugas"]` pada pengajuan, inbox, Builder, panel pengaturan Surat Tugas, bagian Surat Tugas di Portal, verifikasi publik dan konten dialog/menu yang dirender melalui portal. Token fondasi, sekunder, disabled dan semantik dibagi dengan BMN. Aksen Surat Tugas memakai Sky sesuai bagian 4.
 
 Tombol utama light memakai `#0369a1` dengan teks putih, hover `#075985` dan active `#0c4a6e`. Dark memakai `#38bdf8` dengan teks `#0f172a`, hover `#7dd3fc` dan active `#bae6fd`. Input memakai border-subtle, tombol sekunder memakai border transparan, dan fokus memakai outline aksen 2 px. Pilihan tab memakai Sky. Menunggu memakai warning, diterbitkan memakai success, ditolak memakai danger, dan draf memakai neutral. Hapus permanen memakai Rose. Gunakan putih dan hitam untuk kertas resmi di kedua tema. Cakupan dan hasil uji tersedia di [audit visual Surat Tugas](testing/surat-tugas-visual-audit.md).
+
+## Kepegawaian — 11 November 2026
+
+Gunakan scope data-module kepegawaian dengan .kpg-ui pada halaman dan konten portal. Shell memakai .kpg-shell. Kontrol memakai fondasi bersama Surat Tugas, sementara panel Surat Tugas dalam pengaturan tetap memiliki scope aksennya sendiri.
+
+Primary light memakai #2563eb/#ffffff dengan hover #1d4ed8 dan active #1e40af. Dark memakai #60a5fa/#0f172a dengan hover #93c5fd dan active #bfdbfe. Teks aksen dark memakai #93c5fd. Input memakai border-subtle dan tombol sekunder memakai border transparan dengan pasangan secondary-hover/active. Teks pendukung aplikasi memakai ukuran minimal 12 px. Tombol ikon berlabel memiliki target minimal 36 px dan fokus outline 2 px dengan offset 2 px.
+
+Tab utama detail pegawai, pengaturan dan uang makan mempertahankan pill biru penuh dengan teks accent-on-solid (putih pada light, slate gelap pada dark). Subtab native mempertahankan pilihan permukaan/teks existing; hindari override global yang mengubah pill menjadi garis bawah. Kartu filter memakai permukaan accent-soft serta label state. Status aktif/terbit memakai success, menunggu memakai warning, penolakan dan penghapusan memakai danger. Penonaktifan pegawai memakai tombol destructive, sedangkan aktivasi kembali memakai primary. Kategori personel, wilayah dan bank tetap memiliki label. Kode presensi tetap terlihat bersama warnanya.
+
+Kertas resmi memakai putih/hitam pada kedua tema. Overlay foto memakai teks putih dengan hitam 75 persen di atas gambar. Pointer, hover, fokus dan disabled mengikuti scope kontrol, termasuk popover serta Dialog. Rincian cakupan dan hasil pengujian ada di [audit visual Kepegawaian](testing/kepegawaian-visual-audit.md).
+
+Dashboard Kepegawaian mempertahankan palet kategori yang dipilih pengguna. Komposisi PNS memakai blue-600, PPPK memakai amber-500 dan MMP memakai emerald-500, dengan kartu, ikon dan hover kategori mengikuti keluarga warna asal. Gunakan warna kategori grafik tersebut secara konsisten. Token status-warning-fg dipakai untuk teks status, sehingga penggunaannya pada batang kategori PPPK akan mengubah kuning menjadi cokelat. Kartu layanan serta grafik wilayah juga memakai palet dashboard existing.
+
+
+### Kepegawaian: keterbacaan dan lapisan dialog — 11 November 2026
+
+- Tanggal Aktivitas Terkini memakai --ds-fg-muted: light #475569, dark #a1a1aa. Ukuran tetap12px. Hindari slate-400/zinc-500 untuk metadata kecil ini. Palet komposisi PNS blue-600, PPPK amber-500 dan MMP emerald-500 tetap.
+- Subjudul sidebar memakai kalimat biasa, tanpa uppercase/tracking lebar atau ellipsis. Keterangan kartu ringkasan pegawai boleh membungkus; istilah penting seperti NIPPPK harus terbaca lengkap pada359/390px. Jangan menerapkan truncate pada teks penjelas singkat tersebut.
+- Badge Aktivitas Terkini menggunakan getStatusLabel dari Inbox Surat Tugas: pending menjadi Menunggu Persetujuan, approved menjadi Diterbitkan. Nilai status data tetap; warna semantik dan fallback existing dipertahankan. Baris metadata membungkus ketika label lebih panjang di mobile.
+- Dialog Kelola Bank dan Edit Rekening memakai satu permukaan/radius12px dari DialogContent existing. Pembungkus isi hanya mengatur lebar/padding/jarak; jangan menambah permukaan, border, radius atau shadow kedua. Padding kelola24px dan edit20px. Focus trap, Escape dan fokus kembali tetap memakai primitive existing.
+- Penyesuaian ini tidak mengubah animasi, hover maupun tiga warna dashboard. Hasil pengujian terperinci ada pada laporan audit visual Kepegawaian.
+
+
+### Dashboard Kepegawaian: badge dan ikon pendukung lebih lembut
+
+11 November2026. Berlaku hanya pada .kpg-ui.kpg-dashboard, bukan seluruh modul atau token status global.
+
+- Tambahkan .kpg-support-icon pada pembungkus ikon pendukung dan .kpg-support-badge pada badge kategori/persentase/ringkasan/status aktivitas. Latar memakai color-mix(in srgb,currentColor5%,var(--ds-surface)); border ikon memakai campuran currentColor12% dengan surface. Border badge transparan, dengan ukuran/bentuk existing tetap.
+- Pertahankan foreground kategori/status agar label tetap terbaca dan makna semantik tidak hilang. Jangan menurunkan opacity seluruh elemen. CurrentColor mengikuti keluarga warna existing dan surface mengikuti light/dark; warna aksen tetap ada sebagai tint tipis.
+- Grafik komposisi tetap blue-600/amber-500/emerald-500. Grafik wilayah, angka utama, teks penting, tombol utama, hover dan seluruh motion tetap. Pelembutan hanya untuk dekorasi pendukung yang ditandai.
+- Kontras dari30 elemen aktual per tema (16 badge dan14 ikon) dihitung dari sRGB mix yang dilaporkan Chrome: minimum teks sekitar4.71:1 light/6.27:1 dark, ikon3.02:1 light/5.33:1 dark. Perhitungan menginversi campuran5% foreground/95% surface dan mengikuti pembulatan CSSOM; bukan sertifikasi seluruh halaman. Bukti dan batas ada pada laporan audit visual Kepegawaian.
