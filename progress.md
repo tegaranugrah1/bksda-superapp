@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar, penyesuaian ikon Modul Aktif Teal Tua, serta penambahan animasi interaktif & mikro-interaksi (hover lift, tap feedback, animated proportion bar, floating toolbar spring, spring layoutId tabs) tuntas dan 100% lulus uji regresi (`persuratan-ui.cjs`), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105).
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar, penyesuaian ikon Modul Aktif Teal Tua, penambahan animasi interaktif & mikro-interaksi, serta standarisasi kanonikal Enterprise Header Card di seluruh sub-halaman persuratan (`masuk/create`, `keluar`, `keluar/create`, `keluar/dinas`, `settings`) tuntas dan 100% lulus uji regresi (`persuratan-ui.cjs`), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105, 106).
 
 ## Status Update: 2 November 2026
 
@@ -2278,6 +2278,34 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Test regresi UI [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
   - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
   - Knowledge graph: `graphify update .` **100% updated**.
+  - **Commit Terverifikasi**: Commit `b76c708f` — `feat(surat): harmonize animations and micro-interactions with BMN and Kepegawaian standards`.
+
+---
+
+## 106. Standarisasi Header Card Halaman dan Harmonisasi Label Menu Modul Persuratan (12 November 2026)
+
+- **Standarisasi Menyeluruh Header Card Kanonikal Lintas Seluruh Halaman Persuratan**:
+  - Mengikuti struktur kanonikal Enterprise Header Card pada Agenda Surat Masuk (`surat/masuk/page.tsx`), Dashboard Kepegawaian (`kepegawaian/page.tsx`), dan Dashboard/Inbox Surat Tugas (`kepegawaian/surat-tugas/inbox/page.tsx`), seluruh halaman di modul Persuratan kini memiliki tampilan header yang seragam:
+    - **Struktur Kontainer**: `rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4` dengan layout `flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`.
+    - **Blok Ikon & Navigasi**: Kotak ikon `w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0` (`w-5 h-5` icon) yang dipasangkan dengan tombol kembali `kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0` pada sub-halaman form/naskah.
+    - **Tipografi**: Judul `text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight` dan subjudul `text-xs text-[var(--ds-fg-muted)] mt-0.5`.
+    - **Tombol Aksi Terstandarisasi**: Tombol aksi kanan setinggi `h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5`.
+  - **Halaman yang Ditata Ulang**:
+    1. [`surat/masuk/create/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/create/page.tsx): Menggantikan breadcrumb polos dengan header card kanonikal, ikon `Inbox` (`w-5 h-5`), judul *"Input Surat Masuk & Lembar Disposisi"*, subjudul, tombol kembali, dan tombol cepat *"Daftar Agenda Masuk"*.
+    2. [`surat/keluar/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/page.tsx): Header card kanonikal dengan ikon `Send` (`w-5 h-5`), judul *"Agenda Surat Keluar"*, subjudul, dan tombol *"Buat Naskah Dinas"* + *"Input Manual"*.
+    3. [`surat/keluar/create/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/create/page.tsx): Menggantikan breadcrumb polos dengan header card kanonikal, ikon `Send` (`w-5 h-5`), tombol kembali, judul *"Input Surat Keluar Baru"*, subjudul, dan tombol *"Daftar Agenda Keluar"*.
+    4. [`surat/keluar/dinas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx): Menggantikan header baris `border-b` dengan header card kanonikal, tombol kembali `h-10 w-10`, ikon template `w-10 h-10`, judul dinamis *"Buat/Edit <Naskah>"*, badge format, serta tombol aksi kanan.
+    5. [`surat/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/settings/page.tsx): Menggantikan header baris `border-b` dengan header card kanonikal, ikon `SlidersHorizontal` (`w-10 h-10`), judul *"Pengaturan Template Naskah Dinas"*, subjudul, dan tombol aksi terstandarisasi.
+- **Harmonisasi Label Navigasi Sidebar (`surat/layout.tsx`)**:
+  - Mengubah label menu sidebar agar lebih deskriptif dan konsisten dengan halaman tujuan:
+    - `"Input Agenda Masuk"` -> `"Input Surat Masuk & Disposisi"` (`/surat/masuk/create`)
+    - `"Input Agenda Keluar"` -> `"Input Surat Keluar"` (`/surat/keluar/create`)
+- **Verifikasi Kualitas & Regresi**:
+  - Test regresi UI [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
+  - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
+  - Knowledge graph: `graphify update .` **100% updated**.
+  - **Commit Terverifikasi**: Commit `fed022d1` — `feat(surat): standardize canonical Enterprise Header Cards across all subpages and harmonize sidebar menu labels`.
+
 
 
 

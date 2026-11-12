@@ -788,51 +788,58 @@ function GenerateSuratDinasContent() {
 
   return (
     <div className="psr-ui w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)]">
-      {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[var(--ds-border-subtle)]">
-        <div className="flex items-center gap-3">
-          <Link href="/surat/keluar">
-            <Button variant="outline" size="sm" aria-label="Kembali ke Daftar Surat Keluar" className="kpg-secondary h-9 w-9 p-0 rounded-xl" title="Kembali ke Daftar Surat Keluar">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center">
-                <activeTabMeta.icon className="w-4 h-4" />
-              </div>
-              <h1 className="text-lg font-bold text-[var(--ds-fg)]">
-                {editingSuratKeluarId ? `Edit ${activeTabMeta.name}` : `Buat ${activeTabMeta.name}`}
-              </h1>
-              {editingSuratKeluarId ? (
-                <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
-                    Mode Edit: #{editingSuratKeluarId}
-                  </Badge>
-                  {editingSuratKeluarStatus === "draft" ? (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]">
-                      Draft
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]">
-                      Terdaftar
-                    </Badge>
-                  )}
-                </div>
-              ) : (
-                <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
-                  Permen Kehutanan 1/2025 (Hal. {activeTabMeta.hal})
-                </Badge>
-              )}
+      {/* Enterprise Header Card */}
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/surat/keluar">
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Kembali ke Agenda Surat Keluar"
+                className="kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0"
+                title="Kembali ke Agenda Surat Keluar"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+              <activeTabMeta.icon className="w-5 h-5" />
             </div>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
-              Generator naskah dinas resmi BKSDA Kalimantan Timur dengan pratinjau A4 presisi cetak.
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                  {editingSuratKeluarId ? `Edit ${activeTabMeta.name}` : `Buat ${activeTabMeta.name}`}
+                </h1>
+                {editingSuratKeluarId ? (
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
+                      Mode Edit: #{editingSuratKeluarId}
+                    </Badge>
+                    {editingSuratKeluarStatus === "draft" ? (
+                      <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]">
+                        Draft
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]">
+                        Terdaftar
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
+                    Permen Kehutanan 1/2025 (Hal. {activeTabMeta.hal})
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                Generator naskah dinas resmi BKSDA Kalimantan Timur dengan pratinjau A4 presisi cetak.
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
           {editingSuratKeluarId && (
             <Button
               variant="outline"
@@ -943,6 +950,7 @@ function GenerateSuratDinasContent() {
             Cetak Dokumen
           </Button>
         </div>
+      </div>
       </div>
 
       {/* Template Selector Bar */}

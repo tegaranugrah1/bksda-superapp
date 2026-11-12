@@ -58,23 +58,45 @@ export default function CreateSuratKeluarPage() {
 
   return (
     <div className="psr-ui w-full p-4 md:p-6 space-y-4 text-[var(--ds-fg)]">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/surat/keluar">
-          <Button variant="outline" size="sm" aria-label="Kembali ke Daftar Surat Keluar" className="kpg-secondary h-9 w-9 p-0 rounded-xl">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <Send className="h-4 w-4 text-[var(--ds-accent-fg)]" />
-            <h1 className="text-lg font-bold text-[var(--ds-fg)]">
-              Input Surat Keluar Baru
-            </h1>
+      {/* Enterprise Header Card */}
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/surat/keluar">
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Kembali ke Agenda Surat Keluar"
+                className="kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+              <Send className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                Input Surat Keluar Baru
+              </h1>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                Pencatatan &amp; pengagendaan naskah dinas keluar resmi BKSDA Kalimantan Timur.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-[var(--ds-fg-muted)]">
-            Pencatatan & Pengagendaan naskah dinas keluar resmi.
-          </p>
+
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <Link href="/surat/keluar">
+              <Button
+                variant="outline"
+                size="sm"
+                className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5"
+              >
+                <Send className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+                Daftar Agenda Keluar
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

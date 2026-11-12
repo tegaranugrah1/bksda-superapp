@@ -176,36 +176,38 @@ export default function SuratKeluarListPage() {
 
   return (
     <div className="psr-ui w-full p-4 md:p-5 space-y-3 text-[var(--ds-fg)]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
-              <Send className="h-4 w-4" />
+      {/* Enterprise Header Card */}
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]">
+              <Send className="h-5 w-5" />
             </div>
-            <h1 className="text-lg font-bold text-[var(--ds-fg)]">
-              Daftar Surat Keluar
-            </h1>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                Agenda Surat Keluar
+              </h1>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                Penatausahaan dan pengagendaan naskah dinas resmi Permen Kehutanan No. 1/2025.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-[var(--ds-fg-muted)]">
-            Penatausahaan dan pengagendaan naskah dinas resmi Permen Kehutanan No. 1/2025.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setIsTemplatePickerOpen(true)}
-            className="h-8 px-3 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Buat Naskah Dinas
-          </Button>
-          <Link href="/surat/keluar/create">
-            <Button variant="outline" className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-xl gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
-              Input Manual
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <Button
+              onClick={() => setIsTemplatePickerOpen(true)}
+              className="h-9 px-3.5 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl gap-1.5"
+            >
+              <Sparkles className="h-4 w-4" />
+              Buat Naskah Dinas
             </Button>
-          </Link>
+            <Link href="/surat/keluar/create">
+              <Button variant="outline" className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5">
+                <Plus className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+                Input Manual
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

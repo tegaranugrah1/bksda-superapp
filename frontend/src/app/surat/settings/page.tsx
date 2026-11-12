@@ -210,42 +210,44 @@ export default function SuratSettingsPage() {
 
   return (
     <div className="psr-ui w-full p-4 md:p-5 space-y-3 text-[var(--ds-fg)]">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[var(--ds-border-subtle)]">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center font-bold">
-              <SlidersHorizontal className="w-4 h-4" />
+      {/* Enterprise Header Card */}
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+              <SlidersHorizontal className="h-5 w-5" />
             </div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--ds-fg)]">
-              Pengaturan Template Naskah Dinas
-            </h1>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                Pengaturan Template Naskah Dinas
+              </h1>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                Konfigurasi template persuratan resmi, kode klasifikasi arsip, dan nomor prefix BKSDA Kalimantan Timur.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
-            Konfigurasi template persuratan resmi, kode klasifikasi arsip, dan nomor prefix BKSDA Kalimantan Timur.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetDefaults}
-            disabled={resetMutation.isPending}
-            className="kpg-secondary h-8 rounded-xl text-xs gap-1.5 cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Bawaan Sistem</span>
-          </Button>
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetDefaults}
+              disabled={resetMutation.isPending}
+              className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Bawaan Sistem</span>
+            </Button>
 
-          <Button
-            size="sm"
-            onClick={openCreateModal}
-            className="h-8 rounded-xl text-xs gap-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Template</span>
-          </Button>
+            <Button
+              size="sm"
+              onClick={openCreateModal}
+              className="h-9 px-3.5 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Template</span>
+            </Button>
+          </div>
         </div>
       </div>
 

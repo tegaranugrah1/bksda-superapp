@@ -2520,23 +2520,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/create/page.tsx": {
-    "mtime": 1794408488.8981571,
-    "ast_hash": "96b49991c7579cf7b450260afb41faa6",
+    "mtime": 1794458598.3379407,
+    "ast_hash": "11dae98c0f57e0b61eaba49f7388f4e1",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/page.tsx": {
-    "mtime": 1794416351.844448,
-    "ast_hash": "fb6a966c44855df3e6348bc56be4e119",
+    "mtime": 1794458582.7943356,
+    "ast_hash": "366d5fd78549a3d993066c651ffe5138",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/layout.tsx": {
-    "mtime": 1794441975.3988109,
-    "ast_hash": "43f0d82644225154b9e8a0b4b68602c8",
+    "mtime": 1794458549.4772096,
+    "ast_hash": "fc5604efb081324dbd1a201566837539",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/create/page.tsx": {
-    "mtime": 1794408194.4426441,
-    "ast_hash": "b1613a69b4d9e827c9b2e0e9a02f7df5",
+    "mtime": 1794458564.8847406,
+    "ast_hash": "c2ccece4b678b6b1cbc7fbba16c6f329",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/page.tsx": {
@@ -6135,8 +6135,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794445926.5434258,
-    "ast_hash": "2db0ae8d64b2f36d570ed234de2961df",
+    "mtime": 1794458806.8325422,
+    "ast_hash": "3d60f1d7f278feda487adca62ceada33",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6375,8 +6375,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794443126.2869053,
-    "ast_hash": "ba37373a9e838f9f5ea9486be486458d",
+    "mtime": 1794458635.113493,
+    "ast_hash": "46dfee95dc9d918c9cd6ec8c10bc1489",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -6885,8 +6885,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/settings/page.tsx": {
-    "mtime": 1794446281.6236317,
-    "ast_hash": "27aabd7a1fe485eba50bbfba493d5cec",
+    "mtime": 1794458652.2474794,
+    "ast_hash": "945088383e15f853c5e2444e57bc735d",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_22_000003_adjust_cpns_2025_leave_balances.php": {
@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794442006.0664265,
-    "ast_hash": "b9012c2cadd323febb2df5194bcb5daf",
+    "mtime": 1794452859.7751873,
+    "ast_hash": "1ff51f90026572677546a7c1964b955d",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9125,8 +9125,8 @@
     "semantic_hash": ""
   },
   "docs/testing/persuratan-visual-audit.md": {
-    "mtime": 1794442023.6998515,
-    "ast_hash": "815e917005a8aac2df1857be21bafe32",
+    "mtime": 1794452876.1727526,
+    "ast_hash": "f3799b2a25d3a4db13d5a19aa86c9952",
     "semantic_hash": ""
   }
 }

@@ -46,9 +46,9 @@ const SURAT_SIDEBAR_ITEMS: SuratSidebarItem[] = [
 
   // 2. Penatausahaan Surat
   { href: "/surat/masuk", label: "Agenda Surat Masuk", icon: Inbox, permission: "surat.view", group: "Penatausahaan Surat" },
-  { href: "/surat/masuk/create", label: "Input Agenda Masuk", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
+  { href: "/surat/masuk/create", label: "Input Surat Masuk & Disposisi", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
   { href: "/surat/keluar", label: "Agenda Surat Keluar", icon: Send, permission: "surat.view", group: "Penatausahaan Surat" },
-  { href: "/surat/keluar/create", label: "Input Agenda Keluar", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
+  { href: "/surat/keluar/create", label: "Input Surat Keluar", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
 
   // 3. Tata Naskah & Laporan
   { href: "/surat/keluar/dinas", label: "Tata Naskah Dinas", icon: FileText, permission: "surat.create", group: "Tata Naskah & Laporan" },
