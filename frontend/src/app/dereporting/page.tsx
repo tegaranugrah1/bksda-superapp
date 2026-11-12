@@ -13,6 +13,7 @@ import {
     ArrowRight,
     TrendingUp,
 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 // Palet Amber Kedinasan untuk Grafik
@@ -20,6 +21,7 @@ const CHART_COLORS = ["#d97706", "#b45309", "#f59e0b", "#92400e", "#fbbf24", "#7
 
 export default function DeReportingDashboardPage() {
     const [mounted, setMounted] = useState(false);
+    const reducedMotion = useReducedMotion();
 
     /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
@@ -57,7 +59,7 @@ export default function DeReportingDashboardPage() {
         },
     });
 
-    // Kartu Statistik dengan Kaidah 60-30-10 & Aksen Kedinasan
+    // Kartu Statistik dengan Kaidah 60-30-10 & Aksen Kedinasan (Delicate Borders & Micro-interactions ala Kepegawaian & BMN)
     const STAT_CARDS = [
         {
             label: "Laporan Internal",
@@ -65,9 +67,11 @@ export default function DeReportingDashboardPage() {
             value: stats?.totalInternal ?? 0,
             icon: FileText,
             iconColor: "text-amber-700 dark:text-amber-400",
-            iconBg: "bg-amber-500/10 border-amber-500/20",
+            iconBg: "bg-amber-50 dark:bg-amber-500/10 border-amber-200/60 dark:border-amber-500/20",
             badge: "Utama",
-            badgeColor: "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20",
+            badgeColor: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/60",
+            hoverBorder: "hover:border-amber-400/70 dark:hover:border-amber-500/40",
+            href: "/dereporting/internal",
         },
         {
             label: "Laporan Publik",
@@ -75,9 +79,11 @@ export default function DeReportingDashboardPage() {
             value: stats?.totalEksternal ?? 0,
             icon: Globe,
             iconColor: "text-blue-700 dark:text-blue-400",
-            iconBg: "bg-blue-500/10 border-blue-500/20",
+            iconBg: "bg-blue-50 dark:bg-blue-500/10 border-blue-200/60 dark:border-blue-500/20",
             badge: "Eksternal",
-            badgeColor: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
+            badgeColor: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200/60 dark:border-blue-800/60",
+            hoverBorder: "hover:border-blue-400/70 dark:hover:border-blue-500/40",
+            href: "/dereporting/eksternal",
         },
         {
             label: "Menunggu Tinjauan",
@@ -85,9 +91,11 @@ export default function DeReportingDashboardPage() {
             value: stats?.menungguTinjauan ?? 0,
             icon: Clock,
             iconColor: "text-orange-700 dark:text-orange-400",
-            iconBg: "bg-orange-500/10 border-orange-500/20",
+            iconBg: "bg-orange-50 dark:bg-orange-500/10 border-orange-200/60 dark:border-orange-500/20",
             badge: "Pending",
-            badgeColor: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/20",
+            badgeColor: "bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border-orange-200/60 dark:border-orange-800/60",
+            hoverBorder: "hover:border-orange-400/70 dark:hover:border-orange-500/40",
+            href: "/dereporting/eksternal",
         },
         {
             label: "Bidang Aktif",
@@ -95,25 +103,27 @@ export default function DeReportingDashboardPage() {
             value: stats?.totalBidang ?? 0,
             icon: BarChart3,
             iconColor: "text-emerald-700 dark:text-emerald-400",
-            iconBg: "bg-emerald-500/10 border-emerald-500/20",
+            iconBg: "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/60 dark:border-emerald-500/20",
             badge: "Master",
-            badgeColor: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+            badgeColor: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/60",
+            hoverBorder: "hover:border-emerald-400/70 dark:hover:border-emerald-500/40",
+            href: "/dereporting/internal",
         },
     ];
 
     return (
         <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-300">
-            {/* CANONICAL ENTERPRISE HEADER CARD */}
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-2xs">
+            {/* CANONICAL ENTERPRISE HEADER CARD (Delicate border ala Kepegawaian & BMN) */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shadow-2xs">
                 <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                         <BarChart3 className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                        <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                             Pusat Komando Laporan
                         </h1>
-                        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                             Ikhtisar rekapitulasi seluruh laporan internal & publik BKSDA Kalimantan Timur secara real-time.
                         </p>
                     </div>
@@ -122,7 +132,7 @@ export default function DeReportingDashboardPage() {
                 <div className="flex items-center gap-2 self-stretch xl:self-auto shrink-0">
                     <Link
                         href="/dereporting/eksternal"
-                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 text-xs font-semibold rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors shadow-2xs"
+                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 text-xs font-semibold rounded-xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                     >
                         <Globe className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         Laporan Publik
@@ -140,57 +150,65 @@ export default function DeReportingDashboardPage() {
 
             {/* Grid Kartu Statistik (30% Sekunder dengan Sentuhan 10% Aksen) */}
             {isLoading ? (
-                <div className="flex items-center justify-center py-20 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl">
+                <div className="flex items-center justify-center py-20 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl shadow-2xs">
                     <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
                 </div>
             ) : (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {STAT_CARDS.map((card) => (
-                            <div
+                            <motion.div
                                 key={card.label}
-                                className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 flex flex-col justify-between shadow-2xs hover:-translate-y-0.5 transition-all duration-200"
+                                whileHover={reducedMotion ? undefined : { y: -3 }}
+                                whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                                transition={{ duration: 0.15 }}
+                                className="h-full"
                             >
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                    <div
-                                        className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${card.iconBg}`}
-                                    >
-                                        <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+                                <Link
+                                    href={card.href}
+                                    className={`group bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 ${card.hoverBorder} rounded-2xl p-5 shadow-2xs transition-colors flex flex-col justify-between h-full cursor-pointer`}
+                                >
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div
+                                            className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${card.iconBg}`}
+                                        >
+                                            <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+                                        </div>
+                                        <span
+                                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${card.badgeColor}`}
+                                        >
+                                            {card.badge}
+                                        </span>
                                     </div>
-                                    <span
-                                        className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${card.badgeColor}`}
-                                    >
-                                        {card.badge}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="text-2xl md:text-3xl font-extrabold text-[var(--ds-fg)] tracking-tight">
-                                        {card.value}
-                                    </p>
-                                    <p className="text-xs font-bold text-[var(--ds-fg)] mt-1">
-                                        {card.label}
-                                    </p>
-                                    <p className="text-[11px] text-[var(--ds-fg-muted)] mt-0.5">
-                                        {card.sublabel}
-                                    </p>
-                                </div>
-                            </div>
+                                    <div>
+                                        <p className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                            {card.value}
+                                        </p>
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors mt-1">
+                                            {card.label}
+                                        </p>
+                                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                                            {card.sublabel}
+                                        </p>
+                                    </div>
+                                </Link>
+                            </motion.div>
                         ))}
                     </div>
 
-                    {/* Grafik Batang: Laporan per Bidang */}
-                    <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-2xs">
+                    {/* Grafik Batang: Laporan per Bidang (Delicate borders & subtle contrast) */}
+                    <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-6 shadow-2xs">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h3 className="text-base font-bold text-[var(--ds-fg)] tracking-tight flex items-center gap-2">
+                                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                                     Distribusi Laporan Internal per Bidang
                                 </h3>
-                                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                                     Sebaran dokumen internal berdasarkan bidang dan perizinan konservasi.
                                 </p>
                             </div>
-                            <span className="text-xs font-medium text-[var(--ds-fg-muted)] px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)]">
+                            <span className="text-xs font-medium text-slate-500 dark:text-zinc-400 px-2.5 py-1 rounded-lg bg-slate-100/70 dark:bg-zinc-800/50 border border-slate-200/70 dark:border-zinc-800">
                                 Tahun Berjalan
                             </span>
                         </div>

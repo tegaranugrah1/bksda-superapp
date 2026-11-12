@@ -132,17 +132,17 @@ export default function DeReportingInternalPage() {
 
     return (
         <div className="p-4 md:p-8 space-y-5 animate-in fade-in duration-300">
-            {/* CANONICAL ENTERPRISE HEADER CARD */}
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+            {/* CANONICAL ENTERPRISE HEADER CARD (Delicate border ala Kepegawaian & BMN) */}
+            <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                         <FileText className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                        <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                        <h1 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                             Laporan Internal BKSDA
                         </h1>
-                        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                             Tata kelola arsip laporan dinas berdasar urusan kerja dan penugasan personal.
                         </p>
                     </div>
@@ -151,7 +151,7 @@ export default function DeReportingInternalPage() {
                 <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
                     <button
                         onClick={() => setDrawerOpen(true)}
-                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 text-xs font-semibold rounded-xl bg-[var(--ds-accent-solid)] text-white hover:opacity-90 active:scale-98 transition-all shadow-xs"
+                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 text-xs font-semibold rounded-xl bg-amber-700 text-white hover:bg-amber-800 active:scale-98 transition-all shadow-xs"
                     >
                         <Plus className="w-4 h-4" />
                         Unggah Laporan Baru
@@ -162,7 +162,7 @@ export default function DeReportingInternalPage() {
             {/* SEGMENTED TAB NAVIGATION & SEARCH */}
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 {/* Segmented Tabs */}
-                <div className="flex items-center p-1 rounded-xl bg-[var(--ds-surface-muted)]/80 border border-[var(--ds-border-subtle)] overflow-x-auto">
+                <div className="flex items-center p-1 rounded-xl bg-slate-100/70 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-800/80 overflow-x-auto">
                     {tabs.map((tab) => {
                         const isActive = activeTab === tab.key;
                         const Icon = tab.icon;
@@ -175,14 +175,14 @@ export default function DeReportingInternalPage() {
                                 }}
                                 className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                                     isActive
-                                        ? "text-[var(--ds-accent-fg)]"
-                                        : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+                                        ? "text-[var(--ds-accent-fg)] text-amber-800 dark:text-amber-400 font-bold"
+                                        : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                                 }`}
                             >
                                 {isActive && (
                                     <motion.span
                                         layoutId="dr-internal-tabs"
-                                        className="absolute inset-0 rounded-lg bg-[var(--ds-surface)] shadow-2xs border border-[var(--ds-border-subtle)]"
+                                        className="absolute inset-0 rounded-lg bg-white dark:bg-zinc-900 shadow-2xs border border-slate-200/80 dark:border-zinc-800/80"
                                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                                     />
                                 )}
@@ -197,7 +197,7 @@ export default function DeReportingInternalPage() {
 
                 {/* Pencarian Cerdas */}
                 <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-zinc-500" />
                     <input
                         type="text"
                         placeholder="Cari judul laporan..."
@@ -206,17 +206,17 @@ export default function DeReportingInternalPage() {
                             setSearchTerm(e.target.value);
                             setPage(1);
                         }}
-                        className="w-full pl-9 pr-3.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-accent-solid)] transition-all"
+                        className="w-full pl-9 pr-3.5 py-1.5 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-xl text-xs text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-600 transition-all"
                     />
                 </div>
             </div>
 
-            {/* TABEL DATA LAPORAN */}
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden shadow-2xs">
+            {/* TABEL DATA LAPORAN (Delicate hairline borders & smooth hover) */}
+            <div className="rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 overflow-hidden shadow-2xs">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]/50 text-[11px] font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                            <tr className="border-b border-slate-100 dark:border-zinc-800/80 bg-slate-50/60 dark:bg-zinc-800/30 text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                                 <th className="p-4">Tanggal & Judul</th>
                                 <th className="p-4">Sasaran / Distribusi</th>
                                 <th className="p-4 text-center">Status Baca</th>
@@ -224,11 +224,11 @@ export default function DeReportingInternalPage() {
                                 <th className="p-4 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
+                        <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80 text-xs">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={5} className="p-12 text-center text-[var(--ds-accent-fg)]">
-                                        <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-[var(--ds-accent-solid)]" />
+                                    <td colSpan={5} className="p-12 text-center text-amber-700 dark:text-amber-400">
+                                        <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-amber-600" />
                                         <span className="font-semibold text-xs tracking-wider uppercase opacity-80">
                                             Membongkar Lemari Arsip...
                                         </span>
@@ -236,7 +236,7 @@ export default function DeReportingInternalPage() {
                                 </tr>
                             ) : response?.data?.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="p-12 text-center text-[var(--ds-fg-muted)]">
+                                    <td colSpan={5} className="p-12 text-center text-slate-400 dark:text-zinc-500">
                                         <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
                                         <p className="font-medium text-xs">Tidak ada laporan internal yang cocok.</p>
                                     </td>
@@ -245,7 +245,7 @@ export default function DeReportingInternalPage() {
                                 response?.data?.map((report: ReportData) => (
                                     <tr
                                         key={report.id}
-                                        className="hover:bg-[var(--ds-surface-muted)]/50 transition-colors"
+                                        className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors"
                                     >
                                         {/* Tanggal & Judul */}
                                         <td className="p-4 max-w-sm">
@@ -411,20 +411,20 @@ export default function DeReportingInternalPage() {
                 </div>
 
                 {/* Footer Pagination */}
-                <div className="p-3.5 bg-[var(--ds-surface-muted)]/40 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-xs">
-                    <span className="text-[var(--ds-fg-muted)] font-medium">Halaman {page}</span>
+                <div className="p-3.5 bg-slate-50/50 dark:bg-zinc-800/30 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-xs">
+                    <span className="text-slate-500 dark:text-zinc-400 font-medium">Halaman {page}</span>
                     <div className="flex gap-1.5">
                         <button
                             disabled={page === 1}
                             onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            className="px-3 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] disabled:opacity-40 transition-colors"
+                            className="px-3 py-1 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-40 transition-colors shadow-2xs"
                         >
                             Sebelumnya
                         </button>
                         <button
                             disabled={!response?.next_page_url}
                             onClick={() => setPage((p) => p + 1)}
-                            className="px-3 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] disabled:opacity-40 transition-colors"
+                            className="px-3 py-1 bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-lg text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-40 transition-colors shadow-2xs"
                         >
                             Berikutnya
                         </button>

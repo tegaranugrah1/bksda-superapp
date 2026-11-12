@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan dan peningkatan menyeluruh modul **DeReporting Laporan Internal** (`frontend/src/app/dereporting/internal`) berbasis prinsip `/ponytail` dan `/security-audit`. Modul internal kini mendukung pembatasan akses multi-penerima (Urusan & Personal) dengan proteksi Anti-IDOR, pencatatan otomatis tanda baca (*read receipt*), pratinjau cepat in-app PDF viewer, tinjauan status laporan (*review confirmation*), Segmented Tab Navigation, serta kanonikal Enterprise Header Card. 100% lulus uji otomatis backend PHPUnit (`DeReportingInternalRBACTest.php`: 9 tests, 24 assertions), Playwright E2E (`dereporting-internal-rbac.playwright.cjs`: 6 suites, 18 assertions), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105, 106, 107).
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan dan peningkatan menyeluruh modul **DeReporting Laporan Internal** (`frontend/src/app/dereporting/internal`) serta **DeReporting Dashboard** (`frontend/src/app/dereporting/page.tsx`) berbasis prinsip `/ponytail` dan `/security-audit`. Ketebalan border card, animasi Framer Motion (`whileHover={{ y: -3 }}`), dan transisi border hover diselaraskan mengikuti standar delicate hairline border modul Kepegawaian dan BMN (`border-slate-200/80 dark:border-zinc-800/80`, `shadow-2xs`, `hover:border-amber-400/70`). 100% lulus uji otomatis backend PHPUnit (`DeReportingInternalRBACTest.php`: 9 tests, 24 assertions), Playwright E2E (`dereporting-internal-rbac.playwright.cjs`: 6 suites, 18 assertions), Next.js Production Build (86/86 pages), TypeScript, dan `graphify`. (Bagian 101, 102, 103, 104, 105, 106, 107, 108, 109).
 
 ## Status Update: 2 November 2026
 
@@ -2355,6 +2355,35 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
   - Playwright E2E Test `dereporting-internal-rbac.playwright.cjs`: **6/6 suites PASS**.
   - Knowledge graph: `graphify update .` **100% updated**.
+  - **Commit Terverifikasi**: Commit `1f1fbec6` — `feat(dereporting): apply Option 1 Amber Kedinasan 60-30-10 palette to Dashboard and Layout`.
+
+---
+
+## 109. Harmonisasi Border Card, Animasi, dan Hover Modul DeReporting Mengacu Standar Modul Kepegawaian & BMN (12 November 2026)
+
+- **Audit Komparatif Modul Kepegawaian (`kepegawaian/page.tsx`) & BMN (`bmn/page.tsx`)**:
+  - Menemukan formula ketebalan border kartu standar BKSDA:
+    - **Outer Card Border**: Bukan border solid pekat atau border default tebal, melainkan *delicate hairline alpha border* `border border-slate-200/80 dark:border-zinc-800/80` berpadu dengan elevasi sangat halus `shadow-2xs`.
+    - **Interactive Hover Border**: Saat disentuh pointer kursor, border bertransisi anggun ke aksen tematik (`hover:border-amber-400/70 dark:hover:border-amber-500/40 transition-colors`).
+    - **Inner Icon Box**: Menggunakan alpha border halus `border border-amber-200/60 dark:border-amber-500/20` dengan latar belakang pastel lembut `bg-amber-50 dark:bg-amber-500/10` (tidak ada border tebal gelap yang kontras tajam).
+    - **Micro-Interaction Framer Motion**: Pembungkus kartu menggunakan pegas halus `<motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.15 }}>` dengan perlindungan aksesibilitas `useReducedMotion()`.
+- **Implementasi pada Dashboard DeReporting (`frontend/src/app/dereporting/page.tsx`)**:
+  - Memperbarui Enterprise Header Card: `rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-4 md:px-6 md:py-4 shadow-2xs`.
+  - Memperbarui 4 Bento KPI Stat Cards menjadi tautan interaktif responsif beranimasi Framer Motion:
+    - *Laporan Internal*: `iconBg: bg-amber-50 dark:bg-amber-500/10 border-amber-200/60`, hover `hover:border-amber-400/70`.
+    - *Laporan Publik*: `iconBg: bg-blue-50 dark:bg-blue-500/10 border-blue-200/60`, hover `hover:border-blue-400/70`.
+    - *Menunggu Tinjauan*: `iconBg: bg-orange-50 dark:bg-orange-500/10 border-orange-200/60`, hover `hover:border-orange-400/70`.
+    - *Bidang Aktif*: `iconBg: bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/60`, hover `hover:border-emerald-400/70`.
+  - Kartu visualisasi Recharts Grafik Distribusi Bidang diperbarui dengan kontainer `bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 shadow-2xs` dan badge tahun ber-border halus.
+- **Implementasi pada Halaman DeReporting Laporan Internal (`frontend/src/app/dereporting/internal/page.tsx`)**:
+  - Header card diperbarui ke hairline border `border-slate-200/80 dark:border-zinc-800/80 shadow-2xs`.
+  - Kotak filter segmented tabs: `bg-slate-100/70 dark:bg-zinc-800/50 border border-slate-200/80 dark:border-zinc-800/80` dengan tab aktif bergaris halus.
+  - Kontainer tabel laporan kedinasan: `rounded-2xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-2xs`, garis antar-baris halus `divide-slate-100 dark:divide-zinc-800/80`, dan hover baris `hover:bg-slate-50/70 dark:hover:bg-zinc-800/40`.
+  - Tombol pagination footer terstandardisasi dengan `border-slate-200/80 dark:border-zinc-800/80 shadow-2xs`.
+- **Verifikasi Kualitas Komprehensif**:
+  - **Next.js Production Build**: `npm run build --prefix frontend` -> **Compiled successfully in 24.2s, 86/86 static pages generated, TypeScript 0 errors**.
+  - **Playwright E2E Suite**: `node frontend/tests/dereporting-internal-rbac.playwright.cjs` -> **6/6 suites, 18 assertions PASS (100%)**.
+  - **Screenshot Verifikasi Visual**: Berhasil menguji rendering halus pada artefak visual `dereporting_cards_delicate_borders.png` dan `dereporting_internal_delicate_borders.png`.
 
 
 
