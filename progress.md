@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (10 November 2026):** Komit lokal berhasil untuk modernisasi Dashboard BMN (desain bento grid 3-kolom, header card ala Kepegawaian, audit data riil database, perbaikan visibilitas tombol aksi peminjaman aset, dan peredaman warna kartu STNK anti-fatigue). Penyusunan dokumen standar acuan warna desain sistem antar-modul (`docs/DESIGN_SYSTEM_COLORS.md`) dengan kalibrasi rasio kontras WCAG 2.1 dan aturan 60-30-10 (Bagian 64, 65, 66). TypeScript `0 errors`, security check backend `PASS`.
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Seluruh test regresi UI (`persuratan-ui.cjs`), TypeScript (`tsc --noEmit`), ESLint, dan `graphify` 100% PASS. (Bagian 101, 102, 103). Commit lokal: `61a551c6`.
 
 ## Status Update: 2 November 2026
 
@@ -2202,4 +2202,41 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - `node frontend/tests/nota-dinas-template-check.cjs`: **PASSED**.
   - `node frontend/tests/kepegawaian-ui.cjs`: **PASSED**.
   - `npx --prefix frontend tsc -p frontend/tsconfig.json --noEmit`: **PASSED (0 errors)**.
+
+---
+
+## 102. Migrasi Palet Teal Kedinasan, Penipisan Border/Shadow Naskah Dinas, dan Penyelarasan Header Dashboard BMN & Persuratan (11–12 November 2026)
+
+- **Migrasi Palet Aksen ke Teal Kedinasan (`globals.css`, `DESIGN_SYSTEM_COLORS.md`)**:
+  - Berdasarkan umpan balik keterbacaan naskah kedinasan untuk pengguna senior, warna ungu/Indigo digantikan oleh **Teal Tua Kedinasan** (Light: `#0f766e` kontras 5,47:1 pada putih; Dark: `#2dd4bf` kontras 9,59:1 terhadap `#0f172a`, teks aksen `#5eead4` kontras 11,98:1 pada `#18181b`).
+- **Peredaman Border & Drop-Shadow Berlebih (`surat/keluar/dinas/page.tsx`, `TemplatePickerModal.tsx`)**:
+  - Menghapus drop-shadow tebal (`shadow-xl ring-1`, `shadow-sm`) pada kartu ber-border dan lembar pratinjau A4.
+  - Meringankan tampilan blok **Nomor Naskah**: badge nomor tanpa border berat, tombol switcher pill menggunakan `bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] border-[var(--ds-border-subtle)]`, segmen nomor menggunakan font medium, serta pemisah normal.
+  - Memperbaiki kontras nomor surat keluar terbaru ([`SuratHubComponents.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratHubComponents.tsx)) menjadi `text-[var(--ds-fg)]` agar tidak bertabrakan dengan warna hijau badge status `Signed`/`Terdaftar`.
+- **Standarisasi Header Banner Dashboard Lintas Modul (Patokan: Dashboard Kepegawaian)**:
+  - Menetapkan **Dashboard Kepegawaian (`kepegawaian/page.tsx`)** sebagai patokan kanonikal untuk anatomi dan ukuran banner header dashboard:
+    - Kontainer: `bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4`.
+    - Sisi Kiri: Kotak ikon `w-10 h-10 rounded-xl` (`w-5 h-5` icon) dengan judul `text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight` dan subjudul `text-xs text-[var(--ds-fg-muted)] mt-0.5` tanpa overline/badge tambahan di atas `<h1>`.
+  - Diterapkan pada **Dashboard BMN** ([`bmn/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/page.tsx)) dan **Dashboard Persuratan** ([`SuratHubComponents.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratHubComponents.tsx)).
+- **Commit Terverifikasi**: Commit `c3dd026a` — `feat(ui): apply Teal palette to Persuratan and standardize Dashboard headers across BMN & Persuratan`.
+
+---
+
+## 103. Standardisasi Tema 3 Warna Utama Modul Persuratan & Harmonisasi Sidebar Teal Seragam (12 November 2026)
+
+- **Tema 3 Warna Utama Konten Modul Persuratan (`SuratHubComponents.tsx`, `surat/page.tsx`)**:
+  - Mengikuti pola 3 warna kategori pada Kepegawaian (Blue, Amber, Emerald) dan BMN (Emerald, Amber/Teal, Rose), konten modul Persuratan dibatasi secara disiplin pada 3 keluarga warna utama (menghilangkan pencampuran `emerald` dengan `teal`):
+    1. **Teal Kedinasan (`text-[var(--ds-accent-fg)]`)**: Surat Masuk & Ringkasan Modul (Ikon Header Dashboard, KPI *Surat Masuk*, Akses Cepat *Daftar Surat Masuk* & *Input Surat Masuk*, No Agenda *Surat Masuk Terbaru*).
+    2. **Blue (`text-blue-700 dark:text-blue-300`)**: Surat Keluar (KPI *Surat Keluar*, Akses Cepat *Daftar Surat Keluar*, Ikon Header *Surat Keluar Terbaru*).
+    3. **Amber (`text-amber-700 dark:text-amber-300`)**: Disposisi Cetak & Tata Naskah Dinas (KPI *Disposisi Cetak 2-Up*, KPI *Tata Kelola 100%*, Akses Cepat *Tata Naskah Dinas Permen 1/2025*).
+- **Arsitektur Shell & Sidebar Modul Persuratan (`surat/layout.tsx`)**:
+  - Sesuai prinsip desain sistem, sidebar modul persuratan tetap menggunakan **1 warna aksen tunggal yang seragam** yaitu **Teal Tua Kedinasan** (`--ds-accent-*`), persis seperti sidebar BMN yang seragam Emerald dan Kepegawaian yang seragam Biru.
+  - Seluruh item aktif menggunakan spring layout indicator (`stiffness: 450, damping: 35`) dengan `shadow-2xs`, dot kanan `bg-[var(--ds-accent-solid)]`, dan teks `--ds-accent-fg`.
+  - Transisi hover `150ms`, transisi collapse/expand dan laci mobile mulus `150ms` (`transition-[transform,width,visibility] duration-150 ease-out`), serta dukungan keyboard `Escape` dengan pemulihan fokus.
+- **Dokumentasi & Verifikasi**:
+  - Diperbarui di [`docs/DESIGN_SYSTEM_COLORS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_COLORS.md), [`docs/testing/persuratan-visual-audit.md`](file:///e:/bksda-superapp/docs/testing/persuratan-visual-audit.md), dan [`docs/bmn-ui-ux-modernization/visual-guidelines.md`](file:///e:/bksda-superapp/docs/bmn-ui-ux-modernization/visual-guidelines.md).
+  - Test regresi [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
+  - TypeScript `tsc --noEmit` & ESLint: **0 errors**.
+  - Knowledge graph: `graphify update .` **100% updated**.
+  - **Commit Terverifikasi**: Commit `61a551c6` — `feat(surat): standardize 3-color theme for Persuratan content and harmonize Teal sidebar with BMN and Kepegawaian`.
 
