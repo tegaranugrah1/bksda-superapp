@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar di seluruh modul dan penyesuaian ikon Modul Aktif serta kartu Portal ke Teal Tua tuntas. Seluruh test regresi UI (`persuratan-ui.cjs`), TypeScript (`tsc --noEmit`), ESLint, dan `graphify` 100% PASS. (Bagian 101, 102, 103, 104).
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar, penyesuaian ikon Modul Aktif Teal Tua, serta penambahan animasi interaktif & mikro-interaksi (hover lift, tap feedback, animated proportion bar, floating toolbar spring, spring layoutId tabs) tuntas dan 100% lulus uji regresi (`persuratan-ui.cjs`), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105).
 
 ## Status Update: 2 November 2026
 
@@ -2259,5 +2259,25 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Test regresi UI [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
   - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
   - Knowledge graph: `graphify update .` **100% updated**.
+  - **Commit Terverifikasi**: Commit `a0555c42` — `feat(surat): purge rogue colors across Persuratan and align active module switcher icon to Teal palette`.
+
+---
+
+## 105. Harmonisasi Animasi & Mikro-Interaksi Modul Persuratan Sesuai Standar BMN & Kepegawaian (12 November 2026)
+
+- **Paritas Animasi & Mikro-Interaksi dengan BMN & Kepegawaian**:
+  - Mengikuti pola animasi di Modul Kepegawaian (`kepegawaian/page.tsx`, `KepegawaianDashboardComponents.tsx`) dan Modul BMN (`bmn/page.tsx`, `BmnDashboardComponents.tsx`), seluruh halaman utama Persuratan kini memiliki perilaku gerak yang halus dan dinamis:
+    - **Bento Stat Cards & Animated Progress (`SuratHubComponents.tsx`)**: Menambahkan mikro-interaksi `whileHover: { y: -3 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon halus (`scale-105`), serta animasi pengisian horizontal progress proportion bar (`initial={{ width: 0 }}`, `animate={{ width: ... }}`) berdurasi 0.6s `easeOut`.
+    - **Akses Pintas / Quick Action Links (`surat/page.tsx`)**: Menambahkan `whileHover: { y: -2.5 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon `group-hover:scale-105`, dan pergeseran diagonal panah kanan atas (`group-hover:translate-x-0.5 group-hover:-translate-y-0.5`).
+    - **Tabel Ringkasan Surat Terbaru (`SuratHubComponents.tsx`)**: Header link *"Lihat Semua"* memiliki animasi pergeseran ikon chevron (`group-hover:translate-x-0.5`), dan baris tabel memiliki transisi latar halus (`hover:bg-[var(--ds-surface-muted)]/70`).
+    - **Floating Batch Selection Toolbar (`surat/masuk/page.tsx`)**: Toolbar cetak disposisi massal dibungkus `<AnimatePresence>` dengan pegas halus (`type: "spring", stiffness: 450, damping: 32`), sehingga muncul dan menghilang tanpa *layout pop*.
+    - **Spring Pill Layout Tab Indicators (`settings/page.tsx` & `TemplatePickerModal.tsx`)**: Tab filter dinamis menggunakan `<motion.span layoutId="..." />` (`stiffness: 420, damping: 32`) yang meluncur dinamis antar-tab, serta kartu template di modal picker memiliki `whileHover: { y: -2 }` dan `whileTap: { scale: 0.98 }`.
+- **Aksesibilitas Penuh (`prefers-reduced-motion`)**:
+  - Seluruh efek gerak terikat pada hook `useReducedMotion()`. Saat pengguna mengaktifkan preferensi kurangi gerak di tingkat sistem, durasi animasi otomatis diset ke 0 atau dinonaktifkan demi kenyamanan mata.
+- **Verifikasi Kualitas & Regresi**:
+  - Test regresi UI [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
+  - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
+  - Knowledge graph: `graphify update .` **100% updated**.
+
 
 

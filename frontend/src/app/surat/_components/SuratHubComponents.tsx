@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Inbox,
   Send,
@@ -80,6 +81,11 @@ export function BentoStatCards({
   totalSuratMasuk: number;
   totalSuratKeluar: number;
 }) {
+  const reducedMotion = useReducedMotion();
+  const totalVolume = totalSuratMasuk + totalSuratKeluar;
+  const masukPct = totalVolume > 0 ? Math.max(10, Math.round((totalSuratMasuk / totalVolume) * 100)) : 50;
+  const keluarPct = totalVolume > 0 ? Math.max(10, 100 - masukPct) : 50;
+
   const stats = [
     {
       label: "Surat Masuk",
@@ -89,6 +95,9 @@ export function BentoStatCards({
       href: "/surat/masuk",
       icon: Inbox,
       toneClass: "text-[var(--ds-accent-fg)]",
+      barClass: "bg-[var(--ds-accent-solid)]",
+      pct: masukPct,
+      delay: 0,
     },
     {
       label: "Surat Keluar",
@@ -98,6 +107,9 @@ export function BentoStatCards({
       href: "/surat/keluar",
       icon: Send,
       toneClass: "text-blue-700 dark:text-blue-300",
+      barClass: "bg-blue-600 dark:bg-blue-500",
+      pct: keluarPct,
+      delay: 0.1,
     },
     {
       label: "Disposisi Cetak",
@@ -108,6 +120,9 @@ export function BentoStatCards({
       href: "/surat/masuk",
       icon: FileCheck,
       toneClass: "text-amber-700 dark:text-amber-300",
+      barClass: "bg-amber-500",
+      pct: 100,
+      delay: 0.15,
     },
     {
       label: "Tata Kelola",
@@ -117,6 +132,9 @@ export function BentoStatCards({
       href: "/surat/keluar/dinas",
       icon: CheckCircle2,
       toneClass: "text-amber-700 dark:text-amber-300",
+      barClass: "bg-amber-500",
+      pct: 100,
+      delay: 0.2,
     },
   ];
 
@@ -125,33 +143,56 @@ export function BentoStatCards({
       {stats.map((card) => {
         const Icon = card.icon;
         return (
-          <Link
+          <motion.div
             key={card.label}
-            href={card.href}
-            className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] p-3.5 rounded-2xl transition-colors flex flex-col justify-between"
+            whileHover={reducedMotion ? undefined : { y: -3 }}
+            whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="h-full"
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center ${card.toneClass}`}>
-                <Icon className="w-4 h-4" />
+            <Link
+              href={card.href}
+              className="group bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] p-3.5 rounded-2xl transition-colors flex flex-col justify-between h-full"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${card.toneClass}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className={`kpg-support-badge text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${card.toneClass}`}>
+                    {card.label}
+                  </span>
+                </div>
+                <div className="mt-2.5">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <p className={`font-bold text-[var(--ds-fg)] tracking-tight tabular-nums ${card.valueClass || "text-xl md:text-2xl"}`}>
+                      {card.value}
+                    </p>
+                    <span className={`kpg-support-badge text-xs font-semibold px-1.5 py-0.5 rounded ${card.toneClass}`}>
+                      {card.subLabel}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--ds-fg-muted)] font-medium mt-0.5">
+                    {card.desc}
+                  </p>
+                </div>
               </div>
-              <span className={`kpg-support-badge text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${card.toneClass}`}>
-                {card.label}
-              </span>
-            </div>
-            <div className="mt-2.5">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <p className={`font-bold text-[var(--ds-fg)] tracking-tight tabular-nums ${card.valueClass || "text-xl md:text-2xl"}`}>
-                  {card.value}
-                </p>
-                <span className={`kpg-support-badge text-xs font-semibold px-1.5 py-0.5 rounded ${card.toneClass}`}>
-                  {card.subLabel}
-                </span>
+
+              {/* Animated Progress Proportion Bar */}
+              <div className="mt-3 w-full h-1.5 rounded-full bg-[var(--ds-surface-muted)] overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${card.barClass}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${card.pct}%` }}
+                  transition={{
+                    duration: reducedMotion ? 0 : 0.6,
+                    ease: "easeOut",
+                    delay: reducedMotion ? 0 : card.delay,
+                  }}
+                />
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] font-medium mt-0.5">
-                {card.desc}
-              </p>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
         );
       })}
     </div>
@@ -217,10 +258,10 @@ export function RecentSuratWidget({
           </div>
           <Link
             href="/surat/masuk"
-            className="text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
+            className="group text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
           >
             <span>Lihat Semua</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-150" />
           </Link>
         </div>
 
@@ -252,7 +293,7 @@ export function RecentSuratWidget({
                   return (
                     <tr
                       key={item.id || item.no_agenda}
-                      className="transition-colors"
+                      className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors duration-150"
                     >
                       <td className="py-2.5 px-3 align-top whitespace-nowrap">
                         <span className="font-semibold text-[var(--ds-accent-fg)] block tabular-nums">
@@ -324,10 +365,10 @@ export function RecentSuratWidget({
           </div>
           <Link
             href="/surat/keluar"
-            className="text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
+            className="group text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
           >
             <span>Lihat Semua</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-150" />
           </Link>
         </div>
 
@@ -358,7 +399,7 @@ export function RecentSuratWidget({
                   return (
                     <tr
                       key={item.id || item.no_surat}
-                      className="transition-colors"
+                      className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors duration-150"
                     >
                       <td className="py-2.5 px-3 align-top max-w-[160px]">
                         <span className="font-semibold text-[var(--ds-fg)] block truncate">

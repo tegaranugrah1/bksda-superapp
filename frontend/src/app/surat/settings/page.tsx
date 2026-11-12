@@ -3,6 +3,8 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   Plus,
   Search,
@@ -271,13 +273,21 @@ export default function SuratSettingsPage() {
                 type="button"
                 {...tabs.tabProps(cat)}
                 onClick={() => setSelectedKategori(cat)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={cn(
+                  "relative px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
                   isActive
-                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                    ? "text-[var(--ds-accent-on-solid)]"
                     : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
-                }`}
+                )}
               >
-                {cat === "all" ? `Semua (${templates.length})` : cat}
+                {isActive && (
+                  <motion.span
+                    layoutId="activeSuratSettingsTab"
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{cat === "all" ? `Semua (${templates.length})` : cat}</span>
               </button>
             );
           })}

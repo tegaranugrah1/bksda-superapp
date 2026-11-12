@@ -74,7 +74,31 @@ Untuk memastikan seluruh halaman daftar di modul Persuratan nyaman digunakan pad
 
 ---
 
-## 5. Verifikasi & Regresi
+## 5. Standarisasi Animasi & Mikro-Interaksi (Paritas BMN & Kepegawaian)
+
+Mengikuti perilaku motion di Modul Kepegawaian (`kepegawaian/page.tsx`, `KepegawaianDashboardComponents.tsx`) dan Modul BMN (`bmn/page.tsx`, `BmnDashboardComponents.tsx`), Modul Persuratan mengadopsi standarisasi mikro-interaksi berikut:
+
+1. **Bento Stat Cards & Animated Proportion Bar (`SuratHubComponents.tsx`)**:
+   - `whileHover: { y: -3 }`, `whileTap: { scale: 0.98 }`, transisi `150ms easeOut`.
+   - Ikon membesar halus saat hover (`group-hover:scale-105 duration-150`).
+   - Animated proportion bar horizontal pada setiap kartu (`initial={{ width: 0 }}`, `animate={{ width: ... }}`) berdurasi 0.6s `easeOut`.
+2. **Akses Pintas / Quick Action Links (`surat/page.tsx`)**:
+   - `whileHover: { y: -2.5 }`, `whileTap: { scale: 0.98 }`.
+   - Panah sudut kanan atas bergeser diagonal halus (`group-hover:translate-x-0.5 group-hover:-translate-y-0.5`).
+3. **Tabel Mini Interaktif (`RecentSuratWidget`)**:
+   - Header link "Lihat Semua" menggeser ikon panah kanan (`group-hover:translate-x-0.5`).
+   - Baris tabel memiliki transisi latar halus (`hover:bg-[var(--ds-surface-muted)]/70 duration-150`).
+4. **Floating Batch Selection Toolbar (`surat/masuk/page.tsx`)**:
+   - Pembungkus `<AnimatePresence>` dengan spring physics (`type: "spring", stiffness: 450, damping: 32`) saat checklist dipilih/dibersihkan.
+5. **Spring Pill Layout Tab Indicators (`settings/page.tsx` & `TemplatePickerModal.tsx`)**:
+   - Tab filter dinamis menggunakan `<motion.span layoutId="..." />` (`stiffness: 420, damping: 32`).
+   - Kartu template memiliki hover lift `whileHover: { y: -2 }` dan tap feedback `scale: 0.98`.
+6. **Aksesibilitas Penuh**:
+   - Menghormati OS/browser `prefers-reduced-motion` menggunakan `useReducedMotion()`.
+
+---
+
+## 6. Verifikasi & Regresi
 
 1. **Pemeriksaan Regresi Otomatis (`frontend/tests/persuratan-ui.cjs`)**:
    - Memastikan token `[data-module="persuratan"]` light & dark di `globals.css` sesuai dengan nilai hex di `docs/DESIGN_SYSTEM_COLORS.md`.

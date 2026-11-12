@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Inbox,
   Plus,
@@ -620,40 +621,48 @@ export default function SuratMasukListPage() {
       />
 
       {/* Floating Batch Selection Toolbar */}
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-2xl border border-[var(--ds-accent-soft-border)] animate-in slide-in-from-bottom-5 duration-150">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ds-accent-solid)] text-xs font-bold text-[var(--ds-accent-on-solid)] tabular-nums">
-              {selectedIds.size}
-            </span>
-            <span className="text-xs font-semibold">
-              Surat Terpilih ({Math.ceil(selectedIds.size / 2)} Lembar Kertas)
-            </span>
-          </div>
-
-          <div className="h-4 w-px bg-[var(--ds-border-subtle)]" />
-
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setIsBatchPrintModalOpen(true)}
-            className="h-8 px-3.5 text-xs font-bold rounded-xl gap-1.5"
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 20, x: "-50%" }}
+            transition={{ type: "spring", stiffness: 450, damping: 32 }}
+            className="fixed bottom-5 left-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-2xl border border-[var(--ds-accent-soft-border)]"
           >
-            <Printer className="h-3.5 w-3.5" />
-            Cetak 2-Up ({selectedIds.size} Surat)
-          </Button>
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ds-accent-solid)] text-xs font-bold text-[var(--ds-accent-on-solid)] tabular-nums">
+                {selectedIds.size}
+              </span>
+              <span className="text-xs font-semibold">
+                Surat Terpilih ({Math.ceil(selectedIds.size / 2)} Lembar Kertas)
+              </span>
+            </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClearSelection}
-            className="h-8 px-2.5 text-xs rounded-xl"
-          >
-            Batal
-          </Button>
-        </div>
-      )}
+            <div className="h-4 w-px bg-[var(--ds-border-subtle)]" />
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setIsBatchPrintModalOpen(true)}
+              className="h-8 px-3.5 text-xs font-bold rounded-xl gap-1.5"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Cetak 2-Up ({selectedIds.size} Surat)
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSelection}
+              className="h-8 px-2.5 text-xs rounded-xl"
+            >
+              Batal
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Batch 2-Up Print Preview Modal */}
       <BatchPrintDisposisiModal

@@ -353,5 +353,12 @@ Gunakan scope `[data-module="persuratan"]` dengan `.psr-ui` pada halaman dan kon
     - Animasi collapse/expand sidebar dan drawer mobile mulus `150ms` (`transition-[transform,width,visibility] duration-150 ease-out`).
     - Subjudul sidebar uppercase tebal `Surat & Disposisi`, header grup `text-[var(--ds-fg-secondary)]`, footer avatar `bg-[var(--ds-accent-solid)]` pada `bg-[var(--ds-surface-muted)]`, dan drawer mobile menutup saat `Escape` serta mengembalikan fokus ke pemicu menu.
 - **Dashboard (`.psr-ui.psr-dashboard`):** Memakai `.kpg-support-icon` dan `.kpg-support-badge` untuk pelembutan latar ikon/badge pendukung. Nomor surat keluar menggunakan `--ds-fg` agar tidak bertabrakan dengan warna hijau badge status `Signed`/`Terdaftar`.
+- **Standarisasi Animasi & Mikro-Interaksi (Paritas BMN & Kepegawaian):**
+  - **Bento Stat Cards & Animated Proportion Bar:** Kartu statistik berinteraksi via `whileHover: { y: -3 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon `group-hover:scale-105`, dan animated proportion bar (`initial={{ width: 0 }}`, `animate={{ width: ... }}`) berdurasi 0.6s `easeOut`.
+  - **Akses Pintas / Quick Action Links:** Kartu memiliki `whileHover: { y: -2.5 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon halus `scale-105`, serta pergeseran panah sudut kanan atas `group-hover:translate-x-0.5 group-hover:-translate-y-0.5`.
+  - **Tabel Ringkasan Surat Masuk & Keluar:** Tautan "Lihat Semua" memiliki animasi chevron kanan `group-hover:translate-x-0.5`, dan baris tabel memiliki transisi hover halus `hover:bg-[var(--ds-surface-muted)]/70 duration-150`.
+  - **Floating Batch Selection Toolbar:** Toolbar cetak massal disposisi dibungkus `<AnimatePresence>` dengan transisi spring slide up/down (`type: "spring", stiffness: 450, damping: 32`), mencegah *layout pop*.
+  - **Spring Pill Layout Tab Indicators:** Tab filter pada `surat/settings` dan modal katalog template menggunakan `<motion.span layoutId="..." />` (`stiffness: 420, damping: 32`) yang meluncur dinamis.
+  - **Aksesibilitas `prefers-reduced-motion`:** Seluruh animasi menghormati preferensi pengguna melalui hook `useReducedMotion()`.
 - **Kertas Cetak Resmi (`LembarDisposisiSheet`, `SuratDinasDocument`):** Tetap putih (`bg-white`) dan hitam (`text-black`) pada mode terang maupun gelap agar sesuai standar cetak fisik Letter 2-Up dan A4 Permen Kehutanan No. 1/2025. Rincian audit, ergonomi `1366 x 768` (100%), dan verifikasi tercatat di [audit visual Persuratan](testing/persuratan-visual-audit.md).
 

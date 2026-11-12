@@ -2540,13 +2540,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/page.tsx": {
-    "mtime": 1794408191.0585575,
-    "ast_hash": "a48533175bd92465001971073240b0a9",
+    "mtime": 1794446258.2467384,
+    "ast_hash": "d0ef521276d57d362ec6eded78ac4732",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1794417013.2375917,
-    "ast_hash": "e650a4a70aa191cb3401918b4bc17817",
+    "mtime": 1794446236.9251652,
+    "ast_hash": "a867fe50606fe887b233429430f47d94",
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratHubComponents.tsx": {
-    "mtime": 1794417008.5680358,
-    "ast_hash": "8bae092e6ef9a90a36cb8bf0bf51c5b9",
+    "mtime": 1794446198.0451124,
+    "ast_hash": "f71bad19e1e28df067c4207fb943d72f",
     "semantic_hash": ""
   },
   "backend/tests/Feature/Bmn/AssetSearchTest.php": {
@@ -6135,8 +6135,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794442573.1789877,
-    "ast_hash": "2ff95cc1350c680797435cf3a9958ff9",
+    "mtime": 1794445926.5434258,
+    "ast_hash": "2db0ae8d64b2f36d570ed234de2961df",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6385,8 +6385,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/TemplatePickerModal.tsx": {
-    "mtime": 1794443197.2225666,
-    "ast_hash": "fc2f9f5fe4d7a1ea20141d6bddb2531d",
+    "mtime": 1794446328.2362528,
+    "ast_hash": "336e2ea9e784f027b190bb30e73df116",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Migrations/2026_09_29_160000_fix_bmn_auction_batch_columns_type.php": {
@@ -6885,8 +6885,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/settings/page.tsx": {
-    "mtime": 1794442823.9059587,
-    "ast_hash": "d088bb6049696e306bdf66b66f240e4d",
+    "mtime": 1794446281.6236317,
+    "ast_hash": "27aabd7a1fe485eba50bbfba493d5cec",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_22_000003_adjust_cpns_2025_leave_balances.php": {

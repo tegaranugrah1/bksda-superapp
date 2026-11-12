@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Inbox,
   Send,
@@ -56,6 +57,7 @@ const QUICK_LINKS = [
 ];
 
 export default function SuratHubPage() {
+  const reducedMotion = useReducedMotion();
   const { canWrite, hasPermission } = useRole();
   const canCreate = canWrite || hasPermission("surat.create");
 
@@ -127,28 +129,35 @@ export default function SuratHubPage() {
           {visibleQuickLinks.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
+              <motion.div
                 key={item.href + item.title}
-                href={item.href}
-                className="group relative overflow-hidden bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-3.5 rounded-2xl hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] transition-colors duration-150 flex flex-col justify-between h-full min-h-22"
+                whileHover={reducedMotion ? undefined : { y: -2.5 }}
+                whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="h-full"
               >
-                <div className="flex items-center justify-between mb-2.5">
-                  <div
-                    className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center ${item.iconStyle}`}
-                  >
-                    <Icon className="w-4 h-4" />
+                <Link
+                  href={item.href}
+                  className="group relative overflow-hidden bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-3.5 rounded-2xl hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] transition-colors duration-150 flex flex-col justify-between h-full min-h-22"
+                >
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div
+                      className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${item.iconStyle}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" />
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] transition-colors" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs md:text-sm text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors leading-tight">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">
-                    {item.description}
-                  </p>
-                </div>
-              </Link>
+                  <div>
+                    <h3 className="font-bold text-xs md:text-sm text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors leading-tight">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">
+                      {item.description}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
         </div>

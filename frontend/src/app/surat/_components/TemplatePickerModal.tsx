@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   FileText,
   Mail,
@@ -331,6 +332,7 @@ interface TemplatePickerModalProps {
 }
 
 export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: TemplatePickerModalProps) {
+  const reducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<TemplateCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const focusReturn = useDialogFocusReturn();
@@ -417,13 +419,20 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   type="button"
                   {...tabs.tabProps(cat.id)}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  className={`relative px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer select-none ${
                     isActive
-                      ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                      ? "text-[var(--ds-accent-on-solid)]"
                       : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                   }`}
                 >
-                  {cat.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeTemplatePickerTab"
+                      className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg"
+                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10">{cat.label}</span>
                 </button>
               );
             })}
@@ -437,48 +446,55 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
             {filteredTemplates.map((tpl) => {
               const Icon = tpl.icon;
               return (
-                <Link
+                <motion.div
                   key={tpl.id}
-                  href={`/surat/keluar/dinas?template=${tpl.id}`}
-                  onClick={(e) => handleCardClick(e, tpl.id)}
-                  className="kpg-card group relative flex flex-col justify-between p-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-150 text-left"
+                  whileHover={reducedMotion ? undefined : { y: -2 }}
+                  whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="h-full"
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
-                          <Icon className="h-4 w-4" />
+                  <Link
+                    href={`/surat/keluar/dinas?template=${tpl.id}`}
+                    onClick={(e) => handleCardClick(e, tpl.id)}
+                    className="kpg-card group relative flex flex-col justify-between p-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-150 text-left h-full"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          {tpl.isFavorite && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
+                              <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                              Favorit
+                            </span>
+                          )}
                         </div>
-                        {tpl.isFavorite && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
-                            <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                            Favorit
-                          </span>
-                        )}
+                        <span className="text-[10px] font-mono text-[var(--ds-fg-muted)] font-semibold">
+                          Hal. {tpl.hal}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-mono text-[var(--ds-fg-muted)] font-semibold">
-                        Hal. {tpl.hal}
-                      </span>
+
+                      <h3 className="text-xs font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
+                        {tpl.name}
+                      </h3>
+
+                      <div className="text-[9.5px] font-mono text-[var(--ds-fg-muted)] mt-1 mb-1.5 bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded inline-block">
+                        {tpl.prefix}
+                      </div>
+
+                      <p className="text-[11px] text-[var(--ds-fg-muted)] leading-snug line-clamp-2">
+                        {tpl.description}
+                      </p>
                     </div>
 
-                    <h3 className="text-xs font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
-                      {tpl.name}
-                    </h3>
-
-                    <div className="text-[9.5px] font-mono text-[var(--ds-fg-muted)] mt-1 mb-1.5 bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded inline-block">
-                      {tpl.prefix}
+                    <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[var(--ds-border-subtle)] text-[11px] font-semibold text-[var(--ds-accent-fg)]">
+                      <span>Buat Dokumen</span>
+                      <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
                     </div>
-
-                    <p className="text-[11px] text-[var(--ds-fg-muted)] leading-snug line-clamp-2">
-                      {tpl.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[var(--ds-border-subtle)] text-[11px] font-semibold text-[var(--ds-accent-fg)]">
-                    <span>Buat Dokumen</span>
-                    <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
