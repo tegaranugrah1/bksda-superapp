@@ -88,7 +88,7 @@ export function BentoStatCards({
       value: totalSuratMasuk,
       href: "/surat/masuk",
       icon: Inbox,
-      toneClass: "text-emerald-700 dark:text-emerald-300",
+      toneClass: "text-[var(--ds-accent-fg)]",
     },
     {
       label: "Surat Keluar",
@@ -116,7 +116,7 @@ export function BentoStatCards({
       value: "100%",
       href: "/surat/keluar/dinas",
       icon: CheckCircle2,
-      toneClass: "text-[var(--ds-accent-fg)]",
+      toneClass: "text-amber-700 dark:text-amber-300",
     },
   ];
 
@@ -203,7 +203,7 @@ export function RecentSuratWidget({
       <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-3.5 md:px-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
           <div className="flex items-center gap-2.5">
-            <div className="kpg-support-icon w-8 h-8 rounded-xl border text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+            <div className="kpg-support-icon w-8 h-8 rounded-xl border text-[var(--ds-accent-fg)] flex items-center justify-center">
               <Inbox className="w-4 h-4" />
             </div>
             <div>

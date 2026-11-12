@@ -137,8 +137,14 @@ export default function SuratLayout({
           <aside
             id="persuratan-sidebar"
             data-open={isOpen}
-            className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)] border-r border-[var(--ds-border-subtle)] transform md:relative md:translate-x-0 ${
-              isOpen ? "translate-x-0 w-72" : "-translate-x-full"
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && isOpen) {
+                setIsOpen(false);
+                menuButton.current?.focus();
+              }
+            }}
+            className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)] border-r border-[var(--ds-border-subtle)] transform transition-[transform,width,visibility] duration-150 ease-out md:relative md:translate-x-0 ${
+              isOpen ? "translate-x-0 w-72" : "-translate-x-full invisible md:visible"
             } ${collapsed ? "md:w-20" : "md:w-64 xl:w-72"}`}
           >
             {/* Header Sidebar */}
@@ -230,7 +236,7 @@ export default function SuratLayout({
                           {isActive && (
                             <motion.span
                               layoutId={`${indicatorId}-sidebar`}
-                              className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl"
+                              className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl shadow-2xs"
                               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 450, damping: 35 }}
                             />
                           )}

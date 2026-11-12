@@ -26,7 +26,7 @@ const QUICK_LINKS = [
     description: "Penatausahaan & Disposisi",
     href: "/surat/masuk",
     icon: Inbox,
-    iconStyle: "text-emerald-700 dark:text-emerald-300",
+    iconStyle: "text-[var(--ds-accent-fg)]",
     writeOnly: false,
   },
   {
@@ -34,7 +34,7 @@ const QUICK_LINKS = [
     description: "Register Agenda & Disposisi",
     href: "/surat/masuk/create",
     icon: Plus,
-    iconStyle: "text-teal-700 dark:text-teal-300",
+    iconStyle: "text-[var(--ds-accent-fg)]",
     writeOnly: true,
   },
   {

@@ -2080,8 +2080,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/page.tsx": {
-    "mtime": 1794298860.0051653,
-    "ast_hash": "b14e4053e5afb069894f258f2b7668f2",
+    "mtime": 1794416649.0545712,
+    "ast_hash": "97bd74fb4c26f82decf69bc4e1d4c959",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx": {
@@ -2525,13 +2525,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/page.tsx": {
-    "mtime": 1794408499.0000107,
-    "ast_hash": "8207eeec0a8c58fe802157088743f620",
+    "mtime": 1794416351.844448,
+    "ast_hash": "fb6a966c44855df3e6348bc56be4e119",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/layout.tsx": {
-    "mtime": 1794408058.5695457,
-    "ast_hash": "6ace18b237e363d87aee87be6824662f",
+    "mtime": 1794441975.3988109,
+    "ast_hash": "43f0d82644225154b9e8a0b4b68602c8",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/create/page.tsx": {
@@ -2545,8 +2545,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1794408088.3227446,
-    "ast_hash": "aadc3266b698c90be041ac8bc022443e",
+    "mtime": 1794417013.2375917,
+    "ast_hash": "e650a4a70aa191cb3401918b4bc17817",
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratHubComponents.tsx": {
-    "mtime": 1794408105.845207,
-    "ast_hash": "7b1c267b95a1fb369713e6c66fe3c793",
+    "mtime": 1794417008.5680358,
+    "ast_hash": "8bae092e6ef9a90a36cb8bf0bf51c5b9",
     "semantic_hash": ""
   },
   "backend/tests/Feature/Bmn/AssetSearchTest.php": {
@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794405100.7274349,
-    "ast_hash": "2145ee5f5c6bddc95485fe5e37b1af5a",
+    "mtime": 1794442006.0664265,
+    "ast_hash": "b9012c2cadd323febb2df5194bcb5daf",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9105,8 +9105,8 @@
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/visual-guidelines.md": {
-    "mtime": 1794349651.5916402,
-    "ast_hash": "2156f8c31abeca2f3e367a2c637f4989",
+    "mtime": 1794416794.4241827,
+    "ast_hash": "76d3d015b7255b624156e6de698a47d9",
     "semantic_hash": ""
   },
   "docs/testing/kepegawaian-visual-audit.md": {
@@ -9120,13 +9120,13 @@
     "semantic_hash": ""
   },
   "frontend/tests/persuratan-ui.cjs": {
-    "mtime": 1794408856.5120456,
-    "ast_hash": "27a0a55df732bef90dd110c1d679b4f2",
+    "mtime": 1794441988.3491797,
+    "ast_hash": "b4aa25c8d23b9367bbc06832d3953c52",
     "semantic_hash": ""
   },
   "docs/testing/persuratan-visual-audit.md": {
-    "mtime": 1794408940.1845124,
-    "ast_hash": "c887913482280d01a5d479201f1cc60e",
+    "mtime": 1794442023.6998515,
+    "ast_hash": "815e917005a8aac2df1857be21bafe32",
     "semantic_hash": ""
   }
 }

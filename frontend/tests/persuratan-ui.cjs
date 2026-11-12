@@ -80,18 +80,24 @@ assert(
   'kepegawaian.css must share shell and dashboard soft-badge rules with Persuratan.'
 );
 
-// 3. Sidebar & Shell Parity in app/surat/layout.tsx
+// 3. Sidebar & Shell Parity in app/surat/layout.tsx (single Teal Tua accent color matching BMN & Kepegawaian single-module shell standard)
 const layoutSource = read('app/surat/layout.tsx');
 assert(
   layoutSource.includes('data-module="persuratan"') &&
     layoutSource.includes('psr-shell') &&
     layoutSource.includes('reducedMotion="user"') &&
     layoutSource.includes('stiffness: 450, damping: 35') &&
+    layoutSource.includes('shadow-2xs') &&
+    layoutSource.includes('transition-[transform,width,visibility] duration-150 ease-out') &&
+    layoutSource.includes('bg-[var(--ds-accent-soft)]') &&
+    layoutSource.includes('border-[var(--ds-accent-soft-border)]') &&
+    layoutSource.includes('text-[var(--ds-accent-fg)] font-bold') &&
     layoutSource.includes('w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)]') &&
     layoutSource.includes('text-[var(--ds-fg-secondary)]') &&
+    !layoutSource.includes('CATEGORY_STYLES') &&
     layoutSource.includes('event.key === "Escape"') &&
     layoutSource.includes('menuButton.current?.focus()'),
-  'surat/layout.tsx must match BMN and Kepegawaian sidebar/shell architecture.'
+  'surat/layout.tsx must use single Teal Tua accent color for sidebar matching BMN and Kepegawaian shell standard.'
 );
 
 // 4. Hub & Dashboard parity (including canonical Dashboard Kepegawaian header standard across BMN & Persuratan)
@@ -118,8 +124,13 @@ assert(
 assert(
   hubComponentsSource.includes('isError') &&
     hubComponentsSource.includes('Coba lagi') &&
-    hubComponentsSource.includes('kpg-support-icon'),
-  'SuratHubComponents.tsx must provide error recovery (Coba lagi) and soft support icons.'
+    hubComponentsSource.includes('kpg-support-icon') &&
+    !hubComponentsSource.includes('text-emerald-') &&
+    !hubPageSource.includes('text-emerald-') &&
+    hubComponentsSource.includes('text-[var(--ds-accent-fg)]') &&
+    hubComponentsSource.includes('text-blue-700 dark:text-blue-300') &&
+    hubComponentsSource.includes('text-amber-700 dark:text-amber-300'),
+  'SuratHubComponents.tsx and surat/page.tsx must provide error recovery and strictly use the 3-color category palette (Teal, Blue, Amber).'
 );
 
 // 5. Surat Masuk & Popover/Modal portal token propagation + 1366x768 fit
