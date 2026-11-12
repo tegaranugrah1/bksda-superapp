@@ -207,7 +207,7 @@ const ALL_MODULE_CARDS = [
   { key: "inventory", href: "/inventory", label: "Persediaan", desc: "Stok ATK & Logistik", icon: Boxes, color: "text-[#ea580c] dark:text-orange-400", bg: "bg-[#fff7ed] dark:bg-orange-950/60", border: "border-[#ffedd5] dark:border-orange-900/40" },
   { key: "dereporting", href: "/dereporting", label: "DeReporting", desc: "Laporan & Patroli", icon: FileText, color: "text-[#9333ea] dark:text-purple-400", bg: "bg-[#faf5ff] dark:bg-purple-950/60", border: "border-[#f3e8ff] dark:border-purple-900/40" },
   { key: "cms", href: "/cms", label: "CMS Portal", desc: "Manajemen Konten", icon: LayoutGrid, color: "text-[#0d9488] dark:text-teal-400", bg: "bg-[#f0fdfa] dark:bg-teal-950/60", border: "border-[#ccfbf1] dark:border-teal-900/40" },
-  { key: "surat", href: "/surat", label: "Persuratan", desc: "Naskah Dinas & Disposisi", icon: Mail, color: "text-[#4f46e5] dark:text-indigo-400", bg: "bg-[#eef2ff] dark:bg-indigo-950/60", border: "border-[#e0e7ff] dark:border-indigo-900/40" },
+  { key: "surat", href: "/surat", label: "Persuratan", desc: "Naskah Dinas & Disposisi", icon: Mail, color: "text-[#0f766e] dark:text-teal-400", bg: "bg-[#f0fdfa] dark:bg-teal-950/60", border: "border-[#ccfbf1] dark:border-teal-900/40" },
   { key: "drive", href: "/drive", label: "BKSDA Drive", desc: "Cloud & Arsip Dokumen", icon: Cloud, color: "text-[#16a34a] dark:text-emerald-400", bg: "bg-[#f0fdf4] dark:bg-emerald-950/60", border: "border-[#dcfce7] dark:border-emerald-900/40" },
 ] as const;
 

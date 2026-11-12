@@ -2530,8 +2530,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/layout.tsx": {
-    "mtime": 1794417614.375627,
-    "ast_hash": "4a41ff07878c03bd593a045997d2ca6e",
+    "mtime": 1794441975.3988109,
+    "ast_hash": "43f0d82644225154b9e8a0b4b68602c8",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/create/page.tsx": {
@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794417671.1723115,
-    "ast_hash": "1cbd39d305a06c0b8ff159c1ed424142",
+    "mtime": 1794442006.0664265,
+    "ast_hash": "b9012c2cadd323febb2df5194bcb5daf",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9120,13 +9120,13 @@
     "semantic_hash": ""
   },
   "frontend/tests/persuratan-ui.cjs": {
-    "mtime": 1794417655.364032,
-    "ast_hash": "ee612666c1bf656ee38328ab8ec17821",
+    "mtime": 1794441988.3491797,
+    "ast_hash": "b4aa25c8d23b9367bbc06832d3953c52",
     "semantic_hash": ""
   },
   "docs/testing/persuratan-visual-audit.md": {
-    "mtime": 1794417690.6933825,
-    "ast_hash": "6e9f7f26b36dc913eb1d0a89728d1f40",
+    "mtime": 1794442023.6998515,
+    "ast_hash": "815e917005a8aac2df1857be21bafe32",
     "semantic_hash": ""
   }
 }

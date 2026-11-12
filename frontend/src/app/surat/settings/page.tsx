@@ -367,7 +367,7 @@ export default function SuratSettingsPage() {
                             Sistem
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800">
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
                             Kustom
                           </Badge>
                         )}

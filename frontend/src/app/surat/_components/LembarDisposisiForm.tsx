@@ -668,7 +668,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
 
             {/* ── 1. Informasi Agenda & Header (Form 2) ── */}
             <div className="space-y-3">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider block">
+              <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider block">
                 1. Informasi Agenda & Header
               </span>
               <div className="grid grid-cols-2 gap-3">
@@ -695,7 +695,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
 
             {/* ── 2. Informasi Naskah Surat (Form 2) ── */}
             <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-3">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider block">
+              <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider block">
                 2. Informasi Naskah Surat
               </span>
 
@@ -771,7 +771,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             {/* ── 3. Daftar Penerus (Diteruskan Kepada Yth) (Form 2) ── */}
             <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-blue-600 uppercase tracking-wider">
+                <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
                   3. Daftar Penerus (Diteruskan Kepada Yth)
                 </span>
                 <Button
@@ -804,7 +804,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                   type="button"
                   size="sm"
                   onClick={handleAddRecipient2}
-                  className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                  className="h-8 text-xs bg-[var(--ds-accent-solid)] text-[color:var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] font-semibold"
                 >
                   <Plus className="mr-1 h-3 w-3" />
                   Tambah

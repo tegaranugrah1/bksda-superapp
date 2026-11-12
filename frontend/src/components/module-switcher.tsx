@@ -64,8 +64,8 @@ const moduleDefinitions = [
     slug: "surat",
     icon: Mail,
     href: "/surat",
-    color: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300",
-    solidColor: "bg-[#4f46e5] text-white dark:bg-[#818cf8] dark:text-[#0f172a]",
+    color: "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+    solidColor: "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#0f172a]",
   },
   {
     name: "D-Reporting",

@@ -116,7 +116,7 @@ function PartySelectorBlock({
     <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)] space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
-          <UserRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
           {label}
         </div>
         <div className="flex rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface)]">
@@ -810,11 +810,11 @@ function GenerateSuratDinasContent() {
                     Mode Edit: #{editingSuratKeluarId}
                   </Badge>
                   {editingSuratKeluarStatus === "draft" ? (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300">
+                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]">
                       Draft
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-emerald-700 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]">
                       Terdaftar
                     </Badge>
                   )}
@@ -984,7 +984,7 @@ function GenerateSuratDinasContent() {
           {/* Card 1: Metadata Surat */}
           <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
-              <Calendar className="w-3.5 h-3.5 text-blue-500" />
+              <Calendar className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               1. Identitas & Meta Dokumen
             </h2>
 
@@ -1212,7 +1212,7 @@ function GenerateSuratDinasContent() {
           {/* Card 2: Field Spesifik Template */}
           <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
-              <Building className="w-3.5 h-3.5 text-emerald-500" />
+              <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               2. Data Spesifik ({activeTabMeta.name})
             </h2>
 
@@ -1223,7 +1223,7 @@ function GenerateSuratDinasContent() {
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
                       <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                        <Users className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                         Yth. (Penerima)
                         <span className="text-[10px] text-zinc-400 font-normal">
                           ({currentYthList.filter((s) => s.trim()).length} penerima)
@@ -1234,7 +1234,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddYth}
-                        className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
+                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Tambah Penerima
@@ -1259,7 +1259,7 @@ function GenerateSuratDinasContent() {
                             className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${
                               isAdded
                                 ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
-                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)]"
                             }`}
                             title={isAdded ? "Sudah ada dalam daftar Yth" : `Klik untuk menambah ${preset}`}
                           >
@@ -1336,7 +1336,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddPengantarRow}
-                        className="h-6 text-xs text-emerald-600 gap-1 p-1"
+                        className="h-6 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 p-1"
                       >
                         <Plus className="w-3 h-3" /> Tambah Baris
                       </Button>
@@ -1638,7 +1638,7 @@ function GenerateSuratDinasContent() {
               {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
               <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-[var(--ds-border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
+                  <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                   3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
                 </h2>
                 <div className="flex items-center flex-wrap gap-1.5">
@@ -1658,10 +1658,10 @@ function GenerateSuratDinasContent() {
                     variant="default"
                     size="sm"
                     onClick={() => handleInsertPoint("num")}
-                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] p-1 px-2 gap-1 font-semibold"
                     title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
                   >
-                    <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
+                    <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
                     + Poin 1.
                   </Button>
                   <Button
@@ -1669,7 +1669,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("letter")}
-                    className="h-7 text-xs border-emerald-300 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 p-1 px-2 gap-1 font-semibold"
                     title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
                   >
                     + Sub a.
@@ -1689,7 +1689,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-violet-300 text-violet-800 bg-violet-50/60 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-300 dark:bg-violet-950/40 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/60 hover:bg-blue-100 dark:border-blue-800 dark:text-blue-300 dark:bg-blue-950/40 p-1 px-2 gap-1 font-semibold"
                     title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
                   >
                     + Butir 1)
@@ -1702,7 +1702,7 @@ function GenerateSuratDinasContent() {
                     className="h-7 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 p-1 px-2.5 gap-1 font-semibold"
                     title="Tempel teks utuh naskah dinas bertingkat"
                   >
-                    <ClipboardPaste className="w-3.5 h-3.5 text-indigo-500" />
+                    <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Tempel Teks Utuh
                   </Button>
                 </div>
@@ -1710,9 +1710,9 @@ function GenerateSuratDinasContent() {
 
               {/* Smart Paste Drawer */}
               {showSmartPaste && (
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-indigo-200 dark:border-indigo-900 rounded-xl space-y-2">
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-[var(--ds-accent-soft-border)] rounded-xl space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-1.5">
                       <ClipboardPaste className="w-3.5 h-3.5" />
                       Tempel & Parse Naskah Dinas Bertingkat Otomatis
                     </span>
@@ -1743,10 +1743,10 @@ function GenerateSuratDinasContent() {
                         setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
                         handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
                       }}
-                      className="h-7 text-xs border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 gap-1 font-medium"
+                      className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium"
                       title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
                     >
-                      <Sparkles className="w-3 h-3 text-indigo-500" />
+                      <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
                       Muat Contoh Simata BKN (31 Butir)
                     </Button>
                     <div className="flex items-center gap-2">
@@ -1763,7 +1763,7 @@ function GenerateSuratDinasContent() {
                         type="button"
                         size="sm"
                         onClick={() => handleApplySmartPaste()}
-                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1"
+                        className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1"
                       >
                         <FileCheck className="w-3 h-3" />
                         Terapkan ke Dokumen
@@ -1782,11 +1782,11 @@ function GenerateSuratDinasContent() {
 
                   const indentClass =
                     lvl === 2
-                      ? "ml-3 sm:ml-5 border-l-2 border-emerald-400"
+                      ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
                       : lvl === 3
                       ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
                       : lvl === 4
-                      ? "ml-9 sm:ml-14 border-l-2 border-violet-400"
+                      ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
                       : "";
 
                   return (
@@ -1796,13 +1796,13 @@ function GenerateSuratDinasContent() {
                         isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
                           : lvl === 1
-                          ? "border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20"
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]/50"
                           : lvl === 2
-                          ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20"
-                          : lvl === 3
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
+                          : lvl === 3
+                          ? "border-blue-200 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20"
                           : lvl === 4
-                          ? "border-violet-200 dark:border-violet-900/50 bg-violet-50/30 dark:bg-violet-950/20"
+                          ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-800/40"
                           : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
                       }`}
                     >
@@ -1816,20 +1816,20 @@ function GenerateSuratDinasContent() {
                               Penutup (Bawah)
                             </Badge>
                           ) : lvl === 1 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 flex items-center gap-1">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1">
                               <ListOrdered className="w-2.5 h-2.5" />
                               Poin Utama (Tingkat 1)
                             </Badge>
                           ) : lvl === 2 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                               Sub-Poin (Tingkat 2)
                             </Badge>
                           ) : lvl === 3 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                               Sub-Butir (Tingkat 3)
                             </Badge>
                           ) : lvl === 4 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-violet-300 bg-violet-50 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                               Sub-Butir (Tingkat 4)
                             </Badge>
                           ) : isPembuka ? (
@@ -1851,7 +1851,7 @@ function GenerateSuratDinasContent() {
                               <DropdownMenuTrigger asChild>
                                 <button
                                   type="button"
-                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
+                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
                                   title="Sisipkan butir baru tepat di bawah ini"
                                 >
                                   <Plus className="w-2.5 h-2.5" />
@@ -1862,7 +1862,7 @@ function GenerateSuratDinasContent() {
                               <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-xl p-1 z-50 text-xs">
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold"
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
                                 >
                                   <span>↳ + Sub-Butir Anak</span>
                                 </DropdownMenuItem>
@@ -1877,13 +1877,13 @@ function GenerateSuratDinasContent() {
                                   onClick={() => handleInsertPoint("num", idx + 1)}
                                   className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
                                 >
-                                  <span className="font-mono font-bold text-indigo-600 w-4">1.</span> Poin Utama
+                                  <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("letter", idx + 1)}
                                   className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
                                 >
-                                  <span className="font-mono font-bold text-emerald-600 w-4">a.</span> Sub-Poin Huruf
+                                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("roman", idx + 1)}
@@ -1895,7 +1895,7 @@ function GenerateSuratDinasContent() {
                                   onClick={() => handleInsertPoint("bracket", idx + 1)}
                                   className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
                                 >
-                                  <span className="font-mono font-bold text-violet-600 w-4">1)</span> Butir Kurung
+                                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("plain", idx + 1)}
@@ -1913,8 +1913,8 @@ function GenerateSuratDinasContent() {
                             onClick={() => handleChangeParagraphLevel(idx, "num")}
                             className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
                               lvl === 1
-                                ? "bg-indigo-100 text-indigo-700 border-indigo-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-indigo-300"
+                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-[var(--ds-accent-soft-border)]"
                             }`}
                             title="Jadikan Poin 1."
                           >
@@ -1925,8 +1925,8 @@ function GenerateSuratDinasContent() {
                             onClick={() => handleChangeParagraphLevel(idx, "letter")}
                             className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
                               lvl === 2
-                                ? "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-emerald-300"
+                                ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 font-bold"
+                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
                             }`}
                             title="Jadikan Sub-Poin a."
                           >
@@ -2008,7 +2008,7 @@ function GenerateSuratDinasContent() {
           {/* Card 4: Penandatangan */}
           <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
-              <UserCheck className="w-3.5 h-3.5 text-purple-500" />
+              <UserCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               {activeTemplate === "berita_acara"
                 ? `4. Penandatangan Berita Acara (${data.signerCount || 2} Pihak)`
                 : activeTemplate === "perjanjian"
@@ -2128,7 +2128,7 @@ function GenerateSuratDinasContent() {
                 {/* Pengirim (TTD Kanan) */}
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                    <UserRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Pengirim Naskah (TTD Kanan)
                   </div>
                   <div>
@@ -2221,7 +2221,7 @@ function GenerateSuratDinasContent() {
                       />
                     </div>
                   ) : (
-                    <div className="p-2 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 text-[11px] text-emerald-800 dark:text-emerald-300">
+                    <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[11px] text-[var(--ds-accent-fg)]">
                       Format {activeTemplate === "nota_dinas" ? "Nota Dinas" : "Memorandum"}: Langsung nama &amp; NIP (jabatan pengirim ada pada &apos;Dari&apos; di kepala surat).
                     </div>
                   )}
@@ -2270,7 +2270,7 @@ function GenerateSuratDinasContent() {
                   variant="ghost"
                   size="sm"
                   onClick={handleAddTembusan}
-                  className="h-7 text-xs text-emerald-600 hover:text-emerald-700 p-1 gap-1"
+                  className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah Tembusan

@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Seluruh test regresi UI (`persuratan-ui.cjs`), TypeScript (`tsc --noEmit`), ESLint, dan `graphify` 100% PASS. (Bagian 101, 102, 103). Commit lokal: `61a551c6`.
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar di seluruh modul dan penyesuaian ikon Modul Aktif serta kartu Portal ke Teal Tua tuntas. Seluruh test regresi UI (`persuratan-ui.cjs`), TypeScript (`tsc --noEmit`), ESLint, dan `graphify` 100% PASS. (Bagian 101, 102, 103, 104).
 
 ## Status Update: 2 November 2026
 
@@ -2239,4 +2239,25 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - TypeScript `tsc --noEmit` & ESLint: **0 errors**.
   - Knowledge graph: `graphify update .` **100% updated**.
   - **Commit Terverifikasi**: Commit `61a551c6` — `feat(surat): standardize 3-color theme for Persuratan content and harmonize Teal sidebar with BMN and Kepegawaian`.
+
+---
+
+## 104. Pembersihan Menyeluruh Warna Non-Standar di Modul Persuratan & Penyesuaian Ikon Modul Aktif Teal Tua (12 November 2026)
+
+- **Pembersihan Residu Warna Non-Standar di Seluruh Modul Persuratan**:
+  - Audit kode menyeluruh pada `frontend/src/app/surat/` mendeteksi dan membersihkan seluruh warna sisa (`purple-`, `indigo-`, `sky-`, `violet-`):
+    - [`TemplatePickerModal.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/TemplatePickerModal.tsx): 20 format naskah dinas diselaraskan ke dalam 3 warna tema (Biru untuk Korespondensi, Teal untuk Administrasi & Tugas, Amber untuk Regulatif & Kemitraan).
+    - [`dinas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx): Header Card 1 (Calendar) dan Card 4 (UserCheck) diganti ke token `--ds-accent-fg`. Ikon pengirim dan catatan format diganti ke token `--ds-accent-soft` dan `--ds-accent-fg`. Tombol tambah tembusan diselaraskan ke token hover aksen.
+    - [`LembarDisposisiForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/LembarDisposisiForm.tsx): Header Form 2 dan tombol "+ Tambah Penerus" yang sebelumnya hardcoded `blue-600` diganti menggunakan `--ds-accent-solid` dan `--ds-accent-fg`.
+    - [`settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/settings/page.tsx): Badge template "Kustom" diganti dari `purple-` ke warna Amber.
+    - [`SifatCellPopover.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/_components/SifatCellPopover.tsx): Badge sifat "Rahasia" diganti dari `purple-` ke Slate netral kedinasan yang formal.
+- **Penyesuaian Ikon Modul Aktif & Kartu Portal ke Teal Tua Kedinasan**:
+  - [`module-switcher.tsx`](file:///e:/bksda-superapp/frontend/src/components/module-switcher.tsx): Mengganti warna icon di sebelah tulisan "Modul Aktif" untuk Persuratan dari Indigo (`bg-[#4f46e5]`) menjadi **Teal Tua Kedinasan** (`solidColor: "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#0f172a]"`) dan soft color dropdown menjadi `bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300`.
+  - [`portal/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/page.tsx): Kartu modul Persuratan di Portal diselaraskan ke Teal (`text-[#0f766e] dark:text-teal-400`, `bg-[#f0fdfa] dark:bg-teal-950/60`, `border-[#ccfbf1] dark:border-teal-900/40`).
+- **Verifikasi Kualitas & Regresi**:
+  - `git grep -n -E "(indigo|violet|purple)" frontend/src/app/surat/`: **0 temuan (bersih total)**.
+  - Test regresi UI [`frontend/tests/persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs): **ALL CHECKS PASSED**.
+  - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
+  - Knowledge graph: `graphify update .` **100% updated**.
+
 

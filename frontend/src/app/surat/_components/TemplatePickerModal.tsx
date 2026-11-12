@@ -97,7 +97,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "UN. .../K.18/TU/...",
     description: "Panggilan resmi menghadiri rapat dinas, sosialisasi, atau koordinasi internal BKSDA.",
     icon: Calendar,
-    colorClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/50",
+    colorClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50",
   },
   {
     id: "memorandum",
@@ -109,7 +109,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "M. .../K.18/TU/...",
     description: "Komunikasi kedinasan internal horizontal antar pejabat yang setingkat di lingkungan instansi.",
     icon: ScrollText,
-    colorClass: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/50",
+    colorClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50",
   },
   {
     id: "surat_pengantar",
@@ -120,7 +120,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SP. .../K.18/TU/...",
     description: "Format tabel tanda terima pengiriman berkas, naskah dinas, dokumen fisik, atau barang.",
     icon: Send,
-    colorClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-900/50",
+    colorClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50",
   },
 
   // 2. Administrasi & Operasional
@@ -133,7 +133,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SKET. .../K.18/TU/...",
     description: "Keterangan resmi pejabat mengenai status pegawai, fakta dinas, atau hal faktual kedinasan.",
     icon: Award,
-    colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "berita_acara",
@@ -155,7 +155,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "PG. .../K.18/TU/...",
     description: "Pemberitahuan terbuka kepada pegawai atau masyarakat tentang hal penting yang mendesak.",
     icon: Megaphone,
-    colorClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "surat_pernyataan",
@@ -166,7 +166,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SM. .../K.18/TU/...",
     description: "Pernyataan tertulis kebenaran suatu keadaan, kesanggupan, atau kepatuhan fakta kedinasan.",
     icon: FileSpreadsheet,
-    colorClass: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "surat_kuasa",
@@ -177,7 +177,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "KS. .../K.18/TU/...",
     description: "Pelimpahan wewenang dari pejabat kepada pihak lain untuk bertindak atas namanya.",
     icon: KeyRound,
-    colorClass: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "surat_izin",
@@ -188,7 +188,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SI. .../K.18/TU/...",
     description: "Izin resmi pejabat kepada pegawai/pihak luar untuk melakukan kegiatan atau melintas kawasan.",
     icon: FileBadge,
-    colorClass: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "surat_izin_cuti",
@@ -199,7 +199,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SI..../K.18/TU/PEG.11.01/B/...",
     description: "Format resmi naskah penetapan izin cuti PNS Balai KSDA Kaltim bertanda tangan Kepala Balai.",
     icon: FileBadge,
-    colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
   {
     id: "surat_panggilan",
@@ -210,7 +210,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SG. .../K.18/TU/...",
     description: "Panggilan dinas resmi kepada pegawai/pihak terkait untuk menghadap guna klarifikasi/pemeriksaan.",
     icon: PhoneCall,
-    colorClass: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-900/50",
+    colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-900/50",
   },
 
   // 3. Naskah Regulatif & Telaah
@@ -234,7 +234,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "INS. .../K.18/TU/...",
     description: "Perintah tertulis Kepala Balai kepada jajaran untuk melaksanakan kebijakan tertentu.",
     icon: Gavel,
-    colorClass: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50",
+    colorClass: "bg-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
   {
     id: "keputusan",
@@ -245,7 +245,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SK. .../K.18/TU/...",
     description: "Penetapan kebijakan resmi Kepala Balai (Menimbang, Mengingat, Memutuskan, Menetapkan).",
     icon: BookOpen,
-    colorClass: "bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-900/50",
+    colorClass: "bg-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
   {
     id: "telaah_staf",
@@ -256,7 +256,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "TS. .../K.18/TU/...",
     description: "Kajian analisis staf berisi persoalan, fakta, analisis, kesimpulan, dan rekomendasi arahan pimpinan.",
     icon: ClipboardList,
-    colorClass: "bg-blue-600/10 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-900/50",
+    colorClass: "bg-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
   {
     id: "laporan",
@@ -267,7 +267,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "LAP. .../K.18/TU/...",
     description: "Laporan pertanggungjawaban resmi pelaksanaan kegiatan tugas kedinasan dan capaian hasil.",
     icon: FileText,
-    colorClass: "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800",
+    colorClass: "bg-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
 
   // 4. Kemitraan & Apresiasi
@@ -280,7 +280,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "PKS. .../K.18/TU/...",
     description: "Kesepakatan hukum antara BKSDA Kaltim dengan mitra/lembaga/masyarakat dalam negeri.",
     icon: Handshake,
-    colorClass: "bg-teal-600/10 text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-900/50",
+    colorClass: "bg-amber-600/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
   {
     id: "piagam",
@@ -302,7 +302,7 @@ export const ALL_TEMPLATES: TemplateItem[] = [
     prefix: "SRT. .../K.18/TU/...",
     description: "Tanda bukti kelulusan pelatihan, workshop, bimtek, atau partisipasi kegiatan konservasi.",
     icon: Award,
-    colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50",
+    colorClass: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-900/50",
   },
 ];
 

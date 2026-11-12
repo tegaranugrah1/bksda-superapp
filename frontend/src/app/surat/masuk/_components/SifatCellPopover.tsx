@@ -24,7 +24,7 @@ export function getSifatBadgeStyle(sifat: string) {
     case "Kilat":
       return "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 font-extrabold";
     case "Rahasia":
-      return "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 font-bold";
+      return "bg-slate-100 text-slate-800 border-slate-300 dark:bg-zinc-800 dark:text-zinc-200 font-bold";
     case "Biasa":
     default:
       return "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300";
