@@ -2331,7 +2331,31 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - **Frontend Playwright E2E Test**: `frontend/tests/dereporting-internal-rbac.playwright.cjs` -> **6/6 suites, 18 assertions, 100% PASS**.
   - **TypeScript & ESLint**: `tsc --noEmit` & `eslint` -> **0 errors / 0 warnings**.
   - **Knowledge Graph**: `graphify update .` -> **100% updated**.
-  - **Commit Terverifikasi**: Commit `ba524747` — `feat(dereporting): implement multi-recipient RBAC, anti-IDOR, Enterprise Header Card, and E2E test suite for internal reports`.
+  - **Commit Terverifikasi**: Commit `4b06b782` — `feat(dereporting): implement multi-recipient RBAC, anti-IDOR, Enterprise Header Card, and E2E test suite for internal reports`.
+
+---
+
+## 108. Penerapan Tema Opsi 1 (Amber Kedinasan 60-30-10) pada Dashboard & Layout Modul DeReporting (12 November 2026)
+
+- **Penyelarasan Warna Identitas Modul DeReporting ke Amber Kedinasan (`#b45309` / `#fbbf24`)**:
+  - Menggantikan warna ungu/violet usang di sidebar dan dashboard dengan **Amber Kedinasan** (sesuai registrasi `module-switcher.tsx` dan `DESIGN_SYSTEM_COLORS.md` dengan kontras WCAG AA 5.02:1 light / 12.29:1 dark).
+  - **Penerapan Kaidah Proporsi 60-30-10**:
+    - **60% Dominan**: Kanvas halaman bersih netral `bg-zinc-50/60 dark:bg-black` dengan surface kontainer putih kedinasan `bg-white dark:bg-zinc-900`.
+    - **30% Sekunder**: Sidebar terstandar dengan border halus `border-zinc-200 dark:border-zinc-800/60`, tipografi terstruktur `text-[var(--ds-fg)]`, dan garis pemisah tabel yang tenang.
+    - **10% Aksen**: Ikon header aktif DeReporting `from-amber-600 to-amber-700`, active link navigasi ber-border aksen, tombol CTA utama `bg-amber-700 hover:bg-amber-800`, dan highlight data.
+- **Enterprise Header Card Kanonikal pada Dashboard DeReporting (`dereporting/page.tsx`)**:
+  - Menghapus header unstyled lama dan menerapkan kontainer kanonikal `rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 md:px-6 md:py-4`.
+  - Blok ikon `w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400` dengan ikon `BarChart3`.
+  - Judul `text-xl md:text-2xl font-bold tracking-tight` *"Pusat Komando Laporan"* dan subjudul informatif.
+  - Tombol aksi cepat: *"Buka Laporan Internal"* (`bg-amber-700`) dan *"Laporan Publik"*.
+- **Harmonisasi Bento KPI Cards & Palet Grafik Recharts**:
+  - 4 kartu stat dengan micro-interaction hover lift `hover:-translate-y-0.5`: Laporan Internal (Amber), Laporan Publik (Blue), Menunggu Tinjauan (Warm Orange), Bidang Aktif (Emerald).
+  - Palet grafik batang distribusi bidang diselaraskan ke gradasi Amber Kedinasan (`#d97706`, `#b45309`, `#f59e0b`, `#92400e`, `#fbbf24`, `#78350f`) dengan tooltip bertema surface kedinasan.
+- **Verifikasi Kualitas**:
+  - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
+  - Playwright E2E Test `dereporting-internal-rbac.playwright.cjs`: **6/6 suites PASS**.
+  - Knowledge graph: `graphify update .` **100% updated**.
+
 
 
 

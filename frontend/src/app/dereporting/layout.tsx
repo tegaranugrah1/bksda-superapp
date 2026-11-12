@@ -57,7 +57,7 @@ export default function DeReportingLayout({
       {/* Tombol Floating Mobile Hamburger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-violet-600 text-white shadow-2xl hover:bg-violet-500 hover:scale-105 active:scale-95 transition-all duration-300"
+        className="md:hidden fixed z-50 bottom-6 right-6 p-4 rounded-full bg-amber-700 text-white shadow-2xl hover:bg-amber-600 hover:scale-105 active:scale-95 transition-all duration-300"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -71,20 +71,20 @@ export default function DeReportingLayout({
           />
         )}
 
-        {/* Sidebar Navigasi */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
-          {/* Header */}
-          <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/50">
+        {/* Sidebar Navigasi Netral & Elegan (30% Sekunder) */}
+        <aside className={`fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800/60 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          {/* Header Sidebar */}
+          <div className="p-5 border-b border-zinc-200 dark:border-zinc-800/60">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-600 to-amber-700 flex items-center justify-center text-white shadow-xs">
                   <BarChart3 className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h2 className="font-bold text-lg text-zinc-900 dark:text-white tracking-tight">
                     D-Reporting
                   </h2>
-                  <p className="text-[10px] text-violet-600 dark:text-violet-400 uppercase tracking-widest">
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-widest font-semibold">
                     Pelaporan & Data
                   </p>
                 </div>
@@ -94,7 +94,7 @@ export default function DeReportingLayout({
             <ModuleSwitcher />
           </div>
 
-          {/* Navigation */}
+          {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {visibleItems.map((item) => {
               const isActive =
@@ -108,8 +108,8 @@ export default function DeReportingLayout({
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-violet-500/10 text-violet-600 dark:text-violet-400 font-semibold"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white"
+                      ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 font-semibold border-r-2 border-amber-600 dark:border-amber-400"
+                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-850 hover:text-zinc-900 dark:hover:text-white"
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -119,10 +119,10 @@ export default function DeReportingLayout({
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
+          {/* Footer User Info */}
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/60">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-linear-to-br from-amber-600 to-amber-700 flex items-center justify-center text-white font-bold text-sm shadow-xs">
                 {user?.name?.charAt(0) || "U"}
               </div>
               <div className="flex-1 min-w-0">
@@ -140,8 +140,8 @@ export default function DeReportingLayout({
           </div>
         </aside>
 
-        {/* Konten Utama */}
-        <main className="flex-1 overflow-auto bg-zinc-50 dark:bg-black">
+        {/* Konten Utama (60% Dominan) */}
+        <main className="flex-1 overflow-auto bg-zinc-50/60 dark:bg-black">
           {children}
         </main>
       </div>
