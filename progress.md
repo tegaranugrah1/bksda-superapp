@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan (`frontend/src/app/surat/*`) dengan standar BMN dan Kepegawaian berbasis prinsip `/ponytail`. Palet aksen modul resmi bermigrasi ke **Teal Tua Kedinasan** (`#0f766e` light / `#2dd4bf` dark) dengan rasio WCAG AA tinggi dan ramah keterbacaan dinas. Header Dashboard BMN & Persuratan diselaraskan 1:1 ke patokan Dashboard Kepegawaian (`text-xl md:text-2xl font-bold` + kotak ikon `w-10 h-10`). Konten modul Persuratan distandarkan ke 3 warna kategori fungsional (Teal Surat Masuk, Blue Surat Keluar, Amber Disposisi/Tata Naskah) dengan sidebar tetap seragam 1 warna Teal Tua. Pembersihan warna non-standar, penyesuaian ikon Modul Aktif Teal Tua, penambahan animasi interaktif & mikro-interaksi, serta standarisasi kanonikal Enterprise Header Card di seluruh sub-halaman persuratan (`masuk/create`, `keluar`, `keluar/create`, `keluar/dinas`, `settings`) tuntas dan 100% lulus uji regresi (`persuratan-ui.cjs`), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105, 106).
+**Status terbaru (12 November 2026):** Penyelarasan penuh UI/UX modul Persuratan dan peningkatan menyeluruh modul **DeReporting Laporan Internal** (`frontend/src/app/dereporting/internal`) berbasis prinsip `/ponytail` dan `/security-audit`. Modul internal kini mendukung pembatasan akses multi-penerima (Urusan & Personal) dengan proteksi Anti-IDOR, pencatatan otomatis tanda baca (*read receipt*), pratinjau cepat in-app PDF viewer, tinjauan status laporan (*review confirmation*), Segmented Tab Navigation, serta kanonikal Enterprise Header Card. 100% lulus uji otomatis backend PHPUnit (`DeReportingInternalRBACTest.php`: 9 tests, 24 assertions), Playwright E2E (`dereporting-internal-rbac.playwright.cjs`: 6 suites, 18 assertions), TypeScript, ESLint, dan `graphify`. (Bagian 101, 102, 103, 104, 105, 106, 107).
 
 ## Status Update: 2 November 2026
 
@@ -2305,6 +2305,34 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - TypeScript `tsc --noEmit` & ESLint: **0 errors / 0 warnings**.
   - Knowledge graph: `graphify update .` **100% updated**.
   - **Commit Terverifikasi**: Commit `fed022d1` — `feat(surat): standardize canonical Enterprise Header Cards across all subpages and harmonize sidebar menu labels`.
+
+---
+
+## 107. Peningkatan Arsitektur Modul DeReporting Internal: Multi-Penerima (Urusan & Personal), Anti-IDOR, Enterprise Header Card, Segmented Tabs, Quick PDF Viewer, dan E2E Test Suite (12 November 2026)
+
+- **Fondasi Database & Relasi Multi-Penerima (`2026_11_13_000001_create_dr_internal_recipients_table.php`, `dr_internals`, `dr_internal_recipients`)**:
+  - Menambahkan kolom `target_scope` (`all`, `restricted`), `review_status` (`terkirim`, `sesuai`, `perlu_revisi`), dan `review_notes` pada tabel `dr_internals`.
+  - Membuat tabel pivot `dr_internal_recipients` (`internal_id`, `recipient_type`, `user_id`, `urusan_name`, `read_at`) dengan indeks komposit untuk pencarian cepat $O(1)$.
+  - Menghubungkan relasi Eloquent `Internal::recipients()` dan `InternalRecipient::internal()`, serta integrasi otomatis penempatan urusan pegawai dari profil `kpg_employees.resor` / `satuan_kerja`.
+- **Keamanan Backend & Anti-IDOR Scoping (`InternalController.php`, `StoreInternalRequest.php`, `api.php`)**:
+  - **Query Scoping (*Need-to-Know Basis*)**: Pengguna biasa hanya dapat melihat laporan publik balai (`all`), laporan yang diunggah sendiri, laporan yang ditujukan khusus ke NIP/akunnya, dan laporan yang ditujukan ke Urusan/Seksi tempatnya bertugas. Super Admin dan Pimpinan memiliki akses menyeluruh (*Executive View*).
+  - **Proteksi Anti-IDOR**: Endpoint streaming dan unduh (`/internals/{id}/download` dan `/internals/{id}/preview`) dilindungi pemeriksaan hak akses sebelum mengakses berkas fisik di `storage/app/private/`. Akses tidak berhak langsung diblokir `403 Forbidden`.
+  - **Tanda Baca Otomatis (*Read Receipt*)**: Membuka `/preview` otomatis mencatat timestamp `read_at = now()` pada baris penerima yang bersangkutan.
+  - **Konfirmasi Tinjauan**: Endpoint `PUT /internals/{id}/review` memungkinkan penerima target atau admin mengonfirmasi hasil tinjauan (`sesuai` atau `perlu_revisi` disertai catatan).
+  - **Kandidat Penerima**: Endpoint aman `GET /api/dereporting/recipients/candidates` untuk mencari staf Balai sebagai penerima personal tanpa mengekspos data kredensial.
+- **Harmonisasi UI/UX Enterprise Frontend (`dereporting/internal/page.tsx`, `InternalUploadDrawer.tsx`, `InternalReportPreviewModal.tsx`, `InternalReportReviewModal.tsx`)**:
+  - **Enterprise Header Card**: Menerapkan struktur kanonikal header card seragam (`rounded-2xl border bg-[var(--ds-surface)] p-4`, kotak ikon `w-10 h-10` `FileText`, judul `text-lg md:text-xl font-bold`, dan tombol aksi `h-9 px-3.5`).
+  - **Segmented Tab Navigation**: Tab dengan indikator pegas Framer Motion (`all_relevant`, `personal`, `urusan`, `my_uploads`, dan `balai`).
+  - **Multi-Target Upload Drawer**: Memungkinkan pengunggah memilih sasaran laporan (*Semua Pegawai* vs *Sasaran Terbatas* dengan pilihan pill multi-Urusan dan pencarian pegawai personal).
+  - **Quick In-App PDF Preview**: Modal pratinjau instan dokumen PDF dari brankas server tanpa perlu mengunduh file ke penyimpanan lokal, dengan pembaruan status baca secara *optimistic*.
+  - **Review Modal**: Dialog konfirmasi tinjauan laporan kedinasan.
+- **Verifikasi Kualitas & Test Suite Komprehensif**:
+  - **Backend Feature Test**: `backend/tests/Feature/DeReportingInternalRBACTest.php` -> **9 tests, 24 assertions, 100% PASS**.
+  - **Frontend Playwright E2E Test**: `frontend/tests/dereporting-internal-rbac.playwright.cjs` -> **6/6 suites, 18 assertions, 100% PASS**.
+  - **TypeScript & ESLint**: `tsc --noEmit` & `eslint` -> **0 errors / 0 warnings**.
+  - **Knowledge Graph**: `graphify update .` -> **100% updated**.
+  - **Commit Terverifikasi**: Commit `ba524747` — `feat(dereporting): implement multi-recipient RBAC, anti-IDOR, Enterprise Header Card, and E2E test suite for internal reports`.
+
 
 
 
