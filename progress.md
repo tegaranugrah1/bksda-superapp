@@ -2385,6 +2385,22 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - **Playwright E2E Suite**: `node frontend/tests/dereporting-internal-rbac.playwright.cjs` -> **6/6 suites, 18 assertions PASS (100%)**.
   - **Screenshot Verifikasi Visual**: Berhasil menguji rendering halus pada artefak visual `dereporting_cards_delicate_borders.png` dan `dereporting_internal_delicate_borders.png`.
 
+---
+
+## 110. Audit Mendalam Modul BKSDA Drive (FE ↔ BE ↔ DB) & Rencana Remediasi (13 November 2026)
+
+- **Dokumen Lengkap**: [`docs/security/drive-deep-audit-and-remediation-plan-2026-11-13.md`](file:///e:/bksda-superapp/docs/security/drive-deep-audit-and-remediation-plan-2026-11-13.md)
+- **Ringkasan 23 Temuan (Dibuktikan via Code Review Menyeluruh FE↔BE↔DB & Probe Test Sementara)**:
+  - **Upload Massal & Kuota (#1–#5, #20)**: Kegagalan upload banyak file disebabkan oleh shared throttle bucket `throttle:60,1` tanpa prefix (gagal di file #30 dengan HTTP `429`), `completeUpload` belum memvalidasi status/keberadaan objek di S3 (menimbulkan file hantu & duplikat), klaim `size` dapat melewati batas kuota, `unit_id` dapat dipalsukan saat upload ke folder, tidak adanya endpoint `abort` sehingga upload gagal mengunci kuota selama 2 jam, serta **file di Sampah membebaskan kuota dan `restore()` tidak mengecek kuota** (celah bypass kuota tak terbatas).
+  - **Relasi Putus FE ↔ BE ↔ DB (#12–#17, #19, #21–#23)**: 5 aksi utama di `frontend/src/app/drive/page.tsx` memakai path jamak (`/drive/files/`, `/drive/folders/`) sementara route backend hanya menerima tunggal (`/drive/file/`, `/drive/folder/`) sehingga selalu `404`; `forceDelete` folder terbatas melepas file rahasia ke root unit (`nullOnDelete`) dan membocorkan akses ke seluruh anggota unit; share internal gagal di BE (`canReadFile` mengabaikan `drive_shares` pada file dalam folder) dan di FE (`DriveShareDialog.tsx` mengirim `employee.id` bukan `users.id` dan state dialog tidak di-reset antar-file); `moveFolder` lintas unit tidak memindahkan `unit_id` turunannya; tombol edit/hapus tampil di mode *Dibagikan dengan saya*; menu *"Atur Admin Resor"* dan **chip filter kategori di `DriveToolbar.tsx`** tidak terhubung dari `page.tsx`; **memulihkan file dari folder yang masih di Sampah menghasilkan file yatim/tak terlihat**; **mode Sampah di `DriveFileList.tsx` mengabaikan `canWrite` serta mengeksekusi `Hapus Permanen` tanpa dialog konfirmasi**; dan **halaman `/drive/s/[token]` tidak memakai normalisasi URL `api.ts`**.
+  - **Infrastruktur, Keamanan, Skema & Fitur (#6–#11, #18)**: CORS `ExposeHeaders: ETag` untuk bucket `bksda-drive` belum dikodekan di `storage:setup`, ambang single PUT 100 MB berbenturan batas Cloudflare, N+1 query tanpa paginasi, blocklist MIME tidak akurat, kredensial fallback hardcoded di `filesystems.php`, serta **fitur Transfer Ownership belum tersedia** (ditambah FK `user_id` memakai `cascadeOnDelete`).
+- **Rencana & Pelaksanaan Remediasi**: Seluruh temuan kritis/tinggi/sedang (perbaikan 5 URL jamak→tunggal, isolasi `throttle:300,1,drive_upload` + auto-retry `429`, hardening `completeUpload` + cek ukuran S3 aktual + endpoint `abort`, paksa `unit_id` folder induk, `DriveUnit::usedStorageBytes()` `withTrashed()`, rekursif `trash`/`restore`/`forceDelete` + anti-file-yatim, `DriveAccess` share file `user`/`unit` + `GET /api/drive/shares/candidates` + UI `DriveShareDialog`, rekursif `moveFolder` + cek kuota lintas ruang, fitur **Transfer Ownership**, sambungan `categoryFilter`, `isDriveAdmin`/`onAssignManager`, konfirmasi `Hapus Permanen`, `storage:setup --drive` CORS `ETag`, pembersihan kredensial fallback `filesystems.php`, dan migrasi skema `2026_11_14_000001_harden_drive_schema_and_ownership.php`) telah diimplementasikan.
+- **Verifikasi Aktual**:
+  - **PHPUnit (8 Suite Drive)**: `67/67 tests PASSED (356 assertions)` termasuk [`DriveSecurityAndIntegrityTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/DriveSecurityAndIntegrityTest.php).
+  - **Next.js Production Build**: `0 TypeScript errors`, `86/86 static pages`.
+  - **Playwright E2E**: `drive-security-ui.playwright.cjs` (`12/12, 30 assertions PASS`) & `drive-agentic-root.playwright.cjs` (`10/10, 22 assertions PASS`).
+- **Status**: ✅ Selesai Diimplementasikan & Terverifikasi (tinggal eksekusi `php artisan migrate` dan `php artisan storage:setup --drive` di server produksi).
+
 
 
 

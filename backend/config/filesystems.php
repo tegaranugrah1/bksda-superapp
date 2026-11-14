@@ -76,8 +76,8 @@ return [
 
         'drive' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID', 'admin'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY', 'BksdaStorage2026!'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('DRIVE_BUCKET', 'bksda-drive'),
             'endpoint' => env('AWS_ENDPOINT', 'http://rustfs:9000'),
@@ -88,8 +88,8 @@ return [
 
         'drive_signer' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID', 'admin'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY', 'BksdaStorage2026!'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('DRIVE_BUCKET', 'bksda-drive'),
             'endpoint' => env('STORAGE_PUBLIC_ENDPOINT', 'https://storage.bksdakaltim.web.id'),

@@ -232,4 +232,28 @@ class DriveShareController extends Controller
 
         return $share;
     }
+
+    /**
+     * GET /api/drive/shares/candidates
+     * Daftar akun pengguna aktif (users.id) untuk target berbagi internal & transfer ownership.
+     */
+    public function candidates(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('search', ''));
+        $query = User::query()
+            ->where('is_active', true)
+            ->select(['id', 'name', 'email']);
+
+        if ($search !== '') {
+            $escaped = addcslashes($search, '%_');
+            $query->where(function ($q) use ($escaped) {
+                $q->where('name', 'like', "%{$escaped}%")
+                  ->orWhere('email', 'like', "%{$escaped}%");
+            });
+        }
+
+        return response()->json([
+            'data' => $query->orderBy('name')->limit(100)->get(),
+        ]);
+    }
 }

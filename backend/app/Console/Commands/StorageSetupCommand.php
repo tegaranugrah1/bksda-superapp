@@ -7,11 +7,15 @@ use Illuminate\Console\Command;
 
 class StorageSetupCommand extends Command
 {
-    protected $signature = 'storage:setup {--audit : Audit existing bucket policy for security}';
+    protected $signature = 'storage:setup {--audit : Audit existing bucket policy for security} {--drive : Setup private bksda-drive bucket with CORS ExposeHeaders ETag}';
     protected $description = 'Create S3 bucket, set policy, or audit policy for RustFS/S3 storage (Fase 0B.4)';
 
     public function handle(): int
     {
+        if ($this->option('drive')) {
+            return $this->setupDriveBucket();
+        }
+
         $disk = config('filesystems.default');
 
         if ($disk !== 's3') {
@@ -96,6 +100,59 @@ class StorageSetupCommand extends Command
 
         $this->newLine();
         $this->info("Done! Storage is ready.");
+        return self::SUCCESS;
+    }
+
+    protected function setupDriveBucket(): int
+    {
+        $bucket = config('filesystems.disks.drive.bucket', 'bksda-drive');
+        $endpoint = config('filesystems.disks.drive.endpoint');
+
+        $client = new S3Client([
+            'version' => 'latest',
+            'region' => config('filesystems.disks.drive.region', 'us-east-1'),
+            'endpoint' => $endpoint,
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => config('filesystems.disks.drive.key'),
+                'secret' => config('filesystems.disks.drive.secret'),
+            ],
+        ]);
+
+        try {
+            $client->createBucket(['Bucket' => $bucket]);
+            $this->info("✓ Private bucket '{$bucket}' created.");
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'BucketAlreadyOwnedByYou') || str_contains($e->getMessage(), 'BucketAlreadyExists')) {
+                $this->info("✓ Private bucket '{$bucket}' already exists.");
+            } else {
+                $this->error("✗ Failed to create drive bucket: " . $e->getMessage());
+                return self::FAILURE;
+            }
+        }
+
+        $frontendOrigin = rtrim((string) config('app.frontend_url', env('FRONTEND_URL', '*')), '/');
+        $origins = $frontendOrigin && $frontendOrigin !== '*' ? [$frontendOrigin] : ['*'];
+
+        try {
+            $client->putBucketCors([
+                'Bucket' => $bucket,
+                'CORSConfiguration' => [
+                    'CORSRules' => [[
+                        'AllowedOrigins' => $origins,
+                        'AllowedMethods' => ['GET', 'HEAD', 'PUT'],
+                        'AllowedHeaders' => ['*'],
+                        'ExposeHeaders' => ['ETag'],
+                        'MaxAgeSeconds' => 3600,
+                    ]],
+                ],
+            ]);
+            $this->info("✓ CORS configured on '{$bucket}' (ExposeHeaders: ETag).");
+        } catch (\Throwable $e) {
+            $this->warn("⚠ Could not set bucket CORS: " . $e->getMessage());
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 }

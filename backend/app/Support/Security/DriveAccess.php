@@ -216,14 +216,27 @@ class DriveAccess
             return true;
         }
 
+        // Cek share internal langsung pada berkas (user atau unit) sebelum mengecek folder induk
+        $userUnitIds = self::getUserUnitIds($user);
+        $hasDirectShare = $file->shares()
+            ->where('share_type', 'internal')
+            ->where(function ($q) use ($user, $userUnitIds) {
+                $q->where('user_id', $user->id);
+                if (! empty($userUnitIds)) {
+                    $q->orWhereIn('unit_id', $userUnitIds);
+                }
+            })
+            ->exists();
+
+        if ($hasDirectShare) {
+            return true;
+        }
+
         // Anti-IDOR: Jika berkas berada di dalam folder, wajib memvalidasi izin folder induknya!
         if ($file->folder_id) {
             $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
             if ($folder) {
-                if (! self::canReadFolder($user, $folder)) {
-                    return false;
-                }
-                return true;
+                return self::canReadFolder($user, $folder);
             }
         }
 
@@ -232,7 +245,7 @@ class DriveAccess
             return $unit ? self::canRead($user, $unit) : false;
         }
 
-        return $file->shares()->where('user_id', $user->id)->exists();
+        return false;
     }
 
     /**
@@ -245,6 +258,23 @@ class DriveAccess
         }
 
         if ($file->user_id === $user->id) {
+            return true;
+        }
+
+        // Cek share internal dengan role editor pada berkas
+        $userUnitIds = self::getUserUnitIds($user);
+        $hasEditorShare = $file->shares()
+            ->where('share_type', 'internal')
+            ->where('role', 'editor')
+            ->where(function ($q) use ($user, $userUnitIds) {
+                $q->where('user_id', $user->id);
+                if (! empty($userUnitIds)) {
+                    $q->orWhereIn('unit_id', $userUnitIds);
+                }
+            })
+            ->exists();
+
+        if ($hasEditorShare) {
             return true;
         }
 

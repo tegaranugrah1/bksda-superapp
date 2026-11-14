@@ -32,11 +32,11 @@ class DriveUnit extends Model
     }
 
     /**
-     * Hitung total kapasitas disk yang terpakai oleh berkas aktif di unit ini.
+     * Hitung total kapasitas disk yang terpakai di unit ini (termasuk file di Sampah karena objek S3 masih tersimpan).
      */
     public function usedStorageBytes(): int
     {
-        return (int) $this->files()->whereNull('deleted_at')->sum('size_bytes');
+        return (int) $this->files()->withTrashed()->sum('size_bytes');
     }
 
     /**

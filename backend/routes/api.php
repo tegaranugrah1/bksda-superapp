@@ -99,15 +99,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/drive/{type}/{id}', [\App\Http\Controllers\Api\DriveController::class, 'trash'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
     Route::post('/drive/{type}/{id}/restore', [\App\Http\Controllers\Api\DriveController::class, 'restore'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
     Route::delete('/drive/{type}/{id}/force', [\App\Http\Controllers\Api\DriveController::class, 'forceDelete'])->whereIn('type', ['folder', 'file'])->middleware('throttle:60,1');
-    Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:60,1');
-    Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:60,1');
+    Route::post('/drive/upload/init', [\App\Http\Controllers\Api\DriveController::class, 'initUpload'])->middleware('throttle:300,1,drive_upload');
+    Route::post('/drive/upload/complete', [\App\Http\Controllers\Api\DriveController::class, 'completeUpload'])->middleware('throttle:300,1,drive_upload');
+    Route::post('/drive/upload/{id}/abort', [\App\Http\Controllers\Api\DriveController::class, 'abortUpload'])->middleware('throttle:300,1,drive_upload');
     Route::get('/drive/files/{id}/url', [\App\Http\Controllers\Api\DriveController::class, 'downloadUrl'])->whereNumber('id')->middleware('throttle:120,1');
     Route::post('/drive/folders/{id}/zip-token', [\App\Http\Controllers\Api\DriveController::class, 'requestZipToken'])->whereNumber('id')->middleware('throttle:30,1');
     Route::post('/drive/files/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFile'])->whereNumber('id')->middleware('throttle:60,1');
     Route::post('/drive/folders/{id}/move', [\App\Http\Controllers\Api\DriveController::class, 'moveFolder'])->whereNumber('id')->middleware('throttle:60,1');
     Route::post('/drive/folders/{id}/assign-manager', [\App\Http\Controllers\Api\DriveController::class, 'assignManager'])->whereNumber('id')->middleware('throttle:30,1');
+    Route::post('/drive/{type}/{id}/transfer-ownership', [\App\Http\Controllers\Api\DriveController::class, 'transferOwnership'])->whereIn('type', ['folder', 'file'])->middleware('throttle:30,1');
 
     // Drive Sharing (Fase 3)
+    Route::get('/drive/shares/candidates', [\App\Http\Controllers\Api\DriveShareController::class, 'candidates'])->middleware('throttle:60,1');
     Route::post('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'createShare'])->whereNumber('id')->middleware('throttle:30,1');
     Route::get('/drive/files/{id}/shares', [\App\Http\Controllers\Api\DriveShareController::class, 'listShares'])->whereNumber('id')->middleware('throttle:60,1');
     Route::delete('/drive/shares/{id}', [\App\Http\Controllers\Api\DriveShareController::class, 'deleteShare'])->whereNumber('id')->middleware('throttle:30,1');

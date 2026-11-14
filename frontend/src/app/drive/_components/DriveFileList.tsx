@@ -45,6 +45,7 @@ export interface DriveFolderItem {
   resor_code?: string | null;
   room_code?: string | null;
   user_id?: number | null;
+  can_write?: boolean;
   updated_at: string;
   deleted_at?: string | null;
 }
@@ -55,6 +56,7 @@ export interface DriveFileItem {
   size_bytes: number;
   mime_type: string;
   is_starred: boolean;
+  can_write?: boolean;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -68,6 +70,7 @@ interface DriveFileListProps {
   canWrite: boolean;
   isDriveAdmin?: boolean;
   onAssignManager?: (folder: DriveFolderItem) => void;
+  onTransferOwnership?: (type: "folder" | "file", item: DriveFolderItem | DriveFileItem) => void;
   onOpenFolder: (folderId: number) => void;
   onPreviewFile: (file: DriveFileItem) => void;
   onDownloadFile: (file: DriveFileItem) => void;
@@ -110,6 +113,7 @@ export function DriveFileList({
   canWrite,
   isDriveAdmin,
   onAssignManager,
+  onTransferOwnership,
   onOpenFolder,
   onPreviewFile,
   onDownloadFile,
@@ -266,17 +270,19 @@ export function DriveFileList({
                             )}
                           </>
                         ) : (
-                          <>
-                            <DropdownMenuItem onClick={() => onRestore("folder", folder.id)}>
-                              <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => onForceDelete("folder", folder.id)}
-                              className="text-rose-600 focus:text-rose-600 font-bold"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus Permanen
-                            </DropdownMenuItem>
-                          </>
+                          canWrite ? (
+                            <>
+                              <DropdownMenuItem onClick={() => onRestore("folder", folder.id)}>
+                                <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => onForceDelete("folder", folder.id)}
+                                className="text-rose-600 focus:text-rose-600 font-bold"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus Permanen
+                              </DropdownMenuItem>
+                            </>
+                          ) : null
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -357,17 +363,22 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFile(file)}>
                               <Download className="w-3.5 h-3.5 mr-2" /> Unduh
                             </DropdownMenuItem>
-                            {canWrite && (
+                            {(file.can_write ?? canWrite) && (
                               <DropdownMenuItem onClick={() => onMoveItem?.("file", file)}>
                                 <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
                               </DropdownMenuItem>
                             )}
-                            {canWrite && onShareFile && (
+                            {(file.can_write ?? canWrite) && onShareFile && (
                               <DropdownMenuItem onClick={() => onShareFile(file)}>
                                 <Share2 className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Bagikan Berkas
                               </DropdownMenuItem>
                             )}
-                            {canWrite && (
+                            {(file.can_write ?? canWrite) && onTransferOwnership && (
+                              <DropdownMenuItem onClick={() => onTransferOwnership("file", file)}>
+                                <Shield className="w-3.5 h-3.5 mr-2 text-amber-500" /> Alihkan Kepemilikan
+                              </DropdownMenuItem>
+                            )}
+                            {(file.can_write ?? canWrite) && (
                               <DropdownMenuItem
                                 onClick={() => {
                                   setRenameItem({ type: "file", id: file.id, name: file.name });
@@ -378,7 +389,7 @@ export function DriveFileList({
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
-                            {canWrite && (
+                            {(file.can_write ?? canWrite) && (
                               <DropdownMenuItem
                                 onClick={() => onTrash("file", file.id)}
                                 className="text-rose-600 focus:text-rose-600"
@@ -388,17 +399,19 @@ export function DriveFileList({
                             )}
                           </>
                         ) : (
-                          <>
-                            <DropdownMenuItem onClick={() => onRestore("file", file.id)}>
-                              <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => onForceDelete("file", file.id)}
-                              className="text-rose-600 focus:text-rose-600 font-bold"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus Permanen
-                            </DropdownMenuItem>
-                          </>
+                          canWrite ? (
+                            <>
+                              <DropdownMenuItem onClick={() => onRestore("file", file.id)}>
+                                <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => onForceDelete("file", file.id)}
+                                className="text-rose-600 focus:text-rose-600 font-bold"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus Permanen
+                              </DropdownMenuItem>
+                            </>
+                          ) : null
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
