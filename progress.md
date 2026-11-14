@@ -2406,3 +2406,26 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 
 
 
+
+---
+
+## 111. Audit Mendalam & Uji Sandbox 5-User Sistem Notifikasi Portal (14 November 2026)
+
+- **Dokumen Lengkap**: [`docs/security/portal-notifications-deep-audit-2026-11-14.md`](file:///e:/bksda-superapp/docs/security/portal-notifications-deep-audit-2026-11-14.md)
+- **Akar Masalah Kasus Pengajuan Cuti "Duriawati Halim" (`404` pada Super Admin & Admin)**:
+  - `EmployeeLeaveRequestController::myStore()` memanggil `PortalNotificationService::notifyAdmins('kepegawaian', ..., 'cuti', 'cuti', (string) $leaveReq->id)` tanpa `data.link` admin.
+  - Klik notifikasi di `NotificationBell.tsx` membawa admin/super_admin ke tab pribadi `cuti` di `/portal`, yang memanggil `GET /api/me/leave-requests/{id}` (`myShow()`). Endpoint `myShow()` membatasi akses hanya untuk pemilik `employee_id` sesuai NIP user (`super_admin` tidak memiliki record `Employee`, sedangkan `admin` Kepegawaian memiliki `employee_id` berbeda), sehingga backend mengembalikan HTTP `404` dan `MyLeaveTab.tsx` menampilkan toast *"Permohonan cuti tidak tersedia atau tidak dapat diakses."*.
+- **7 Temuan Audit (BE <-> FE <-> E2E)**:
+  1. **(Tinggi)** Notifikasi pengajuan cuti untuk `super_admin` & `admin` selalu gagal `404` di Portal.
+  2. **(Sedang)** Notifikasi DeReporting (`type: 'dereporting'`, `action_tab: 'responses'`, `data.link`) terputus: filter `?type=dereporting` diabaikan di `PortalNotificationController::index()`, `'responses'` tidak ada di `VALID_PORTAL_TABS`, dan `NotificationBell.tsx` tidak memproses `item.data.link`.
+  3. **(Sedang)** Notifikasi `HealthMonitorCommand` (`action_tab: 'pengaturan'`) untuk `super_admin` fallback ke tab `dashboard`.
+  4. **(Sedang)** Blindspot tab *"Belum Dibaca"* di popover `NotificationBell.tsx`: popover hanya mengambil 8 item terbaru (`per_page=8`) lalu menyaring unread di client; jika unread berada di posisi >= 9, popover tampil kosong (*"Semua notifikasi sudah dibaca"*) meski badge > 0.
+  5. **(Rendah)** Tombol *"Buka"* pada toast WebSocket (`NotificationBell.tsx`) tidak memanggil `handleMarkAsRead()`.
+  6. **(Rendah)** Notifikasi peserta dihapus dari Surat Tugas (`AssignmentLetterController.php`) tetap mengirim `action_tab: 'surat_tugas'` + `reference_id` sehingga klik memicu toast error; notifikasi pinjaman BMN tidak menyorot `reference_id`.
+  7. **(Rendah)** 4 test script notifikasi FE lama (`frontend/tests/portal-notification-bell.cjs`, dll.) gagal `ENOENT` di Windows karena hardcode path `/frontend/...`.
+- **Verifikasi Sandbox 5-User & Implementasi Perbaikan (`/ponytail` + `/security-audit`)**:
+  - **Perbaikan Diterapkan**: `EmployeeLeaveRequestController::myStore()` (`data.link = '/kepegawaian/cuti'`), `PortalNotificationController::index()` (allowlist `'dereporting'`), `HealthMonitorCommand` (`actionTab = 'dashboard'`, `data.link = '/'`), `echo.ts` (prioritas `NEXT_PUBLIC_REVERB_HOST`/`PORT`/`SCHEME`), `NotificationBell.tsx` (`resolveSafeInternalLink` anti-open-redirect, toast `"Buka"` mark-as-read, `unread_only=1` di popover, skip `reference_id` saat `removed`/`unavailable`, ikon `'dereporting'`), serta fallback `portal/page.tsx` untuk cuti legacy `super_admin`.
+  - **PHPUnit (5 Suite Notifikasi + Tes Baru `test_pn_04`)**: `47/47 tests PASSED (500 assertions)` dalam `36.75s`.
+  - **Next.js Production Build**: `npm run build --prefix frontend` -> `Compiled successfully in 12.6s`, `0 TypeScript errors`, `86/86 static pages`.
+  - **Playwright Live Full-Stack E2E (`frontend/tests/portal-notifications-live-e2e.playwright.cjs` di `:3199` <-> Laravel `:8000` <-> PostgreSQL)**: **SEBAGIAN BERHASIL (`9 PASS`, `1 STOPPED / BLOCKED`)** — `E2E-LIVE-01A` s.d. `06B` (termasuk blokir open-redirect `//evil.example`) `PASS`; `E2E-LIVE-07` (Reverb live WebSocket) `STOPPED / BLOCKED` karena `NEXT_PUBLIC_REVERB_APP_KEY` tidak dikonfigurasi di `frontend/.env.local` dan port `8080` dipakai proses lain (`iVMS-4200`).
+- **Status**: Selesai diimplementasikan & diverifikasi; hanya jalur live WebSocket Reverb yang masih `STOPPED / BLOCKED` hingga env & service Reverb dijalankan.

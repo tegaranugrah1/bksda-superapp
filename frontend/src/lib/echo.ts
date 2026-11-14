@@ -72,12 +72,22 @@ export function getEcho(): Echo<"reverb"> | null {
       }
     }
 
+    const envReverbHost = process.env.NEXT_PUBLIC_REVERB_HOST;
+    const envReverbPort = process.env.NEXT_PUBLIC_REVERB_PORT;
+    const envReverbScheme = process.env.NEXT_PUBLIC_REVERB_SCHEME;
+    if (envReverbHost) wsHost = envReverbHost;
+    if (envReverbScheme === "https" || envReverbScheme === "http") forceTLS = envReverbScheme === "https";
+    if (envReverbPort) {
+      const p = parseInt(envReverbPort, 10);
+      if (Number.isFinite(p) && p > 0) wsPort = p;
+    }
+
     echoInstance = new Echo({
       broadcaster: "reverb",
       key: appKey,
       wsHost,
       wsPort: forceTLS ? 443 : wsPort,
-      wssPort: forceTLS ? 443 : wsPort,
+      wssPort: forceTLS ? wsPort : 443,
       forceTLS,
       enabledTransports: ["ws", "wss"],
       authEndpoint,

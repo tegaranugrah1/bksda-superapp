@@ -47,6 +47,8 @@ namespace Tests\Feature {
             self::$socketError = 'php_network_getaddresses: getaddrinfo for dummy.invalid failed: Try again';
             $this->artisan('app:monitor-health')->assertExitCode(1);
             $notice = PortalNotification::where('user_id', $admin->id)->sole();
+            $this->assertSame('dashboard', $notice->action_tab);
+            $this->assertSame('/', $notice->data['link'] ?? null);
             $this->assertStringContainsString('DNS', $notice->message);
             $this->assertStringContainsString('dummy.invalid', $notice->message);
             self::$socketError = 'Connection refused';

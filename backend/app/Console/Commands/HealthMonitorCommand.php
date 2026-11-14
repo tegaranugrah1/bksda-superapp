@@ -125,7 +125,9 @@ class HealthMonitorCommand extends Command
                         'Peringatan Kesehatan Sistem',
                         "Terdeteksi masalah operasional pada backend:\n- ".$alertMessage,
                         'system',
-                        'pengaturan'
+                        'dashboard',
+                        null,
+                        ['link' => '/']
                     );
                 }
 

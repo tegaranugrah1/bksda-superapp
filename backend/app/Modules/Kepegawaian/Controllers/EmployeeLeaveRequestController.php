@@ -302,7 +302,8 @@ class EmployeeLeaveRequestController extends Controller
                     "Pengajuan {$leaveReq->jenis_cuti} baru oleh {$employee->nama_lengkap}.",
                     'cuti',
                     'cuti',
-                    (string) $leaveReq->id
+                    (string) $leaveReq->id,
+                    ['link' => '/kepegawaian/cuti', 'leave_id' => $leaveReq->id]
                 );
             } catch (\Throwable $e) {
                 // Non-blocking notification failure

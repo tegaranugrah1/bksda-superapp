@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Bell,
@@ -68,10 +69,20 @@ function formatRelativeTime(dateString: string): string {
   }
 }
 
+function resolveSafeInternalLink(data?: Record<string, unknown> | null): string | null {
+  const link = data?.link;
+  if (typeof link !== "string") return null;
+  const trimmed = link.trim();
+  return trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.includes("\\")
+    ? trimmed
+    : null;
+}
+
 const TYPE_STYLES: Record<string, string> = {
   surat_tugas: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
   cuti: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
   bmn: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  dereporting: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
   system: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
 };
 
@@ -83,6 +94,8 @@ function getTypeIcon(type: string) {
       return <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
     case "bmn":
       return <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+    case "dereporting":
+      return <FileText className="w-4 h-4 text-violet-600 dark:text-violet-400" />;
     default:
       return <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />;
   }
@@ -147,6 +160,7 @@ const tabOrder: Record<"all" | "unread" | "read", number> = {
 };
 
 export function NotificationBell({ onSelectTab, onNotification, onRefresh }: NotificationBellProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<PortalNotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -155,6 +169,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
   // Popover filter state
   const [popoverFilter, setPopoverFilter] = useState<"all" | "unread">("all");
+  const popoverFilterRef = useRef<"all" | "unread">("all");
   const [popoverDirection, setPopoverDirection] = useState(0);
 
   // History Modal States
@@ -177,25 +192,28 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
   const notificationHandlerRef = useRef(onNotification);
   const refreshHandlerRef = useRef(onRefresh);
   const historyStateRef = useRef({ open: false, page: 1, filter: "all" as "all" | "unread" | "read" });
+  const itemClickHandlerRef = useRef<(item: PortalNotificationItem) => Promise<void>>(async () => {});
 
   useEffect(() => { notificationHandlerRef.current = onNotification; }, [onNotification]);
   useEffect(() => { refreshHandlerRef.current = onRefresh; }, [onRefresh]);
+  useEffect(() => { popoverFilterRef.current = popoverFilter; }, [popoverFilter]);
   useEffect(() => {
     historyStateRef.current = { open: historyOpen, page: historyPage, filter: historyFilter };
   }, [historyOpen, historyPage, historyFilter]);
 
   // Fetch quick latest notifications for the popover
-  const fetchLatest = useCallback(async (isBackground = false) => {
+  const fetchLatest = useCallback(async (isBackground = false, filterOverride?: "all" | "unread") => {
     const request = ++latestRequestRef.current;
+    const activeFilter = filterOverride ?? popoverFilterRef.current;
     if (!isBackground) setLoading(true);
     try {
       const resp = await api.get("/portal/notifications", {
-        params: { per_page: 8 },
+        params: { per_page: 8, ...(activeFilter === "unread" ? { unread_only: 1 } : {}) },
       });
       if (isMountedRef.current && request === latestRequestRef.current && resp.data) {
         const items: PortalNotificationItem[] = resp.data.data || [];
         for (const item of items) {
-          if (initializedRef.current && !seenIdsRef.current.has(item.id)) {
+          if (initializedRef.current && !filterOverride && activeFilter === "all" && !seenIdsRef.current.has(item.id)) {
             historyCacheRef.current = {};
             notificationHandlerRef.current?.(item);
           }
@@ -273,6 +291,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     if (newFilter === popoverFilter) return;
     setPopoverDirection(newFilter === "unread" ? 1 : -1);
     setPopoverFilter(newFilter);
+    void fetchLatest(false, newFilter);
   };
 
   // Polling setup: 35 seconds + on window focus
@@ -326,12 +345,13 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
       notificationHandlerRef.current?.(item);
 
       // UI/UX Pro Max: interactive Sonner toast
+      const hasAction = Boolean(item.action_tab || resolveSafeInternalLink(item.data));
       toast(item.title || "Notifikasi Baru", {
         description: item.message,
-        action: item.action_tab
+        action: hasAction
           ? {
               label: "Buka",
-              onClick: () => onSelectTab?.(item.action_tab!, item.reference_id),
+              onClick: () => void itemClickHandlerRef.current(item),
             }
           : undefined,
       });
@@ -355,7 +375,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     }
   }, [historyOpen, historyFilter, fetchHistory]);
 
-  const handleMarkAsRead = async (item: PortalNotificationItem) => {
+  const handleMarkAsRead = useCallback(async (item: PortalNotificationItem) => {
     if (item.read_at) return;
 
     // Optimistic update
@@ -379,17 +399,30 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
       // Revert if error
       fetchLatest(true);
     }
-  };
+  }, [fetchLatest]);
 
-  const handleItemClick = async (item: PortalNotificationItem) => {
+  const handleItemClick = useCallback(async (item: PortalNotificationItem) => {
     await handleMarkAsRead(item);
     setOpen(false);
     setHistoryOpen(false);
 
-    if (item.action_tab && onSelectTab) {
-      onSelectTab(item.action_tab, item.reference_id);
+    const safeLink = resolveSafeInternalLink(item.data);
+    if (safeLink) {
+      router.push(safeLink);
+      return;
     }
-  };
+
+    const availability = typeof item.data?.availability === "string" ? item.data.availability : null;
+    const status = typeof item.data?.status === "string" ? item.data.status : null;
+    const blockedRef = availability === "unavailable" || availability === "trashed" || status === "removed";
+    if (item.action_tab && onSelectTab) {
+      onSelectTab(item.action_tab, blockedRef ? null : item.reference_id);
+    }
+  }, [handleMarkAsRead, onSelectTab, router]);
+
+  useEffect(() => {
+    itemClickHandlerRef.current = handleItemClick;
+  }, [handleItemClick]);
 
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);

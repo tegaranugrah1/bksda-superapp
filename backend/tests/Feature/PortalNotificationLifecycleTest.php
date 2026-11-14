@@ -475,4 +475,23 @@ class PortalNotificationLifecycleTest extends TestCase
         $this->assertSame($this->employees['A']->id, $notice->employee_id);
         $this->assertCount(0, $this->notices('C'));
     }
+
+    public function test_pn_04_admin_leave_link_and_dereporting_type_filter(): void
+    {
+        $leave = $this->submitLeave();
+        $adminNotice = PortalNotification::where('user_id', $this->admin->id)
+            ->where('reference_id', (string) $leave->id)
+            ->firstOrFail();
+        $this->assertSame('/kepegawaian/cuti', $adminNotice->data['link'] ?? null);
+
+        $service = app(PortalNotificationService::class);
+        $service->notifyUser($this->users['A'], 'Form Response', 'New DeReporting response', 'dereporting', 'responses', '55', ['link' => '/dereporting/forms/5/responses']);
+        $service->notifyUser($this->users['A'], 'System Info', 'System message', 'system', 'dashboard');
+
+        Sanctum::actingAs($this->users['A']);
+        $this->getJson('/api/portal/notifications?type=dereporting')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.type', 'dereporting');
+    }
 }

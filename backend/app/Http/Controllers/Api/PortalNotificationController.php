@@ -35,7 +35,7 @@ class PortalNotificationController extends Controller
             $query->whereNotNull('read_at');
         }
 
-        if ($type && in_array($type, ['surat_tugas', 'cuti', 'bmn', 'system'], true)) {
+        if ($type && in_array($type, ['surat_tugas', 'cuti', 'bmn', 'system', 'dereporting'], true)) {
             $query->where('type', $type);
         }
 

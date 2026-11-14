@@ -360,6 +360,11 @@ function PortalContent() {
   const consumeActiveLeave = useCallback(() => setActiveLeaveId(null), []);
 
   const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
+    if (tabKey === "cuti" && !employeeId && data?.user?.role === "super_admin") {
+      router.push("/kepegawaian/cuti");
+      return;
+    }
+
     const targetTab = VALID_PORTAL_TABS.includes(tabKey) ? tabKey : "dashboard";
     setActiveNavTab(targetTab);
 
@@ -368,7 +373,7 @@ function PortalContent() {
     } else if (targetTab === "cuti" && referenceId) {
       setActiveLeaveId(referenceId);
     }
-  }, [fetchSTDetail]);
+  }, [fetchSTDetail, employeeId, data?.user?.role, router]);
 
   // Fetch leave balance for logged-in employee
   const currentYear = new Date().getFullYear();
