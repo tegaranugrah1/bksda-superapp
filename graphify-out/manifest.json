@@ -2330,8 +2330,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1794750942.356447,
-    "ast_hash": "aaae3f7f204e9246e17e7006e8b6fe9c",
+    "mtime": 1794782248.909395,
+    "ast_hash": "5873de967422bc9f382a3b1470ade04d",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
@@ -5240,8 +5240,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/EmployeeDetailModal.tsx": {
-    "mtime": 1785830673.2592306,
-    "ast_hash": "f9e7d09f0634f8d93b02e1d22b7f63ae",
+    "mtime": 1794782276.3444836,
+    "ast_hash": "e03178105caf0d2d225d73c6ca365e43",
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/InboxSuratTugasScreen.tsx": {
@@ -5250,8 +5250,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/KepegawaianScreen.tsx": {
-    "mtime": 1788919976.61164,
-    "ast_hash": "aee71a75005cdad997a9d78233f7310f",
+    "mtime": 1794782276.3434832,
+    "ast_hash": "72c3c7147f04d61e9a7967b0de5ac155",
     "semantic_hash": ""
   },
   "mobile/src/features/kepegawaian/TambahPegawaiScreen.tsx": {
@@ -5420,8 +5420,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/page.tsx": {
-    "mtime": 1794750907.6385057,
-    "ast_hash": "e47f4a8995d66c911fa94f94515ed2d8",
+    "mtime": 1794782251.2277906,
+    "ast_hash": "0026e92a0cbcac1316cbc2d97130846d",
     "semantic_hash": ""
   },
   ".agents/AGENTS.md": {
@@ -6310,8 +6310,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Models/Location.php": {
-    "mtime": 1794751081.0738244,
-    "ast_hash": "d3084c35ba366f7b7b03822f24dd3467",
+    "mtime": 1794782127.1317124,
+    "ast_hash": "ea4be17bf40b03a8e6d10348fc2dba76",
     "semantic_hash": ""
   },
   "backend/database/seeders/BmnMasterDataSeeder.php": {
@@ -6475,8 +6475,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/LocationManagementTab.tsx": {
-    "mtime": 1794752157.1076062,
-    "ast_hash": "e5f0305516e7b7f00769c694002ce509",
+    "mtime": 1794782203.8755171,
+    "ast_hash": "9d2435ea6e4ea9936c0bc69f6f1f8211",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/TagManagementTab.tsx": {
@@ -9210,13 +9210,13 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/LocationHierarchyAndDriveSyncTest.php": {
-    "mtime": 1794751400.0559907,
-    "ast_hash": "603100434bea15a40191022e4d4ded6e",
+    "mtime": 1794782291.1207488,
+    "ast_hash": "ebe9f5cd769036ae24b631b83b8abb7a",
     "semantic_hash": ""
   },
   "frontend/src/lib/locations.ts": {
-    "mtime": 1794750800.5120628,
-    "ast_hash": "e6d2df0d09b3ea3733bfb2dbed723107",
+    "mtime": 1794782383.3104324,
+    "ast_hash": "e76c249d3eddfb4297c3fbbef98be5d8",
     "semantic_hash": ""
   },
   "frontend/tests/location-hierarchy-drive-sync.playwright.cjs": {
@@ -9227,6 +9227,11 @@
   "docs/security/kepegawaian-drive-placement-sync-audit-2026-11-15.md": {
     "mtime": 1794747403.0265002,
     "ast_hash": "6fbf275b986592de3911e38e9f688eea",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_11_16_000001_sync_existing_employees_satuan_kerja_to_locations.php": {
+    "mtime": 1794782161.3189535,
+    "ast_hash": "f97ee687d04efbb64f27e93c6c6a47e0",
     "semantic_hash": ""
   }
 }

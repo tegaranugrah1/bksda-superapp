@@ -179,3 +179,57 @@ export function resolveAtasanFromSatuanKerja(
     atasanNip: "19750314 199903 1 004",
   };
 }
+
+export interface EmployeeLocationSummary {
+  id?: string;
+  name: string;
+  code?: string | null;
+  location_type?: MasterLocationType;
+  parent_id?: string | null;
+  parent?: {
+    id?: string;
+    name: string;
+    code?: string | null;
+    location_type?: MasterLocationType;
+  } | null;
+}
+
+export function getEmployeePlacementDisplay(
+  emp: {
+    satuan_kerja?: string | null;
+    resor?: string | null;
+    location?: EmployeeLocationSummary | null;
+  },
+  masterLocations: MasterLocation[] = [],
+  legacyResors: Array<{ code: string; name: string }> = []
+): {
+  unitName: string;
+  subLabel: string;
+  subShortLabel: string;
+  subValue: string | null;
+  fullLabel: string;
+} {
+  const unitName =
+    emp.location?.parent?.name || emp.location?.name || emp.satuan_kerja || "-";
+  const isRoom = emp.location?.location_type === "room";
+  const resorVal = emp.resor && emp.resor !== "-" ? emp.resor : null;
+  const resolvedSub = emp.location?.parent_id
+    ? emp.location.name
+    : resorVal
+      ? masterLocations.find(
+          (l) =>
+            l.code?.toLowerCase() === resorVal.toLowerCase() ||
+            l.name.toLowerCase() === resorVal.toLowerCase()
+        )?.name ||
+        legacyResors.find((r) => r.code === resorVal)?.name ||
+        resorVal
+      : null;
+
+  return {
+    unitName,
+    subLabel: isRoom ? "Ruangan / Subbagian" : "Resor Lapangan",
+    subShortLabel: isRoom ? "Ruangan" : "Resor",
+    subValue: resolvedSub,
+    fullLabel: resolvedSub ? `${unitName} — ${resolvedSub}` : unitName,
+  };
+}

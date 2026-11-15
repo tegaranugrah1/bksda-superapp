@@ -30,7 +30,7 @@ import { useRole } from "@/hooks/useRole";
 import { motion, AnimatePresence } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
 import { isMmpEmployee, type Employee } from "../_lib";
-import { useMasterLocations, getLocationHierarchy } from "@/lib/locations";
+import { useMasterLocations, getLocationHierarchy, getEmployeePlacementDisplay } from "@/lib/locations";
 
 interface EmployeeCounts {
   total: number;
@@ -666,11 +666,9 @@ export default function EmployeeListPage() {
                               </Link>
                             )}
                             <p className="text-xs text-[var(--ds-fg-muted)] truncate">
-                              {emp.location
-                                ? emp.location.parent
-                                  ? `${emp.location.parent.name} ? ${emp.location.name}`
-                                  : emp.location.name
-                                : emp.satuan_kerja || "Satuan Kerja Belum Diatur"}
+                              {emp.location || emp.satuan_kerja || emp.resor
+                                ? getEmployeePlacementDisplay(emp).fullLabel
+                                : "Satuan Kerja Belum Diatur"}
                             </p>
                           </div>
                         </div>

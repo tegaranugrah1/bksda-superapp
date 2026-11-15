@@ -540,4 +540,40 @@ class LocationHierarchyAndDriveSyncTest extends TestCase
         ]);
         $this->assertNull(DriveAccess::unitRole($empUser->fresh(), $driveUnit4));
     }
+
+    public function test_sync_hierarchy_and_backfill_aligns_legacy_satuan_kerja_and_show_endpoint(): void
+    {
+        $skw1 = Location::where('code', 'skw-1-berau')->firstOrFail();
+
+        $unlinkedEmp = Employee::create([
+            'nip' => '198801012015011011',
+            'nama_lengkap' => 'Pegawai Legacy Tanpa LocationId',
+            'satuan_kerja' => 'Seksi KSDA Wilayah I Berau',
+            'is_active' => true,
+        ]);
+
+        $driftedEmp = Employee::create([
+            'nip' => '198802022015011012',
+            'nama_lengkap' => 'Pegawai Legacy String Lama',
+            'location_id' => $skw1->id,
+            'satuan_kerja' => 'Seksi Konservasi Sumber Daya Alam Wilayah I',
+            'is_active' => true,
+        ]);
+
+        Location::syncHierarchyAndBackfill();
+
+        $unlinkedEmp->refresh();
+        $driftedEmp->refresh();
+
+        $this->assertSame($skw1->id, $unlinkedEmp->location_id);
+        $this->assertSame('Seksi KSDA Wilayah I (Berau)', $unlinkedEmp->satuan_kerja);
+        $this->assertSame($skw1->id, $driftedEmp->location_id);
+        $this->assertSame('Seksi KSDA Wilayah I (Berau)', $driftedEmp->satuan_kerja);
+
+        Sanctum::actingAs($this->superAdmin);
+        $this->getJson("/api/kepegawaian/employees/{$driftedEmp->id}")
+            ->assertOk()
+            ->assertJsonPath('data.satuan_kerja', 'Seksi KSDA Wilayah I (Berau)')
+            ->assertJsonPath('data.location.name', 'Seksi KSDA Wilayah I (Berau)');
+    }
 }

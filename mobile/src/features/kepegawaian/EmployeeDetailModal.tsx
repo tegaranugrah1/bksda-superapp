@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ interface EmployeeDetailModalProps {
     nip: string;
     position?: string;
     workUnit?: string;
+    locationId?: string | null;
     rankGrade?: string;
     remainingLeaveDays?: number;
     role?: string;
@@ -54,6 +55,16 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
   const [editNip, setEditNip] = useState("");
   const [editJabatan, setEditJabatan] = useState("");
   const [editWorkUnit, setEditWorkUnit] = useState("");
+  const [editLocationId, setEditLocationId] = useState<string | null>(null);
+  const [masterLocations, setMasterLocations] = useState<Array<{ id: string; name: string; parent?: { id: string; name: string } | null }>>([]);
+
+  useEffect(() => {
+    if (!editModalVisible) return;
+    apiClient.get<any>("/locations?active_only=1").then((res) => {
+      const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+      setMasterLocations(rows);
+    }).catch(() => {});
+  }, [editModalVisible]);
   const [editRankGrade, setEditRankGrade] = useState("");
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
@@ -66,7 +77,8 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
     setEditNama(employee.name);
     setEditNip(employee.nip);
     setEditJabatan(employee.position || "Pengendali Ekosistem Hutan Ahli Pertama");
-    setEditWorkUnit(employee.workUnit || "Seksi KSDA Wilayah III Balikpapan");
+    setEditWorkUnit(employee.workUnit || "");
+    setEditLocationId(employee.locationId ?? null);
     setEditRankGrade(employee.rankGrade || "PPPK Golongan IX");
     setEditModalVisible(true);
   };
@@ -84,6 +96,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
         nip: editNip.trim(),
         jabatan: editJabatan.trim(),
         satuan_kerja: editWorkUnit.trim(),
+        ...(editLocationId ? { location_id: editLocationId } : {}),
         pangkat_golongan: editRankGrade.trim(),
       });
     } catch {
@@ -96,6 +109,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
       employee.nip = editNip.trim();
       employee.position = editJabatan.trim();
       employee.workUnit = editWorkUnit.trim();
+      employee.locationId = editLocationId;
       employee.rankGrade = editRankGrade.trim();
 
       if (onEmployeeUpdated) onEmployeeUpdated();
@@ -203,7 +217,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                   <Text style={styles.bentoLabel}>UNIT KERJA</Text>
                 </View>
                 <Text style={[styles.bentoValue, { color: colors.textDark }]} numberOfLines={2}>
-                  {employee.workUnit || "Seksi KSDA Wilayah III Balikpapan"}
+                  {employee.workUnit || "-"}
                 </Text>
               </View>
 
@@ -373,7 +387,7 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                 <View style={[styles.biodataFieldCard, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f8fafc" }]}>
                   <Text style={styles.fieldLabel}>UNIT KERJA</Text>
                   <Text style={[styles.fieldValue, { color: colors.textDark }]}>
-                    {employee.workUnit || "Seksi KSDA Wilayah III Balikpapan"}
+                    {employee.workUnit || "-"}
                   </Text>
                 </View>
 
@@ -473,8 +487,25 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
                   <TextInput
                     style={[styles.input, { color: colors.textDark, borderColor: colors.glassBorder }]}
                     value={editWorkUnit}
-                    onChangeText={setEditWorkUnit}
+                    onChangeText={(txt) => { setEditWorkUnit(txt); setEditLocationId(null); }}
                   />
+                  {masterLocations.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }}>
+                      {masterLocations.map((loc) => {
+                        const label = loc.parent ? `${loc.parent.name} ? ${loc.name}` : loc.name;
+                        const selected = editLocationId === loc.id;
+                        return (
+                          <TouchableOpacity
+                            key={loc.id}
+                            onPress={() => { setEditLocationId(loc.id); setEditWorkUnit(label); }}
+                            style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, marginRight: 6, borderWidth: 1, borderColor: selected ? "#16a34a" : "#cbd5e1", backgroundColor: selected ? "rgba(22,163,74,0.12)" : "transparent" }}
+                          >
+                            <Text style={{ fontSize: 11, fontWeight: "600", color: selected ? "#15803d" : colors.textDark }}>{label}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
                 </View>
 
                 <View style={styles.inputGroup}>

@@ -212,7 +212,7 @@ export function LocationManagementTab({
       }
       if (locType === "seksi" || locType === "balai") {
         payload.parent_id = null;
-        payload.unit_kerja = editingLoc ? (unitKerja.trim() || name.trim()) : name.trim();
+        payload.unit_kerja = name.trim();
       } else if (parentId) {
         payload.parent_id = parentId;
         payload.unit_kerja = selectedParent?.unit_kerja || selectedParent?.name || unitKerja.trim();

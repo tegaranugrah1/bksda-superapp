@@ -28,6 +28,7 @@ interface EmployeeItem {
   nip: string;
   position: string;
   workUnit: string;
+  locationId?: string | null;
   rankGrade?: string;
   remainingLeaveDays?: number;
   role?: string;
@@ -85,7 +86,10 @@ export const KepegawaianScreen: React.FC<KepegawaianScreenProps> = ({
             name: emp.nama_lengkap || emp.name,
             nip: emp.nip || "-",
             position: emp.jabatan || "Staf BKSDA",
-            workUnit: emp.satuan_kerja || "Balai KSDA Kaltim",
+            workUnit: emp.location?.parent
+              ? `${emp.location.parent.name} ? ${emp.location.name}`
+              : emp.location?.name || emp.satuan_kerja || "Balai KSDA Kaltim",
+            locationId: emp.location_id ?? null,
             rankGrade: emp.pangkat_golongan || "Golongan III/a",
             remainingLeaveDays: emp.sisa_cuti ?? 12,
             role: emp.user?.role || emp.role || "user",

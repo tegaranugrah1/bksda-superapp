@@ -69,6 +69,7 @@ import {
   useMasterLocations,
   getLocationHierarchy,
   resolveLocationPlacement,
+  getEmployeePlacementDisplay,
 } from "@/lib/locations";
 import {
   PANGKAT_PNS_OPTIONS,
@@ -248,12 +249,33 @@ export default function EmployeeDetailPage() {
   }, [registeredBanksData, editForm.nama_bank]);
 
   const isMmp = isMmpEmployee(employee);
+  const placement = useMemo(
+    () => (employee ? getEmployeePlacementDisplay(employee, masterLocations, RESOR_OPTIONS) : null),
+    [employee, masterLocations]
+  );
 
   useEffect(() => {
     if (isMmp && (activeTab === "leave" || activeTab === "meal_allowance")) {
       setActiveTab("biodata");
     }
   }, [isMmp, activeTab]);
+
+  useEffect(() => {
+    if (!isEditing || !employee || !masterLocations.length || editParentId) return;
+    const resolved = resolveLocationPlacement(
+      masterLocations,
+      employee.location_id,
+      cleanFieldValue(employee.satuan_kerja),
+      cleanFieldValue(employee.resor)
+    );
+    if (resolved.parentId) {
+      setEditParentId(resolved.parentId);
+      setEditForm((prev) => ({
+        ...prev,
+        location_id: prev.location_id || resolved.selectedLocation?.id || "",
+      }));
+    }
+  }, [isEditing, employee, masterLocations, editParentId]);
 
   const handleCopy = (text: string, fieldKey: string) => {
     navigator.clipboard.writeText(text);
@@ -693,14 +715,11 @@ export default function EmployeeDetailPage() {
                 <div className="min-w-0 flex-1">
                   <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Unit Kerja</span>
                   <span className="font-semibold text-[var(--ds-fg)] truncate block">
-                    {employee.location?.parent?.name || employee.satuan_kerja || "-"}
+                    {placement?.unitName || "-"}
                   </span>
-                  {(employee.location?.parent_id ? employee.location.name : employee.resor) && (
+                  {placement?.subValue && (
                     <span className="text-xs text-[var(--ds-fg-muted)] block">
-                      {employee.location?.location_type === "room" ? "Ruangan" : "Resor"}:{" "}
-                      {employee.location?.parent_id
-                        ? employee.location.name
-                        : RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
+                      {placement.subShortLabel}: {placement.subValue}
                     </span>
                   )}
                 </div>
@@ -1203,22 +1222,15 @@ export default function EmployeeDetailPage() {
                       />
                       <BioItem
                         label="Satuan / Unit Kerja"
-                        value={employee.location?.parent?.name || employee.satuan_kerja || "-"}
+                        value={placement?.unitName || "-"}
                       />
                       <BioItem
-                        label={
-                          employee.location?.location_type === "room"
-                            ? "Ruangan / Subbagian"
-                            : "Resor Lapangan"
-                        }
+                        label={placement?.subLabel || "Resor Lapangan"}
                         value={
-                          employee.location?.parent_id
-                            ? employee.location.name
-                            : RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
-                              employee.resor ||
-                              (employee.location?.location_type === "seksi"
-                                ? "Kantor Seksi Wilayah"
-                                : "Kantor Balai / Umum")
+                          placement?.subValue ||
+                          (employee.location?.location_type === "seksi"
+                            ? "Kantor Seksi Wilayah"
+                            : "Kantor Balai / Umum")
                         }
                       />
                       <BioItem

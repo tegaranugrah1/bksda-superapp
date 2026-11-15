@@ -547,13 +547,34 @@ class Location extends Model
             }
         }
 
-        // 4. Backfill kpg_employees.location_id
+        // 4. Backfill kpg_employees.location_id & selaraskan teks satuan_kerja / resor ke Master Lokasi
         if (Schema::hasTable('kpg_employees') && Schema::hasColumn('kpg_employees', 'location_id') && $locations->isNotEmpty()) {
-            $employees = DB::table('kpg_employees')->whereNull('location_id')->select(['id', 'satuan_kerja', 'resor'])->get();
+            $locById = static::with('parent')->get()->keyBy('id');
+            $employees = DB::table('kpg_employees')->select(['id', 'location_id', 'satuan_kerja', 'resor'])->get();
             foreach ($employees as $emp) {
-                $resolved = self::resolveForPlacement(null, $emp->satuan_kerja, $emp->resor);
-                if ($resolved) {
-                    DB::table('kpg_employees')->where('id', $emp->id)->update(['location_id' => $resolved->id]);
+                $loc = $emp->location_id ? $locById->get($emp->location_id) : null;
+                if (! $loc) {
+                    $resolved = self::resolveForPlacement(null, $emp->satuan_kerja, $emp->resor);
+                    $loc = $resolved ? ($locById->get($resolved->id) ?? $resolved) : null;
+                }
+                if (! $loc) {
+                    continue;
+                }
+
+                $updates = [];
+                if ($emp->location_id !== $loc->id) {
+                    $updates['location_id'] = $loc->id;
+                }
+                $canonicalSatker = $loc->effectiveUnitKerja();
+                if (trim((string) $emp->satuan_kerja) !== $canonicalSatker) {
+                    $updates['satuan_kerja'] = $canonicalSatker;
+                }
+                $canonicalResor = $loc->derivedResorCode();
+                if ($loc->location_type === self::TYPE_RESOR && trim((string) $emp->resor) !== (string) $canonicalResor) {
+                    $updates['resor'] = $canonicalResor;
+                }
+                if (! empty($updates)) {
+                    DB::table('kpg_employees')->where('id', $emp->id)->update($updates);
                 }
             }
         }
