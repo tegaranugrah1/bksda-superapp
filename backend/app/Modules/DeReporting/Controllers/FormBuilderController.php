@@ -768,7 +768,7 @@ class FormBuilderController extends Controller
         if ($form->created_by) {
             try {
                 app(\App\Services\PortalNotificationService::class)->notifyUser(
-                    userId: (int) $form->created_by,
+                    userOrId: (int) $form->created_by,
                     title: 'Tanggapan Baru Diterima',
                     message: "Tanggapan baru telah masuk pada formulir '{$form->title}'.",
                     type: 'dereporting',
@@ -782,7 +782,7 @@ class FormBuilderController extends Controller
                     ]
                 );
             } catch (\Throwable $e) {
-                // Non-blocking notification error
+                \Illuminate\Support\Facades\Log::warning('DeReporting notification dispatch failed: ' . $e->getMessage());
             }
         }
 
