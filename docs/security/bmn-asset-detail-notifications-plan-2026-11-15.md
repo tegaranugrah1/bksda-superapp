@@ -1,7 +1,8 @@
 # Rencana Implementasi & Evaluasi Objektif: Notifikasi Detail BMN dan Aset Pegawai
 
 **Tanggal:** 2026-11-15
-**Status:** Rencana Desain & Audit Cakupan File (Belum Diimplementasikan ke Kode Produksi)
+**Status:** ✅ Selesai Diimplementasikan & Di-commit (commit `d861b148` pada branch `codex/portal-security-pentest`; belum di-push)
+**Verifikasi Terakhir:** PHPUnit [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php) + [`BmnLayoutAndSecurityRegressionTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/BmnLayoutAndSecurityRegressionTest.php) + [`NotificationHealthMonitorTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationHealthMonitorTest.php) (**44 passed, 251 assertions, 0 failed**) & `npx tsc --noEmit` (**0 errors**).
 **Prinsip Rujukan:** `/ponytail` (YAGNI, perbaikan satu sumber di root cause, diff minimal) & `/security-audit` (anti-IDOR, privasi alasan internal/pengganti, *after-commit broadcast*, anti-spam deduplication)
 
 ---
