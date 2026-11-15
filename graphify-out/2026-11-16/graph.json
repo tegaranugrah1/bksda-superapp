@@ -369,8 +369,8 @@
       "source_location": "L390",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_shouldshowhighlighttagtooltip",
-      "community": 790,
-      "community_name": "actOnAgentTarget",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "shouldshowhighlighttagtooltip()"
     },
     {
@@ -380,8 +380,8 @@
       "source_location": "L395",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_hidehighlighttagtooltip",
-      "community": 790,
-      "community_name": "actOnAgentTarget",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "hidehighlighttagtooltip()"
     },
     {
@@ -391,8 +391,8 @@
       "source_location": "L401",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showhighlight",
-      "community": 790,
-      "community_name": "actOnAgentTarget",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "showhighlight()"
     },
     {
@@ -1106,8 +1106,8 @@
       "source_location": "L1755",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_layoutflowchildren",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "layoutflowchildren()"
     },
     {
@@ -1183,8 +1183,8 @@
       "source_location": "L1872",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cursorforinsertaxis",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "cursorforinsertaxis()"
     },
     {
@@ -1326,8 +1326,8 @@
       "source_location": "L2051",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_setpageinteractioncursor",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "setpageinteractioncursor()"
     },
     {
@@ -1337,8 +1337,8 @@
       "source_location": "L2071",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_syncpageinteractioncursor",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "syncpageinteractioncursor()"
     },
     {
@@ -1370,8 +1370,8 @@
       "source_location": "L2101",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_deferredrecoverysuperseded",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "deferredrecoverysuperseded()"
     },
     {
@@ -2712,8 +2712,8 @@
       "source_location": "L4608",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_usesshadowchromeroot",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "usesshadowchromeroot()"
     },
     {
@@ -2723,8 +2723,8 @@
       "source_location": "L4613",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_setimportantstyle",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "setimportantstyle()"
     },
     {
@@ -2734,8 +2734,8 @@
       "source_location": "L4617",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_initeditbadgehitproxies",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "initeditbadgehitproxies()"
     },
     {
@@ -2745,8 +2745,8 @@
       "source_location": "L4639",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_styleeditbadgeproxy",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "styleeditbadgeproxy()"
     },
     {
@@ -2756,8 +2756,8 @@
       "source_location": "L4665",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_proxymouseevent",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "proxymouseevent()"
     },
     {
@@ -2767,8 +2767,8 @@
       "source_location": "L4687",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_bindeditbadgeproxy",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "bindeditbadgeproxy()"
     },
     {
@@ -2778,8 +2778,8 @@
       "source_location": "L4718",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_editbadgeproxytargets",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "editbadgeproxytargets()"
     },
     {
@@ -2789,8 +2789,8 @@
       "source_location": "L4729",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_synceditbadgehitproxies",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "synceditbadgehitproxies()"
     },
     {
@@ -2800,8 +2800,8 @@
       "source_location": "L4763",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_initeditbadge",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "initeditbadge()"
     },
     {
@@ -2811,8 +2811,8 @@
       "source_location": "L4791",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_positioneditbadge",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 851,
+      "community_name": "syncEditBadgeHitProxies",
       "norm_label": "positioneditbadge()"
     },
     {
@@ -3042,8 +3042,8 @@
       "source_location": "L5145",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_parseoriginalmarkupelement",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "parseoriginalmarkupelement()"
     },
     {
@@ -3053,8 +3053,8 @@
       "source_location": "L5151",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_normalizeelementclassname",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "normalizeelementclassname()"
     },
     {
@@ -3075,8 +3075,8 @@
       "source_location": "L5173",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_isusableinjectionanchor",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "isusableinjectionanchor()"
     },
     {
@@ -3086,8 +3086,8 @@
       "source_location": "L5181",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_elementmatchesoriginalmarkup",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "elementmatchesoriginalmarkup()"
     },
     {
@@ -3097,8 +3097,8 @@
       "source_location": "L5202",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findliveelementfromanchorsnapshot",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findliveelementfromanchorsnapshot()"
     },
     {
@@ -3108,8 +3108,8 @@
       "source_location": "L5225",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findliveelementfororiginalmarkup",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findliveelementfororiginalmarkup()"
     },
     {
@@ -3119,8 +3119,8 @@
       "source_location": "L5265",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_resolveliveinjectionanchor",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "resolveliveinjectionanchor()"
     },
     {
@@ -3427,8 +3427,8 @@
       "source_location": "L5852",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applyoriginalattrstosvelteanchor",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "applyoriginalattrstosvelteanchor()"
     },
     {
@@ -3438,8 +3438,8 @@
       "source_location": "L5867",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_commitacceptedsveltecomponenttodom",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "commitacceptedsveltecomponenttodom()"
     },
     {
@@ -4285,8 +4285,8 @@
       "source_location": "L8007",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_handlemousemove",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "handlemousemove()"
     },
     {
@@ -4692,8 +4692,8 @@
       "source_location": "L9335",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_maybecompleteacceptedsession",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "maybecompleteacceptedsession()"
     },
     {
@@ -4703,8 +4703,8 @@
       "source_location": "L9354",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_scheduleacceptcleanup",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "scheduleacceptcleanup()"
     },
     {
@@ -4736,8 +4736,8 @@
       "source_location": "L9401",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_accepteddomalreadyclean",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "accepteddomalreadyclean()"
     },
     {
@@ -4747,8 +4747,8 @@
       "source_location": "L9408",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_ensureaccepteddomclean",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "ensureaccepteddomclean()"
     },
     {
@@ -4758,8 +4758,8 @@
       "source_location": "L9448",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findacceptedruntimewrappers",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "findacceptedruntimewrappers()"
     },
     {
@@ -4769,8 +4769,8 @@
       "source_location": "L9456",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_restoreaccepteddomfromsnapshot",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "restoreaccepteddomfromsnapshot()"
     },
     {
@@ -4780,8 +4780,8 @@
       "source_location": "L9478",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_reloadaftermissingaccepteddom",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "reloadaftermissingaccepteddom()"
     },
     {
@@ -5077,8 +5077,8 @@
       "source_location": "L9992",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_handledwrapperreloadkey",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "handledwrapperreloadkey()"
     },
     {
@@ -5088,8 +5088,8 @@
       "source_location": "L9996",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_clearhandledwrapperreloadstamp",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "clearhandledwrapperreloadstamp()"
     },
     {
@@ -5099,8 +5099,8 @@
       "source_location": "L10014",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_schedulehandledruntimewrapperreload",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "schedulehandledruntimewrapperreload()"
     },
     {
@@ -5110,8 +5110,8 @@
       "source_location": "L10053",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_watchforhandledruntimewrapper",
-      "community": 661,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 852,
+      "community_name": "showToast",
       "norm_label": "watchforhandledruntimewrapper()"
     },
     {
@@ -5253,8 +5253,8 @@
       "source_location": "L10511",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_pagechatcollapsedwidthpx",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "pagechatcollapsedwidthpx()"
     },
     {
@@ -5264,8 +5264,8 @@
       "source_location": "L10516",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_pagechatexpandedwidth",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "pagechatexpandedwidth()"
     },
     {
@@ -5275,8 +5275,8 @@
       "source_location": "L10526",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_syncpagechatexpandedwidth",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "syncpagechatexpandedwidth()"
     },
     {
@@ -13514,8 +13514,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_console_commands_backfillarchivedocuments",
-      "community": 217,
-      "community_name": "Tests\\TestCase",
+      "community": 536,
+      "community_name": "Illuminate\\Console\\Command",
       "norm_label": "backfillarchivedocuments.php"
     },
     {
@@ -15285,8 +15285,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_jobs_archiveofficialdocument",
-      "community": 217,
-      "community_name": "Tests\\TestCase",
+      "community": 536,
+      "community_name": "Illuminate\\Console\\Command",
       "norm_label": "archiveofficialdocument.php"
     },
     {
@@ -49877,8 +49877,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_package_dependencies_class_variance_authority",
-      "community": 1022,
-      "community_name": "class-variance-authority",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "class-variance-authority"
     },
     {
@@ -49888,8 +49888,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "class_variance_authority",
-      "community": 1022,
-      "community_name": "class-variance-authority",
+      "community": 19,
+      "community_name": "dependencies",
       "norm_label": "class-variance-authority"
     },
     {
@@ -50515,8 +50515,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_package_dependencies_zod",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 1028,
+      "community_name": "zod",
       "norm_label": "zod"
     },
     {
@@ -50526,8 +50526,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_package_json_zod",
-      "community": 19,
-      "community_name": "dependencies",
+      "community": 1028,
+      "community_name": "zod",
       "norm_label": "zod"
     },
     {
@@ -56048,8 +56048,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument",
-      "community": 504,
-      "community_name": "auction-helpers.ts",
+      "community": 524,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "surattugaspemeriksaanpenilaiandocument.tsx"
     },
     {
@@ -56059,8 +56059,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_personlike",
-      "community": 504,
-      "community_name": "auction-helpers.ts",
+      "community": 524,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "personlike"
     },
     {
@@ -56070,8 +56070,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_surattugaspemeriksaanpenilaiandocumentprops",
-      "community": 504,
-      "community_name": "auction-helpers.ts",
+      "community": 524,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "surattugaspemeriksaanpenilaiandocumentprops"
     },
     {
@@ -56081,8 +56081,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_buildnomor",
-      "community": 504,
-      "community_name": "auction-helpers.ts",
+      "community": 524,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "buildnomor()"
     },
     {
@@ -56092,8 +56092,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_surattugaspemeriksaanpenilaiandocument_surattugaspemeriksaanpenilaiandocument",
-      "community": 504,
-      "community_name": "auction-helpers.ts",
+      "community": 524,
+      "community_name": "AuctionDocumentRenderer.tsx",
       "norm_label": "surattugaspemeriksaanpenilaiandocument()"
     },
     {
@@ -56180,8 +56180,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection",
-      "community": 780,
-      "community_name": "BaKoreksiDocument.tsx",
+      "community": 541,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisection.tsx"
     },
     {
@@ -56191,8 +56191,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection_bakoreksisectionprops",
-      "community": 780,
-      "community_name": "BaKoreksiDocument.tsx",
+      "community": 541,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisectionprops"
     },
     {
@@ -56202,8 +56202,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_bakoreksisection_bakoreksisection",
-      "community": 780,
-      "community_name": "BaKoreksiDocument.tsx",
+      "community": 541,
+      "community_name": "SkKepalaBalai",
       "norm_label": "bakoreksisection()"
     },
     {
@@ -56378,8 +56378,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection",
-      "community": 541,
-      "community_name": "SkKepalaBalai",
+      "community": 504,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiansection.tsx"
     },
     {
@@ -56389,8 +56389,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansectionprops",
-      "community": 541,
-      "community_name": "SkKepalaBalai",
+      "community": 504,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiansectionprops"
     },
     {
@@ -56400,8 +56400,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_auction_candidates_components_sections_skpenghentiansection_skpenghentiansection",
-      "community": 541,
-      "community_name": "SkKepalaBalai",
+      "community": 504,
+      "community_name": "auction-helpers.ts",
       "norm_label": "skpenghentiansection()"
     },
     {
@@ -64496,8 +64496,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_penandatangansection_penandatangansection",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "penandatangansection()"
     },
     {
@@ -64507,8 +64507,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "stbuilderpreview.tsx"
     },
     {
@@ -64518,8 +64518,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_halamandivider",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "halamandivider()"
     },
     {
@@ -64529,8 +64529,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_renderheadertitlecontent",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "renderheadertitlecontent()"
     },
     {
@@ -64540,8 +64540,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_employee",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "employee"
     },
     {
@@ -64551,8 +64551,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_dasaritem",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "dasaritem"
     },
     {
@@ -64562,8 +64562,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_previewprops",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "previewprops"
     },
     {
@@ -64573,8 +64573,8 @@
       "source_location": "L153",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stbuilderpreview_stbuilderpreview",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "stbuilderpreview()"
     },
     {
@@ -64606,8 +64606,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_stlampiranbedahari_employeedaterange",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "employeedaterange"
     },
     {
@@ -64947,8 +64947,8 @@
       "source_location": "L419",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_activity_helpers_buildbiayatextfor",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "buildbiayatextfor()"
     },
     {
@@ -65090,8 +65090,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_constants_resolvekopimageurl",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "resolvekopimageurl()"
     },
     {
@@ -65541,8 +65541,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_types_sttemplateconfiguration",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "sttemplateconfiguration"
     },
     {
@@ -65563,8 +65563,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_types_stexpensetemplate",
-      "community": 645,
-      "community_name": "StTemplatesTab.tsx",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "stexpensetemplate"
     },
     {
@@ -65706,8 +65706,8 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_untuk_helpers_todasaritems",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "todasaritems()"
     },
     {
@@ -65750,8 +65750,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_builder_id_page",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "builder/[id]/page.tsx"
     },
     {
@@ -65761,8 +65761,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_builder_id_page_stbuilderpage",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "stbuilderpage()"
     },
     {
@@ -65772,8 +65772,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_create_page",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "surat-tugas/create/page.tsx"
     },
     {
@@ -65783,8 +65783,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_create_page_stcreatepremiumpage",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 796,
+      "community_name": "SuratTugasForm.tsx",
       "norm_label": "stcreatepremiumpage()"
     },
     {
@@ -70436,8 +70436,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_app_surat_tugas_page_surattugasform",
-      "community": 615,
-      "community_name": "SuratTugasDetailStep.tsx",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "surattugasform()"
     },
     {
@@ -72086,8 +72086,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "surattugasletterpreview.tsx"
     },
     {
@@ -72097,8 +72097,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_employee",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "employee"
     },
     {
@@ -72108,8 +72108,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_dasaritem",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "dasaritem"
     },
     {
@@ -72119,8 +72119,8 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_surattugasletterpreviewprops",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "surattugasletterpreviewprops"
     },
     {
@@ -72130,8 +72130,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_surattugaspreviewdata",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "surattugaspreviewdata"
     },
     {
@@ -72141,8 +72141,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_renderheadertitlecontent",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "renderheadertitlecontent()"
     },
     {
@@ -72152,8 +72152,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "frontend_src_components_surattugasletterpreview_surattugasletterpreview",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "surattugasletterpreview()"
     },
     {
@@ -74979,8 +74979,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_numbertowords",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "numbertowords()"
     },
     {
@@ -74990,8 +74990,8 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_indextoletter",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "indextoletter()"
     },
     {
@@ -75001,8 +75001,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_daysbetween",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 615,
+      "community_name": "SuratTugasDetailStep.tsx",
       "norm_label": "daysbetween()"
     },
     {
@@ -75012,8 +75012,8 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_formatnip",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "formatnip()"
     },
     {
@@ -75078,8 +75078,8 @@
       "source_location": "L202",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_isgeneratedfolumenimbangtext",
-      "community": 514,
-      "community_name": "SuratTugasForm",
+      "community": 109,
+      "community_name": "letter-utils.ts",
       "norm_label": "isgeneratedfolumenimbangtext()"
     },
     {
@@ -75089,8 +75089,8 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_renderformatteditalic",
-      "community": 109,
-      "community_name": "letter-utils.ts",
+      "community": 514,
+      "community_name": "SuratTugasForm",
       "norm_label": "renderformatteditalic()"
     },
     {
@@ -85734,8 +85734,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 1023,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -85745,8 +85745,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "expo",
-      "community": 33,
-      "community_name": "dependencies",
+      "community": 1023,
+      "community_name": "expo",
       "norm_label": "expo"
     },
     {
@@ -85910,8 +85910,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_secure_store",
-      "community": 1023,
-      "community_name": "expo-secure-store",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-secure-store"
     },
     {
@@ -85921,8 +85921,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "expo_secure_store",
-      "community": 1023,
-      "community_name": "expo-secure-store",
+      "community": 33,
+      "community_name": "dependencies",
       "norm_label": "expo-secure-store"
     },
     {
@@ -100232,8 +100232,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_ai_and_llm",
-      "community": 803,
-      "community_name": "ATTACK-CLASSES.md",
+      "community": 888,
+      "community_name": "AI, LLM, and Agent Hunting",
       "norm_label": "ai-and-llm.md"
     },
     {
@@ -100617,8 +100617,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_data_isolation_and_lifecycle",
-      "community": 659,
-      "community_name": "Data Isolation and Lifecycle Hunting",
+      "community": 803,
+      "community_name": "ATTACK-CLASSES.md",
       "norm_label": "data-isolation-and-lifecycle.md"
     },
     {
@@ -100859,8 +100859,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_vulnerability_hunting",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "vulnerability hunting"
     },
     {
@@ -100870,8 +100870,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_phase_2_run_coverage_led_hunting_waves",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "phase 2: run coverage-led hunting waves"
     },
     {
@@ -100881,8 +100881,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_required_hunter_prompt",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "required hunter prompt"
     },
     {
@@ -100892,8 +100892,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_core_hunting_method_include_in_every_hunter_prompt",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "core hunting method \u2014 include in every hunter prompt"
     },
     {
@@ -100903,8 +100903,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_promotion_procedure_copy_this_promotion_procedure_verbatim_into_every_hunter_prompt",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "promotion procedure \u2014 copy this promotion procedure verbatim into every hunter prompt"
     },
     {
@@ -100914,8 +100914,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_core_validation_rules_include_in_every_hunter_prompt",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "core validation rules \u2014 include in every hunter prompt"
     },
     {
@@ -100925,8 +100925,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_local_validation_boundaries",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "local validation boundaries"
     },
     {
@@ -100936,8 +100936,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_structured_hunter_result",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "structured hunter result"
     },
     {
@@ -100947,8 +100947,8 @@
       "source_location": "L215",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_parent_consolidation_and_ledger_update",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "parent consolidation and ledger update"
     },
     {
@@ -100958,8 +100958,8 @@
       "source_location": "L221",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_coverage_critic_waves",
-      "community": 851,
-      "community_name": "Vulnerability Hunting",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "coverage-critic waves"
     },
     {
@@ -142813,8 +142813,8 @@
       "source_location": "L1743",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_171_deteksi_otomatis_kota_asal_berdasarkan_satker_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1007,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "progress - phase 171: deteksi otomatis kota asal berdasarkan satker pegawai"
     },
     {
@@ -142824,8 +142824,8 @@
       "source_location": "L1750",
       "_origin": "ast",
       "id": "docs_progress_deteksi_otomatis_kota_asal_default_berdasarkan_penempatan_satker_pegawai",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1007,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "deteksi otomatis kota asal default berdasarkan penempatan satker pegawai"
     },
     {
@@ -142835,8 +142835,8 @@
       "source_location": "L1752",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1752",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1007,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "status: selesai"
     },
     {
@@ -142846,8 +142846,8 @@
       "source_location": "L1764",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1764",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1007,
+      "community_name": "Deteksi Otomatis Kota Asal Default Berdasarkan Penempatan Satker Pegawai",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -143033,8 +143033,8 @@
       "source_location": "L1894",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_166_pengajuan_surat_tugas_baru_3_step_wizard_mobile",
-      "community": 954,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 166: pengajuan surat tugas baru 3-step wizard mobile"
     },
     {
@@ -143044,8 +143044,8 @@
       "source_location": "L1901",
       "_origin": "ast",
       "id": "docs_progress_fitur_pengajuan_surat_tugas_baru_3_step_wizard_mobile_presisi_http_localhost_3000_surat_tugas",
-      "community": 954,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "fitur pengajuan surat tugas baru 3-step wizard mobile presisi `http://localhost:3000/surat-tugas`"
     },
     {
@@ -143055,8 +143055,8 @@
       "source_location": "L1903",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1903",
-      "community": 954,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -143066,8 +143066,8 @@
       "source_location": "L1915",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1915",
-      "community": 954,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -143297,8 +143297,8 @@
       "source_location": "L2052",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_160_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1022,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "progress - phase 160: screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -143308,8 +143308,8 @@
       "source_location": "L2059",
       "_origin": "ast",
       "id": "docs_progress_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1022,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -143319,8 +143319,8 @@
       "source_location": "L2061",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2061",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1022,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "status: selesai"
     },
     {
@@ -143330,8 +143330,8 @@
       "source_location": "L2081",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2081",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 1022,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -163526,8 +163526,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_pengujian_ui_ux_dan_alur_surat_tugas",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "pengujian ui/ux dan alur surat tugas"
     },
     {
@@ -163537,8 +163537,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_1_apa_yang_dimaksud_pengujian_lengkap",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "1. apa yang dimaksud pengujian lengkap?"
     },
     {
@@ -163548,8 +163548,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_2_lingkungan_dan_batas_keselamatan",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "2. lingkungan dan batas keselamatan"
     },
     {
@@ -163559,8 +163559,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_3_alur_aktual_aplikasi",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "3. alur aktual aplikasi"
     },
     {
@@ -163570,8 +163570,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_4_hasil_browser_e2e_yang_dijalankan",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "4. hasil browser e2e yang dijalankan"
     },
     {
@@ -163581,8 +163581,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_5_unit_dan_feature_test_yang_benar_benar_dijalankan_ulang",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "5. unit dan feature test yang benar-benar dijalankan ulang"
     },
     {
@@ -163592,8 +163592,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_6_ui_ux_pemeriksaan_langsung_dan_temuan",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "6. ui/ux: pemeriksaan langsung dan temuan"
     },
     {
@@ -163603,8 +163603,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_hasil_yang_diamati_pada_browser",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "hasil yang diamati pada browser"
     },
     {
@@ -163614,8 +163614,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_risiko_berdasarkan_pemeriksaan_source_belum_direproduksi_browser_pada_sesi_ini",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "risiko berdasarkan pemeriksaan source, belum direproduksi browser pada sesi ini"
     },
     {
@@ -163625,8 +163625,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_7_cara_menjalankan_ulang_browser_e2e",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "7. cara menjalankan ulang browser e2e"
     },
     {
@@ -163636,8 +163636,8 @@
       "source_location": "L176",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_8_matriks_lanjutan_sebelum_sign_off_penuh",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "8. matriks lanjutan sebelum sign-off penuh"
     },
     {
@@ -163647,8 +163647,8 @@
       "source_location": "L199",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_9_catatan_tentang_suite_playwright_sebelumnya",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 661,
+      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
       "norm_label": "9. catatan tentang suite playwright sebelumnya"
     },
     {
@@ -166716,8 +166716,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tatanaskahdinas_lampiran_peraturan_menteri_kehutanan_republik_indonesia",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 954,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "lampiran peraturan menteri kehutanan republik indonesia"
     },
     {
@@ -166727,8 +166727,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "tatanaskahdinas_nomor_1_tahun_2025",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 954,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "nomor 1 tahun 2025"
     },
     {
@@ -166738,8 +166738,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "tatanaskahdinas_tentang_tata_naskah_dinas_kementerian_kehutanan",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 954,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "tentang tata naskah dinas kementerian kehutanan"
     },
     {
@@ -166749,8 +166749,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tatanaskahdinas_daftar_isi",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 954,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "daftar isi"
     },
     {
@@ -166760,8 +166760,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "tatanaskahdinas_sistematika_lampiran",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 954,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "sistematika lampiran"
     },
     {
@@ -168619,8 +168619,8 @@
       "source_location": "L4963",
       "_origin": "ast",
       "id": "tatanaskahdinas_bab_iii_pengamanan_naskah_dinas_4963",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "bab iii pengamanan naskah dinas"
     },
     {
@@ -168630,8 +168630,8 @@
       "source_location": "L4966",
       "_origin": "ast",
       "id": "tatanaskahdinas_a_penggunaan_amplop_4966",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "a. penggunaan amplop"
     },
     {
@@ -168641,8 +168641,8 @@
       "source_location": "L4995",
       "_origin": "ast",
       "id": "tatanaskahdinas_b_metode_security_printing_4995",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "b. metode security printing"
     },
     {
@@ -168652,8 +168652,8 @@
       "source_location": "L5014",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_rosettes_guilloche_relief_pattern",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan rosettes, guilloche, relief pattern"
     },
     {
@@ -168663,8 +168663,8 @@
       "source_location": "L5055",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_anticopy_rainbow_printing",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan anticopy, rainbow printing"
     },
     {
@@ -168674,8 +168674,8 @@
       "source_location": "L5079",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_microtext_hidden_image",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan microtext, hidden image"
     },
     {
@@ -168685,8 +168685,8 @@
       "source_location": "L5119",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_barcode_2d_qr_code_invisible_ink",
-      "community": 1007,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan barcode 2d / qr code, invisible ink"
     },
     {
@@ -350759,7 +350759,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L636",
+      "source_location": "L637",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -355319,7 +355319,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L654",
+      "source_location": "L655",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -355356,7 +355356,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L637",
+      "source_location": "L638",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -355368,7 +355368,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L670",
+      "source_location": "L671",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -500453,5 +500453,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "255539bd66bd4fed79228e8a39bd61b0b132781f"
+  "built_at_commit": "06633dc5282bcd3a63aea81d48ebc7fab20b2bd5"
 }

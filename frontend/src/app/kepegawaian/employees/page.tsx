@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
+import { EmployeeLifecycleModal } from "./_components/EmployeeLifecycleModal";
 import { useRole } from "@/hooks/useRole";
 import { motion, AnimatePresence } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
@@ -105,6 +106,7 @@ export default function EmployeeListPage() {
   } | null>(null);
   const [accessSheetOpen, setAccessSheetOpen] = useState(false);
   const accessTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [lifecycleEmployee, setLifecycleEmployee] = useState<Employee | null>(null);
 
   const confirm = useConfirm();
   const [restoringId, setRestoringId] = useState<string | null>(null);
@@ -762,6 +764,17 @@ export default function EmployeeListPage() {
                               >
                                 <Eye className="w-4 h-4" />
                               </Link>
+                              {canWrite && !emp.is_active && (
+                                <button
+                                  type="button"
+                                  onClick={() => setLifecycleEmployee(emp)}
+                                  title="Aktifkan Kembali Pegawai"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] rounded-xl text-[var(--ds-status-success-fg)] text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                  <UserCheck className="w-3.5 h-3.5" />
+                                  <span>Aktifkan</span>
+                                </button>
+                              )}
                               {canManageAccess && (
                                 <button
                                   type="button"
@@ -853,6 +866,16 @@ export default function EmployeeListPage() {
           open={accessSheetOpen}
           returnFocusRef={accessTriggerRef}
           onOpenChange={setAccessSheetOpen}
+        />
+      )}
+
+      {canWrite && lifecycleEmployee && (
+        <EmployeeLifecycleModal
+          employee={lifecycleEmployee}
+          open
+          onOpenChange={(open) => {
+            if (!open) setLifecycleEmployee(null);
+          }}
         />
       )}
     </div>
