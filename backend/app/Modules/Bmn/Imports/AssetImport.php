@@ -14,6 +14,9 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
 {
     private int $imported = 0;
 
+    /** @var array<int, array<int, Asset>> */
+    private array $assignedByEmployee = [];
+
     public function model(array $row)
     {
         // Map Excel headers (snake_case from WithHeadingRow) to DB columns
@@ -32,7 +35,7 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
 
         $this->imported++;
 
-        return new Asset([
+        $asset = new Asset([
             'id' => (string) Str::uuid(),
             'jenis_bmn' => $row['jenis_bmn'] ?? null,
             'kode_satker' => $row['kode_satker'] ?? null,
@@ -121,6 +124,12 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'foto_geotag_url' => $this->extractUrl($row['foto_ber-geotag'] ?? ($row['foto_bergeotag'] ?? ($row['foto_ber_geotag'] ?? null))),
             'tahun_perolehan' => $this->extractYear($row['tanggal_perolehan'] ?? null),
         ]);
+
+        if ($asset->employee_id) {
+            $this->assignedByEmployee[(int) $asset->employee_id][] = $asset;
+        }
+
+        return $asset;
     }
 
     public function batchSize(): int
@@ -136,6 +145,12 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
     public function getImportedCount(): int
     {
         return $this->imported;
+    }
+
+    /** @return array<int, array<int, Asset>> */
+    public function getAssignedByEmployee(): array
+    {
+        return $this->assignedByEmployee;
     }
 
     private function toDate($value): ?string

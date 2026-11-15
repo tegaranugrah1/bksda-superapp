@@ -122,10 +122,39 @@ class DashboardController extends Controller
             ->get()
             ->map($mapVehicle);
 
+        $platExpiringSoon = Asset::where('jenis_bmn', 'ALAT ANGKUTAN BERMOTOR')
+            ->whereNotNull('tanggal_ganti_plat')
+            ->where('tanggal_ganti_plat', '>=', $today)
+            ->where('tanggal_ganti_plat', '<=', $thirtyDaysLater)
+            ->select('id', 'nama_barang', 'kode_barang', 'nup', 'merk', 'no_polisi', 'tanggal_ganti_plat')
+            ->get()
+            ->map($mapVehicle);
+
+        $overdueLoans = AssetLoan::with(['asset:id,nama_barang,kode_barang', 'borrower:id,nama_lengkap'])
+            ->where(function ($q) use ($today) {
+                $q->where('status', 'terlambat')
+                    ->orWhere(function ($q2) use ($today) {
+                        $q2->where('status', 'dipinjam')
+                            ->whereNotNull('due_date')
+                            ->where('due_date', '<', $today);
+                    });
+            })
+            ->orderBy('due_date')
+            ->limit(10)
+            ->get()
+            ->map(fn ($loan) => [
+                'id' => (string) $loan->id,
+                'asset_id' => (string) $loan->asset_id,
+                'asset' => $loan->asset?->nama_barang,
+                'borrower' => $loan->borrower?->nama_lengkap,
+                'due_date' => $loan->due_date?->toDateString(),
+            ]);
+
         return response()->json([
             'total_asset' => $totalAsset,
             'total_asset_value' => (float) $totalAssetValue,
             'active_loans_count' => $activeLoansCount,
+            'overdue_loans' => $overdueLoans,
             'asset_by_condition' => $assetByCondition,
             'asset_by_jenis' => $assetByJenis,
             'asset_by_lokasi' => $assetByLokasi,
@@ -134,6 +163,7 @@ class DashboardController extends Controller
                 'expired' => $stnkExpired,
                 'expiring_soon' => $stnkExpiringSoon,
                 'plat_expired' => $platExpired,
+                'plat_expiring_soon' => $platExpiringSoon,
             ],
         ]);
     }

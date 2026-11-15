@@ -69,6 +69,9 @@ class LoanService
                 if ($asset->loans()->active()->exists()) {
                     throw new Exception("Aset '{$asset->nama_barang}' sedang dalam peminjaman aktif.");
                 }
+                if ($asset->employee_id !== null) {
+                    throw new Exception("Aset '{$asset->nama_barang}' masih tercatat di bawah tanggung jawab pegawai lain.");
+                }
 
                 $loanData = [
                     'asset_id' => $asset->id,
@@ -195,15 +198,54 @@ class LoanService
                 throw new Exception('Tanggal batas kembali (due date) tidak boleh mendahului tanggal peminjaman.');
             }
 
+            $reassignedFrom = null;
+            $reassignedTo = null;
+            $asset = null;
+
             if (array_key_exists('employee_id', $updateData) && (int) $updateData['employee_id'] !== (int) $loan->employee_id) {
                 $asset = Asset::lockForUpdate()->findOrFail($loan->asset_id);
                 if ((int) $asset->employee_id !== (int) $loan->employee_id) {
                     throw new Exception('Penanggung jawab aset sudah berubah. Periksa peminjaman yang masih berlaku.');
                 }
-                $asset->update(['employee_id' => $updateData['employee_id']]);
+                $reassignedFrom = (int) $loan->employee_id;
+                $reassignedTo = (int) $updateData['employee_id'];
+                $asset->update(['employee_id' => $reassignedTo]);
             }
             $loan->update($updateData);
             $loan->load(['asset', 'borrower']);
+
+            if ($reassignedFrom && $reassignedTo && $asset) {
+                $notifier = app(\App\Services\PortalNotificationService::class);
+                $notifier->notifyEmployee(
+                    $reassignedFrom,
+                    'Pengalihan Peminjaman Aset BMN',
+                    "Peminjaman aset {$asset->nama_barang}".($asset->kode_barang ? " ({$asset->kode_barang})" : '').' atas nama Anda telah dialihkan.',
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    [
+                        'asset_id' => $asset->id,
+                        'loan_id' => $loan->id,
+                        'availability' => 'unavailable',
+                        'status' => 'removed',
+                        'event' => 'loan_reassigned',
+                    ]
+                );
+                $notifier->notifyEmployee(
+                    $reassignedTo,
+                    'Peminjaman Aset BMN',
+                    "Aset {$asset->nama_barang}".($asset->kode_barang ? " ({$asset->kode_barang})" : '').' telah dicatat dipinjamkan kepada Anda.',
+                    'bmn',
+                    'pinjaman',
+                    (string) $loan->id,
+                    ['asset_id' => $asset->id, 'loan_id' => $loan->id]
+                );
+                try {
+                    event(new \App\Events\AdminInboxChanged('bmn', 'loan_updated', (string) $loan->id));
+                } catch (\Throwable $e) {
+                    // Ignore background failure
+                }
+            }
 
             return $loan;
         });
@@ -271,15 +313,37 @@ class LoanService
         DB::transaction(function () use ($loanId) {
             $loan = AssetLoan::lockForUpdate()->findOrFail($loanId);
 
-            // If still active, release the asset
+            // If still active, release the asset only when this loan still owns it.
             if (in_array($loan->status, ['dipinjam', 'terlambat'])) {
                 $asset = Asset::lockForUpdate()->find($loan->asset_id);
-                if ($asset && $asset->employee_id == $loan->employee_id) {
+                if ($asset && (int) $asset->employee_id === (int) $loan->employee_id) {
                     $asset->update(['employee_id' => null]);
+                    app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                        $loan->employee_id,
+                        'Pembatalan Peminjaman Aset BMN',
+                        "Catatan peminjaman aset {$asset->nama_barang} telah dibatalkan/dihapus.",
+                        'bmn',
+                        'pinjaman',
+                        (string) $loan->id,
+                        [
+                            'asset_id' => $asset->id,
+                            'loan_id' => $loan->id,
+                            'availability' => 'unavailable',
+                            'status' => 'removed',
+                            'event' => 'loan_deleted',
+                        ]
+                    );
                 }
             }
 
+            $loanIdCopy = (string) $loan->id;
             $loan->delete();
+
+            try {
+                event(new \App\Events\AdminInboxChanged('bmn', 'loan_deleted', $loanIdCopy));
+            } catch (\Throwable $e) {
+                // Ignore background failure
+            }
         });
     }
 }

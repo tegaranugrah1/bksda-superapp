@@ -30,6 +30,7 @@ export default function BorrowAssetModal({ isOpen, onClose, assetId, assetName }
             await api.post(`/bmn/assets/${assetId}/loans`, { employee_id: employeeId, tanggal_pinjam: tanggal, keterangan });
             toast.success("Kontrak peminjaman aset berhasil disahkan.");
             queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+            queryClient.invalidateQueries({ queryKey: ["bmn-asset", assetId] });
             onClose();
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
@@ -55,10 +56,10 @@ export default function BorrowAssetModal({ isOpen, onClose, assetId, assetName }
                         <strong className="text-emerald-400 font-mono block truncate">{assetName}</strong>
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-zinc-400 uppercase">UUID Pegawai Peminjam <span className="text-red-500">*</span></label>
+                        <label className="text-xs font-bold text-zinc-400 uppercase">ID Pegawai Peminjam <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-                            <input type="text" required value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} placeholder="UUID Pegawai..." className="w-full bg-black border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-1 focus:ring-emerald-500 outline-none text-sm" />
+                            <input type="text" required value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} placeholder="ID Pegawai..." className="w-full bg-black border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-1 focus:ring-emerald-500 outline-none text-sm" />
                         </div>
                     </div>
                     <div className="space-y-1.5">

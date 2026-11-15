@@ -98,6 +98,7 @@ interface MyAssetsTabProps {
   filteredMyAssets: AssetItem[];
   assetViewMode: "list" | "grid";
   setAssetViewMode: (mode: "list" | "grid") => void;
+  highlightedId?: string | null;
 }
 
 export function AssetPhotoLightbox({
@@ -251,9 +252,16 @@ export function MyAssetsTab({
   filteredMyAssets,
   assetViewMode,
   setAssetViewMode,
+  highlightedId,
 }: MyAssetsTabProps) {
   const [failedImgMap, setFailedImgMap] = useState<Record<string, boolean>>({});
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null);
+
+  useEffect(() => {
+    if (!highlightedId) return;
+    const el = document.querySelector(`[data-highlight-id="${CSS.escape(String(highlightedId))}"]`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedId, filteredMyAssets.length, assetViewMode]);
 
   const handleAssetClick = (asset: AssetItem) => {
     const photos = getAssetPhotos(asset);
@@ -336,12 +344,17 @@ export function MyAssetsTab({
             const thumbUrl = primaryPhoto?.url ?? null;
             const hasThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
+            const isHighlighted = Boolean(highlightedId && String(asset.id) === String(highlightedId));
 
             return (
               <div
                 key={`my-${asset.id}`}
+                data-highlight-id={String(asset.id)}
                 onClick={() => handleAssetClick(asset)}
-                className="p-4 hover:bg-slate-50/80 dark:hover:bg-zinc-800/60 transition-all flex items-center justify-between gap-4 cursor-pointer group"
+                className={cn(
+                  "p-4 hover:bg-slate-50/80 dark:hover:bg-zinc-800/60 transition-all flex items-center justify-between gap-4 cursor-pointer group",
+                  isHighlighted && "ring-2 ring-inset ring-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30"
+                )}
                 title={photos.length > 0 ? "Klik untuk melihat foto dokumentasi" : "Belum ada foto"}
               >
                 <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -425,12 +438,17 @@ export function MyAssetsTab({
             const thumbUrl = primaryPhoto?.url ?? null;
             const hasValidThumb = Boolean(thumbUrl && (thumbUrl.startsWith("http") || thumbUrl.startsWith("/")) && !failedImgMap[`${asset.id}-${primaryPhoto?.key || "thumb"}`]);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
+            const isHighlighted = Boolean(highlightedId && String(asset.id) === String(highlightedId));
 
             return (
               <div
                 key={`my-grid-${asset.id}`}
+                data-highlight-id={String(asset.id)}
                 onClick={() => handleAssetClick(asset)}
-                className="bg-white dark:bg-slate-900/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden hover:shadow-md hover:border-[#1e5433]/40 dark:hover:border-emerald-700/50 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group"
+                className={cn(
+                  "bg-white dark:bg-slate-900/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden hover:shadow-md hover:border-[#1e5433]/40 dark:hover:border-emerald-700/50 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group",
+                  isHighlighted && "ring-2 ring-emerald-500 border-emerald-500 shadow-md"
+                )}
                 title={photos.length > 0 ? "Klik untuk melihat foto dokumentasi" : "Belum ada foto"}
               >
                 {/* Photo Container */}

@@ -102,6 +102,7 @@ class StoreAssetRequest extends FormRequest
             'tanggal_pajak_stnk' => ['nullable', 'date'],
             'tanggal_ganti_plat' => ['nullable', 'date'],
             'nama_pengguna' => ['nullable', 'string'],
+            'employee_id' => ['nullable', 'integer', 'exists:kpg_employees,id'],
             'status_pmk' => ['nullable', 'string'],
             'status_foto_geotag' => ['nullable', 'string'],
             'foto_geotag_url' => ['nullable', 'string'],

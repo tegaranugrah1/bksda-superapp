@@ -203,16 +203,18 @@ function AssetDetail({ assetId }: { assetId: string }) {
         }
       });
 
-      if (payload.pengguna && payload.pengguna !== asset.pengguna) {
+      if ("pengguna" in payload && !("nama_pengguna" in payload)) {
         payload.nama_pengguna = payload.pengguna;
       }
-      if (payload.nama_pengguna && payload.nama_pengguna !== asset.nama_pengguna) {
+      if ("nama_pengguna" in payload && !("pengguna" in payload)) {
         payload.pengguna = payload.nama_pengguna;
       }
 
       if ("pengguna" in payload || "nama_pengguna" in payload) {
-        const empName = payload.pengguna || payload.nama_pengguna;
+        const empName = String(payload.pengguna ?? payload.nama_pengguna ?? "").trim();
         if (!empName) {
+          payload.pengguna = null;
+          payload.nama_pengguna = null;
           payload.employee_id = null;
         } else {
           const matched = employees.find(
@@ -1141,6 +1143,13 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   isEditMode={isEditMode}
                   employees={employees}
                 />
+                {!isEditMode && (currentData.employee_id || currentData.pengguna || currentData.nama_pengguna) && (
+                  <div className="pt-1 flex items-center justify-end">
+                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border", currentData.employee_id ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800")}>
+                      {currentData.employee_id ? "Tertaut akun pegawai (notifikasi aktif)" : "Belum tertaut akun pegawai (notifikasi Portal tidak terkirim)"}
+                    </span>
+                  </div>
+                )}
               </DetailSection>
             )}
 

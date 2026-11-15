@@ -12,3 +12,4 @@ Illuminate\Support\Facades\Schedule::command('app:monitor-health')->everyFiveMin
 Illuminate\Support\Facades\Schedule::command('drive:cleanup-uploads')->hourly()->withoutOverlapping();
 Illuminate\Support\Facades\Schedule::command('drive:purge-trash')->dailyAt('02:00')->withoutOverlapping();
 Illuminate\Support\Facades\Schedule::command('employee:apply-lifecycle')->dailyAt('00:01')->withoutOverlapping();
+Illuminate\Support\Facades\Schedule::command('bmn:notify-deadlines')->dailyAt('07:30')->withoutOverlapping();

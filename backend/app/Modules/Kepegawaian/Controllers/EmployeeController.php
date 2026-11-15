@@ -379,6 +379,8 @@ class EmployeeController extends Controller
             $user->tokens()->delete();
         }
 
+        app(\App\Modules\Bmn\Services\AssetService::class)->notifyEmployeeBmnClearance($employee, 'penghapusan data pegawai');
+
         return response()->json([
             'message' => 'Data pegawai berhasil dihapus (soft delete).',
         ]);

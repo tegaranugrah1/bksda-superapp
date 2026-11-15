@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useRole } from "@/hooks/useRole";
+import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import { ReturnLoanModal } from "./_components/ReturnLoanModal";
 
 interface Loan {
@@ -63,6 +64,9 @@ export default function LoansPage() {
     const statusId = useId();
     const dialogOpener = useRef<HTMLElement | null>(null);
     const queryClient = useQueryClient();
+    useAdminInboxLive("bmn", () => {
+        void queryClient.invalidateQueries({ queryKey: ["bmn-loans"] });
+    });
     const { hasPermission, canWrite, isAdmin } = useRole();
     const canManage = canWrite || isAdmin || hasPermission("bmn.asset.update");
     const [page, setPage] = useState(1);

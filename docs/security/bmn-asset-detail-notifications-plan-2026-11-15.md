@@ -1,0 +1,196 @@
+# Rencana Implementasi & Evaluasi Objektif: Notifikasi Detail BMN dan Aset Pegawai
+
+**Tanggal:** 2026-11-15
+**Status:** Rencana Desain & Audit Cakupan File (Belum Diimplementasikan ke Kode Produksi)
+**Prinsip Rujukan:** `/ponytail` (YAGNI, perbaikan satu sumber di root cause, diff minimal) & `/security-audit` (anti-IDOR, privasi alasan internal/pengganti, *after-commit broadcast*, anti-spam deduplication)
+
+---
+
+## 1. Tujuan & Batasan Scope
+
+Dokumen ini merancang notifikasi terkait **Detail Aset BMN** (perubahan penanggung jawab/`Pengguna`, penghapusan/pemutihan aset sebelum *revoke*, lelang, STNK/plat, kondisi/pemeliharaan, dan peminjaman terlambat) agar tersampaikan ke **Pegawai** (melalui Portal `/portal` tab `aset` dan `pinjaman`) maupun **Admin BMN** secara konsisten di **Backend (BE)** dan **Frontend (FE)**.
+
+Prinsip seleksi skenario (**YAGNI / Anti-Noise**):
+- **Notifikasikan** hanya kejadian yang mengubah tanggung jawab hukum/operasional pegawai, menghilangkan akses aset milik pegawai, mengubah status kelaikan/peminjaman, atau mendekati tenggat administratif (STNK, ganti plat, *due date* peminjaman).
+- **Jangan notifikasikan** perubahan atribut administratif minor (koreksi tipografi nama barang/merk, NUP lama, koordinat geotag, tag pencarian, atau edit nilai mutasi rutin), karena sudah tercatat pada tabel riwayat `AssetUpdate`.
+
+---
+
+## 2. Skenario Notifikasi Detail BMN
+
+### Kelompok A — Kepemilikan (`employee_id` / `pengguna`) & Siklus Hidup Aset
+| Kode | Skenario | Penerima | Perilaku yang Diharapkan | Flag Security / Data |
+|---|---|---|---|---|
+| `BMN-A1` | Penetapan Pemegang Baru (`null` → Pegawai B) | Pegawai B | Notifikasi penetapan penanggung jawab aset; klik membuka tab `aset` di Portal dan menyorot aset terkait. | `type: 'bmn'`, `action_tab: 'aset'`, `reference_id: $asset->id` |
+| `BMN-A2` | Penggantian Pegawai (Pegawai A → Pegawai B) | Pegawai A (lama) & Pegawai B (baru) | Pegawai A mendapat pemberitahuan pengalihan tanggung jawab; Pegawai B mendapat pemberitahuan penetapan baru. | **Anti-Leak:** Pesan ke Pegawai A **tidak boleh** memuat nama Pegawai B maupun catatan `alasan_perubahan` / `keterangan_audit` internal. Untuk Pegawai A gunakan `data.availability = 'unavailable'`, `data.status = 'removed'` agar FE memblokir klik detail stale `reference_id`. |
+| `BMN-A3` | Pencabutan / Pelepasan Pemegang (Pegawai A → `null`) | Pegawai A | Notifikasi bahwa tanggung jawab penggunaan aset telah dihentikan/dilepas. | `data: ['availability' => 'unavailable', 'status' => 'removed', 'asset_id' => $asset->id]` |
+| `BMN-A4` | Penghapusan / Pemutihan Aset Sebelum *Revoke* (`disposeAsset`, `bulkDispose`, Realisasi Lelang Terjual, `bulkForceDelete`) | Pemegang terakhir (`employee_id`) | Karena `Asset` memakai `SoftDeletes`, aset langsung hilang dari `/api/me/assets`. Pemegang wajib diberi tahu bahwa aset dihapus/dimutihkan dari daftar tanggung jawabnya (alih-alih menghilang diam-diam). | **Anti-Leak & Anti-Broken-Ref:** Jangan kirim alasan penghapusan internal jika sensitif; set `data.availability = 'trashed'` (atau `'unavailable'`), `data.status = 'removed'`. Jika batch > N aset untuk pegawai yang sama pada `bulkDispose`/`bulkForceDelete`, rangkum menjadi 1 notifikasi per pegawai agar tidak spam. |
+| `BMN-A5` | Pemulihan Aset Terhapus (`bulkRestore` / Restore via `ImportReviewController` / Tidak Laku Lelang di `AuctionBatchService::realize`) | Pemegang aktif pada aset (`employee_id`) | Jika aset dipulihkan kembali ke status aktif dan masih tercatat atas nama pegawai, kirim pemberitahuan bahwa aset kembali aktif pada daftar asetnya. | `action_tab: 'aset'`, `reference_id: $asset->id` |
+| `BMN-A6` | Pembekuan untuk Lelang (`AuctionBatchService::transition` ke `DIAJUKAN`, `henti_guna = true`) | Pemegang aktif (`employee_id`) | Pemberitahuan bahwa aset dibekukan sementara dari penggunaan dinas karena proses pengajuan lelang. | Info status netral tanpa membocorkan nilai taksiran internal bila belum publik. |
+
+### Kelompok B — Kepatuhan Tanggal & Peminjaman (Scheduler Harian)
+| Kode | Skenario | Penerima | Jadwal / Trigger | Catatan Teknis |
+|---|---|---|---|---|
+| `BMN-B1` | Pengingat Pajak STNK (`tanggal_pajak_stnk`) & Ganti Plat 5 Tahunan (`tanggal_ganti_plat`) | Pemegang (`employee_id`) + Admin BMN (atau khusus Admin BMN jika `employee_id == null`) | Command harian di `routes/console.php` untuk ambang `H-30`, `H-7`, `H-0`, dan `Overdue` (berkala mingguan / sekali saat baru melewati jatuh tempo). | Wajib deduplikasi (`event_key` mis. `stnk_h7_YYYY-MM-DD` pada `data` atau cache/window) agar eksekusi ulang command di hari yang sama tidak mengirim notifikasi ganda. Admin BMN diarahkan via `data.link: '/bmn'`, sedangkan Pegawai ke `action_tab: 'aset'` (tanpa `data.link`). |
+| `BMN-B2` | Peminjaman Aktif Mendekati / Melewati `due_date` (`AssetLoan`) | Peminjam (`employee_id`) + Admin BMN | Command harian mempromosikan `dipinjam` → `terlambat` secara proaktif (tidak menunggu ada admin membuka `GET /api/bmn/loans`) lalu mengirim notifikasi `H-3`/`H-1` dan saat berstatus `terlambat`. | Pegawai: `action_tab: 'pinjaman'`, `reference_id: $loan->id`; Admin BMN: `AdminInboxChanged('bmn', 'loan_overdue', $loan->id)` + `notifyAdmins` dengan `data.link: '/bmn'`. |
+| `BMN-B3` | Perubahan Peminjam atau Penghapusan Peminjaman Aktif (`LoanService::updateLoan`, `LoanService::deleteLoan`) | Peminjam lama & peminjam baru | Saat peminjam diganti pada pinjaman aktif atau data pinjaman aktif dihapus, beritahu pihak terkait (dan lepas peminjam lama). | Saat ini `updateLoan` (baris 198-205) dan `deleteLoan` (baris 275-282) mengubah `asset.employee_id` **tanpa notifikasi sama sekali**. |
+
+### Kelompok C — Kondisi Kritis & Pemeliharaan
+| Kode | Skenario | Penerima | Trigger | Catatan |
+|---|---|---|---|---|
+| `BMN-C1` | Perubahan Kondisi ke `Rusak Berat` (via `AssetService::updateAsset`, `AssetController::bulkUpdateKondisi`, atau `MaintenanceService::recordMaintenance`) | Admin BMN (`data.link: '/bmn'`) & Pemegang (`employee_id`, `action_tab: 'aset'`) | Ketika `kondisi` berubah ke `Rusak Berat` (penurunan kondisi material). | Perubahan ke `Rusak Berat` berimplikasi pada kandidat penghapusan/lelang (`/bmn/auction-candidates`). Tidak perlu notifikasi ke pegawai untuk servis rutin minor jika kondisi tetap `Baik`. |
+
+---
+
+## 3. Evaluasi Objektif Cakupan File (Backend vs Frontend)
+
+> **Kesimpulan Evaluasi Objektif:**
+> Rencana awal yang hanya menyebut `AssetService`, `LoanService`, `MaintenanceService`, satu scheduled command, lalu mengasumsikan `NotificationBell` & `/portal` tab `'aset'` di FE sudah cukup, **TIDAK MENCAKUP seluruh file yang terlibat** — baik di **Backend** maupun di **Frontend**. Berikut temuan objektif berdasarkan verifikasi langsung terhadap isi berkas saat ini.
+
+### A. Celah di Backend (*Sibling Callers* yang Mem-bypass `AssetService`)
+Jika notifikasi hanya dipasang pada `AssetService::updateAsset()` dan `AssetService::disposeAsset()`, maka **5 jalur mutasi BE lain** tetap mengubah `employee_id`, `pengguna`, atau menghapus/merestorasi `Asset` secara diam-diam:
+
+1. **Operasi Massal Controller (`backend/app/Modules/Bmn/Controllers/AssetController.php`):**
+   - `bulkDispose()` (baris 165–173) menjalankan `Asset::whereIn('id', $request->ids)->delete()` secara langsung (*mass query update*) sehingga mem-bypass `AssetService::disposeAsset()`, tidak mencatat `AssetUpdate`, dan tidak memuat model/pemegang aset sebelum terhapus.
+   - `bulkRestore()` (baris 175–183) memanggil `Asset::onlyTrashed()->whereIn(...)->restore()` tanpa notifikasi ke pemegang.
+   - `bulkForceDelete()` (baris 185–197) memanggil `$asset->forceDelete()` pada aset trashed tanpa notifikasi (jika pemegang masih tercatat).
+   - `bulkUpdateKondisi()` (baris 199–226) mengubah kolom `kondisi` lewat query builder `Asset::whereIn(...)->update(...)` dengan mencatat `AssetUpdate`, tetapi melewati `AssetService::updateAsset()`.
+2. **Alur Import Review SIMAN (`backend/app/Modules/Bmn/Controllers/ImportReviewController.php` & `backend/app/Modules/Bmn/Imports/AssetStagingImport.php` / `AssetImport.php`):**
+   - `ImportReviewController::approve()` memiliki **dua cabang restore/update**: cabang `diff_status === 'new'` (baris 316–322) bisa menemukan aset soft-deleted berdasarkan `kode_barang + nup` lalu `$existing->restore()` + `$existing->update($data)` tanpa mencatat `AssetUpdate`; cabang `diff_status === 'updated'` (baris 333–364) melakukan `$asset->restore()` + `$asset->update($updateData)` dengan `$changedFields` dari `AssetStagingImport` (termasuk key sintetis `'_restore'` di baris 59).
+   - Pada `AssetStagingImport` (baris 22), `employee_id` termasuk `SKIP_FIELDS`; resolusi `employee_id` terjadi secara implisit di hook `Asset::booted()` (`static::saving`), sehingga deteksi perubahan pemilik di `approve()` **wajib membandingkan `$beforeEmployeeId` vs `$asset->fresh()->employee_id` pada kedua cabang**, bukan sekadar mengecek isi `$updateData`.
+   - `AssetController::import()` memanggil `Excel::import(new AssetImport, ...)` (memakai `WithBatchInserts`, melewati model event `Asset::saving`, sambil mengonversi nama ke `employee_id` langsung di `AssetImport.php` baris 116–119) juga di luar `AssetService`.
+3. **Alur Lelang (`backend/app/Modules/Bmn/Services/AuctionBatchService.php`):**
+   - `transition()` ke `DIAJUKAN` (baris 571–598) membekukan aset (`henti_guna = true`, `status_penggunaan = 'Dihentikan dari Penggunaan Dinas'`) langsung lewat `$asset->save()`.
+   - `realize()` (baris 884–922) sudah memanggil `$this->assetService->disposeAsset(...)` untuk aset terjual, sedangkan aset tidak laku (*unsold*) dipulihkan lewat `restoreFromFreezeSnapshot()`.
+   - `cancel()` (baris 945–986) saat batch dibatalkan ke status `BATAL` juga memanggil `restoreFromFreezeSnapshot()` (baris 963) untuk melepaskan pembekuan `henti_guna` — jalur ketiga ini pun belum mengirim notifikasi pemulihan ke pemegang aset aktif.
+4. **Mutasi Peminjaman Non-Create/Return (`backend/app/Modules/Bmn/Services/LoanService.php`):**
+   - Saat ini hanya `createLoan()`, `borrowAsset()`, dan `returnAsset()` yang memanggil `PortalNotificationService::notifyEmployee()`.
+   - `updateLoan()` (baris 186–205) dapat mengganti `employee_id` aset ketika peminjam diganti, dan `deleteLoan()` (baris 275–282) melepaskan `employee_id = null` dari aset yang masih dipinjam — keduanya belum mengirim notifikasi dan belum memancarkan `AdminInboxChanged('bmn', ...)`.
+   - `listLoans()` (baris 21–24) baru mengubah status `'dipinjam'` → `'terlambat'` secara pasif saat ada GET request; belum ada command terjadwal di `backend/routes/console.php`.
+5. **Pembuatan Aset Baru dengan Pemegang Langsung (`AssetService::storeAsset`):**
+   - `storeAsset()` (baris 11–16) hanya menjalankan `Asset::create($data)` (event `Asset::saving` mengisi `employee_id` jika `pengguna` diisi), tanpa notifikasi penetapan awal kepada pegawai.
+
+### B. Celah & Keputusan Desain di Frontend (Jika Hanya Mengandalkan FE Saat Ini)
+Memperbaiki BE saja **tidak cukup** untuk memberikan alur notifikasi yang utuh di FE karena 4 temuan kondisi kode FE saat ini, serta 1 keputusan arsitektur terkait modul `/bmn`:
+
+1. **Keputusan Arsitektur `/bmn` — Tidak Memasang `NotificationBell` di `frontend/src/app/bmn/layout.tsx` (Sesuai `/ponytail`):**
+   - `NotificationBell` tetap terpasang terpusat di Portal (`frontend/src/app/portal/page.tsx` baris 659). Dashboard BMN (`frontend/src/app/bmn/page.tsx`) sudah memiliki panel ringkasan (`stnk_alerts`, kondisi aset, peminjaman aktif, `recent_transactions`), sehingga menambah ikon lonceng di shell `/bmn` tidak diperlukan.
+   - Sebagai gantinya, notifikasi yang ditujukan atas **hak Admin BMN** (`notifyAdmins('bmn', ...)`) menyertakan `data.link = '/bmn'`. Karena `NotificationBell.tsx` (`resolveSafeInternalLink` baris 72–79 dan `handleItemClick` baris 409–413) membaca `data?.link`, klik notifikasi admin BMN di Portal akan langsung mengarahkan admin ke Dashboard BMN (`/bmn`).
+   - Sebaliknya, notifikasi atas **hak pribadi pegawai** (walaupun akun tersebut juga admin BMN) tetap menggunakan `action_tab: 'aset'` / `'pinjaman'` tanpa `data.link = '/bmn'`.
+2. **`useAdminInboxLive('bmn', ...)` Belum Dipakai di Halaman `/bmn`:**
+   - Hook `frontend/src/hooks/useAdminInboxLive.ts` mendukung modul `'bmn'`, dan `LoanService` sudah memancarkan `AdminInboxChanged('bmn', 'loan_created', ...)`, namun hasil pencarian di seluruh `frontend/src/app/bmn/` menunjukkan **0 pemanggil** `useAdminInboxLive`. Halaman `/bmn` (Dashboard) dan `/bmn/loans` (`frontend/src/app/bmn/loans/page.tsx`) opsional dapat berlangganan `useAdminInboxLive('bmn', ...)` untuk auto-refresh data tanpa menambah UI lonceng.
+3. **Klik Notifikasi BMN di Portal Mengabaikan `reference_id`:**
+   - Pada `frontend/src/app/portal/page.tsx` baris 362–376 (`handleNotificationNavigate`), `referenceId` hanya diteruskan untuk `targetTab === "surat_tugas"` (`fetchSTDetail`) dan `targetTab === "cuti"` (`setActiveLeaveId`).
+   - Untuk `targetTab === "aset"` dan `targetTab === "pinjaman"`, komponen `MyAssetsTab` (`frontend/src/app/portal/_components/MyAssetsTab.tsx`) dan `ActiveLoansTab` (`frontend/src/app/portal/_components/ActiveLoansTab.tsx`) belum menerima prop `highlightedId` / fokus item tertentu. Klik notifikasi hanya berpindah tab tanpa menyorot aset/pinjaman yang dimaksud.
+4. **Bug Sinkronisasi Refresh Tab `pinjaman` Saat Notifikasi BMN Masuk (`frontend/src/app/portal/page.tsx`):**
+   - Tab `aset` merender `filteredMyAssets` yang diambil dari `fetchAssets()` (`GET /api/me/assets`), sedangkan tab `pinjaman` (baris 871–872) merender `data.my_assets` yang berasal dari `fetchDashboard()` (`GET /api/dashboard`).
+   - Pada `handleNotificationChange` (baris 445–447) dan `handleNotificationRefresh` (baris 453), event bertipe `"bmn"` hanya memanggil `fetchAssets()`, **tidak memanggil `clearGetCache()` maupun `fetchDashboard()`**. Akibatnya, daftar pada tab `pinjaman` tidak otomatis diperbarui saat notifikasi pinjaman/pengembalian masuk secara live.
+5. **Fallback Saat Aset Dicabut / Dihapus Sebelum Diklik:**
+   - `NotificationBell.tsx` baris 415–419 sudah menahan pengiriman `reference_id` saat `data.availability === 'unavailable' | 'trashed'` atau `data.status === 'removed'`. Namun `portal/page.tsx` dan `MyAssetsTab.tsx` belum menampilkan pesan atau konteks tambahan apabila user tetap membuka tab `aset` dari notifikasi pencabutan/penghapusan dan mendapati daftar asetnya sudah berubah/kosong.
+
+---
+
+## 4. Matriks File Terkait (Cakupan Lengkap BE & FE)
+
+| Layer | File | Peran Saat Ini | Perubahan yang Diperlukan pada Fase Implementasi |
+|---|---|---|---|
+| **BE Service** | `backend/app/Modules/Bmn/Services/AssetService.php` | `storeAsset`, `updateAsset`, `disposeAsset`; mencatat `AssetUpdate` tanpa notifikasi. | Sentralisasi helper notifikasi perubahan pemegang (`null->B`, `A->B`, `A->null`), kondisi `Rusak Berat`, dan `disposeAsset` (`trashed`/`removed`) ke pemegang terakhir **setelah commit** / dengan data sanitasi (tanpa nama pengganti & tanpa `alasan_perubahan`). |
+| **BE Controller** | `backend/app/Modules/Bmn/Controllers/AssetController.php` | `bulkDispose`, `bulkRestore`, `bulkForceDelete`, `bulkUpdateKondisi` mem-bypass `AssetService`; `show()` tanpa `withTrashed()`. | Pastikan `bulkDispose`, `bulkRestore`, `bulkForceDelete`, dan `bulkUpdateKondisi` mengumpulkan aset + `employee_id` terdampak sebelum/sesudah mutasi (atau memanggil shared helper di `AssetService`) dan mengirim notifikasi ringkas per pegawai. Notif disposal admin arahkan ke `/bmn` atau `/bmn/disposal` (hindari 404 pada `show()`). |
+| **BE Request / Resource** | `backend/app/Modules/Bmn/Requests/StoreAssetRequest.php`, `backend/app/Modules/Bmn/Resources/AssetResource.php` | `StoreAssetRequest` belum mengizinkan `employee_id`; `AssetResource` tidak mengekspos `employee_id` pada root payload. | Tambahkan `'employee_id'` di `StoreAssetRequest` (opsional seperti `UpdateAssetRequest`) dan ekspos `employee_id` pada `AssetResource` agar UI Detail BMN tahu status tertautnya pemegang akun. |
+| **BE Import** | `backend/app/Modules/Bmn/Controllers/ImportReviewController.php`, `backend/app/Modules/Bmn/Imports/AssetImport.php` | `approve()` melakukan create/restore/update massal tanpa notifikasi; `AssetImport` memakai `WithBatchInserts` yang melewati event model `Asset::saving`. | Tangkap perubahan pemegang (`employee_id` lama vs baru sesudah `Asset::saving`) dan restore pada `approve()`, serta proses notifikasi ringkas pada direct import (`AssetImport` / `AssetController::import`) bila mengimpor aset berpemegang. |
+| **BE Service** | `backend/app/Modules/Bmn/Services/LoanService.php` | Hanya `createLoan`, `borrowAsset`, `returnAsset` yang mengirim notifikasi; `listLoans` update overdue secara pasif. | Tambahkan notifikasi perubahan peminjam pada `updateLoan()` (membuat baris notifikasi baru tanpa mengubah baris historis lama) dan pelepasan pada `deleteLoan()` **hanya** jika masih aktif & `$asset->employee_id == $loan->employee_id` (patuh kontrak `test_bn03_*`); pancarkan `AdminInboxChanged('bmn', ...)` konsisten. |
+| **BE Service** | `backend/app/Modules/Bmn/Services/MaintenanceService.php` | Mengubah `kondisi` aset tanpa `AssetUpdate` dan tanpa notifikasi. | Catat `AssetUpdate` jika `kondisi` berubah dan delegasikan notifikasi kondisi `Rusak Berat` ke helper BMN. |
+| **BE Service** | `backend/app/Modules/Bmn/Services/AuctionBatchService.php` | `transition(DIAJUKAN)` membekukan aset; `realize()` panggil `disposeAsset()` atau `restoreFromFreezeSnapshot()`; `cancel()` juga memanggil `restoreFromFreezeSnapshot()`. | Notifikasi pemegang saat pembekuan `henti_guna` atau pemulihan baik lewat `realize()` (*unsold*) maupun `cancel()` (batch `BATAL`); aset terjual otomatis ikut jalur `AssetService::disposeAsset()`. |
+| **BE Model** | `backend/app/Modules/Bmn/Models/Asset.php` | Hook `saving` auto-resolve `employee_id`; `isOwnedByEmployee()`. | Pertahankan sebagai sumber resolusi `employee_id` tunggal (jangan duplikasi di banyak tempat); pastikan `dispose` menggunakan snapshot pemegang sebelum soft-delete. |
+| **BE Console** | `backend/routes/console.php` + Command baru `bmn:notify-deadlines` | Belum ada command scheduler BMN (`config/app.php` pakai `APP_TIMEZONE` default `Asia/Makassar` / WITA). | Daftarkan 1 command harian (mis. `dailyAt('07:30')->withoutOverlapping()`, WITA) untuk memeriksa jatuh tempo STNK (`H-30`, `H-7`, `H-0`, `Overdue`), Ganti Plat, dan `AssetLoan` mendekati/melewati `due_date` dengan deduplikasi permanen `dedup_key`. |
+| **BE Dashboard** | `backend/app/Modules/Bmn/Controllers/DashboardController.php` | `stnk_alerts` tidak memuat `plat_expiring_soon`; tidak mengirim daftar pinjaman `terlambat` / aset `Rusak Berat`. | Tambahkan `plat_expiring_soon` (H-30) dan ringkasan pinjaman `terlambat` (atau arahkan `BMN-B2` admin ke `/bmn/loans`) agar klik notif ke `/bmn` langsung menampilkan item penyebab notifikasi. |
+| **BE Kepegawaian Lifecycle** | `backend/app/Console/Commands/ApplyEmployeeLifecycleCommand.php`, `EmployeeController.php` | Menonaktifkan pegawai & akun user tanpa memberitahu Admin BMN jika masih ada tanggungan aset/pinjaman (`bmnClearance`). | Setelah penonaktifan / soft-delete pegawai, cek tanggungan `bmn_assets` + `bmn_asset_loans` aktif dan kirim notifikasi ke Admin BMN (`data.link = '/bmn'`). |
+| **BE Test** | `backend/tests/Feature/NotificationBmnLifecycleTest.php` (**sudah ada**) | Sudah menguji `bn01`–`bn04` (termasuk imutabilitas notif lama pada `test_bn03_borrower_correction_*` dan larangan notif ke pemegang lain pada `test_bn03_return_and_delete_*`). | **Perluas file yang sudah ada** (jangan buat file duplikat) untuk skenario `A1–A6`, `B1–B3`, `C1`, jalur sibling (`bulkDispose`, `ImportReviewController::approve`, `AuctionBatchService::cancel`), konflik `createLoan`/`disposeAsset`, lifecycle pegawai nonaktif, anti-leak privasi, dan deduplikasi scheduler. |
+| **FE Portal** | `frontend/src/app/portal/page.tsx` | `handleNotificationNavigate` mengabaikan `referenceId` untuk `aset`/`pinjaman`; refresh `"bmn"` tidak panggil `fetchDashboard` / `clearGetCache`. | Teruskan `highlightedAssetId` / `highlightedLoanId` ke tab `aset`/`pinjaman`; pada `handleNotificationChange` & `handleNotificationRefresh` untuk `bmn`, panggil `clearGetCache()` (bypass TTL `2500ms` di `lib/api.ts`), `fetchAssets()`, dan `fetchDashboard()`. |
+| **FE Portal Tabs** | `frontend/src/app/portal/_components/MyAssetsTab.tsx` & `ActiveLoansTab.tsx` | Tidak mendukung prop highlight/scroll ke item dari notifikasi. | Tambahkan prop opsional `highlightedId` untuk auto-scroll & sorot visual sementara pada kartu/baris (`MyAssetsTab` cocokkan `item.id`; `ActiveLoansTab` wajib cocokkan `item.loan_id ?? item.id`). |
+| **FE Portal Bell** | `frontend/src/app/portal/_components/NotificationBell.tsx` | Sudah memfilter `blockedRef` dan membaca `data?.link` via `resolveSafeInternalLink`. | Pertahankan sebagai bell tunggal aplikasi; pastikan notifikasi hak Admin BMN memakai `data.link = '/bmn'` (atau `/bmn/loans` untuk detail pinjaman) agar langsung membuka Dashboard BMN, dan notifikasi pribadi Pegawai tetap memakai `action_tab` (`'aset'`/`'pinjaman'`). |
+| **FE BMN Shell / Pages** | `frontend/src/app/bmn/layout.tsx`, `frontend/src/app/bmn/page.tsx`, `frontend/src/app/bmn/loans/page.tsx`, `frontend/src/app/bmn/assets/[id]/page.tsx`, `frontend/src/app/bmn/components/modals/BorrowAssetModal.tsx` | Tidak ada `NotificationBell` (sengaja tidak perlu ditambah); `handleSaveAll` di `[id]/page.tsx` pakai cek truthy sehingga mengosongkan `pengguna` tidak mengosongkan `nama_pengguna`; `BorrowAssetModal` hanya invalidate `["bmn-assets"]`. | **Tidak perlu mengubah `bmn/layout.tsx`**. Tampilkan `plat_expiring_soon`/ringkasan terkait pada `/bmn/page.tsx`; perbaiki simetri null `pengguna`/`nama_pengguna` & indikator `employee_id` di `[id]/page.tsx`; pastikan `BorrowAssetModal` invalidate `["bmn-asset", assetId]` juga; opsional pasang `useAdminInboxLive('bmn', ...)` untuk auto-refresh. |
+| **BE Dokumen Legal (Out-of-Scope / YAGNI)** | `HandoverAgreementController.php`, `UsageAgreementController.php`, `PowerOfAttorneyController.php` | Membuat dokumen cetak BAST, BA Pemakaian, dan Surat Kuasa tanpa mengubah `bmn_assets.employee_id`. | Ditetapkan **tetap di luar scope** pemicu otomatis (atau hanya opsional notif BAST nanti bila diminta), agar pencetakan ulang/revisi draf dokumen tidak memicu spam notifikasi kepemilikan. |
+
+---
+
+## 5. Checklist Keamanan (`/security-audit`) & Kesederhanaan (`/ponytail`)
+
+1. **Sanitasi Data Lintas Pegawai (Anti-Leak):**
+   - Saat Pegawai A digantikan Pegawai B pada aset tetap, notifikasi Pegawai A hanya menyebut nama barang/kode/NUP aset dan informasi bahwa penanggung jawab aset telah dialihkan. **Dilarang** menyertakan nama Pegawai B atau teks bebas `alasan_perubahan` / `keterangan_audit` admin ke notifikasi Pegawai A.
+2. **Stale Reference, Pemisahan Peran Ganda & Anti-IDOR:**
+   - Saat aset dihapus/dimutihkan atau pemegang dicabut, isi payload `data` wajib menyertakan `availability: 'unavailable' | 'trashed'` dan `status: 'removed'` agar `NotificationBell.tsx` (`blockedRef`) tidak melempar user ke detail item yang sudah tidak bisa diaksesnya.
+   - Pegawai biasa hanya boleh mendapat `action_tab: 'aset'` atau `'pinjaman'`, bukan `data.link = '/bmn'` (karena rute `/bmn` dilindungi `module.access:bmn` dan hanya ditujukan untuk notifikasi hak Admin BMN via `notifyAdmins('bmn', ...)`). Akun admin BMN yang menerima notif atas kapasitas pribadinya sebagai pemegang/peminjam tetap diarahkan ke Portal tab `aset`/`pinjaman`.
+3. **Integritas Transaksi & Non-Blocking Side Effects:**
+   - Pengiriman notifikasi dijalankan dalam blok protektif (tidak menggagalkan transaksi utama bila Reverb offline), dan untuk event broadcast `PortalNotificationCreated` tetap mengandalkan `ShouldDispatchAfterCommit` sehingga notifikasi real-time tidak pernah terkirim apabila transaksi DB di-rollback.
+4. **Deduplikasi Scheduler & Anti-Flood Batch:**
+   - Scheduler `bmn:notify-deadlines` wajib menyimpan penanda unik pada kolom JSON `data` (`dedup_key` seperti `stnk:<asset_id>:h7:<due_date>`) dan memeriksa keberadaannya sebelum membuat baris baru agar eksekusi ulang pada tanggal yang sama bersikap idempoten.
+   - Operasi massal (`bulkDispose`, `ImportReviewController::approve`) wajib mengelompokkan notifikasi per `employee_id` jika satu pegawai kehilangan/menerima banyak aset sekaligus dalam 1 batch (> 3 aset → 1 notifikasi ringkasan).
+5. **Kepatuhan `/ponytail`:**
+   - Tidak perlu tabel/migrasi database baru: struktur `portal_notifications` (`type`, `action_tab`, `reference_id`, `data`) sudah mencukupi.
+   - Jangan menduplikasi logika pembuatan pesan notifikasi BMN di tiap controller: satukan di 1 helper terfokus di modul BMN (mis. method di `AssetService` atau helper kecil tunggal yang dipanggil bersama oleh `AssetController`, `ImportReviewController`, dan `MaintenanceService`).
+
+---
+
+## 6. Temuan Tambahan Hasil Pengecekan Mendalam (Belum Tercakup Sebelumnya)
+
+Pemeriksaan ulang terhadap alur internal di modul BMN, Portal, dan Kepegawaian menemukan **6 celah teknis mendalam** yang sebelumnya tidak tampak pada audit lapisan luar:
+
+1. **Konflik `LoanService::createLoan()` Menimpa Pemegang Tetap & `disposeAsset()` Saat Masih Ada Pinjaman Aktif:**
+   - `LoanService::createLoan()` (`LoanService.php` baris 69 & 84) hanya memeriksa `$asset->loans()->active()->exists()`, **tidak memeriksa** `$asset->employee_id !== null` (berbeda dengan fungsi lama `borrowAsset()` di baris 132). Akibatnya, jika aset yang sedang dipegang tetap oleh Pegawai A dipinjamkan lewat `createLoan()` ke Pegawai B, `employee_id` Pegawai A langsung tertimpa diam-diam (tanpa notifikasi), dan saat `returnAsset()` (baris 232–234) selesai, `employee_id` di-set `null` sehingga tidak kembali ke Pegawai A.
+   - Selain itu, `AssetService::disposeAsset()` dan `AssetController::bulkDispose()` belum menangani atau memberi notifikasi ke peminjam jika aset yang dihapus masih memiliki `AssetLoan` berstatus `dipinjam`/`terlambat` (padahal di `AuthController::dashboard()` baris 159, pinjaman dengan `$loan->asset === null` akibat soft-delete langsung hilang dari UI pinjaman portal tanpa keterangan).
+2. **Ketidaksinkronan Data Dashboard BMN (`DashboardController::stats`) dengan Target `data.link = '/bmn'`:**
+   - Pada `backend/app/Modules/Bmn/Controllers/DashboardController.php` baris 103–138:
+     - `stnk_alerts` hanya berisi `expired` STNK, `expiring_soon` STNK, dan `plat_expired` (`< $today`), **belum menyertakan `plat_expiring_soon` (`H-30`)** walaupun skenario `BMN-B1` mengingatkan ganti plat sebelum jatuh tempo.
+     - Respons dashboard hanya mengembalikan angka `active_loans_count`, **belum mengembalikan daftar pinjaman `terlambat`** ataupun ringkasan aset `Rusak Berat` ke `frontend/src/app/bmn/page.tsx`.
+   - Implikasinya: bila Admin BMN mengklik notif `BMN-B2` (pinjaman terlambat) atau `BMN-B1` (ganti plat akan habis) lalu mendarat di `/bmn`, panel di Dashboard BMN tidak menampilkan item pemicunya kecuali `DashboardController::stats()` + `bmn/page.tsx` ikut dilengkapi (atau khusus `BMN-B2` diarahkan ke `data.link = '/bmn/loans'`).
+3. **Potensi *Mismatch* Kunci ID Saat Highlight Tab `pinjaman` (`id` Aset vs `loan_id`):**
+   - `LoanService.php` (baris 112–113) mengisi `reference_id = (string) $loan->id`, sedangkan `AuthController::dashboard()` (`AuthController.php` baris 166–167) mengembalikan dua field pada `my_assets`: `id: $asset->id` dan `loan_id: $loan->id`.
+   - Implementasi highlight di `ActiveLoansTab.tsx` **wajib** mencocokkan `highlightedId` ke `String(item.loan_id ?? item.id)` (bukan hanya `item.id`), supaya sorotan notifikasi pinjaman benar-benar mengenai baris/kartu yang dimaksud.
+4. **Lintas-Modul Kepegawaian: Penonaktifan / Penghapusan Pegawai yang Masih Memegang Aset BMN:**
+   - Kepegawaian sudah memiliki endpoint cek tanggungan `GET /api/kepegawaian/employees/{employee}/bmn-clearance` (`EmployeeController.php` baris 724–775).
+   - Namun ketika `employee:apply-lifecycle` (`ApplyEmployeeLifecycleCommand.php` baris 46–80) menonaktifkan pegawai + akun portal saat tanggal TMT tiba, atau admin menghapus pegawai di `EmployeeController.php` (baris 374–380), **Admin BMN tidak pernah diberitahu** bila pegawai nonaktif tersebut masih tercatat memegang aset (`bmn_assets.employee_id`) atau masih memiliki `bmn_asset_loans` aktif. Pegawai tersebut otomatis tidak bisa login ke Portal lagi, sehingga Admin BMN adalah satu-satunya pihak yang harus menerima notifikasi pengembalian/pengalihan aset.
+5. **Lapisan Cache Frontend (`CACHE_TTL_MS = 2500ms` & `localStorage` Dashboard Cache):**
+   - `frontend/src/lib/api.ts` (baris 165–212) menerapkan in-memory GET throttle cache `2500ms`, dan `portal/page.tsx` (baris 284) menyimpan snapshot `bksda_portal_dashboard_cache` di `localStorage`.
+   - Ketika event WebSocket `bmn` diterima cepat (< 2,5 detik setelah fetch sebelumnya), memanggil `fetchAssets()`/`fetchDashboard()` tanpa didahului `clearGetCache()` berisiko mengembalikan respons cache lama di Portal.
+6. **Ketidakpastian Resolusi Teks `pengguna` Tanpa `employee_id` di Detail BMN:**
+   - Pada `bmn/assets/[id]/page.tsx` (baris 213–227) dan `Employee::resolveIdByName()` (`Employee.php` baris 109–136), jika Admin BMN mengisi `pengguna` dengan nama tidak persis / ambigu (> 1 pegawai), `employee_id` menjadi `null` tanpa peringatan di UI Detail Aset. Akibatnya aset tetap tampil atau tersembunyi melalui fallback `LIKE` di `AuthController::myAssets()`, tetapi sistem notifikasi tidak dapat mengirim notifikasi ke akun mana pun. Detail aset BMN perlu memberi indikator status tautan pegawai (`employee_id` terhubung vs teks bebas tanpa akun) saat Admin menyimpan perubahan `Pengguna`.
+
+---
+
+## 7. Temuan Audit Lanjutan & Batas Scope Eksplisit (Putaran Verifikasi Menyeluruh)
+
+Audit lanjutan baris-demi-baris terhadap seluruh berkas BMN menemukan **8 detail teknis tambahan** yang masih tertinggal pada pengecekan sebelumnya:
+
+1. **Bug Payload & Visibilitas `employee_id` di [`AssetResource.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Resources/AssetResource.php#L18-L133) + [`bmn/assets/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/%5Bid%5D/page.tsx#L206-L227) (`handleSaveAll`) + [`StoreAssetRequest.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Requests/StoreAssetRequest.php#L89-L109):**
+   - `AssetResource` tidak mengekspos `employee_id` di level root JSON (hanya `penanggung_jawab.id`), sehingga `asset.employee_id` bernilai `undefined` di draft form `[id]/page.tsx`.
+   - Pada `handleSaveAll()` (`[id]/page.tsx` baris 206–211), sinkronisasi memakai `if (payload.pengguna && ...)` (*truthy check*). Ketika admin **mengosongkan** field `pengguna` (menjadi `null`), `nama_pengguna` tidak ikut disinkronkan ke `null` jika edit dilakukan terpisah; selain itu, field `penghuni` (baris 1123, mis. rumah dinas) juga berbentuk `FormEmployeeRow` tetapi tidak ikut resolusi `employee_id` maupun notifikasi.
+   - `StoreAssetRequest.php` belum memasukkan rule `'employee_id'` (berbeda dengan `UpdateAssetRequest.php` baris 74), sehingga pembuatan aset baru lewat `POST /bmn/assets` bergantung 100% pada konversi nama → `Asset::saving`.
+2. **Direct Excel Import (`AssetImport.php`) Memakai `WithBatchInserts` yang Melewati Eloquent Model Events:**
+   - [`AssetImport.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Imports/AssetImport.php#L13) mengimplementasikan `WithBatchInserts`, yang melakukan bulk `INSERT` SQL tanpa memicu hook model `Asset::saving` / `created`. Meskipun `AssetImport::model()` (baris 116–119) sudah memanggil `Employee::resolveIdByName()`, jalur direct import (`POST /api/bmn/assets/import`) tetap melewati `AssetService` dan belum memicu notifikasi penetapan massal bila mengimpor aset berpemegang.
+3. **Risiko 404 pada `GET /api/bmn/assets/{id}` (`AssetController::show`) Jika Admin Membuka Aset yang Baru Dihapus:**
+   - [`AssetController::show()`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php#L134-L140) menggunakan `Asset::with(...)->findOrFail($id)` **tanpa `withTrashed()`**. Jika link notifikasi admin diarahkan ke `/bmn/assets/{id}` padahal aset sudah di-dispose, halaman detail memunculkan error (`"Gagal memuat data aset"`). Maka semua notifikasi admin terkait penghapusan/pemutihan wajib mengarah ke `data.link = '/bmn'` atau `'/bmn/disposal'`, bukan `/bmn/assets/{id}`.
+4. **Deduplikasi Scheduler Tidak Boleh Mengandalkan `Cache` Seperti [`HealthMonitorCommand.php`](file:///e:/bksda-superapp/backend/app/Console/Commands/HealthMonitorCommand.php#L115-L135):**
+   - `HealthMonitorCommand` memakai `Cache::has(...)` berdurasi 1 jam (cukup untuk probe kesehatan tiap 5 menit). Namun untuk `bmn:notify-deadlines` (`H-30`, `H-7`, `H-0`, overdue mingguan), memakai `Cache` sangat rapuh karena akan ter-reset bila cache dibersihkan/restart dan memicu spam. Deduplikasi wajib disimpan/diperiksa permanen pada tabel `portal_notifications` (`data` JSON `dedup_key`).
+5. **Kejelasan Batas Scope Dokumen Legal & Modal Pinjaman Lama:**
+   - Controller dokumen cetak ([`HandoverAgreementController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/HandoverAgreementController.php), [`UsageAgreementController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/UsageAgreementController.php), dan [`PowerOfAttorneyController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/PowerOfAttorneyController.php)) hanya menyimpan snapshot dokumen dan tidak mengubah `bmn_assets.employee_id`. Sesuai YAGNI, pencetakan dokumen ditetapkan **di luar scope** pemicu notifikasi agar edit/cetak ulang BAST tidak menimbulkan spam.
+   - Modal [`BorrowAssetModal.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/components/modals/BorrowAssetModal.tsx#L30-L33) masih memanggil route legacy `/bmn/assets/{id}/loans` dan hanya melakukan `invalidateQueries({ queryKey: ["bmn-assets"] })` tanpa `["bmn-asset", assetId]` serta label input `"UUID Pegawai..."` padahal backend mewajibkan integer ID (`kpg_employees.id`).
+6. **Constraint Test Existing [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php#L130-L164) (`test_bn03_*`):**
+   - `test_bn03_borrower_correction_keeps_loan_and_asset_current_owner_consistent` (L130–L145) menegaskan notifikasi persetujuan lama (`$approval`) wajib **immutable** saat peminjam dikoreksi via `PUT /api/bmn/loans/{id}` (L139).
+   - `test_bn03_return_and_delete_of_old_loan_cannot_release_another_current_holder` (L147–L164) menegaskan pengembalian/penghapusan pinjaman lama tidak boleh memicu notifikasi salah sasaran ke pemegang aset aktif lain (`userC` wajib tetap `0` notifikasi di L163).
+   - Sesuai `/ponytail`, skenario baru ditambahkan ke [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php) agar tidak menduplikasi file test lifecycle notifikasi BMN.
+7. **Restore Freeze via [`AuctionBatchService::cancel()`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Services/AuctionBatchService.php#L945-L986) & 2 Cabang Restore [`ImportReviewController::approve()`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/ImportReviewController.php#L295-L364):**
+   - Selain `realize()`, pembatalan batch lelang (`cancel()`, L963) juga memanggil `restoreFromFreezeSnapshot()`, sehingga notifikasi pencairan freeze (`henti_guna = false`) perlu ditangani terpusat agar baik lelang batal maupun aset tak laku tetap memulihkan status penguasaan aset.
+   - Di [`ImportReviewController::approve()`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/ImportReviewController.php#L304-L364), terdapat 2 cabang pemulihan aset terhapus: cabang `diff_status === 'new'` (L304–L332) dapat me-`restore()` aset terhapus yang cocok tanpa entri `AssetUpdate`, sedangkan cabang `diff_status === 'updated'` (L333–L364) me-`restore()` lewat kunci sintetis `'_restore'` dari [`AssetStagingImport.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Imports/AssetStagingImport.php#L59) (dengan `SKIP_FIELDS` di L22 mengecualikan `employee_id`). Sinkronisasi notifikasi restore harus mencakup kedua cabang tersebut.
+8. **Batas Eksplisit YAGNI (`verify`, Quick Edit `lokasi_spesifik` & `tags`) & Konsistensi `APP_TIMEZONE` WITA:**
+   - [`AssetController::verify()`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php#L228-L250) (tombol "Tandai Terverifikasi") serta quick edit `lokasi_spesifik` ([`bmn/assets/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/%5Bid%5D/page.tsx#L675)) dan `tags` ([`bmn/assets/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/assets/%5Bid%5D/page.tsx#L1180)) **secara eksplisit ditetapkan di luar scope notifikasi** (YAGNI) karena tidak memindahkan penguasaan pegawai maupun status operasional/keselamatan aset.
+   - [`config/app.php`](file:///e:/bksda-superapp/backend/config/app.php#L68) menetapkan default `APP_TIMEZONE` = `Asia/Makassar` (WITA), sehingga penjadwalan harian `bmn:notify-deadlines` pada [`routes/console.php`](file:///e:/bksda-superapp/backend/routes/console.php) dijalankan konsisten pada zona waktu operasional WITA tanpa offset manual.
+
+---
+
+## 8. Catatan Evaluasi Proses: Mengapa Tidak Tercek Pada Putaran Sebelumnya
+
+Secara objektif:
+- **Draf awal** disusun secara konseptual *top-down* hanya pada file yang paling langsung berkaitan (`AssetService`, `LoanService::createLoan/returnAsset`, `MaintenanceService`, `NotificationBell`, `portal/page.tsx`) tanpa memetakan seluruh *sibling callers* di modul BMN dan lintas-modul.
+- **Pengecekan kedua** masih bersifat *sampling* reaktif: pencarian dihentikan segera setelah menemukan 6 celah pertama (`bulkDispose`, `ImportReviewController`, `AuctionBatchService`, `DashboardController`, `ApplyEmployeeLifecycleCommand`), sehingga belum membaca tuntas berkas pendamping seperti `AssetResource.php`, `StoreAssetRequest.php`, logika `handleSaveAll()` di `bmn/assets/[id]/page.tsx`, implementasi `WithBatchInserts` di `AssetImport.php`, pola dedup `HealthMonitorCommand.php`, maupun controller BAST/BA Pemakaian (`HandoverAgreementController` / `UsageAgreementController`).
+- **Pengecekan final** melengkapi audit hingga menyentuh [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php) yang ternyata sudah ada, cabang `cancel()` di `AuctionBatchService`, dua cabang restore di `ImportReviewController::approve()` + `AssetStagingImport`, quick edit `verify`/`lokasi_spesifik`/`tags`, serta konfigurasi `APP_TIMEZONE` di [`config/app.php`](file:///e:/bksda-superapp/backend/config/app.php#L68). Dengan demikian, seluruh berkas mutasi, controller, service, resource, request, import, console, komponen portal, dan test terkait di modul BMN telah diaudit dari sisi dalam alur datanya sebelum implementasi kode dimulai.

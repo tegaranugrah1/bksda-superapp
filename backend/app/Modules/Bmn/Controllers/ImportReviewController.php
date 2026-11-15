@@ -291,6 +291,8 @@ class ImportReviewController extends Controller
             $result = DB::transaction(function () use ($batch, $request) {
                 $inserted = 0;
                 $updated = 0;
+                $bulkAssigned = [];
+                $assetService = app(\App\Modules\Bmn\Services\AssetService::class);
 
                 // Get all selected rows (new + updated)
                 $selectedRows = $batch->stagingRows()
@@ -314,27 +316,44 @@ class ImportReviewController extends Controller
                                 ->first();
 
                             if ($existing) {
+                                $wasTrashed = $existing->trashed();
+                                $oldEmp = $existing->employee_id;
+                                $oldKondisi = $existing->kondisi;
                                 // Restore if soft-deleted, then update
-                                if ($existing->trashed()) {
+                                if ($wasTrashed) {
                                     $existing->restore();
                                 }
                                 $existing->update($data);
+                                $fresh = $existing->fresh();
+                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
                                 $updated++;
                             } else {
                                 $data['id'] = (string) Str::uuid();
-                                Asset::create($data);
+                                $created = Asset::create($data);
+                                if ($created->employee_id) {
+                                    $bulkAssigned[(int) $created->employee_id][] = $created;
+                                }
+                                $assetService->notifyConditionCritical($created, null, $created->kondisi);
                                 $inserted++;
                             }
                         } else {
                             $data['id'] = (string) Str::uuid();
-                            Asset::create($data);
+                            $created = Asset::create($data);
+                            if ($created->employee_id) {
+                                $bulkAssigned[(int) $created->employee_id][] = $created;
+                            }
+                            $assetService->notifyConditionCritical($created, null, $created->kondisi);
                             $inserted++;
                         }
                     } elseif ($row->diff_status === 'updated' && $row->existing_asset_id) {
                         // Update existing asset (only changed fields)
                         $asset = Asset::withTrashed()->find($row->existing_asset_id);
                         if ($asset) {
-                            if ($asset->trashed()) {
+                            $wasTrashed = $asset->trashed();
+                            $oldEmp = $asset->employee_id;
+                            $oldKondisi = $asset->kondisi;
+                            if ($wasTrashed) {
                                 $asset->restore();
                             }
                             $changedFields = $row->changed_fields ?? [];
@@ -360,9 +379,16 @@ class ImportReviewController extends Controller
                                 $asset->update($updateData);
                                 $updated++;
                             }
+                            if ($wasTrashed || !empty($updateData)) {
+                                $fresh = $asset->fresh();
+                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
+                            }
                         }
                     }
                 }
+
+                $assetService->notifyBulkAssigned($bulkAssigned);
 
                 // Mark batch as approved
                 $batch->update([

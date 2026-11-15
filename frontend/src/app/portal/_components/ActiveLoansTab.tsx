@@ -21,6 +21,7 @@ interface ActiveLoansTabProps {
   assets: BorrowedAssetItem[];
   viewMode?: "list" | "grid";
   setViewMode?: (mode: "list" | "grid") => void;
+  highlightedId?: string | null;
 }
 
 function isLoanOverdue(asset: BorrowedAssetItem): boolean {
@@ -34,6 +35,7 @@ export function ActiveLoansTab({
   assets,
   viewMode: controlledViewMode,
   setViewMode: controlledSetViewMode,
+  highlightedId,
 }: ActiveLoansTabProps) {
   const [internalViewMode, setInternalViewMode] = useState<"list" | "grid">(() =>
     assets.length <= 4 ? "grid" : "list"
@@ -59,6 +61,12 @@ export function ActiveLoansTab({
 
   const [failedImgMap, setFailedImgMap] = useState<Record<string, boolean>>({});
   const [selectedAsset, setSelectedAsset] = useState<BorrowedAssetItem | null>(null);
+
+  useEffect(() => {
+    if (!highlightedId) return;
+    const el = document.querySelector(`[data-highlight-id="${CSS.escape(String(highlightedId))}"]`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedId, assets.length, activeMode]);
 
   const handleAssetClick = (asset: BorrowedAssetItem) => {
     const photos = getAssetPhotos(asset);
@@ -141,12 +149,18 @@ export function ActiveLoansTab({
             const cleanStatus = (asset.status || "").toLowerCase();
             const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
+            const loanKey = String(asset.loan_id ?? asset.id);
+            const isHighlighted = Boolean(highlightedId && (loanKey === String(highlightedId) || String(asset.id) === String(highlightedId)));
 
             return (
               <div
-                key={`loan-${asset.id}`}
+                key={`loan-${loanKey}`}
+                data-highlight-id={loanKey}
                 onClick={() => handleAssetClick(asset)}
-                className="p-4 hover:bg-slate-50/80 dark:hover:bg-zinc-800/60 transition-all flex items-center gap-4 cursor-pointer group"
+                className={cn(
+                  "p-4 hover:bg-slate-50/80 dark:hover:bg-zinc-800/60 transition-all flex items-center gap-4 cursor-pointer group",
+                  isHighlighted && "ring-2 ring-inset ring-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30"
+                )}
                 title={photos.length > 0 ? "Klik untuk melihat foto dokumentasi" : "Belum ada foto"}
               >
                 {/* Thumbnail / Icon */}
@@ -258,12 +272,18 @@ export function ActiveLoansTab({
             const cleanStatus = (asset.status || "").toLowerCase();
             const isOverdue = isLoanOverdue(asset);
             const merkDisplay = formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe);
+            const loanKey = String(asset.loan_id ?? asset.id);
+            const isHighlighted = Boolean(highlightedId && (loanKey === String(highlightedId) || String(asset.id) === String(highlightedId)));
 
             return (
               <div
-                key={`loan-grid-${asset.id}`}
+                key={`loan-grid-${loanKey}`}
+                data-highlight-id={loanKey}
                 onClick={() => handleAssetClick(asset)}
-                className="bg-white dark:bg-slate-900/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden hover:shadow-md hover:border-[#1e5433]/40 dark:hover:border-emerald-700/50 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group"
+                className={cn(
+                  "bg-white dark:bg-slate-900/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden hover:shadow-md hover:border-[#1e5433]/40 dark:hover:border-emerald-700/50 hover:-translate-y-0.5 transition-all flex flex-col cursor-pointer group",
+                  isHighlighted && "ring-2 ring-emerald-500 border-emerald-500 shadow-md"
+                )}
                 title={photos.length > 0 ? "Klik untuk melihat foto dokumentasi" : "Belum ada foto"}
               >
                 {/* Photo Container */}

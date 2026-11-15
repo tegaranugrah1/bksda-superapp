@@ -99,6 +99,7 @@ class AssetResource extends JsonResource
             'tanggal_pajak_stnk' => $this->tanggal_pajak_stnk?->format('Y-m-d'),
             'tanggal_ganti_plat' => $this->tanggal_ganti_plat?->format('Y-m-d'),
             'nama_pengguna' => $this->nama_pengguna,
+            'employee_id' => $this->employee_id,
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
             'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : $this->foto_geotag_url,

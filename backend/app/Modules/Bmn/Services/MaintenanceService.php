@@ -4,6 +4,8 @@ namespace App\Modules\Bmn\Services;
 
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetMaintenance;
+use App\Modules\Bmn\Models\AssetUpdate;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class MaintenanceService
@@ -11,7 +13,7 @@ class MaintenanceService
     public function recordMaintenance(string $assetId, array $data)
     {
         return DB::transaction(function () use ($assetId, $data) {
-            $asset = Asset::findOrFail($assetId);
+            $asset = Asset::lockForUpdate()->findOrFail($assetId);
 
             $maintenance = AssetMaintenance::create([
                 'asset_id' => $asset->id,
@@ -22,7 +24,17 @@ class MaintenanceService
             ]);
 
             if (isset($data['kondisi_baru']) && $asset->kondisi !== $data['kondisi_baru']) {
+                $oldKondisi = $asset->kondisi;
                 $asset->update(['kondisi' => $data['kondisi_baru']]);
+                AssetUpdate::create([
+                    'asset_id' => $asset->id,
+                    'user_id' => Auth::id(),
+                    'field_changed' => 'kondisi',
+                    'old_value' => $oldKondisi,
+                    'new_value' => $data['kondisi_baru'],
+                    'alasan_perubahan' => 'Pembaruan kondisi pasca pemeliharaan',
+                ]);
+                app(AssetService::class)->notifyConditionCritical($asset, $oldKondisi, $data['kondisi_baru']);
             }
 
             return $maintenance;

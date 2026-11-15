@@ -584,6 +584,7 @@ class AuctionBatchService
                 $asset->henti_guna = true;
                 $asset->status_penggunaan = 'Dihentikan dari Penggunaan Dinas';
                 $asset->save();
+                $this->assetService->notifyFreezeTransition($asset, true);
 
                 $this->auditLogger->log(
                     $batchId,
@@ -915,6 +916,7 @@ class AuctionBatchService
 
                     if (!empty($p->freeze_snapshot)) {
                         $this->snapshotBuilder->restoreFromFreezeSnapshot($asset, $p->freeze_snapshot);
+                        $this->assetService->notifyFreezeTransition($asset, false);
                     }
 
                     $this->auditLogger->log($batchId, AuctionBatchEventAction::ASSET_RESTORED, $actorId, $asset->id, $p->freeze_snapshot, $asset->toArray(), "Aset tidak laku lelang, operasional dipulihkan.");
@@ -961,6 +963,7 @@ class AuctionBatchService
                 if (!empty($p->freeze_snapshot)) {
                     $asset = Asset::withTrashed()->findOrFail($p->bmn_asset_id);
                     $this->snapshotBuilder->restoreFromFreezeSnapshot($asset, $p->freeze_snapshot);
+                    $this->assetService->notifyFreezeTransition($asset, false);
 
                     $this->auditLogger->log(
                         $batchId,

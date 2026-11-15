@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { useAdminInboxLive } from "@/hooks/useAdminInboxLive";
 import {
   Package,
   Wrench,
@@ -40,6 +41,7 @@ interface DashboardData {
   total_asset: number;
   total_asset_value: number;
   active_loans_count?: number;
+  overdue_loans?: { id: string; asset_id: string; asset: string | null; borrower: string | null; due_date: string | null }[];
   asset_by_condition: Record<string, number>;
   asset_by_jenis: JenisData[];
   asset_by_lokasi: LokasiData[];
@@ -48,6 +50,7 @@ interface DashboardData {
     expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
     expiring_soon: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_pajak_stnk: string }[];
     plat_expired: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_ganti_plat: string }[];
+    plat_expiring_soon?: { id: string; nama_barang: string; merk: string; no_polisi: string; tanggal_ganti_plat: string }[];
   };
 }
 
@@ -144,6 +147,10 @@ function KpiCard({
 }
 
 export default function BmnDashboardPage() {
+  const queryClient = useQueryClient();
+  useAdminInboxLive("bmn", () => {
+    void queryClient.invalidateQueries({ queryKey: ["bmn-dashboard-stats"] });
+  });
   const highlightId = useId();
   const [hoveredAction, setHoveredAction] = useState<string | null>(null);
   const [focusedAction, setFocusedAction] = useState<string | null>(null);
@@ -165,7 +172,9 @@ export default function BmnDashboardPage() {
   const totalAlerts =
     (data?.stnk_alerts?.expired?.length || 0) +
     (data?.stnk_alerts?.expiring_soon?.length || 0) +
-    (data?.stnk_alerts?.plat_expired?.length || 0);
+    (data?.stnk_alerts?.plat_expired?.length || 0) +
+    (data?.stnk_alerts?.plat_expiring_soon?.length || 0) +
+    (data?.overdue_loans?.length || 0);
 
   if (isLoading) {
     return (
@@ -531,6 +540,57 @@ export default function BmnDashboardPage() {
                             Ganti Plat
                           </span>
                           <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                  {(data?.stnk_alerts?.plat_expiring_soon || []).map((v) => (
+                    <div key={`plat-soon-${v.id}`}>
+                      <Link
+                        href={`/bmn/assets/${v.id}`}
+                        className="bmn-motion-action bmn-hover-link p-3 bg-slate-50/80 dark:bg-zinc-800/40 border border-slate-100 dark:border-zinc-800 rounded-xl flex items-center justify-between hover:bg-amber-50/30 dark:hover:bg-amber-950/20 hover:border-amber-300/80 dark:hover:border-amber-700/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <Car className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                              {v.nama_barang} <span className="font-normal text-slate-600 dark:text-zinc-400">({v.merk})</span>
+                            </h4>
+                            <p className="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 mt-0.5">
+                              {v.no_polisi || "Tanpa Polisi"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40 text-[10px] font-bold">
+                            Plat Dekat
+                          </span>
+                          <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{v.tanggal_ganti_plat}</p>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                  {(data?.overdue_loans || []).map((loan) => (
+                    <div key={`loan-overdue-${loan.id}`}>
+                      <Link
+                        href="/bmn/loans"
+                        className="bmn-motion-action bmn-hover-link p-3 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/70 dark:border-rose-900/40 rounded-xl flex items-center justify-between hover:border-rose-400 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate">
+                            {loan.asset || "Pinjaman BMN"}
+                          </h4>
+                          <p className="text-[11px] text-slate-600 dark:text-zinc-400 truncate mt-0.5">
+                            {loan.borrower || "Pegawai"}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0 ml-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[10px] font-bold">
+                            Terlambat
+                          </span>
+                          {loan.due_date && <p className="text-[10px] text-slate-600 dark:text-zinc-400 mt-0.5 font-mono">{loan.due_date}</p>}
                         </div>
                       </Link>
                     </div>

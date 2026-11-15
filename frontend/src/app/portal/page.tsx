@@ -358,6 +358,17 @@ function PortalContent() {
 
   const [activeLeaveId, setActiveLeaveId] = useState<string | number | null>(null);
   const consumeActiveLeave = useCallback(() => setActiveLeaveId(null), []);
+  const [highlightedAssetId, setHighlightedAssetId] = useState<string | null>(null);
+  const [highlightedLoanId, setHighlightedLoanId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!highlightedAssetId && !highlightedLoanId) return;
+    const timer = setTimeout(() => {
+      setHighlightedAssetId(null);
+      setHighlightedLoanId(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [highlightedAssetId, highlightedLoanId]);
 
   const handleNotificationNavigate = useCallback((tabKey: string, referenceId?: string | null) => {
     if (tabKey === "cuti" && !employeeId && data?.user?.role === "super_admin") {
@@ -372,6 +383,10 @@ function PortalContent() {
       fetchSTDetail(referenceId);
     } else if (targetTab === "cuti" && referenceId) {
       setActiveLeaveId(referenceId);
+    } else if (targetTab === "aset") {
+      setHighlightedAssetId(referenceId ? String(referenceId) : null);
+    } else if (targetTab === "pinjaman") {
+      setHighlightedLoanId(referenceId ? String(referenceId) : null);
     }
   }, [fetchSTDetail, employeeId, data?.user?.role, router]);
 
@@ -443,15 +458,21 @@ function PortalContent() {
       setPrintLeaveData(null);
       void fetchMyLeaveRequests();
     } else if (item.type === "bmn") {
+      clearGetCache();
       void fetchAssets();
+      void fetchDashboard();
     }
-  }, [fetchSuratTugas, fetchSTDetail, fetchAssets, fetchMyLeaveRequests, stDetail?.id, stPreviewOpen]);
+  }, [fetchSuratTugas, fetchSTDetail, fetchAssets, fetchDashboard, fetchMyLeaveRequests, stDetail?.id, stPreviewOpen]);
 
   const handleNotificationRefresh = useCallback(() => {
     if (stPreviewOpen && stDetail?.id) void fetchSTDetail(String(stDetail.id));
     if (activeNavTab === "cuti") void fetchMyLeaveRequests();
-    if (activeNavTab === "aset" || activeNavTab === "pinjaman") void fetchAssets();
-  }, [stPreviewOpen, stDetail, fetchSTDetail, activeNavTab, fetchMyLeaveRequests, fetchAssets]);
+    if (activeNavTab === "aset" || activeNavTab === "pinjaman") {
+      clearGetCache();
+      void fetchAssets();
+      void fetchDashboard();
+    }
+  }, [stPreviewOpen, stDetail, fetchSTDetail, activeNavTab, fetchMyLeaveRequests, fetchAssets, fetchDashboard]);
 
     // Initial dashboard load with fast cache populate (strictly validated to active user session)
   const initialFetchDoneRef = useRef(false);
@@ -870,6 +891,7 @@ function PortalContent() {
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 overflow-hidden shadow-sm">
                       <ActiveLoansTab
                         assets={data.my_assets as BorrowedAssetItem[]}
+                        highlightedId={highlightedLoanId}
                         viewMode={loanViewMode}
                         setViewMode={(mode) => {
                           setLoanViewToggled(true);
@@ -882,6 +904,7 @@ function PortalContent() {
                       <MyAssetsTab
                         assetsLoading={assetsLoading}
                         filteredMyAssets={filteredMyAssets as AssetItem[]}
+                        highlightedId={highlightedAssetId}
                         assetViewMode={assetViewMode}
                         setAssetViewMode={(mode) => {
                           setAssetViewToggled(true);
