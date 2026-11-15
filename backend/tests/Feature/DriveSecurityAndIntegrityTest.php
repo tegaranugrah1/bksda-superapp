@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class DriveSecurityAndIntegrityTest extends TestCase
@@ -368,5 +369,184 @@ class DriveSecurityAndIntegrityTest extends TestCase
         $this->assertEquals($this->otherUser->id, $parent->fresh()->user_id);
         $this->assertEquals($this->otherUser->id, $child->fresh()->user_id);
         $this->assertEquals($this->otherUser->id, $file->fresh()->user_id);
+    }
+
+    public function test_security_audit_hardened_boundaries(): void
+    {
+        // 1. Non-Drive 'admin' (only BMN access) cannot complete another user's upload
+        $nonDriveAdmin = User::create([
+            'name' => 'Admin BMN Only',
+            'username' => '199201012020011099',
+            'email' => 'bmnadmin@bksda.go.id',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->owner);
+        $init = $this->postJson('/api/drive/upload/init', [
+            'name' => 'rahasia.pdf',
+            'size' => 100,
+            'mime' => 'application/pdf',
+            'unit_id' => $this->unitA->id,
+        ])->assertStatus(200);
+
+        Storage::disk('drive')->put($init->json('s3_key'), '%PDF-1.4 test payload');
+
+        $this->actingAs($nonDriveAdmin);
+        $this->postJson('/api/drive/upload/complete', [
+            'upload_id' => $init->json('upload_id'),
+        ])->assertStatus(403);
+
+        // 2. Revoked mid-upload write access cannot complete upload; S3 object is cleaned up
+        $this->actingAs($this->owner);
+        $this->unitA->members()->updateExistingPivot($this->owner->id, ['role' => 'viewer']);
+        $this->postJson('/api/drive/upload/complete', [
+            'upload_id' => $init->json('upload_id'),
+        ])->assertStatus(403);
+        $this->assertFalse(Storage::disk('drive')->exists($init->json('s3_key')));
+        $this->unitA->members()->updateExistingPivot($this->owner->id, ['role' => 'editor']);
+
+        // 3. Dangerous active extension (.svg / XML) rejected even if MIME looks like XML/plain text
+        $svgInit = $this->postJson('/api/drive/upload/init', [
+            'name' => 'xss_payload.svg',
+            'size' => 64,
+            'mime' => 'image/svg+xml',
+        ])->assertStatus(200);
+        Storage::disk('drive')->put($svgInit->json('s3_key'), '<?xml version="1.0"?><svg onload="alert(1)"/>');
+        $this->postJson('/api/drive/upload/complete', [
+            'upload_id' => $svgInit->json('upload_id'),
+        ])->assertStatus(422);
+        $this->assertFalse(Storage::disk('drive')->exists($svgInit->json('s3_key')));
+
+        // 4. Cross-space index bypass blocked: cannot read Unit B quota using own personal folder_id
+        $otherPersonalFolder = DriveFolder::create([
+            'user_id' => $this->otherUser->id,
+            'unit_id' => null,
+            'name' => 'Pribadi Other',
+        ]);
+        $this->actingAs($this->otherUser);
+        $this->getJson("/api/drive?space={$this->unitB->id}&folder_id={$otherPersonalFolder->id}")
+            ->assertStatus(403);
+        $this->actingAs($this->owner);
+
+        // 5. Restoring a file inside a trashed restricted folder is refused so it never leaks to unit root
+        $restricted = DriveFolder::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'name' => 'Resor Isolasi',
+            'is_restricted' => true,
+        ]);
+        $childRestricted = DriveFolder::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'parent_id' => $restricted->id,
+            'name' => 'Sub Shared',
+            'is_restricted' => true,
+        ]);
+        $secretDoc = DriveFile::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'folder_id' => $restricted->id,
+            'name' => 'sandi_resor.pdf',
+            's3_key' => 'units/unit-a/sandi_resor.pdf',
+            'size_bytes' => 128,
+            'mime_type' => 'application/pdf',
+        ]);
+
+        // Breadcrumbs on shared subfolder stop at unreadable restricted ancestor
+        DriveShare::create([
+            'folder_id' => $childRestricted->id,
+            'user_id' => $this->otherUser->id,
+            'share_type' => 'internal',
+            'role' => 'viewer',
+            'created_by' => $this->owner->id,
+        ]);
+        $this->actingAs($this->otherUser);
+        $crumbRes = $this->getJson("/api/drive?space={$this->unitA->id}&folder_id={$childRestricted->id}")
+            ->assertStatus(200);
+        $crumbIds = collect($crumbRes->json('breadcrumbs'))->pluck('id')->all();
+        $this->assertSame([$childRestricted->id], $crumbIds);
+
+        // Trash restricted parent & attempt restoring child file -> must fail with 422
+        $this->actingAs($this->owner);
+        $this->deleteJson("/api/drive/folder/{$restricted->id}")->assertStatus(200);
+        $this->postJson("/api/drive/file/{$secretDoc->id}/restore")->assertStatus(422);
+
+        // 6. Former collaborator whose write access was revoked cannot delete an existing share
+        $pubShare = DriveShare::create([
+            'file_id' => $secretDoc->id,
+            'share_type' => 'public',
+            'role' => 'viewer',
+            'token' => 'deadbeefdeadbeefdeadbeefdeadbeef',
+            'created_by' => $this->otherUser->id,
+        ]);
+        $this->actingAs($this->otherUser);
+        $this->deleteJson("/api/drive/shares/{$pubShare->id}")->assertStatus(403);
+
+        // 7. Signed ZIP download rejects deactivated user without falling back to folder owner
+        $activeZipFolder = DriveFolder::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'name' => 'Active Zip Target',
+        ]);
+        $this->otherUser->update(['is_active' => false]);
+        $zipUrl = URL::temporarySignedRoute('drive.folder.download_zip', now()->addMinutes(10), [
+            'id' => $activeZipFolder->id,
+            'u' => $this->otherUser->id,
+        ]);
+        $this->get($zipUrl)->assertStatus(403);
+        $this->otherUser->update(['is_active' => true]);
+
+        // 8. createFolder with personal parent_id + foreign unit_id must NOT bypass unit authorization
+        $this->actingAs($this->otherUser);
+        $bypassFolderRes = $this->postJson('/api/drive/folders', [
+            'name' => 'Cross Unit Injection',
+            'parent_id' => $otherPersonalFolder->id,
+            'unit_id' => $this->unitA->id,
+        ])->assertStatus(201);
+        $this->assertNull($bypassFolderRes->json('folder.unit_id'));
+
+        // 9. Unit editor (non-owner, non-DriveAdmin) cannot exfiltrate colleague's unit folder into Personal Drive via destination_parent_id
+        $this->actingAs($this->owner);
+        $colleagueUnitFolder = DriveFolder::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'name' => 'Colleague Unit Folder',
+        ]);
+        $colleagueUnitFile = DriveFile::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'folder_id' => $colleagueUnitFolder->id,
+            'name' => 'colleague_doc.pdf',
+            's3_key' => 'units/unit-a/colleague_doc.pdf',
+            'size_bytes' => 512,
+            'mime_type' => 'application/pdf',
+        ]);
+        $unitAEditor = User::create([
+            'name' => 'Unit A Editor',
+            'username' => '199301012020011077',
+            'email' => 'unitaeditor@bksda.go.id',
+            'password' => Hash::make('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+        $this->unitA->members()->attach($unitAEditor->id, ['role' => 'editor']);
+        $editorPersonalFolder = DriveFolder::create([
+            'user_id' => $unitAEditor->id,
+            'unit_id' => null,
+            'name' => 'Editor Personal',
+        ]);
+
+        $this->actingAs($unitAEditor);
+        $this->postJson("/api/drive/folders/{$colleagueUnitFolder->id}/move", [
+            'destination_parent_id' => $editorPersonalFolder->id,
+        ])->assertStatus(403);
+
+        // 10. Unit editor cannot hijack/move colleague's file into Personal Drive
+        $this->postJson("/api/drive/files/{$colleagueUnitFile->id}/move", [
+            'destination_folder_id' => $editorPersonalFolder->id,
+        ])->assertStatus(403);
     }
 }

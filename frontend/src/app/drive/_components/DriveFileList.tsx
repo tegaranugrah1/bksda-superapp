@@ -16,7 +16,6 @@ import {
   Edit2,
   Eye,
   RotateCcw,
-  ShieldAlert,
   Share2,
   FolderInput,
   Lock,
@@ -29,11 +28,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 
 export interface DriveFolderItem {
   id: number;
@@ -82,15 +81,6 @@ interface DriveFileListProps {
   onTrash: (type: "folder" | "file", id: number) => void;
   onRestore: (type: "folder" | "file", id: number) => void;
   onForceDelete: (type: "folder" | "file", id: number) => void;
-}
-
-function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
 
 function getFileIcon(mime: string) {
@@ -178,7 +168,9 @@ export function DriveFileList({
                   : "space-y-1.5"
               )}
             >
-              {folders.map((folder) => (
+              {folders.map((folder) => {
+                const folderCanWrite = folder.can_write ?? canWrite;
+                return (
                 <div
                   key={folder.id}
                   onDoubleClick={() => !isTrash && onOpenFolder(folder.id)}
@@ -239,38 +231,36 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFolderZip?.(folder)}>
                               <FileArchive className="w-3.5 h-3.5 mr-2 text-amber-500" /> Unduh sebagai ZIP
                             </DropdownMenuItem>
-                            {isDriveAdmin && !isTrash && folder.is_restricted && (
+                            {isDriveAdmin && folder.is_restricted && (
                               <DropdownMenuItem onClick={() => onAssignManager?.(folder)}>
                                 <Shield className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Atur Admin Resor
                               </DropdownMenuItem>
                             )}
-                            {canWrite && (
-                              <DropdownMenuItem onClick={() => onMoveItem?.("folder", folder)}>
-                                <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
-                              </DropdownMenuItem>
-                            )}
-                            {canWrite && (
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setRenameItem({ type: "folder", id: folder.id, name: folder.name });
-                                  setNewName(folder.name);
-                                }}
-                              >
-                                <Edit2 className="w-3.5 h-3.5 mr-2" /> Ganti Nama
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            {canWrite && (
-                              <DropdownMenuItem
-                                onClick={() => onTrash("folder", folder.id)}
-                                className="text-rose-600 focus:text-rose-600"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" /> Buang ke Sampah
-                              </DropdownMenuItem>
+                            {folderCanWrite && (
+                              <>
+                                <DropdownMenuItem onClick={() => onMoveItem?.("folder", folder)}>
+                                  <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setRenameItem({ type: "folder", id: folder.id, name: folder.name });
+                                    setNewName(folder.name);
+                                  }}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5 mr-2" /> Ganti Nama
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => onTrash("folder", folder.id)}
+                                  className="text-rose-600 focus:text-rose-600"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Buang ke Sampah
+                                </DropdownMenuItem>
+                              </>
                             )}
                           </>
                         ) : (
-                          canWrite ? (
+                          folderCanWrite ? (
                             <>
                               <DropdownMenuItem onClick={() => onRestore("folder", folder.id)}>
                                 <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
@@ -288,7 +278,8 @@ export function DriveFileList({
                     </DropdownMenu>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -306,7 +297,9 @@ export function DriveFileList({
                   : "space-y-1.5"
               )}
             >
-              {files.map((file) => (
+              {files.map((file) => {
+                const fileCanWrite = file.can_write ?? canWrite;
+                return (
                 <div
                   key={file.id}
                   onDoubleClick={() => !isTrash && onPreviewFile(file)}
@@ -363,43 +356,41 @@ export function DriveFileList({
                             <DropdownMenuItem onClick={() => onDownloadFile(file)}>
                               <Download className="w-3.5 h-3.5 mr-2" /> Unduh
                             </DropdownMenuItem>
-                            {(file.can_write ?? canWrite) && (
-                              <DropdownMenuItem onClick={() => onMoveItem?.("file", file)}>
-                                <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
-                              </DropdownMenuItem>
-                            )}
-                            {(file.can_write ?? canWrite) && onShareFile && (
-                              <DropdownMenuItem onClick={() => onShareFile(file)}>
-                                <Share2 className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Bagikan Berkas
-                              </DropdownMenuItem>
-                            )}
-                            {(file.can_write ?? canWrite) && onTransferOwnership && (
-                              <DropdownMenuItem onClick={() => onTransferOwnership("file", file)}>
-                                <Shield className="w-3.5 h-3.5 mr-2 text-amber-500" /> Alihkan Kepemilikan
-                              </DropdownMenuItem>
-                            )}
-                            {(file.can_write ?? canWrite) && (
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setRenameItem({ type: "file", id: file.id, name: file.name });
-                                  setNewName(file.name);
-                                }}
-                              >
-                                <Edit2 className="w-3.5 h-3.5 mr-2" /> Ganti Nama
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            {(file.can_write ?? canWrite) && (
-                              <DropdownMenuItem
-                                onClick={() => onTrash("file", file.id)}
-                                className="text-rose-600 focus:text-rose-600"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" /> Buang ke Sampah
-                              </DropdownMenuItem>
+                            {fileCanWrite && (
+                              <>
+                                <DropdownMenuItem onClick={() => onMoveItem?.("file", file)}>
+                                  <FolderInput className="w-3.5 h-3.5 mr-2 text-blue-500" /> Pindahkan ke...
+                                </DropdownMenuItem>
+                                {onShareFile && (
+                                  <DropdownMenuItem onClick={() => onShareFile(file)}>
+                                    <Share2 className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Bagikan Berkas
+                                  </DropdownMenuItem>
+                                )}
+                                {onTransferOwnership && (
+                                  <DropdownMenuItem onClick={() => onTransferOwnership("file", file)}>
+                                    <Shield className="w-3.5 h-3.5 mr-2 text-amber-500" /> Alihkan Kepemilikan
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setRenameItem({ type: "file", id: file.id, name: file.name });
+                                    setNewName(file.name);
+                                  }}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5 mr-2" /> Ganti Nama
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => onTrash("file", file.id)}
+                                  className="text-rose-600 focus:text-rose-600"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Buang ke Sampah
+                                </DropdownMenuItem>
+                              </>
                             )}
                           </>
                         ) : (
-                          canWrite ? (
+                          fileCanWrite ? (
                             <>
                               <DropdownMenuItem onClick={() => onRestore("file", file.id)}>
                                 <RotateCcw className="w-3.5 h-3.5 mr-2" /> Pulihkan
@@ -417,7 +408,8 @@ export function DriveFileList({
                     </DropdownMenu>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

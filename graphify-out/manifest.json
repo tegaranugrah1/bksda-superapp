@@ -1,7 +1,7 @@
 {
   "backend/app/Console/Commands/StorageSetupCommand.php": {
-    "mtime": 1793584951.708587,
-    "ast_hash": "fa79b725f966ee8928e0213451bad2ba",
+    "mtime": 1794654544.6191375,
+    "ast_hash": "761781392275b6d3a40b0f438499c7c4",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
@@ -75,8 +75,8 @@
     "semantic_hash": "e911315a1d8be9e2b66b7ce045aaed35"
   },
   "backend/app/Modules/Bmn/Controllers/AssetController.php": {
-    "mtime": 1793778859.872832,
-    "ast_hash": "c50bd578f44f792bf0fdfd7219c4c50c",
+    "mtime": 1794712789.6000042,
+    "ast_hash": "23af245e0034d512e13457f20b53ed70",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetDocumentController.php": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/DashboardController.php": {
-    "mtime": 1794287270.992229,
-    "ast_hash": "a7c6ebc6e7b51cf94011abc57e852486",
+    "mtime": 1794712824.8568692,
+    "ast_hash": "ccb852aff6c57624da38365f2a13bc4b",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/DocumentHistoryController.php": {
@@ -115,8 +115,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/ImportReviewController.php": {
-    "mtime": 1793593288.3010738,
-    "ast_hash": "dde3ef6cc7925eb7fd1834eef3a71150",
+    "mtime": 1794712792.6460605,
+    "ast_hash": "d9096bf94d0bfbfcf91c78fb393c0451",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/LoanController.php": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Imports/AssetImport.php": {
-    "mtime": 1794111340.7314954,
-    "ast_hash": "8e076722f8dbae1ab0e098435b2c1f7e",
+    "mtime": 1794712786.8985317,
+    "ast_hash": "346915ecfc6bfd7b2b167230a78bcbc7",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Imports/AssetStagingImport.php": {
@@ -395,9 +395,9 @@
     "semantic_hash": "0abafb607d771a0c35d4d8afc8182bdb"
   },
   "backend/app/Modules/Bmn/Requests/StoreAssetRequest.php": {
-    "mtime": 1778661245.2849238,
-    "ast_hash": "2aaf7af5f0908c0b156954343d957caa",
-    "semantic_hash": "2aaf7af5f0908c0b156954343d957caa"
+    "mtime": 1794712753.9935772,
+    "ast_hash": "b00ce28b46be09b677979669a89b7560",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Requests/TransitionAuctionBatchRequest.php": {
     "mtime": 1787548978.4649434,
@@ -430,8 +430,8 @@
     "semantic_hash": "0faa4990c6dd5618c3a5ea5e3c374494"
   },
   "backend/app/Modules/Bmn/Resources/AssetResource.php": {
-    "mtime": 1790324134.9021974,
-    "ast_hash": "20e3cea479a5bbba03a135e89386203b",
+    "mtime": 1794712738.0577264,
+    "ast_hash": "ded91e78f4d05cf5d323cf75273c3e6e",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Resources/AuctionBatchAssetResource.php": {
@@ -475,8 +475,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AssetService.php": {
-    "mtime": 1794110809.2321024,
-    "ast_hash": "faee03088d6939e7857e4ac7c785f1ec",
+    "mtime": 1794712719.4962683,
+    "ast_hash": "314c4e89f32019e7199bbbbaed49e4f6",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AuctionAssetDocumentReadinessService.php": {
@@ -505,8 +505,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AuctionBatchService.php": {
-    "mtime": 1792746997.364875,
-    "ast_hash": "7977aeb79ed3a889c48d30b6799f63b7",
+    "mtime": 1794712818.3323112,
+    "ast_hash": "98295e3bad806752d596b451c6cf6248",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/AuctionBatchStateMachine.php": {
@@ -520,14 +520,14 @@
     "semantic_hash": "52dc5bc14b13edd9e90f5d19ac2f229e"
   },
   "backend/app/Modules/Bmn/Services/LoanService.php": {
-    "mtime": 1794186597.6836703,
-    "ast_hash": "5d1d00b53efc74c216a3ad88c7008d39",
+    "mtime": 1794712867.136345,
+    "ast_hash": "37dab7b08abdcc811b3022b2d415b163",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/MaintenanceService.php": {
-    "mtime": 1778211021.7461653,
-    "ast_hash": "e77bf579659dbc7ebb2cfd8689e3256b",
-    "semantic_hash": "e77bf579659dbc7ebb2cfd8689e3256b"
+    "mtime": 1794712799.9755185,
+    "ast_hash": "420ed1f6996a36398b1b1f1a97db5362",
+    "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Services/PdfPreviewService.php": {
     "mtime": 1792746997.3668754,
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1794212060.4976304,
-    "ast_hash": "cb7ea6ca69f945576f34234256d0b5a5",
+    "mtime": 1794712832.1458745,
+    "ast_hash": "968310ab4ef68aba8305c4e0fb604410",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1794209134.4208398,
-    "ast_hash": "6f66fd6a7b365e6f331af181888d3c6b",
+    "mtime": 1794671561.9560592,
+    "ast_hash": "6e4ecb8d117dfe13e232bfcfc0acea28",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1225,9 +1225,9 @@
     "semantic_hash": ""
   },
   "backend/config/app.php": {
-    "mtime": 1778041608.600828,
-    "ast_hash": "0db9e62614ce3a31cdc38f805f3ef7de",
-    "semantic_hash": "0db9e62614ce3a31cdc38f805f3ef7de"
+    "mtime": 1794716710.8428829,
+    "ast_hash": "f21719b16c97c8c08e872ce071438b78",
+    "semantic_hash": ""
   },
   "backend/config/auth.php": {
     "mtime": 1778041302.290129,
@@ -1250,8 +1250,8 @@
     "semantic_hash": "a3f23c980374a4770d9451b20e4beda9"
   },
   "backend/config/filesystems.php": {
-    "mtime": 1793584951.82603,
-    "ast_hash": "eec47830f533bec0619a808168e7d5da",
+    "mtime": 1794716713.9608583,
+    "ast_hash": "c6e5f13a2d07a9c5213414b3c9e1599a",
     "semantic_hash": ""
   },
   "backend/config/logging.php": {
@@ -1465,13 +1465,13 @@
     "semantic_hash": "b519d08ef66fd54910edbedba6181ec2"
   },
   "backend/routes/api.php": {
-    "mtime": 1794120649.1152813,
-    "ast_hash": "c623c3784a5679bd5004c0fd26914f0b",
+    "mtime": 1794654515.3891518,
+    "ast_hash": "e6c512793f67a7c43590ddf5681b2b1e",
     "semantic_hash": ""
   },
   "backend/routes/console.php": {
-    "mtime": 1794208911.0577192,
-    "ast_hash": "82456ea16e4660824fe9058be878aa4c",
+    "mtime": 1794712874.460503,
+    "ast_hash": "67392b253e3195528a827e5c5f817d47",
     "semantic_hash": ""
   },
   "backend/routes/web.php": {
@@ -1665,8 +1665,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1794321991.9348075,
-    "ast_hash": "1d40fa74fab7667485ca7350c291ec15",
+    "mtime": 1794712980.1200857,
+    "ast_hash": "7d50cfd366278c735b72f76a17f4e8b6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -2035,9 +2035,9 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/components/modals/BorrowAssetModal.tsx": {
-    "mtime": 1778910873.392063,
-    "ast_hash": "8a5b02704e735235eb32c016e77897a3",
-    "semantic_hash": "8a5b02704e735235eb32c016e77897a3"
+    "mtime": 1794712980.132752,
+    "ast_hash": "4372580f4de19486d0bec55261eb166c",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/components/modals/MaintenanceModal.tsx": {
     "mtime": 1778910873.3986654,
@@ -2070,8 +2070,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/page.tsx": {
-    "mtime": 1794331489.2290885,
-    "ast_hash": "26032ba5483cf6f87680f17643b7f587",
+    "mtime": 1794713219.2386963,
+    "ast_hash": "1d6927583f14398fd5a55907a66ebbf3",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/maintenances/page.tsx": {
@@ -2080,8 +2080,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/page.tsx": {
-    "mtime": 1794416649.0545712,
-    "ast_hash": "97bd74fb4c26f82decf69bc4e1d4c959",
+    "mtime": 1794712980.135007,
+    "ast_hash": "3431a9e47a54c2e06e0578339bbff011",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx": {
@@ -2475,8 +2475,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1794445397.7604468,
-    "ast_hash": "9b72ab235185118027b8586b71e511fa",
+    "mtime": 1794712980.1178946,
+    "ast_hash": "933da66fbcadd77733899de0758ffa5b",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2765,9 +2765,9 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/utils.ts": {
-    "mtime": 1781745268.9373457,
-    "ast_hash": "0ca844171175e37bf4e40f5e4c19682c",
-    "semantic_hash": "0ca844171175e37bf4e40f5e4c19682c"
+    "mtime": 1794716953.4036896,
+    "ast_hash": "d19ca56f03748cf0e2c7f11b1e9bc1d4",
+    "semantic_hash": ""
   },
   "frontend/src/providers/query-provider.tsx": {
     "mtime": 1778141729.7938497,
@@ -5495,8 +5495,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyAssetsTab.tsx": {
-    "mtime": 1794195947.757341,
-    "ast_hash": "a9adb7dc7a7e4443e7c94e817b838988",
+    "mtime": 1794712943.4656174,
+    "ast_hash": "ec70eebb345f9b1967b9fe67e44b4622",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyLeaveTab.tsx": {
@@ -5530,8 +5530,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/ActiveLoansTab.tsx": {
-    "mtime": 1794195968.2766156,
-    "ast_hash": "12a89ff3f17d963f133ccd58cda8729c",
+    "mtime": 1794712980.1095812,
+    "ast_hash": "b5b98ddea2c5a034a9a8685001939d0c",
     "semantic_hash": ""
   },
   "mobile/src/features/profile/ChangePasswordModal.tsx": {
@@ -6135,8 +6135,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794493681.3469422,
-    "ast_hash": "eb70cadd30f822d6922d6e0ec2dd4d05",
+    "mtime": 1794716235.7816963,
+    "ast_hash": "23d52d79e60b5ea7beba02e4c4ea8e2b",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6995,8 +6995,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/PortalNotificationController.php": {
-    "mtime": 1794188086.1637304,
-    "ast_hash": "5742f436dc41c34ae4df0dcd2499a261",
+    "mtime": 1794671565.065754,
+    "ast_hash": "cf77691a7f56a8dd6e01aaa83cdde2e9",
     "semantic_hash": ""
   },
   "backend/app/Models/PortalNotification.php": {
@@ -7020,8 +7020,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/NotificationBell.tsx": {
-    "mtime": 1794187745.1450937,
-    "ast_hash": "e6210bc5bbe30b4634509c0688bfb7d6",
+    "mtime": 1794671680.9043505,
+    "ast_hash": "dbcd42a845ba18003c4a8cd803305876",
     "semantic_hash": ""
   },
   "backend/tests/self_check_public_surat_tugas.php": {
@@ -7040,8 +7040,8 @@
     "semantic_hash": ""
   },
   "backend/app/Console/Commands/HealthMonitorCommand.php": {
-    "mtime": 1794187372.4487715,
-    "ast_hash": "cb5322b549b4c6fadd458d70a9d43109",
+    "mtime": 1794671568.8664534,
+    "ast_hash": "f8b444c07c9976667658fa297e8e52d1",
     "semantic_hash": ""
   },
   "backend/app/Console/Commands/PurgeDriveTrashCommand.php": {
@@ -7065,13 +7065,13 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveController.php": {
-    "mtime": 1794127170.1879876,
-    "ast_hash": "996ea076eb4c30d44fb6cdf476436258",
+    "mtime": 1794721107.016747,
+    "ast_hash": "1237773a9f563c548b02d957d6d85190",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveShareController.php": {
-    "mtime": 1794129839.315346,
-    "ast_hash": "2d62795e9575901989f004522e3c7e8a",
+    "mtime": 1794716729.9880104,
+    "ast_hash": "0d86e249c916afb555fcb0ea74a113e3",
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/EnsureAccountSecure.php": {
@@ -7110,8 +7110,8 @@
     "semantic_hash": ""
   },
   "backend/app/Models/DriveUnit.php": {
-    "mtime": 1793593288.298074,
-    "ast_hash": "59a0504b8f528df412dac3ae05b10387",
+    "mtime": 1794654521.8625696,
+    "ast_hash": "8c0c9313616b6718f294f2da651f8cc0",
     "semantic_hash": ""
   },
   "backend/app/Models/DriveUpload.php": {
@@ -7130,8 +7130,8 @@
     "semantic_hash": ""
   },
   "backend/app/Support/Security/DriveAccess.php": {
-    "mtime": 1794127097.5670164,
-    "ast_hash": "7ab0164ef323be1f763b7a4492263303",
+    "mtime": 1794721089.9548123,
+    "ast_hash": "0f6a85412625517776bd450a7281e2ba",
     "semantic_hash": ""
   },
   "backend/app/Support/Security/Totp.php": {
@@ -7220,43 +7220,43 @@
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DriveFileList.tsx": {
-    "mtime": 1793584951.9884605,
-    "ast_hash": "e91c101cb8537980224d61036e7d46af",
+    "mtime": 1794721171.5216005,
+    "ast_hash": "bd4071802bbf6aa5c5d0da93f766a568",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DrivePreviewModal.tsx": {
-    "mtime": 1793584951.9904635,
-    "ast_hash": "5abc5d529ba41351f5ca19af725e4dc8",
+    "mtime": 1794716953.4076922,
+    "ast_hash": "e833bd79bef5b142d55bdf0b6e188b6a",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DriveShareDialog.tsx": {
-    "mtime": 1793584951.9914668,
-    "ast_hash": "ae26c9c8d0d999928293e46eb766a025",
+    "mtime": 1794654845.930374,
+    "ast_hash": "a01060c694e2a88670e9208b3ecca9e6",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DriveSidebar.tsx": {
-    "mtime": 1793584951.9924693,
-    "ast_hash": "1c0febb3b2a216f85c6d247bdc13ce07",
+    "mtime": 1794716953.4056926,
+    "ast_hash": "c48cc3a363ad2f1cc01650641d44fbff",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DriveToolbar.tsx": {
-    "mtime": 1793751280.9570663,
-    "ast_hash": "2cbf90fc156be1d2a271d45f6a14d807",
+    "mtime": 1794716953.4066925,
+    "ast_hash": "3f7766e5832838bae0496fd40fa0c772",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/_components/DriveUploadDialog.tsx": {
-    "mtime": 1793584951.994462,
-    "ast_hash": "d9492d4b3ca25970fa8c04e1d3292642",
+    "mtime": 1794654822.2745204,
+    "ast_hash": "5a6119fc6776bba629a165d4ad0ba0c1",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/page.tsx": {
-    "mtime": 1793718111.8842623,
-    "ast_hash": "064aabca38a919047775c77de46aba46",
+    "mtime": 1794716803.7901244,
+    "ast_hash": "c5925fdfd2a69ead6af904fecdbf6359",
     "semantic_hash": ""
   },
   "frontend/src/app/drive/s/[token]/page.tsx": {
-    "mtime": 1793584951.9974656,
-    "ast_hash": "5bbd7ed8fc0df4b03aa2cf5bb365d126",
+    "mtime": 1794716953.404693,
+    "ast_hash": "34a5d9b867ec2bbcc1df6990b64dd4f9",
     "semantic_hash": ""
   },
   "frontend/src/app/forgot-password/page.tsx": {
@@ -7285,8 +7285,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/echo.ts": {
-    "mtime": 1793593288.651891,
-    "ast_hash": "c438089cfa902c2fe2ae493cade13870",
+    "mtime": 1794671680.905354,
+    "ast_hash": "a26e3ea1339fc1b723b79354c27d371e",
     "semantic_hash": ""
   },
   "docs/websocket-drive-mail-infrastructure/design.md": {
@@ -7540,8 +7540,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/DriveRootConcurrencyAndMultipartTest.php": {
-    "mtime": 1793593288.339252,
-    "ast_hash": "9071443d6f6b44041fea2825b0344dde",
+    "mtime": 1794654974.716669,
+    "ast_hash": "605c5cd7bf9b89a0f5f2d4a4ca49dfdd",
     "semantic_hash": ""
   },
   "backend/tests/Feature/SuratTugasApprovalAndPortalNotificationTest.php": {
@@ -7965,8 +7965,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php": {
-    "mtime": 1793836343.0587897,
-    "ast_hash": "660506c8fca1a03809ab29e6ddb5160a",
+    "mtime": 1794713087.0231335,
+    "ast_hash": "33866f66b13fb6c4359b4d9f7ead9517",
     "semantic_hash": ""
   },
   "frontend/tests/diktum-capitalization-check.cjs": {
@@ -8740,18 +8740,18 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/NotificationBmnLifecycleTest.php": {
-    "mtime": 1794189404.3992379,
-    "ast_hash": "05e574f34b61b9a7c8a0c391dad76907",
+    "mtime": 1794713252.196809,
+    "ast_hash": "497b6016e7252ab013c8b4689f14bbe6",
     "semantic_hash": ""
   },
   "backend/tests/Feature/NotificationHealthMonitorTest.php": {
-    "mtime": 1794189404.4002416,
-    "ast_hash": "c8faf7cd025bf96f5bb52f5d4a2648c0",
+    "mtime": 1794671695.0395288,
+    "ast_hash": "0b4a31330c2a6e1a3ddcb11c38b4b60e",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalNotificationLifecycleTest.php": {
-    "mtime": 1794189404.3992379,
-    "ast_hash": "0abc3b1c1689b1edd7c9710e7c33cd4c",
+    "mtime": 1794671724.4153893,
+    "ast_hash": "963ea1051ddef47dce4da43e6e4f0c5b",
     "semantic_hash": ""
   },
   "backend/tests/Feature/StActorAcceptanceTest.php": {
@@ -8985,8 +8985,8 @@
     "semantic_hash": ""
   },
   "backend/app/Console/Commands/ApplyEmployeeLifecycleCommand.php": {
-    "mtime": 1794391723.1837995,
-    "ast_hash": "39075c1c7e22486ff8b0620d1a82e660",
+    "mtime": 1794712828.3801327,
+    "ast_hash": "349fc04b55d8d1c6ae18dd4840cac95e",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_09_160000_add_lifecycle_columns_to_kpg_employees_table.php": {
@@ -9167,6 +9167,41 @@
   "frontend/tests/capture-delicate-cards.cjs": {
     "mtime": 1794493610.0863533,
     "ast_hash": "e9cd8f538826c8ca6bd5e65b2697b2f2",
+    "semantic_hash": ""
+  },
+  "backend/database/migrations/2026_11_14_000001_harden_drive_schema_and_ownership.php": {
+    "mtime": 1794654551.0443072,
+    "ast_hash": "42157c6023a2948a8756713f648e3d8f",
+    "semantic_hash": ""
+  },
+  "backend/tests/Feature/DriveSecurityAndIntegrityTest.php": {
+    "mtime": 1794721367.9796555,
+    "ast_hash": "213a2a0e165872a59070086322fdb1f5",
+    "semantic_hash": ""
+  },
+  "frontend/tests/portal-notifications-live-e2e.playwright.cjs": {
+    "mtime": 1794671863.5909152,
+    "ast_hash": "fdad5ae3228288ef186672ff528b15b7",
+    "semantic_hash": ""
+  },
+  "docs/security/drive-deep-audit-and-remediation-plan-2026-11-13.md": {
+    "mtime": 1794655021.1847293,
+    "ast_hash": "2bb73d25f60080f2169e5ac15ad54014",
+    "semantic_hash": ""
+  },
+  "docs/security/portal-notifications-deep-audit-2026-11-14.md": {
+    "mtime": 1794671968.5235393,
+    "ast_hash": "3baf8defa9673a5d6ca83224c1bca850",
+    "semantic_hash": ""
+  },
+  "backend/app/Console/Commands/BmnNotifyDeadlinesCommand.php": {
+    "mtime": 1794712870.9162009,
+    "ast_hash": "7a1d90853b510bc964c34c353cc698e3",
+    "semantic_hash": ""
+  },
+  "docs/security/bmn-asset-detail-notifications-plan-2026-11-15.md": {
+    "mtime": 1794716232.9893515,
+    "ast_hash": "95eca2e656e545bdb1bc7cae2832899d",
     "semantic_hash": ""
   }
 }

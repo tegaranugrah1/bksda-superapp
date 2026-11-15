@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'drive_public_share_enabled' => env('DRIVE_PUBLIC_SHARE', true),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

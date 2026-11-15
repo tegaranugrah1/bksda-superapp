@@ -115,26 +115,37 @@ class DriveAccess
     }
 
     /**
-     * Otorisasi Membaca Folder (dengan isolasi folder resor/ruangan dan anti-bypass)
+     * Otorisasi Membaca Folder (dengan isolasi folder resor/ruangan dan anti-bypass).
      */
     public static function canReadFolder(User $user, DriveFolder $folder): bool
     {
-        if (self::isDriveAdmin($user)) {
+        return self::checkFolderAccess($user, $folder, write: false);
+    }
+
+    /**
+     * Otorisasi Menulis Folder (dengan isolasi folder resor/ruangan).
+     */
+    public static function canWriteFolder(User $user, DriveFolder $folder): bool
+    {
+        return self::checkFolderAccess($user, $folder, write: true);
+    }
+
+    private static function checkFolderAccess(User $user, DriveFolder $folder, bool $write): bool
+    {
+        if (self::isDriveAdmin($user) || (int) $folder->user_id === (int) $user->id) {
             return true;
         }
 
-        // Pemilik / Admin Resor yang ditunjuk berhak membaca
-        if ($folder->user_id === $user->id) {
-            return true;
-        }
-
-        // Jika folder terisolasi (Resor / Ruangan Tertutup)
         if ($folder->is_restricted) {
-            // 1. Cek izin eksplisit di tabel drive_shares
             $userUnitIds = self::getUserUnitIds($user);
             $hasShare = DriveShare::where('folder_id', $folder->id)
+                ->where('share_type', 'internal')
+                ->when($write, fn ($q) => $q->whereIn('role', ['manager', 'editor']))
                 ->where(function ($q) use ($user, $userUnitIds) {
-                    $q->where('user_id', $user->id)->orWhereIn('unit_id', $userUnitIds);
+                    $q->where('user_id', $user->id);
+                    if ($userUnitIds->isNotEmpty()) {
+                        $q->orWhereIn('unit_id', $userUnitIds);
+                    }
                 })
                 ->exists();
 
@@ -142,50 +153,6 @@ class DriveAccess
                 return true;
             }
 
-            // 2. Cek kecocokan otomatis penempatan resor pegawai
-            if ($folder->resor_code) {
-                $employee = self::getEmployee($user);
-                return $employee && (string) $employee->resor === (string) $folder->resor_code;
-            }
-
-            return false;
-        }
-
-        // Folder umum: warisi hak akses unit
-        if ($folder->unit_id) {
-            $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
-            return $unit ? self::canRead($user, $unit) : false;
-        }
-
-        // Folder drive pribadi: hanya milik user
-        return $folder->user_id === $user->id;
-    }
-
-    /**
-     * Otorisasi Menulis Folder (dengan isolasi folder resor/ruangan)
-     */
-    public static function canWriteFolder(User $user, DriveFolder $folder): bool
-    {
-        if (self::isDriveAdmin($user)) {
-            return true;
-        }
-
-        if ($folder->user_id === $user->id) {
-            return true;
-        }
-
-        if ($folder->is_restricted) {
-            $userUnitIds = self::getUserUnitIds($user);
-            $share = DriveShare::where('folder_id', $folder->id)
-                ->where(function ($q) use ($user, $userUnitIds) {
-                    $q->where('user_id', $user->id)->orWhereIn('unit_id', $userUnitIds);
-                })
-                ->first();
-
-            if ($share && in_array($share->role, ['manager', 'editor'], true)) {
-                return true;
-            }
-
             if ($folder->resor_code) {
                 $employee = self::getEmployee($user);
                 return $employee && (string) $employee->resor === (string) $folder->resor_code;
@@ -196,33 +163,41 @@ class DriveAccess
 
         if ($folder->unit_id) {
             $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
-            return $unit ? self::canWrite($user, $unit) : false;
+            return $unit ? ($write ? self::canWrite($user, $unit) : self::canRead($user, $unit)) : false;
         }
 
-        return $folder->user_id === $user->id;
+        return false;
     }
 
     /**
-     * Otorisasi Membaca Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi)
+     * Otorisasi Membaca Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi).
      */
     public static function canReadFile(User $user, DriveFile $file): bool
     {
-        if (self::isDriveAdmin($user)) {
+        return self::checkFileAccess($user, $file, write: false);
+    }
+
+    /**
+     * Otorisasi Menulis/Mengelola Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi).
+     */
+    public static function canWriteFile(User $user, DriveFile $file): bool
+    {
+        return self::checkFileAccess($user, $file, write: true);
+    }
+
+    private static function checkFileAccess(User $user, DriveFile $file, bool $write): bool
+    {
+        if (self::isDriveAdmin($user) || (int) $file->user_id === (int) $user->id) {
             return true;
         }
 
-        // Pemilik berkas selalu berhak membaca berkasnya
-        if ($file->user_id === $user->id) {
-            return true;
-        }
-
-        // Cek share internal langsung pada berkas (user atau unit) sebelum mengecek folder induk
         $userUnitIds = self::getUserUnitIds($user);
         $hasDirectShare = $file->shares()
             ->where('share_type', 'internal')
+            ->when($write, fn ($q) => $q->whereIn('role', ['manager', 'editor']))
             ->where(function ($q) use ($user, $userUnitIds) {
                 $q->where('user_id', $user->id);
-                if (! empty($userUnitIds)) {
+                if ($userUnitIds->isNotEmpty()) {
                     $q->orWhereIn('unit_id', $userUnitIds);
                 }
             })
@@ -232,62 +207,16 @@ class DriveAccess
             return true;
         }
 
-        // Anti-IDOR: Jika berkas berada di dalam folder, wajib memvalidasi izin folder induknya!
         if ($file->folder_id) {
             $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
             if ($folder) {
-                return self::canReadFolder($user, $folder);
+                return self::checkFolderAccess($user, $folder, $write);
             }
         }
 
         if ($file->unit_id) {
             $unit = $file->unit ?? DriveUnit::find($file->unit_id);
-            return $unit ? self::canRead($user, $unit) : false;
-        }
-
-        return false;
-    }
-
-    /**
-     * Otorisasi Menulis/Mengelola Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi)
-     */
-    public static function canWriteFile(User $user, DriveFile $file): bool
-    {
-        if (self::isDriveAdmin($user)) {
-            return true;
-        }
-
-        if ($file->user_id === $user->id) {
-            return true;
-        }
-
-        // Cek share internal dengan role editor pada berkas
-        $userUnitIds = self::getUserUnitIds($user);
-        $hasEditorShare = $file->shares()
-            ->where('share_type', 'internal')
-            ->where('role', 'editor')
-            ->where(function ($q) use ($user, $userUnitIds) {
-                $q->where('user_id', $user->id);
-                if (! empty($userUnitIds)) {
-                    $q->orWhereIn('unit_id', $userUnitIds);
-                }
-            })
-            ->exists();
-
-        if ($hasEditorShare) {
-            return true;
-        }
-
-        if ($file->folder_id) {
-            $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
-            if ($folder) {
-                return self::canWriteFolder($user, $folder);
-            }
-        }
-
-        if ($file->unit_id) {
-            $unit = $file->unit ?? DriveUnit::find($file->unit_id);
-            return $unit ? self::canWrite($user, $unit) : false;
+            return $unit ? ($write ? self::canWrite($user, $unit) : self::canRead($user, $unit)) : false;
         }
 
         return false;

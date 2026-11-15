@@ -9,11 +9,9 @@ import {
   Cloud,
   ChevronDown,
   Building2,
-  FolderOpen,
   Share2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 
 export interface DriveUnitItem {
   id: number;
@@ -36,15 +34,6 @@ interface DriveSidebarProps {
   storage: StorageStats;
   onSelectSpace: (space: string) => void;
   onSelectFilter: (filter: "all" | "starred" | "trash" | "shared_with_me") => void;
-}
-
-function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
 
 export function DriveSidebar({

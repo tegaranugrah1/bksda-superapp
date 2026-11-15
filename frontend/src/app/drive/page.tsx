@@ -3,14 +3,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Loader2,
-  HardDrive,
-  Users2,
-  FolderOpen,
-  Sparkles,
   RefreshCw,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
@@ -43,7 +39,6 @@ import { DriveShareDialog } from "./_components/DriveShareDialog";
 import { DriveMoveDialog } from "./_components/DriveMoveDialog";
 
 function DriveDashboard() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Navigation & Filter state (support initial space & folder_id from URL)
@@ -312,7 +307,7 @@ function DriveDashboard() {
     try {
       const res = await api.get(`/drive/files/${file.id}/url?download=1`);
       if (res.data?.url) {
-        window.open(res.data.url, "_blank");
+        window.open(res.data.url, "_blank", "noopener,noreferrer");
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengunduh berkas.");

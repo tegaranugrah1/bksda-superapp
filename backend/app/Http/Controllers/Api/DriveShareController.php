@@ -38,7 +38,7 @@ class DriveShareController extends Controller
         ]);
 
         if ($validated['share_type'] === 'public') {
-            if (!config('filesystems.drive_public_share_enabled', env('DRIVE_PUBLIC_SHARE', true))) {
+            if (! config('filesystems.drive_public_share_enabled', true)) {
                 return response()->json(['message' => 'Fitur berbagi link publik saat ini dinonaktifkan oleh kebijakan keamanan kantor.'], 403);
             }
 
@@ -57,7 +57,7 @@ class DriveShareController extends Controller
                 'created_by' => $user->id,
             ]);
 
-            $frontendUrl = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'https://bksdakaltim.web.id')), '/');
+            $frontendUrl = rtrim((string) config('app.frontend_url', 'https://bksdakaltim.web.id'), '/');
 
             return response()->json([
                 'message' => 'Tautan publik berhasil dibuat.',
@@ -115,7 +115,7 @@ class DriveShareController extends Controller
             ->latest()
             ->get();
 
-        $frontendUrl = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'https://bksdakaltim.web.id')), '/');
+        $frontendUrl = rtrim((string) config('app.frontend_url', 'https://bksdakaltim.web.id'), '/');
 
         $data = $shares->map(function ($s) use ($frontendUrl) {
             $arr = $s->toArray();
@@ -136,9 +136,16 @@ class DriveShareController extends Controller
     public function deleteShare(Request $request, int $shareId): JsonResponse
     {
         $user = $request->user();
-        $share = DriveShare::with(['file' => fn ($q) => $q->withTrashed()])->findOrFail($shareId);
+        $share = DriveShare::with([
+            'file' => fn ($q) => $q->withTrashed(),
+            'folder' => fn ($q) => $q->withTrashed(),
+        ])->findOrFail($shareId);
 
-        if ($share->created_by !== $user->id && (!$share->file || !DriveAccess::canWriteFile($user, $share->file))) {
+        $canRevoke = DriveAccess::isDriveAdmin($user)
+            || ($share->file && DriveAccess::canWriteFile($user, $share->file))
+            || ($share->folder && DriveAccess::canWriteFolder($user, $share->folder));
+
+        if (! $canRevoke) {
             return response()->json(['message' => 'Anda tidak memiliki izin mencabut akses berbagi ini.'], 403);
         }
 
@@ -198,12 +205,13 @@ class DriveShareController extends Controller
         $signerDisk = Storage::disk('drive_signer');
         $safeFilename = preg_replace('/[\x00-\x1F\x7F"\\\\]/', '_', (string) $file->name);
 
-        // Security: safe content disposition attachment
+        // Security: safe content disposition attachment + preserve content type
         $downloadUrl = $signerDisk->temporaryUrl(
             $file->s3_key,
             now()->addMinutes(15),
             [
                 'ResponseContentDisposition' => 'attachment; filename="' . $safeFilename . '"',
+                'ResponseContentType' => $file->mime_type ?: 'application/octet-stream',
             ]
         );
 
@@ -216,7 +224,7 @@ class DriveShareController extends Controller
 
     private function resolveActivePublicShare(string $token): DriveShare|JsonResponse
     {
-        if (!config('filesystems.drive_public_share_enabled', env('DRIVE_PUBLIC_SHARE', true))) {
+        if (! config('filesystems.drive_public_share_enabled', true)) {
             return response()->json(['message' => 'Berbagi link publik sedang dinonaktifkan.'], 404);
         }
 
