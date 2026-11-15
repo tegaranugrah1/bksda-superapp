@@ -548,5 +548,32 @@ class DriveSecurityAndIntegrityTest extends TestCase
         $this->postJson("/api/drive/files/{$colleagueUnitFile->id}/move", [
             'destination_folder_id' => $editorPersonalFolder->id,
         ])->assertStatus(403);
+
+        // 11. Collaborator with editor share on a file inside a restricted folder cannot move it out to unrestricted unit root
+        $restrictedParent = DriveFolder::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'name' => 'Restricted Leak Guard',
+            'is_restricted' => true,
+        ]);
+        $restrictedSecret = DriveFile::create([
+            'user_id' => $this->owner->id,
+            'unit_id' => $this->unitA->id,
+            'folder_id' => $restrictedParent->id,
+            'name' => 'rahasia_satwa.pdf',
+            's3_key' => 'units/unit-a/rahasia_satwa.pdf',
+            'size_bytes' => 256,
+            'mime_type' => 'application/pdf',
+        ]);
+        DriveShare::create([
+            'file_id' => $restrictedSecret->id,
+            'user_id' => $unitAEditor->id,
+            'share_type' => 'internal',
+            'role' => 'editor',
+            'created_by' => $this->owner->id,
+        ]);
+        $this->postJson("/api/drive/files/{$restrictedSecret->id}/move", [
+            'destination_unit_id' => $this->unitA->id,
+        ])->assertStatus(403);
     }
 }

@@ -815,7 +815,7 @@ class DriveController extends Controller
                 'Bucket' => config('filesystems.disks.drive_signer.bucket', 'bksda-drive'),
                 'Key' => $file->s3_key,
                 'ResponseContentDisposition' => $disposition,
-                'ResponseContentType' => $file->mime_type,
+                'ResponseContentType' => $file->mime_type ?: 'application/octet-stream',
             ]);
             $req = $signerClient->createPresignedRequest($cmd, '+60 minutes');
             $url = (string) $req->getUri();
@@ -966,6 +966,7 @@ class DriveController extends Controller
         $destFolderId = $validated['destination_folder_id'] ?? null;
         $destUnitId = $validated['destination_unit_id'] ?? null;
 
+        $destFolder = null;
         $targetFolderId = null;
         $targetUnitId = null;
         $targetUserId = $file->user_id;
@@ -989,6 +990,13 @@ class DriveController extends Controller
         } else {
             // Pindah ke root drive pribadi milik user yang memindahkan
             $targetUserId = $user->id;
+        }
+
+        $sourceFolder = $file->folder_id ? DriveFolder::find($file->folder_id) : null;
+        if ($sourceFolder && $sourceFolder->is_restricted && ! ($destFolder && $destFolder->is_restricted)) {
+            if ((int) $file->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
+                return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan berkas dari folder terbatas ke folder umum.'], 403);
+            }
         }
 
         if (($file->unit_id !== null && $targetUnitId === null) || (int) $file->user_id !== (int) $targetUserId) {
