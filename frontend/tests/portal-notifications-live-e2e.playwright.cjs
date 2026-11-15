@@ -60,9 +60,9 @@ use App\\Services\\PortalNotificationService;
 use Illuminate\\Support\\Facades\\Hash;
 
 // Clean up any leftover aborted sandbox records first
-EmployeeLeaveRequest::where('alasan_cuti', 'Sandbox E2E Test')->delete();
-User::where('username', 'like', 'sbx_%')->orWhere('email', 'like', 'sbx_%')->delete();
-Employee::where('nama_lengkap', 'like', '%Sandbox%')->delete();
+EmployeeLeaveRequest::withTrashed()->where('alasan_cuti', 'Sandbox E2E Test')->forceDelete();
+User::withTrashed()->where('username', 'like', 'sbx_%')->orWhere('email', 'like', 'sbx_%')->forceDelete();
+Employee::withTrashed()->where('nama_lengkap', 'like', '%Sandbox%')->forceDelete();
 
 $tag = '${tag}';
 $pw = Hash::make('SandboxPass!23');
@@ -253,11 +253,11 @@ use Laravel\\Sanctum\\PersonalAccessToken;
 
 $c = json_decode('${payload}', true);
 PortalNotification::whereIn('user_id', $c['user_ids'])->delete();
-EmployeeLeaveRequest::where('id', $c['leave_id'])->delete();
-AssignmentLetter::where('id', $c['st_id'])->delete();
+EmployeeLeaveRequest::withTrashed()->where('id', $c['leave_id'])->forceDelete();
+AssignmentLetter::withTrashed()->where('id', $c['st_id'])->forceDelete();
 PersonalAccessToken::whereIn('tokenable_id', $c['user_ids'])->delete();
-User::whereIn('id', $c['user_ids'])->delete();
-Employee::whereIn('id', $c['employee_ids'])->delete();
+User::withTrashed()->whereIn('id', $c['user_ids'])->forceDelete();
+Employee::withTrashed()->whereIn('id', $c['employee_ids'])->forceDelete();
 echo json_encode(['cleaned' => true]);
 `);
 }

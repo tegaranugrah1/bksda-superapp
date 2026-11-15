@@ -237,6 +237,13 @@ export default function EmployeeListPage() {
     setPage(1);
   };
 
+  // Clear active-list filters when entering Trash so counts.trashed and table rows never diverge.
+  const handleStatusChange = (nextStatus: string) => {
+    if (nextStatus === "trashed") resetFilters();
+    else setPage(1);
+    setStatusFilter(nextStatus);
+  };
+
   const totalItems = data?.meta?.total ?? 0;
   const currentPerPage = data?.meta?.per_page ?? 10;
   const startItem = totalItems === 0 ? 0 : (page - 1) * currentPerPage + 1;
@@ -335,10 +342,7 @@ export default function EmployeeListPage() {
             activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-fg)] border-[var(--ds-accent-fg)]",
             hoverClass: "hover:border-[var(--ds-status-danger-border)] ",
             iconBadgeClass: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]  ",
-            onClick: () => {
-              setStatusFilter(isTrashedView ? "active" : "trashed");
-              setPage(1);
-            },
+            onClick: () => handleStatusChange(isTrashedView ? "active" : "trashed"),
           },
         ]
       : []),
@@ -518,10 +522,7 @@ export default function EmployeeListPage() {
           <div className="md:col-span-2 flex gap-2">
             <select
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => handleStatusChange(e.target.value)}
               className="w-full px-3 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Status pegawai"
             >
               <option value="active">Status: Aktif Bertugas ({counts.active ?? counts.total})</option>
