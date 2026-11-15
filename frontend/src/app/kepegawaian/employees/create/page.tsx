@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect, useId, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -23,9 +23,8 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRole } from "@/hooks/useRole";
+import { useMasterLocations, getLocationHierarchy } from "@/lib/locations";
 import {
-  SATUAN_KERJA_OPTIONS as SATUAN_KERJA,
-  RESOR_OPTIONS,
   PANGKAT_PNS_OPTIONS,
   PANGKAT_PPPK_OPTIONS,
   JENIS_PEGAWAI_OPTIONS,
@@ -82,15 +81,31 @@ export default function EmployeeCreatePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [jenisPegawai, setJenisPegawai] = useState<JenisPegawai>("PNS");
 
+  const { data: masterLocations = [], isLoading: locationsLoading } = useMasterLocations(true);
+  const { parents: locationParents, childrenByParentId, orphans: locationOrphans } = useMemo(
+    () => getLocationHierarchy(masterLocations),
+    [masterLocations]
+  );
+  const [selectedParentId, setSelectedParentId] = useState("");
   const [formData, setFormData] = useState({
     nip: "",
     nama_lengkap: "",
     jabatan: "",
     pangkat_golongan: "",
+    location_id: "",
     satuan_kerja: "",
     resor: "",
     is_active: "1",
   });
+
+  const selectedParentLoc = useMemo(
+    () => masterLocations.find((l) => l.id === selectedParentId) || null,
+    [masterLocations, selectedParentId]
+  );
+  const childLocations = useMemo(
+    () => (selectedParentId ? childrenByParentId.get(selectedParentId) || [] : []),
+    [childrenByParentId, selectedParentId]
+  );
 
   useEffect(() => {
     return () => {
@@ -146,16 +161,36 @@ export default function EmployeeCreatePage() {
     setFormData((prev) => ({ ...prev, nip: val }));
   };
 
-  const handleSatkerChange = (val: string) => {
-    const isBalai = val.toLowerCase().includes("balai") || (val.toLowerCase().includes("samarinda") && !val.toLowerCase().includes("wilayah ii") && !val.toLowerCase().includes("skw ii") && !val.toLowerCase().includes("resor 05"));
+  const handleParentLocationChange = (parentId: string) => {
+    setSelectedParentId(parentId);
+    const parent = masterLocations.find((l) => l.id === parentId);
+    const nextSatker = parent ? parent.name : "";
     setFormData((prev) => ({
       ...prev,
-      satuan_kerja: val,
-      resor: isBalai ? "" : prev.resor,
+      location_id: parent ? parent.id : "",
+      satuan_kerja: nextSatker,
+      resor: parent?.location_type === "resor" ? parent.code || parent.name : "",
       jabatan:
         jenisPegawai === "MMP" && isAutoMmpJabatan(prev.jabatan)
-          ? buildMmpDefaultJabatan(val)
+          ? buildMmpDefaultJabatan(nextSatker)
           : prev.jabatan,
+    }));
+  };
+
+  const handleChildLocationChange = (childId: string) => {
+    if (!childId) {
+      setFormData((prev) => ({
+        ...prev,
+        location_id: selectedParentId,
+        resor: "",
+      }));
+      return;
+    }
+    const child = masterLocations.find((l) => l.id === childId);
+    setFormData((prev) => ({
+      ...prev,
+      location_id: childId,
+      resor: child?.location_type === "resor" ? child.code || child.name : "",
     }));
   };
 
@@ -198,6 +233,7 @@ export default function EmployeeCreatePage() {
       if (jenisPegawai !== "MMP" && formData.pangkat_golongan) {
         payload.append("pangkat_golongan", formData.pangkat_golongan);
       }
+      if (formData.location_id) payload.append("location_id", formData.location_id);
       if (formData.satuan_kerja) payload.append("satuan_kerja", formData.satuan_kerja);
       if (formData.resor) payload.append("resor", formData.resor);
       payload.append("is_active", formData.is_active);
@@ -535,56 +571,73 @@ export default function EmployeeCreatePage() {
               )}
             </AnimatePresence>
 
-            <div className="md:col-span-2">
-              <SelectGroup
-                label="Penempatan Satuan Kerja"
-                value={formData.satuan_kerja}
-                onChange={handleSatkerChange}
-                options={SATUAN_KERJA}
-                placeholder="Pilih Penempatan Satuan Kerja..."
-              />
+            <div data-module="kepegawaian" className="kpg-ui md:col-span-2">
+              <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1.5">
+                Penempatan Satuan Kerja / Induk
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedParentId}
+                  onChange={(e) => handleParentLocationChange(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:border-[var(--ds-accent-soft-border)] focus:bg-white outline-none text-xs font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">
+                    {locationsLoading ? "Memuat Master Lokasi..." : "Pilih Penempatan Satuan Kerja..."}
+                  </option>
+                  {locationParents.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                  {locationOrphans.length > 0 && (
+                    <optgroup label="Lokasi Khusus">
+                      {locationOrphans.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
+              </div>
             </div>
 
             {(() => {
-              const satker = (formData.satuan_kerja || "").toLowerCase();
-              const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
-              let availableResors = RESOR_OPTIONS;
-              if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan") || satker.includes("seksi 3") || satker.includes("seksi iii")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
-              } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong") || satker.includes("seksi 2") || satker.includes("seksi ii")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-              } else if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau") || satker.includes("seksi 1") || satker.includes("seksi i")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
-              }
+              const isBalai = selectedParentLoc?.location_type === "balai";
+              const isDisabled =
+                !selectedParentId || (childLocations.length === 0 && !isBalai);
+              const subLabel = isBalai
+                ? "Subbagian / Ruang Kerja Balai (Opsional)"
+                : "Resor Penempatan Lapangan";
+              const emptyOptionLabel = !selectedParentId
+                ? "Pilih Satuan Kerja terlebih dahulu"
+                : isBalai
+                ? "Kantor Balai Induk (Umum)"
+                : "Kantor Seksi Wilayah (Bukan Resor)";
 
               return (
                 <div data-module="kepegawaian" className="kpg-ui md:col-span-2">
                   <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1.5">
-                    Resor Penempatan Lapangan
+                    {subLabel}
                   </label>
                   <div className="relative">
                     <select
-                      disabled={isBalai}
-                      value={isBalai ? "" : formData.resor}
-                      onChange={(e) => setFormData({ ...formData, resor: e.target.value })}
+                      disabled={isDisabled}
+                      value={formData.location_id === selectedParentId ? "" : formData.location_id}
+                      onChange={(e) => handleChildLocationChange(e.target.value)}
                       className={`w-full px-4 py-3 rounded-xl border outline-none text-xs font-semibold appearance-none cursor-pointer transition-colors ${
-                        isBalai
+                        isDisabled
                           ? "bg-[var(--ds-surface-muted)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)]  cursor-not-allowed"
                           : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg)]  focus:border-[var(--ds-accent-soft-border)] focus:bg-white "
                       }`}
                     >
-                      {isBalai ? (
-                        <option value="">Pegawai Balai (Bukan Resor Lapangan)</option>
-                      ) : (
-                        <>
-                          <option value="">Kantor Seksi Wilayah (Bukan Resor)</option>
-                          {availableResors.map((opt) => (
-                            <option key={opt.code} value={opt.code}>
-                              {opt.name}
-                            </option>
-                          ))}
-                        </>
-                      )}
+                      <option value="">{emptyOptionLabel}</option>
+                      {childLocations.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.name}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                   </div>

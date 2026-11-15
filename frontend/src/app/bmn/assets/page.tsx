@@ -53,7 +53,8 @@ interface IResponse { data: IAsset[]; meta: { last_page: number; total: number }
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 
-import { SIMAN_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+import { SIMAN_LOKASI_RUANG_OPTIONS, mergeLokasiOptions } from "@/app/bmn/_lib/location-options";
+import { useMasterLocations } from "@/lib/locations";
 
 export default function BmnAssetsPage() {
   const conditionId = useId();
@@ -105,13 +106,14 @@ export default function BmnAssetsPage() {
     },
   });
 
-  const { data: locations = [] } = useQuery<{ id: string; name: string; unit_kerja: string }[]>({
-    queryKey: ["bmn-locations"],
-    queryFn: async () => {
-      const res = await api.get("/bmn/locations");
-      return res.data.data || [];
-    },
-  });
+  const { data: locations = [] } = useMasterLocations(true);
+  const simanExtraOptions = useMemo(
+    () =>
+      mergeLokasiOptions([], SIMAN_LOKASI_RUANG_OPTIONS).filter(
+        (loc) => !locations.some((m) => m.name.toLowerCase() === loc.toLowerCase())
+      ),
+    [locations]
+  );
 
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
@@ -383,26 +385,28 @@ export default function BmnAssetsPage() {
           className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[var(--ds-fg)] dark:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[220px]"
         >
           <option value="Semua">Semua Lokasi</option>
-          <optgroup label="Data SIMAN Lama (Ruang)">
-            {SIMAN_LOKASI_RUANG_OPTIONS.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Unit Kerja & Resor (BKSDA)">
-            {locations && locations.length > 0 ? (
+          <optgroup label="Unit Kerja, Resor & Ruangan (Master Lokasi)">
+            {locations.length > 0 ? (
               locations.map((l) => (
-                <option key={l.id} value={l.name}>{l.name} ({l.unit_kerja})</option>
+                <option key={l.id} value={l.name}>
+                  {l.parent ? `${l.name} (${l.parent.name})` : l.name}
+                </option>
               ))
             ) : (
               <>
                 <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
-                <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
-                <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
-                <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+                <option value="Seksi KSDA Wilayah I Berau">Wilayah I (Berau)</option>
+                <option value="Seksi KSDA Wilayah II Tenggarong">Wilayah II (Tenggarong)</option>
+                <option value="Seksi KSDA Wilayah III Balikpapan">Wilayah III (Balikpapan)</option>
               </>
             )}
+          </optgroup>
+          <optgroup label="Data SIMAN Lama (Ruang)">
+            {simanExtraOptions.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
           </optgroup>
         </select>
         <TagFilterCombobox

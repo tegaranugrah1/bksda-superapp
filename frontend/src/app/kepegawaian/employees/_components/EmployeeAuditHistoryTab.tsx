@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Clock, History, Loader2, ShieldCheck, UserCheck, ArrowRight } from "lucide-react";
 import { RESOR_OPTIONS } from "@/app/kepegawaian/_lib/employee-constants";
+import { useMasterLocations, type MasterLocation } from "@/lib/locations";
 
 interface HistoryChangeItem {
   old: any;
@@ -36,6 +37,7 @@ const FIELD_LABELS: Record<string, string> = {
   jabatan: "Jabatan",
   pangkat_golongan: "Pangkat & Golongan",
   satuan_kerja: "Unit Kerja",
+  location_id: "Penempatan Lokasi",
   resor: "Resor Penempatan",
   masa_kerja: "Masa Kerja",
   nama_bank: "Bank Penyalur Uang Makan",
@@ -48,7 +50,7 @@ const FIELD_LABELS: Record<string, string> = {
   permissions: "Izin Khusus",
 };
 
-function formatFieldValue(field: string, val: any): string {
+function formatFieldValue(field: string, val: any, masterLocations: MasterLocation[] = []): string {
   if (val === null || val === undefined || val === "") return "(Kosong)";
   if (Array.isArray(val)) {
     return val.length > 0 ? val.join(", ") : "(Tidak ada)";
@@ -56,9 +58,19 @@ function formatFieldValue(field: string, val: any): string {
   if (field === "is_active") {
     return val ? "Aktif" : "Non-Aktif";
   }
+  if (field === "location_id") {
+    const valStr = String(val);
+    const loc = masterLocations.find((l) => l.id === valStr);
+    return loc ? (loc.parent ? `${loc.parent.name} — ${loc.name}` : loc.name) : valStr;
+  }
   if (field === "resor") {
+    const valStr = String(val);
+    const loc = masterLocations.find(
+      (l) => l.code?.toLowerCase() === valStr.toLowerCase() || l.name.toLowerCase() === valStr.toLowerCase()
+    );
+    if (loc) return loc.name;
     const found = RESOR_OPTIONS.find((r) => r.code === val);
-    return found ? found.name : String(val);
+    return found ? found.name : valStr;
   }
   return String(val);
 }
@@ -80,6 +92,7 @@ function formatDateTimeIndo(dateStr: string): string {
 }
 
 export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabProps) {
+  const { data: allLocations = [] } = useMasterLocations(false);
   const { data, isLoading, isError, refetch } = useQuery<{ status: string; data: HistoryRecord[] }>({
     queryKey: ["employee-histories", employeeId],
     queryFn: async () => {
@@ -197,8 +210,8 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
                 <div className="space-y-2.5">
                   {changeEntries.map(([field, diff]) => {
                     const label = FIELD_LABELS[field] || field;
-                    const oldVal = formatFieldValue(field, diff.old);
-                    const newVal = formatFieldValue(field, diff.new);
+                    const oldVal = formatFieldValue(field, diff.old, allLocations);
+                    const newVal = formatFieldValue(field, diff.new, allLocations);
 
                     return (
                       <div

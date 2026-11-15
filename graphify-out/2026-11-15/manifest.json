@@ -7065,8 +7065,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveController.php": {
-    "mtime": 1794721107.016747,
-    "ast_hash": "1237773a9f563c548b02d957d6d85190",
+    "mtime": 1794740134.188176,
+    "ast_hash": "8ab8ab49a58fa166e821eea553e48ff7",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/DriveShareController.php": {
@@ -9175,8 +9175,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/DriveSecurityAndIntegrityTest.php": {
-    "mtime": 1794721367.9796555,
-    "ast_hash": "213a2a0e165872a59070086322fdb1f5",
+    "mtime": 1794740137.5688016,
+    "ast_hash": "885fabc5c15b7cd6837ed1d6ac12257a",
     "semantic_hash": ""
   },
   "frontend/tests/portal-notifications-live-e2e.playwright.cjs": {

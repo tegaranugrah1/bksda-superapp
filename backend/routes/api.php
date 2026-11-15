@@ -91,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/2fa/confirm', [AuthController::class, 'confirm2Fa'])->middleware('throttle:5,1');
     Route::delete('/me/2fa', [AuthController::class, 'disable2Fa'])->middleware('throttle:5,1');
 
+    // Master Lokasi Terpusat (Single Source of Truth untuk seluruh modul)
+    Route::get('/locations', [\App\Modules\Bmn\Controllers\LocationController::class, 'index'])->middleware('throttle:120,1');
+    Route::post('/locations', [\App\Modules\Bmn\Controllers\LocationController::class, 'store'])->middleware('throttle:60,1');
+    Route::put('/locations/{id}', [\App\Modules\Bmn\Controllers\LocationController::class, 'update'])->middleware('throttle:60,1');
+    Route::delete('/locations/{id}', [\App\Modules\Bmn\Controllers\LocationController::class, 'destroy'])->middleware('throttle:60,1');
+
     // BKSDA Drive Routes (Fase 2)
     Route::get('/drive', [\App\Http\Controllers\Api\DriveController::class, 'index'])->middleware('throttle:120,1');
     Route::post('/drive/folders', [\App\Http\Controllers\Api\DriveController::class, 'createFolder'])->middleware('throttle:60,1');

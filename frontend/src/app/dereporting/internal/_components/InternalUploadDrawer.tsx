@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useMasterLocations } from "@/lib/locations";
 import { X, Upload, Loader2, Building2, UserPlus, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,18 +26,38 @@ interface DrawerProps {
     onClose: () => void;
 }
 
-const URUSAN_OPTIONS = [
+const DEFAULT_URUSAN_OPTIONS = [
     "Urusan Kepegawaian & Umum",
     "Urusan Keuangan & BMN",
     "Urusan Perencanaan, Kerjasama & Kehumasan",
     "Urusan Teknis Konservasi",
     "SKW I Berau",
-    "SKW II Samarinda",
-    "SKW III Sangatta",
+    "SKW II Tenggarong",
+    "SKW III Balikpapan",
 ];
 
 export default function InternalUploadDrawer({ open, onClose }: DrawerProps) {
     const queryClient = useQueryClient();
+    const { data: masterLocations = [] } = useMasterLocations(true);
+    const urusanOptions = useMemo(() => {
+        if (!masterLocations.length) return DEFAULT_URUSAN_OPTIONS;
+        const labels: string[] = [];
+        const seen = new Set<string>();
+        const pushUnique = (label?: string | null) => {
+            const clean = (label || "").trim();
+            if (!clean) return;
+            const key = clean.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                labels.push(clean);
+            }
+        };
+        for (const loc of masterLocations) {
+            if (loc.location_type === "balai") continue;
+            pushUnique(loc.location_type === "seksi" ? (loc.unit_kerja || loc.name) : loc.name);
+        }
+        return labels.length > 0 ? labels : DEFAULT_URUSAN_OPTIONS;
+    }, [masterLocations]);
 
     const [bidangId, setBidangId] = useState("");
     const [jenisId, setJenisId] = useState("");
@@ -285,7 +306,7 @@ export default function InternalUploadDrawer({ open, onClose }: DrawerProps) {
                                             Pilih Urusan / Seksi Penerima:
                                         </label>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {URUSAN_OPTIONS.map((u) => {
+                                            {urusanOptions.map((u) => {
                                                 const isSelected = selectedUrusans.includes(u);
                                                 return (
                                                     <button

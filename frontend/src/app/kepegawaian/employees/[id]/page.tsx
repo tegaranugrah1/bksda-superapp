@@ -66,11 +66,15 @@ import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
+  useMasterLocations,
+  getLocationHierarchy,
+  resolveLocationPlacement,
+} from "@/lib/locations";
+import {
   PANGKAT_PNS_OPTIONS,
   PANGKAT_PPPK_OPTIONS,
   JENIS_PEGAWAI_OPTIONS,
   RESOR_OPTIONS,
-  SATUAN_KERJA_OPTIONS as UNIT_KERJA_OPTIONS,
   type JenisPegawai,
 } from "../../_lib/employee-constants";
 import type { Employee } from "../../_lib";
@@ -132,6 +136,12 @@ export default function EmployeeDetailPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Biodata edit state
+  const { data: masterLocations = [], isLoading: locationsLoading } = useMasterLocations(true);
+  const { parents: locationParents, childrenByParentId, orphans: locationOrphans } = useMemo(
+    () => getLocationHierarchy(masterLocations),
+    [masterLocations]
+  );
+  const [editParentId, setEditParentId] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editJenis, setEditJenis] = useState<JenisPegawai>("PNS");
   const [editForm, setEditForm] = useState({
@@ -139,6 +149,7 @@ export default function EmployeeDetailPage() {
     nama_lengkap: "",
     jabatan: "",
     pangkat_golongan: "",
+    location_id: "",
     satuan_kerja: "",
     resor: "",
     masa_kerja: "",
@@ -251,17 +262,36 @@ export default function EmployeeDetailPage() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const editSelectedParentLoc = useMemo(
+    () => masterLocations.find((l) => l.id === editParentId) || null,
+    [masterLocations, editParentId]
+  );
+  const editChildLocations = useMemo(
+    () => (editParentId ? childrenByParentId.get(editParentId) || [] : []),
+    [childrenByParentId, editParentId]
+  );
+
   const startEditing = () => {
     if (!employee) return;
     const detected = detectEmployeeType(employee);
+    const satker = cleanFieldValue(employee.satuan_kerja);
+    const resor = cleanFieldValue(employee.resor);
+    const resolved = resolveLocationPlacement(
+      masterLocations,
+      employee.location_id,
+      satker,
+      resor
+    );
     setEditJenis(detected);
+    setEditParentId(resolved.parentId);
     setEditForm({
       nip: detected === "MMP" ? "" : cleanFieldValue(employee.nip),
       nama_lengkap: cleanFieldValue(employee.nama_lengkap),
       jabatan: cleanFieldValue(employee.jabatan),
       pangkat_golongan: detected === "MMP" ? "" : cleanFieldValue(employee.pangkat_golongan),
-      satuan_kerja: cleanFieldValue(employee.satuan_kerja),
-      resor: cleanFieldValue(employee.resor),
+      location_id: resolved.selectedLocation?.id || employee.location_id || "",
+      satuan_kerja: satker,
+      resor,
       masa_kerja: cleanFieldValue(employee.masa_kerja) || calculateMasaKerja(employee.nip, employee.nama_lengkap),
       telepon: cleanFieldValue(employee.telepon),
       email: cleanFieldValue(employee.email),
@@ -324,21 +354,36 @@ export default function EmployeeDetailPage() {
     setEditForm((prev) => ({ ...prev, nip: val }));
   };
 
-  const handleEditSatkerChange = (val: string) => {
-    const isBalai =
-      val.toLowerCase().includes("balai") ||
-      (val.toLowerCase().includes("samarinda") &&
-        !val.toLowerCase().includes("wilayah ii") &&
-        !val.toLowerCase().includes("skw ii") &&
-        !val.toLowerCase().includes("resor 05"));
+  const handleEditParentLocationChange = (parentId: string) => {
+    setEditParentId(parentId);
+    const parent = masterLocations.find((l) => l.id === parentId);
+    const nextSatker = parent ? parent.name : "";
     setEditForm((prev) => ({
       ...prev,
-      satuan_kerja: val,
-      resor: isBalai ? "" : prev.resor,
+      location_id: parent ? parent.id : "",
+      satuan_kerja: nextSatker,
+      resor: parent?.location_type === "resor" ? parent.code || parent.name : "",
       jabatan:
         editJenis === "MMP" && isAutoMmpJabatan(prev.jabatan)
-          ? buildMmpDefaultJabatan(val)
+          ? buildMmpDefaultJabatan(nextSatker)
           : prev.jabatan,
+    }));
+  };
+
+  const handleEditChildLocationChange = (childId: string) => {
+    if (!childId) {
+      setEditForm((prev) => ({
+        ...prev,
+        location_id: editParentId,
+        resor: "",
+      }));
+      return;
+    }
+    const child = masterLocations.find((l) => l.id === childId);
+    setEditForm((prev) => ({
+      ...prev,
+      location_id: childId,
+      resor: child?.location_type === "resor" ? child.code || child.name : "",
     }));
   };
 
@@ -359,6 +404,7 @@ export default function EmployeeDetailPage() {
         nama_lengkap: editForm.nama_lengkap,
         jabatan: editForm.jabatan || null,
         pangkat_golongan: editJenis === "MMP" ? null : editForm.pangkat_golongan || null,
+        location_id: editForm.location_id || null,
         satuan_kerja: editForm.satuan_kerja || null,
         resor: editForm.resor || null,
         masa_kerja: editJenis === "MMP" ? null : (editForm.masa_kerja || null),
@@ -647,11 +693,14 @@ export default function EmployeeDetailPage() {
                 <div className="min-w-0 flex-1">
                   <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Unit Kerja</span>
                   <span className="font-semibold text-[var(--ds-fg)] truncate block">
-                    {employee.satuan_kerja || "-"}
+                    {employee.location?.parent?.name || employee.satuan_kerja || "-"}
                   </span>
-                  {employee.resor && (
+                  {(employee.location?.parent_id ? employee.location.name : employee.resor) && (
                     <span className="text-xs text-[var(--ds-fg-muted)] block">
-                      Resor: {RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
+                      {employee.location?.location_type === "room" ? "Ruangan" : "Resor"}:{" "}
+                      {employee.location?.parent_id
+                        ? employee.location.name
+                        : RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name || employee.resor}
                     </span>
                   )}
                 </div>
@@ -1152,13 +1201,24 @@ export default function EmployeeDetailPage() {
                         label="Pangkat / Golongan"
                         value={empCategory === "MMP" ? "-" : employee.pangkat_golongan || "-"}
                       />
-                      <BioItem label="Satuan / Unit Kerja" value={employee.satuan_kerja || "-"} />
                       <BioItem
-                        label="Resor Lapangan"
+                        label="Satuan / Unit Kerja"
+                        value={employee.location?.parent?.name || employee.satuan_kerja || "-"}
+                      />
+                      <BioItem
+                        label={
+                          employee.location?.location_type === "room"
+                            ? "Ruangan / Subbagian"
+                            : "Resor Lapangan"
+                        }
                         value={
-                          RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
-                          employee.resor ||
-                          "Kantor Balai / Seksi Wilayah"
+                          employee.location?.parent_id
+                            ? employee.location.name
+                            : RESOR_OPTIONS.find((r) => r.code === employee.resor)?.name ||
+                              employee.resor ||
+                              (employee.location?.location_type === "seksi"
+                                ? "Kantor Seksi Wilayah"
+                                : "Kantor Balai / Umum")
                         }
                       />
                       <BioItem
@@ -1445,85 +1505,69 @@ export default function EmployeeDetailPage() {
                       </BioField>
                     )}
 
-                    <BioField label="Unit Kerja">
+                    <BioField label="Unit Kerja / Wilayah Induk">
                       <div className="relative">
                         <select
-                          value={editForm.satuan_kerja}
-                          onChange={(e) => handleEditSatkerChange(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Satuan kerja"
+                          value={editParentId}
+                          onChange={(e) => handleEditParentLocationChange(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
+                          aria-label="Satuan kerja"
                         >
-                          <option value="">Pilih Unit Kerja</option>
-                          {UNIT_KERJA_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
+                          <option value="">
+                            {locationsLoading ? "Memuat Master Lokasi..." : "Pilih Unit Kerja"}
+                          </option>
+                          {locationParents.map((loc) => (
+                            <option key={loc.id} value={loc.id}>
+                              {loc.name}
                             </option>
                           ))}
+                          {locationOrphans.length > 0 && (
+                            <optgroup label="Lokasi Khusus">
+                              {locationOrphans.map((loc) => (
+                                <option key={loc.id} value={loc.id}>
+                                  {loc.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                       </div>
                     </BioField>
 
                     {(() => {
-                      const satker = (editForm.satuan_kerja || "").toLowerCase();
-                      const isBalai =
-                        satker.includes("balai") ||
-                        (satker.includes("samarinda") &&
-                          !satker.includes("wilayah ii") &&
-                          !satker.includes("skw ii") &&
-                          !satker.includes("resor 05"));
-                      let availableResors = RESOR_OPTIONS;
-                      if (
-                        satker.includes("wilayah iii") ||
-                        satker.includes("skw iii") ||
-                        satker.includes("balikpapan") ||
-                        satker.includes("seksi 3") ||
-                        satker.includes("seksi iii")
-                      ) {
-                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
-                      } else if (
-                        satker.includes("wilayah ii") ||
-                        satker.includes("skw ii") ||
-                        satker.includes("tenggarong") ||
-                        satker.includes("seksi 2") ||
-                        satker.includes("seksi ii")
-                      ) {
-                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-                      } else if (
-                        satker.includes("wilayah i") ||
-                        satker.includes("skw i") ||
-                        satker.includes("berau") ||
-                        satker.includes("seksi 1") ||
-                        satker.includes("seksi i")
-                      ) {
-                        availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
-                      }
+                      const isBalai = editSelectedParentLoc?.location_type === "balai";
+                      const isDisabled =
+                        !editParentId || (editChildLocations.length === 0 && !isBalai);
+                      const subLabel = isBalai
+                        ? "Subbagian / Ruang Kerja Balai"
+                        : "Resor Penempatan";
+                      const emptyLabel = !editParentId
+                        ? "Pilih Unit Kerja terlebih dahulu"
+                        : isBalai
+                        ? "Kantor Balai Induk (Umum)"
+                        : "Kantor Seksi Wilayah (Bukan Resor)";
 
                       return (
-                        <BioField label="Resor Penempatan">
+                        <BioField label={subLabel}>
                           <div className="relative">
                             <select
-                              disabled={isBalai}
-                              value={isBalai ? "" : (editForm.resor || "")}
-                              onChange={(e) => setEditForm({ ...editForm, resor: e.target.value })}
+                              disabled={isDisabled}
+                              value={editForm.location_id === editParentId ? "" : editForm.location_id}
+                              onChange={(e) => handleEditChildLocationChange(e.target.value)}
                               className={cn(
                                 "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
-                                isBalai
+                                isDisabled
                                   ? "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)] cursor-not-allowed border-[var(--ds-border-subtle)] "
                                   : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-[var(--ds-fg)] "
                               )}
                             >
-                              {isBalai ? (
-                                <option value="">Pegawai Balai (Bukan Resor Lapangan)</option>
-                              ) : (
-                                <>
-                                  <option value="">Kantor Seksi Wilayah (Bukan Resor)</option>
-                                  {availableResors.map((opt) => (
-                                    <option key={opt.code} value={opt.code}>
-                                      {opt.name}
-                                    </option>
-                                  ))}
-                                </>
-                              )}
+                              <option value="">{emptyLabel}</option>
+                              {editChildLocations.map((opt) => (
+                                <option key={opt.id} value={opt.id}>
+                                  {opt.name}
+                                </option>
+                              ))}
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                           </div>

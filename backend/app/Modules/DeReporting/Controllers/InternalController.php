@@ -21,7 +21,8 @@ class InternalController extends Controller
         $user = $request->user();
         $isAdmin = in_array($user->role, ['admin', 'super_admin']) || $user->hasPermission('dereporting.view_all');
         $userEmployee = $user->employee;
-        $userUrusan = $userEmployee?->resor ?: $userEmployee?->satuan_kerja;
+        $userUrusanNames = $userEmployee ? $userEmployee->matchingUrusanNames() : [];
+        $lowerUrusans = array_map(fn ($v) => strtolower(trim($v)), $userUrusanNames);
 
         $query = Internal::with([
             'uploader:id,name,username',
@@ -37,20 +38,20 @@ class InternalController extends Controller
 
         // 1. Scoping Berdasarkan Hak Akses Pengguna
         if (! $isAdmin) {
-            $query->where(function ($q) use ($user, $userUrusan) {
+            $query->where(function ($q) use ($user, $lowerUrusans) {
                 // A. Laporan yang diunggah oleh user sendiri
                 $q->where('user_id', $user->id)
                   // B. Laporan bersifat terbuka untuk seluruh Balai
                   ->orWhere('target_scope', 'all')
                   // C. Laporan dengan sasaran terbatas yang ditujukan ke user ini atau urusannya
-                  ->orWhereHas('recipients', function ($rQuery) use ($user, $userUrusan) {
-                      $rQuery->where(function ($sub) use ($user, $userUrusan) {
+                  ->orWhereHas('recipients', function ($rQuery) use ($user, $lowerUrusans) {
+                      $rQuery->where(function ($sub) use ($user, $lowerUrusans) {
                           $sub->where('recipient_type', 'user')
                               ->where('user_id', $user->id);
-                          if ($userUrusan) {
-                              $sub->orWhere(function ($uSub) use ($userUrusan) {
+                          if (! empty($lowerUrusans)) {
+                              $sub->orWhere(function ($uSub) use ($lowerUrusans) {
                                   $uSub->where('recipient_type', 'urusan')
-                                       ->where('urusan_name', $userUrusan);
+                                       ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(urusan_name)'), $lowerUrusans);
                               });
                           }
                       });
@@ -65,8 +66,9 @@ class InternalController extends Controller
         } elseif ($tab === 'personal') {
             $query->whereHas('recipients', fn ($r) => $r->where('recipient_type', 'user')->where('user_id', $user->id));
         } elseif ($tab === 'urusan') {
-            if ($userUrusan) {
-                $query->whereHas('recipients', fn ($r) => $r->where('recipient_type', 'urusan')->where('urusan_name', $userUrusan));
+            if (! empty($lowerUrusans)) {
+                $query->whereHas('recipients', fn ($r) => $r->where('recipient_type', 'urusan')
+                    ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(urusan_name)'), $lowerUrusans));
             } else {
                 // User belum terdaftar di urusan manapun
                 $query->whereRaw('1 = 0');
@@ -88,7 +90,7 @@ class InternalController extends Controller
         $paginator = $query->paginate(20);
 
         // Transformasi item untuk antarmuka pengguna
-        $paginator->getCollection()->transform(function ($item) use ($user, $userUrusan, $isAdmin) {
+        $paginator->getCollection()->transform(function ($item) use ($user, $lowerUrusans, $isAdmin) {
             $isMine = (int) $item->user_id === (int) $user->id;
 
             // Hitung status baca bagi user yang sedang login
@@ -96,11 +98,12 @@ class InternalController extends Controller
             $readAt = null;
 
             if (! $isMine) {
-                $matchingRecipients = $item->recipients->filter(function ($rec) use ($user, $userUrusan) {
+                $matchingRecipients = $item->recipients->filter(function ($rec) use ($user, $lowerUrusans) {
                     if ($rec->recipient_type === 'user' && (int) $rec->user_id === (int) $user->id) {
                         return true;
                     }
-                    if ($rec->recipient_type === 'urusan' && $userUrusan && strcasecmp(trim($rec->urusan_name ?? ''), trim($userUrusan)) === 0) {
+                    if ($rec->recipient_type === 'urusan' && ! empty($lowerUrusans)
+                        && in_array(strtolower(trim((string) ($rec->urusan_name ?? ''))), $lowerUrusans, true)) {
                         return true;
                     }
                     return false;
@@ -244,14 +247,17 @@ class InternalController extends Controller
 
         // Tandai sebagai dibaca bagi user atau urusan penerima
         $userEmployee = $user->employee;
-        $userUrusan = $userEmployee?->resor ?: $userEmployee?->satuan_kerja;
+        $lowerUrusans = $userEmployee
+            ? array_map(fn ($v) => strtolower(trim($v)), $userEmployee->matchingUrusanNames())
+            : [];
 
         $report->recipients()
             ->whereNull('read_at')
-            ->where(function ($q) use ($user, $userUrusan) {
+            ->where(function ($q) use ($user, $lowerUrusans) {
                 $q->where(fn ($sub) => $sub->where('recipient_type', 'user')->where('user_id', $user->id));
-                if ($userUrusan) {
-                    $q->orWhere(fn ($sub) => $sub->where('recipient_type', 'urusan')->where('urusan_name', $userUrusan));
+                if (! empty($lowerUrusans)) {
+                    $q->orWhere(fn ($sub) => $sub->where('recipient_type', 'urusan')
+                        ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(urusan_name)'), $lowerUrusans));
                 }
             })
             ->update(['read_at' => now()]);
@@ -364,7 +370,7 @@ class InternalController extends Controller
                 'name' => $u->employee?->nama_lengkap ?: $u->name,
                 'nip' => $u->username,
                 'jabatan' => $u->employee?->jabatan ?: 'Staf',
-                'urusan' => $u->employee?->resor ?: $u->employee?->satuan_kerja,
+                'urusan' => $u->employee?->location?->name ?: ($u->employee?->resor ?: $u->employee?->satuan_kerja),
             ];
         });
 
@@ -393,13 +399,16 @@ class InternalController extends Controller
 
         // 4. Dokumen terbatas: periksa daftar penerima
         $userEmployee = $user->employee;
-        $userUrusan = $userEmployee?->resor ?: $userEmployee?->satuan_kerja;
+        $lowerUrusans = $userEmployee
+            ? array_map(fn ($v) => strtolower(trim($v)), $userEmployee->matchingUrusanNames())
+            : [];
 
         foreach ($report->recipients as $recipient) {
             if ($recipient->recipient_type === 'user' && (int) $recipient->user_id === (int) $user->id) {
                 return true;
             }
-            if ($recipient->recipient_type === 'urusan' && $userUrusan && strcasecmp(trim($recipient->urusan_name ?? ''), trim($userUrusan)) === 0) {
+            if ($recipient->recipient_type === 'urusan' && ! empty($lowerUrusans)
+                && in_array(strtolower(trim((string) ($recipient->urusan_name ?? ''))), $lowerUrusans, true)) {
                 return true;
             }
         }

@@ -267,7 +267,11 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
-            $atasan = $this->getAtasanLangsung($employee->satuan_kerja ?? '');
+            $employee->loadMissing('location.parent');
+            $atasan = $this->getAtasanLangsung(
+                $employee->location?->parent?->effectiveUnitKerja() ?? ($employee->satuan_kerja ?? ''),
+                $employee->resor ?: $employee->location?->code
+            );
             $kepalaBalai = $this->getKepalaBalai();
 
             $leaveReq = EmployeeLeaveRequest::create([
@@ -1025,20 +1029,22 @@ class EmployeeLeaveRequestController extends Controller
         }
     }
 
-    private function getAtasanLangsung(string $satuanKerja): array
+    private function getAtasanLangsung(string $satuanKerja, ?string $resor = null): array
     {
-        $sk = strtolower($satuanKerja);
-        if (str_contains($sk, 'wilayah iii') || str_contains($sk, 'balikpapan')) {
+        $slug = ($resor ? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($resor) : null)
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satuanKerja);
+
+        if ($slug === 'skw-3-balikpapan') {
             return [
                 'nama' => 'BAMBANG HARI TRIMARSITO, S.Si., M.P.',
                 'nip' => '19740626 200112 1 004',
             ];
-        } elseif (str_contains($sk, 'wilayah ii') || str_contains($sk, 'tenggarong')) {
+        } elseif ($slug === 'skw-2-tenggarong') {
             return [
                 'nama' => 'SURIAWATI HALIM, S.Hut., M.P.',
                 'nip' => '19751127 200003 2 001',
             ];
-        } elseif (str_contains($sk, 'wilayah i') || str_contains($sk, 'berau')) {
+        } elseif ($slug === 'skw-1-berau') {
             return [
                 'nama' => 'YULIAN SADONO, S.Hut., M.T.',
                 'nip' => '19800707 200604 1 003',

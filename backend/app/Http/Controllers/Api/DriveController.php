@@ -119,7 +119,7 @@ class DriveController extends Controller
             ->values();
 
         $files = $fileQuery->with([
-                'folder' => fn ($q) => $q->withTrashed()->select(['id', 'unit_id', 'user_id', 'parent_id', 'is_restricted', 'resor_code', 'deleted_at']),
+                'folder' => fn ($q) => $q->withTrashed()->select(['id', 'unit_id', 'location_id', 'user_id', 'parent_id', 'is_restricted', 'folder_scope', 'resor_code', 'room_code', 'deleted_at']),
                 'unit:id,slug,name',
             ])
             ->orderByDesc('created_at')
@@ -214,22 +214,17 @@ class DriveController extends Controller
         $unitId = $parentFolder ? $parentFolder->unit_id : ($validated['unit_id'] ?? null);
 
         // Warisi restriksi subfolder dari parent folder (Subfolder Inheritance)
-        $isRestricted = false;
-        $folderScope = 'umum';
-        $resorCode = null;
-        $roomCode = null;
-
-        if ($parentFolder && $parentFolder->is_restricted) {
-            $isRestricted = true;
-            $folderScope = $parentFolder->folder_scope;
-            $resorCode = $parentFolder->resor_code;
-            $roomCode = $parentFolder->room_code;
-        }
+        $isRestricted = $parentFolder ? (bool) $parentFolder->is_restricted : false;
+        $folderScope = $parentFolder?->folder_scope ?: 'general';
+        $locationId = $parentFolder?->location_id;
+        $resorCode = $parentFolder?->resor_code;
+        $roomCode = $parentFolder?->room_code;
 
         $cleanName = $this->sanitizeFilesystemName($validated['name'], 'folder');
 
         $folder = DriveFolder::create([
             'unit_id' => $unitId,
+            'location_id' => $locationId,
             'user_id' => $user->id,
             'parent_id' => $parentFolder?->id,
             'name' => $cleanName,
@@ -1085,6 +1080,10 @@ class DriveController extends Controller
             }
         }
 
+        if ($folder->location_id !== null && $folder->parent_id === null && ! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Folder induk resmi unit/ruangan/resor hanya dapat dipindahkan melalui Master Lokasi atau Admin Drive.'], 403);
+        }
+
         if ($folder->unit_id !== null && $targetUnitId === null && (int) $folder->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
             return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan folder unit ke Drive pribadi.'], 403);
         }
@@ -1092,8 +1091,8 @@ class DriveController extends Controller
         $allFolderIds = array_merge([$folder->id], $this->collectDescendantFolderIds($folder->id, withTrashed: true));
         $changingUnit = (int) ($folder->unit_id ?? 0) !== (int) ($targetUnitId ?? 0);
 
-        if ($changingUnit && $folder->is_restricted && ! DriveAccess::isDriveAdmin($user)) {
-            return response()->json(['message' => 'Hanya Admin Drive yang dapat memindahkan folder terbatas antar ruang kerja.'], 403);
+        if (($changingUnit || ! $destParent) && $folder->is_restricted && ! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Hanya Admin Drive yang dapat memindahkan folder terbatas ke luar hierarkinya.'], 403);
         }
 
         $targetUserId = ($targetUnitId === null && $folder->unit_id !== null)
@@ -1107,20 +1106,40 @@ class DriveController extends Controller
             }
         }
 
-        DB::transaction(function () use ($folder, $targetParentId, $targetUnitId, $targetUserId, $allFolderIds, $changingUnit) {
-            $folder->update([
+        $inheritedAttrs = $destParent ? [
+            'unit_id' => $targetUnitId,
+            'location_id' => $destParent->location_id,
+            'is_restricted' => (bool) $destParent->is_restricted,
+            'folder_scope' => $destParent->folder_scope ?: 'general',
+            'resor_code' => $destParent->resor_code,
+            'room_code' => $destParent->room_code,
+        ] : [
+            'unit_id' => $targetUnitId,
+            'location_id' => null,
+            'is_restricted' => false,
+            'folder_scope' => 'general',
+            'resor_code' => null,
+            'room_code' => null,
+        ];
+
+        DB::transaction(function () use ($folder, $targetParentId, $targetUnitId, $targetUserId, $allFolderIds, $changingUnit, $inheritedAttrs) {
+            $folderUpdates = array_merge($inheritedAttrs, [
                 'parent_id' => $targetParentId,
-                'unit_id' => $targetUnitId,
             ]);
+            if ($changingUnit && $targetUnitId === null) {
+                $folderUpdates['user_id'] = $targetUserId;
+            }
+            $folder->update($folderUpdates);
+
+            DriveFolder::withTrashed()->whereIn('id', $allFolderIds)->update($inheritedAttrs + (
+                ($changingUnit && $targetUnitId === null) ? ['user_id' => $targetUserId] : []
+            ));
 
             if ($changingUnit) {
-                $folderUpdates = ['unit_id' => $targetUnitId];
                 $fileUpdates = ['unit_id' => $targetUnitId];
                 if ($targetUnitId === null) {
-                    $folderUpdates['user_id'] = $targetUserId;
                     $fileUpdates['user_id'] = $targetUserId;
                 }
-                DriveFolder::withTrashed()->whereIn('id', $allFolderIds)->update($folderUpdates);
                 DriveFile::withTrashed()->whereIn('folder_id', $allFolderIds)->update($fileUpdates);
             }
         });
@@ -1319,23 +1338,6 @@ class DriveController extends Controller
      */
     protected function collectDescendantFolderIds(int $rootId, bool $withTrashed = false): array
     {
-        $collected = [];
-        $queue = [$rootId];
-
-        while (! empty($queue)) {
-            $query = $withTrashed ? DriveFolder::withTrashed() : DriveFolder::query();
-            $children = $query->whereIn('parent_id', $queue)->pluck('id')->all();
-            if (empty($children)) {
-                break;
-            }
-            $newIds = array_values(array_diff($children, $collected, [$rootId]));
-            if (empty($newIds)) {
-                break;
-            }
-            $collected = array_merge($collected, $newIds);
-            $queue = $newIds;
-        }
-
-        return $collected;
+        return DriveFolder::collectDescendantIds($rootId, $withTrashed);
     }
 }

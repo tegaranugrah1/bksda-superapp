@@ -6,9 +6,11 @@ import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Settings, FileText, Banknote, Calendar, Briefcase, Coins } from "lucide-react";
+import { Settings, FileText, Banknote, Calendar, Briefcase, Coins, MapPin } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { LocationManagementTab } from "@/app/bmn/settings/_tabs/LocationManagementTab";
 import { StTemplatesTab } from "./st-templates/_components/StTemplatesTab";
 import { ExpenseTemplatesTab } from "./st-templates/_components/ExpenseTemplatesTab";
 import { LeaveTypesTab } from "./st-templates/_components/LeaveTypesTab";
@@ -16,12 +18,15 @@ import { TaskTypesTab } from "./st-templates/_components/TaskTypesTab";
 import { MealAllowanceHolidaysTab } from "./_components/MealAllowanceHolidaysTab";
 
 function KepegawaianSettingsContent() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "super_admin";
+  const canManageLocations = user?.role === "super_admin" || user?.role === "admin";
   const reducedMotion = useReducedMotion();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState<
-    "st_templates" | "task_types" | "expense_templates" | "leave_types" | "uang_makan"
+    "st_templates" | "task_types" | "expense_templates" | "leave_types" | "uang_makan" | "locations"
   >("st_templates");
 
   const tabs = useKepegawaianTabs(activeTab, "Pengaturan Kepegawaian");
@@ -29,6 +34,8 @@ function KepegawaianSettingsContent() {
   useEffect(() => {
     if (initialTab === "uang_makan" || initialTab === "holidays" || initialTab === "banks") {
       setActiveTab("uang_makan");
+    } else if (initialTab === "locations" || initialTab === "lokasi") {
+      setActiveTab("locations");
     } else if (
       initialTab === "st_templates" ||
       initialTab === "task_types" ||
@@ -67,6 +74,7 @@ function KepegawaianSettingsContent() {
           { id: "expense_templates", label: "Template Biaya & Sumber Dana", icon: Banknote },
           { id: "leave_types", label: "Jenis Surat Cuti", icon: Calendar },
           { id: "uang_makan", label: "Uang Makan & Hari Libur", icon: Coins },
+          { id: "locations", label: "Lokasi & Ruangan", icon: MapPin },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -110,6 +118,9 @@ function KepegawaianSettingsContent() {
           {activeTab === "expense_templates" && <div data-module="surat-tugas" className="st-ui"><ExpenseTemplatesTab /></div>}
           {activeTab === "leave_types" && <LeaveTypesTab />}
           {activeTab === "uang_makan" && <MealAllowanceHolidaysTab />}
+          {activeTab === "locations" && (
+            <LocationManagementTab canManage={canManageLocations} isSuperAdmin={isSuperAdmin} />
+          )}
         </KepegawaianTabContent>
       </AnimatePresence>
     </div>

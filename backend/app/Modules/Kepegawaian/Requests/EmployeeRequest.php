@@ -32,6 +32,30 @@ class EmployeeRequest extends FormRequest
         if ($this->has('resor')) {
             $this->merge(['resor' => strip_tags(trim((string) $this->input('resor'))) ?: null]);
         }
+        if ($this->filled('location_id')) {
+            $loc = \App\Modules\Bmn\Models\Location::with('parent')
+                ->where('is_active', true)
+                ->find($this->input('location_id'));
+            if ($loc) {
+                $this->merge([
+                    'satuan_kerja' => $loc->effectiveUnitKerja(),
+                    'resor' => $loc->derivedResorCode(),
+                ]);
+            }
+        } elseif ($this->has('satuan_kerja') || $this->has('resor')) {
+            $satkerIn = trim((string) $this->input('satuan_kerja', ''));
+            $resorIn = trim((string) $this->input('resor', ''));
+            // Jangan auto-resolve location_id jika payload sengaja membawa konflik untuk cross-validation
+            $resorSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($resorIn);
+            $satkerSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satkerIn);
+            $hasConflict = $resorIn !== '' && $satkerSlug !== null && $resorSlug !== null && $resorSlug !== $satkerSlug;
+            if (! $hasConflict) {
+                $resolved = \App\Modules\Bmn\Models\Location::resolveForPlacement(null, $satkerIn, $resorIn);
+                if ($resolved) {
+                    $this->merge(['location_id' => $resolved->id]);
+                }
+            }
+        }
         if ($this->has('pangkat_golongan')) {
             $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
         }
@@ -111,6 +135,7 @@ class EmployeeRequest extends FormRequest
             'jabatan' => ['nullable', 'string', 'max:255'],
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'location_id' => ['nullable', 'uuid', \Illuminate\Validation\Rule::exists('bmn_locations', 'id')->where('is_active', true)],
             'masa_kerja' => ['nullable', 'string', 'max:100'],
             'nama_bank' => [
                 'nullable',
@@ -142,29 +167,41 @@ class EmployeeRequest extends FormRequest
                     }
 
                     $validResors = array_keys(\App\Constants\BksdaConstants::RESORS);
-                    if (! in_array($resorVal, $validResors, true)) {
+                    $dbResor = \App\Modules\Bmn\Models\Location::with('parent')
+                        ->where('code', $resorVal)
+                        ->where('location_type', \App\Modules\Bmn\Models\Location::TYPE_RESOR)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if (! $dbResor && ! in_array($resorVal, $validResors, true)) {
                         $fail('Kode resor penempatan tidak valid.');
                         return;
                     }
 
                     $satker = strtolower((string) $this->input('satuan_kerja', ''));
+                    $satkerSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satker);
 
                     // Cross-validation: Balai tidak boleh ditempatkan di resor wilayah
-                    if (str_contains($satker, 'balai') || str_contains($satker, 'samarinda')) {
+                    if ($satkerSlug === 'balai-samarinda' || str_contains($satker, 'balai')) {
                         $fail('Pegawai kantor Balai tidak dapat ditempatkan di resor wilayah.');
                         return;
                     }
 
                     $resorMeta = \App\Constants\BksdaConstants::RESORS[$resorVal] ?? null;
-                    if (! $resorMeta) return;
-
-                    $expectedSkw = (int) ($resorMeta['skw'] ?? 0);
-                    if ($expectedSkw === 1 && ! (str_contains($satker, 'wilayah i') || str_contains($satker, 'skw i') || str_contains($satker, 'berau'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
-                    } elseif ($expectedSkw === 2 && ! (str_contains($satker, 'wilayah ii') || str_contains($satker, 'skw ii') || str_contains($satker, 'tenggarong'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
-                    } elseif ($expectedSkw === 3 && ! (str_contains($satker, 'wilayah iii') || str_contains($satker, 'skw iii') || str_contains($satker, 'balikpapan'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                    if ($resorMeta) {
+                        $expectedSlug = $resorMeta['skw_slug'] ?? null;
+                        if ($expectedSlug === 'skw-1-berau' && $satkerSlug !== 'skw-1-berau') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
+                        } elseif ($expectedSlug === 'skw-2-tenggarong' && $satkerSlug !== 'skw-2-tenggarong') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
+                        } elseif ($expectedSlug === 'skw-3-balikpapan' && $satkerSlug !== 'skw-3-balikpapan') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                        }
+                    } elseif ($dbResor && $dbResor->parent && $satker !== '') {
+                        $parentName = strtolower($dbResor->parent->effectiveUnitKerja());
+                        if ($satker !== $parentName && $satker !== strtolower($dbResor->parent->name)) {
+                            $fail("Resor '{$dbResor->name}' hanya valid untuk {$dbResor->parent->name}.");
+                        }
                     }
                 },
             ],

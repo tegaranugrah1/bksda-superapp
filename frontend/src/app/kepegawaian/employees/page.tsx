@@ -29,7 +29,8 @@ import { EmployeeAccessSheet } from "../_components/EmployeeAccessSheet";
 import { useRole } from "@/hooks/useRole";
 import { motion, AnimatePresence } from "framer-motion";
 import { isPppk } from "@/lib/letter-utils";
-import { isMmpEmployee, SATUAN_KERJA_OPTIONS, type Employee } from "../_lib";
+import { isMmpEmployee, type Employee } from "../_lib";
+import { useMasterLocations, getLocationHierarchy } from "@/lib/locations";
 
 interface EmployeeCounts {
   total: number;
@@ -72,6 +73,8 @@ function getInitials(name?: string): string {
 export default function EmployeeListPage() {
   const { canWrite, canManageAccess } = useRole();
   const queryClient = useQueryClient();
+  const { data: masterLocations = [] } = useMasterLocations(true);
+  const { parents: locationParents, childrenByParentId } = getLocationHierarchy(masterLocations);
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<string>("10");
@@ -486,13 +489,27 @@ export default function EmployeeListPage() {
                 <option value="SKW_1">Seksi KSDA Wilayah I Berau</option>
                 <option value="SKW_2">Seksi KSDA Wilayah II Tenggarong</option>
                 <option value="SKW_3">Seksi KSDA Wilayah III Balikpapan</option>
+                {locationParents
+                  .filter(
+                    (p) =>
+                      !["balai-samarinda", "skw-1-berau", "skw-2-tenggarong", "skw-3-balikpapan"].includes(
+                        p.code || ""
+                      )
+                  )
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
               </optgroup>
-              <optgroup label="Spesifik Satker / Resor">
-                {SATUAN_KERJA_OPTIONS.map((satker) => (
-                  <option key={satker} value={satker}>
-                    {satker}
-                  </option>
-                ))}
+              <optgroup label="Spesifik Resor & Ruangan">
+                {Array.from(childrenByParentId.values())
+                  .flat()
+                  .map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
               </optgroup>
             </select>
           </div>
@@ -649,7 +666,11 @@ export default function EmployeeListPage() {
                               </Link>
                             )}
                             <p className="text-xs text-[var(--ds-fg-muted)] truncate">
-                              {emp.satuan_kerja || "Satuan Kerja Belum Diatur"}
+                              {emp.location
+                                ? emp.location.parent
+                                  ? `${emp.location.parent.name} ? ${emp.location.name}`
+                                  : emp.location.name
+                                : emp.satuan_kerja || "Satuan Kerja Belum Diatur"}
                             </p>
                           </div>
                         </div>

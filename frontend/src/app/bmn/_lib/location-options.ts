@@ -87,3 +87,22 @@ export const ALL_LOKASI_RUANG_OPTIONS: string[] = [
   ...SIMAN_LOKASI_RUANG_OPTIONS,
   ...STRUKTUR_LOKASI_OPTIONS,
 ];
+
+export function mergeLokasiOptions(
+  primaryNames: Array<string | null | undefined>,
+  ...secondaryGroups: Array<readonly string[]>
+): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  const push = (raw?: string | null) => {
+    const trimmed = raw?.trim();
+    if (!trimmed) return;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(trimmed);
+  };
+  primaryNames.forEach(push);
+  secondaryGroups.forEach((group) => group.forEach(push));
+  return result;
+}

@@ -115,5 +115,6 @@ class BmnMasterDataSeeder extends Seeder
                 ]
             );
         }
+        Location::syncHierarchyAndBackfill();
     }
 }

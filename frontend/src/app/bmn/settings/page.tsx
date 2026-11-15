@@ -45,7 +45,7 @@ export default function BmnSettingsPage() {
   const locationsQuery = useQuery<IBmnLocation[]>({
     queryKey: ["bmn-locations"],
     queryFn: async () => {
-      const res = await api.get("/bmn/locations");
+      const res = await api.get("/locations");
       return res.data.data || [];
     },
   });

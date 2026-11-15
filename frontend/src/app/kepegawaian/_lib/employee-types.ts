@@ -7,6 +7,20 @@ export interface Employee {
   position?: string | null;
   pangkat_golongan?: string | null;
   satuan_kerja?: string | null;
+  location_id?: string | null;
+  location?: {
+    id: string;
+    name: string;
+    code?: string | null;
+    location_type?: "balai" | "seksi" | "room" | "resor";
+    parent_id?: string | null;
+    parent?: {
+      id: string;
+      name: string;
+      code?: string | null;
+      location_type?: "balai" | "seksi" | "room" | "resor";
+    } | null;
+  } | null;
   nama_bank?: string | null;
   nomor_rekening?: string | null;
   telepon?: string | null;

@@ -85,6 +85,7 @@ class Employee extends Model
         'nama_bank',
         'nomor_rekening',
         'resor',
+        'location_id',
         'telepon',
         'email',
         'masa_kerja',
@@ -356,24 +357,26 @@ class Employee extends Model
      */
     public function getIsSeksiAttribute(): bool
     {
-        if (empty($this->satuan_kerja)) {
+        if ($this->location_id) {
+            $loc = $this->relationLoaded('location') ? $this->location : $this->location()->with('parent')->first();
+            if ($loc) {
+                return $loc->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI
+                    || $loc->parent?->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI;
+            }
+        }
+
+        $slug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
+        if ($slug !== null) {
+            return $slug !== 'balai-samarinda';
+        }
+
+        $sk = strtolower((string) $this->satuan_kerja);
+        if ($sk === '' || str_contains($sk, 'balai')) {
             return false;
         }
 
-        $sk = strtolower($this->satuan_kerja);
-
-        // Jika Kantor Balai KSDA -> Bukan Seksi
-        if (str_contains($sk, 'kantor balai') || str_contains($sk, 'balai')) {
-            return false;
-        }
-
-        // Jika memuat seksi / skw / wilayah / berau / tenggarong / balikpapan
-        return str_contains($sk, 'seksi')
-            || str_contains($sk, 'skw')
-            || str_contains($sk, 'wilayah')
-            || str_contains($sk, 'berau')
-            || str_contains($sk, 'tenggarong')
-            || str_contains($sk, 'balikpapan');
+        return str_contains($sk, 'seksi') || str_contains($sk, 'skw') || str_contains($sk, 'wil');
     }
 
     /**
@@ -385,24 +388,17 @@ class Employee extends Model
             return null;
         }
 
-        $sk = strtolower($this->satuan_kerja);
+        $slug = $this->location?->parent?->code
+            ?? $this->location?->code
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
 
-        // Periksa Wilayah III / Balikpapan terlebih dahulu untuk menghindari collision substring
-        if (str_contains($sk, 'wilayah iii') || str_contains($sk, 'wil iii') || str_contains($sk, 'balikpapan') || str_contains($sk, 'seksi 3') || str_contains($sk, 'seksi iii')) {
-            return 'III';
-        }
-
-        // Periksa Wilayah II / Tenggarong
-        if (str_contains($sk, 'wilayah ii') || str_contains($sk, 'wil ii') || str_contains($sk, 'tenggarong') || str_contains($sk, 'seksi 2') || str_contains($sk, 'seksi ii')) {
-            return 'II';
-        }
-
-        // Periksa Wilayah I / Berau
-        if (str_contains($sk, 'wilayah i') || str_contains($sk, 'wil i') || str_contains($sk, 'berau') || str_contains($sk, 'seksi 1') || str_contains($sk, 'seksi i')) {
-            return 'I';
-        }
-
-        return null;
+        return match ($slug) {
+            'skw-1-berau' => 'I',
+            'skw-2-tenggarong' => 'II',
+            'skw-3-balikpapan' => 'III',
+            default => null,
+        };
     }
 
     /**
@@ -436,6 +432,56 @@ class Employee extends Model
     public function user(): HasOne
     {
         return $this->hasOne(User::class, 'username', 'nip');
+    }
+
+    public function location(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Bmn\Models\Location::class, 'location_id');
+    }
+
+    /**
+     * Daftar nama/kode unit & penempatan yang cocok untuk RBAC DeReporting Internal.
+     */
+    public function matchingUrusanNames(): array
+    {
+        $this->loadMissing('location.parent');
+        $names = [];
+
+        foreach ([$this->satuan_kerja, $this->resor] as $val) {
+            $trimmed = trim((string) $val);
+            if ($trimmed !== '' && $trimmed !== '-') {
+                $names[] = $trimmed;
+            }
+        }
+
+        if ($this->location) {
+            $names[] = trim((string) $this->location->name);
+            if ($this->location->code) {
+                $names[] = trim((string) $this->location->code);
+            }
+            if ($this->location->parent) {
+                $names[] = trim((string) $this->location->parent->name);
+                if ($this->location->parent->unit_kerja) {
+                    $names[] = trim((string) $this->location->parent->unit_kerja);
+                }
+            }
+        }
+
+        // Alias kompatibilitas SKW lama & baru
+        $slug = $this->location?->parent?->code
+            ?? $this->location?->code
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
+            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
+
+        $aliases = match ($slug) {
+            'balai-samarinda' => ['Balai KSDA Kalimantan Timur', 'Kantor Balai KSDA Kalimantan Timur'],
+            'skw-1-berau' => ['SKW I Berau', 'Seksi KSDA Wilayah I Berau', 'Seksi Konservasi Wilayah I Berau'],
+            'skw-2-tenggarong' => ['SKW II Tenggarong', 'Seksi KSDA Wilayah II Tenggarong', 'Seksi Konservasi Wilayah II Tenggarong', 'SKW II Samarinda'],
+            'skw-3-balikpapan' => ['SKW III Balikpapan', 'Seksi KSDA Wilayah III Balikpapan', 'Seksi Konservasi Wilayah III Balikpapan', 'SKW III Sangatta'],
+            default => [],
+        };
+
+        return array_values(array_unique(array_filter(array_merge($names, $aliases))));
     }
 
     /**
@@ -662,6 +708,11 @@ class Employee extends Model
                 if ($isEffectiveNow && $user) {
                     $user->update(['is_active' => false]);
                     $user->tokens()->delete();
+                    \App\Support\Security\DriveAccess::syncEmployeePlacement($locked, [
+                        'location_id' => $locked->location_id,
+                        'satuan_kerja' => $locked->satuan_kerja,
+                        'resor' => $locked->resor,
+                    ], $user);
                 }
 
                 EmployeeHistory::create([

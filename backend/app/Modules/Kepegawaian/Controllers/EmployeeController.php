@@ -27,6 +27,10 @@ class EmployeeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $baseQuery = Employee::query()
+            ->with([
+                'location:id,parent_id,location_type,unit_kerja,name,code,is_restricted',
+                'location.parent:id,unit_kerja,name,location_type,code',
+            ])
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
@@ -79,43 +83,66 @@ class EmployeeController extends Controller
         $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
         $wilayah = trim((string) $request->input('wilayah', ''));
         if ($wilayah !== '') {
-            if ($wilayah === 'BALAI') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%balai%')
-                        ->orWhere('satuan_kerja', $likeOp, '%samarinda%')
-                        ->orWhere('satuan_kerja', $likeOp, '%tata usaha%');
-                });
-            } elseif ($wilayah === 'SKW_1') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah i %')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
-                        ->orWhere('satuan_kerja', $likeOp, '%berau%')
-                        ->orWhere('satuan_kerja', $likeOp, '%derawan%')
-                        ->orWhere('satuan_kerja', $likeOp, '%kelay%')
-                        ->orWhere('satuan_kerja', $likeOp, '%segah%')
-                        ->orWhere('satuan_kerja', $likeOp, '%talisayan%');
-                });
-            } elseif ($wilayah === 'SKW_2') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah ii %')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
-                        ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
-                        ->orWhere('satuan_kerja', $likeOp, '%paser%')
-                        ->orWhere('satuan_kerja', $likeOp, '%sangatta%')
-                        ->orWhere('satuan_kerja', $likeOp, '%bengalon%')
-                        ->orWhere('satuan_kerja', $likeOp, '%sangkulirang%')
-                        ->orWhere('satuan_kerja', $likeOp, '%muara kama%')
-                        ->orWhere('satuan_kerja', $likeOp, '%kembang janggut%')
-                        ->orWhere('satuan_kerja', $likeOp, '%dondang%');
-                });
-            } elseif ($wilayah === 'SKW_3') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah iii%')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
-                        ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
-                        ->orWhere('satuan_kerja', $likeOp, '%bangkirai%')
-                        ->orWhere('satuan_kerja', $likeOp, '%penajam%')
-                        ->orWhere('satuan_kerja', $likeOp, '%nusantara%');
+            $slugMap = [
+                'BALAI' => 'balai-samarinda',
+                'SKW_1' => 'skw-1-berau',
+                'SKW_2' => 'skw-2-tenggarong',
+                'SKW_3' => 'skw-3-balikpapan',
+            ];
+
+            if (\Illuminate\Support\Str::isUuid($wilayah)) {
+                $childLocIds = \App\Modules\Bmn\Models\Location::where('parent_id', $wilayah)->pluck('id')->all();
+                $allLocIds = array_merge([$wilayah], $childLocIds);
+                $query->whereIn('location_id', $allLocIds);
+            } elseif (isset($slugMap[$wilayah])) {
+                $slug = $slugMap[$wilayah];
+                $parentLoc = \App\Modules\Bmn\Models\Location::where('code', $slug)->first();
+                $locIds = $parentLoc
+                    ? array_merge([$parentLoc->id], $parentLoc->children()->pluck('id')->all())
+                    : [];
+
+                $query->where(function ($q) use ($wilayah, $likeOp, $locIds) {
+                    if (! empty($locIds)) {
+                        $q->whereIn('location_id', $locIds);
+                    }
+                    if ($wilayah === 'BALAI') {
+                        $q->orWhere(function ($sub) use ($likeOp) {
+                            $sub->where('satuan_kerja', $likeOp, '%balai%')
+                                ->orWhere('satuan_kerja', $likeOp, '%tata usaha%')
+                                ->orWhere(function ($s2) use ($likeOp) {
+                                    $s2->where('satuan_kerja', $likeOp, '%samarinda%')
+                                        ->where(function ($r) {
+                                            $r->whereNull('resor')->orWhere('resor', '!=', 'resor_05');
+                                        });
+                                });
+                        });
+                    } elseif ($wilayah === 'SKW_1') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah i %')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah i')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil i%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw i %')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw i')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
+                            ->orWhere('satuan_kerja', $likeOp, '%berau%')
+                            ->orWhereIn('resor', ['resor_01', 'resor_02', 'resor_03']);
+                    } elseif ($wilayah === 'SKW_2') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah ii %')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah ii')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil ii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw ii %')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw ii')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
+                            ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
+                            ->orWhere('satuan_kerja', $likeOp, '%paser%')
+                            ->orWhereIn('resor', ['resor_04', 'resor_05', 'resor_06', 'resor_07', 'resor_08']);
+                    } elseif ($wilayah === 'SKW_3') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
+                            ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
+                            ->orWhereIn('resor', ['resor_09', 'resor_10', 'resor_11', 'resor_12', 'resor_13', 'resor_14']);
+                    }
                 });
             } else {
                 $escapedWilayah = addcslashes($wilayah, '%_');
@@ -127,6 +154,7 @@ class EmployeeController extends Controller
                 }
                 $query->where(function ($q) use ($escapedWilayah, $resorMatch, $likeOp) {
                     $q->where('satuan_kerja', $likeOp, "%{$escapedWilayah}%")
+                        ->orWhere('resor', $likeOp, "%{$escapedWilayah}%")
                         ->orWhere('jabatan', $likeOp, "%{$escapedWilayah}%");
                     if ($resorMatch) {
                         $q->orWhere('jabatan', $likeOp, "%{$resorMatch[0]}%")
@@ -210,7 +238,7 @@ class EmployeeController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $employee = Employee::with('user')->findOrFail($id);
+        $employee = Employee::with(['user', 'location.parent'])->findOrFail($id);
 
         $data = $employee->toArray();
         unset($data['user']);
@@ -242,59 +270,77 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
-        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'location_id', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $employee->loadMissing('location.parent');
+        $oldPlacement = [
+            'location_id' => $employee->location_id,
+            'satuan_kerja' => $employee->satuan_kerja,
+            'resor' => $employee->resor,
+            'drive_unit_id' => $employee->location?->effectiveDriveUnitId(),
+        ];
+
         $oldValues = [];
         foreach ($trackedFields as $field) {
             $oldValues[$field] = $employee->$field;
         }
+        $oldNip = trim((string) $employee->nip);
 
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
             $employee->replaceProfilePhoto($request->file('foto'));
         }
 
-        $employee->update($validated);
-        $newNip = trim((string) $employee->nip);
+        DB::transaction(function () use ($employee, $validated, $trackedFields, $oldValues, $oldNip, $oldPlacement, $targetUser, $currentUser) {
+            $employee->update($validated);
+            $newNip = trim((string) $employee->nip);
 
-        // Sinkronisasi email ke akun User jika ada
-        if ($targetUser && !empty($employee->email)) {
-            $targetUser->email = $employee->email;
-            $targetUser->save();
-        }
-
-        // Catat riwayat audit jika ada field biodata yang berubah
-        $changes = [];
-        foreach ($trackedFields as $field) {
-            $newVal = $employee->$field;
-            $oldVal = $oldValues[$field];
-            if ($oldVal != $newVal) {
-                $changes[$field] = [
-                    'old' => $oldVal,
-                    'new' => $newVal,
-                ];
+            // Sinkronisasi email ke akun User jika ada
+            if ($targetUser && ! empty($employee->email)) {
+                $targetUser->email = $employee->email;
+                $targetUser->save();
             }
-        }
 
-        if (! empty($changes)) {
-            EmployeeHistory::create([
-                'employee_id' => $employee->id,
-                'user_id' => $currentUser?->id,
-                'action' => 'UPDATE_BIODATA',
-                'changes' => $changes,
-                'created_at' => now(),
-            ]);
-        }
+            // Catat riwayat audit jika ada field biodata yang berubah
+            $changes = [];
+            foreach ($trackedFields as $field) {
+                $newVal = $employee->$field;
+                $oldVal = $oldValues[$field];
+                if ($oldVal != $newVal) {
+                    $changes[$field] = [
+                        'old' => $oldVal,
+                        'new' => $newVal,
+                    ];
+                }
+            }
 
-        if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
-            User::where('username', $oldNip)->update([
-                'username' => $newNip,
-                'name' => $employee->nama_lengkap,
-            ]);
-        }
+            if (! empty($changes)) {
+                EmployeeHistory::create([
+                    'employee_id' => $employee->id,
+                    'user_id' => $currentUser?->id,
+                    'action' => 'UPDATE_BIODATA',
+                    'changes' => $changes,
+                    'created_at' => now(),
+                ]);
+            }
+
+            if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
+                User::where('username', $oldNip)->update([
+                    'username' => $newNip,
+                    'name' => $employee->nama_lengkap,
+                ]);
+            }
+
+            $freshEmployee = $employee->fresh(['location.parent']);
+            $resolvedUser = ($newNip !== '' && $newNip !== $oldNip)
+                ? User::where('username', $newNip)->first()
+                : ($targetUser ?: ($newNip !== '' ? User::where('username', $newNip)->first() : null));
+
+            \App\Support\Security\DriveAccess::syncEmployeePlacement($freshEmployee, $oldPlacement, $resolvedUser);
+        });
 
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
-            'data' => $employee,
+            'data' => $employee->fresh(['location.parent']),
         ]);
     }
 
@@ -868,6 +914,10 @@ class EmployeeController extends Controller
     public function dashboardStats(): JsonResponse
     {
         $baseQuery = Employee::query()
+            ->with([
+                'location:id,parent_id,location_type,unit_kerja,name,code,is_restricted',
+                'location.parent:id,unit_kerja,name,location_type,code',
+            ])
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
@@ -899,29 +949,37 @@ class EmployeeController extends Controller
             $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
         })->count();
 
-        // 4. Sebaran Satuan Kerja
-        $satkerRaw = (clone $baseQuery)
-            ->select('satuan_kerja', DB::raw('count(*) as count'))
-            ->groupBy('satuan_kerja')
-            ->get();
+        // 4. Sebaran Satuan Kerja (berbasis Master Lokasi & kanonik unit)
+        $employeesForStats = (clone $baseQuery)->with('location.parent')->get(['id', 'location_id', 'satuan_kerja', 'resor']);
 
         $samarindaCount = 0;
         $berauCount = 0;
         $tenggarongCount = 0;
         $balikpapanCount = 0;
+        $dynamicSeksiCounts = [];
 
-        foreach ($satkerRaw as $item) {
-            $name = strtolower($item->satuan_kerja ?? '');
-            if (str_contains($name, 'wilayah iii') || str_contains($name, 'wilayah 3') || str_contains($name, 'balikpapan')) {
-                $balikpapanCount += $item->count;
-            } elseif (str_contains($name, 'wilayah ii') || str_contains($name, 'wilayah 2') || str_contains($name, 'tenggarong') || str_contains($name, 'paser')) {
-                $tenggarongCount += $item->count;
-            } elseif (str_contains($name, 'wilayah i') || str_contains($name, 'wilayah 1') || str_contains($name, 'berau')) {
-                $berauCount += $item->count;
-            } elseif (str_contains($name, 'balai') || str_contains($name, 'samarinda') || str_contains($name, 'tata usaha')) {
-                $samarindaCount += $item->count;
+        foreach ($employeesForStats as $emp) {
+            $slug = $emp->location?->parent?->code
+                ?? $emp->location?->code
+                ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($emp->resor)
+                ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($emp->satuan_kerja);
+
+            if ($slug === 'skw-3-balikpapan') {
+                $balikpapanCount++;
+            } elseif ($slug === 'skw-2-tenggarong') {
+                $tenggarongCount++;
+            } elseif ($slug === 'skw-1-berau') {
+                $berauCount++;
+            } elseif ($emp->location?->parent?->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI
+                || $emp->location?->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI) {
+                $seksiLoc = $emp->location?->parent ?? $emp->location;
+                $key = $seksiLoc->id;
+                if (! isset($dynamicSeksiCounts[$key])) {
+                    $dynamicSeksiCounts[$key] = ['code' => $key, 'name' => $seksiLoc->name, 'count' => 0];
+                }
+                $dynamicSeksiCounts[$key]['count']++;
             } else {
-                $samarindaCount += $item->count;
+                $samarindaCount++;
             }
         }
 
@@ -960,6 +1018,17 @@ class EmployeeController extends Controller
                 'dot' => 'bg-amber-400',
             ],
         ];
+
+        foreach ($dynamicSeksiCounts as $dyn) {
+            $satkerBreakdown[] = [
+                'code' => $dyn['code'],
+                'name' => $dyn['name'],
+                'count' => $dyn['count'],
+                'percentage' => (int) round(($dyn['count'] / $denom) * 100),
+                'gradient' => 'from-violet-500 to-purple-500',
+                'dot' => 'bg-violet-400',
+            ];
+        }
 
         // 5. Recent Surat Tugas
         $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {

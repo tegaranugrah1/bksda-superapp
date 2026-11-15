@@ -116,7 +116,9 @@ class SuratMasukController extends Controller
     public function locations(): JsonResponse
     {
         $locations = DB::table('bmn_locations')
-            ->select('id', 'name', 'unit_kerja')
+            ->where('is_active', true)
+            ->select('id', 'parent_id', 'location_type', 'name', 'unit_kerja', 'code', 'is_restricted', 'is_active')
+            ->orderBy('unit_kerja')
             ->orderBy('name')
             ->get();
 

@@ -44,13 +44,16 @@ import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
 import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
-import { ALL_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+import {
+  SIMAN_LOKASI_RUANG_OPTIONS,
+  STRUKTUR_LOKASI_OPTIONS,
+  mergeLokasiOptions,
+} from "@/app/bmn/_lib/location-options";
+import { useMasterLocations } from "@/lib/locations";
 import { cn } from "@/lib/utils";
 
 import "../assets.css";
 import "./detail.css";
-
-const LOKASI_RUANG_OPTIONS = ALL_LOKASI_RUANG_OPTIONS;
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
 export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -89,6 +92,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
     },
     enabled: canWrite,
   });
+
+  const { data: masterLocations = [] } = useMasterLocations(true);
 
   const [activeTab, setActiveTab] = useState("identitas");
   const [failedHeroUrl, setFailedHeroUrl] = useState<string | null>(null);
@@ -340,11 +345,12 @@ function AssetDetail({ assetId }: { assetId: string }) {
     return "-";
   };
 
-  const allLokasiRuangOptions = Array.from(
-    new Set([
-      ...(currentData.lokasi_ruang ? [currentData.lokasi_ruang] : []),
-      ...LOKASI_RUANG_OPTIONS,
-    ])
+  const allLokasiRuangOptions = mergeLokasiOptions(
+    [currentData.lokasi_ruang],
+    masterLocations.length > 0
+      ? masterLocations.map((l) => l.name)
+      : STRUKTUR_LOKASI_OPTIONS,
+    SIMAN_LOKASI_RUANG_OPTIONS
   );
 
   return (
