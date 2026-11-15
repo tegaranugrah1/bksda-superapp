@@ -216,7 +216,7 @@ flowchart TD
 
 ## 5. Rencana Verifikasi 3 Lapis (BE, FE Build, dan Live E2E)
 
-*(Status saat ini: **belum ada kode yang diubah dan belum ada test fitur baru yang dijalankan**; verifikasi di bawah wajib dijalankan seluruhnya setelah implementasi.)*
+*(Status saat ini: **Selesai diimplementasikan & diverifikasi** pada branch `codex/portal-security-pentest` — commit `255539bd` dan tindak lanjut penyelarasan data legacy pegawai `06633dc5` beserta migrasi `2026_11_16_000001_sync_existing_employees_satuan_kerja_to_locations.php`; PHPUnit `LocationHierarchyAndDriveSyncTest` lulus 6 tests / 66 assertions dan Next.js build 86/86 pages hijau.)*
 
 ### A. Verifikasi Backend (PHPUnit terhadap Laravel Feature Tests)
 1. **Hierarki Master Lokasi (Tambah Seksi & Resor Turunan Seksi):**
