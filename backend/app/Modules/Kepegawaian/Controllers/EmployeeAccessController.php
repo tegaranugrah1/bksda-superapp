@@ -46,6 +46,7 @@ class EmployeeAccessController extends Controller
                 'role' => $user->role,
                 'is_active' => $user->is_active,
                 'access_modules' => $user->access_modules,
+                'module_roles' => $user->moduleRolesPayload(),
                 'permissions' => $user->permissions,
             ],
         ]);
@@ -79,12 +80,40 @@ class EmployeeAccessController extends Controller
                 ], 422);
             }
 
+            $selectedModules = array_values(array_unique(array_filter(
+                array_map('strval', $validated['access_modules'] ?? []),
+                fn (string $m) => $m !== ''
+            )));
+
+            $requestedModuleRoles = $validated['module_roles'] ?? null;
+            $sanitizedModuleRoles = null;
+            $effectiveRole = $validated['role'] === 'pegawai' ? 'user' : $validated['role'];
+
+            if ($effectiveRole !== 'super_admin' && is_array($requestedModuleRoles)) {
+                $filtered = [];
+                foreach ($selectedModules as $moduleKey) {
+                    if (isset($requestedModuleRoles[$moduleKey]) && in_array($requestedModuleRoles[$moduleKey], User::ALLOWED_MODULE_ROLES, true)) {
+                        $filtered[$moduleKey] = $requestedModuleRoles[$moduleKey];
+                    }
+                }
+                if (! empty($filtered)) {
+                    $sanitizedModuleRoles = $filtered;
+                    $allAdmin = count($filtered) === count($selectedModules)
+                        && count(array_unique(array_values($filtered))) === 1
+                        && reset($filtered) === 'admin';
+                    $effectiveRole = $allAdmin ? 'admin' : 'user';
+                }
+            } elseif ($effectiveRole === 'super_admin') {
+                $sanitizedModuleRoles = null;
+            }
+            $validated['role'] = $effectiveRole;
+
             // Try to find user by NIP (trim whitespace for safety)
             $user = User::where('username', $nip)->first();
 
             // Prevent self-demotion / lockout
             if ($user && $user->id === $request->user()?->id
-                && ($validated['role'] !== 'super_admin' || ($validated['is_active'] ?? true) === false)) {
+                && ($effectiveRole !== 'super_admin' || ($validated['is_active'] ?? true) === false)) {
                 return response()->json([
                     'error' => 'Forbidden',
                     'message' => 'Anda tidak dapat menurunkan peran atau menonaktifkan akun Anda sendiri.',
@@ -105,9 +134,10 @@ class EmployeeAccessController extends Controller
                 'username' => $nip,
                 'name' => $employee->nama_lengkap,
                 'password' => $validated['password'],
-                'role' => $validated['role'],
+                'role' => $effectiveRole,
                 'is_active' => $validated['is_active'] ?? true,
-                'access_modules' => $validated['access_modules'] ?? [],
+                'access_modules' => $selectedModules,
+                'module_roles' => $sanitizedModuleRoles,
                 'permissions' => $validated['permissions'] ?? [],
             ]);
 
@@ -117,9 +147,10 @@ class EmployeeAccessController extends Controller
                 'user_id' => $request->user()?->id,
                 'action' => 'CREATE_IAM_ACCOUNT',
                 'changes' => [
-                    'role' => ['old' => null, 'new' => $validated['role']],
+                    'role' => ['old' => null, 'new' => $effectiveRole],
                     'is_active' => ['old' => null, 'new' => $user->is_active],
-                    'access_modules' => ['old' => [], 'new' => $validated['access_modules'] ?? []],
+                    'access_modules' => ['old' => [], 'new' => $selectedModules],
+                    'module_roles' => ['old' => (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
                 ],
                 'notes' => 'Penerbitan akun akses aplikasi (IAM) oleh Super Admin',
                 'created_at' => now(),
@@ -132,13 +163,15 @@ class EmployeeAccessController extends Controller
         else {
             $oldRole = $user->role;
             $oldModules = $user->access_modules ?? [];
+            $oldModuleRoles = $user->module_roles ?? [];
             $oldPerms = $user->permissions ?? [];
             $oldActive = $user->is_active;
 
             $updateData = [
-                'role' => $validated['role'],
+                'role' => $effectiveRole,
                 'is_active' => $validated['is_active'] ?? $oldActive,
-                'access_modules' => $validated['access_modules'] ?? [],
+                'access_modules' => $selectedModules,
+                'module_roles' => $sanitizedModuleRoles,
                 'permissions' => $validated['permissions'] ?? [],
             ];
 
@@ -148,10 +181,11 @@ class EmployeeAccessController extends Controller
                 $user->tokens()->delete();
             }
 
-            // Jika role, access_modules, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
+            // Jika role, access_modules, module_roles, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
             if ($user->role !== $validated['role']
                 || $oldActive !== $updateData['is_active']
-                || $user->access_modules !== ($validated['access_modules'] ?? [])
+                || $user->access_modules !== $selectedModules
+                || $oldModuleRoles !== ($sanitizedModuleRoles ?? [])
                 || $user->permissions !== ($validated['permissions'] ?? [])) {
                 $user->tokens()->delete();
             }
@@ -164,9 +198,10 @@ class EmployeeAccessController extends Controller
                 'user_id' => $request->user()?->id,
                 'action' => 'UPDATE_IAM_ACCESS',
                 'changes' => [
-                    'role' => ['old' => $oldRole, 'new' => $validated['role']],
+                    'role' => ['old' => $oldRole, 'new' => $effectiveRole],
                     'is_active' => ['old' => $oldActive, 'new' => $user->is_active],
-                    'access_modules' => ['old' => $oldModules, 'new' => $validated['access_modules'] ?? []],
+                    'access_modules' => ['old' => $oldModules, 'new' => $selectedModules],
+                    'module_roles' => ['old' => $oldModuleRoles ?: (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
                     'permissions' => ['old' => $oldPerms, 'new' => $validated['permissions'] ?? []],
                 ],
                 'notes' => 'Pembaruan hak akses wewenang modul (IAM) oleh Super Admin',
@@ -183,6 +218,7 @@ class EmployeeAccessController extends Controller
                 'role' => $user->role,
                 'is_active' => $user->is_active,
                 'access_modules' => $user->access_modules,
+                'module_roles' => $user->moduleRolesPayload(),
                 'permissions' => $user->permissions,
             ],
         ]);

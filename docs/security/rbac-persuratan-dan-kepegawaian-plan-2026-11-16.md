@@ -219,3 +219,21 @@ Pengujian otomatis dilakukan secara menyeluruh pada **Backend (PHPUnit)** dan **
 | **T-BMN-02** | BMN (`/bmn`) | `admin` | Membuka `/bmn/assets/[id]`, mengedit aset, memasang tag pada aset, membuka menu operasional, dan mencoba `/bmn/settings` / `bulk-force-delete`. | Tombol `Edit Aset` & menu operasional tampil (`200`), namun menu `Pengaturan Master` tersembunyi, `/bmn/settings` redirect ke `/bmn`, dan mutasi Master Tag/Lokasi/Jenis BMN & `bulk-force-delete` ditolak `403`. | ✅ PASS | ✅ PASS (`BMN-ADMIN`) |
 | **T-BMN-03** | BMN (`/bmn`) | `super_admin` | Membuka `/bmn/settings` dan mengelola Master Tag, Master Lokasi, Jenis BMN, serta `bulk-force-delete`. | Menu `Pengaturan Master` tampil, `/bmn/settings` terbuka penuh, dan seluruh endpoint master & `bulk-force-delete` mengembalikan `200/201`. | ✅ PASS | ✅ PASS (`BMN-SUPERADMIN`) |
 
+---
+
+## 11. Pembaruan Per-Module Roles (`module_roles`) Lintas Modul (16 November 2026)
+
+Sebagai tindak lanjut kebutuhan memilih peran **User vs Admin secara independen per modul** (mis. Admin di **Persuratan & BMN** namun tetap User biasa di **Kepegawaian**):
+
+1. **Skema & Model**:
+   - Migrasi [`2026_11_16_000002_add_module_roles_to_users_table.php`](file:///e:/bksda-superapp/backend/database/migrations/2026_11_16_000002_add_module_roles_to_users_table.php) menambahkan kolom `json('module_roles')->nullable()` pada tabel `users` (backward-compatible untuk user lama dengan `module_roles = null`).
+   - [`User::roleFor(string $module)`](file:///e:/bksda-superapp/backend/app/Models/User.php#L156-L175) & [`User::isAdminFor(string $module)`](file:///e:/bksda-superapp/backend/app/Models/User.php#L177-L180) menyelesaikan peran per modul (`surat_tugas` mewarisi `kepegawaian` jika tidak di-override), serta dipakai di `hasPermission()`, `canAccessAdminInbox()`, [`CheckRole`](file:///e:/bksda-superapp/backend/app/Http/Middleware/CheckRole.php) (deteksi prefix URI API otomatis + optional `module:<slug>`), [`EnsureAccountSecure`](file:///e:/bksda-superapp/backend/app/Http/Middleware/EnsureAccountSecure.php), [`EmployeeAccessController`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeAccessController.php) (least-privilege fallback `role = 'user'` saat peran campuran + audit history + token revocation), dan controller/FormRequest **Persuratan**, **Kepegawaian**, & **Surat Tugas**.
+2. **Frontend & IAM Sheet**:
+   - [`useRole`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts) & [`resolveModuleRole`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts#L22-L44) otomatis mendeteksi modul aktif dari `usePathname()` atau argumen eksplisit, dan `hasPermission()` menggunakan peran modul milik prefix permission tersebut.
+   - [`EmployeeAccessSheet`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx) menampilkan toggle **`User` / `Admin`** terpisah pada setiap modul terpilih saat `role !== 'super_admin'`.
+3. **Verifikasi Terbaru**:
+   - **Backend PHPUnit (16 file suite termasuk `test_per_module_roles_via_iam_enforce_independent_permissions_across_modules`)**: **`199/199 tests PASSED` (`1.616 assertions`)** + `portal_security_check.php` **`PASS`**.
+   - **Frontend E2E Playwright (`rbac-5-user-persuratan-kepegawaian-bmn.playwright.cjs`)**: **`17/17 persona suites PASSED` (`160 assertions`)**, mencakup skenario peran campuran lintas 3 modul (`MIXED-MODULE-ROLE`) dan toggle IAM Sheet (`IAM-PER-MODULE-UI`).
+   - **TypeScript (`tsc --noEmit`)** & **ESLint**: **`0 errors`**, serta [`persuratan-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/persuratan-ui.cjs) & [`kepegawaian-ui.cjs`](file:///e:/bksda-superapp/frontend/tests/kepegawaian-ui.cjs) **`PASS`**.
+
+

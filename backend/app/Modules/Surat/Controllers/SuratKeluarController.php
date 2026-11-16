@@ -13,7 +13,7 @@ class SuratKeluarController extends Controller
 {
     private function isScopedToOwnLetters(Request $request): bool
     {
-        return ! in_array($request->user()?->role, ['admin', 'super_admin'], true);
+        return ! $request->user()?->isAdminFor('surat');
     }
 
     private function findAuthorizedSuratKeluar(Request $request, int $id): SuratKeluar

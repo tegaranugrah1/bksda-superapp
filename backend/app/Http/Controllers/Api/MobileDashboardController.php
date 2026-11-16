@@ -29,6 +29,7 @@ class MobileDashboardController extends Controller
             'username' => $user->username,
             'role' => $user->role,
             'access_modules' => $user->access_modules ?? [],
+            'module_roles' => $user->moduleRolesPayload(),
             'permissions' => $user->permissions ?? [],
             'employee' => $employee ? [
                 'id' => $employee->id,
@@ -129,7 +130,7 @@ class MobileDashboardController extends Controller
         // Global approval counts require the same module boundary as assignment approval.
         $hasSuratTugasAccess = $user->role === 'super_admin'
             || (array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])
-                && ($user->role === 'admin' || $user->hasPermission('surat_tugas.approve')));
+                && ($user->isAdminFor('surat_tugas') || $user->hasPermission('surat_tugas.approve')));
 
         if ($hasSuratTugasAccess) {
             $pendingApprovalsCount = AssignmentLetter::whereIn('status', ['pending', 'PENDING'])->count();

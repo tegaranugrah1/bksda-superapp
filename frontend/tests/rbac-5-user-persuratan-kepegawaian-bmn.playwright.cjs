@@ -95,6 +95,19 @@ const USERS = {
     access_modules: ['surat', 'kepegawaian', 'bmn'],
     permissions: [],
   },
+  mixed_role: {
+    id: '6',
+    username: '199404042023011004',
+    name: 'Tegar Multi Role',
+    role: 'user',
+    access_modules: ['surat', 'kepegawaian', 'bmn'],
+    module_roles: {
+      surat: 'admin',
+      kepegawaian: 'user',
+      bmn: 'admin',
+    },
+    permissions: [],
+  },
 };
 
 const ALL_SURAT_KELUAR = [
@@ -156,6 +169,14 @@ async function createPersonaPage(browser, persona) {
   });
 
   // Attach API mocks simulating backend RBAC behavior per persona
+  await page.route('**/api/user*', route => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: persona }),
+    });
+  });
+
   await page.route('**/api/auth/me*', route => {
     route.fulfill({
       status: 200,
@@ -164,9 +185,10 @@ async function createPersonaPage(browser, persona) {
     });
   });
 
-  // Surat API Mocks
+    // Surat API Mocks
   await page.route('**/api/surat/stats*', route => {
-    const isRegUser = persona.role === 'user';
+    const suratRole = persona.role === 'super_admin' ? 'super_admin' : (persona.module_roles?.surat ?? persona.role);
+    const isRegUser = suratRole === 'user';
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -187,7 +209,8 @@ async function createPersonaPage(browser, persona) {
   });
 
   await page.route('**/api/surat/surat-keluar*', route => {
-    const isRegUser = persona.role === 'user';
+    const suratRole = persona.role === 'super_admin' ? 'super_admin' : (persona.module_roles?.surat ?? persona.role);
+    const isRegUser = suratRole === 'user';
     const data = isRegUser
       ? ALL_SURAT_KELUAR.filter(s => String(s.created_by) === String(persona.id))
       : ALL_SURAT_KELUAR;
@@ -233,7 +256,8 @@ async function createPersonaPage(browser, persona) {
   });
 
   await page.route('**/api/kepegawaian/employees/99', route => {
-    const isRegUser = persona.role === 'user';
+    const kpgRole = persona.role === 'super_admin' ? 'super_admin' : (persona.module_roles?.kepegawaian ?? persona.role);
+    const isRegUser = kpgRole === 'user';
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -256,6 +280,7 @@ async function createPersonaPage(browser, persona) {
             username: '198808082015011099',
             role: 'user',
             access_modules: ['surat', 'kepegawaian', 'bmn'],
+            module_roles: { surat: 'user', kepegawaian: 'user', bmn: 'user' },
             permissions: [],
           },
         },
@@ -263,7 +288,28 @@ async function createPersonaPage(browser, persona) {
     });
   });
 
+  const capturedIamPayloads = [];
   await page.route('**/api/kepegawaian/employees/99/access*', route => {
+    const req = route.request();
+    if (req.method() === 'PUT') {
+      const payload = JSON.parse(req.postData() || '{}');
+      capturedIamPayloads.push(payload);
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'Data hak akses berhasil diperbarui.',
+          data: {
+            username: '198808082015011099',
+            role: payload.role || 'user',
+            is_active: payload.is_active ?? true,
+            access_modules: payload.access_modules || [],
+            module_roles: payload.module_roles || {},
+            permissions: [],
+          },
+        }),
+      });
+    }
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -272,7 +318,9 @@ async function createPersonaPage(browser, persona) {
           has_account: true,
           username: '198808082015011099',
           role: 'user',
+          is_active: true,
           access_modules: ['surat', 'kepegawaian', 'bmn'],
+          module_roles: { surat: 'user', kepegawaian: 'user', bmn: 'user' },
           permissions: [],
         },
       }),
@@ -368,7 +416,7 @@ async function createPersonaPage(browser, persona) {
     });
   });
 
-  return { context, page };
+  return { context, page, capturedIamPayloads };
 }
 
 async function runFiveUserRbacE2E() {
@@ -616,6 +664,80 @@ async function runFiveUserRbacE2E() {
 
       await context.close();
       reportPass('BMN-SUPERADMIN', 'Akses Penuh Pengaturan Master BMN (super_admin)', 'Super Admin dapat membuka /bmn/settings');
+    }
+
+    // =========================================================================
+    // SUITE 4: ROLE PER MODUL CAMPURAN + TOGGLE IAM SHEET INDEPENDENT
+    // =========================================================================
+    console.log('\n[SUITE 4/4] Menguji Role Per Modul (Admin Surat + User Kepegawaian + Admin BMN) & IAM Sheet...');
+
+    {
+      const { context, page } = await createPersonaPage(browser, USERS.mixed_role);
+
+      // 4A. Di Persuratan berperan Admin
+      await page.goto('http://localhost:3000/surat/keluar', { waitUntil: 'networkidle', timeout: 30000 });
+      assert.equal(await page.locator('aside a:has-text("Agenda Surat Masuk")').isVisible(), true, 'Mixed user (Admin Surat) harus melihat Agenda Surat Masuk');
+      assert.equal(await page.locator('aside a:has-text("Rekapitulasi")').isVisible(), true, 'Mixed user (Admin Surat) harus melihat Rekapitulasi');
+      assert.equal(await page.locator('aside a:has-text("Pengaturan Template")').count(), 0, 'Mixed user (Admin Surat) TIDAK boleh melihat Pengaturan Template');
+      for (const item of ALL_SURAT_KELUAR) {
+        assert.equal(await page.locator(`text=${item.perihal}`).isVisible(), true, `Mixed user (Admin Surat) harus melihat ${item.perihal}`);
+        totalAssertions++;
+      }
+      totalAssertions += 3;
+
+      // 4B. Di Kepegawaian berperan User
+      await page.goto('http://localhost:3000/kepegawaian/employees/99', { waitUntil: 'networkidle', timeout: 30000 });
+      assert.equal(await page.locator('aside a:has-text("Inbox Surat Tugas")').count(), 0, 'Mixed user (User Kepegawaian) TIDAK boleh melihat Inbox Surat Tugas');
+      assert.equal(await page.locator('aside a:has-text("Hitung Uang Makan")').count(), 0, 'Mixed user (User Kepegawaian) TIDAK boleh melihat Hitung Uang Makan');
+      assert.equal(await page.locator('button[role="tab"]:has-text("Riwayat Penugasan")').count(), 0, 'Mixed user (User Kepegawaian) TIDAK boleh melihat tab Riwayat Penugasan');
+      assert.equal(await page.locator('button:has-text("Reset Password")').count(), 0, 'Mixed user (User Kepegawaian) TIDAK boleh melihat tombol Reset Password');
+      assert.equal(await page.locator('button:has-text("Kelola Akses (IAM)")').count(), 0, 'Mixed user TIDAK boleh melihat tombol Kelola Akses (IAM)');
+      totalAssertions += 5;
+
+      // 4C. Di BMN berperan Admin
+      await page.goto('http://localhost:3000/bmn/assets/501', { waitUntil: 'networkidle', timeout: 30000 });
+      assert.equal(await page.locator('aside a:has-text("Import Review")').isVisible(), true, 'Mixed user (Admin BMN) harus melihat Import Review');
+      assert.equal(await page.locator('aside a:has-text("Aset Dihapus")').isVisible(), true, 'Mixed user (Admin BMN) harus melihat Aset Dihapus');
+      assert.equal(await page.locator('aside a:has-text("Pengaturan Master")').count(), 0, 'Mixed user (Admin BMN) TIDAK boleh melihat Pengaturan Master');
+      assert.equal(await page.locator('button:has-text("Edit Aset")').isVisible(), true, 'Mixed user (Admin BMN) harus melihat tombol Edit Aset');
+      totalAssertions += 4;
+
+      await context.close();
+      reportPass('MIXED-MODULE-ROLE', 'Peran Independen Lintas 3 Modul', 'Admin di Persuratan & BMN sekaligus tetap User biasa di Kepegawaian');
+    }
+
+    {
+      const { context, page, capturedIamPayloads } = await createPersonaPage(browser, USERS.super_admin);
+      await page.goto('http://localhost:3000/kepegawaian/employees/99', { waitUntil: 'networkidle', timeout: 30000 });
+
+      await page.locator('button:has-text("Kelola Akses (IAM)")').click();
+      const suratGroup = page.locator('[role="group"][aria-label="Peran modul Persuratan & Disposisi"]');
+      const kpgGroup = page.locator('[role="group"][aria-label="Peran modul Kepegawaian"]');
+      const bmnGroup = page.locator('[role="group"][aria-label="Peran modul BMN & Aset"]');
+
+      await suratGroup.waitFor({ state: 'visible', timeout: 10000 });
+      await suratGroup.locator('button:has-text("Admin")').click();
+      await bmnGroup.locator('button:has-text("Admin")').click();
+
+      // Verify Kepegawaian stays User independently
+      assert.equal(await kpgGroup.locator('button:has-text("User")').getAttribute('aria-pressed'), 'true', 'Toggle Persuratan & BMN ke Admin tidak boleh mengubah Kepegawaian dari User');
+      assert.equal(await suratGroup.locator('button:has-text("Admin")').getAttribute('aria-pressed'), 'true', 'Persuratan harus aktif sebagai Admin');
+      assert.equal(await bmnGroup.locator('button:has-text("Admin")').getAttribute('aria-pressed'), 'true', 'BMN harus aktif sebagai Admin');
+      totalAssertions += 3;
+
+      await page.locator('button[type="submit"]:has-text("Simpan")').click();
+      await page.waitForTimeout(400);
+
+      assert.equal(capturedIamPayloads.length, 1, 'Submit IAM Sheet harus mengirim 1 payload PUT /access');
+      const sent = capturedIamPayloads[0];
+      assert.equal(sent.role, 'user', 'Global role payload harus tetap least-privilege user saat campuran');
+      assert.equal(sent.module_roles?.surat, 'admin', 'Payload module_roles.surat harus admin');
+      assert.equal(sent.module_roles?.kepegawaian, 'user', 'Payload module_roles.kepegawaian harus user');
+      assert.equal(sent.module_roles?.bmn, 'admin', 'Payload module_roles.bmn harus admin');
+      totalAssertions += 5;
+
+      await context.close();
+      reportPass('IAM-PER-MODULE-UI', 'Toggle & Simpan Per-Module Role di IAM Sheet', 'Dapat memilih Admin Persuratan + User Kepegawaian + Admin BMN secara terpisah');
     }
 
     console.log('\n' + '='.repeat(84));

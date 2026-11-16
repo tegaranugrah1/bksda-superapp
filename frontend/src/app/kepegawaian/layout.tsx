@@ -76,7 +76,7 @@ export default function KepegawaianLayout({
     return () => window.removeEventListener("keydown", close);
   }, [isOpen]);
   const { user } = useAuth();
-  const { canWrite } = useRole();
+  const { role, canWrite, isSuperAdmin } = useRole("kepegawaian");
 
   const isRouteForbidden =
     (pathname.startsWith("/kepegawaian/settings") && user?.role !== "super_admin") ||
@@ -267,7 +267,7 @@ export default function KepegawaianLayout({
                   </p>
                   <div className="mt-1">
                     <Badge variant="secondary" className="text-xs px-1.5 py-0 font-bold uppercase">
-                      {user?.role || "Pegawai"}
+                      {role || "Pegawai"}
                     </Badge>
                   </div>
                 </div>

@@ -139,6 +139,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'access_modules' => $user->access_modules ?? [],
+                'module_roles' => $user->moduleRolesPayload(),
                 'permissions' => $user->permissions,
                 'email_verified_at' => $user->email_verified_at?->toISOString(),
                 'email_cooldown_remaining' => $remainingCooldown,

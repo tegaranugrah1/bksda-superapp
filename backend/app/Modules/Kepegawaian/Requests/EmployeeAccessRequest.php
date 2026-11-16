@@ -22,6 +22,10 @@ class EmployeeAccessRequest extends FormRequest
             'access_modules' => 'nullable|array',
             'access_modules.*' => 'string',
 
+            // Role per modul ('user' | 'admin'); opsional untuk backward compatibility
+            'module_roles' => 'nullable|array',
+            'module_roles.*' => 'string|in:user,admin',
+
             // Granular permissions (bisa kosong)
             'permissions' => 'nullable|array',
             'permissions.*' => 'string',

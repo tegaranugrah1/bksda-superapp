@@ -8,6 +8,7 @@ export interface StoredUser {
   email: string;
   role: string;
   access_modules: string[];
+  module_roles?: Record<string, "user" | "admin"> | null;
   permissions?: string[] | null;
 }
 

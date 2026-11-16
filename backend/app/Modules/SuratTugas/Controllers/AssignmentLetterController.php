@@ -93,7 +93,7 @@ class AssignmentLetterController extends Controller
             ->findOrFail($cleanId);
 
         $isAdmin = $user->role === 'super_admin'
-            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
+            || ($user->isAdminFor('surat_tugas') && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
         $isAssignedEmployee = $surat->employees->contains(fn ($item) => (int) $item->id === (int) $employee->id);
         $isCreator = (int) $surat->created_by === (int) $user->id;
 
@@ -130,7 +130,7 @@ class AssignmentLetterController extends Controller
         }
 
         $isAdmin = $user->role === 'super_admin'
-            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
+            || ($user->isAdminFor('surat_tugas') && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
 
         $query = AssignmentLetter::with(['employees']);
         if (! $isAdmin) {
@@ -195,7 +195,7 @@ class AssignmentLetterController extends Controller
         if (! $user) {
             abort(401, 'Unauthenticated.');
         }
-        if (! in_array($user->role, ['admin', 'super_admin'], true) && ! in_array('surat_tugas', $user->access_modules ?? [], true)) {
+        if (! $user->isAdminFor('surat_tugas') && ! in_array('surat_tugas', $user->access_modules ?? [], true)) {
             abort(403, 'Anda tidak memiliki hak akses ke Inbox Surat Tugas.');
         }
     }
@@ -606,7 +606,7 @@ class AssignmentLetterController extends Controller
         $surat = AssignmentLetter::findOrFail($cleanId);
 
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('surat_tugas');
 
         if (! $this->authorizeAccess($surat, $request)) {
             return response()->json(['message' => 'Anda tidak memiliki otorisasi untuk merubah Surat Tugas ini.'], 403);
@@ -699,7 +699,7 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $user = $request->user();
-        if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
+        if (! $user || (! $user->isAdminFor('surat_tugas') && ! $user->hasPermission('surat_tugas.approve'))) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk mengubah status Surat Tugas.'], 403);
         }
 
@@ -781,7 +781,7 @@ class AssignmentLetterController extends Controller
 
         $surat = DB::transaction(function () use ($cleanId, $user) {
             $surat = AssignmentLetter::lockForUpdate()->findOrFail($cleanId);
-            if (! in_array($user->role, ['admin', 'super_admin'], true)) {
+            if (! $user->isAdminFor('surat_tugas')) {
                 abort_unless((int) $surat->created_by === (int) $user->id, 403,
                     'Anda tidak memiliki otorisasi untuk menghapus Surat Tugas ini.');
                 abort_if(in_array(strtolower((string) $surat->status), AssignmentLetter::OFFICIAL_STATUSES, true), 403,
@@ -814,7 +814,7 @@ class AssignmentLetterController extends Controller
         }
         $surat = AssignmentLetter::onlyTrashed()->findOrFail($cleanId);
 
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = $user->isAdminFor('surat_tugas');
         $isCreator = (int) $surat->created_by === (int) $user->id;
 
         if (! $isAdmin && ! $isCreator) {
@@ -823,7 +823,7 @@ class AssignmentLetterController extends Controller
 
         DB::transaction(function () use ($cleanId, $request) {
             $surat = AssignmentLetter::onlyTrashed()->lockForUpdate()->findOrFail($cleanId);
-            abort_unless(in_array($request->user()->role, ['admin', 'super_admin'], true)
+            abort_unless($request->user()->isAdminFor('surat_tugas')
                 || (int) $surat->created_by === (int) $request->user()->id, 403);
             $this->restoreScheduledLetters(collect([$surat]), $request);
         });
@@ -840,7 +840,7 @@ class AssignmentLetterController extends Controller
     public function forceDestroy(Request $request, string $id)
     {
         $user = $request->user();
-        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+        if (! $user || ! $user->isAdminFor('surat_tugas')) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas.'], 403);
         }
 
@@ -923,7 +923,7 @@ class AssignmentLetterController extends Controller
         if (! $user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = $user->isAdminFor('surat_tugas');
         $cleanIds = $this->sanitizeBulkIds($request->input('ids'));
         if (! empty($cleanIds)) {
             $query = AssignmentLetter::whereIn('id', $cleanIds);
@@ -952,7 +952,7 @@ class AssignmentLetterController extends Controller
         if (! $user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = $user->isAdminFor('surat_tugas');
         $cleanIds = $this->sanitizeBulkIds($request->input('ids'));
         if (! empty($cleanIds)) {
             $query = AssignmentLetter::onlyTrashed()->whereIn('id', $cleanIds);
@@ -993,7 +993,7 @@ class AssignmentLetterController extends Controller
     public function bulkForceDestroy(Request $request)
     {
         $user = $request->user();
-        if (! $user || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+        if (! $user || ! $user->isAdminFor('surat_tugas')) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas.'], 403);
         }
 
@@ -1031,7 +1031,7 @@ class AssignmentLetterController extends Controller
             return false;
         }
 
-        if (in_array($user->role, ['admin', 'super_admin'], true)) {
+        if ($user->isAdminFor('surat_tugas')) {
             return true;
         }
 
@@ -1057,7 +1057,7 @@ class AssignmentLetterController extends Controller
         }
 
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['admin', 'super_admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('surat_tugas');
         $isCreator = $user && (int) $surat->created_by === (int) $user->id;
         if (! $isAdmin && ! $isCreator && ! in_array(strtolower((string) $surat->status), ['approved', 'completed', 'published', 'diterbitkan'])) {
             return response()->json([
@@ -1150,7 +1150,7 @@ class AssignmentLetterController extends Controller
             return response()->json(['message' => 'Data surat tugas tidak ditemukan.'], 404);
         }
         $user = $request->user();
-        if (! $user || (! in_array($user->role, ['admin', 'super_admin'], true) && ! $user->hasPermission('surat_tugas.approve'))) {
+        if (! $user || (! $user->isAdminFor('surat_tugas') && ! $user->hasPermission('surat_tugas.approve'))) {
             return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menyetujui Surat Tugas.'], 403);
         }
 
@@ -1324,7 +1324,7 @@ class AssignmentLetterController extends Controller
 
     private function authorizeOfficialRevision(AssignmentLetter $surat, \App\Models\User $user): void
     {
-        abort_if(! in_array($user->role, ['admin', 'super_admin'], true)
+        abort_if(! $user->isAdminFor('surat_tugas')
             && in_array(strtolower((string) $surat->status), AssignmentLetter::OFFICIAL_STATUSES, true),
             403, 'Dokumen Surat Tugas yang telah disetujui hanya dapat diubah oleh Administrator.');
     }
@@ -1384,7 +1384,7 @@ class AssignmentLetterController extends Controller
             return false;
         }
 
-        return in_array($user->role, ['admin'], true) || $user->hasPermission('surat_tugas.approve');
+        return $user->isAdminFor('surat_tugas') || $user->hasPermission('surat_tugas.approve');
     }
 
     public function checkConflicts(Request $request): JsonResponse

@@ -91,7 +91,7 @@ export default function SuratLayout({
 
   const router = useRouter();
   const { user } = useAuth();
-  const { hasPermission, canWrite, isSuperAdmin } = useRole();
+  const { role, hasPermission, canWrite, isSuperAdmin } = useRole("surat");
 
   const isRouteForbidden =
     (pathname.startsWith("/surat/settings") && !isSuperAdmin && !hasPermission("surat.manage")) ||
@@ -288,7 +288,7 @@ export default function SuratLayout({
                     </p>
                     <div className="mt-1">
                       <Badge variant="secondary" className="text-xs px-1.5 py-0 font-bold uppercase">
-                        {user?.role || "Pegawai"}
+                        {role || "Pegawai"}
                       </Badge>
                     </div>
                   </div>

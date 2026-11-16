@@ -12,7 +12,7 @@ class EmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
+        return (bool) $this->user()?->isAdminFor('kepegawaian');
     }
 
     protected function prepareForValidation(): void

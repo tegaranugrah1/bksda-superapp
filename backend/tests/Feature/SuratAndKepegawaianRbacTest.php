@@ -657,4 +657,159 @@ class SuratAndKepegawaianRbacTest extends TestCase
         $this->postJson('/api/bmn/assets/bulk-force-delete', ['ids' => [$disposedAsset->id]])->assertOk();
         $this->assertDatabaseMissing('bmn_assets', ['id' => $disposedAsset->id]);
     }
+
+    public function test_per_module_roles_via_iam_enforce_independent_permissions_across_modules(): void
+    {
+        $empMixA = Employee::create([
+            'nip' => '199401012023011001',
+            'nama_lengkap' => 'Mixed Role User A',
+            'jabatan' => 'Pranata Komputer',
+            'nama_bank' => 'BRI',
+            'nomor_rekening' => '444455556666',
+            'inactive_notes' => 'Rahasia Mixed A',
+            'is_active' => true,
+        ]);
+
+        $mixedUserA = User::factory()->create([
+            'username' => $empMixA->nip,
+            'role' => 'user',
+            'access_modules' => ['surat'],
+            'permissions' => [],
+            'is_active' => true,
+        ]);
+        $mixedUserA->createToken('stale-token-before-iam');
+
+        // 1. Super Admin configures mixed per-module roles via IAM endpoint:
+        //    Persuratan = admin, Kepegawaian = user, BMN = admin
+        Sanctum::actingAs($this->superAdmin);
+        $iamRes = $this->putJson("/api/kepegawaian/employees/{$empMixA->id}/access", [
+            'role' => 'user',
+            'is_active' => true,
+            'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+            'module_roles' => [
+                'surat' => 'admin',
+                'kepegawaian' => 'user',
+                'bmn' => 'admin',
+            ],
+            'permissions' => [],
+        ])->assertOk();
+
+        $iamRes->assertJsonPath('data.role', 'user')
+            ->assertJsonPath('data.module_roles.surat', 'admin')
+            ->assertJsonPath('data.module_roles.kepegawaian', 'user')
+            ->assertJsonPath('data.module_roles.bmn', 'admin');
+
+        $mixedUserA->refresh();
+        $this->assertCount(0, $mixedUserA->tokens()->get(), 'Existing tokens must be revoked when module_roles change');
+        $this->assertSame('admin', $mixedUserA->roleFor('surat'));
+        $this->assertSame('user', $mixedUserA->roleFor('kepegawaian'));
+        $this->assertSame('user', $mixedUserA->roleFor('surat_tugas'));
+        $this->assertSame('admin', $mixedUserA->roleFor('bmn'));
+        $this->assertFalse($mixedUserA->canAccessAdminInbox('kepegawaian'));
+        $this->assertFalse($mixedUserA->canAccessAdminInbox('surat_tugas'));
+        $this->assertTrue($mixedUserA->canAccessAdminInbox('bmn'));
+
+        // Prepare fixtures across all 3 modules
+        $otherSurat = SuratKeluar::create([
+            'no_surat' => 'S.901/K.18/TU/2026',
+            'tanggal_surat' => '2026-11-16',
+            'tujuan_surat' => 'Tujuan Lain',
+            'perihal' => 'Surat Milik User A Biasa',
+            'sifat' => 'Biasa',
+            'created_by' => $this->suratUserA->id,
+        ]);
+        $bmnAsset = \App\Modules\Bmn\Models\Asset::create([
+            'kode_barang' => '3020102001',
+            'nup' => '1',
+            'nama_barang' => 'Kamera Trap Patroli',
+            'kondisi' => 'Baik',
+            'nilai_perolehan' => 15000000,
+        ]);
+        $bmnTag = \App\Modules\Bmn\Models\Tag::create([
+            'name' => 'sensor',
+            'label' => '#sensor',
+            'color' => 'green',
+        ]);
+        $pendingSt = AssignmentLetter::create([
+            'nomor_surat' => 'ST.901/K.18/TU/2026',
+            'maksud_tujuan' => 'Survey Lapangan Mixed',
+            'tempat_tujuan' => 'Kutai',
+            'tanggal_mulai' => '2026-11-20',
+            'tanggal_selesai' => '2026-11-21',
+            'status' => 'pending',
+            'created_by' => $this->superAdmin->id,
+        ]);
+
+        // 2. Verify /api/user exposes module_roles for FE auth sync
+        Sanctum::actingAs($mixedUserA);
+        $this->getJson('/api/user')
+            ->assertOk()
+            ->assertJsonPath('data.module_roles.surat', 'admin')
+            ->assertJsonPath('data.module_roles.kepegawaian', 'user')
+            ->assertJsonPath('data.module_roles.bmn', 'admin');
+
+        // 3. Persuratan (admin): sees all users' Surat Keluar + manages Surat Masuk, but NOT Super Admin templates
+        $this->getJson('/api/surat/surat-keluar')->assertOk()->assertJsonFragment(['id' => $otherSurat->id]);
+        $this->getJson('/api/surat/surat-masuk')->assertOk();
+        $this->postJson('/api/surat/surat-masuk', [
+            'no_agenda' => '099',
+            'tanggal_agenda' => '2026-11-16',
+            'no_surat' => 'SM.99/2026',
+        ])->assertCreated();
+        $this->postJson('/api/surat/templates', [
+            'key' => 'tpl_mixed',
+            'nama' => 'T',
+            'kategori' => 'Umum',
+        ])->assertForbidden();
+
+        // 4. Kepegawaian & Surat Tugas (user): blocked from admin ops & other employees' sensitive data
+        $showOtherEmp = $this->getJson("/api/kepegawaian/employees/{$this->employeeB->id}")->assertOk()->json('data');
+        $this->assertArrayNotHasKey('nomor_rekening', $showOtherEmp);
+        $this->getJson('/api/kepegawaian/employees?status=trashed')->assertForbidden();
+        $this->getJson('/api/kepegawaian/surat-masuk')->assertForbidden();
+        $this->getJson('/api/kepegawaian/uang-makan/batches')->assertForbidden();
+        $this->getJson("/api/kepegawaian/employees/{$this->employeeB->id}/leaves")->assertForbidden();
+        $this->getJson('/api/surat-tugas')->assertForbidden();
+        $this->putJson("/api/surat-tugas/{$pendingSt->id}/approve", ['status' => 'approved'])->assertForbidden();
+        $this->getJson("/api/kepegawaian/employees/{$empMixA->id}/leaves")->assertOk();
+
+        // 5. BMN (admin): operational BMN allowed, Master Settings & Force Delete still Super Admin only
+        $this->getJson('/api/bmn/import-review')->assertOk();
+        $this->getJson('/api/bmn/auction-candidates')->assertOk();
+        $this->postJson("/api/bmn/assets/{$bmnAsset->id}/tags", ['tag_ids' => [$bmnTag->id]])->assertOk();
+        $this->postJson('/api/bmn/tags', ['name' => 'blocked_tag', 'color' => 'blue'])->assertForbidden();
+        $this->postJson('/api/bmn/assets/bulk-force-delete', ['ids' => [$bmnAsset->id]])->assertForbidden();
+
+        // 6. Reverse matrix user: Surat = user, Kepegawaian = admin, BMN = user
+        $empMixB = Employee::create([
+            'nip' => '199402022023011002',
+            'nama_lengkap' => 'Mixed Role User B',
+            'jabatan' => 'Analis SDM',
+            'is_active' => true,
+        ]);
+        $mixedUserB = User::factory()->create([
+            'username' => $empMixB->nip,
+            'role' => 'user',
+            'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+            'module_roles' => [
+                'surat' => 'user',
+                'kepegawaian' => 'admin',
+                'bmn' => 'user',
+            ],
+            'permissions' => [],
+            'is_active' => true,
+        ]);
+
+        Sanctum::actingAs($mixedUserB);
+        $this->getJson("/api/surat/surat-keluar/{$otherSurat->id}")->assertForbidden();
+        $this->getJson('/api/surat/surat-masuk')->assertForbidden();
+        $this->getJson('/api/kepegawaian/employees?status=trashed')->assertOk();
+        $this->assertSame('999988887777', $this->getJson("/api/kepegawaian/employees/{$this->employeeB->id}")->assertOk()->json('data.nomor_rekening'));
+        $this->getJson('/api/kepegawaian/surat-masuk')->assertOk();
+        $this->getJson('/api/surat-tugas')->assertOk();
+        $this->getJson('/api/kepegawaian/settings/holidays')->assertForbidden();
+        $this->getJson('/api/bmn/assets')->assertOk();
+        $this->getJson('/api/bmn/import-review')->assertForbidden();
+        $this->postJson("/api/bmn/assets/{$bmnAsset->id}/tags", ['tag_ids' => [$bmnTag->id]])->assertForbidden();
+    }
 }

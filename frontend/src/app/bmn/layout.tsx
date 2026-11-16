@@ -80,7 +80,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
-  const { hasPermission, canWrite, isSuperAdmin } = useRole();
+  const { role, hasPermission, canWrite, isSuperAdmin } = useRole("bmn");
 
   const isRouteForbidden =
     (pathname.startsWith("/bmn/settings") && !isSuperAdmin && !hasPermission("bmn.manage")) ||
@@ -262,7 +262,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                   </p>
                   <div className="mt-1">
                     <Badge variant="secondary" className="text-xs px-1.5 py-0 font-bold uppercase">
-                      {user?.role || "Pegawai"}
+                      {role || "Pegawai"}
                     </Badge>
                   </div>
                 </div>

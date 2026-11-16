@@ -26,7 +26,7 @@ class EmployeeLeaveController extends Controller
 
             $user = $request->user();
             $isAdmin = $user && ($user->role === 'super_admin'
-                || ($user->role === 'admin' && in_array('kepegawaian', $user->access_modules ?? [], true)));
+                || ($user->isAdminFor('kepegawaian') && in_array('kepegawaian', $user->access_modules ?? [], true)));
             $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
             if (! $isAdmin && ! $isSelf) {
                 abort(403, 'Anda tidak memiliki hak akses untuk melihat data cuti pegawai lain.');

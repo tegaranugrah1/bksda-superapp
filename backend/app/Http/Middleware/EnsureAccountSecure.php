@@ -55,9 +55,10 @@ class EnsureAccountSecure
             ], 423);
         }
 
-        // 2. Cek kewajiban 2FA untuk akun administrator
+        // 2. Cek kewajiban 2FA untuk akun administrator (global atau per-modul)
         $enforce2fa = config('auth.two_factor_enforce', false);
-        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true);
+        $hasAdminModuleRole = in_array('admin', array_values($user->module_roles ?? []), true);
+        $isAdmin = in_array($user->role, ['admin', 'super_admin'], true) || $hasAdminModuleRole;
 
         if ($enforce2fa && $isAdmin && $user->two_factor_confirmed_at === null) {
             return response()->json([

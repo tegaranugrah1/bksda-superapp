@@ -25,7 +25,7 @@ class LeaveTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['super_admin', 'admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('kepegawaian');
 
         $query = LeaveType::query();
 
@@ -75,7 +75,7 @@ class LeaveTypeController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['super_admin', 'admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('kepegawaian');
 
         $query = LeaveType::query();
         if (!$isAdmin) {

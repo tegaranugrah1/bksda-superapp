@@ -57,6 +57,7 @@ class User extends Authenticatable
         'drive_quota_bytes',
         'role',
         'access_modules',
+        'module_roles',
         'permissions',
         'is_active',
         'dereporting_role',
@@ -92,6 +93,7 @@ class User extends Authenticatable
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
             'access_modules' => 'array', // Mengubah JSON DB menjadi Array PHP
+            'module_roles' => 'array',
             'permissions' => 'array',
             'is_active' => 'boolean',
         ];
@@ -145,14 +147,53 @@ class User extends Authenticatable
             && in_array($tokenId, $this->broadcastTokenIds(), true);
     }
 
+    public const ALLOWED_MODULE_ROLES = ['user', 'admin'];
+
+    /**
+     * Resolve effective role for a module (`super_admin`, `admin`, `user`).
+     * Falls back to global `users.role` for backward compatibility when `module_roles` is unset.
+     */
+    public function roleFor(string $module): string
+    {
+        if ($this->role === 'super_admin') {
+            return 'super_admin';
+        }
+
+        $moduleRoles = is_array($this->module_roles) ? $this->module_roles : [];
+        $aliases = $module === 'surat_tugas' ? ['surat_tugas', 'kepegawaian', 'surat-tugas'] : [$module];
+
+        foreach ($aliases as $key) {
+            if ($key === 'kepegawaian' && ! in_array('kepegawaian', $this->access_modules ?? [], true)) {
+                continue;
+            }
+            if (isset($moduleRoles[$key]) && in_array($moduleRoles[$key], self::ALLOWED_MODULE_ROLES, true)) {
+                return $moduleRoles[$key];
+            }
+        }
+
+        return $this->role === 'pegawai' ? 'user' : ($this->role ?: 'user');
+    }
+
+    public function isAdminFor(string $module): bool
+    {
+        return in_array($this->roleFor($module), ['admin', 'super_admin'], true);
+    }
+
+    public function moduleRolesPayload(): \stdClass
+    {
+        $roles = is_array($this->module_roles) ? $this->module_roles : [];
+
+        return (object) $roles;
+    }
+
     public function canAccessAdminInbox(string $module): bool
     {
         if (! in_array($module, ['surat_tugas', 'kepegawaian', 'bmn'], true)) {
             return false;
         }
 
-        $user = static::query()->select(['id', 'role', 'access_modules', 'permissions', 'is_active'])->find($this->getKey());
-        if (! $user || ! $user->is_active || ! in_array($user->role, ['admin', 'super_admin'], true)) {
+        $user = static::query()->select(['id', 'role', 'access_modules', 'module_roles', 'permissions', 'is_active'])->find($this->getKey());
+        if (! $user || ! $user->is_active || ! $user->isAdminFor($module)) {
             return false;
         }
 
@@ -180,13 +221,13 @@ class User extends Authenticatable
         }
 
         // 2. Jika kolom permissions bernilai null atau kosong (empty array), gunakan fallback backward compatibility:
-        // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi operasional/penulisan memerlukan role admin.
+        // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi operasional/penulisan memerlukan role admin modul.
         if (is_null($this->permissions) || empty($this->permissions)) {
             if (str_starts_with($permission, 'bmn.')) {
                 if ($permission === 'bmn.view') {
                     return in_array('bmn', $this->access_modules ?? []);
                 }
-                return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);
+                return $this->isAdminFor('bmn') && in_array('bmn', $this->access_modules ?? []);
             }
 
             if (str_starts_with($permission, 'kepegawaian.')) {
@@ -194,7 +235,7 @@ class User extends Authenticatable
                 if ($isReadPermission) {
                     return in_array('kepegawaian', $this->access_modules ?? []);
                 }
-                return $this->role === 'admin' && in_array('kepegawaian', $this->access_modules ?? []);
+                return $this->isAdminFor('kepegawaian') && in_array('kepegawaian', $this->access_modules ?? []);
             }
 
             if (str_starts_with($permission, 'surat_tugas.')) {
@@ -204,14 +245,14 @@ class User extends Authenticatable
                 if ($isReadPermission) {
                     return $hasModuleAccess;
                 }
-                return $this->role === 'admin' && $hasModuleAccess;
+                return $this->isAdminFor('surat_tugas') && $hasModuleAccess;
             }
 
             if (str_starts_with($permission, 'surat.')) {
                 if (! in_array('surat', $this->access_modules ?? [])) {
                     return false;
                 }
-                if ($this->role === 'admin') {
+                if ($this->isAdminFor('surat')) {
                     return true;
                 }
                 return ! str_starts_with($permission, 'surat.masuk.') && $permission !== 'surat.export';

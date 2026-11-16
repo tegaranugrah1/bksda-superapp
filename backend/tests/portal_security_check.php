@@ -1135,7 +1135,7 @@ $stCtrlCheck64 = file_get_contents(__DIR__ . '/../app/Modules/SuratTugas/Control
 assert(str_contains($stCtrlCheck64, "public function destroy") && str_contains($stCtrlCheck64, "public function restore") && substr_count($stCtrlCheck64, "return response()->json(['message' => 'Unauthenticated.'], 401);") >= 4, 'AssignmentLetterController destroy and restore must defensively verify $user authentication');
 
 // 178. Assignment Letter ForceDestroy Admin Role Guard Invariant
-assert(str_contains($stCtrlCheck64, "public function forceDestroy") && str_contains($stCtrlCheck64, "! in_array(\$user->role, ['admin', 'super_admin'], true)") && str_contains($stCtrlCheck64, "Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas."), 'AssignmentLetterController forceDestroy must defensively verify admin role inside controller');
+assert(str_contains($stCtrlCheck64, "public function forceDestroy") && (str_contains($stCtrlCheck64, "! in_array(\$user->role, ['admin', 'super_admin'], true)") || str_contains($stCtrlCheck64, "! \$user->isAdminFor('surat_tugas')")) && str_contains($stCtrlCheck64, "Anda tidak memiliki hak akses untuk menghapus permanen Surat Tugas."), 'AssignmentLetterController forceDestroy must defensively verify admin role inside controller');
 
 // 179. Employee Access NIP Validation & Self-Demotion Guard Invariant
 $empAccessCtrlCheck65 = file_get_contents(__DIR__ . '/../app/Modules/Kepegawaian/Controllers/EmployeeAccessController.php');

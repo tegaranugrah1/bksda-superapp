@@ -31,6 +31,7 @@ const accessSchema = z.object({
   role: z.enum(["super_admin", "admin", "user", "pegawai"]),
   is_active: z.boolean(),
   access_modules: z.array(z.string()),
+  module_roles: z.record(z.string(), z.enum(["user", "admin"])).optional(),
   permissions: z.array(z.string()).optional(),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
 });
@@ -60,10 +61,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessSchema),
-    defaultValues: { role: "user", is_active: false, access_modules: [], permissions: [], password: "" },
+    defaultValues: { role: "user", is_active: false, access_modules: [], module_roles: {}, permissions: [], password: "" },
   });
 
+  const selectedRole = useWatch({ control: form.control, name: "role" });
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
+  const moduleRoles = useWatch({ control: form.control, name: "module_roles", defaultValue: {} }) || {};
 
   const { data: currentAccess, isLoading, isError, refetch } = useQuery({
     queryKey: ["employee-access", employee?.id],
@@ -85,17 +88,29 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
     if (currentAccess) {
       const resolvedRole = (currentAccess.role === "pegawai" ? "user" : currentAccess.role) as "super_admin" | "admin" | "user" | "pegawai";
+      const modules = Array.isArray(currentAccess.access_modules) ? currentAccess.access_modules : [];
+      const incomingModuleRoles =
+        currentAccess.module_roles && typeof currentAccess.module_roles === "object" && !Array.isArray(currentAccess.module_roles)
+          ? (currentAccess.module_roles as Record<string, "user" | "admin">)
+          : {};
+      const hydratedModuleRoles: Record<string, "user" | "admin"> = {};
+      const defaultModRole: "user" | "admin" = resolvedRole === "admin" ? "admin" : "user";
+      for (const modId of modules) {
+        const raw = incomingModuleRoles[modId];
+        hydratedModuleRoles[modId] = raw === "admin" || raw === "user" ? raw : defaultModRole;
+      }
       form.reset({
         role: resolvedRole || "user",
         is_active: currentAccess.is_active === true,
-        access_modules: currentAccess.access_modules || [],
+        access_modules: modules,
+        module_roles: hydratedModuleRoles,
         permissions: [],
         password: "",
       });
       lastSyncedId.current = employee.id;
     } else if (!isLoading) {
       // No access data (new account)
-      form.reset({ role: "user", is_active: false, access_modules: [], permissions: [], password: "" });
+      form.reset({ role: "user", is_active: false, access_modules: [], module_roles: {}, permissions: [], password: "" });
       lastSyncedId.current = employee.id;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,11 +118,28 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
   const mutation = useMutation({
     mutationFn: async (values: AccessFormValues) => {
+      const sanitizedModuleRoles: Record<string, "user" | "admin"> = {};
+      if (values.role !== "super_admin") {
+        const fallbackRole: "user" | "admin" = values.role === "admin" ? "admin" : "user";
+        for (const modId of values.access_modules) {
+          const raw = values.module_roles?.[modId];
+          sanitizedModuleRoles[modId] = raw === "admin" || raw === "user" ? raw : fallbackRole;
+        }
+      }
+      const modValues = Object.values(sanitizedModuleRoles);
+      const derivedRole =
+        values.role === "super_admin"
+          ? "super_admin"
+          : modValues.length > 0 && modValues.every((r) => r === "admin")
+          ? "admin"
+          : "user";
+
       // Don't send password field if empty (avoid validation issues)
       const payload: Record<string, unknown> = {
-        role: values.role,
+        role: derivedRole,
         is_active: values.is_active,
         access_modules: values.access_modules,
+        ...(values.role !== "super_admin" ? { module_roles: sanitizedModuleRoles } : {}),
         permissions: [],
       };
       if (values.password && values.password.length > 0) {
@@ -116,7 +148,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
       const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, payload);
       return data;
     },
-    onSuccess: (data) => { toast.success(data.message || "Hak akses berhasil diperbarui"); queryClient.invalidateQueries({ queryKey: ["employees"] }); onOpenChange(false); },
+    onSuccess: (data) => {
+      toast.success(data.message || "Hak akses berhasil diperbarui");
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employee-access", employee?.id] });
+      onOpenChange(false);
+    },
     onError: (error: unknown) => { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui hak akses"); },
   });
 
@@ -183,14 +220,30 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                     <FormControl>
                       <select
                         value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
+                        onChange={(e) => {
+                          const nextRole = e.target.value as "user" | "admin" | "super_admin";
+                          field.onChange(nextRole);
+                          if (nextRole !== "super_admin") {
+                            const currentMods = form.getValues("access_modules") || [];
+                            const batchRoles: Record<string, "user" | "admin"> = {};
+                            for (const modId of currentMods) {
+                              batchRoles[modId] = nextRole;
+                            }
+                            form.setValue("module_roles", batchRoles, { shouldDirty: true });
+                          }
+                        }}
                         className="w-full h-10 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)]"
                       >
-                        <option value="user">User (Pegawai Biasa)</option>
-                        <option value="admin">Admin (Pengelola Modul)</option>
+                        <option value="user">User (Atur Per Modul / Pegawai)</option>
+                        <option value="admin">Admin (Default Semua Modul Admin)</option>
                         <option value="super_admin">Super Admin (Akses Penuh)</option>
                       </select>
                     </FormControl>
+                    <p className="text-xs text-[var(--ds-fg-muted)]">
+                      {field.value === "super_admin"
+                        ? "Super Admin otomatis memiliki akses penuh ke seluruh modul dan pengaturan."
+                        : "Setiap modul yang dicentang dapat diatur perannya masing-masing (User atau Admin)."}
+                    </p>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
@@ -216,6 +269,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                 <div className="grid gap-2">
                   {AVAILABLE_MODULES.map((module) => {
                     const isSelected = accessModules.includes(module.id);
+                    const currentModRole = moduleRoles[module.id] || (selectedRole === "admin" ? "admin" : "user");
                     return (
                       <div
                         key={module.id}
@@ -225,10 +279,17 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                         )}
                         onClick={() => {
                           const current = form.getValues("access_modules") || [];
+                          const currentRoles = { ...(form.getValues("module_roles") || {}) };
                           const updated = isSelected
                             ? current.filter((v) => v !== module.id)
                             : [...current, module.id];
+                          if (isSelected) {
+                            delete currentRoles[module.id];
+                          } else {
+                            currentRoles[module.id] = selectedRole === "admin" ? "admin" : "user";
+                          }
                           form.setValue("access_modules", updated, { shouldValidate: true });
+                          form.setValue("module_roles", currentRoles, { shouldDirty: true });
                         }}
                       >
                         <div className={cn(
@@ -237,10 +298,44 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                         )}>
                           {isSelected && <Check className="w-3 h-3 text-[var(--ds-accent-on-solid)]" />}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className={cn("text-sm font-semibold", isSelected ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>{module.label}</p>
                           <p className="text-xs text-[var(--ds-fg-muted)]">{module.description}</p>
                         </div>
+                        {isSelected && selectedRole !== "super_admin" && (
+                          <div
+                            className="inline-flex items-center rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-0.5 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                            role="group"
+                            aria-label={`Peran modul ${module.label}`}
+                          >
+                            {(["user", "admin"] as const).map((modRole) => {
+                              const active = currentModRole === modRole;
+                              return (
+                                <button
+                                  key={modRole}
+                                  type="button"
+                                  aria-pressed={active}
+                                  onClick={() =>
+                                    form.setValue(`module_roles.${module.id}`, modRole, {
+                                      shouldDirty: true,
+                                    })
+                                  }
+                                  className={cn(
+                                    "px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer",
+                                    active
+                                      ? modRole === "admin"
+                                        ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-2xs"
+                                        : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] shadow-2xs"
+                                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+                                  )}
+                                >
+                                  {modRole === "admin" ? "Admin" : "User"}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

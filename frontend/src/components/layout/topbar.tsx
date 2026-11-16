@@ -10,7 +10,13 @@ export function Topbar({ serverUser }: { serverUser?: User | null }) {
   const user = clientUser || serverUser;
 
   const displayName = user?.nama_lengkap || user?.name || user?.username || "Admin SuperApp";
-  const displayRole = user?.role || "Administrator";
+  const moduleRoleValues = Object.values(user?.module_roles || {});
+  const hasMixedRoles = user?.role !== "super_admin" && new Set(moduleRoleValues).size > 1;
+  const hasAdminModule = user?.role !== "super_admin" && moduleRoleValues.includes("admin");
+  const displayRole =
+    hasMixedRoles || (user?.role === "user" && hasAdminModule)
+      ? "Per-Modul"
+      : user?.role || "Administrator";
   const initial = displayName.charAt(0).toUpperCase();
 
   return (

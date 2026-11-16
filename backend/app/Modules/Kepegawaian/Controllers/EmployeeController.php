@@ -40,7 +40,7 @@ class EmployeeController extends Controller
                     ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
 
-        $canViewTrashed = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+        $canViewTrashed = (bool) $request->user()?->isAdminFor('kepegawaian');
 
         $counts = [
             'total' => (clone $baseQuery)->count(),
@@ -189,7 +189,7 @@ class EmployeeController extends Controller
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
 
         $actor = $request->user();
-        $isAdminActor = in_array($actor?->role, ['super_admin', 'admin'], true);
+        $isAdminActor = (bool) $actor?->isAdminFor('kepegawaian');
         if (! $isAdminActor) {
             $actorNip = trim((string) $actor?->username);
             $employees->getCollection()->each(function (Employee $emp) use ($actorNip) {
@@ -261,7 +261,7 @@ class EmployeeController extends Controller
         $data['email'] = $employee->email ?? $employee->user?->email ?? null;
 
         $actor = $request->user();
-        $isAdminActor = in_array($actor?->role, ['super_admin', 'admin'], true);
+        $isAdminActor = (bool) $actor?->isAdminFor('kepegawaian');
         $isSelf = $actor && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $actor->username);
         if (! $isAdminActor && ! $isSelf) {
             unset($data['nama_bank'], $data['nomor_rekening'], $data['inactive_notes']);
@@ -861,7 +861,7 @@ class EmployeeController extends Controller
         $employee = Employee::findOrFail($id);
         $user = $request->user();
         $isAdmin = $user && ($user->role === 'super_admin'
-            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])));
+            || ($user->isAdminFor('surat_tugas') && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])));
         $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
         if (! $isAdmin && ! $isSelf) {
             abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat surat tugas pegawai lain.');
@@ -899,7 +899,7 @@ class EmployeeController extends Controller
         $employee = Employee::findOrFail($id);
         $user = $request->user();
         $isAdmin = $user && ($user->role === 'super_admin'
-            || ($user->role === 'admin' && in_array('kepegawaian', $user->access_modules ?? [], true)));
+            || ($user->isAdminFor('kepegawaian') && in_array('kepegawaian', $user->access_modules ?? [], true)));
         $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
         if (! $isAdmin && ! $isSelf) {
             abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat uang makan pegawai lain.');
@@ -948,7 +948,7 @@ class EmployeeController extends Controller
      */
     public function dashboardStats(Request $request): JsonResponse
     {
-        $isAdminActor = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+        $isAdminActor = (bool) $request->user()?->isAdminFor('kepegawaian');
 
         $baseQuery = Employee::query()
             ->with([
