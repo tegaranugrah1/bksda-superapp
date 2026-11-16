@@ -1010,13 +1010,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1794797997.6602015,
-    "ast_hash": "dd5b9c85c57b4df2fec6d5cb18533de9",
+    "mtime": 1794806857.872567,
+    "ast_hash": "b465adc4af5e24fe6beb8146c0c299ae",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1794800779.9024162,
-    "ast_hash": "c3472d393277a792c3b2fc1b572034af",
+    "mtime": 1794806855.6377523,
+    "ast_hash": "b0ba0a05271ad5253c569a8d3634c042",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1030,8 +1030,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeLeaveRequest.php": {
-    "mtime": 1793593288.3133023,
-    "ast_hash": "44211caa57e6e043208d2132c5085880",
+    "mtime": 1794806878.121639,
+    "ast_hash": "a0dcdf19d423c16a35a58874258a95e1",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Providers/KepegawaianServiceProvider.php": {
@@ -1050,8 +1050,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1794798511.4864414,
-    "ast_hash": "0dd6fc1c81d38c84c38422112dc0d8bd",
+    "mtime": 1794806859.8198802,
+    "ast_hash": "9e7a12446ea1a1af9794926f13723520",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -1485,8 +1485,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/EmployeeLeaveRequestTest.php": {
-    "mtime": 1794800801.2077677,
-    "ast_hash": "27439586130434c335110f1b080111b1",
+    "mtime": 1794806879.8831315,
+    "ast_hash": "89568401d6e9c0bc93419dda8e336a23",
     "semantic_hash": ""
   },
   "backend/tests/Feature/EmployeeLeaveTest.php": {
@@ -2325,8 +2325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
-    "mtime": 1794805316.3091695,
-    "ast_hash": "cf9a89f6e7c001c16e74efb1e1132b69",
+    "mtime": 1794806946.5372286,
+    "ast_hash": "25b4514728a1e0e5c2efbc63e78bf3ab",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
@@ -5490,8 +5490,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/CutiModals.tsx": {
-    "mtime": 1794805256.5972943,
-    "ast_hash": "ec1f9f7d67efd2c9803bdbcdc7276251",
+    "mtime": 1794807038.810865,
+    "ast_hash": "26c1353f4cee283683934a43c3c8d6bc",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyAssetsTab.tsx": {
@@ -6555,8 +6555,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/_components/EmployeeLeaveTab.tsx": {
-    "mtime": 1794805337.5388415,
-    "ast_hash": "4da0a9939ca5b2cb74ef58ce5877d9a9",
+    "mtime": 1794806964.9633553,
+    "ast_hash": "26ab8905ca785c9ef25a8be0881c918f",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Migrations/2026_10_07_000001_add_dates_to_st_assignment_letter_employees_table.php": {

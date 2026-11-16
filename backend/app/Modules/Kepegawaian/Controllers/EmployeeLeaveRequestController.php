@@ -707,6 +707,10 @@ class EmployeeLeaveRequestController extends Controller
             $leaveReq->update($updateData);
             DB::commit();
 
+            if ($type === 'surat_izin') {
+                $leaveReq->purgeSuratIzinArchive();
+            }
+
             return response()->json([
                 'message' => 'Berkas scan cuti berhasil dihapus.',
                 'data' => $leaveReq->fresh('employee'),
@@ -729,15 +733,7 @@ class EmployeeLeaveRequestController extends Controller
             return;
         }
 
-        \App\Jobs\ArchiveOfficialDocument::dispatchBestEffort(
-            'cuti',
-            $leaveReq->id,
-            'local',
-            $updateData['scan_surat_izin_path'],
-            $updateData['scan_surat_izin_nama'] ?? null,
-            null,
-            $leaveReq->employee?->user?->id ?? Auth::id()
-        );
+        $leaveReq->archiveSuratIzin(Auth::id());
     }
 
     /**
@@ -1057,8 +1053,13 @@ class EmployeeLeaveRequestController extends Controller
                 }
             }
 
+            $hadSuratIzin = ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path);
             $leaveReq->delete();
             DB::commit();
+
+            if ($hadSuratIzin) {
+                $leaveReq->purgeSuratIzinArchive();
+            }
 
             return response()->json(['message' => 'Pengajuan cuti berhasil dihapus']);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Kepegawaian\Models;
 
+use App\Jobs\ArchiveOfficialDocument;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -116,5 +117,35 @@ class EmployeeLeaveRequest extends Model
             'scan_surat_path' => null,
             'scan_surat_nama' => null,
         ];
+    }
+
+    /**
+     * Dispatch non-blocking background archival (or replacement) of Surat Izin Cuti to BKSDA Drive.
+     */
+    public function archiveSuratIzin(?int $userId = null): void
+    {
+        $path = $this->scan_surat_izin_path ?: $this->scan_surat_path;
+        if (! $path) {
+            return;
+        }
+
+        ArchiveOfficialDocument::dispatchBestEffort(
+            'cuti',
+            $this->id,
+            'local',
+            $path,
+            $this->scan_surat_izin_nama ?: $this->scan_surat_nama,
+            null,
+            $this->employee?->user?->id ?? $userId,
+            true
+        );
+    }
+
+    /**
+     * Dispatch non-blocking background purge of the Drive archive copy for this leave request.
+     */
+    public function purgeSuratIzinArchive(): void
+    {
+        ArchiveOfficialDocument::deleteBestEffort('cuti', $this->id);
     }
 }

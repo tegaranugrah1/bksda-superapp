@@ -143,4 +143,53 @@ class AutoArchiveTest extends TestCase
             'source_id' => (string) $letter->id,
         ]);
     }
+
+    public function test_stale_cuti_archive_and_delete_guards(): void
+    {
+        $emp = \App\Modules\Kepegawaian\Models\Employee::create([
+            'nip' => '199201012020121001',
+            'nama_lengkap' => 'Guard Employee',
+            'jenis_pegawai' => 'PNS',
+            'is_active' => true,
+        ]);
+
+        $activePath = 'cuti_scans/surat_izin/baru.pdf';
+        $stalePath = 'cuti_scans/surat_izin/lama.pdf';
+        Storage::disk('local')->put($activePath, 'NEW');
+        Storage::disk('local')->put($stalePath, 'OLD');
+
+        $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
+            'employee_id' => $emp->id,
+            'nomor_pengajuan' => 'CUTI/GUARD/01',
+            'tanggal_pengajuan' => now()->toDateString(),
+            'jenis_cuti' => 'Cuti Tahunan',
+            'alasan_cuti' => 'Guard test',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->toDateString(),
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081234567890',
+            'status' => 'DISETUJUI',
+            'scan_surat_izin_path' => $activePath,
+            'scan_surat_izin_nama' => 'baru.pdf',
+        ]);
+
+        // Stale upload job referencing old path must skip
+        ArchiveOfficialDocument::dispatchSync('cuti', $leaveReq->id, 'local', $stalePath, 'lama.pdf');
+        $this->assertEquals(0, DriveFile::where('source_module', 'cuti')->where('source_id', (string) $leaveReq->id)->count());
+
+        // Active upload archives cleanly
+        ArchiveOfficialDocument::dispatchSync('cuti', $leaveReq->id, 'local', $activePath, 'baru.pdf');
+        $archive = DriveFile::where('source_module', 'cuti')->where('source_id', (string) $leaveReq->id)->firstOrFail();
+
+        // Stale delete job must NOT purge active archive while scan_surat_izin_path is still set
+        ArchiveOfficialDocument::deleteBestEffort('cuti', $leaveReq->id);
+        $this->assertTrue(Storage::disk('drive')->exists($archive->s3_key));
+
+        // Once DB scan_surat_izin_path is cleared, delete purges archive + S3 object
+        $leaveReq->update(['scan_surat_izin_path' => null, 'scan_surat_izin_nama' => null]);
+        ArchiveOfficialDocument::deleteBestEffort('cuti', $leaveReq->id);
+        $this->assertFalse(Storage::disk('drive')->exists($archive->s3_key));
+        $this->assertEquals(0, DriveFile::withTrashed()->where('source_module', 'cuti')->where('source_id', (string) $leaveReq->id)->count());
+    }
 }

@@ -267,6 +267,10 @@ class EmployeeLeaveController extends Controller
 
             DB::commit();
 
+            if ($scanSuratIzinPath) {
+                $leaveReq->archiveSuratIzin(Auth::id());
+            }
+
             return response()->json([
                 'message' => 'Surat izin penetapan cuti berhasil dicatat!',
                 'data' => $leaveReq,
@@ -423,6 +427,10 @@ class EmployeeLeaveController extends Controller
 
             DB::commit();
 
+            if ($suratIzinFile) {
+                $leaveReq->fresh()?->archiveSuratIzin(Auth::id());
+            }
+
             return response()->json([
                 'message' => 'Penetapan cuti berhasil diperbarui!',
                 'data' => $leaveReq->fresh(),
@@ -451,6 +459,7 @@ class EmployeeLeaveController extends Controller
             Employee::lockForLeaveUpdate($employeeId);
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->lockForUpdate()->findOrFail($requestId);
             $year = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
+            $hadSuratIzin = ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path);
             $leaveReq->delete();
 
             $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
@@ -465,6 +474,10 @@ class EmployeeLeaveController extends Controller
             }
 
             DB::commit();
+
+            if ($hadSuratIzin) {
+                $leaveReq->purgeSuratIzinArchive();
+            }
 
             return response()->json([
                 'message' => 'Penetapan cuti berhasil dihapus.',
