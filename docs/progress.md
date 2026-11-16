@@ -1,5 +1,7 @@
 # Progress — Modernisasi Animate UI (Shadcn Motion Primitives) & Ekspansi Penuh Modul Kepegawaian (04 November 2026)
 
+> **Catatan Arsip (Updated 16 November 2026):** Berkas ini menyimpan arsip log progres hingga 4 November 2026. Untuk progres terbaru (5–16 November 2026, termasuk Bagian 115–119: RBAC per-modul & 5 Design Tokens pada Persuratan, Kepegawaian, dan BMN), rujuk [`progress.md`](../progress.md) di root repository dan [`HANDOFF.md`](HANDOFF.md).
+
 > Status: **SELESAI PENUH (Pilot Detail Pegawai, Uang Makan, Settings, Surat Tugas Inbox, Cuti, Daftar Pegawai, dan Dashboard Kepegawaian 100% Menggunakan Motion Primitives Berbasis Framer Motion & Shadcn UI)**.  
 > Branch: `codex/portal-security-pentest`  
 > Referensi: Panduan Desain ([`docs/animate-ui-motion-guidelines.md`](file:///e:/bksda-superapp/docs/animate-ui-motion-guidelines.md)) & Laporan Inventaris ([`animate-ui-roadmap-and-inventory.md`](file:///C:/Users/USER/.gemini/antigravity/brain/0d16b89b-13d8-4156-8565-5ffecddb9f93/animate-ui-roadmap-and-inventory.md)).

@@ -1,7 +1,7 @@
 # Panduan Warna BKSDA SuperApp
 
 Tanggal revisi: **11 November 2026**.
-Status **penerapan bertahap pada BMN, Surat Tugas dan Kepegawaian**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
+Status **telah diterapkan penuh sesuai 5 Design Tokens pada Persuratan (`a41549b4`), Kepegawaian (`540fb44b`), dan BMN (`d20bfcaf`), serta bertahap pada Surat Tugas** (pembaruan **16 November 2026**). Rincian cakupan tersedia pada bagian penerapan masing-masing modul dan [DESIGN_SYSTEM_5_TOKENS.md](DESIGN_SYSTEM_5_TOKENS.md).
 
 Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini. Untuk aturan praktis **5 Design Tokens** (Color Roles, Spacing 4 px, 4 Type Sizes, Concentric Radius, dan 2-Level Shadows) yang berlaku lintas layar web, rujuk [DESIGN_SYSTEM_5_TOKENS.md](DESIGN_SYSTEM_5_TOKENS.md).
 

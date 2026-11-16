@@ -106,7 +106,9 @@ console.log(JSON.stringify({ texts, oddSpace, radii, shadows }, null, 2));
 "
 ```
 
-### Acuan Implementasi Terverifikasi
-- Dashboard Persuratan: [`frontend/src/app/surat/page.tsx`](../frontend/src/app/surat/page.tsx) & [`frontend/src/app/surat/_components/SuratHubComponents.tsx`](../frontend/src/app/surat/_components/SuratHubComponents.tsx)
-- Tombol Sekunder Global (`.kpg-secondary`): [`frontend/src/app/kepegawaian/kepegawaian.css`](../frontend/src/app/kepegawaian/kepegawaian.css)
-- Definisi Role Token `--ds-*`: [`frontend/src/app/globals.css`](../frontend/src/app/globals.css)
+### Acuan Implementasi Terverifikasi (Status 16 November 2026)
+- **Definisi Role Token `--ds-*`:** [`frontend/src/app/globals.css`](../frontend/src/app/globals.css)
+- **Modul Persuratan (`c499257f`, `a41549b4`):** [`frontend/src/app/surat/`](../frontend/src/app/surat/page.tsx) (seluruh halaman, dialog, & popover non-cetak) + tombol sekunder global `.kpg-secondary` / `.psr-secondary` di [`kepegawaian.css`](../frontend/src/app/kepegawaian/kepegawaian.css).
+- **Modul Kepegawaian & Surat Tugas (`540fb44b`):** [`frontend/src/app/kepegawaian/`](../frontend/src/app/kepegawaian/page.tsx) (dashboard, daftar & detail pegawai, cuti, uang makan, surat masuk, surat tugas, & pengaturan).
+- **Modul BMN (`d20bfcaf`):** [`frontend/src/app/bmn/`](../frontend/src/app/bmn/page.tsx) + `.bmn-secondary` di [`bmn-ui.css`](../frontend/src/app/bmn/bmn-ui.css) (dashboard, aset, peminjaman, pemeliharaan, disposal, import review, laporan BA, pengaturan master, paket lelang, & kandidat rusak berat).
+- **Pengecualian Dokumen Cetak Fisik:** Template naskah dan kertas kerja cetak (`LembarDisposisiSheet`, `SuratDinasDocument`, `reports/_components/*Document.tsx`, `auction-candidates/_components/*Document.tsx`, blok `[210mm]` pada `DocumentContentEditorModal.tsx`, dan blok `.kk-page` pada `KertasKerjaAssetSection.tsx`) tetap mempertahankan kertas putih (`#ffffff`) dan tinta hitam (`#000000`) sesuai standar fisik resmi.
