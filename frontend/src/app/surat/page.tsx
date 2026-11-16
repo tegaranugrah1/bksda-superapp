@@ -115,7 +115,7 @@ export default function SuratHubPage() {
   const visibleQuickLinks = QUICK_LINKS.filter((item) => item.minRole === "user" || canWrite);
 
   return (
-    <div className="psr-ui psr-dashboard w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)] font-sans">
+    <div className="psr-ui psr-dashboard w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)] font-sans">
       {/* 1. Header Banner Bersih & Formal */}
       <HeaderBanner canCreate={canCreate} canManageMasuk={canWrite} />
 
@@ -127,14 +127,14 @@ export default function SuratHubPage() {
       />
 
       {/* 3. Akses Pintas Modul Persuratan */}
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
             <Layers className="w-4 h-4 text-[var(--ds-accent-fg)]" />
             Akses Pintas Modul Persuratan
           </h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {visibleQuickLinks.map((item) => {
             const Icon = item.icon;
             return (
@@ -147,21 +147,21 @@ export default function SuratHubPage() {
               >
                 <Link
                   href={item.href}
-                  className="group relative overflow-hidden bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-3.5 rounded-2xl hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] transition-colors duration-150 flex flex-col justify-between h-full min-h-22"
+                  className="group relative overflow-hidden bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)]/70 transition-colors duration-150 flex flex-col justify-between h-full"
                 >
-                  <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center justify-between mb-2">
                     <div
-                      className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${item.iconStyle}`}
+                      className={`kpg-support-icon w-10 h-10 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${item.iconStyle}`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
                     <ArrowUpRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs md:text-sm text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors leading-tight">
+                    <h3 className="font-bold text-sm text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors leading-tight">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">
                       {item.description}
                     </p>
                   </div>

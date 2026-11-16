@@ -2545,8 +2545,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1794788639.3071878,
-    "ast_hash": "8c8d2a7d5ae5e9fa49e4aaead0f5a42c",
+    "mtime": 1794820641.5498197,
+    "ast_hash": "2f5d6440dd87f15d004935ba3008695f",
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratHubComponents.tsx": {
-    "mtime": 1794819515.61635,
-    "ast_hash": "be22c33ebcb9f0b13df83b391deff305",
+    "mtime": 1794820808.3738275,
+    "ast_hash": "d05af808c5afa638490f6c725eef6fc3",
     "semantic_hash": ""
   },
   "backend/tests/Feature/Bmn/AssetSearchTest.php": {
@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794452859.7751873,
-    "ast_hash": "1ff51f90026572677546a7c1964b955d",
+    "mtime": 1794821350.5769434,
+    "ast_hash": "17f7c885b665983aa145404ac579a781",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9262,6 +9262,11 @@
   "frontend/tests/export-pdf-route.cjs": {
     "mtime": 1794815466.4633331,
     "ast_hash": "81065e8a97f4890ad797113e49368ae7",
+    "semantic_hash": ""
+  },
+  "docs/DESIGN_SYSTEM_5_TOKENS.md": {
+    "mtime": 1794821348.4516964,
+    "ast_hash": "ed7ec9d36a154bccdd7651ef0f25c88a",
     "semantic_hash": ""
   }
 }

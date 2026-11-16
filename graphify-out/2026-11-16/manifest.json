@@ -2475,8 +2475,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1794712980.1178946,
-    "ast_hash": "933da66fbcadd77733899de0758ffa5b",
+    "mtime": 1794819546.3443067,
+    "ast_hash": "d65393b729f85b9e5a224c4f546945a2",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2545,8 +2545,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1794788639.3071878,
-    "ast_hash": "8c8d2a7d5ae5e9fa49e4aaead0f5a42c",
+    "mtime": 1794820641.5498197,
+    "ast_hash": "2f5d6440dd87f15d004935ba3008695f",
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
@@ -5520,8 +5520,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratHubComponents.tsx": {
-    "mtime": 1794788609.3633993,
-    "ast_hash": "6bb1350c885b1af45ab4986fdf1579a9",
+    "mtime": 1794820808.3738275,
+    "ast_hash": "d05af808c5afa638490f6c725eef6fc3",
     "semantic_hash": ""
   },
   "backend/tests/Feature/Bmn/AssetSearchTest.php": {
@@ -6375,8 +6375,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794816565.4813547,
-    "ast_hash": "820886be46e4e9935971fad0bbaa2dfc",
+    "mtime": 1794819931.9405835,
+    "ast_hash": "3428dc6d874550998a77a90f4e534a37",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -7265,8 +7265,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/EmailConnectDialog.tsx": {
-    "mtime": 1794129862.077744,
-    "ast_hash": "174131afd85417859118ba717e2945bb",
+    "mtime": 1794819542.895292,
+    "ast_hash": "35ce122f2a59eb33c638ecb9a77e1aaa",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SecurityModals.tsx": {

@@ -40,16 +40,16 @@ export function HeaderBanner({
   canManageMasuk?: boolean;
 }) {
   return (
-    <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-      <div className="flex items-start sm:items-center gap-3.5">
-        <div className="kpg-support-icon w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+    <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="flex items-start sm:items-center gap-4">
+        <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
           <Mail className="w-5 h-5" />
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
             Dashboard Persuratan
           </h1>
-          <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             {canManageMasuk
               ? "Pusat penatausahaan surat masuk, surat keluar, lembar disposisi, dan tata naskah dinas BKSDA Kalimantan Timur."
               : "Pusat pembuatan naskah dinas dan pengagendaan surat keluar pribadi Anda."}
@@ -59,11 +59,11 @@ export function HeaderBanner({
 
       {/* Action Buttons */}
       {canCreate && (
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <Button
             asChild
             variant="outline"
-            className="kpg-secondary h-9 px-4 text-xs font-bold rounded-xl gap-1.5"
+            className="kpg-secondary h-10 px-4 text-xs font-bold rounded-lg gap-2"
           >
             <Link href="/surat/keluar/create">
               <Plus className="h-4 w-4 text-[var(--ds-accent-fg)]" />
@@ -71,7 +71,7 @@ export function HeaderBanner({
             </Link>
           </Button>
           {canManageMasuk && (
-            <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
+            <Button asChild className="h-10 px-4 text-xs font-bold rounded-lg gap-2">
               <Link href="/surat/masuk/create">
                 <Plus className="h-4 w-4" />
                 Input Surat Masuk
@@ -120,7 +120,7 @@ export function BentoStatCards({
       href: "/surat/keluar",
       icon: Send,
       toneClass: "text-blue-700 dark:text-blue-300",
-      barClass: "bg-blue-600 dark:bg-blue-500",
+      barClass: "bg-blue-600 dark:bg-blue-400",
       pct: canManageMasuk ? keluarPct : 100,
       delay: 0.1,
       masukOnly: false,
@@ -130,11 +130,11 @@ export function BentoStatCards({
       subLabel: "Standar",
       desc: "2 Lembar Disposisi per Halaman",
       value: "2-Up Letter",
-      valueClass: "text-lg md:text-xl",
+      valueClass: "text-xl",
       href: "/surat/masuk",
       icon: FileCheck,
       toneClass: "text-amber-700 dark:text-amber-300",
-      barClass: "bg-amber-500",
+      barClass: "bg-amber-500 dark:bg-amber-400",
       pct: 100,
       delay: 0.15,
       masukOnly: true,
@@ -147,7 +147,7 @@ export function BentoStatCards({
       href: "/surat/keluar/dinas",
       icon: CheckCircle2,
       toneClass: "text-amber-700 dark:text-amber-300",
-      barClass: "bg-amber-500",
+      barClass: "bg-amber-500 dark:bg-amber-400",
       pct: 100,
       delay: 0.2,
       masukOnly: false,
@@ -157,7 +157,7 @@ export function BentoStatCards({
   const stats = allStats.filter((s) => canManageMasuk || !s.masukOnly);
 
   return (
-    <div className={`grid grid-cols-2 ${canManageMasuk ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-3`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 ${canManageMasuk ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-4`}>
       {stats.map((card) => {
         const Icon = card.icon;
         return (
@@ -170,34 +170,34 @@ export function BentoStatCards({
           >
             <Link
               href={card.href}
-              className="group bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] p-3.5 rounded-2xl transition-colors flex flex-col justify-between h-full"
+              className="group bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] p-4 shadow-xs rounded-3xl transition-colors flex flex-col justify-between h-full"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className={`kpg-support-icon w-9 h-9 rounded-xl border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${card.toneClass}`}>
+                  <div className={`kpg-support-icon w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-150 ${card.toneClass}`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className={`kpg-support-badge text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${card.toneClass}`}>
+                  <span className={`kpg-support-badge text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg border whitespace-nowrap shrink-0 ${card.toneClass}`}>
                     {card.label}
                   </span>
                 </div>
-                <div className="mt-2.5">
+                <div className="mt-4">
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <p className={`font-bold text-[var(--ds-fg)] tracking-tight tabular-nums ${card.valueClass || "text-xl md:text-2xl"}`}>
                       {card.value}
                     </p>
-                    <span className={`kpg-support-badge text-xs font-semibold px-1.5 py-0.5 rounded ${card.toneClass}`}>
+                    <span className={`kpg-support-badge text-xs font-semibold px-2 py-1 rounded-lg ${card.toneClass}`}>
                       {card.subLabel}
                     </span>
                   </div>
-                  <p className="text-xs text-[var(--ds-fg-muted)] font-medium mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] font-medium mt-1">
                     {card.desc}
                   </p>
                 </div>
               </div>
 
               {/* Animated Progress Proportion Bar */}
-              <div className="mt-3 w-full h-1.5 rounded-full bg-[var(--ds-surface-muted)] overflow-hidden">
+              <div className="mt-4 w-full h-1 rounded-full bg-[var(--ds-surface-muted)] overflow-hidden">
                 <motion.div
                   className={`h-full rounded-full ${card.barClass}`}
                   initial={{ width: 0 }}
@@ -236,9 +236,9 @@ export function RecentSuratWidget({
     return (
       <div
         role="alert"
-        className="rounded-2xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+        className="rounded-3xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
-        <div className="flex items-center gap-2.5 text-xs font-semibold text-[var(--ds-status-danger-fg)]">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-status-danger-fg)]">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>Gagal memuat ringkasan surat terbaru dari server.</span>
         </div>
@@ -248,9 +248,9 @@ export function RecentSuratWidget({
             variant="outline"
             size="sm"
             onClick={onRetry}
-            className="kpg-secondary h-8 px-3 text-xs font-bold rounded-xl gap-1.5"
+            className="kpg-secondary h-8 px-4 text-xs font-bold rounded-lg gap-2"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-4 w-4" />
             Coba lagi
           </Button>
         )}
@@ -262,14 +262,14 @@ export function RecentSuratWidget({
     <div className={`grid grid-cols-1 ${canManageMasuk ? "lg:grid-cols-2" : "lg:grid-cols-1"} gap-4`}>
       {/* Kolom Kiri: Tabel Mini Surat Masuk Terbaru (Khusus Admin & Super Admin) */}
       {canManageMasuk && (
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-3.5 md:px-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-          <div className="flex items-center gap-2.5">
-            <div className="kpg-support-icon w-8 h-8 rounded-xl border text-[var(--ds-accent-fg)] flex items-center justify-center">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xs overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <div className="kpg-support-icon w-8 h-8 rounded-lg border text-[var(--ds-accent-fg)] flex items-center justify-center">
               <Inbox className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-xs md:text-sm text-[var(--ds-fg)]">
+              <h3 className="font-bold text-sm text-[var(--ds-fg)]">
                 Surat Masuk Terbaru
               </h3>
               <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -282,15 +282,15 @@ export function RecentSuratWidget({
             className="group text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
           >
             <span>Lihat Semua</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-150" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-150" />
           </Link>
         </div>
 
         <div className="overflow-x-auto flex-1">
           {isLoading ? (
-            <div className="p-3.5 space-y-2">
+            <div className="p-4 space-y-2">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="h-10 w-full animate-pulse rounded-xl bg-[var(--ds-surface-muted)]" />
+                <div key={n} className="h-10 w-full animate-pulse rounded-lg bg-[var(--ds-surface-muted)]" />
               ))}
             </div>
           ) : suratMasukList.length === 0 ? (
@@ -299,7 +299,7 @@ export function RecentSuratWidget({
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/80 dark:bg-zinc-950/40">
+              <thead className="border-b border-slate-200/70 dark:border-zinc-800 text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/70 dark:bg-zinc-800/30">
                 <tr>
                   <th className="py-2 px-3">No Agenda</th>
                   <th className="py-2 px-3">No &amp; Tgl Surat</th>
@@ -307,7 +307,7 @@ export function RecentSuratWidget({
                   <th className="py-2 px-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                 {suratMasukList.map((item) => {
                   const perihalText = item.isi_ringkas || item.perihal || "-";
                   const sifatText = (item.sifat_json && item.sifat_json[0]) || item.sifat || "Biasa";
@@ -316,47 +316,47 @@ export function RecentSuratWidget({
                       key={item.id || item.no_agenda}
                       className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors duration-150"
                     >
-                      <td className="py-2.5 px-3 align-top whitespace-nowrap">
+                      <td className="py-2 px-3 align-top whitespace-nowrap">
                         <span className="font-semibold text-[var(--ds-accent-fg)] block tabular-nums">
                           {item.no_agenda || "-"}
                         </span>
-                        <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 tabular-nums">
+                        <span className="text-xs text-[var(--ds-fg-muted)] block mt-1 tabular-nums">
                           {formatDisplayDate(item.tanggal_agenda || item.tanggal_terima)}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top max-w-[160px]">
+                      <td className="py-2 px-3 align-top max-w-[150px]">
                         <span className="font-semibold text-[var(--ds-fg)] block truncate">
                           {item.no_surat || "-"}
                         </span>
-                        <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 mt-0.5 tabular-nums">
+                        <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 mt-1 tabular-nums">
                           <Calendar className="w-3 h-3 shrink-0" />
                           {formatDisplayDate(item.tanggal_surat)}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top max-w-[200px]">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-[var(--ds-fg)] truncate max-w-[130px]">
+                      <td className="py-2 px-3 align-top max-w-[190px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-[var(--ds-fg)] truncate max-w-[120px]">
                             {item.asal_surat || "Instansi Luar"}
                           </span>
-                          <span data-status="neutral" className="text-xs px-1.5 py-0 rounded font-medium shrink-0">
+                          <span data-status="neutral" className="text-xs px-2 py-0 rounded-sm font-medium shrink-0">
                             {sifatText}
                           </span>
                         </div>
-                        <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-1 mt-0.5 leading-tight">
+                        <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-1 mt-1 leading-tight">
                           {perihalText}
                         </p>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top text-right shrink-0">
+                      <td className="py-2 px-3 align-top text-right shrink-0">
                         <Link
                           href={`/surat/masuk/create?id=${item.id}`}
                           aria-label={`Lihat atau edit disposisi surat agenda ${item.no_agenda || item.id}`}
                           title="Lihat / Edit Disposisi"
                           className="inline-flex items-center justify-center p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-4 h-4" />
                         </Link>
                       </td>
                     </tr>
@@ -370,14 +370,14 @@ export function RecentSuratWidget({
       )}
 
       {/* Kolom Kanan: Tabel Mini Surat Keluar Terbaru */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-3.5 md:px-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-          <div className="flex items-center gap-2.5">
-            <div className="kpg-support-icon w-8 h-8 rounded-xl border text-blue-700 dark:text-blue-300 flex items-center justify-center">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xs overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
+            <div className="kpg-support-icon w-8 h-8 rounded-lg border text-blue-700 dark:text-blue-300 flex items-center justify-center">
               <Send className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-xs md:text-sm text-[var(--ds-fg)]">
+              <h3 className="font-bold text-sm text-[var(--ds-fg)]">
                 Surat Keluar Terbaru
               </h3>
               <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -390,15 +390,15 @@ export function RecentSuratWidget({
             className="group text-xs font-bold text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1"
           >
             <span>Lihat Semua</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-150" />
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-150" />
           </Link>
         </div>
 
         <div className="overflow-x-auto flex-1">
           {isLoading ? (
-            <div className="p-3.5 space-y-2">
+            <div className="p-4 space-y-2">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="h-10 w-full animate-pulse rounded-xl bg-[var(--ds-surface-muted)]" />
+                <div key={n} className="h-10 w-full animate-pulse rounded-lg bg-[var(--ds-surface-muted)]" />
               ))}
             </div>
           ) : suratKeluarList.length === 0 ? (
@@ -407,7 +407,7 @@ export function RecentSuratWidget({
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/80 dark:bg-zinc-950/40">
+              <thead className="border-b border-slate-200/70 dark:border-zinc-800 text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/70 dark:bg-zinc-800/30">
                 <tr>
                   <th className="py-2 px-3">No Surat</th>
                   <th className="py-2 px-3">Tanggal</th>
@@ -415,7 +415,7 @@ export function RecentSuratWidget({
                   <th className="py-2 px-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                 {suratKeluarList.map((item) => {
                   const isDraft = (item.status || "").toLowerCase() === "draft";
                   return (
@@ -423,35 +423,35 @@ export function RecentSuratWidget({
                       key={item.id || item.no_surat}
                       className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors duration-150"
                     >
-                      <td className="py-2.5 px-3 align-top max-w-[160px]">
+                      <td className="py-2 px-3 align-top max-w-[150px]">
                         <span className="font-semibold text-[var(--ds-fg)] block truncate">
                           {item.no_surat || "-"}
                         </span>
                         <span
                           data-status={isDraft ? "warning" : "success"}
-                          className="text-xs px-1.5 py-0 rounded font-medium inline-block mt-0.5 capitalize"
+                          className="text-xs px-2 py-0 rounded-sm font-medium inline-block mt-1 capitalize"
                         >
                           {isDraft ? "Draft" : item.status || "Terdaftar"}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top text-[var(--ds-fg-muted)] whitespace-nowrap tabular-nums">
+                      <td className="py-2 px-3 align-top text-[var(--ds-fg-muted)] whitespace-nowrap tabular-nums">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3 shrink-0" />
                           <span>{formatDisplayDate(item.tanggal_surat)}</span>
                         </div>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top max-w-[200px]">
+                      <td className="py-2 px-3 align-top max-w-[190px]">
                         <span className="font-semibold text-[var(--ds-fg)] block truncate">
                           {item.tujuan_surat || "Tujuan Resmi"}
                         </span>
-                        <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-1 mt-0.5 leading-tight">
+                        <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-1 mt-1 leading-tight">
                           {item.perihal || "-"}
                         </p>
                       </td>
 
-                      <td className="py-2.5 px-3 align-top text-right shrink-0">
+                      <td className="py-2 px-3 align-top text-right shrink-0">
                         <Link
                           href={
                             item.template_type || item.document_payload
@@ -462,7 +462,7 @@ export function RecentSuratWidget({
                           title="Lihat Detail Surat Keluar"
                           className="inline-flex items-center justify-center p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-4 h-4" />
                         </Link>
                       </td>
                     </tr>

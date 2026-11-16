@@ -3,7 +3,7 @@
 Tanggal revisi: **11 November 2026**.
 Status **penerapan bertahap pada BMN, Surat Tugas dan Kepegawaian**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
 
-Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
+Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini. Untuk aturan praktis **5 Design Tokens** (Color Roles, Spacing 4 px, 4 Type Sizes, Concentric Radius, dan 2-Level Shadows) yang berlaku lintas layar web, rujuk [DESIGN_SYSTEM_5_TOKENS.md](DESIGN_SYSTEM_5_TOKENS.md).
 
 ## 1. Keputusan desain
 
