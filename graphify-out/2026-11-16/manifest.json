@@ -1650,78 +1650,78 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/AssetImportDialog.tsx": {
-    "mtime": 1794299418.633726,
-    "ast_hash": "f45edb8c7a8f12e885d18178e59bada5",
+    "mtime": 1794836196.1237073,
+    "ast_hash": "6b2864339b63b011e7df92952730810d",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/DetailSection.tsx": {
-    "mtime": 1794318195.795489,
-    "ast_hash": "fab2af4fd408e54acd01b31792bb64d2",
+    "mtime": 1794836553.3678951,
+    "ast_hash": "2fc94831760ce364c4d993423456cbd7",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1794310018.1572552,
-    "ast_hash": "972d51092c3fe2eb6db603d608aad282",
+    "mtime": 1794836613.0225272,
+    "ast_hash": "a7bbb906832db55f7e9794fb4506e353",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1794750907.64251,
-    "ast_hash": "8e3c62df0b2c68bcd08c7225452c2349",
+    "mtime": 1794837163.5860214,
+    "ast_hash": "c5b1e40eb8dfb8d3a40fb814842c7ce9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
-    "mtime": 1778910873.1794071,
-    "ast_hash": "e67d5c5c17a7a1813c22b2998deb0fdb",
-    "semantic_hash": "e67d5c5c17a7a1813c22b2998deb0fdb"
+    "mtime": 1794836548.8725116,
+    "ast_hash": "d720899db8f39d62964105820299f6ff",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1794750907.6405084,
-    "ast_hash": "8f05246db6b4b953ffc167bac70ae066",
+    "mtime": 1794837005.5120444,
+    "ast_hash": "6f0b82308cbf7e3d66147395eede7e4a",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AssetsLotTab.tsx": {
-    "mtime": 1794331143.9736326,
-    "ast_hash": "9593b0d72daf23124f41b4ce2f527fe1",
+    "mtime": 1794837721.6200607,
+    "ast_hash": "41a6cf2a6bcdb48e464456e48a77c639",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AuditTrailTab.tsx": {
-    "mtime": 1794331143.9926343,
-    "ast_hash": "5bf82415c81de7272cab8a9a7264b027",
+    "mtime": 1794837609.9851532,
+    "ast_hash": "e710d101db2bb8ebfbdbb1199f1f18f5",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/DocumentsCenterTab.tsx": {
-    "mtime": 1794331144.067487,
-    "ast_hash": "64539b5454d42be296d6e80a0dafa819",
+    "mtime": 1794837882.7195473,
+    "ast_hash": "71a62413b3c4575f312cd92e341e65d7",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/RealizationTab.tsx": {
-    "mtime": 1794331144.10082,
-    "ast_hash": "967947f119d0fdac4a261a79f07fd06f",
+    "mtime": 1794838478.695703,
+    "ast_hash": "dc39aa5fb8891429c61a096dc6b23a80",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/ScheduleTab.tsx": {
-    "mtime": 1782113599.615051,
-    "ast_hash": "7ea1b825b734d4678d1617f2d7a4fd29",
-    "semantic_hash": "7ea1b825b734d4678d1617f2d7a4fd29"
+    "mtime": 1794837615.0467546,
+    "ast_hash": "908c803cbb67ab9855052a854e1d5f1d",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/SignatoriesDocumentsTab.tsx": {
-    "mtime": 1787548978.571344,
-    "ast_hash": "6a3fd765271239e65f0d39653bf80157",
+    "mtime": 1794837619.3836021,
+    "ast_hash": "dee408fc6a3b2ec949d24e0a5e528d60",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/ValuationTab.tsx": {
-    "mtime": 1794331144.1028192,
-    "ast_hash": "f8abe0fe743bf87e7341b452a2f7e8f6",
+    "mtime": 1794837884.9108355,
+    "ast_hash": "d446c529a5753b4217d0c269273b1a77",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/page.tsx": {
-    "mtime": 1794331143.9566321,
-    "ast_hash": "909344769d57f7b0f4f1b5de4a9cd8b0",
+    "mtime": 1794837535.0780334,
+    "ast_hash": "c361db4837b042806378bf29267d0593",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/_lib/api.ts": {
-    "mtime": 1790736777.3674498,
-    "ast_hash": "347f60bfbdfe582f132e610a5ca5d744",
+    "mtime": 1794836224.8940463,
+    "ast_hash": "4920133fa11f9c2d2c58df39a1e8caf0",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/_lib/status.ts": {
@@ -1730,69 +1730,69 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/page.tsx": {
-    "mtime": 1794331143.939031,
-    "ast_hash": "6f582742b85a3354bc1a29cd4bfd5255",
+    "mtime": 1794837531.2186494,
+    "ast_hash": "219c8a3a1117aac860dbae4cfe72face",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/AssetLampiranLandscapeTable.tsx": {
-    "mtime": 1787548978.583347,
-    "ast_hash": "57bdbb24db56c4606d8b82c9d8f30f54",
+    "mtime": 1794836224.9017143,
+    "ast_hash": "277f4f769811af48be349694209f8237",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/AssetTable.tsx": {
-    "mtime": 1779869239.9682946,
-    "ast_hash": "83fc007cb93e72e7c6e7790d8a46e8b4",
-    "semantic_hash": "83fc007cb93e72e7c6e7790d8a46e8b4"
+    "mtime": 1794838183.81005,
+    "ast_hash": "dc933bc1eda273cd1ea5d6127b1c9aaf",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/BaKoreksiDocument.tsx": {
-    "mtime": 1791173770.85174,
-    "ast_hash": "cd20dd774ed567b056320fb50c233358",
+    "mtime": 1794836224.9042366,
+    "ast_hash": "e0395b90cb81e868d598818932276bec",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/BaPemeriksaanDocument.tsx": {
-    "mtime": 1791173951.5958269,
-    "ast_hash": "0302a1df3741073f26192e523b6246d8",
+    "mtime": 1794836224.905768,
+    "ast_hash": "2e49164968197fbc35b8d35703582b57",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/DocumentActions.tsx": {
-    "mtime": 1781679753.0128393,
-    "ast_hash": "b08aea887907c6b783d571c1253921cd",
-    "semantic_hash": "b08aea887907c6b783d571c1253921cd"
+    "mtime": 1794838185.589128,
+    "ast_hash": "0cd07fa8ecc83be5bb113e1bdbe7f670",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/DocumentNumberInputs.tsx": {
-    "mtime": 1788917877.7061355,
-    "ast_hash": "32b8cad555a0b8c6029bf9dc607f0518",
+    "mtime": 1794838187.7235548,
+    "ast_hash": "f83efcf11b5331824c066efe4c752ec6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/KepalaBalaiPicker.tsx": {
-    "mtime": 1781679753.0148375,
-    "ast_hash": "9b22340ac882dfcc99b76a72f72ce56c",
-    "semantic_hash": "9b22340ac882dfcc99b76a72f72ce56c"
+    "mtime": 1794838190.204842,
+    "ast_hash": "906e266e0e6ec794ad221bec2be5a1ca",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/KertasKerjaAssetSection.tsx": {
-    "mtime": 1794331564.5005763,
-    "ast_hash": "5b8f620bc312c132f19bd7085494820b",
+    "mtime": 1794838522.0759108,
+    "ast_hash": "de1b3bbc9b4ca1d758a7cccbe373f7a2",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/NotaDinasDocument.tsx": {
-    "mtime": 1791173969.7634761,
-    "ast_hash": "f1f328ef378cc855954974f5b5fb07fd",
+    "mtime": 1794836224.9127588,
+    "ast_hash": "453668adbbfe40670458298f3c3fa312",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/PageHeader.tsx": {
-    "mtime": 1779790062.4517088,
-    "ast_hash": "9545416b73f50fa38d24225ad056eb96",
-    "semantic_hash": "9545416b73f50fa38d24225ad056eb96"
+    "mtime": 1794838096.2624702,
+    "ast_hash": "413363d4fd639acc67530397e421ae92",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/PanitiaEditor.tsx": {
-    "mtime": 1779694275.684997,
-    "ast_hash": "5673724c61b7a7348623bc82457af1dc",
-    "semantic_hash": "5673724c61b7a7348623bc82457af1dc"
+    "mtime": 1794838098.3102894,
+    "ast_hash": "dd3b02f5fcc2f9e65649ed8fd09ff216",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/PemeriksaEditor.tsx": {
-    "mtime": 1779694275.684997,
-    "ast_hash": "233b9017b713ad17cbe9592225b457e2",
-    "semantic_hash": "233b9017b713ad17cbe9592225b457e2"
+    "mtime": 1794838100.6226168,
+    "ast_hash": "9ef837f1977775f2a08be69e0d244289",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/PermohonanKpknlDocument.tsx": {
     "mtime": 1791174103.7530048,
@@ -1800,29 +1800,29 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/PernyataanDocument.tsx": {
-    "mtime": 1790324134.9211998,
-    "ast_hash": "fd11a22dd052135b70eb2306e7de013e",
+    "mtime": 1794836224.9262824,
+    "ast_hash": "d4750b0f00fb2289c5efd2b81137652c",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/ReorderPanel.tsx": {
-    "mtime": 1781679753.0148375,
-    "ast_hash": "deccfa46ce8e8a2324e033a5eb762742",
-    "semantic_hash": "deccfa46ce8e8a2324e033a5eb762742"
+    "mtime": 1794838102.6978545,
+    "ast_hash": "5e5f213a123d412c164712afc158a11f",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SearchBar.tsx": {
-    "mtime": 1779694275.6859949,
-    "ast_hash": "bf2f95c90211280750fa0fd32d56eb18",
-    "semantic_hash": "bf2f95c90211280750fa0fd32d56eb18"
+    "mtime": 1794838226.0413253,
+    "ast_hash": "6edc9511e28e2821936575c6d3976a69",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SelectedAssetsBanner.tsx": {
-    "mtime": 1781679753.0158412,
-    "ast_hash": "66d190a0d85d07aec27f736fa66d67fe",
-    "semantic_hash": "66d190a0d85d07aec27f736fa66d67fe"
+    "mtime": 1794838300.0792112,
+    "ast_hash": "4d3ce2ced356aa45a4909da9577bb045",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkBuilder.tsx": {
-    "mtime": 1779327688.0793886,
-    "ast_hash": "8642a737fd7d0a9b195f712e7790a4aa",
-    "semantic_hash": "8642a737fd7d0a9b195f712e7790a4aa"
+    "mtime": 1794838302.310083,
+    "ast_hash": "0441be098f0b09096749acfeba0bf379",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkKebenaranDokumenDocument.tsx": {
     "mtime": 1791174103.7579856,
@@ -1830,258 +1830,258 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkPanitiaDocument.tsx": {
-    "mtime": 1791459538.447199,
-    "ast_hash": "eac309ca5cb09084027deef020f3d4a3",
+    "mtime": 1794836224.935803,
+    "ast_hash": "72af57855defeec77182a8d63a1e305d",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkPenghentianDocument.tsx": {
-    "mtime": 1791173754.8301811,
-    "ast_hash": "09fc43a308e5bf8873e2fca372744ad3",
+    "mtime": 1794836224.9368038,
+    "ast_hash": "9341a006fd502d661c7290966d2af160",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkTimPenilaiBuilder.tsx": {
-    "mtime": 1779848075.8431718,
-    "ast_hash": "1eb27e68f120e40eccd171c31eea4c2a",
-    "semantic_hash": "1eb27e68f120e40eccd171c31eea4c2a"
+    "mtime": 1794838304.9710982,
+    "ast_hash": "2aa909d7756761d48277f505b81610d3",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SkTimPenilaiDocument.tsx": {
-    "mtime": 1791173930.3446395,
-    "ast_hash": "78b372c6fd78fad0d0cad3a7be0897a8",
+    "mtime": 1794836224.9403245,
+    "ast_hash": "a2244b226ccc66bff16cf8ad7a827c38",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SpTugasDocument.tsx": {
-    "mtime": 1790737307.7471626,
-    "ast_hash": "2507b5a1820b8ed1bd3041baa99bc68b",
+    "mtime": 1794836224.9423265,
+    "ast_hash": "d85ffd1dc69e742bdf527f07ac2c7aef",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SptjLimitDocument.tsx": {
-    "mtime": 1790737293.5334744,
-    "ast_hash": "6d9ce687d159a8d91c1aee96ce81fee4",
+    "mtime": 1794836224.945325,
+    "ast_hash": "39dade849fe3899dbf5a62f739c5dc20",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SptjmDocument.tsx": {
-    "mtime": 1790737276.6756594,
-    "ast_hash": "f410031e799ed1713299978e835b4f20",
+    "mtime": 1794836224.9473248,
+    "ast_hash": "cdd94801ef4af992e059cc44c3ba094e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SummaryTile.tsx": {
-    "mtime": 1779259724.3864045,
-    "ast_hash": "dc23f1efb931e371e1d9d253478973d3",
-    "semantic_hash": "dc23f1efb931e371e1d9d253478973d3"
+    "mtime": 1794838227.737048,
+    "ast_hash": "e503de9df4ed014ca1641f2f29528cdb",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/TimPenilaiEditor.tsx": {
-    "mtime": 1779848075.8441722,
-    "ast_hash": "96a5e882c9c4ac7541443afecebe0e37",
-    "semantic_hash": "96a5e882c9c4ac7541443afecebe0e37"
+    "mtime": 1794838230.0734563,
+    "ast_hash": "520c7964d4fbc8c129634a4891ff2eff",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/WorkflowSteps.tsx": {
-    "mtime": 1781679753.0158412,
-    "ast_hash": "6f6068fbf677aac41839ca053f1dc617",
-    "semantic_hash": "6f6068fbf677aac41839ca053f1dc617"
+    "mtime": 1794838231.9569783,
+    "ast_hash": "5b69b96806ecfc4368fec7e8d0432efc",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/BaKoreksiSection.tsx": {
-    "mtime": 1781679753.016838,
-    "ast_hash": "7fd7f058b1303ae2e1375074e79e536b",
-    "semantic_hash": "7fd7f058b1303ae2e1375074e79e536b"
+    "mtime": 1794838307.348531,
+    "ast_hash": "d2508c3db9a8dbd2e86a3cdaece29581",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/BaPemeriksaanSection.tsx": {
-    "mtime": 1781679753.0178373,
-    "ast_hash": "d89c2b6b4969cec1a26cef38bdac3d21",
-    "semantic_hash": "d89c2b6b4969cec1a26cef38bdac3d21"
+    "mtime": 1794838309.5276742,
+    "ast_hash": "104b864a83758837b7632f31a800970c",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/NotaDinasSection.tsx": {
-    "mtime": 1781679753.0178373,
-    "ast_hash": "351a4dbf1d560d9417c1159b672dd6c7",
-    "semantic_hash": "351a4dbf1d560d9417c1159b672dd6c7"
+    "mtime": 1794838363.0975175,
+    "ast_hash": "56543531d16a5438a190382e70c142dc",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/PermohonanKpknlSection.tsx": {
-    "mtime": 1781679753.018838,
-    "ast_hash": "f62976d45efd14739595ab8c7eaf869f",
-    "semantic_hash": "f62976d45efd14739595ab8c7eaf869f"
+    "mtime": 1794838364.8053832,
+    "ast_hash": "f7d5ed1540867cf4709151d693002593",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SkKebenaranSection.tsx": {
-    "mtime": 1781679753.0198371,
-    "ast_hash": "0535a6c569b383d8228a692315f6cee5",
-    "semantic_hash": "0535a6c569b383d8228a692315f6cee5"
+    "mtime": 1794838311.7049575,
+    "ast_hash": "2f6bcfbab672099bbf43dca92d89309a",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SkPanitiaSection.tsx": {
-    "mtime": 1781679753.0198371,
-    "ast_hash": "d61ff2a5dfb0b023ae57fd96463f6b38",
-    "semantic_hash": "d61ff2a5dfb0b023ae57fd96463f6b38"
+    "mtime": 1794838366.5300004,
+    "ast_hash": "75987dd1928fcf7c7171088f8795cd5c",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SkPenghentianSection.tsx": {
-    "mtime": 1781679753.0208366,
-    "ast_hash": "1aa24154b7a04fa5e315012f92c28878",
-    "semantic_hash": "1aa24154b7a04fa5e315012f92c28878"
+    "mtime": 1794838368.5421124,
+    "ast_hash": "bad615da13a4e20b54d44d74a1d74271",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SkTimPenilaiSection.tsx": {
-    "mtime": 1781679753.0208366,
-    "ast_hash": "51c422f4c7ecb236029a750231c21274",
-    "semantic_hash": "51c422f4c7ecb236029a750231c21274"
+    "mtime": 1794838370.7099843,
+    "ast_hash": "2ca3aab51a7d70f0734e1490ed3cebf1",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SpTugasSection.tsx": {
-    "mtime": 1781679753.0218365,
-    "ast_hash": "28290431e5524cae9009e598107e7325",
-    "semantic_hash": "28290431e5524cae9009e598107e7325"
+    "mtime": 1794838376.9458096,
+    "ast_hash": "0d7897984dc266c938b76170ef55c627",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SptjLimitSection.tsx": {
-    "mtime": 1781679753.0228379,
-    "ast_hash": "5918c6f5db8f7d620c76911b679723e5",
-    "semantic_hash": "5918c6f5db8f7d620c76911b679723e5"
+    "mtime": 1794838372.626218,
+    "ast_hash": "a3fabfcc9e8811f0473e802ba2ece0a2",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/sections/SptjmSection.tsx": {
-    "mtime": 1781679753.0228379,
-    "ast_hash": "c25a377b78437f0d5b2c468fa9f6ffd4",
-    "semantic_hash": "c25a377b78437f0d5b2c468fa9f6ffd4"
+    "mtime": 1794838374.611066,
+    "ast_hash": "d5415a66d32f132f2a52afd36591d50f",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useAuctionAssets.ts": {
-    "mtime": 1779790062.452759,
-    "ast_hash": "1d5459d3ced3a188d0dfbf71f3c57dec",
-    "semantic_hash": "1d5459d3ced3a188d0dfbf71f3c57dec"
+    "mtime": 1794836224.9794877,
+    "ast_hash": "100e0832aad5f11e919671beaf5682d8",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useDocumentNumbers.ts": {
-    "mtime": 1787548978.60516,
-    "ast_hash": "f15a744b86270f08eb19b97a2d24f3c5",
+    "mtime": 1794836224.9814894,
+    "ast_hash": "a943d4a434a3030c9c186c2fc62ed509",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useDocumentToggles.ts": {
-    "mtime": 1779852234.5520256,
-    "ast_hash": "2e419fb14a6fcc17efcf1bd0182aacd5",
-    "semantic_hash": "2e419fb14a6fcc17efcf1bd0182aacd5"
+    "mtime": 1794836224.9834905,
+    "ast_hash": "5fc4dfc1e456f286cad9d669532a8db5",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useEmployeeOptions.ts": {
-    "mtime": 1779694275.6929996,
-    "ast_hash": "7543308c920c35187d002647d7f91237",
-    "semantic_hash": "7543308c920c35187d002647d7f91237"
+    "mtime": 1794836224.987489,
+    "ast_hash": "e03df7abe5f47e4ab98b801a92f83348",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useNotaKpknlBuilderState.ts": {
-    "mtime": 1779855401.6316774,
-    "ast_hash": "517d02090451b41730328cdf00e1ffe1",
-    "semantic_hash": "517d02090451b41730328cdf00e1ffe1"
+    "mtime": 1794836224.9884872,
+    "ast_hash": "6ba2e3d1329e770140a2e11228443e0d",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/usePanitiaList.ts": {
-    "mtime": 1779694275.6929996,
-    "ast_hash": "bfbe7f1e797deb53d77a81f767a5fb9c",
-    "semantic_hash": "bfbe7f1e797deb53d77a81f767a5fb9c"
+    "mtime": 1794836224.9894867,
+    "ast_hash": "d7c136b2c1765c47ad25adb5cd6c8787",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/usePemeriksaList.ts": {
-    "mtime": 1779694275.693996,
-    "ast_hash": "ce08f8825d4b648f05b7ed9126624259",
-    "semantic_hash": "ce08f8825d4b648f05b7ed9126624259"
+    "mtime": 1794836224.990489,
+    "ast_hash": "4aed6af749eecd04f2f4624d8f4c5816",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useSkBuilderState.ts": {
-    "mtime": 1781679753.0238378,
-    "ast_hash": "97a6e868703bb5bbdab4f306059efe3d",
-    "semantic_hash": "97a6e868703bb5bbdab4f306059efe3d"
+    "mtime": 1794836224.9914882,
+    "ast_hash": "c9b38788896464054f5a47fd32caf370",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useSkPanitiaBuilderState.ts": {
-    "mtime": 1779694275.6949978,
-    "ast_hash": "23fea5022203d6054ea111b3ed137337",
-    "semantic_hash": "23fea5022203d6054ea111b3ed137337"
+    "mtime": 1794836224.9924872,
+    "ast_hash": "340c80a4b6997beb8d19839a5b4d7a0d",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useSkTimPenilaiBuilderState.ts": {
-    "mtime": 1779848075.8461704,
-    "ast_hash": "e2a717818a097bc6a004b55cbb67557d",
-    "semantic_hash": "e2a717818a097bc6a004b55cbb67557d"
+    "mtime": 1794836224.9994884,
+    "ast_hash": "d1553c8ef6fcdb1811d0544bdcc98dd3",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_hooks/useTimPenilaiList.ts": {
-    "mtime": 1779848075.8461704,
-    "ast_hash": "43f564f2f9da5498918c248d4afd7178",
-    "semantic_hash": "43f564f2f9da5498918c248d4afd7178"
+    "mtime": 1794836225.0024867,
+    "ast_hash": "c82980d68b3f71a9788119dc5c91d1fb",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/auction-helpers.ts": {
-    "mtime": 1788917877.7146947,
-    "ast_hash": "6668c8018b97b5a5298d5c8d7e113415",
+    "mtime": 1794836225.0034873,
+    "ast_hash": "5b3df8dd8425482a6d18c12ca2447317",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/nota-kpknl-defaults.ts": {
-    "mtime": 1779855401.6326783,
-    "ast_hash": "74d9a909c869e486a2ae0fb742625ea5",
-    "semantic_hash": "74d9a909c869e486a2ae0fb742625ea5"
+    "mtime": 1794836225.005488,
+    "ast_hash": "50860c536096de59cacf8e6839edf9e5",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/pemeriksa-defaults.ts": {
-    "mtime": 1779433147.5089023,
-    "ast_hash": "e5b6296abda1f7b50bf6aaf69a7f7716",
-    "semantic_hash": "e5b6296abda1f7b50bf6aaf69a7f7716"
+    "mtime": 1794836225.0064878,
+    "ast_hash": "5aedd82d0b45301d58ccd216ad67f4ee",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/print-pernyataan.ts": {
-    "mtime": 1791364995.0128882,
-    "ast_hash": "c4f0486d34098e3e5e0851b38683deef",
+    "mtime": 1794836225.0084887,
+    "ast_hash": "74900fb6e19bdd29d904f8c3d20b5194",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/sk-defaults.ts": {
-    "mtime": 1779952439.0701544,
-    "ast_hash": "5ff99b6e0e760540a09d517c22ed53b4",
-    "semantic_hash": "5ff99b6e0e760540a09d517c22ed53b4"
+    "mtime": 1794836225.0094905,
+    "ast_hash": "20a31981c8598c171b6b6c66b14fed7b",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/sk-panitia-defaults.ts": {
-    "mtime": 1779418859.1378841,
-    "ast_hash": "04a43af0b1d36bb18a946c6cc0455553",
-    "semantic_hash": "04a43af0b1d36bb18a946c6cc0455553"
+    "mtime": 1794836225.01149,
+    "ast_hash": "cda6ca4070187d9d2b3e1acf968d51c3",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/sk-print.ts": {
-    "mtime": 1780039218.890473,
-    "ast_hash": "2739085298fc512996942f2e380c7674",
-    "semantic_hash": "2739085298fc512996942f2e380c7674"
+    "mtime": 1794836225.0124924,
+    "ast_hash": "65d1305f02c9b40b9e4baaed8d4d5223",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_lib/sk-tim-penilai-defaults.ts": {
-    "mtime": 1779848075.8471708,
-    "ast_hash": "bb2de9785f920356152bc0774388fc87",
-    "semantic_hash": "bb2de9785f920356152bc0774388fc87"
+    "mtime": 1794836225.0134904,
+    "ast_hash": "b97851bb9e65b2178935fe3f8efbaeab",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/page.tsx": {
-    "mtime": 1794331021.3264925,
-    "ast_hash": "b5d9f59ed65e5e92d0ddf9381b541afd",
+    "mtime": 1794838094.74779,
+    "ast_hash": "889ad4c7c004ba40425234bc374a2e63",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/components/modals/BorrowAssetModal.tsx": {
-    "mtime": 1794712980.132752,
-    "ast_hash": "4372580f4de19486d0bec55261eb166c",
+    "mtime": 1794836257.2883742,
+    "ast_hash": "42f543f195ec91926ca46859100c46ac",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/components/modals/MaintenanceModal.tsx": {
-    "mtime": 1778910873.3986654,
-    "ast_hash": "e77fc09e48d95edd3281a5fe37d59631",
-    "semantic_hash": "e77fc09e48d95edd3281a5fe37d59631"
+    "mtime": 1794836259.7581143,
+    "ast_hash": "5f0196c1d977ec2866d4e8ff67954251",
+    "semantic_hash": ""
   },
   "frontend/src/app/bmn/disposal/page.tsx": {
-    "mtime": 1794324898.954314,
-    "ast_hash": "6db0b00dbfa13c928783987e8f51353c",
+    "mtime": 1794836560.7055085,
+    "ast_hash": "6e7b61ab910bc143b0f9518fe620973e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/import-review/[batchId]/page.tsx": {
-    "mtime": 1794325012.983685,
-    "ast_hash": "9350d2b2d66a39e1b62543d49711b00d",
+    "mtime": 1794836782.224579,
+    "ast_hash": "a508b8650eb122a227caab0b7f7eeebd",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/import-review/page.tsx": {
-    "mtime": 1794324981.7633758,
-    "ast_hash": "899c5dc44b1873974c388c96aa00c689",
+    "mtime": 1794836563.75507,
+    "ast_hash": "c93834b3124e1b8cff26c343c3667516",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/layout.tsx": {
-    "mtime": 1794798131.0951054,
-    "ast_hash": "b91542c4517aade92c1f6915d3b96ea0",
+    "mtime": 1794835982.8658428,
+    "ast_hash": "3af52ddb94709ddad6fc849066164eb8",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/page.tsx": {
-    "mtime": 1794331489.243059,
-    "ast_hash": "40c2fd039b988bb7477209e106ffe0fc",
+    "mtime": 1794836838.250904,
+    "ast_hash": "5e5d7812d6d7bb71062e567e70da8fd9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/page.tsx": {
-    "mtime": 1794713219.2386963,
-    "ast_hash": "1d6927583f14398fd5a55907a66ebbf3",
+    "mtime": 1794836780.4597943,
+    "ast_hash": "94e5632cc5558a1052e4deee86e75fe0",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/maintenances/page.tsx": {
-    "mtime": 1794324912.5303488,
-    "ast_hash": "c35c98fb57806223c39cda43904f52f9",
+    "mtime": 1794836558.1155777,
+    "ast_hash": "2542647c3aede9792758967dff7254f4",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/page.tsx": {
-    "mtime": 1794790826.057117,
-    "ast_hash": "0b0d37919b7b3d95ea9820bdfddf9768",
+    "mtime": 1794836096.1691465,
+    "ast_hash": "6a95c6295275730414d0d4ba9dc8dc1c",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/HandoverAgreementDocument.tsx": {
@@ -2090,8 +2090,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx": {
-    "mtime": 1791363486.0747566,
-    "ast_hash": "176b8538cd341db87ef94380fe7fe304",
+    "mtime": 1794836225.031009,
+    "ast_hash": "4ab9402f686009b450225f9a0c8d1196",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx": {
@@ -2100,8 +2100,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/page.tsx": {
-    "mtime": 1794328609.6442661,
-    "ast_hash": "4852991138bbe7e68c24f177e654f837",
+    "mtime": 1794837254.4850056,
+    "ast_hash": "8bd4a7018b516b326be2f6922df189ab",
     "semantic_hash": ""
   },
   "frontend/src/app/cms/_components/CrudFormDrawer.tsx": {
@@ -5330,43 +5330,43 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/workflow/DocumentNumberDateSection.tsx": {
-    "mtime": 1787548978.5743427,
-    "ast_hash": "e46d90fb0e5159718dd38b5a596589de",
+    "mtime": 1794837621.5340502,
+    "ast_hash": "820e6c19b0d22ebbfd2c0160c72be80d",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/workflow/DocumentWorkflowSection.tsx": {
-    "mtime": 1787548978.5753431,
-    "ast_hash": "9ad3c2dd018775a880188a78ac45b0e0",
+    "mtime": 1794837641.348174,
+    "ast_hash": "f8324f998f1300438cdc9a82a56504e5",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/workflow/FinalSubmitPanel.tsx": {
-    "mtime": 1787548978.5753431,
-    "ast_hash": "b3f267dd16f8e2f0643bb1f85a96bdc5",
+    "mtime": 1794837643.0794768,
+    "ast_hash": "34b31c5983d87e22331d5011c9624f7a",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/workflow/SignatoryPickerSection.tsx": {
-    "mtime": 1787548978.5773454,
-    "ast_hash": "c3ef9b8a0b895e378dc490119623d998",
+    "mtime": 1794837666.3246758,
+    "ast_hash": "c4ab49a9bf0d5b410e7a46dcbe8ca911",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/workflow/types.ts": {
-    "mtime": 1787548978.578346,
-    "ast_hash": "91fbbbbc523086de82a6f67cd63a2c36",
+    "mtime": 1794836224.8842647,
+    "ast_hash": "f1ba54c9306196446a45d2b72035d27e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_lib/document-workflow.ts": {
-    "mtime": 1787548978.578346,
-    "ast_hash": "2ce069181a60dd253066881d251b558a",
+    "mtime": 1794836224.8894377,
+    "ast_hash": "1cc018dbfb08f0a64faab3ecdb5529ac",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_lib/workflow-tabs.ts": {
-    "mtime": 1787548978.5793433,
-    "ast_hash": "7a9a17d7bd9a7cdefa0597e1ff6d020c",
+    "mtime": 1794836224.892047,
+    "ast_hash": "21ce75f0a9ea73c3b843c8ea2631c508",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-candidates/_components/SuratTugasPemeriksaanPenilaianDocument.tsx": {
-    "mtime": 1790737262.6676753,
-    "ast_hash": "2baaeb26df0827e8eeb2c9626188298d",
+    "mtime": 1794836224.9549685,
+    "ast_hash": "3a7688d4776e971c70a08b3e543d039a",
     "semantic_hash": ""
   },
   "mobile/src/components/AppDatePickerModal.tsx": {
@@ -5465,23 +5465,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/asset-utils.ts": {
-    "mtime": 1794302459.1965728,
-    "ast_hash": "e1fc9238b5da9cf3cb2eebd2cbae8e70",
+    "mtime": 1794836224.8569903,
+    "ast_hash": "6910d60c80b173db5cb973ad81b8b52e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/_components/ReturnLoanModal.tsx": {
-    "mtime": 1794331489.2689047,
-    "ast_hash": "66b7b132de02770d9823532bc7cf648b",
+    "mtime": 1794836555.6012285,
+    "ast_hash": "43da2c5078e63eea63e5a75b29719d42",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/report-utils.ts": {
-    "mtime": 1791807652.9479055,
-    "ast_hash": "7730b5b4c0fc12a496de1a6fc60ad7dd",
+    "mtime": 1794836225.03301,
+    "ast_hash": "1f7c6b8cd97537eddb947fda6dae8127",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/BmnDashboardComponents.tsx": {
-    "mtime": 1794231164.3310995,
-    "ast_hash": "6ea58d0a9051d242e0afd364d64306fe",
+    "mtime": 1794835984.784226,
+    "ast_hash": "496ab8eeb5358dbec6832ed0dc78e90d",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/KepegawaianDashboardComponents.tsx": {
@@ -6255,23 +6255,23 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/TagAssignmentDialog.tsx": {
-    "mtime": 1791166509.7088332,
-    "ast_hash": "0910c1f027d3780fd46ab3412d08bf63",
+    "mtime": 1794836399.3116727,
+    "ast_hash": "a758ed5ff95e12a30efa442a67656ee4",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/TagBadge.tsx": {
-    "mtime": 1791166333.3002825,
-    "ast_hash": "4ed879273b7950a97d72885aa1550a98",
+    "mtime": 1794836254.9645813,
+    "ast_hash": "8d9973fa351e301ad1510c5a247dd879",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/tag-utils.ts": {
-    "mtime": 1791166309.8548515,
-    "ast_hash": "5f48f7d4e93aade20153939a1bd64d96",
+    "mtime": 1794836224.8585887,
+    "ast_hash": "aaa9905c3d766c639bd811a9e55ffa9f",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/page.tsx": {
-    "mtime": 1794792640.1687052,
-    "ast_hash": "a57b90d132f80910c89345980f596c76",
+    "mtime": 1794836209.5091038,
+    "ast_hash": "c0557321099f1e23fd132cd18d672d05",
     "semantic_hash": ""
   },
   "backend/database/seeders/BmnWilayahTagsSeeder.php": {
@@ -6280,13 +6280,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/AssetTagsList.tsx": {
-    "mtime": 1794299418.63339,
-    "ast_hash": "1dbe3a379c619ecb5e5637897279af1e",
+    "mtime": 1794836198.1331024,
+    "ast_hash": "289848769173ff50538eb038c866c5c8",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_components/TagFilterCombobox.tsx": {
-    "mtime": 1794299806.0182164,
-    "ast_hash": "8cbc15240a2533771666240c1f4436a6",
+    "mtime": 1794836202.3136978,
+    "ast_hash": "5d7be3a11d5bb17dd2abcdb30918f9cd",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetTypeController.php": {
@@ -6395,8 +6395,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/DocumentContentEditorModal.tsx": {
-    "mtime": 1794331144.0391574,
-    "ast_hash": "49db5ca01d411bba580dff6af47fa33b",
+    "mtime": 1794837783.1529732,
+    "ast_hash": "e11e15821a77abb298b24d3aac475b99",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/_lib/document-content-defaults.ts": {
@@ -6410,13 +6410,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/AssetSelectionTable.tsx": {
-    "mtime": 1794326529.7025328,
-    "ast_hash": "fef3c1978ecd7920b4ecc6a77aced00c",
+    "mtime": 1794837179.5227435,
+    "ast_hash": "b6a75bde42107b13a4fae5bfd8d0b18b",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/RecentDocumentTable.tsx": {
-    "mtime": 1794327331.5467312,
-    "ast_hash": "90177667525b8b801fdf5c3f9464948f",
+    "mtime": 1794837252.1660998,
+    "ast_hash": "95c232fafe2dfa38d34d58070b70e7ab",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/report-actions.ts": {
@@ -6425,43 +6425,43 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_lib/types.ts": {
-    "mtime": 1793584908.1929054,
-    "ast_hash": "8d1d77be623092250b5b98de78f54c15",
+    "mtime": 1794836225.0360126,
+    "ast_hash": "210ce5eb34c867a36157d032d1cc2429",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/CoveringLetterTab.tsx": {
-    "mtime": 1794327419.511178,
-    "ast_hash": "58133253e74e12ad5a9ee29af4ee888b",
+    "mtime": 1794837344.5502229,
+    "ast_hash": "91a2981f293ff06ab5c106f72d504fe5",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/DocumentHistoryTab.tsx": {
-    "mtime": 1794327331.5331254,
-    "ast_hash": "08b5033d27b727a4c0e4ed4a9eb196e0",
+    "mtime": 1794837257.0143447,
+    "ast_hash": "9cf7077c8ba9e3c7cb77b7cea47e5312",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/ExportReportsTab.tsx": {
-    "mtime": 1794327216.581741,
-    "ast_hash": "eeb1cbf1f9a68fd043ec714cebd9153c",
+    "mtime": 1794837181.5699482,
+    "ast_hash": "cd74bf88bd27c9bfe38be111f79486db",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/HandoverAgreementTab.tsx": {
-    "mtime": 1794328016.8044763,
-    "ast_hash": "1616679c7af290c36df582c5ab1838df",
+    "mtime": 1794837462.2463944,
+    "ast_hash": "56573ff9156e64ec733a1cc2ce656417",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/PowerOfAttorneyTab.tsx": {
-    "mtime": 1794327916.2469995,
-    "ast_hash": "4b538cd06132383390073de11b96d36b",
+    "mtime": 1794837384.1185982,
+    "ast_hash": "1e495c470d24e20f6cb692016f4268d3",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_tabs/UsageAgreementTab.tsx": {
-    "mtime": 1794327331.4561996,
-    "ast_hash": "486655a92ffeb3abfb9ee42a56b148de",
+    "mtime": 1794837346.5817869,
+    "ast_hash": "5405e55c93014032b5f021fc3556e93b",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_components/TablePaginationFooter.tsx": {
-    "mtime": 1794325421.8614974,
-    "ast_hash": "d91cefc8876ebde44e17f50bf7efebc7",
+    "mtime": 1794836211.3153708,
+    "ast_hash": "a3e996b5a2e13e2be55e28b32bf5e50e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_lib/types.ts": {
@@ -6470,18 +6470,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/AssetTypeManagementTab.tsx": {
-    "mtime": 1794325718.0762198,
-    "ast_hash": "680876f753429a6fa0c300fd8f033de8",
+    "mtime": 1794836446.123223,
+    "ast_hash": "559e8093b73c000752a91730910445f6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/LocationManagementTab.tsx": {
-    "mtime": 1794782203.8755171,
-    "ast_hash": "9d2435ea6e4ea9936c0bc69f6f1f8211",
+    "mtime": 1794836401.6131957,
+    "ast_hash": "b12356dd7f6fe02e01b9477d1211a229",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/settings/_tabs/TagManagementTab.tsx": {
-    "mtime": 1794325718.0384657,
-    "ast_hash": "84f5c7b09e6c876602cef83152e52aab",
+    "mtime": 1794838727.1627414,
+    "ast_hash": "0fc4bedfd9d333db45db5d548cb93d80",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AuctionDocumentRenderer.tsx": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/CommitteePicker.tsx": {
-    "mtime": 1794331144.01316,
-    "ast_hash": "265a0ba9b6a7878b4e1e6091f956615e",
+    "mtime": 1794837612.153215,
+    "ast_hash": "2413282011b1bd33a2788ae1a11f230e",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_lib/auction-print-dispatcher.ts": {
@@ -6565,8 +6565,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/location-options.ts": {
-    "mtime": 1794750865.7818377,
-    "ast_hash": "5f648ec6845b32ac8db7ca65462bdd5e",
+    "mtime": 1794836224.8575244,
+    "ast_hash": "aa6427e18a310665c30487559d4c6332",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_12_203000_sync_st_and_expense_templates.php": {
@@ -7960,8 +7960,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/_components/AssetCatalogModal.tsx": {
-    "mtime": 1794331564.4775753,
-    "ast_hash": "92cef64613c7498aa78f858cd5719645",
+    "mtime": 1794837001.7451732,
+    "ast_hash": "4e9d838246d388799abc8daab068a82a",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php": {
@@ -9030,8 +9030,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/_components/AssetPhotoPreview.tsx": {
-    "mtime": 1794301529.2494926,
-    "ast_hash": "bd460c05fb4c1f4048c03b50bed6d1cc",
+    "mtime": 1794836551.199369,
+    "ast_hash": "c7cba2de8c8e32d35159a1262b710199",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/use-asset-view.ts": {

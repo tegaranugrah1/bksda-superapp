@@ -62,15 +62,15 @@
   :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"] {
     background: var(--ds-surface-raised);
     color: var(--ds-secondary-fg);
-    border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
-    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+    border: 1px solid var(--ds-border-subtle);
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
   }
   :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"]:hover {
     background: var(--ds-surface-muted);
     border-color: var(--ds-border-control);
   }
   .dark :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"] {
-    border-color: color-mix(in srgb, var(--ds-border-control) 35%, var(--ds-border-subtle));
+    border-color: var(--ds-border-subtle);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
   }
   .dark :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"]:hover {
@@ -84,15 +84,15 @@
 :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary {
   background: var(--ds-surface-raised);
   color: var(--ds-secondary-fg);
-  border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--ds-border-subtle);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
 }
 :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary:hover {
   background: var(--ds-surface-muted);
   border-color: var(--ds-border-control);
 }
 .dark :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary {
-  border-color: color-mix(in srgb, var(--ds-border-control) 35%, var(--ds-border-subtle));
+  border-color: var(--ds-border-subtle);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
 }
 .dark :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary:hover {

@@ -2485,13 +2485,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/layout.tsx": {
-    "mtime": 1794357464.2298787,
-    "ast_hash": "6d25ddc8063a0a7a10e854b6484b873b",
+    "mtime": 1794841966.3320944,
+    "ast_hash": "26960670ad95536059f64f3c26210880",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/page.tsx": {
-    "mtime": 1794356601.8107176,
-    "ast_hash": "412260bf8f323a92f6b07174436ec5ce",
+    "mtime": 1794841882.928916,
+    "ast_hash": "d726effb8a4484856f36a1973802b215",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisi2UpPrint.tsx": {
@@ -3680,8 +3680,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1790729346.8885372,
-    "ast_hash": "ef286a76f33bb0042149c772639b7c0e",
+    "mtime": 1794840012.7191727,
+    "ast_hash": "9fb226d2652af8a3298f9ed458b3532f",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4345,8 +4345,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1793842584.6473782,
-    "ast_hash": "85c5b0a009d724ace8f6c9dd7f796103",
+    "mtime": 1794840001.3643582,
+    "ast_hash": "d8a50aca092a104acbf2a27a9c024beb",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5505,18 +5505,18 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/EmployeeSelectionStep.tsx": {
-    "mtime": 1794357001.7755375,
-    "ast_hash": "527e35c05adec3d43f0a098867d67590",
+    "mtime": 1794842149.5496335,
+    "ast_hash": "9fee4ba6d3a09b7920d4c4bdf4a0990c",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasDetailStep.tsx": {
-    "mtime": 1794357464.25588,
-    "ast_hash": "388080c25b2f89887632bba788e0794e",
+    "mtime": 1794842374.877164,
+    "ast_hash": "6ad4e4275f3cd005fce862e276a87893",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasSuccessStep.tsx": {
-    "mtime": 1794356362.8158712,
-    "ast_hash": "1b798e305852fe1e55237c63faf26d9f",
+    "mtime": 1794841880.189119,
+    "ast_hash": "7879efb1e7501101ed342b492cfd5ac7",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratHubComponents.tsx": {
@@ -6135,8 +6135,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794798918.5248656,
-    "ast_hash": "1099f2bc1e02304f5683f4fc7f8861d5",
+    "mtime": 1794839983.20477,
+    "ast_hash": "ee43cbc35864959b7cdbd6b6a7e9dfd0",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -9055,8 +9055,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/SuratTugasDialog.tsx": {
-    "mtime": 1794357001.8455372,
-    "ast_hash": "6fdc561e41bc64ce32ae6a39646856fe",
+    "mtime": 1794841877.7783148,
+    "ast_hash": "cb8f704f7a4462427944305ec0d527ba",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/use-dialog-focus-return.ts": {
@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794821350.5769434,
-    "ast_hash": "17f7c885b665983aa145404ac579a781",
+    "mtime": 1794839999.8692548,
+    "ast_hash": "58e2925675d3073b1bc060864533d90e",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9265,8 +9265,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_5_TOKENS.md": {
-    "mtime": 1794821348.4516964,
-    "ast_hash": "ed7ec9d36a154bccdd7651ef0f25c88a",
+    "mtime": 1794839956.90177,
+    "ast_hash": "d7a049d0d4ef177094189ded54c8fda1",
     "semantic_hash": ""
   }
 }

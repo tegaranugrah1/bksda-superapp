@@ -21,7 +21,7 @@ export function SuratTugasDialog({
     <Dialog open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
       <DialogContent
         data-module="surat-tugas"
-        className={cn("st-ui max-h-[90dvh] overflow-y-auto rounded-2xl p-5", className)}
+        className={cn("st-ui max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 sm:p-6 shadow-lg", className)}
         aria-describedby={undefined}
         showCloseButton={false}
         onOpenAutoFocus={() => { opener.current = document.activeElement as HTMLElement | null; }}
