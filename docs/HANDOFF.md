@@ -3224,10 +3224,10 @@ Setelah semua command clean:
 
 ## 📌 Handoff Sesi Terbaru — 17 November 2026
 
-> **Catatan Konteks Aktif:** Catatan progres operasional terbaru (per November 2026) dipusatkan pada [`progress.md`](../progress.md) (Bagian 109–122) di root repository, sedangkan dokumen khusus fitur lifecycle pegawai berada pada [`doc.md`](../doc.md).
+> **Catatan Konteks Aktif:** Catatan progres operasional terbaru (per November 2026) dipusatkan pada [`progress.md`](../progress.md) (Bagian 109–123) di root repository, sedangkan dokumen khusus fitur lifecycle pegawai berada pada [`doc.md`](../doc.md).
 > **Kebijakan Git Aktif:** Commit lokal pada branch **`codex/portal-security-pentest`**, **jangan `git push` atau deploy tanpa instruksi eksplisit pengguna** (hindari `git add .` membabi buta; pastikan staging eksplisit via `git status --short`).
 
-### Status Terakhir (Pasca-`fc993464`: Hardening `/security-audit` & Refactoring `/ponytail-audit` 6 Modul)
+### Status Terakhir (Pasca-`76374a21`: Upgrade Keamanan Next.js `16.4.6` + Hardening `/security-audit` & `/ponytail-audit` 6 Modul)
 1. **Sistem Desain 5 Token (`docs/DESIGN_SYSTEM_5_TOKENS.md`) Selesai Diterapkan di 5 Modul Utama:**
    - **Persuratan (`/surat`):** [`c499257f` & `a41549b4`] Dashboard + seluruh halaman agenda/keluar/dinas/pengaturan/modal + pelembutan `.kpg-secondary` global.
    - **Kepegawaian (`/kepegawaian`):** [`540fb44b`] 38 berkas UI halaman, modal, tab, dan kontrol Surat Tugas di shell Kepegawaian.
@@ -3237,11 +3237,14 @@ Setelah semua command clean:
 2. **Audit Keamanan & Refactoring Ponytail Lintas 6 Modul (`surat-tugas`, `portal`, `kepegawaian`, `drive`, `bmn`, `surat`):**
    - **Hardening Keamanan ([`docs/security/security-audit-6-modules-2026-11-17.md`](security/security-audit-6-modules-2026-11-17.md)):** Seluruh `SEC-01`–`SEC-11` berstatus `Mitigated (Code)` (`ValidateApiCsrfToken.php`, proteksi `EmployeeLeaveSnapshotCheck`, guard `enable2Fa` `409`, penghapusan `employee.email` ke `null` tanpa `current_password`, penyelarasan kebijakan `StActorAcceptanceTest` draft numbering & `StLifecycleAcceptanceTest` creator restore, serta `SixModulesSecurityHardeningTest.php`). Item `NV-01`–`NV-06` tetap berstatus `Needs Validation` pada tahap staging/deploy.
    - **Refactoring & Pembersihan `/ponytail-audit` ([`docs/ponytail-audit-6-modules-2026-11-17.md`](ponytail-audit-6-modules-2026-11-17.md)):** Seluruh `P-01`–`P-07` selesai dikerjakan: penghapusan `46` berkas BMN mati (+ pembersihan referensi usang `bmn-utils.ts`, `constants/bmn.ts`, `EmployeePicker.tsx` pada `frontend/src/app/_docs/utility-functions.md` & `frontend/README.md`) dan `GoogleSheetsService`/UI mati, pengurangan `5` paket npm & `2` paket composer, serta penyatuan helper bersama (`ResolvesDocumentStatus.php`, `PhotoLampiranPages.tsx`, `ReportFormShared.tsx`, `SuratTugasA4Parts.tsx`, `print-window.ts`).
-   - **Verifikasi Pasca-Edit Akhir:** PHPUnit (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `tsc --noEmit` (`0`), `eslint` lintas 6 modul (`0` error, `4` warning `@next/next/no-img-element`), `npm run build` (`86/86` rute pada retry; `Next.js 16.4.2` memunculkan imbauan upgrade keamanan pada run awal), `9/9` skrip CJS, dan `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` `[STOPPED / BLOCKED]` menunggu `NEXT_PUBLIC_REVERB_APP_KEY`).
+   - **Verifikasi 6 Modul (Pra-Upgrade `next`):** PHPUnit (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `9/9` skrip CJS, dan `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` `[STOPPED / BLOCKED]` menunggu `NEXT_PUBLIC_REVERB_APP_KEY`).
 3. **RBAC Per-Modul & Pengerasan Fitur Harian:**
    - Role independen per modul (`users.module_roles`, `f4379c2d`, `faed1785`, `862ec6f0`), ekspor PDF vektor searchable SRIKANDI + Word surat dinas (`93656c64`, `f8ca5a1f`), serta manajemen/hapus scan cuti + arsip Drive (`370c9622`, `7692933a`, `465b1307`).
-4. **Agenda Sesi Berikutnya:**
-   - Validasi runtime/deploy `NV-01`–`NV-06`, konfigurasi `NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/.env.local` untuk pengujian live WebSocket `E2E-LIVE-07`, evaluasi upgrade **Next.js** `16.4.2` sesuai imbauan `SecurityFatalError`, serta penerapan 5 Design Tokens / lanjutan pada modul **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS**.
-5. **Rujukan Audit & Cek Cepat untuk Sesi Berikutnya:**
-   - Rinci hasil pengujian & perubahan terakhir: lihat [`progress.md`](../progress.md) (Bagian 117–122).
+4. **Upgrade Keamanan Next.js (`16.4.2` → `16.4.6`):**
+   - [`frontend/package.json`](../frontend/package.json) & [`frontend/package-lock.json`](../frontend/package-lock.json): `next` dinaikkan ke `^16.4.6` (`16.4.6` di lockfile) untuk menutup advisory `GHSA-mfr8-8qww-v76h` tanpa menaikkan `react`/`react-dom` (`18.3.1`) maupun `eslint-config-next` (`16.2.4`).
+   - **Verifikasi Pasca-Upgrade:** `npm audit` pada `next` (`NONE`), `tsc --noEmit` (`0`), `npx eslint src` (`0` error, `4` warning `@next/next/no-img-element`), `npm run build` (`86/86` rute bersih di Next.js `16.4.6`), `npm run test:security-cache` (`8/8`), dan `npm run dev` (`GET /drive 200`).
+5. **Agenda Sesi Berikutnya:**
+   - Validasi runtime/deploy `NV-01`–`NV-06`, konfigurasi `NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/.env.local` untuk pengujian live WebSocket `E2E-LIVE-07`, pinning `react`/`react-dom` di `frontend/package.json` atau evaluasi upgrade **React `18.3.1` → `19`** pada PR terpisah beserta regresi Playwright penuh, serta penerapan 5 Design Tokens / lanjutan pada modul **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS**.
+6. **Rujukan Audit & Cek Cepat untuk Sesi Berikutnya:**
+   - Rinci hasil pengujian & perubahan terakhir: lihat [`progress.md`](../progress.md) (Bagian 117–123).
    - Knowledge Graph disinkronkan via `graphify update .` (`15331` nodes, `28499` edges, `1032` communities di `graphify-out/`); jalankan ulang `graphify update .` setiap selesai mengubah kode.

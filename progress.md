@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (17 November 2026):** Audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) selesai dikerjakan serta diverifikasi lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**), melengkapi penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`fc993464`). Verifikasi akhir BE/FE/E2E: `phpunit` (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `tsc --noEmit` (`0`), `eslint` (`0` error), `next build` (`86/86` rute pada retry), `9/9` skrip CJS, serta `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` blocked karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi). Knowledge Graph diperbarui (`graphify update .`: `15331` nodes, `28499` edges, `1032` communities). (Bagian 115–122).
+**Status terbaru (17 November 2026):** Upgrade keamanan **Next.js** (`16.4.2` → `16.4.6`, menutup `GHSA-mfr8-8qww-v76h` dengan `react`/`react-dom` tetap terkunci di `18.3.1`) selesai diverifikasi (`tsc --noEmit` `0`, `npx eslint src` `0` error / `4` warning, `next build` `86/86` rute clean tanpa `SecurityFatalError`, `test:security-cache` `8/8`, dan `next dev` `GET /drive 200`), melengkapi audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**) serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`fc993464`). Verifikasi penuh 6 modul (pra-bump `next`): `phpunit` (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `9/9` skrip CJS, serta `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` blocked karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi). Knowledge Graph (`graphify-out/`): `15331` nodes, `28499` edges, `1032` communities. (Bagian 115–123).
 
 ## Status Update: 2 November 2026
 
@@ -2681,3 +2681,21 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
     - `portal-notifications-live-e2e.playwright.cjs` (`9` skenario live `PASS`; `E2E-LIVE-07` `[STOPPED / BLOCKED]` karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi di `frontend/.env.local`)
     - `location-hierarchy-drive-sync.playwright.cjs` (`7/7` skenario live `PASS`)
 - **Status**: ✅ Selesai Dikerjakan & Diverifikasi (`SEC-01`–`SEC-11` & `P-01`–`P-07`; `NV-01`–`NV-06` menunggu validasi runtime/staging).
+
+---
+
+## 123. Upgrade Keamanan Next.js (`16.4.2` → `16.4.6`) & Verifikasi Build Frontend (17 November 2026)
+
+- **Latar Belakang**: Merespons advisory keamanan Next.js `16.4.2` (`GHSA-mfr8-8qww-v76h`, rentang terdampak `>=16.3.0 <=16.4.4`, imbauan `SecurityFatalError` pada `next build`). Audit kode di `frontend/src` memastikan `'use cache'` dan `unstable_cache` tidak dipakai, sementara `next` dinaikkan ke versi patch aman terbaru di branch `codex/portal-security-pentest` sebelum PR/merge.
+- **Perubahan Paket & Lockfile**:
+  - [`frontend/package.json`](file:///e:/bksda-superapp/frontend/package.json#L31): menaikkan `"next": "^16.4.2"` menjadi `"next": "^16.4.6"`.
+  - [`frontend/package-lock.json`](file:///e:/bksda-superapp/frontend/package-lock.json): pembaruan terkunci hanya untuk `next`, `@next/env`, dan `@next/swc-*` ke `16.4.6` (`40` baris tambah / `40` baris hapus).
+  - **Isolasi React 18.3.1**: `react` (`18.3.1`), `react-dom` (`18.3.1`), dan `eslint-config-next` (`16.2.4`) dipertahankan di lockfile (upgrade ke React 19 ditunda ke PR terpisah agar perubahan runtime major tetap diuji regresi E2E penuh).
+- **Verifikasi Pasca-Upgrade**:
+  - `npm audit --json` pada paket `next`: `NONE` (kerentanan `GHSA-mfr8-8qww-v76h` tertutup; audit penuh tetap melaporkan `20` temuan di luar `next`).
+  - `npx tsc --noEmit` (`frontend/`): `0` error (`exit 0`).
+  - `npx eslint src` (`frontend/`): `0` error, `4` warning bawaan `@next/next/no-img-element` (`SmartPatrolInlineForm.tsx` & `SmartPatrolPrint.tsx`, `exit 0`).
+  - `npm run build` (`Next.js 16.4.6 (Turbopack)`): **berhasil** mengompilasi & menghasilkan `86/86` rute tanpa error keamanan (`exit 0`; hanya peringatan deprecation bahwa dukungan React 18 berakhir di Next.js 17).
+  - `npm run test:security-cache`: `8/8 passed`, `0 failed`.
+  - **Dev Runtime Check**: Setelah restart `npm run dev` dan membersihkan cache lama `.next/dev`, server dev berjalan pada `Next.js 16.4.6 (Turbopack)` dan melayani `/drive` (`GET /drive 200`).
+- **Status**: ✅ Selesai Dikerjakan & Diverifikasi pada `codex/portal-security-pentest` (PR/merge ke `main` & `production-server` ditunda sesuai arahan pengguna).
