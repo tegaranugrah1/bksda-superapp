@@ -1152,17 +1152,17 @@ export const SURAT_DINAS_BASE_CSS = `
     font-size: 11pt;
     color: #000;
   }
-  .pkpknl-meta-container { width: 100%; margin: 14px 0 0; line-height: 1.5; }
-  .pkpknl-meta-row { width: 100%; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 6mm; line-height: 1.5; }
-  .pkpknl-meta-field { display: flex; align-items: baseline; min-width: 0; line-height: 1.5; }
+  .pkpknl-meta-container { width: 100%; margin: 14px 0 0; line-height: 1.25; }
+  .pkpknl-meta-row { width: 100%; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 6mm; line-height: 1.25; }
+  .pkpknl-meta-field { display: flex; align-items: baseline; min-width: 0; line-height: 1.25; }
   .pkpknl-meta-label { width: 21mm; flex-shrink: 0; }
   .pkpknl-meta-colon { width: 4mm; text-align: center; flex-shrink: 0; }
   .pkpknl-meta-nomor { white-space: pre !important; }
   .pkpknl-meta-nomor-long { font-size: 10pt !important; letter-spacing: -0.2px; }
   .pkpknl-meta-nomor-extra-long { font-size: 9.5pt !important; letter-spacing: -0.3px; }
-  .pkpknl-meta-tanggal { text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: auto; line-height: 1.5; }
-  .pkpknl-perihal-full { width: 100%; margin: 0; display: flex; align-items: baseline; line-height: 1.5; }
-  .pkpknl-perihal-content { flex: 1; min-width: 0; text-align: justify; text-justify: inter-word; line-height: 1.5; }
+  .pkpknl-meta-tanggal { text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: auto; line-height: 1.25; }
+  .pkpknl-perihal-full { width: 100%; margin: 0; display: flex; align-items: baseline; line-height: 1.25; }
+  .pkpknl-perihal-content { flex: 1; min-width: 0; text-align: justify; text-justify: inter-word; line-height: 1.25; }
   .pkpknl-yth { width: 100%; margin: 18px 0 0; line-height: 1.4; }
   .pkpknl-yth p { margin: 0; }
   .pkpknl-yth-tempat { padding-left: 1.25rem; }

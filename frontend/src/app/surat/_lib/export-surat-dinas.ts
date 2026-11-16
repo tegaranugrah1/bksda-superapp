@@ -102,7 +102,7 @@ function transformCloneForWord(clone: HTMLElement): void {
   // 1b. Pastikan Judul Naskah (NOTA DINAS/MEMORANDUM) turun sedikit dari kop dan Nomor dekat dengan judul
   const titleBlocks = Array.from(
     clone.querySelectorAll(".nota-dinas-title-block, .text-center")
-  );
+  ).filter((tb) => Boolean(tb.querySelector("h2")));
   titleBlocks.forEach((tb) => {
     (tb as HTMLElement).style.textAlign = "center";
     (tb as HTMLElement).style.marginTop = "16pt"; // Breathing room dari kop
@@ -135,20 +135,10 @@ function transformCloneForWord(clone: HTMLElement): void {
     });
   });
 
-  // 2. Transformasi Metadata untuk Nota Dinas & Memorandum
+  // 2. Transformasi Metadata khusus Nota Dinas & Memorandum (hindari selector umum agar body/surat-content tidak ikut terkonversi)
   const metaContainers = Array.from(
-    clone.querySelectorAll(".nota-dinas-meta, [data-meta='nota-dinas'], .space-y-1\\.5, .space-y-2, .space-y-2\\.5")
+    clone.querySelectorAll(".nota-dinas-meta, [data-meta='nota-dinas']")
   );
-  if (metaContainers.length === 0) {
-    const allDivs = Array.from(clone.querySelectorAll("div"));
-    const fallbackMeta = allDivs.find(
-      (d) =>
-        d.textContent?.includes("Yth.") &&
-        d.textContent?.includes("Dari") &&
-        d.children.length >= 3
-    );
-    if (fallbackMeta) metaContainers.push(fallbackMeta);
-  }
 
   metaContainers.forEach((container) => {
     const rows = Array.from(container.children);
@@ -210,19 +200,27 @@ function transformCloneForWord(clone: HTMLElement): void {
     container.replaceWith(metaWrapper);
   });
 
-  // 3. Transformasi Metadata untuk Surat Dinas (.pkpknl-meta-container)
+  // 3. Transformasi Metadata untuk Surat Dinas (.pkpknl-meta-container + sibling .pkpknl-perihal-full)
   const pkpknlMeta = clone.querySelector(".pkpknl-meta-container");
   if (pkpknlMeta) {
     const rows = Array.from(pkpknlMeta.querySelectorAll(".pkpknl-meta-row, .pkpknl-perihal-full"));
+    const siblingPerihal = pkpknlMeta.nextElementSibling?.classList.contains("pkpknl-perihal-full")
+      ? pkpknlMeta.nextElementSibling
+      : null;
+    if (siblingPerihal) rows.push(siblingPerihal);
+
     const tanggalEl = pkpknlMeta.querySelector(".pkpknl-meta-tanggal");
     const tanggalText = tanggalEl ? tanggalEl.textContent?.trim() : "";
 
     const metaTable = document.createElement("table");
+    metaTable.setAttribute("cellpadding", "0");
+    metaTable.setAttribute("cellspacing", "0");
     metaTable.setAttribute(
       "style",
       "width: 100%; border: none; border-collapse: collapse; margin-bottom: 0; table-layout: fixed;"
     );
 
+    const cellStyle = "vertical-align: top; padding: 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000;";
     let tableHtml = "";
     rows.forEach((row, rIdx) => {
       const label = row.querySelector(".pkpknl-meta-label")?.textContent?.trim() || "";
@@ -230,28 +228,33 @@ function transformCloneForWord(clone: HTMLElement): void {
       const valEl = row.querySelector(".pkpknl-meta-nomor, .pkpknl-perihal-content") || row.querySelector("span:last-child");
       const val = valEl ? valEl.innerHTML.replace(/\n/g, "<br/>") : "";
 
-      tableHtml += `
-        <tr style="border: none;">
-          <td style="width: 2.1cm; vertical-align: top; padding: 4pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000;">${label}</td>
-          <td style="width: 0.4cm; vertical-align: top; text-align: center; padding: 4pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000;">${colon}</td>
-          <td style="vertical-align: top; text-align: left; padding: 4pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000; font-weight: normal;">${val}</td>
-          ${
-            rIdx === 0 && tanggalText
-              ? `<td style="width: 7.0cm; vertical-align: top; text-align: right; padding: 4pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000;">${tanggalText}</td>`
-              : rIdx === 0
-              ? `<td style="width: 7.0cm; border: none;">&nbsp;</td>`
-              : ""
-          }
-        </tr>
-      `;
+      if (rIdx === 0) {
+        tableHtml += `
+          <tr style="border: none;">
+            <td style="width: 2.1cm; ${cellStyle}">${label}</td>
+            <td style="width: 0.4cm; text-align: center; ${cellStyle}">${colon}</td>
+            <td style="text-align: left; font-weight: normal; ${cellStyle}">${val}</td>
+            <td style="width: 5.0cm; text-align: right; ${cellStyle}">${tanggalText || "&nbsp;"}</td>
+          </tr>
+        `;
+      } else {
+        tableHtml += `
+          <tr style="border: none;">
+            <td style="width: 2.1cm; ${cellStyle}">${label}</td>
+            <td style="width: 0.4cm; text-align: center; ${cellStyle}">${colon}</td>
+            <td colspan="2" style="text-align: justify; font-weight: normal; ${cellStyle}">${val}</td>
+          </tr>
+        `;
+      }
     });
 
+    siblingPerihal?.remove();
     metaTable.innerHTML = tableHtml;
 
     const spacerP = document.createElement("p");
     spacerP.setAttribute(
       "style",
-      "margin: 0; padding: 0; font-size: 1pt; line-height: 20pt; mso-line-height-rule: exactly;"
+      "margin: 0; padding: 0; font-size: 1pt; line-height: 14pt; mso-line-height-rule: exactly;"
     );
     spacerP.innerHTML = "&nbsp;";
 
@@ -259,6 +262,16 @@ function transformCloneForWord(clone: HTMLElement): void {
     metaWrapper.appendChild(metaTable);
     metaWrapper.appendChild(spacerP);
     pkpknlMeta.replaceWith(metaWrapper);
+  }
+
+  // Rapikan spasi blok tujuan surat (.pkpknl-yth) untuk MS Word
+  const ythEl = clone.querySelector(".pkpknl-yth");
+  if (ythEl) {
+    ythEl.setAttribute("style", "margin: 0 0 12pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;");
+    ythEl.querySelectorAll("p").forEach((p) => {
+      const isTempat = p.classList.contains("pkpknl-yth-tempat");
+      p.setAttribute("style", `margin: 0${isTempat ? " 0 0 14pt" : ""}; padding: 0; text-align: left; line-height: 1.4;`);
+    });
   }
 
   // 4. Transformasi Butir Penomoran (.poin-item) menjadi Tabel 2-Kolom Rapi dengan padding cell anti-collapse
