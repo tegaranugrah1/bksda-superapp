@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\UsageAgreement;
 use App\Modules\Bmn\Resources\UsageAgreementResource;
+use App\Modules\Bmn\Traits\ResolvesDocumentStatus;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rule;
 
 class UsageAgreementController extends Controller
 {
+    use ResolvesDocumentStatus;
     public function index(Request $request)
     {
         $request->validate([
@@ -46,20 +48,6 @@ class UsageAgreementController extends Controller
         return response()->json([
             'message' => 'Riwayat BA Pemakaian BMN berhasil dihapus.',
         ]);
-    }
-
-    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
-    {
-        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
-            return $explicitStatus;
-        }
-        if (empty($number) || trim($number) === '' || trim($number) === '-') {
-            return 'draft';
-        }
-        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
-            return 'draft';
-        }
-        return 'published';
     }
 
     public function store(Request $request): JsonResponse

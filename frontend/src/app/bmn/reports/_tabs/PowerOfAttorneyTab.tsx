@@ -316,81 +316,28 @@ export function PowerOfAttorneyTab({
   };
 
   const duplicatePowerOfAttorney = (agreement: PowerOfAttorneyHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        type: "power_of_attorney",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: "draft",
-        item: { ...agreement, document_type: "power_of_attorney" },
-        isDuplicate: true,
-      });
-      return;
-    }
-
-    setPoaSequence("");
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setPoaKap(kapVal);
-    setPoaDate(todayInputValue());
-    setPoaFirstEmployeeId("");
-    setPoaFirstParty(agreement.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
-    setPoaSecondParty(agreement.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
-    setPoaSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setPoaNotes(agreement.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
-    setPoaKtpPreviewUrl(agreement.ktp_url || null);
-    setPoaKtpPath(agreement.ktp_path || null);
-    setPoaKtpFile(null);
-    toast.info("Arsip Surat Kuasa disalin sebagai dokumen baru. Silakan lengkapi nomor dan tanggal.");
+    onSetEditingDocument?.({
+      type: "power_of_attorney",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: "draft",
+      item: { ...agreement, document_type: "power_of_attorney" },
+      isDuplicate: true,
+    });
   };
 
   const editPowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        id: agreement.id,
-        type: "power_of_attorney",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
-        item: { ...agreement, document_type: "power_of_attorney" },
-        isDuplicate: false,
-      });
-      return;
-    }
-
-    const employeeId = agreement.second_party_snapshot?.id;
-    if (employeeId) {
-      setSelectedEmployeeId(String(employeeId));
-      await loadPoaData(String(employeeId));
-    }
-
-    const seq = extractDocumentSequence(agreement.number);
-    setPoaSequence(seq);
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setPoaKap(kapVal);
-
-    if (agreement.document_date) {
-      setPoaDate(agreement.document_date);
-    }
-    setPoaFirstEmployeeId("");
-    setPoaFirstParty(agreement.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
-    setPoaSecondParty(agreement.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
-    setPoaSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setPoaNotes(agreement.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
-    setPoaKtpPreviewUrl(agreement.ktp_url || null);
-    setPoaKtpPath(agreement.ktp_path || null);
-    setPoaKtpFile(null);
-    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? "Surat Kuasa Kendaraan (Draf)" : agreement.number}`);
+    onSetEditingDocument?.({
+      id: agreement.id,
+      type: "power_of_attorney",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+      item: { ...agreement, document_type: "power_of_attorney" },
+      isDuplicate: false,
+    });
   };
 
-  const printPowerOfAttorneyHistory = (agreement: PowerOfAttorneyHistory) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      toast.error("Gagal membuka jendela cetak.");
-      return;
-    }
-    printWindow.document.write("<html><head><title>Cetak Surat Kuasa</title></head><body>");
-    printWindow.document.write(`<div id="print-root"></div>`);
-    printWindow.document.write("</body></html>");
-    printWindow.document.close();
-    window.setTimeout(() => handlePrintPowerOfAttorney("power-of-attorney-history-print-root"), 100);
+  const printPowerOfAttorneyHistory = () => {
+    handlePrintPowerOfAttorney("power-of-attorney-history-print-root");
   };
 
   const deletePowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {

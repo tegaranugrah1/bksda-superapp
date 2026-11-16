@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useKepegawaianTabs } from "@/app/kepegawaian/_lib/useKepegawaianTabs";
 import type { SuratMasuk } from "../../_lib/surat-types";
 import { SIFAT_OPTIONS } from "../../_lib/surat-types";
+import { saveSuratMasukQuickPatch } from "../../_lib/surat-api";
 import { getSifatBadgeStyle } from "./SifatCellPopover";
 
 interface DiteruskanCellPopoverProps {
@@ -160,69 +161,15 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const payload = {
-        no_agenda: item.no_agenda,
-        no_surat: item.no_surat,
-        tanggal_agenda: item.tanggal_agenda,
-        tanggal_surat: item.tanggal_surat,
-        tanggal_penyelesaian: item.tanggal_penyelesaian,
-        indeks: item.indeks,
-        kode: item.kode,
-        referensi: item.referensi,
-        asal_surat: item.asal_surat,
-        isi_ringkas: item.isi_ringkas,
-        lampiran: item.lampiran,
-        catatan: item.catatan,
+      const updatedItem = await saveSuratMasukQuickPatch(item, {
         sifat_json: [selectedSifat],
-        disposisi: {
-          ...(item.disposisi || {}),
-          diteruskan_json: selectedList,
-          catatan: item.disposisi?.catatan || "",
-        },
-      };
-
-      let resData = item;
-      if (item.id) {
-        const res = await api.put(`/surat-masuk/${item.id}`, payload);
-        if (res.data?.data) {
-          resData = res.data.data;
-        }
-      }
-
-      if (typeof window !== "undefined") {
-        try {
-          const rawLocal = localStorage.getItem("bksda_saved_surat_masuk");
-          if (rawLocal) {
-            const list = JSON.parse(rawLocal);
-            const updated = list.map((s: SuratMasuk) => {
-              if (s.id === item.id || (s.no_agenda && s.no_agenda === item.no_agenda)) {
-                return {
-                  ...s,
-                  sifat_json: [selectedSifat],
-                  disposisi: {
-                    ...s.disposisi,
-                    diteruskan_json: selectedList,
-                  },
-                };
-              }
-              return s;
-            });
-            localStorage.setItem("bksda_saved_surat_masuk", JSON.stringify(updated));
-          }
-        } catch {}
-      }
+        disposisi: { ...(item.disposisi || {}), diteruskan_json: selectedList },
+      });
 
       toast.success("Arahan pimpinan (Sifat & Penerus) berhasil disimpan.");
       setIsOpen(false);
       if (onUpdated) {
-        onUpdated({
-          ...resData,
-          sifat_json: [selectedSifat],
-          disposisi: {
-            ...resData.disposisi,
-            diteruskan_json: selectedList,
-          },
-        });
+        onUpdated(updatedItem);
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal menyimpan arahan pimpinan.");

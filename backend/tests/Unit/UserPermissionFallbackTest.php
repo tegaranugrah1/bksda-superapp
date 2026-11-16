@@ -52,7 +52,8 @@ class UserPermissionFallbackTest extends TestCase
             'permissions' => null,
         ]);
 
-        $this->assertTrue($user->hasPermission('bmn.auction.view'));
+        $this->assertTrue($user->hasPermission('bmn.view'));
+        $this->assertFalse($user->hasPermission('bmn.auction.view'));
         $this->assertFalse($user->hasPermission('bmn.auction.update'));
         $this->assertFalse($user->hasPermission('bmn.auction.finalize'));
     }

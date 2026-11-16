@@ -45,7 +45,31 @@ class StoreStTemplateRequest extends FormRequest
             '.tembusan_label' => 'nullable|string|max:255',
             '.tembusan_items' => 'nullable|array|max:50',
             '.tembusan_items.*' => 'nullable|string|max:500',
-            '.kop_image_url' => 'nullable|string|max:1000',
+            '.kop_image_url' => [
+                'nullable',
+                'string',
+                'max:1000',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+                    $trimmed = trim($value);
+                    if (str_starts_with($trimmed, '/') && ! str_starts_with($trimmed, '//') && ! str_contains($trimmed, '..')) {
+                        return;
+                    }
+                    $allowedHosts = array_filter([
+                        parse_url((string) config('app.url'), PHP_URL_HOST),
+                        parse_url((string) config('app.frontend_url'), PHP_URL_HOST),
+                        parse_url((string) config('app.public_url'), PHP_URL_HOST),
+                    ]);
+                    $parsed = parse_url($trimmed);
+                    $scheme = strtolower((string) ($parsed['scheme'] ?? ''));
+                    $host = strtolower((string) ($parsed['host'] ?? ''));
+                    if (! in_array($scheme, ['http', 'https'], true) || ! in_array($host, array_map('strtolower', $allowedHosts), true)) {
+                        $fail('URL gambar kop surat harus berasal dari path atau domain resmi aplikasi.');
+                    }
+                },
+            ],
             '.date_format_style' => 'nullable|in:inline,tabular',
             '.tembusan_position' => 'nullable|in:beside,bottom',
             '.sumber_dana' => 'nullable|string|max:255',

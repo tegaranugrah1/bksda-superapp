@@ -153,6 +153,7 @@ class ImportReviewController extends Controller
 
         $rows = ImportStaging::whereIn('id', $request->ids)
             ->whereIn('diff_status', ['new', 'updated'])
+            ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
             ->get();
 
         foreach ($rows as $row) {
@@ -211,7 +212,7 @@ class ImportReviewController extends Controller
             'nama_barang' => 'nullable|string|max:255',
         ]);
 
-        $batch = ImportBatch::findOrFail($validated['batch_id']);
+        $batch = ImportBatch::where('status', 'pending')->findOrFail($validated['batch_id']);
         $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
         if ($validated['action'] === 'select_changed') {
@@ -285,10 +286,9 @@ class ImportReviewController extends Controller
      */
     public function approve(string $batchId, Request $request): JsonResponse
     {
-        $batch = ImportBatch::where('status', 'pending')->findOrFail($batchId);
-
         try {
-            $result = DB::transaction(function () use ($batch, $request) {
+            $result = DB::transaction(function () use ($batchId, $request) {
+                $batch = ImportBatch::where('status', 'pending')->lockForUpdate()->findOrFail($batchId);
                 $inserted = 0;
                 $updated = 0;
                 $bulkAssigned = [];
@@ -405,6 +405,8 @@ class ImportReviewController extends Controller
                 'inserted' => $result['inserted'],
                 'updated' => $result['updated'],
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            throw $e;
         } catch (Exception $e) {
             return response()->json(['error' => 'Gagal menyetujui import: ' . $e->getMessage()], 422);
         }

@@ -6,6 +6,7 @@ import { Printer, X, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KepegawaianDialog } from "@/app/kepegawaian/_components/KepegawaianDialog";
 import type { SuratMasuk } from "../../_lib/surat-types";
+import { Disposisi2UpSheetGrid } from "../../_components/LembarDisposisi2UpPrint";
 import { LembarDisposisiSheet } from "../../_components/LembarDisposisiSheet";
 
 interface BatchPrintDisposisiModalProps {
@@ -127,35 +128,13 @@ export function BatchPrintDisposisiModal({
       {/* Render all sheets for physical print */}
       {sheets.map((sheet, idx) => (
         <div key={idx} className="batch-clean-sheet">
-          <div className="batch-clean-grid">
-            {/* Left Form */}
-            <div className="w-full h-full flex flex-col">
-              <LembarDisposisiSheet
-                data={sheet.left}
-                catatanDisposisi={sheet.left.catatan || ""}
-              />
-            </div>
-
-            {/* Vertical Dashed Cut Line Guide (Identical to LembarDisposisi2UpPrint) */}
-            <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
-            </div>
-
-            {/* Right Form */}
-            <div className={`w-full h-full flex flex-col ${!sheet.right ? "invisible print-invisible opacity-0" : ""}`}>
-              {sheet.right ? (
-                <LembarDisposisiSheet
-                  data={sheet.right}
-                  catatanDisposisi={sheet.right.catatan || ""}
-                />
-              ) : (
-                /* Render identical sheet invisibly to guarantee exact symmetric 50-50 column width */
-                <LembarDisposisiSheet
-                  data={sheet.left}
-                />
-              )}
-            </div>
-          </div>
+          <Disposisi2UpSheetGrid
+            leftData={sheet.left}
+            rightData={sheet.right || sheet.left}
+            leftCatatan={sheet.left.catatan || ""}
+            rightCatatan={sheet.right ? sheet.right.catatan || "" : ""}
+            showRight={Boolean(sheet.right)}
+          />
         </div>
       ))}
     </div>

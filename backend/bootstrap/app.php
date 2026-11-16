@@ -28,9 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Mengaktifkan stateful API middleware agar cookie session Sanctum aktif untuk SPA
         $middleware->statefulApi();
 
-        // Kecualikan endpoint API dan auth dari validasi CSRF (menggunakan Bearer Token Sanctum)
+        // CSRF dikelola oleh ValidateApiCsrfToken: Bearer & endpoint publik bebas CSRF, mutasi via cookie wajib XSRF-TOKEN.
         $middleware->validateCsrfTokens(except: [
-            'api/*',
             'sanctum/csrf-cookie',
             'login',
             'logout',

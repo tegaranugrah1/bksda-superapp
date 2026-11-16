@@ -198,6 +198,23 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
+            if ($employee->inactive_effective_date && $end->toDateString() >= $employee->inactive_effective_date->toDateString()) {
+                $tmt = $employee->inactive_effective_date->toDateString();
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Pengajuan cuti tidak dapat melintasi tanggal TMT nonaktif ({$tmt}).",
+                ], 422);
+            }
+
+            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
+
             // Calculate working days or calendar days based on LeaveType configuration
             $jumlahHari = $leaveType->countDays($start, $end);
 
@@ -408,9 +425,29 @@ class EmployeeLeaveRequestController extends Controller
     /**
      * Admin Update Status (PENGAJUAN -> DISETUJUI / DITOLAK)
      */
+    private function ensureNotSelfApproval(Request $request, EmployeeLeaveRequest $leaveReq): ?JsonResponse
+    {
+        $user = $request->user();
+        if (! $user || $user->role === 'super_admin') {
+            return null;
+        }
+
+        $actorEmployeeId = Employee::where('nip', $user->username)->value('id');
+        if ($actorEmployeeId && (int) $actorEmployeeId === (int) $leaveReq->employee_id) {
+            return response()->json([
+                'message' => 'Anda tidak diperbolehkan menyetujui atau mengubah status permohonan cuti milik Anda sendiri.',
+            ], 403);
+        }
+
+        return null;
+    }
+
     public function adminUpdateStatus(Request $request, int $id): JsonResponse
     {
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+        if ($denied = $this->ensureNotSelfApproval($request, $leaveReq)) {
+            return $denied;
+        }
 
         $validated = $request->validate([
             'status' => 'required|string|in:PENGAJUAN,DISETUJUI,DITOLAK,pengajuan,disetujui,ditolak,Pengajuan,Disetujui,Ditolak',
@@ -525,6 +562,9 @@ class EmployeeLeaveRequestController extends Controller
     public function adminApprove(Request $request, int $id): JsonResponse
     {
         $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+        if ($denied = $this->ensureNotSelfApproval($request, $leaveReq)) {
+            return $denied;
+        }
 
         $validated = $request->validate([
             'file_scan_formulir' => 'nullable|file|mimes:pdf,jpg,jpeg,png|extensions:pdf,jpg,jpeg,png|max:10240',
@@ -802,6 +842,7 @@ class EmployeeLeaveRequestController extends Controller
         return $disk->response($path, $safeName, [
             'Content-Type' => $mime,
             'Content-Disposition' => 'inline; filename="' . $safeName . '"',
+            'Cache-Control' => 'private, no-store, max-age=0',
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
@@ -947,6 +988,23 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
+            if ($employee->inactive_effective_date && $end->toDateString() >= $employee->inactive_effective_date->toDateString()) {
+                $tmt = $employee->inactive_effective_date->toDateString();
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Pengajuan cuti tidak dapat melintasi tanggal TMT nonaktif ({$tmt}).",
+                ], 422);
+            }
+
+            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
+                $eligibleDate = $employee->annual_leave_eligible_date;
+                $msg = $eligibleDate
+                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+                DB::rollBack();
+                return response()->json(['message' => $msg], 422);
+            }
+
             $newJumlahHari = $leaveType->countDays($start, $end);
 
             if ($newJumlahHari < 1) {
@@ -1076,8 +1134,7 @@ class EmployeeLeaveRequestController extends Controller
 
     private function getAtasanLangsung(string $satuanKerja, ?string $resor = null): array
     {
-        $slug = ($resor ? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($resor) : null)
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satuanKerja);
+        $slug = \App\Modules\Bmn\Models\Location::resolveUnitSlug($resor, $satuanKerja);
 
         if ($slug === 'skw-3-balikpapan') {
             return [

@@ -286,19 +286,7 @@ export function GmailRowItem({
               <Trash2 className="w-4 h-4" />
             </button>
           )}
-          {false && onQuickDelete && ((
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onQuickDelete?.(letter.id);
-                }}
-                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
-                title="Pindahkan ke sampah"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )
-          )}
+
         </div>
       </div>
     </div>

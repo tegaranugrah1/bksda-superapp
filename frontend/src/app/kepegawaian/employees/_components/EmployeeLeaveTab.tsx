@@ -9,6 +9,8 @@ import {
   detectEmployeeType,
   isEligibleForAnnualLeave,
   isMmpEmployee,
+  calculateLeaveDays,
+  parseLocalDate,
 } from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
 import {
@@ -130,11 +132,6 @@ const JENIS_CUTI_OPTIONS = [
   "Cuti di Luar Tanggungan Negara",
 ];
 
-function parseLocalDate(str: string): Date {
-  const [y, m, d] = str.split("-").map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0);
-}
-
 interface DynamicLeaveType {
   id: number;
   nama: string;
@@ -142,45 +139,6 @@ interface DynamicLeaveType {
   hitung_hari: "hari_kerja" | "hari_kalender";
   potong_kuota_tahunan: boolean;
   maks_hari: number | null;
-}
-
-function calculateLeaveDays(
-  startDateStr: string,
-  endDateStr: string,
-  jenisCuti: string,
-  leaveTypes: DynamicLeaveType[] = []
-): number {
-  if (!startDateStr || !endDateStr) return 0;
-  const start = parseLocalDate(startDateStr);
-  const end = parseLocalDate(endDateStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
-
-  const matched = leaveTypes.find(
-    (lt) =>
-      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
-      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
-  );
-  const isHariKerja = matched
-    ? matched.hitung_hari === "hari_kerja"
-    : jenisCuti.toLowerCase().includes("tahunan");
-
-  if (!isHariKerja) {
-    // Hari Kalender
-    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.max(1, diffTime + 1);
-  }
-
-  // Hari Kerja (Senin - Jumat, abaikan Sabtu & Minggu)
-  let count = 0;
-  const cur = new Date(start);
-  while (cur <= end) {
-    const day = cur.getDay(); // 0 is Sunday, 6 is Saturday
-    if (day !== 0 && day !== 6) {
-      count++;
-    }
-    cur.setDate(cur.getDate() + 1);
-  }
-  return Math.max(1, count);
 }
 
 export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {

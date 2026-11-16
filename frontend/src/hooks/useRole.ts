@@ -6,6 +6,7 @@ import { useAuth, type User } from "./useAuth";
 const PATH_TO_MODULE: Array<[string, string]> = [
   ["/kepegawaian/surat-tugas", "surat_tugas"],
   ["/kepegawaian", "kepegawaian"],
+  ["/surat-tugas", "surat_tugas"],
   ["/surat", "surat"],
   ["/bmn", "bmn"],
   ["/keuangan", "keuangan"],
@@ -28,18 +29,24 @@ export function resolveModuleRole(user: User | null | undefined, module?: string
   const fallbackGlobal = rawGlobal === "pegawai" ? "user" : rawGlobal;
   if (!module) return fallbackGlobal;
 
+  const accessModules = Array.isArray(user?.access_modules) ? user.access_modules : [];
+  const allowedModules = module === "surat_tugas" ? ["surat_tugas", "kepegawaian"] : [module];
+  if (!allowedModules.some((m) => accessModules.includes(m))) {
+    return "user";
+  }
+
   const moduleRoles = user?.module_roles;
   if (moduleRoles && typeof moduleRoles === "object" && !Array.isArray(moduleRoles)) {
     const candidates =
       module === "surat_tugas" ? ["surat_tugas", "kepegawaian", "surat-tugas"] : [module];
     for (const key of candidates) {
-      if (key === "kepegawaian" && !user?.access_modules?.includes("kepegawaian")) {
-        continue;
-      }
       const modRole = moduleRoles[key];
       if (modRole === "admin" || modRole === "user") {
         return modRole;
       }
+    }
+    if (Object.values(moduleRoles).some((r) => r === "admin" || r === "user")) {
+      return "user";
     }
   }
 

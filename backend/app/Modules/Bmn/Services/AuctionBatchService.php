@@ -550,7 +550,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $payload, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             $this->stateMachine->assertCanTransition($batch, AuctionBatchStatus::DIAJUKAN);
 
@@ -624,7 +624,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $data, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             $this->stateMachine->assertCanTransition($batch, AuctionBatchStatus::JADWAL_DITETAPKAN);
 
@@ -665,7 +665,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $assets, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             if ($batch->status === AuctionBatchStatus::REALISASI || $batch->status === AuctionBatchStatus::BATAL) {
                 throw ValidationException::withMessages([
@@ -725,7 +725,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $data, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             $this->stateMachine->assertCanTransition($batch, AuctionBatchStatus::LELANG_ULANG);
 
@@ -788,7 +788,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $assets, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             if ($batch->status !== AuctionBatchStatus::LELANG_ULANG) {
                 throw ValidationException::withMessages([
@@ -849,7 +849,7 @@ class AuctionBatchService
     {
         return DB::transaction(function () use ($batchId, $actorId) {
             $actorId = $actorId ?? Auth::id();
-            $batch = AuctionBatch::findOrFail($batchId);
+            $batch = AuctionBatch::lockForUpdate()->findOrFail($batchId);
 
             if ($batch->status === AuctionBatchStatus::REALISASI) {
                 throw ValidationException::withMessages([

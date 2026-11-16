@@ -292,6 +292,20 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
+        $oldEmail = strtolower(trim((string) $employee->email));
+        $newEmail = isset($validated['email']) ? strtolower(trim((string) $validated['email'])) : '';
+        if ($targetUser && $newEmail !== '' && $newEmail !== $oldEmail) {
+            $emailConflict = User::whereRaw('LOWER(email) = ?', [$newEmail])
+                ->where('id', '!=', $targetUser->id)
+                ->exists();
+            if ($emailConflict) {
+                return response()->json([
+                    'message' => 'Alamat email sudah digunakan oleh akun pengguna lain.',
+                    'errors' => ['email' => ['Alamat email sudah digunakan oleh akun pengguna lain.']],
+                ], 422);
+            }
+        }
+
         $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'location_id', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
         $employee->loadMissing('location.parent');
         $oldPlacement = [
@@ -316,9 +330,14 @@ class EmployeeController extends Controller
             $employee->update($validated);
             $newNip = trim((string) $employee->nip);
 
-            // Sinkronisasi email ke akun User jika ada
+            // Sinkronisasi email ke akun User jika ada (reset verifikasi + sesi bila email berubah)
             if ($targetUser && ! empty($employee->email)) {
+                $emailChanged = strtolower(trim((string) $targetUser->email)) !== strtolower(trim((string) $employee->email));
                 $targetUser->email = $employee->email;
+                if ($emailChanged) {
+                    $targetUser->email_verified_at = null;
+                    $targetUser->tokens()->delete();
+                }
                 $targetUser->save();
             }
 
@@ -537,8 +556,13 @@ class EmployeeController extends Controller
      */
     public function select(Request $request): JsonResponse
     {
+        $request->validate([
+            'as_of' => ['nullable', 'date'],
+        ]);
         $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
-        $asOf = $request->input('as_of') ? \Illuminate\Support\Carbon::parse($request->input('as_of')) : null;
+        $asOf = ($request->user() && $request->filled('as_of'))
+            ? \Illuminate\Support\Carbon::parse($request->input('as_of'))
+            : null;
 
         $query = Employee::query()
             ->effectiveActive($asOf)
@@ -615,10 +639,14 @@ class EmployeeController extends Controller
         }
 
         $currentUser = $request->user();
-        if ($user->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
-            return response()->json([
-                'message' => 'Hanya Super Admin yang dapat mereset password akun Super Admin.',
-            ], 403);
+        $targetIsPrivileged = $user->role === 'super_admin'
+            || $user->role === 'admin'
+            || in_array('admin', array_values($user->module_roles ?? []), true);
+        if ($targetIsPrivileged && $currentUser?->role !== 'super_admin') {
+            $msg = $user->role === 'super_admin'
+                ? 'Hanya Super Admin yang dapat mereset password akun Super Admin.'
+                : 'Hanya Super Admin yang dapat mereset password akun Administrator Modul.';
+            return response()->json(['message' => $msg], 403);
         }
 
         // Mode B: Kirim link reset jika diminta dan user punya email valid
@@ -683,6 +711,7 @@ class EmployeeController extends Controller
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ]);
+        $user->tokens()->delete();
 
         // Ponytail: Catat riwayat audit
         EmployeeHistory::create([
@@ -974,17 +1003,25 @@ class EmployeeController extends Controller
             ? number_format(($activeEmployees / $totalEmployees) * 100, 1) . '%' 
             : '100%';
 
-        // 2. Surat Tugas Aktif & Pending
-        $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
-        $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
+        // 2-3 & 5. Query surat tugas / cuti / surat masuk hanya untuk admin kepegawaian
+        $activeStCount = 0;
+        $pendingStCount = 0;
+        $pendingCutiCount = 0;
+        $approvedCutiCount = 0;
+        $totalSuratMasuk = 0;
+        $unrepliedSuratMasuk = 0;
+        $recentSt = collect();
 
-        // 3. Leave Requests & Surat Masuk
-        $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
-        $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
-        $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
-        $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
-            $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
-        })->count();
+        if ($isAdminActor) {
+            $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
+            $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
+            $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
+            $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
+            $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
+            $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
+                $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+            })->count();
+        }
 
         // 4. Sebaran Satuan Kerja (berbasis Master Lokasi & kanonik unit)
         $employeesForStats = (clone $baseQuery)->with('location.parent')->get(['id', 'location_id', 'satuan_kerja', 'resor']);
@@ -996,10 +1033,7 @@ class EmployeeController extends Controller
         $dynamicSeksiCounts = [];
 
         foreach ($employeesForStats as $emp) {
-            $slug = $emp->location?->parent?->code
-                ?? $emp->location?->code
-                ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($emp->resor)
-                ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($emp->satuan_kerja);
+            $slug = $emp->canonicalLocationSlug();
 
             if ($slug === 'skw-3-balikpapan') {
                 $balikpapanCount++;
@@ -1067,16 +1101,18 @@ class EmployeeController extends Controller
             ];
         }
 
-        // 5. Recent Surat Tugas
-        $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
-            return [
-                'id' => 'st-' . $st->id,
-                'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
-                'tempat_tujuan' => $st->tempat_tujuan ?: 'Kalimantan Timur',
-                'status' => strtoupper($st->status ?: 'DITERBITKAN'),
-                'tanggal_surat' => $st->created_at ? $st->created_at->format('d/m/Y') : 'Terbaru',
-            ];
-        });
+        // 5. Recent Surat Tugas (admin kepegawaian saja)
+        if ($isAdminActor) {
+            $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
+                return [
+                    'id' => 'st-' . $st->id,
+                    'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
+                    'tempat_tujuan' => $st->tempat_tujuan ?: 'Kalimantan Timur',
+                    'status' => strtoupper($st->status ?: 'DITERBITKAN'),
+                    'tanggal_surat' => $st->created_at ? $st->created_at->format('d/m/Y') : 'Terbaru',
+                ];
+            });
+        }
 
         return response()->json([
             'message' => 'Statistik dashboard kepegawaian berhasil dimuat.',

@@ -35,7 +35,7 @@ class SuratMasukController extends Controller
             ->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search = addcslashes(trim((string) $request->input('search')), '%_');
             $query->where(function ($q) use ($search) {
                 $q->where('no_surat', 'like', "%{$search}%")
                   ->orWhere('no_agenda', 'like', "%{$search}%")
@@ -51,7 +51,7 @@ class SuratMasukController extends Controller
 
         $perPageParam = $request->input('per_page', 10);
         if ($perPageParam === 'all') {
-            $items = $query->get();
+            $items = $query->limit(1000)->get();
             return response()->json([
                 'data' => $items,
                 'meta' => [
@@ -137,7 +137,7 @@ class SuratMasukController extends Controller
                 $file = $request->file('file_surat');
                 $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
                 $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
+                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'local');
             }
 
             $validated['created_by'] = $request->user()?->id;
@@ -156,9 +156,12 @@ class SuratMasukController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($validated['file_path']) && Storage::disk('local')->exists($validated['file_path'])) {
+                Storage::disk('local')->delete($validated['file_path']);
+            }
             return response()->json([
                 'error' => 'Gagal menyimpan Surat Masuk',
-                'message' => $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan Surat Masuk.',
             ], 500);
         }
     }
@@ -173,21 +176,34 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    public function downloadFile(int $id)
+    {
+        $suratMasuk = SuratMasuk::findOrFail($id);
+        if (! $suratMasuk->file_path || ! Storage::disk('local')->exists($suratMasuk->file_path)) {
+            return response()->json(['message' => 'Berkas surat masuk tidak ditemukan.'], 404);
+        }
+
+        return Storage::disk('local')->response($suratMasuk->file_path, basename($suratMasuk->file_path), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
+        ]);
+    }
+
     public function update(SuratMasukRequest $request, int $id): JsonResponse
     {
         $suratMasuk = SuratMasuk::findOrFail($id);
         $validated = $request->validated();
+        $oldFilePath = $suratMasuk->file_path;
+        $newFilePath = null;
 
         DB::beginTransaction();
         try {
             if ($request->hasFile('file_surat')) {
-                if ($suratMasuk->file_path && Storage::disk('private')->exists($suratMasuk->file_path)) {
-                    Storage::disk('private')->delete($suratMasuk->file_path);
-                }
                 $file = $request->file('file_surat');
                 $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
                 $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
+                $newFilePath = $file->storeAs('surat/masuk', $filename, 'local');
+                $validated['file_path'] = $newFilePath;
             }
 
             $suratMasuk->update($validated);
@@ -201,15 +217,22 @@ class SuratMasukController extends Controller
 
             DB::commit();
 
+            if ($newFilePath && $oldFilePath && $oldFilePath !== $newFilePath && Storage::disk('local')->exists($oldFilePath)) {
+                Storage::disk('local')->delete($oldFilePath);
+            }
+
             return response()->json([
                 'message' => 'Surat Masuk berhasil diperbarui.',
                 'data' => $suratMasuk->fresh(['disposisi', 'creator']),
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($newFilePath && Storage::disk('local')->exists($newFilePath)) {
+                Storage::disk('local')->delete($newFilePath);
+            }
             return response()->json([
                 'error' => 'Gagal memperbarui Surat Masuk',
-                'message' => $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui Surat Masuk.',
             ], 500);
         }
     }

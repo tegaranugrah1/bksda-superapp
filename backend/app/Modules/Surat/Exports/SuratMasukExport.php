@@ -21,7 +21,7 @@ class SuratMasukExport implements FromCollection, WithHeadings, WithMapping, Sho
         $query = SuratMasuk::query();
 
         if (!empty($this->filters['search'])) {
-            $search = $this->filters['search'];
+            $search = addcslashes(trim((string) $this->filters['search']), '%_');
             $query->where(function ($q) use ($search) {
                 $q->where('no_surat', 'like', "%{$search}%")
                   ->orWhere('no_agenda', 'like', "%{$search}%")
@@ -71,16 +71,28 @@ class SuratMasukExport implements FromCollection, WithHeadings, WithMapping, Sho
         ];
     }
 
+    private function safeCell(mixed $value): string
+    {
+        if ($value === null || $value === '' || $value === '-') {
+            return (string) ($value ?? '-');
+        }
+
+        $str = (string) $value;
+        $trimmed = ltrim($str);
+
+        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$str}" : $str;
+    }
+
     public function map($row): array
     {
         return [
-            $row->no_agenda ?? '-',
+            $this->safeCell($row->no_agenda ?? '-'),
             $row->tanggal_agenda ? $row->tanggal_agenda->format('d/m/Y') : '-',
-            $row->no_surat ?? '-',
+            $this->safeCell($row->no_surat ?? '-'),
             $row->tanggal_surat ? $row->tanggal_surat->format('d/m/Y') : '-',
-            $row->asal_surat ?? '-',
-            $row->lampiran ?? '-',
-            $row->isi_ringkas ?? '-',
+            $this->safeCell($row->asal_surat ?? '-'),
+            $this->safeCell($row->lampiran ?? '-'),
+            $this->safeCell($row->isi_ringkas ?? '-'),
         ];
     }
 

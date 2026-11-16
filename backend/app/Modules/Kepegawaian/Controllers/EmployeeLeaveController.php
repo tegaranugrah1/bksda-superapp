@@ -181,11 +181,21 @@ class EmployeeLeaveController extends Controller
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
 
-        $startYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
-        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $endDate = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+        $startYear = $startDate->year;
+        $endYear = $endDate->year;
         if ($startYear !== $endYear) {
             return response()->json([
                 'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan catat terpisah per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
+
+        $calendarSpan = (int) $startDate->diffInDays($endDate) + 1;
+        $jumlahHari = (int) $validated['jumlah_hari'];
+        if ($jumlahHari > $calendarSpan) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi rentang tanggal yang dipilih ({$calendarSpan} hari).",
             ], 422);
         }
 
@@ -195,7 +205,13 @@ class EmployeeLeaveController extends Controller
             $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveTypeObj->nama;
 
-            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->maks_hari && $jumlahHari > $leaveTypeObj->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal jenis cuti {$leaveTypeObj->nama} ({$leaveTypeObj->maks_hari} hari).",
+                ], 422);
+            }
+
             if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
                 $eligibleDate = $employee->annual_leave_eligible_date;
                 $msg = $eligibleDate
@@ -222,9 +238,18 @@ class EmployeeLeaveController extends Controller
             }
 
             $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
-            $year = (int) date('Y', strtotime($validated['tanggal_mulai']));
+            $year = $startYear;
             $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year);
             $otherApprovedDays = (int) $leaveBalance->cuti_terpakai_n0;
+            $availableQuota = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays)
+                + (int) $leaveBalance->hak_n1_diakui
+                + (int) $leaveBalance->hak_n2_diakui;
+            if ($leaveTypeObj->potong_kuota_tahunan && in_array($status, ['DISETUJUI', 'APPROVED'], true) && $jumlahHari > $availableQuota) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Saldo cuti tahunan tidak mencukupi (tersedia {$availableQuota} hari, diajukan {$jumlahHari} hari).",
+                ], 422);
+            }
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
@@ -331,11 +356,21 @@ class EmployeeLeaveController extends Controller
             ], 422);
         }
 
-        $newYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
-        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $endDate = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+        $newYear = $startDate->year;
+        $endYear = $endDate->year;
         if ($newYear !== $endYear) {
             return response()->json([
                 'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
+
+        $calendarSpan = (int) $startDate->diffInDays($endDate) + 1;
+        $jumlahHari = (int) $validated['jumlah_hari'];
+        if ($jumlahHari > $calendarSpan) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi rentang tanggal yang dipilih ({$calendarSpan} hari).",
             ], 422);
         }
 
@@ -347,7 +382,13 @@ class EmployeeLeaveController extends Controller
             $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveTypeObj->nama;
 
-            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->maks_hari && $jumlahHari > $leaveTypeObj->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal jenis cuti {$leaveTypeObj->nama} ({$leaveTypeObj->maks_hari} hari).",
+                ], 422);
+            }
+
             if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
                 $eligibleDate = $employee->annual_leave_eligible_date;
                 $msg = $eligibleDate
@@ -364,6 +405,15 @@ class EmployeeLeaveController extends Controller
                 ->annual()
                 ->whereYear('tanggal_mulai', $newYear)
                 ->sum('jumlah_hari');
+            $availableQuota = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays)
+                + (int) $leaveBalance->hak_n1_diakui
+                + (int) $leaveBalance->hak_n2_diakui;
+            if ($leaveTypeObj->potong_kuota_tahunan && in_array($status, ['DISETUJUI', 'APPROVED'], true) && $jumlahHari > $availableQuota) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Saldo cuti tahunan tidak mencukupi (tersedia {$availableQuota} hari, diajukan {$jumlahHari} hari).",
+                ], 422);
+            }
             $updatePayload = [
                 'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],

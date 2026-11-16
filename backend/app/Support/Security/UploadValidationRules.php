@@ -32,4 +32,22 @@ final class UploadValidationRules
             "max:{$maxKilobytes}",
         ];
     }
+
+    /**
+     * Sanitasi nama berkas/folder agar tahan terhadap Zip-Slip, OS Reserved Devices,
+     * Path Traversal, Null Bytes, dan Unicode Directional Overrides (CWE-22, CWE-73).
+     */
+    public static function sanitizeFilename(string $name, string $default = 'item'): string
+    {
+        $name = str_replace(["\0", "\u{202E}", "\u{202D}", "\u{202C}", "\u{200E}", "\u{200F}"], '', $name);
+        $name = preg_replace('/(\.\.[\/\\\\])+/', '', $name);
+        $name = preg_replace('/[\x00-\x1F\x7F\/\\\\:*?"<>|]/', '_', $name);
+        $clean = trim($name, " .\t\n\r\0\x0B");
+
+        if (preg_match('/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i', $clean)) {
+            $clean = "safe_{$clean}";
+        }
+
+        return $clean !== '' ? $clean : $default;
+    }
 }

@@ -352,6 +352,13 @@ class Employee extends Model
         return str_contains($cleanNip, '202506');
     }
 
+    public function canonicalLocationSlug(): ?string
+    {
+        return $this->location?->parent?->code
+            ?? $this->location?->code
+            ?? \App\Modules\Bmn\Models\Location::resolveUnitSlug($this->resor, $this->satuan_kerja);
+    }
+
     /**
      * Accessor: Cek apakah pegawai bertugas di Seksi Konservasi Wilayah (I, II, atau III)
      */
@@ -365,8 +372,7 @@ class Employee extends Model
             }
         }
 
-        $slug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
+        $slug = \App\Modules\Bmn\Models\Location::resolveUnitSlug($this->resor, $this->satuan_kerja);
         if ($slug !== null) {
             return $slug !== 'balai-samarinda';
         }
@@ -388,12 +394,7 @@ class Employee extends Model
             return null;
         }
 
-        $slug = $this->location?->parent?->code
-            ?? $this->location?->code
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
-
-        return match ($slug) {
+        return match ($this->canonicalLocationSlug()) {
             'skw-1-berau' => 'I',
             'skw-2-tenggarong' => 'II',
             'skw-3-balikpapan' => 'III',
@@ -468,10 +469,7 @@ class Employee extends Model
         }
 
         // Alias kompatibilitas SKW lama & baru
-        $slug = $this->location?->parent?->code
-            ?? $this->location?->code
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->resor)
-            ?? \App\Modules\Bmn\Models\Location::canonicalUnitSlug($this->satuan_kerja);
+        $slug = $this->canonicalLocationSlug();
 
         $aliases = match ($slug) {
             'balai-samarinda' => ['Balai KSDA Kalimantan Timur', 'Kantor Balai KSDA Kalimantan Timur'],

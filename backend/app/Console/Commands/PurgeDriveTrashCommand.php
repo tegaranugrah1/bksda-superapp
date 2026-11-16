@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\DriveFile;
 use App\Models\DriveFolder;
+use App\Models\DriveShare;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -60,9 +62,35 @@ class PurgeDriveTrashCommand extends Command
             ->get();
 
         $purgedFolders = 0;
+        // Purge folder lama beserta seluruh sub-tree & berkas turunannya secara atomik
         foreach ($trashedFolders as $folder) {
             try {
-                $folder->forceDelete();
+                DB::transaction(function () use ($folder) {
+                    $allFolderIds = array_merge(
+                        [$folder->id],
+                        DriveFolder::collectDescendantIds($folder->id, withTrashed: true)
+                    );
+                    $childFiles = DriveFile::withTrashed()
+                        ->whereIn('folder_id', $allFolderIds)
+                        ->get();
+
+                    foreach ($childFiles as $file) {
+                        try {
+                            if ($file->s3_key && Storage::disk('drive')->exists($file->s3_key)) {
+                                Storage::disk('drive')->delete($file->s3_key);
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning("Gagal menghapus objek S3 {$file->s3_key}: {$e->getMessage()}");
+                        }
+                        DriveShare::where('file_id', $file->id)->delete();
+                        $file->forceDelete();
+                    }
+
+                    DriveShare::whereIn('folder_id', $allFolderIds)->delete();
+                    foreach (array_reverse($allFolderIds) as $fid) {
+                        DriveFolder::withTrashed()->where('id', $fid)->forceDelete();
+                    }
+                });
                 $purgedFolders++;
             } catch (\Throwable $e) {
                 Log::warning("Gagal force delete DriveFolder #{$folder->id}: {$e->getMessage()}");

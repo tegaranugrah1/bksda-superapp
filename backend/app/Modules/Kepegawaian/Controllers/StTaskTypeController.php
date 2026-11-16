@@ -34,7 +34,11 @@ class StTaskTypeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $isSuperAdmin = $request->user()?->role === 'super_admin';
         $query = StTaskType::query();
+        if (! $isSuperAdmin) {
+            $query->where('is_active', true);
+        }
 
         if ($search = trim((string) $request->input('search'))) {
             $escapedSearch = addcslashes($search, '%_');

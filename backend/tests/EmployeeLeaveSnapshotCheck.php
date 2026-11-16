@@ -113,7 +113,8 @@ try {
     $prevData1 = json_decode($prevResp1->getContent(), true);
     assert($prevData1['tahun_cuti_text'] === 'untuk tahun 2025 dan tahun 2026', 'previewSuratIzin N-1 should be "untuk tahun 2025 dan tahun 2026"');
 
-    $adminUser = \App\Models\User::first();
+    $adminUser = \App\Models\User::where('role', 'super_admin')->where('is_active', true)->first()
+        ?? \App\Models\User::where('role', 'super_admin')->first();
     if ($adminUser) {
         \Illuminate\Support\Facades\Auth::login($adminUser);
     }
@@ -258,15 +259,17 @@ try {
     $respMmp = $controller->storeRecord($reqMmp, $mmp->id);
     assert($respMmp->getStatusCode() === 422, 'storeRecord for MMP must return 422');
 
-    // MMP show leave must return null data
-    $respMmpShow = $controller->show(new Request(), $mmp->id);
+    // MMP show leave must return null data (as authenticated admin per SEC-03)
+    $mmpShowReq = new Request();
+    $mmpShowReq->setUserResolver(fn () => $adminUser);
+    $respMmpShow = $controller->show($mmpShowReq, $mmp->id);
     assert($respMmpShow->getStatusCode() === 200, 'show for MMP should return 200 with null data');
     $mmpShowData = json_decode($respMmpShow->getContent(), true);
     assert($mmpShowData['data'] === null, 'show for MMP data must be null');
 
     // MMP mealAllowances must return empty data
     $empCtrl = app(\App\Modules\Kepegawaian\Controllers\EmployeeController::class);
-    $respMmpMeal = $empCtrl->mealAllowances(new Request(), (string) $mmp->id);
+    $respMmpMeal = $empCtrl->mealAllowances($mmpShowReq, (string) $mmp->id);
     assert($respMmpMeal->getStatusCode() === 200, 'mealAllowances for MMP should return 200');
     $mmpMealData = json_decode($respMmpMeal->getContent(), true);
     assert(count($mmpMealData['data']) === 0, 'mealAllowances for MMP data must be empty');

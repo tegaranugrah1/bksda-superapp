@@ -159,16 +159,24 @@ class User extends Authenticatable
             return 'super_admin';
         }
 
+        $accessModules = is_array($this->access_modules) ? $this->access_modules : [];
+        $allowedModules = $module === 'surat_tugas' ? ['surat_tugas', 'kepegawaian'] : [$module];
+        if (empty(array_intersect($allowedModules, $accessModules))) {
+            return 'user';
+        }
+
         $moduleRoles = is_array($this->module_roles) ? $this->module_roles : [];
         $aliases = $module === 'surat_tugas' ? ['surat_tugas', 'kepegawaian', 'surat-tugas'] : [$module];
 
         foreach ($aliases as $key) {
-            if ($key === 'kepegawaian' && ! in_array('kepegawaian', $this->access_modules ?? [], true)) {
-                continue;
-            }
             if (isset($moduleRoles[$key]) && in_array($moduleRoles[$key], self::ALLOWED_MODULE_ROLES, true)) {
                 return $moduleRoles[$key];
             }
+        }
+
+        // Explicitly configured module_roles prevents unrelated modules from inheriting global 'admin'.
+        if (! empty(array_filter($moduleRoles, fn ($role) => in_array($role, self::ALLOWED_MODULE_ROLES, true)))) {
+            return 'user';
         }
 
         return $this->role === 'pegawai' ? 'user' : ($this->role ?: 'user');
@@ -261,7 +269,16 @@ class User extends Authenticatable
             return false;
         }
 
-        // 3. Cek apakah permission terdaftar di array permissions user
+        // 3. Cek apakah permission terdaftar di array permissions user (tetap ikat pada modul aktif)
+        $prefix = strstr($permission, '.', true);
+        if ($prefix !== false && in_array($prefix, ['bmn', 'kepegawaian', 'surat', 'surat_tugas'], true)) {
+            $accessModules = is_array($this->access_modules) ? $this->access_modules : [];
+            $requiredModules = $prefix === 'surat_tugas' ? ['surat_tugas', 'kepegawaian'] : [$prefix];
+            if (empty(array_intersect($requiredModules, $accessModules))) {
+                return false;
+            }
+        }
+
         return in_array($permission, $this->permissions);
     }
 

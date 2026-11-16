@@ -28,27 +28,46 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             return null; // Skip rows without required fields
         }
 
+        $this->imported++;
+
+        $asset = new Asset(array_merge([
+            'id' => (string) Str::uuid(),
+            'employee_id' => \App\Modules\Kepegawaian\Models\Employee::resolveIdByName(
+                $row['pengguna'] ?? null,
+                $row['nama_pengguna'] ?? null
+            ),
+        ], self::mapExcelRow($row)));
+
+        if ($asset->employee_id) {
+            $this->assignedByEmployee[(int) $asset->employee_id][] = $asset;
+        }
+
+        return $asset;
+    }
+
+    /**
+     * Map parsed Excel heading row to normalized Asset attribute array.
+     */
+    public static function mapExcelRow(array $row): array
+    {
         $kondisi = $row['kondisi'] ?? 'Baik';
         if (!in_array($kondisi, ['Baik', 'Rusak Ringan', 'Rusak Berat'])) {
             $kondisi = 'Baik';
         }
 
-        $this->imported++;
-
-        $asset = new Asset([
-            'id' => (string) Str::uuid(),
+        return [
             'jenis_bmn' => $row['jenis_bmn'] ?? null,
             'kode_satker' => $row['kode_satker'] ?? null,
             'nama_satker' => $row['nama_satker'] ?? null,
-            'kode_barang' => $kodeBarang,
-            'nup' => (string) $nup,
+            'kode_barang' => $row['kode_barang'],
+            'nup' => (string) ($row['nup'] ?? ''),
             'nup_lama' => isset($row['nup_lama']) ? (string) $row['nup_lama'] : null,
-            'nama_barang' => $namaBarang,
+            'nama_barang' => $row['nama_barang'],
             'status_bmn' => $row['status_bmn'] ?? null,
             'tipe' => $row['tipe'] ?? null,
             'merk_tipe' => trim(($row['merk'] ?? ($row['nama'] ?? '')) . ' ' . ($row['tipe'] ?? '')) ?: null,
             'kondisi' => $kondisi,
-            'umur_aset' => $this->toInt($row['umur_aset'] ?? null),
+            'umur_aset' => self::toInt($row['umur_aset'] ?? null),
             'intra_extra' => $row['intra_extra'] ?? ($row['intra__extra'] ?? null),
             'henti_guna' => $row['henti_guna'] ?? null,
             'status_sbsn' => $row['status_sbsn'] ?? null,
@@ -70,26 +89,26 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'no_sertifikat' => $row['no_sertifikat'] ?? null,
             'nama' => $row['nama'] ?? ($row['nama_pemilik'] ?? null),
             'merk' => $row['merk'] ?? ($row['nama'] ?? null),
-            'tanggal_buku_pertama' => $this->toDate($row['tanggal_buku_pertama'] ?? null),
-            'tanggal_perolehan' => $this->toDate($row['tanggal_perolehan'] ?? null),
-            'tanggal_pengapusan' => $this->toDate($row['tanggal_pengapusan'] ?? null),
-            'nilai_perolehan_pertama' => $this->toFloat($row['nilai_perolehan_pertama'] ?? null),
-            'nilai_mutasi' => $this->toFloat($row['nilai_mutasi'] ?? null),
-            'nilai_perolehan' => $this->toFloat($row['nilai_perolehan'] ?? 0),
-            'nilai_penyusutan' => $this->toFloat($row['nilai_penyusutan'] ?? null),
-            'nilai_buku' => $this->toFloat($row['nilai_buku'] ?? 0),
-            'luas_tanah_seluruhnya' => $this->toFloat($row['luas_tanah_seluruhnya'] ?? null),
-            'luas_tanah_bangunan' => $this->toFloat($row['luas_tanah_untuk_bangunan'] ?? null),
-            'luas_tanah_sarana' => $this->toFloat($row['luas_tanah_untuk_sarana_lingkungan'] ?? null),
-            'luas_lahan_kosong' => $this->toFloat($row['luas_lahan_kosong'] ?? null),
-            'luas_bangunan' => $this->toFloat($row['luas_bangunan'] ?? null),
-            'luas_tapak_bangunan' => $this->toFloat($row['luas_tapak_bangunan'] ?? null),
-            'luas_pemanfaatan' => $this->toFloat($row['luas_pemanfataan'] ?? ($row['luas_pemanfaatan'] ?? null)),
-            'jumlah_lantai' => $this->toInt($row['jumlah_lantai'] ?? null),
-            'jumlah_foto' => $this->toInt($row['jumlah_foto'] ?? null),
+            'tanggal_buku_pertama' => self::toDate($row['tanggal_buku_pertama'] ?? null),
+            'tanggal_perolehan' => self::toDate($row['tanggal_perolehan'] ?? null),
+            'tanggal_pengapusan' => self::toDate($row['tanggal_pengapusan'] ?? null),
+            'nilai_perolehan_pertama' => self::toFloat($row['nilai_perolehan_pertama'] ?? null),
+            'nilai_mutasi' => self::toFloat($row['nilai_mutasi'] ?? null),
+            'nilai_perolehan' => self::toFloat($row['nilai_perolehan'] ?? 0),
+            'nilai_penyusutan' => self::toFloat($row['nilai_penyusutan'] ?? null),
+            'nilai_buku' => self::toFloat($row['nilai_buku'] ?? 0),
+            'luas_tanah_seluruhnya' => self::toFloat($row['luas_tanah_seluruhnya'] ?? null),
+            'luas_tanah_bangunan' => self::toFloat($row['luas_tanah_untuk_bangunan'] ?? null),
+            'luas_tanah_sarana' => self::toFloat($row['luas_tanah_untuk_sarana_lingkungan'] ?? null),
+            'luas_lahan_kosong' => self::toFloat($row['luas_lahan_kosong'] ?? null),
+            'luas_bangunan' => self::toFloat($row['luas_bangunan'] ?? null),
+            'luas_tapak_bangunan' => self::toFloat($row['luas_tapak_bangunan'] ?? null),
+            'luas_pemanfaatan' => self::toFloat($row['luas_pemanfataan'] ?? ($row['luas_pemanfaatan'] ?? null)),
+            'jumlah_lantai' => self::toInt($row['jumlah_lantai'] ?? null),
+            'jumlah_foto' => self::toInt($row['jumlah_foto'] ?? null),
             'status_penggunaan' => $row['status_penggunaan'] ?? null,
             'no_psp' => $row['no_psp'] ?? null,
-            'tanggal_psp' => $this->toDate($row['tanggal_psp'] ?? null),
+            'tanggal_psp' => self::toDate($row['tanggal_psp'] ?? null),
             'alamat' => $row['alamat'] ?? null,
             'rt_rw' => $row['rtrw'] ?? ($row['rt_rw'] ?? null),
             'kelurahan_desa' => $row['kelurahandesa'] ?? ($row['kelurahan_desa'] ?? null),
@@ -116,20 +135,10 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
             'no_identitas' => $row['no_identitas'] ?? null,
             'no_stnk' => $row['no_stnk'] ?? null,
             'nama_pengguna' => $row['nama_pengguna'] ?? null,
-            'employee_id' => \App\Modules\Kepegawaian\Models\Employee::resolveIdByName(
-                $row['pengguna'] ?? null,
-                $row['nama_pengguna'] ?? null
-            ),
             'status_pmk' => $row['status_pmk'] ?? null,
-            'foto_geotag_url' => $this->extractUrl($row['foto_ber-geotag'] ?? ($row['foto_bergeotag'] ?? ($row['foto_ber_geotag'] ?? null))),
-            'tahun_perolehan' => $this->extractYear($row['tanggal_perolehan'] ?? null),
-        ]);
-
-        if ($asset->employee_id) {
-            $this->assignedByEmployee[(int) $asset->employee_id][] = $asset;
-        }
-
-        return $asset;
+            'foto_geotag_url' => self::extractUrl($row['foto_ber-geotag'] ?? ($row['foto_bergeotag'] ?? ($row['foto_ber_geotag'] ?? null))),
+            'tahun_perolehan' => self::extractYear($row['tanggal_perolehan'] ?? null),
+        ];
     }
 
     public function batchSize(): int
@@ -153,7 +162,7 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
         return $this->assignedByEmployee;
     }
 
-    private function toDate($value): ?string
+    private static function toDate($value): ?string
     {
         if (!$value) return null;
         if (is_numeric($value)) {
@@ -173,23 +182,23 @@ class AssetImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChun
         return null;
     }
 
-    private function toFloat($value): float
+    private static function toFloat($value): float
     {
         return is_numeric($value) ? (float) $value : 0;
     }
 
-    private function toInt($value): ?int
+    private static function toInt($value): ?int
     {
         return is_numeric($value) ? (int) $value : null;
     }
 
-    private function extractYear($value): ?int
+    private static function extractYear($value): ?int
     {
-        $date = $this->toDate($value);
+        $date = self::toDate($value);
         return $date ? (int) substr($date, 0, 4) : null;
     }
 
-    private function extractUrl($value): ?string
+    private static function extractUrl($value): ?string
     {
         if (!$value) return null;
         $val = trim((string) $value);

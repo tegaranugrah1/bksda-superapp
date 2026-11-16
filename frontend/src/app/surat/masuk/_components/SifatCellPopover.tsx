@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { Tag, Check, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
 import type { SuratMasuk } from "../../_lib/surat-types";
 import { SIFAT_OPTIONS } from "../../_lib/surat-types";
+import { saveSuratMasukQuickPatch } from "../../_lib/surat-api";
 
 interface SifatCellPopoverProps {
   item: SuratMasuk;
@@ -49,54 +49,7 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
     setIsSaving(true);
 
     try {
-      const payload = {
-        no_agenda: item.no_agenda,
-        no_surat: item.no_surat,
-        tanggal_agenda: item.tanggal_agenda,
-        tanggal_surat: item.tanggal_surat,
-        tanggal_penyelesaian: item.tanggal_penyelesaian,
-        indeks: item.indeks,
-        kode: item.kode,
-        referensi: item.referensi,
-        asal_surat: item.asal_surat,
-        isi_ringkas: item.isi_ringkas,
-        lampiran: item.lampiran,
-        catatan: item.catatan,
-        sifat_json: [sifat],
-        disposisi: item.disposisi
-          ? {
-              diteruskan_json: item.disposisi.diteruskan_json || [],
-              instruksi_json: item.disposisi.instruksi_json || [],
-              catatan: item.disposisi.catatan || "",
-              ka_subbag_tu_id: item.disposisi.ka_subbag_tu_id || null,
-              kepala_balai_id: item.disposisi.kepala_balai_id || null,
-            }
-          : undefined,
-      };
-
-      let resData = { ...item, sifat_json: [sifat] };
-      if (item.id) {
-        const res = await api.put(`/surat-masuk/${item.id}`, payload);
-        if (res.data?.data) {
-          resData = res.data.data;
-        }
-      }
-
-      if (typeof window !== "undefined") {
-        try {
-          const saved = localStorage.getItem("bksda_saved_surat_masuk");
-          if (saved) {
-            const list: SuratMasuk[] = JSON.parse(saved);
-            const updated = list.map((s) => {
-              if (s.id === item.id || (s.no_agenda && s.no_agenda === item.no_agenda)) {
-                return { ...s, sifat_json: [sifat] };
-              }
-              return s;
-            });
-            localStorage.setItem("bksda_saved_surat_masuk", JSON.stringify(updated));
-          }
-        } catch {}
-      }
+      const resData = await saveSuratMasukQuickPatch(item, { sifat_json: [sifat] });
 
       toast.success(`Sifat surat diperbarui: ${sifat}`);
       setIsOpen(false);

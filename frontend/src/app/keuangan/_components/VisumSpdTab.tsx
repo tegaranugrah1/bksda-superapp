@@ -58,8 +58,21 @@ import { VisumSection2Dest } from "./visum/VisumSection2Dest";
 import { VisumTransitCard } from "./visum/VisumTransitCard";
 import { VisumSection6Return } from "./visum/VisumSection6Return";
 
+function visumKey(base: string): string {
+  if (typeof window === "undefined") return base;
+  try {
+    const raw = localStorage.getItem("bksda_user");
+    const parsed = raw ? JSON.parse(raw) : null;
+    const scope = parsed?.id ?? parsed?.username;
+    return scope ? `${base}_${String(scope).replace(/[^a-zA-Z0-9_-]/g, "_")}` : base;
+  } catch {
+    return base;
+  }
+}
+
 const STORAGE_KEY = "bksda_visum_spd_draft_v2";
 const STORAGE_KEY_TMPL_ID = "bksda_visum_spd_selected_template_id";
+const STORAGE_KEY_TYPE = "bksda_visum_spd_type_v1";
 
 export { IndoDatePicker, formatDateToIndo, parseIndoDateToIso };
 export type { SuratTugasSimpleItem, EmployeeOption };
@@ -74,7 +87,7 @@ export function VisumSpdTab({
   const [spdType, setSpdType] = useState<"dipa" | "folu">(() => {
     if (typeof window !== "undefined") {
       try {
-        const savedType = localStorage.getItem("bksda_visum_spd_type_v1");
+        const savedType = localStorage.getItem(visumKey(STORAGE_KEY_TYPE));
         if (savedType === "dipa" || savedType === "folu") return savedType;
       } catch {}
     }
@@ -83,7 +96,7 @@ export function VisumSpdTab({
   const [data, setData] = useState<VisumSpdData>(() => {
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        const saved = localStorage.getItem(visumKey(STORAGE_KEY));
         if (saved) return JSON.parse(saved);
       } catch {}
     }
@@ -94,7 +107,7 @@ export function VisumSpdTab({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       try {
-        return localStorage.getItem(STORAGE_KEY_TMPL_ID) || "default";
+        return localStorage.getItem(visumKey(STORAGE_KEY_TMPL_ID)) || "default";
       } catch {}
     }
     return "default";
@@ -128,7 +141,7 @@ export function VisumSpdTab({
     setData((prev) => {
       const next = { ...prev, [key]: value };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
       } catch {
         // ignore
       }
@@ -146,7 +159,7 @@ export function VisumSpdTab({
       const updated = { ...existing, [field]: value };
       const next = { ...prev, [transitKey]: updated };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
       } catch {
         // ignore
       }
@@ -248,7 +261,7 @@ export function VisumSpdTab({
         next.transit_5 = {};
       }
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
       } catch {}
       return next;
     });
@@ -268,12 +281,12 @@ export function VisumSpdTab({
     if (isDipa) {
       setSpdType("dipa");
       try {
-        localStorage.setItem("bksda_visum_spd_type_v1", "dipa");
+        localStorage.setItem(visumKey(STORAGE_KEY_TYPE), "dipa");
       } catch {}
     } else if (tmplData.spd_type === "folu" || tmpl.name.toLowerCase().includes("folu")) {
       setSpdType("folu");
       try {
-        localStorage.setItem("bksda_visum_spd_type_v1", "folu");
+        localStorage.setItem(visumKey(STORAGE_KEY_TYPE), "folu");
       } catch {}
     }
 
@@ -360,8 +373,8 @@ export function VisumSpdTab({
 
     setData(tmplData);
     try {
-      localStorage.setItem(STORAGE_KEY_TMPL_ID, String(tmpl.id));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tmplData));
+      localStorage.setItem(visumKey(STORAGE_KEY_TMPL_ID), String(tmpl.id));
+      localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(tmplData));
     } catch {
       // ignore
     }
@@ -410,7 +423,7 @@ export function VisumSpdTab({
         const defaultTmpl = tmpls.find((t) => t.is_default) || tmpls[0];
 
         if (defaultTmpl) {
-          const hasExistingDraft = typeof window !== "undefined" && !!localStorage.getItem(STORAGE_KEY);
+          const hasExistingDraft = typeof window !== "undefined" && !!localStorage.getItem(visumKey(STORAGE_KEY));
           if (!hasExistingDraft) {
             setSelectedTemplateId(String(defaultTmpl.id));
             applyTemplateItem(defaultTmpl, false, loadedSettings);
@@ -430,7 +443,7 @@ export function VisumSpdTab({
   const handleSwitchSpdType = (type: "dipa" | "folu") => {
     setSpdType(type);
     try {
-      localStorage.setItem("bksda_visum_spd_type_v1", type);
+      localStorage.setItem(visumKey(STORAGE_KEY_TYPE), type);
     } catch {}
 
     if (type === "dipa") {
@@ -484,8 +497,8 @@ export function VisumSpdTab({
 
       setData(emptyDipa);
       try {
-        localStorage.setItem(STORAGE_KEY_TMPL_ID, "manual");
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(emptyDipa));
+        localStorage.setItem(visumKey(STORAGE_KEY_TMPL_ID), "manual");
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(emptyDipa));
       } catch {}
       toast.success("Beralih ke SPD DIPA (Manual Kosong - PPK: " + ppkDipa.name + ")");
     } else {
@@ -524,7 +537,7 @@ export function VisumSpdTab({
             kembali_nip_pejabat: matchedRegion?.official_nip || "19750314 199903 1 004",
           };
           try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
           } catch {}
           return next;
         });
@@ -537,7 +550,7 @@ export function VisumSpdTab({
     setSelectedTemplateId(val);
     if (val === "manual") {
       try {
-        localStorage.setItem(STORAGE_KEY_TMPL_ID, "manual");
+        localStorage.setItem(visumKey(STORAGE_KEY_TMPL_ID), "manual");
       } catch {}
       const manualData = getTemplateManual();
       const activePpk =
@@ -554,7 +567,7 @@ export function VisumSpdTab({
       }
       setData(manualData);
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(manualData));
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(manualData));
       } catch {}
       toast.info("Form dikosongkan untuk pengisian manual.");
       return;
@@ -583,7 +596,7 @@ export function VisumSpdTab({
         kembali_tanggal: tglSelesaiIndo || prev.kembali_tanggal,
       };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
       } catch {}
       return next;
     });
@@ -604,7 +617,7 @@ export function VisumSpdTab({
     } else {
       const fallback = spdType === "dipa" ? getTemplateDipaTenggarong() : getTemplateKelian();
       setData(fallback);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
+      localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(fallback));
       toast.info("Form direset ke template default.");
     }
   };
@@ -804,7 +817,7 @@ export function VisumSpdTab({
           ppk_keterangan: activePpk.statement || prev.ppk_keterangan,
         };
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+          localStorage.setItem(visumKey(STORAGE_KEY), JSON.stringify(next));
         } catch {}
         return next;
       });

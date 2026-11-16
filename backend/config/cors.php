@@ -10,19 +10,22 @@
  */
 
 return [
-    // Izinkan CORS untuk semua route API, auth, dan sanctum
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', '*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
 
-    // Izinkan semua HTTP method (GET, POST, PUT, DELETE, dll.)
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
     // Izinkan origin terverifikasi (Frontend Next.js, Mobile Expo, dsb)
     'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000,https://bksdakaltim.net,https://www.bksdakaltim.net,https://api.bksdakaltim.net')))),
 
-    'allowed_origins_patterns' => [
+    'allowed_origins_patterns' => array_values(array_filter([
         '#^https?://([a-z0-9-]+\.)*bksdakaltim\.net(:[0-9]+)?$#',
-        '#^http://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+)(:\d+)?$#',
-    ],
+        env('APP_ENV', 'production') !== 'production'
+            ? '#^http://(localhost|127\.0\.0\.1)(:\d+)?$#'
+            : null,
+        (bool) env('CORS_ALLOW_PRIVATE_NETWORK', false)
+            ? '#^http://(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+)(:\d+)?$#'
+            : null,
+    ])),
 
     // Izinkan semua header (termasuk Authorization untuk token Sanctum)
     'allowed_headers' => ['*'],

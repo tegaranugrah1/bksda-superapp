@@ -81,7 +81,7 @@ class AssignmentLetterConflictService
 
             // 0. Check Employee Lifecycle (non-active or TMT during/before assignment)
             if ($emp && ! $emp->is_active) {
-                $reasonLabel = $emp->inactive_reason ? " ({$emp->inactive_reason})" : '';
+                $reasonLabel = ($canViewDetails && $emp->inactive_reason) ? " ({$emp->inactive_reason})" : '';
                 $conflicts[] = [
                     'employee_id' => $empId,
                     'employee_name' => $empName,
@@ -106,11 +106,13 @@ class AssignmentLetterConflictService
                         'type' => 'tmt_inactive_conflict',
                         'reference_id' => null,
                         'nomor' => 'TMT_NONAKTIF',
-                        'keterangan' => "Pegawai '{$empName}' memiliki jadwal TMT nonaktif per {$tmt} di dalam atau sebelum periode dinas.",
+                        'keterangan' => $canViewDetails
+                            ? "Pegawai '{$empName}' memiliki jadwal TMT nonaktif per {$tmt} di dalam atau sebelum periode dinas."
+                            : "Pegawai '{$empName}' terjadwal nonaktif pada periode penugasan yang dipilih.",
                         'status' => 'terjadwal_nonaktif',
                         'tanggal_mulai' => $reqMulai,
                         'tanggal_selesai' => $reqSelesai,
-                        'range_formatted' => "TMT Nonaktif: {$tmt}",
+                        'range_formatted' => $canViewDetails ? "TMT Nonaktif: {$tmt}" : 'Jadwal Nonaktif',
                     ];
                     continue;
                 }

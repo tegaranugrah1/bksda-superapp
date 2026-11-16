@@ -243,17 +243,7 @@ export function GmailReaderView({
               <span>Hapus Permanen</span>
             </button>
           )}
-          {false && onDelete && ((
-              <button
-                onClick={() => onDelete?.(letter.id)}
-                className="flex items-center gap-2 px-3 py-2 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg text-xs font-bold transition-colors"
-                title="Pindahkan ke sampah"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Pindahkan ke Sampah</span>
-              </button>
-            )
-          )}
+
         </div>
       </div>
 

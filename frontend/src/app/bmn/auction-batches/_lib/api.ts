@@ -291,6 +291,15 @@ export async function recordPrintEvent(id: string, documentKey: string, data?: {
   return res.data;
 }
 
+export interface Employee {
+  id: string | number;
+  nama_lengkap?: string | null;
+  name?: string | null;
+  nip: string | null;
+  jabatan: string | null;
+  position?: string | null;
+}
+
 export async function getEvents(id: string): Promise<{ data: AuctionBatchEvent[] }> {
   const res = await api.get(`/bmn/auction-batches/${id}/events`);
   return res.data;

@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DocumentContentEditorModal } from "./DocumentContentEditorModal";
 
 import { AuctionDocumentRenderer } from "./AuctionDocumentRenderer";
-import { printAuctionDocument } from "../_lib/auction-print-dispatcher";
+import { printAuctionDocument, printFallbackDocument } from "../_lib/auction-print-dispatcher";
 import {
   CommitteePicker,
   getEmployeeName,
@@ -31,7 +31,7 @@ import {
 } from "./CommitteePicker";
 import { PERNYATAAN_PRINT_CSS } from "../../../auction-candidates/_lib/print-pernyataan";
 import { EMPTY_DOC_NUMBER_GAP } from "../../../auction-candidates/_lib/auction-helpers";
-import type { Employee } from "./workflow/types";
+import type { Employee } from "../../_lib/api";
 
 interface DocumentsCenterTabProps {
   formState: ReturnType<typeof useDocumentsCenterFormState>;
@@ -341,24 +341,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
       });
 
       if (!printed) {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
+        if (!printFallbackDocument(doc.title, printElement.innerHTML, PERNYATAAN_PRINT_CSS)) {
           setPrintingDocKey(null);
           return;
         }
-
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>${doc.title}</title>
-              <style>${PERNYATAAN_PRINT_CSS}</style>
-            </head>
-            <body>${printElement.innerHTML}</body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
       }
 
       logPrintMutation.mutate(doc.workflowKey || doc.key);

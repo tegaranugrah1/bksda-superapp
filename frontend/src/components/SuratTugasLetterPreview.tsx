@@ -2,15 +2,16 @@
 
 import React, { useEffect, useRef } from "react";
 import { Printer, X } from "lucide-react";
+import { formatDateIndonesian, formatNIP, formatNipLabel, daysBetween, numberToWords, renderFormattedItalic } from "@/lib/letter-utils";
+import { openPrintWindow } from "@/lib/print-window";
 import {
-  formatDateIndonesian,
-  formatNIP,
-  formatNipLabel,
-  indexToLetter,
-  daysBetween,
-  numberToWords,
-  renderFormattedItalic,
-} from "@/lib/letter-utils";
+  renderHeaderTitleContent,
+  renderMandateLineContent,
+  SuratTugasClauseSection,
+  SuratTugasEmployeesTable,
+  SuratTugasDateLine,
+  SuratTugasTembusanBlock,
+} from "@/components/SuratTugasA4Parts";
 import {
   resolveKopImageUrl,
   splitStoredUntukItems,
@@ -78,19 +79,7 @@ interface SuratTugasLetterPreviewProps {
 
 export type SuratTugasPreviewData = SuratTugasLetterPreviewProps["data"];
 
-function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
-  const lines = (title || "KEPALA BALAI,").split("\n");
 
-  return (
-    <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px", fontSize: "11pt", lineHeight: "1.35" }}>
-      {lines.map((line, i) => (
-        <p key={i} style={{ margin: 0 }}>
-          {renderFormattedItalic(line)}
-        </p>
-      ))}
-    </div>
-  );
-}
 
 export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLetterPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null);
@@ -127,42 +116,29 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
   const handlePrint = () => {
     const printContent = printRef.current;
     if (!printContent) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
 
-    // Clone content and reset kop margins for print
     const clone = printContent.cloneNode(true) as HTMLElement;
-    const kopEl = clone.querySelector('[data-kop]') as HTMLElement;
+    const kopEl = clone.querySelector("[data-kop]") as HTMLElement;
     if (kopEl) {
-      kopEl.style.marginTop = '0';
-      kopEl.style.marginLeft = '0';
-      kopEl.style.marginRight = '0';
+      kopEl.style.marginTop = "0";
+      kopEl.style.marginLeft = "0";
+      kopEl.style.marginRight = "0";
     }
-    
-    const cleanDocTitle = (data.nomor_surat || 'Draft').replace(/[<>&"']/g, '');
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Surat Tugas - ${cleanDocTitle}</title>
-        <style>
-          @page { size: A4 portrait; margin: 0; }
-          html, body { margin: 0; padding: 0; background: #ffffff; }
-          body { padding: 4mm 20mm 15mm 20mm; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
-          img { max-width: 100%; height: auto; }
-          table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        </style>
-      </head>
-      <body>${clone.innerHTML}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-      printWindow.close();
-    };
+    const cleanDocTitle = (data.nomor_surat || "Draft").replace(/[<>&"']/g, "");
+    openPrintWindow({
+      title: `Surat Tugas - ${cleanDocTitle}`,
+      bodyHtml: clone.innerHTML,
+      docType: true,
+      closeAfterPrint: true,
+      styles: `
+        @page { size: A4 portrait; margin: 0; }
+        html, body { margin: 0; padding: 0; background: #ffffff; }
+        body { padding: 4mm 20mm 15mm 20mm; font-family: 'Bookman Old Style', 'Georgia', serif; font-size: 11pt; line-height: 1.25; color: #000; text-align: justify; }
+        img { max-width: 100%; height: auto; }
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+      `,
+    });
   };
 
   const menimbangItems = parseLetterItems(data.menimbang);
@@ -266,53 +242,8 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
           {/* === KEPALA BALAI / HEADER MODULAR === */}
           {renderHeaderTitleContent(headerTitle)}
 
-          {/* MENIMBANG */}
-          {menimbangItems.length > 0 && (
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
-              <tbody>
-                <tr>
-                  <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Menimbang</td>
-                  <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                  <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                      <tbody>
-                        {menimbangItems.map((m, idx) => (
-                          <tr key={m.id || idx}>
-                            <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
-                            <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>{renderFormattedItalic(m.text || "...")}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          )}
-
-          {/* DASAR */}
-          {dasarItems.length > 0 && (
-            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
-              <tbody>
-                <tr>
-                  <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Dasar</td>
-                  <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                  <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                      <tbody>
-                        {dasarItems.map((d, idx) => (
-                          <tr key={d.id || idx}>
-                            <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                            <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>{renderFormattedItalic(d.text || "...")}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          )}
+          {menimbangItems.length > 0 && <SuratTugasClauseSection label="Menimbang" items={menimbangItems} indexStyle="letter" />}
+          {dasarItems.length > 0 && <SuratTugasClauseSection label="Dasar" items={dasarItems} indexStyle="number" />}
 
           {/* MEMBERI TUGAS */}
           <p style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px" }}>MEMBERI TUGAS,</p>
@@ -324,49 +255,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                 <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Kepada</td>
                 <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
                 <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                    <tbody>
-                      {employees.length === 0 ? (
-                        <tr>
-                          <td colSpan={2} style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>
-                            ( Tidak ada data pegawai )
-                          </td>
-                        </tr>
-                      ) : (
-                        employees.map((emp, idx) => (
-                          <React.Fragment key={emp.id}>
-                            <tr>
-                              <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                              <td style={{ padding: "2px 0" }}>
-                                <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
-                                  <tbody>
-                                    <tr>
-                                      <td style={{ width: "70px", padding: "1px 0" }}>Nama</td>
-                                      <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                      <td style={{ padding: "1px 0", fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
-                                    </tr>
-                                    <tr>
-                                      <td style={{ width: "70px", padding: "1px 0" }}>{formatNipLabel(emp)}</td>
-                                      <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                      <td style={{ padding: "1px 0" }}>{formatNIP(emp.nip)}</td>
-                                    </tr>
-                                    <tr>
-                                      <td style={{ width: "70px", padding: "1px 0" }}>Jabatan</td>
-                                      <td style={{ width: "20px", padding: "1px 0" }}>:</td>
-                                      <td style={{ padding: "1px 0" }}>{emp.jabatan || emp.pivot?.peran || "-"}</td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </td>
-                            </tr>
-                            {idx < employees.length - 1 && (
-                              <tr><td colSpan={2} style={{ padding: "4px 0" }}></td></tr>
-                            )}
-                          </React.Fragment>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                  {employees.length === 0 ? (
+                    <div style={{ padding: "4px 0", fontStyle: "italic", color: "#999" }}>( Tidak ada data pegawai )</div>
+                  ) : (
+                    <SuratTugasEmployeesTable employees={employees} />
+                  )}
                 </td>
               </tr>
             </tbody>
@@ -435,40 +328,11 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
               <>
                 {/* === TTD Layout Tabular / Full Width (FOLU) === */}
                 <div style={{ marginTop: "14px", paddingLeft: "50%", textAlign: "left" }}>
-                  {dateFormatStyle === "tabular" ? (
-                    <table style={{ borderCollapse: "collapse" }}>
-                      <tbody>
-                        <tr>
-                          <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                          <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                          <td style={{ padding: "1px 0" }}>Samarinda</td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                          <td style={{ padding: "1px 0" }}>:</td>
-                          <td style={{ padding: "1px 0" }}>{formatDateIndonesian(tanggalSurat)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p style={{ margin: 0 }}>
-                      Samarinda, {formatDateIndonesian(tanggalSurat)}
-                    </p>
-                  )}
+                  <SuratTugasDateLine dateFormatStyle={dateFormatStyle} kotaSurat="Samarinda" tanggalSurat={tanggalSurat} />
 
                   {signerAuthorityMandate && signerAuthorityMandate.split("\n").map((line: string, idx: number) => (
                     <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
-                      {line.includes("Implementing") || line.includes("Partner") ? (
-                        line.split(/(Implementing|Partner)/gi).map((part, pIdx) =>
-                          /^(Implementing|Partner)$/i.test(part) ? (
-                            <span key={pIdx} style={{ fontStyle: "italic" }}>{part}</span>
-                          ) : (
-                            part
-                          )
-                        )
-                      ) : (
-                        line
-                      )}
+                      {renderMandateLineContent(line, true)}
                     </p>
                   ))}
 
@@ -484,48 +348,14 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                   </p>
                 </div>
 
-                {/* === Tembusan Bawah (di bawah NIP, full width) === */}
-                {tembusanItems.length > 0 && (
-                  <div className="tembusan-block" style={{ marginTop: "16px", fontSize: "10pt", fontWeight: "normal", color: "#000000" }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: "normal", fontSize: "10pt", color: "#000000" }}>{tembusanLabel}</p>
-                    <table style={{ borderCollapse: "collapse" }}>
-                      <tbody>
-                        {tembusanItems.map((item, idx) => (
-                          <tr key={idx}>
-                            <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                            <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{item}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <SuratTugasTembusanBlock items={tembusanItems} label={tembusanLabel} position="bottom" styledPrintText />
               </>
             ) : (
               <>
                 {/* === Default TTD Layout (kanan, dengan tembusan di kiri bawah) === */}
                 <div style={{ display: "flex", marginTop: "14px" }}>
                   <div style={{ marginLeft: "9.2cm", textAlign: "left" }}>
-                    {dateFormatStyle === "tabular" ? (
-                      <table style={{ borderCollapse: "collapse" }}>
-                        <tbody>
-                          <tr>
-                            <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                            <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                            <td style={{ padding: "1px 0" }}>Samarinda</td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                            <td style={{ padding: "1px 0" }}>:</td>
-                            <td style={{ padding: "1px 0" }}>{formatDateIndonesian(tanggalSurat)}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p style={{ margin: 0 }}>
-                        Samarinda, {formatDateIndonesian(tanggalSurat)}
-                      </p>
-                    )}
+                    <SuratTugasDateLine dateFormatStyle={dateFormatStyle} kotaSurat="Samarinda" tanggalSurat={tanggalSurat} />
 
                     {signerAuthorityMandate && signerAuthorityMandate.split("\n").map((line: string, idx: number) => (
                       <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
@@ -546,24 +376,7 @@ export default function SuratTugasLetterPreview({ data, onClose }: SuratTugasLet
                   </div>
                 </div>
 
-                {/* TEMBUSAN Samping */}
-                {tembusanItems.length > 0 && (
-                  <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "9.4cm", fontSize: "10pt", fontWeight: "normal", color: "#000000" }}>
-                    <p style={{ margin: "0 0 4px", fontWeight: "normal", fontSize: "10pt", color: "#000000" }}>{tembusanLabel}</p>
-                    <table style={{ borderCollapse: "collapse" }}>
-                      <tbody>
-                        {tembusanItems.map((item, idx) => (
-                          <tr key={idx}>
-                            {tembusanItems.length > 1 && (
-                              <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0", fontSize: "10pt" }}>{idx + 1}.</td>
-                            )}
-                            <td style={{ verticalAlign: "top", padding: "1px 0", fontSize: "10pt", whiteSpace: "nowrap" }}>{item}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <SuratTugasTembusanBlock items={tembusanItems} label={tembusanLabel} position="beside" styledPrintText />
               </>
             )}
           </div>

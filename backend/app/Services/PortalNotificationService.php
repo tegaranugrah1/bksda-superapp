@@ -128,7 +128,12 @@ class PortalNotificationService
         }
 
         $count = 0;
-        $admins = User::whereIn('role', ['admin', 'super_admin'])->where('is_active', true)->get();
+        $admins = User::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereIn('role', ['admin', 'super_admin'])
+                    ->orWhereNotNull('module_roles');
+            })
+            ->get();
         foreach ($admins as $admin) {
             if ($admin->canAccessAdminInbox($module)) {
                 if ($this->notifyUser($admin, $title, $message, $type, $actionTab, $referenceId, $data)) {

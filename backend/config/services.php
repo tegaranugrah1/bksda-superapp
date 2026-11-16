@@ -25,6 +25,7 @@ return [
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),
+        'webhook_secret' => env('RESEND_WEBHOOK_SECRET'),
     ],
 
     'ses' => [
@@ -38,11 +39,6 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
-    ],
-
-    'google_sheets' => [
-        'spreadsheet_id' => env('GOOGLE_SHEETS_SPREADSHEET_ID', '11Hv27vqC_pvk9YqcT3vzkEkP5RqdVFTmI4-dNs8EjLQ'),
-        'sheet_name' => env('GOOGLE_SHEETS_SHEET_NAME', 'Form Responses 1'),
     ],
 
 ];

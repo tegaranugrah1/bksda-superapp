@@ -5,7 +5,7 @@ import { Check, ChevronsUpDown, Search, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Employee } from "./workflow/types";
+import type { Employee } from "../../_lib/api";
 
 export interface CommitteePickerProps {
   label: string;

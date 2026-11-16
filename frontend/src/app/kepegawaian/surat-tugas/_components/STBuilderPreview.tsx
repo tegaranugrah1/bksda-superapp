@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { formatNIP, formatNipLabel, renderFormattedItalic } from "@/lib/letter-utils";
 import {
-  formatDateIndonesian,
-  formatNIP,
-  formatNipLabel,
-  indexToLetter,
-  renderFormattedItalic,
-} from "@/lib/letter-utils";
+  renderHeaderTitleContent,
+  renderMandateLineContent,
+  SuratTugasClauseSection,
+  SuratTugasEmployeesTable,
+  SuratTugasDateLine,
+  SuratTugasTembusanBlock,
+} from "@/components/SuratTugasA4Parts";
 import { resolveKopImageUrl } from "../_lib";
 import { buildOrderedAdditionalUntukItems } from "../_lib/untuk-helpers";
 import STLampiranBedaHari, { type EmployeeDateRange } from "./STLampiranBedaHari";
@@ -65,39 +67,7 @@ function HalamanDivider({
   );
 }
 
-function renderHeaderTitleContent(title: string = "KEPALA BALAI,") {
-  const lines = (title || "KEPALA BALAI,").split("\n");
-  const regex = /(\*[^*]+\*|IMPLEMENTING PARTNER|Implementing Partner)/g;
 
-  return (
-    <div style={{ textAlign: "center", fontWeight: "bold", margin: "16px 0 4px", fontSize: "11pt", lineHeight: "1.35" }}>
-      {lines.map((line, i) => {
-        const parts = line.split(regex);
-        return (
-          <p key={i} style={{ margin: 0 }}>
-            {parts.map((part, j) => {
-              if (part.startsWith("*") && part.endsWith("*") && part.length > 1) {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part.slice(1, -1)}
-                  </span>
-                );
-              }
-              if (part.toUpperCase() === "IMPLEMENTING PARTNER") {
-                return (
-                  <span key={j} style={{ fontStyle: "italic" }}>
-                    {part}
-                  </span>
-                );
-              }
-              return <React.Fragment key={j}>{part}</React.Fragment>;
-            })}
-          </p>
-        );
-      })}
-    </div>
-  );
-}
 
 interface Employee {
   id: string | number;
@@ -140,7 +110,6 @@ interface PreviewProps {
   employeeDates?: Record<string, EmployeeDateRange>;
   employeeDepartures?: Record<string, string>;
   showDepartureColumn?: boolean;
-  enableLampiran?: boolean;
   defaultTanggalMulai?: string;
   defaultTanggalSelesai?: string;
   judulLampiranBedaHari?: string;
@@ -177,7 +146,6 @@ export default function STBuilderPreview({
   employeeDates = {},
   employeeDepartures = {},
   showDepartureColumn,
-  enableLampiran = false,
   defaultTanggalMulai,
   defaultTanggalSelesai,
   judulLampiranBedaHari = "DAFTAR PEGAWAI MENGIKUTI PATROLI",
@@ -202,7 +170,6 @@ export default function STBuilderPreview({
   const activeShowDepartureColumn = isBedaHariTemplate && Boolean(showDepartureColumn);
   const isPlhTemplate = templateType === "plh";
   const visibleTembusanItems = tembusanItems.filter(t => t && t.trim());
-  const shouldNumberDefaultTembusan = visibleTembusanItems.length > 1;
   const signaturePlaceholderStyle: React.CSSProperties = {
     margin: "14px 0 0",
     height: "125px",
@@ -302,53 +269,8 @@ export default function STBuilderPreview({
               {/* === KEPALA BALAI / HEADER MODULAR === */}
               {renderHeaderTitleContent(headerTitle)}
 
-              {/* === MENIMBANG === */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
-                <tbody>
-                  <tr>
-                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Menimbang</td>
-                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                        <tbody>
-                          {menimbangItems.map((m, idx) => (
-                            <tr key={m.id}>
-                              <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0" }}>{indexToLetter(idx)}</td>
-                              <td style={{ verticalAlign: "top", padding: idx === 0 ? "0" : "4px 0 0", textAlign: "justify" }}>
-                                {renderFormattedItalic((m.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              {/* === DASAR === */}
-              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "8px", marginLeft: "0", tableLayout: "fixed" }}>
-                <tbody>
-                  <tr>
-                    <td style={{ width: "110px", verticalAlign: "top", padding: "2px 0" }}>Dasar</td>
-                    <td style={{ width: "12px", verticalAlign: "top", padding: "2px 0" }}>:</td>
-                    <td style={{ verticalAlign: "top", padding: "2px 0" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                        <tbody>
-                          {dasarItems.map((d, idx) => (
-                            <tr key={d.id}>
-                              <td style={{ width: "24px", verticalAlign: "top", padding: "2px 0" }}>{idx + 1}.</td>
-                              <td style={{ verticalAlign: "top", padding: "2px 0", textAlign: "justify" }}>
-                                {renderFormattedItalic((d.text || "...").replace(/{tahun}/g, currentYear || new Date().getFullYear().toString()))}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <SuratTugasClauseSection label="Menimbang" items={menimbangItems} indexStyle="letter" replaceYear={currentYear || new Date().getFullYear().toString()} />
+              <SuratTugasClauseSection label="Dasar" items={dasarItems} indexStyle="number" replaceYear={currentYear || new Date().getFullYear().toString()} />
 
               {/* === MEMBERI TUGAS === */}
               <p 
@@ -378,40 +300,7 @@ export default function STBuilderPreview({
                           ( Belum ada pegawai dipilih )
                         </div>
                       ) : (
-                        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                          <tbody>
-                            {selectedEmployees.map((emp, idx) => (
-                              <tr key={emp.id} className="employee-entry" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                <td style={{ width: "24px", verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0", breakInside: "avoid", pageBreakInside: "avoid" }}>{idx + 1}.</td>
-                                <td style={{ verticalAlign: "top", padding: idx === 0 ? "0 0 1px" : "1px 0", breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                  <div style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                      <tbody style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Nama</td>
-                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                          <td style={{ padding: "0", lineHeight: 1.15, fontWeight: "bold" }}>{emp.nama_lengkap || emp.name}</td>
-                                        </tr>
-                                        {Boolean(!emp.is_buruh && (emp.nama_lengkap || emp.name) !== "PM") && (
-                                          <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                            <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>{formatNipLabel(emp)}</td>
-                                            <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                            <td style={{ padding: "0", lineHeight: 1.15 }}>{formatNIP(emp.nip)}</td>
-                                          </tr>
-                                        )}
-                                        <tr style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-                                          <td style={{ width: "70px", padding: "0", lineHeight: 1.15 }}>Jabatan</td>
-                                          <td style={{ width: "20px", padding: "0", lineHeight: 1.15 }}>:</td>
-                                          <td style={{ padding: "0", lineHeight: 1.15 }}>{emp.jabatan}</td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <SuratTugasEmployeesTable employees={selectedEmployees} dense />
                       )}
                     </td>
                   </tr>
@@ -457,40 +346,11 @@ export default function STBuilderPreview({
                   <>
                     {/* === TTD Layout Tabular / Full Width (seperti FOLU) === */}
                     <div style={{ marginTop: "8px", paddingLeft: "50%" }}>
-                      {activeDateFormat === "tabular" ? (
-                        <table style={{ borderCollapse: "collapse" }}>
-                          <tbody>
-                            <tr>
-                              <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                              <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                              <td style={{ padding: "1px 0" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      ) : (
-                        <p style={{ margin: 0 }}>
-                          {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
-                        </p>
-                      )}
+                      <SuratTugasDateLine dateFormatStyle={activeDateFormat} kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} />
 
                       {activeMandate && activeMandate.split("\n").map((line, idx) => (
                         <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
-                          {line.includes("Implementing") || line.includes("Partner") ? (
-                            line.split(/(Implementing|Partner)/gi).map((part, pIdx) =>
-                              /^(Implementing|Partner)$/i.test(part) ? (
-                                <span key={pIdx} style={{ fontStyle: "italic" }}>{part}</span>
-                              ) : (
-                                part
-                              )
-                            )
-                          ) : (
-                            line
-                          )}
+                          {renderMandateLineContent(line, true)}
                         </p>
                       ))}
 
@@ -502,47 +362,13 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>{formatNipLabel(kepalaBalai, true)} {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
-                    {/* === Tembusan Bawah (di bawah NIP, full width) === */}
-                    {visibleTembusanItems.length > 0 && (
-                      <div className="tembusan-block" style={{ marginTop: "16px" }}>
-                        <p style={{ margin: "0 0 4px" }}>{activeTembusanLabel}</p>
-                        <table style={{ borderCollapse: "collapse" }}>
-                          <tbody>
-                            {visibleTembusanItems.map((item, idx) => (
-                              <tr key={idx}>
-                                <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0" }}>{idx + 1}.</td>
-                                <td style={{ verticalAlign: "top", padding: "1px 0" }}>{item}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    <SuratTugasTembusanBlock items={visibleTembusanItems} label={activeTembusanLabel} position="bottom" />
                   </>
                 ) : (
                   <>
                     {/* === Default TTD Layout (kanan, dengan tembusan di kiri bawah) === */}
                     <div style={{ marginTop: "8px", marginLeft: "9.2cm", textAlign: "left" }}>
-                      {activeDateFormat === "tabular" ? (
-                        <table style={{ borderCollapse: "collapse" }}>
-                          <tbody>
-                            <tr>
-                              <td style={{ padding: "1px 0", width: "120px" }}>Dikeluarkan di</td>
-                              <td style={{ padding: "1px 0", width: "14px" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{kotaSurat || "..."}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "1px 0" }}>Pada tanggal</td>
-                              <td style={{ padding: "1px 0" }}>:</td>
-                              <td style={{ padding: "1px 0" }}>{tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      ) : (
-                        <p style={{ margin: 0 }}>
-                          {kotaSurat || "..."}, {tanggalSurat ? formatDateIndonesian(tanggalSurat) : "... ............. ...."}
-                        </p>
-                      )}
+                      <SuratTugasDateLine dateFormatStyle={activeDateFormat} kotaSurat={kotaSurat} tanggalSurat={tanggalSurat} />
 
                       {activeMandate && activeMandate.split("\n").map((line, idx) => (
                         <p key={idx} style={{ margin: idx === 0 ? "4px 0 0" : 0 }}>
@@ -558,24 +384,7 @@ export default function STBuilderPreview({
                       <p style={{ margin: 0 }}>{formatNipLabel(kepalaBalai, true)} {formatNIP(kepalaBalai.nip)}</p>
                     </div>
 
-                    {/* === Tembusan Samping (kiri sejajar NIP) === */}
-                    {visibleTembusanItems.length > 0 && (
-                      <div className="tembusan-block" style={{ marginTop: "-22px", maxWidth: "9.4cm" }}>
-                        <p style={{ margin: "0 0 4px" }}>{activeTembusanLabel}</p>
-                        <table style={{ borderCollapse: "collapse" }}>
-                          <tbody>
-                            {visibleTembusanItems.map((item, idx) => (
-                              <tr key={idx}>
-                                {shouldNumberDefaultTembusan && (
-                                  <td style={{ width: "20px", verticalAlign: "top", padding: "1px 0" }}>{idx + 1}.</td>
-                                )}
-                                <td style={{ verticalAlign: "top", padding: "1px 0", whiteSpace: "nowrap" }}>{item}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    <SuratTugasTembusanBlock items={visibleTembusanItems} label={activeTembusanLabel} position="beside" />
                   </>
                 )}
               </div>

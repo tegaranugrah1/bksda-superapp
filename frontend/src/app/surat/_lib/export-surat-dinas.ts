@@ -112,6 +112,31 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
  * - Mengubah butir penomoran (.poin-item) menjadi tabel 2 kolom agar nomor & teks tidak rapat/menempel.
  * - Menata Tembusan (kiri) dan Tanda Tangan (kanan) dalam tabel 2 kolom sejajar.
  */
+function escapeWordHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeWordFragment(el: Element | null): string {
+  if (!el) return "";
+  const copy = el.cloneNode(true) as Element;
+  copy.querySelectorAll("script, iframe, object, embed, link, style").forEach((n) => n.remove());
+  copy.querySelectorAll("*").forEach((node) => {
+    for (const attr of Array.from(node.attributes)) {
+      const name = attr.name.toLowerCase();
+      const val = attr.value.trim().toLowerCase();
+      if (name.startsWith("on") || ((name === "href" || name === "src") && (val.startsWith("javascript:") || val.startsWith("data:text/html")))) {
+        node.removeAttribute(attr.name);
+      }
+    }
+  });
+  return copy.innerHTML.replace(/\r?\n/g, "<br/>");
+}
+
 function transformCloneForWord(clone: HTMLElement): void {
   // 1. Bersihkan elemen non-cetak, web spacers, dan atribut editing
   sanitizeExportClone(clone, true);
@@ -171,8 +196,8 @@ function transformCloneForWord(clone: HTMLElement): void {
     rows.forEach((row) => {
       const spans = Array.from(row.querySelectorAll("span"));
       if (spans.length >= 2) {
-        const label = spans[0]?.textContent?.trim() || "";
-        const colon = spans[1]?.textContent?.trim() || ":";
+        const label = escapeWordHtml(spans[0]?.textContent?.trim() || "");
+        const colon = escapeWordHtml(spans[1]?.textContent?.trim() || ":");
         const valSpan = spans[spans.length - 1];
 
         // Format multi-baris untuk Yth (tiap penerima menjadi baris paragraf kiri mandiri agar Word tidak force-justify spasi kata)
@@ -183,11 +208,11 @@ function transformCloneForWord(clone: HTMLElement): void {
           valHtml = lines
             .map(
               (line, lIdx) =>
-                `<p style="margin: 0 0 ${lIdx === lines.length - 1 ? "0" : "3pt"} 0; padding: 0; text-align: left; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000; font-weight: normal;">${line}</p>`
+                `<p style="margin: 0 0 ${lIdx === lines.length - 1 ? "0" : "3pt"} 0; padding: 0; text-align: left; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000; font-weight: normal;">${escapeWordHtml(line)}</p>`
             )
             .join("");
         } else {
-          valHtml = valSpan ? valSpan.innerHTML.replace(/\r?\n/g, "<br/>") : "";
+          valHtml = sanitizeWordFragment(valSpan);
         }
 
         // Catatan: Hal/Perihal TIDAK di-bold sesuai instruksi resmi
@@ -240,10 +265,11 @@ function transformCloneForWord(clone: HTMLElement): void {
     const cellStyle = "vertical-align: top; padding: 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000;";
     let tableHtml = "";
     rows.forEach((row, rIdx) => {
-      const label = row.querySelector(".pkpknl-meta-label")?.textContent?.trim() || "";
-      const colon = row.querySelector(".pkpknl-meta-colon")?.textContent?.trim() || ":";
+      const label = escapeWordHtml(row.querySelector(".pkpknl-meta-label")?.textContent?.trim() || "");
+      const colon = escapeWordHtml(row.querySelector(".pkpknl-meta-colon")?.textContent?.trim() || ":");
       const valEl = row.querySelector(".pkpknl-meta-nomor, .pkpknl-perihal-content") || row.querySelector("span:last-child");
-      const val = valEl ? valEl.innerHTML.replace(/\n/g, "<br/>") : "";
+      const val = sanitizeWordFragment(valEl);
+      const safeTanggalText = escapeWordHtml(tanggalText || "");
 
       if (rIdx === 0) {
         tableHtml += `
@@ -251,7 +277,7 @@ function transformCloneForWord(clone: HTMLElement): void {
             <td style="width: 2.1cm; ${cellStyle}">${label}</td>
             <td style="width: 0.4cm; text-align: center; ${cellStyle}">${colon}</td>
             <td style="text-align: left; font-weight: normal; ${cellStyle}">${val}</td>
-            <td style="width: 5.0cm; text-align: right; ${cellStyle}">${tanggalText || "&nbsp;"}</td>
+            <td style="width: 5.0cm; text-align: right; ${cellStyle}">${safeTanggalText || "&nbsp;"}</td>
           </tr>
         `;
       } else {
@@ -296,8 +322,8 @@ function transformCloneForWord(clone: HTMLElement): void {
   poinItems.forEach((p) => {
     const markerEl = p.querySelector(".poin-marker");
     const contentEl = p.querySelector(".poin-content");
-    const marker = markerEl ? markerEl.textContent?.trim() : "";
-    const content = contentEl ? contentEl.innerHTML : p.innerHTML;
+    const marker = escapeWordHtml(markerEl ? markerEl.textContent?.trim() || "" : "");
+    const content = sanitizeWordFragment(contentEl || p);
 
     let col1Width = "18pt";
     let col1Indent = "0";
@@ -357,29 +383,29 @@ function transformCloneForWord(clone: HTMLElement): void {
   if (ttdEl) {
     const allP = Array.from(ttdEl.querySelectorAll("p"));
     const placeholderEl = ttdEl.querySelector(".pkpknl-ttd-placeholder");
-    const placeholderText = placeholderEl ? placeholderEl.textContent?.trim() : "${ttd_pengirim}";
+    const placeholderText = escapeWordHtml((placeholderEl ? placeholderEl.textContent?.trim() : "${ttd_pengirim}") || "");
     const nameEl = ttdEl.querySelector(".pkpknl-ttd-name");
-    const nameText = nameEl ? nameEl.textContent?.trim() : "";
-    const nipText = allP[allP.length - 1] && allP[allP.length - 1] !== nameEl ? allP[allP.length - 1].textContent?.trim() : "";
+    const nameText = escapeWordHtml((nameEl ? nameEl.textContent?.trim() : "") || "");
+    const nipText = escapeWordHtml((allP[allP.length - 1] && allP[allP.length - 1] !== nameEl ? allP[allP.length - 1].textContent?.trim() : "") || "");
 
     // Deteksi apakah ada jabatan penandatangan (pada Nota Dinas & Memorandum jabatan tidak dicantumkan di atas ttd)
     const hasJabatan = allP.length >= 3 || (allP.length >= 2 && allP[0] !== nameEl && !allP[0].classList.contains("pkpknl-ttd-name"));
-    const jabatanText = hasJabatan ? allP[0]?.textContent?.trim() || "" : "";
+    const jabatanText = escapeWordHtml(hasJabatan ? allP[0]?.textContent?.trim() || "" : "");
 
     let tembusanHtml = "&nbsp;";
     if (tembusanEl) {
       const titleEl = tembusanEl.querySelector(".pkpknl-tembusan-title");
-      const title = titleEl ? titleEl.textContent?.trim() || "Tembusan:" : "Tembusan:";
+      const title = escapeWordHtml(titleEl ? titleEl.textContent?.trim() || "Tembusan:" : "Tembusan:");
       const items = Array.from(tembusanEl.querySelectorAll(".pkpknl-tembusan-item"));
       let itemsHtml = "";
       if (items.length <= 1) {
-        const text = items[0]?.textContent?.trim() || tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "";
+        const text = escapeWordHtml(items[0]?.textContent?.trim() || tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "");
         itemsHtml = `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000;">${text}</p>`;
       } else {
         items.forEach((item, idx) => {
           const spans = Array.from(item.querySelectorAll("span"));
-          const num = spans.length > 1 ? spans[0]?.textContent?.trim() : `${idx + 1}.`;
-          const text = spans[spans.length - 1]?.textContent?.trim() || item.textContent?.trim() || "";
+          const num = escapeWordHtml((spans.length > 1 ? spans[0]?.textContent?.trim() : `${idx + 1}.`) || "");
+          const text = escapeWordHtml(spans[spans.length - 1]?.textContent?.trim() || item.textContent?.trim() || "");
           itemsHtml += `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000;">${num} ${text}</p>`;
         });
       }
@@ -416,7 +442,7 @@ function transformCloneForWord(clone: HTMLElement): void {
     const penutupTtdGroup = clone.querySelector(".penutup-ttd-group");
     if (penutupTtdGroup && penutupTtdGroup.contains(ttdEl)) {
       const closingBody = penutupTtdGroup.querySelector(".pkpknl-body");
-      const closingHtml = closingBody ? closingBody.innerHTML : "";
+      const closingHtml = sanitizeWordFragment(closingBody);
       penutupTtdGroup.innerHTML = closingHtml + ttdTable.outerHTML + tembusanBlockHtml;
     } else {
       const wrapper = document.createElement("div");
@@ -612,7 +638,7 @@ export async function exportSuratDinasPdf(
 <html lang="id">
   <head>
     <meta charset="utf-8" />
-    <title>${filename.replace(/\.pdf$/i, "")}</title>
+    <title>${escapeWordHtml(filename.replace(/\.pdf$/i, ""))}</title>
     ${inlinedStyles}
     <style>
       ${SURAT_DINAS_BASE_CSS}

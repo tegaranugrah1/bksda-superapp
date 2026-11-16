@@ -306,8 +306,8 @@ class AttendanceReconcilerService
             ->where('employee_id', $employeeId)
             ->whereNull('deleted_at')
             ->where(function ($q) {
-                $q->where('status', 'approved')
-                  ->orWhere('status_pertimbangan_pejabat', 'disetujui');
+                $q->whereIn('status', ['DISETUJUI', 'APPROVED', 'disetujui', 'approved'])
+                  ->orWhereIn('status_pertimbangan_pejabat', ['DISETUJUI', 'disetujui']);
             })
             ->where(function ($q) use ($startOfMonth, $endOfMonth) {
                 $q->whereBetween('tanggal_mulai', [$startOfMonth, $endOfMonth])

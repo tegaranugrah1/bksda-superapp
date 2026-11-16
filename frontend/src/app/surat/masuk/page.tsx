@@ -31,12 +31,7 @@ import { ExportSuratMasukModal } from "./_components/ExportSuratMasukModal";
 import { BatchPrintDisposisiModal } from "./_components/BatchPrintDisposisiModal";
 import { DiteruskanCellPopover } from "./_components/DiteruskanCellPopover";
 import { SifatCellPopover } from "./_components/SifatCellPopover";
-
-function formatDisplayDate(dateStr?: string | null): string {
-  if (!dateStr) return "-";
-  const [y, m, d] = String(dateStr).split(/[T ]/)[0].split("-");
-  return y && m && d ? `${d}/${m}/${y}` : String(dateStr);
-}
+import { formatDisplayDate } from "../_components/SuratHubComponents";
 
 const PER_PAGE_OPTIONS = ["10", "20", "50", "all"] as const;
 

@@ -17,17 +17,19 @@ Route::middleware(['auth:sanctum', 'module.access:surat'])->group(function () {
 
         Route::get('surat-masuk', [SuratMasukController::class, 'index'])->middleware('permission:surat.view');
         Route::post('surat-masuk', [SuratMasukController::class, 'store'])->middleware('permission:surat.create');
-        Route::get('surat-masuk/{surat_masuk}', [SuratMasukController::class, 'show'])->middleware('permission:surat.view');
-        Route::match(['put', 'patch'], 'surat-masuk/{surat_masuk}', [SuratMasukController::class, 'update'])->middleware('permission:surat.update');
-        Route::delete('surat-masuk/{surat_masuk}', [SuratMasukController::class, 'destroy'])->middleware('permission:surat.delete');
+        Route::get('surat-masuk/{surat_masuk}', [SuratMasukController::class, 'show'])->whereNumber('surat_masuk')->middleware('permission:surat.view');
+        Route::get('surat-masuk/{surat_masuk}/file', [SuratMasukController::class, 'downloadFile'])->whereNumber('surat_masuk')->middleware('permission:surat.view');
+        Route::match(['put', 'patch'], 'surat-masuk/{surat_masuk}', [SuratMasukController::class, 'update'])->whereNumber('surat_masuk')->middleware('permission:surat.update');
+        Route::delete('surat-masuk/{surat_masuk}', [SuratMasukController::class, 'destroy'])->whereNumber('surat_masuk')->middleware('permission:surat.delete');
     });
 
     // CRUD Surat Keluar (User scoped ke created_by miliknya sendiri di SuratKeluarController, Admin/Super Admin melihat semua)
     Route::get('surat-keluar', [SuratKeluarController::class, 'index'])->middleware('permission:surat.view');
     Route::post('surat-keluar', [SuratKeluarController::class, 'store'])->middleware('permission:surat.create');
-    Route::get('surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'show'])->middleware('permission:surat.view');
-    Route::match(['put', 'patch'], 'surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'update'])->middleware('permission:surat.update');
-    Route::delete('surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'destroy'])->middleware('permission:surat.delete');
+    Route::get('surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'show'])->whereNumber('surat_keluar')->middleware('permission:surat.view');
+    Route::get('surat-keluar/{surat_keluar}/file', [SuratKeluarController::class, 'downloadFile'])->whereNumber('surat_keluar')->middleware('permission:surat.view');
+    Route::match(['put', 'patch'], 'surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'update'])->whereNumber('surat_keluar')->middleware('permission:surat.update');
+    Route::delete('surat-keluar/{surat_keluar}', [SuratKeluarController::class, 'destroy'])->whereNumber('surat_keluar')->middleware('permission:surat.delete');
 
     // Manajemen Template Surat Dinas Resmi (Baca untuk semua pengguna modul surat, mutasi khusus Super Admin)
     Route::get('templates', [SuratTemplateController::class, 'index'])->middleware('permission:surat.view');

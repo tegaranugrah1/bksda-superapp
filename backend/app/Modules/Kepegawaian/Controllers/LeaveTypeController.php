@@ -45,9 +45,10 @@ class LeaveTypeController extends Controller
         }
 
         // Filter leave types based on employee type (MMP = none, PPPK = no CAP)
+        // Hanya admin Kepegawaian yang boleh memilih target employee_id agar tidak membuka enumerasi status pegawai.
         $targetEmployee = null;
-        if ($request->filled('employee_id')) {
-            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::find($request->query('employee_id'));
+        if ($isAdmin && $request->filled('employee_id')) {
+            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::find($request->integer('employee_id'));
         } elseif ($user) {
             $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
         }

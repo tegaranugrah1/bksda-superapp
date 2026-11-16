@@ -347,57 +347,6 @@ export function EditLeaveModal({
   );
 }
 
-interface DeleteLeaveModalProps {
-  item: LeaveRequestItem | null;
-  isPending: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}
-
-export function DeleteLeaveModal({
-  item,
-  isPending,
-  onClose,
-  onConfirm,
-}: DeleteLeaveModalProps) {
-  if (!item) return null;
-
-  return (
-    <KepegawaianDialog title="Konfirmasi pengajuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-md">
-      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-md shadow-lg p-6 space-y-4 text-center">
-        <div className="w-12 h-12 rounded-full bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center mx-auto">
-          <AlertCircle className="w-6 h-6" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-[var(--ds-fg)]">
-            Konfirmasi Hapus Pengajuan Cuti
-          </h3>
-          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
-            Apakah Anda yakin ingin menghapus pengajuan cuti milik{" "}
-            <span className="font-bold text-[var(--ds-fg)]">
-              {item.employee?.nama_lengkap}
-            </span>
-            ? Pengajuan di portal pegawai juga akan otomatis terhapus.
-          </p>
-        </div>
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} className="rounded-lg">
-            Batal
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={isPending}
-            onClick={onConfirm}
-            className="rounded-lg font-bold"
-          >
-            {isPending ? "Menghapus..." : "Ya, Hapus Pengajuan"}
-          </Button>
-        </div>
-      </div>
-    </KepegawaianDialog>
-  );
-}
-
 interface PrintLeaveModalProps {
   item: LeaveRequestItem | null;
   onClose: () => void;

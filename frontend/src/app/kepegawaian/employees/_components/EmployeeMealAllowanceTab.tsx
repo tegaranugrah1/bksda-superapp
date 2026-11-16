@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Employee } from "../../_lib";
+import { formatRupiah } from "../../_lib/employee-helpers";
 
 interface MealAllowanceBatchInfo {
   id: number;
@@ -91,16 +92,6 @@ const MONTH_NAMES = [
   "November",
   "Desember",
 ];
-
-function formatRupiah(amount: number | string | null | undefined): string {
-  const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
-  if (isNaN(num)) return "Rp 0";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(num);
-}
 
 function formatPeriodLabel(periodeStr?: string): string {
   if (!periodeStr) return "-";

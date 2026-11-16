@@ -18,7 +18,7 @@ class SuratTemplateController extends Controller
         $query = SuratTemplate::query();
 
         if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
+            $search = addcslashes(trim((string) $request->search), '%_');
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('key', 'like', "%{$search}%")
@@ -31,7 +31,9 @@ class SuratTemplateController extends Controller
             $query->where('kategori', $request->kategori);
         }
 
-        if ($request->has('is_active')) {
+        if ($request->user()?->role !== 'super_admin') {
+            $query->where('is_active', true);
+        } elseif ($request->has('is_active')) {
             $query->where('is_active', filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN));
         }
 

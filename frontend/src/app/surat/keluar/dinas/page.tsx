@@ -28,7 +28,6 @@ import {
   Download,
   FileDown,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -49,23 +48,18 @@ import {
   SuratDinasData,
   PersonItem,
   TemplateType,
-  DEFAULT_SURAT_DINAS_DATA,
   getDefaultDataForTemplate,
   getDefaultNomorForTemplate,
   getDefaultNomorPrefix,
   handlePrintSuratDinas,
   getTodayIndoDate,
   formatIsoDateToIndo,
-  getDefaultNomorSurat,
   parseYthList,
   formatYthList,
   detectPointLevel,
-  getPointLevelClassName,
   parseRawDocumentText,
-  splitPointMarkerAndText,
   getNextMarkerForSection,
   reindexParagraphMarkers,
-  PointLevel,
 } from "../../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
@@ -552,12 +546,6 @@ function GenerateSuratDinasContent() {
     }, 60);
   };
 
-  const handleAddParagraph = () => handleInsertPoint("plain");
-  const handleAddPoint = () => handleInsertPoint("num");
-  const handleAddSubPointLetter = () => handleInsertPoint("letter");
-  const handleAddSubPointRoman = () => handleInsertPoint("roman");
-  const handleAddSubPointBracket = () => handleInsertPoint("bracket");
-
   // Ubah Level Poin pada Baris Tertentu
   const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
     setData((prev) => {
@@ -615,22 +603,6 @@ function GenerateSuratDinasContent() {
     setData((prev) => ({
       ...prev,
       paragraf: (prev.paragraf || []).map((p, i) => (i === index ? val : p)),
-    }));
-  };
-
-  // Berita Acara Poin management
-  const handleAddPoinBeritaAcara = () => {
-    setData((prev) => ({ ...prev, poinBeritaAcara: [...(prev.poinBeritaAcara || []), ""] }));
-  };
-
-  const handleRemovePoinBeritaAcara = (idx: number) => {
-    setData((prev) => ({ ...prev, poinBeritaAcara: (prev.poinBeritaAcara || []).filter((_, i) => i !== idx) }));
-  };
-
-  const handlePoinBeritaAcaraChange = (idx: number, val: string) => {
-    setData((prev) => ({
-      ...prev,
-      poinBeritaAcara: (prev.poinBeritaAcara || []).map((p, i) => (i === idx ? val : p)),
     }));
   };
 
@@ -943,52 +915,7 @@ function GenerateSuratDinasContent() {
             <Send className="w-3.5 h-3.5" />
             {isRegistering ? "Menyimpan..." : editingSuratKeluarId ? "Update Naskah" : "Daftarkan Resmi"}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isExporting !== null}
-                className="kpg-secondary rounded-lg text-xs gap-2"
-              >
-                {isExporting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1 text-[var(--ds-accent-fg)]" />
-                ) : (
-                  <Download className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-                )}
-                <span>Unduh</span>
-                <ChevronDown className="w-3 h-3 opacity-60" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              data-module="persuratan"
-              align="end"
-              className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
-            >
-              <DropdownMenuItem
-                onClick={handleExportPdf}
-                disabled={isExporting !== null}
-                className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
-              >
-                <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
-                <div className="flex flex-col text-left">
-                  <span>Unduh PDF (.pdf)</span>
-                  <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleExportWord}
-                disabled={isExporting !== null}
-                className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
-              >
-                <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
-                <div className="flex flex-col text-left">
-                  <span>Unduh Word (.doc)</span>
-                  <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SuratDinasDownloadDropdown isExporting={isExporting} onPdf={handleExportPdf} onWord={handleExportWord} />
 
           <Button
             size="sm"
@@ -2346,52 +2273,7 @@ function GenerateSuratDinasContent() {
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
               <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isExporting !== null}
-                      className="kpg-secondary h-7 text-xs gap-1 rounded-lg"
-                    >
-                      {isExporting ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-1 text-[var(--ds-accent-fg)]" />
-                      ) : (
-                        <Download className="w-3 h-3 text-[var(--ds-accent-fg)]" />
-                      )}
-                      <span>Unduh</span>
-                      <ChevronDown className="w-2.5 h-2.5 opacity-60" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    data-module="persuratan"
-                    align="end"
-                    className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
-                  >
-                    <DropdownMenuItem
-                      onClick={handleExportPdf}
-                      disabled={isExporting !== null}
-                      className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
-                    >
-                      <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
-                      <div className="flex flex-col text-left">
-                        <span>Unduh PDF (.pdf)</span>
-                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleExportWord}
-                      disabled={isExporting !== null}
-                      className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
-                      <div className="flex flex-col text-left">
-                        <span>Unduh Word (.doc)</span>
-                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <SuratDinasDownloadDropdown isExporting={isExporting} onPdf={handleExportPdf} onWord={handleExportWord} compact />
 
                 <Button
                   variant="outline"
@@ -2421,6 +2303,67 @@ function GenerateSuratDinasContent() {
         onSelectTemplate={(tplId) => handleSwitchTemplate(tplId as TemplateType)}
       />
     </div>
+  );
+}
+
+function SuratDinasDownloadDropdown({
+  isExporting,
+  onPdf,
+  onWord,
+  compact = false,
+}: {
+  isExporting: string | null;
+  onPdf: () => void;
+  onWord: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isExporting !== null}
+          className={cn("kpg-secondary rounded-lg text-xs", compact ? "h-7 gap-1" : "gap-2")}
+        >
+          {isExporting ? (
+            <Loader2 className={cn("animate-spin mr-1 text-[var(--ds-accent-fg)]", compact ? "w-3 h-3" : "w-3.5 h-3.5")} />
+          ) : (
+            <Download className={cn("text-[var(--ds-accent-fg)]", compact ? "w-3 h-3" : "w-3.5 h-3.5")} />
+          )}
+          <span>Unduh</span>
+          <ChevronDown className={cn("opacity-60", compact ? "w-2.5 h-2.5" : "w-3 h-3")} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        data-module="persuratan"
+        align="end"
+        className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
+      >
+        <DropdownMenuItem
+          onClick={onPdf}
+          disabled={isExporting !== null}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+        >
+          <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
+          <div className="flex flex-col text-left">
+            <span>Unduh PDF (.pdf)</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onWord}
+          disabled={isExporting !== null}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+        >
+          <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
+          <div className="flex flex-col text-left">
+            <span>Unduh Word (.doc)</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

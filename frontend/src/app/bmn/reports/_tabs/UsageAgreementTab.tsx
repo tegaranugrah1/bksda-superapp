@@ -264,80 +264,24 @@ export function UsageAgreementTab({
   };
 
   const duplicateHistoryAgreement = (agreement: UsageAgreementHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        type: "usage",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: "draft",
-        item: { ...agreement, document_type: "usage_agreement" },
-        isDuplicate: true,
-      });
-      return;
-    }
-
-    setBaSequence("");
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setKap(kapVal);
-    setDocumentDate(todayInputValue());
-    setFirstPartyEmployeeId("");
-    setFirstParty(agreement.first_party_snapshot || DEFAULT_FIRST_PARTY);
-    if (agreement.assets_snapshot && agreement.assets_snapshot.length > 0) {
-      setAssets((prev) => {
-        const existingIds = new Set(prev.map((a) => a.id));
-        const toAdd = agreement.assets_snapshot!.filter((a) => !existingIds.has(a.id));
-        return [...prev, ...toAdd];
-      });
-    }
-    setSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setNotes(
-      agreement.notes ||
-      "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
-    );
-    toast.info("Arsip BA disalin sebagai dokumen baru. Silakan lengkapi nomor dan tanggal BA.");
+    onSetEditingDocument?.({
+      type: "usage",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: "draft",
+      item: { ...agreement, document_type: "usage_agreement" },
+      isDuplicate: true,
+    });
   };
 
   const editUsageAgreement = async (agreement: UsageAgreementHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        id: agreement.id,
-        type: "usage",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
-        item: { ...agreement, document_type: "usage_agreement" },
-        isDuplicate: false,
-      });
-      return;
-    }
-
-    const employeeId = agreement.employee?.id || agreement.second_party_snapshot?.id;
-    if (employeeId) {
-      setSelectedEmployeeId(String(employeeId));
-      await loadUsageData(String(employeeId));
-    }
-
-    const seq = extractDocumentSequence(agreement.number);
-    setBaSequence(seq);
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setKap(kapVal);
-
-    if (agreement.document_date) {
-      setDocumentDate(agreement.document_date);
-    }
-    setFirstPartyEmployeeId("");
-    setFirstParty(agreement.first_party_snapshot || DEFAULT_FIRST_PARTY);
-    if (agreement.assets_snapshot && agreement.assets_snapshot.length > 0) {
-      setAssets((prev) => {
-        const existingIds = new Set(prev.map((a) => a.id));
-        const toAdd = agreement.assets_snapshot!.filter((a) => !existingIds.has(a.id));
-        return [...prev, ...toAdd];
-      });
-    }
-    setSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setNotes(
-      agreement.notes ||
-      "Sehingga tanggung jawab atas penggunaan, pengamanan, dan pemeliharaan yang dibebankan pada DIPA satuan kerja berada pada PIHAK KEDUA."
-    );
-    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? "BA Pemakaian (Draf)" : agreement.number}`);
+    onSetEditingDocument?.({
+      id: agreement.id,
+      type: "usage",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+      item: { ...agreement, document_type: "usage_agreement" },
+      isDuplicate: false,
+    });
   };
 
   const printHistoryAgreement = (_agreement: UsageAgreementHistory) => {

@@ -237,7 +237,7 @@ if (typeof window !== "undefined") {
         const oldUser = JSON.parse(event.oldValue || "null");
         const newUser = JSON.parse(event.newValue || "null");
         const identity = oldUser?.username || oldUser?.id;
-        const authFields = ["id", "username", "role", "access_modules", "permissions"];
+        const authFields = ["id", "username", "role", "access_modules", "module_roles", "permissions"];
         if (oldUser && newUser &&
           (typeof identity === "string" ? identity.trim() : Number.isSafeInteger(identity) && identity > 0) &&
           JSON.stringify(oldUser, authFields) === JSON.stringify(newUser, authFields)) {

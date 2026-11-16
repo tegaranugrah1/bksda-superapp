@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_HTML_BYTES = 10 * 1024 * 1024; // 10 MB cap (includes inlined base64 Kop/TTD images)
+const MAX_CONCURRENT_RENDERS = 3;
+let activePdfRenders = 0;
 
 const CHROMIUM_CANDIDATES = [
   process.env.CHROMIUM_EXECUTABLE_PATH,
@@ -51,17 +53,17 @@ async function getBrowser(): Promise<Browser> {
 function getUserVerifyUrls(): string[] {
   const urls: string[] = [];
   if (process.env.INTERNAL_API_URL) {
-    urls.push(`${process.env.INTERNAL_API_URL.replace(/\/$/, "")}/user`);
+    urls.push(`${process.env.INTERNAL_API_URL.replace(/\/$/, "")}/surat/templates`);
   }
   if (process.env.NODE_ENV === "production") {
-    urls.push("http://nginx-backend/api/user");
+    urls.push("http://nginx-backend/api/surat/templates");
   }
   const publicApi = process.env.NEXT_PUBLIC_API_URL;
   if (publicApi?.startsWith("http")) {
-    urls.push(`${publicApi.replace(/\/$/, "")}/user`);
+    urls.push(`${publicApi.replace(/\/$/, "")}/surat/templates`);
   }
   if (process.env.NODE_ENV !== "production") {
-    urls.push("http://127.0.0.1:8000/api/user");
+    urls.push("http://127.0.0.1:8000/api/surat/templates");
   }
   return Array.from(new Set(urls));
 }
@@ -96,22 +98,12 @@ async function authorizeSuratRequest(request: NextRequest): Promise<{ ok: true }
   for (const url of getUserVerifyUrls()) {
     try {
       const res = await fetch(url, { headers, cache: "no-store" });
-      if (res.status === 401 || res.status === 403) {
+      if (res.status === 401 || res.status === 403 || res.status === 423) {
         return { ok: false, status: res.status };
       }
       if (!res.ok) continue;
 
-      const json = (await res.json().catch(() => null)) as {
-        data?: { role?: string; is_active?: boolean; access_modules?: string[] };
-      } | null;
-      const user = json?.data;
-      if (!user || user.is_active === false) {
-        return { ok: false, status: 403 };
-      }
-      const allowed =
-        user.role === "super_admin" ||
-        (Array.isArray(user.access_modules) && user.access_modules.includes("surat"));
-      return allowed ? { ok: true } : { ok: false, status: 403 };
+      return { ok: true };
     } catch {
       // Try next candidate backend URL on network error
     }
@@ -138,6 +130,11 @@ function sanitizePdfFilename(rawName: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return NextResponse.json({ message: "Content-Type harus application/json." }, { status: 415 });
+  }
+
   const auth = await authorizeSuratRequest(request);
   if (!auth.ok) {
     return NextResponse.json({ message: "Unauthorized" }, { status: auth.status });
@@ -158,9 +155,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Konten HTML wajib diisi." }, { status: 400 });
   }
 
+  if (activePdfRenders >= MAX_CONCURRENT_RENDERS) {
+    return NextResponse.json({ message: "Server PDF sedang sibuk. Silakan coba beberapa saat lagi." }, { status: 429 });
+  }
+
   const safeHtml = sanitizeHtmlForPdf(body.html);
   const safeFilename = sanitizePdfFilename(body.filename);
 
+  activePdfRenders++;
   let context: Awaited<ReturnType<Browser["newContext"]>> | null = null;
   try {
     const browser = await getBrowser();
@@ -198,6 +200,7 @@ export async function POST(request: NextRequest) {
     console.error("[export-pdf] Failed to render PDF:", err);
     return NextResponse.json({ message: "Gagal merender PDF vektor di server." }, { status: 500 });
   } finally {
+    activePdfRenders = Math.max(0, activePdfRenders - 1);
     if (context) {
       await context.close().catch(() => {});
     }

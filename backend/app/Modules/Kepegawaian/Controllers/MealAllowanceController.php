@@ -48,7 +48,7 @@ class MealAllowanceController extends Controller
                     }
                 },
             ],
-            'file' => 'nullable|file|max:51200',
+            'file' => 'nullable|file|mimes:xls,xlsx,zip,html,htm|extensions:xls,xlsx,zip,html,htm|max:51200',
             'periode' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
             'overrides' => 'nullable|array',
         ]);
@@ -122,13 +122,7 @@ class MealAllowanceController extends Controller
         $year = (int) $carbonPeriod->format('Y');
         $month = (int) $carbonPeriod->format('m');
         $holidays = HolidayCalendarHelper::getHolidaysForMonth($year, $month);
-
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
-        $detectedPeriodLabel = ($monthNames[$month] ?? $month) . ' ' . $year;
+        $detectedPeriodLabel = $carbonPeriod->copy()->locale('id')->translatedFormat('F') . ' ' . $year;
 
         $reconciledItems = [];
         $totalBruto = 0;
@@ -223,15 +217,30 @@ class MealAllowanceController extends Controller
         ]);
 
         $batch = DB::transaction(function () use ($validated, $request) {
-            $totalBruto = collect($validated['items'])->sum('uang_makan_bruto');
-            $totalPph21 = collect($validated['items'])->sum('potongan_pph21');
-            $totalNetto = collect($validated['items'])->sum('uang_makan_netto');
-            $totalHariKerja = $validated['items'][0]['jml_hari_kerja'] ?? 22;
+            $recomputedItems = collect($validated['items'])->map(function (array $item) {
+                $hadir = (int) $item['jml_hadir'];
+                $tarif = (float) $item['tarif_harian'];
+                $persenPph = max(0.0, min(100.0, (float) $item['persen_pph21']));
+                $bruto = round($hadir * $tarif, 2);
+                $pph21 = round($bruto * ($persenPph / 100.0), 2);
+                $netto = round($bruto - $pph21, 2);
+
+                return array_merge($item, [
+                    'uang_makan_bruto' => $bruto,
+                    'potongan_pph21' => $pph21,
+                    'uang_makan_netto' => $netto,
+                ]);
+            });
+
+            $totalBruto = $recomputedItems->sum('uang_makan_bruto');
+            $totalPph21 = $recomputedItems->sum('potongan_pph21');
+            $totalNetto = $recomputedItems->sum('uang_makan_netto');
+            $totalHariKerja = $recomputedItems->first()['jml_hari_kerja'] ?? 22;
 
             $batch = MealAllowanceBatch::create([
                 'periode_bulan' => $validated['periode_bulan'],
                 'nama_batch' => strip_tags($validated['nama_batch']),
-                'total_pegawai' => count($validated['items']),
+                'total_pegawai' => $recomputedItems->count(),
                 'total_hari_kerja' => $totalHariKerja,
                 'total_bruto' => $totalBruto,
                 'total_pph21' => $totalPph21,
@@ -243,7 +252,7 @@ class MealAllowanceController extends Controller
                 'created_by' => $request->user()?->id,
             ]);
 
-            foreach ($validated['items'] as $item) {
+            foreach ($recomputedItems as $item) {
                 MealAllowanceItem::create([
                     'batch_id' => $batch->id,
                     'employee_id' => $item['employee_id'] ?? null,
@@ -403,6 +412,10 @@ class MealAllowanceController extends Controller
      */
     public function getCalendar(Request $request): JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|integer|min:2000|max:2100',
+            'month' => 'nullable|integer|min:1|max:12',
+        ]);
         $year = (int) ($request->input('year') ?: Carbon::now()->format('Y'));
         $month = (int) ($request->input('month') ?: Carbon::now()->format('m'));
         $targetPeriode = sprintf('%04d-%02d', $year, $month);
@@ -411,19 +424,13 @@ class MealAllowanceController extends Controller
 
         $holidays = HolidayCalendarHelper::getHolidaysForMonth($year, $month);
 
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
-
         return response()->json([
             'success' => true,
             'data' => [
                 'periode_bulan' => $targetPeriode,
                 'year' => $year,
                 'month' => $month,
-                'month_name' => $monthNames[$month] ?? (string)$month,
+                'month_name' => $carbonPeriod->copy()->locale('id')->translatedFormat('F'),
                 'days_in_month' => $daysInMonth,
                 'holidays' => $holidays,
             ],
@@ -436,6 +443,9 @@ class MealAllowanceController extends Controller
      */
     public function getHolidaySettings(Request $request): JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|integer|min:2000|max:2100',
+        ]);
         $year = (int) ($request->input('year') ?: Carbon::now()->format('Y'));
         $holidays = HolidayCalendarHelper::getAllHolidaysForYear($year);
 

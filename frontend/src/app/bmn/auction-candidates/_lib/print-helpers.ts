@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { openPrintWindow } from "@/lib/print-window";
 
 export interface PrintDocumentWindowOptions {
   rootId: string;
@@ -664,27 +665,11 @@ export function printDocumentWindow({
     beforePrint(clone);
   }
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>${title}</title>
-        <style>
-          ${BASE_AUCTION_PRINT_CSS}
-          ${styles}
-        </style>
-      </head>
-      <body>${clone.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-
-  if (onWindowReady) {
-    onWindowReady(printWindow);
-  } else {
-    setTimeout(() => printWindow.print(), delayMs);
-  }
+  openPrintWindow({
+    title,
+    bodyHtml: clone.innerHTML,
+    styles: `${BASE_AUCTION_PRINT_CSS}\n${styles}`,
+    delayMs,
+    onReady: onWindowReady,
+  });
 }

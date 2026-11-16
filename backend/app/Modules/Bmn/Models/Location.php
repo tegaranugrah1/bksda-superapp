@@ -189,6 +189,11 @@ class Location extends Model
         return null;
     }
 
+    public static function resolveUnitSlug(?string $resor, ?string $satuanKerja = null): ?string
+    {
+        return self::canonicalUnitSlug($resor) ?? self::canonicalUnitSlug($satuanKerja);
+    }
+
     /**
      * Ekstrak kode resor standar (`resor_01`..`resor_14`) dari kode atau nama resor.
      */

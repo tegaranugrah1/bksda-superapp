@@ -19,7 +19,7 @@ import {
   Paperclip,
   Eye,
 } from "lucide-react";
-import { DokumenDasarDrawer } from "./DokumenDasarDrawer";
+import { ScanViewerModal } from "@/app/kepegawaian/cuti/_components/ScanViewerModal";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -4140,12 +4140,13 @@ export function SuratTugasForm({
         <option value="Berau" />
       </datalist>
 
-      <DokumenDasarDrawer
+      <ScanViewerModal
         isOpen={isBaseDocOpen}
+        title="Pratinjau Dokumen Dasar Surat Tugas"
+        scanUrl={letterId && fileSuratPath ? `/surat-tugas/${letterId}/download` : null}
+        fileName={fileSuratPath ? `Dokumen_Dasar_${letterId}.pdf` : null}
         onClose={() => setIsBaseDocOpen(false)}
-        letterId={letterId}
-        hasFile={Boolean(fileSuratPath)}
-        fileName={fileSuratPath ? 'Dokumen_Dasar_' + letterId + '.pdf' : null}
+        contentModule="surat-tugas"
       />
     </div>
   );

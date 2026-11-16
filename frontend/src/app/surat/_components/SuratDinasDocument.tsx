@@ -3,6 +3,7 @@
 import React from "react";
 import { toast } from "sonner";
 import { formatNipLabel, isPppk } from "@/lib/letter-utils";
+import { cloneHtmlWithResolvedImages, openPrintWindow, resolveAbsoluteImageUrl } from "@/lib/print-window";
 
 export type TemplateType =
   | "surat_dinas"
@@ -1279,14 +1280,7 @@ export const SURAT_DINAS_BASE_CSS = `
   .surat-izin-cuti-subtable td.sic-sub-text { text-align: justify; text-justify: inter-word; }
 `;
 
-export function resolveImageUrl(url: string): string {
-  if (!url) return url;
-  if (/^https?:\/\//i.test(url) || url.startsWith("data:")) return url;
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
-  }
-  return url;
-}
+export const resolveImageUrl = resolveAbsoluteImageUrl;
 
 export const SURAT_DINAS_PRINT_CSS = `
   @page { size: A4 portrait; margin: 0; }
@@ -1339,75 +1333,25 @@ export function handlePrintSuratDinas() {
     return;
   }
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) {
-    toast.error("Gagal membuka jendela cetak. Pastikan pop-up diizinkan.");
-    return;
-  }
-
-  // Clone content and resolve relative image URLs to absolute URLs
-  const container = document.createElement("div");
-  container.innerHTML = printContent.innerHTML;
-  const imgs = container.getElementsByTagName("img");
-  for (let i = 0; i < imgs.length; i++) {
-    const src = imgs[i].getAttribute("src");
-    if (src) {
-      imgs[i].setAttribute("src", resolveImageUrl(src));
-    }
-  }
-
-  // Collect active stylesheets and inline style blocks
   const headElements = typeof document !== "undefined"
     ? Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
         .map((el) => el.outerHTML)
         .join("\n")
     : "";
 
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="id">
-      <head>
-        <meta charset="utf-8" />
-        <title>Naskah Dinas Resmi Permen Kehutanan</title>
-        ${headElements}
-        <style>
-          ${SURAT_DINAS_BASE_CSS}
-          ${SURAT_DINAS_PRINT_CSS}
-        </style>
-      </head>
-      <body>
-        <div class="surat-dinas-print-root" style="width: 210mm; margin: 0 auto; background: white;">
-          ${container.innerHTML}
-        </div>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
+  const win = openPrintWindow({
+    title: "Naskah Dinas Resmi Permen Kehutanan",
+    docType: true,
+    htmlLang: "id",
+    headHtml: headElements,
+    styles: `${SURAT_DINAS_BASE_CSS}\n${SURAT_DINAS_PRINT_CSS}`,
+    bodyHtml: `<div class="surat-dinas-print-root" style="width: 210mm; margin: 0 auto; background: white;">${cloneHtmlWithResolvedImages(printContent)}</div>`,
+    delayMs: 300,
+    waitForImages: true,
+  });
 
-  const printImages = printWindow.document.getElementsByTagName("img");
-  let loaded = 0;
-  const total = printImages.length;
-  const triggerPrint = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  if (total === 0) {
-    setTimeout(triggerPrint, 300);
-  } else {
-    for (let i = 0; i < total; i++) {
-      if (printImages[i].complete) {
-        loaded++;
-      } else {
-        printImages[i].onload = printImages[i].onerror = () => {
-          loaded++;
-          if (loaded >= total) triggerPrint();
-        };
-      }
-    }
-    if (loaded >= total) {
-      setTimeout(triggerPrint, 300);
-    }
+  if (!win) {
+    toast.error("Gagal membuka jendela cetak. Pastikan pop-up diizinkan.");
   }
 }
 

@@ -20,8 +20,8 @@ class SuratMasuk extends Model
         static::deleting(function (SuratMasuk $surat) {
             if ($surat->isForceDeleting()) {
                 $surat->disposisi()->forceDelete();
-                if ($surat->file_path && Storage::disk('private')->exists($surat->file_path)) {
-                    Storage::disk('private')->delete($surat->file_path);
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
+                    Storage::disk('local')->delete($surat->file_path);
                 }
             } else {
                 $surat->disposisi()->delete();

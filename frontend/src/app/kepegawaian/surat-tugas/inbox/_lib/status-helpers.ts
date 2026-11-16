@@ -208,6 +208,19 @@ export function formatShortSumberDana(sumberDana?: string | null): string {
   return s.length > 6 ? s.slice(0, 6).trim() : s;
 }
 
+const FORMAL_SUMBER_DANA_MAP: ReadonlyArray<[RegExp, string]> = [
+  [/folu/, "Dana Hibah FOLU Net Sink 2030 (NC 2&3)"],
+  [/dipa/, "DIPA Balai KSDA Kalimantan Timur (693614)"],
+  [/kja|kideco/, "RKT Kerjasama PT Kideco Jaya Agung"],
+  [/mja|multi_jayantara|jayantara/, "RKT Kerjasama PT Multi Jayantara Abadi"],
+  [/cop/, "Biaya Kerjasama COP (Centre for Orangutan Protection)"],
+  [/tjiwi/, "Anggaran PKS PT Pabrik Kertas Tjiwi Kimia Tbk"],
+  [/bosf/, "RKT Kerjasama Yayasan BOSF"],
+  [/can/, "Biaya Kerjasama CAN (Conservation Action Network)"],
+  [/alert/, "RKT Kerjasama ALeRT (Aliansi Lestari Rimba Terpadu)"],
+  [/dl1|dl 1|tidak ada|tanpa biaya/, "DL 1 / Tanpa Biaya"],
+];
+
 /**
  * Format nama resmi/panjang sumber dana untuk tampilan detail surat tugas
  * (sesuai template resmi di http://localhost:3000/surat-tugas).
@@ -222,36 +235,8 @@ export function formatFormalSumberDana(sumberDana?: string | null, other?: strin
     return s;
   }
 
-  if (lower.includes("folu")) {
-    return "Dana Hibah FOLU Net Sink 2030 (NC 2&3)";
-  }
-  if (lower.includes("dipa")) {
-    return "DIPA Balai KSDA Kalimantan Timur (693614)";
-  }
-  if (lower.includes("kja") || lower.includes("kideco")) {
-    return "RKT Kerjasama PT Kideco Jaya Agung";
-  }
-  if (lower.includes("mja") || lower.includes("multi_jayantara") || lower.includes("jayantara")) {
-    return "RKT Kerjasama PT Multi Jayantara Abadi";
-  }
-  if (lower.includes("cop")) {
-    return "Biaya Kerjasama COP (Centre for Orangutan Protection)";
-  }
-  if (lower.includes("tjiwi")) {
-    return "Anggaran PKS PT Pabrik Kertas Tjiwi Kimia Tbk";
-  }
-  if (lower.includes("bosf")) {
-    return "RKT Kerjasama Yayasan BOSF";
-  }
-  if (lower.includes("can")) {
-    return "Biaya Kerjasama CAN (Conservation Action Network)";
-  }
-  if (lower.includes("alert")) {
-    return "RKT Kerjasama ALeRT (Aliansi Lestari Rimba Terpadu)";
-  }
-  if (lower.includes("dl1") || lower.includes("dl 1") || lower.includes("tidak ada") || lower.includes("tanpa biaya")) {
-    return "DL 1 / Tanpa Biaya";
-  }
+  const matched = FORMAL_SUMBER_DANA_MAP.find(([pattern]) => pattern.test(lower));
+  if (matched) return matched[1];
   if (lower === "other" || lower === "lainnya") {
     return other?.trim() ? `Lainnya (${other.trim()})` : "Lainnya";
   }

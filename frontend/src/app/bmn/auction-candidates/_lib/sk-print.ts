@@ -327,33 +327,3 @@ export function runSkPagination(printWindow: Window, config: SkPaginationConfig)
   }
   setTimeout(() => printWindow.print(), 300);
 }
-
-/**
- * Open a print window, write the document HTML + the supplied static print
- * CSS, then schedule the shared pagination pass. Returns early (with a no-op)
- * if the print root is missing or the window was blocked.
- */
-export function openSkPrintWindow(options: {
-  rootId: string;
-  title: string;
-  printCss: string;
-  config: SkPaginationConfig;
-}): void {
-  const printContent = document.getElementById(options.rootId);
-  if (!printContent) return;
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>${options.title}</title>
-        <style>${options.printCss}</style>
-      </head>
-      <body>${printContent.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => runSkPagination(printWindow, options.config), 600);
-}

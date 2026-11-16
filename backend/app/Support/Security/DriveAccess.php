@@ -237,7 +237,8 @@ class DriveAccess
             $user,
             (int) $file->user_id,
             $file->unit_id ? (int) $file->unit_id : ($folder?->unit_id ? (int) $folder->unit_id : null),
-            $folder
+            $folder,
+            $file->source_module
         )) {
             return true;
         }
@@ -274,7 +275,7 @@ class DriveAccess
      * Kepemilikan user_id berlaku penuh di My Drive pribadi, serta untuk akun tanpa profil pegawai konflik.
      * Bagi pegawai aktif/nonaktif, mutasi penempatan atau lokasi terbatas tetap mencabut akses organisasi lama.
      */
-    private static function canUseCreatorOwnershipBypass(User $user, int $ownerUserId, ?int $unitId, ?DriveFolder $scopeFolder = null): bool
+    private static function canUseCreatorOwnershipBypass(User $user, int $ownerUserId, ?int $unitId, ?DriveFolder $scopeFolder = null, ?string $sourceModule = null): bool
     {
         if ($ownerUserId !== (int) $user->id || ! $user->is_active) {
             return false;
@@ -284,8 +285,20 @@ class DriveAccess
             return true;
         }
 
+        if ($scopeFolder && $scopeFolder->is_restricted
+            && ($scopeFolder->location_id || $scopeFolder->resor_code || $scopeFolder->room_code)) {
+            $emp = self::getEmployee($user);
+            if (! $emp) {
+                return false;
+            }
+        }
+
         $employeeExists = ! empty($user->username) && Employee::where('nip', $user->username)->exists();
         if (! $employeeExists) {
+            if ($unitId !== null && $sourceModule !== 'dereporting') {
+                $unit = DriveUnit::find($unitId);
+                return $unit ? self::unitRole($user, $unit) !== null : false;
+            }
             return true;
         }
 
@@ -344,12 +357,14 @@ class DriveAccess
         if (! $oldUnitId && $oldLocationId) {
             $oldUnitId = Location::with('parent')->find($oldLocationId)?->effectiveDriveUnitId();
         }
-        if (! $oldUnitId && ($oldSlug = Location::canonicalUnitSlug($oldResor) ?? Location::canonicalUnitSlug($oldSatker))) {
+        if (! $oldUnitId && ($oldSlug = Location::resolveUnitSlug($oldResor, $oldSatker))) {
             $oldUnitId = DriveUnit::where('slug', $oldSlug)->value('id');
         }
 
         if (! $isActive) {
             DB::table('drive_unit_members')->where('user_id', $user->id)->delete();
+            DriveShare::where('user_id', $user->id)->delete();
+            DriveShare::where('created_by', $user->id)->where('share_type', 'public')->delete();
             self::revokeUserOrgSharesAndFolderOwnership($user->id, null, null);
             self::clearCache();
             return;
@@ -464,13 +479,6 @@ class DriveAccess
 
     private static function resolveEmployeeUnitSlug(Employee $employee): ?string
     {
-        if (! empty($employee->resor)) {
-            $byResor = Location::canonicalUnitSlug($employee->resor);
-            if ($byResor !== null) {
-                return $byResor;
-            }
-        }
-
-        return Location::canonicalUnitSlug($employee->satuan_kerja);
+        return Location::resolveUnitSlug($employee->resor, $employee->satuan_kerja);
     }
 }

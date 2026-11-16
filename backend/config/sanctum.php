@@ -5,12 +5,7 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Laravel\Sanctum\Sanctum;
 
-$requestHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-$hostOnly = $requestHost ? explode(':', $requestHost)[0] : '';
 $defaultDomains = 'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net';
-if ($hostOnly) {
-    $defaultDomains .= ',' . $hostOnly . ',' . $hostOnly . ':3000,' . $hostOnly . ':8000,' . $requestHost;
-}
 
 return [
 
@@ -87,7 +82,7 @@ return [
     'middleware' => [
         'authenticate_session' => AuthenticateSession::class,
         'encrypt_cookies' => EncryptCookies::class,
-        'validate_csrf_token' => ValidateCsrfToken::class,
+        'validate_csrf_token' => \App\Http\Middleware\ValidateApiCsrfToken::class,
     ],
 
 ];

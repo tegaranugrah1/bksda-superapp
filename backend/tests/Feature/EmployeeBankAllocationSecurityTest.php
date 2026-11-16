@@ -17,6 +17,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $superAdmin;
     protected User $adminUser;
     protected User $regularUser;
     protected User $otherModuleAdmin;
@@ -29,7 +30,17 @@ class EmployeeBankAllocationSecurityTest extends TestCase
     {
         parent::setUp();
 
-        // 1. Setup Admin Kepegawaian
+        $this->superAdmin = User::create([
+            'name' => 'Super Admin Kepegawaian',
+            'username' => 'superadmin_kpg',
+            'email' => 'superadmin_kpg@bksda.local',
+            'password' => Hash::make('Password123!'),
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+            'is_active' => true,
+        ]);
+
+        // 1. Setup Admin Kepegawaian (tidak boleh ubah master settings; tetap lulus employee update)
         $this->adminUser = User::create([
             'name' => 'Admin Kepegawaian',
             'username' => 'admin_kpg',
@@ -164,6 +175,15 @@ class EmployeeBankAllocationSecurityTest extends TestCase
             'employee_ids' => [$this->pnsBri->id],
             'nama_bank' => 'Mandiri',
         ])->assertStatus(403);
+
+        // Module admin (non-super_admin) juga dilarang mengelola master bank & alokasi global.
+        Sanctum::actingAs($this->adminUser);
+        $this->postJson('/api/kepegawaian/settings/registered-banks', ['nama_bank' => 'BSI'])
+            ->assertStatus(403);
+        $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
+            'employee_ids' => [$this->pnsBri->id],
+            'nama_bank' => 'Mandiri',
+        ])->assertStatus(403);
     }
 
     /**
@@ -171,7 +191,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_sec_03_and_root_12_xss_and_sqli_payloads_in_bank_registration_are_rejected(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $maliciousPayloads = [
             '<script>alert(1)</script>',
@@ -199,7 +219,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_sec_04_sqli_in_path_parameter_does_not_break_query(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $sqliPayload = rawurlencode("BRI' OR '1'='1");
         $response = $this->deleteJson("/api/kepegawaian/settings/registered-banks/{$sqliPayload}");
@@ -214,7 +234,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_sec_05_in_use_guard_prevents_deleting_active_bank(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // Bank BRI masih digunakan oleh pnsBri dan mmpBri
         $response = $this->deleteJson('/api/kepegawaian/settings/registered-banks/BRI');
@@ -252,7 +272,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_be_01_get_registered_banks_returns_accurate_counts(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $response = $this->getJson('/api/kepegawaian/settings/registered-banks');
 
@@ -280,7 +300,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_be_02_and_03_store_valid_bank_and_reject_case_insensitive_duplicate(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // 1. Simpan bank baru
         $res1 = $this->postJson('/api/kepegawaian/settings/registered-banks', [
@@ -308,7 +328,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_be_04_delete_unused_bank_succeeds(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // Daftarkan Bankaltimtara yang belum punya pegawai
         DB::table('kpg_registered_banks')->insert([
@@ -330,7 +350,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_05_and_06_employee_classification_and_group_filtering(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // 1. Panggil semua
         $resAll = $this->getJson('/api/kepegawaian/settings/employee-banks');
@@ -375,7 +395,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_07_batch_bank_update_creates_employee_history(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $response = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
             'employee_ids' => [$this->pnsBri->id],
@@ -391,7 +411,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
         $history = EmployeeHistory::where('employee_id', $this->pnsBri->id)->first();
         $this->assertNotNull($history);
         $this->assertEquals('UPDATE_BANK_ALLOCATION', $history->action);
-        $this->assertEquals($this->adminUser->id, $history->user_id);
+        $this->assertEquals($this->superAdmin->id, $history->user_id);
 
         $changes = is_array($history->changes) ? $history->changes : json_decode($history->changes, true);
         $this->assertEquals('BRI', $changes['nama_bank']['old']);
@@ -403,7 +423,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_08_batch_update_sanitizes_dash_to_null(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $response = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
             'employee_ids' => [$this->pnsBri->id],
@@ -424,7 +444,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_09_batch_update_rejects_non_existent_employee_id(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         $response = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
             'employee_ids' => [999999],
@@ -440,7 +460,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_10_unregistered_bank_is_rejected_on_both_update_endpoints(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // 1. Jalur batchUpdateEmployeeBanks
         $resBatch = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
@@ -465,7 +485,7 @@ class EmployeeBankAllocationSecurityTest extends TestCase
      */
     public function test_tc_root_13_search_handles_case_insensitivity_and_wildcards(): void
     {
-        Sanctum::actingAs($this->adminUser);
+        Sanctum::actingAs($this->superAdmin);
 
         // 1. Huruf kecil 'agung' harus menemukan 'AGUNG SUSENO'
         $resLower = $this->getJson('/api/kepegawaian/settings/employee-banks?search=agung');

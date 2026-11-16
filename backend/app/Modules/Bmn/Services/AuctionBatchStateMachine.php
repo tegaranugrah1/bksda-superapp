@@ -24,7 +24,6 @@ class AuctionBatchStateMachine
         $validTransitions = [
             AuctionBatchStatus::DRAFT->value => [
                 AuctionBatchStatus::DIAJUKAN->value,
-                AuctionBatchStatus::REALISASI->value,
                 AuctionBatchStatus::BATAL->value,
             ],
             AuctionBatchStatus::DIAJUKAN->value => [

@@ -57,6 +57,7 @@ import {
   detectJenisFromNipInput,
   buildMmpDefaultJabatan,
   isAutoMmpJabatan,
+  formatRupiah,
 } from "../../_lib/employee-helpers";
 import { formatNipLabel } from "@/lib/letter-utils";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -85,16 +86,6 @@ function cleanFieldValue(val?: string | null): string {
   if (!val) return "";
   const trimmed = String(val).trim();
   return trimmed === "-" ? "" : trimmed;
-}
-
-function formatRupiah(amount: number | string | null | undefined): string {
-  const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
-  if (isNaN(num)) return "Rp 0";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(num);
 }
 
 function getWaLink(phone?: string | null): string | null {

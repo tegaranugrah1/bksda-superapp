@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
 import {
   buildKegiatanDiktumText,
-  cleanMelaksanakanKegiatanPrefix,
   normalizeTaskTypeName,
   isJenisKegiatanTask,
   capitalizeOfficialText,
@@ -184,7 +183,7 @@ export function SuratTugasDetailStep({
       .catch(() => {});
   }, []);
 
-  const { data: conflictData, isLoading: isCheckingConflicts } = useScheduleConflicts({
+  const { data: conflictData } = useScheduleConflicts({
     employees: selectedEmployees,
     tanggalMulai: formData.tanggal_mulai,
     tanggalSelesai: formData.tanggal_selesai,
@@ -194,15 +193,6 @@ export function SuratTugasDetailStep({
 
   const conflicts = conflictData?.conflicts || [];
   const hasConflict = (conflictData?.has_conflict && conflicts.length > 0) ?? false;
-
-  const handleRemoveEmployee = React.useCallback(
-    (empId: number) => {
-      if (removeEmployee) {
-        removeEmployee(String(empId));
-      }
-    },
-    [removeEmployee]
-  );
 
   const activeTaskType = React.useMemo(() => {
     if (selectedTaskTypeId) {

@@ -61,6 +61,7 @@ Route::get('power-of-attorneys', [PowerOfAttorneyController::class, 'index'])->m
 Route::post('power-of-attorneys', [PowerOfAttorneyController::class, 'store'])->middleware('permission:bmn.document.generate');
 Route::match(['put', 'patch'], 'power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'show'])->middleware('permission:bmn.document.history.view');
+Route::get('power-of-attorneys/{agreement}/ktp', [PowerOfAttorneyController::class, 'ktp'])->middleware('permission:bmn.document.history.view');
 
 // 4e. SURAT PENGANTAR BMN
 Route::get('covering-letters', [CoveringLetterController::class, 'index'])->middleware('permission:bmn.document.history.view');
@@ -90,7 +91,7 @@ Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::c
 Route::delete('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 Route::delete('covering-letters/{letter}', [CoveringLetterController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 
-Route::post('assets/import', [AssetController::class, 'import'])->middleware('permission:bmn.import.review');
+Route::post('assets/import', [AssetController::class, 'import'])->middleware('permission:bmn.import.approve');
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore'])->middleware('permission:bmn.asset.dispose');

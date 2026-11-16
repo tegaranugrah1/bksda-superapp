@@ -121,6 +121,23 @@ class Asset extends Model
         return Employee::resolveIdByName($this->pengguna, $this->nama_pengguna) === (int) $employee->id;
     }
 
+    public function hasActiveLoanForEmployee(Employee $employee): bool
+    {
+        return $this->loans()
+            ->where('employee_id', $employee->id)
+            ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
+            ->exists();
+    }
+
+    public function canEmployeeView(Employee $employee, bool $isPublicPhoto): bool
+    {
+        if ($this->hasActiveLoanForEmployee($employee)) {
+            return $isPublicPhoto;
+        }
+
+        return $this->isOwnedByEmployee($employee);
+    }
+
     protected static function booted()
     {
         static::saving(function (self $asset) {

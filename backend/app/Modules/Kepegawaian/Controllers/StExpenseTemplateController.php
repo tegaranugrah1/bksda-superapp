@@ -20,8 +20,7 @@ class StExpenseTemplateController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $filters = $request->all();
-        // If not super_admin or admin requesting inactive, only show active
-        if (! $request->user()?->isAdminFor('kepegawaian')) {
+        if ($request->user()?->role !== 'super_admin') {
             $filters['active_only'] = true;
         }
 
@@ -33,7 +32,7 @@ class StExpenseTemplateController extends Controller
     public function show(Request $request, int $id): StExpenseTemplateResource
     {
         $query = StExpenseTemplate::query();
-        if (! $request->user()?->isAdminFor('kepegawaian')) {
+        if ($request->user()?->role !== 'super_admin') {
             $query->where('is_active', true);
         }
 

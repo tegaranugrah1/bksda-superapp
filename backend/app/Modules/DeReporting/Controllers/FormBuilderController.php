@@ -37,6 +37,34 @@ class FormBuilderController extends Controller
         return response()->json($query->paginate(20));
     }
 
+    private function resolveDriveFormFolder(string $title, int $parentOwnerId, int $formOwnerId): ?array
+    {
+        try {
+            $unit = \App\Models\DriveUnit::where('slug', 'balai-samarinda')->first() ?? \App\Models\DriveUnit::find(1);
+            $unitId = $unit?->id ?: 1;
+            $parentFolder = \App\Models\DriveFolder::firstOrCreate([
+                'unit_id' => $unitId,
+                'parent_id' => null,
+                'name' => 'Formulir DeReporting',
+            ], [
+                'user_id' => $parentOwnerId,
+                'color' => '#10B981',
+            ]);
+
+            $formFolder = \App\Models\DriveFolder::firstOrCreate([
+                'unit_id' => $unitId,
+                'parent_id' => $parentFolder->id,
+                'name' => $title,
+            ], [
+                'user_id' => $formOwnerId,
+                'color' => '#3B82F6',
+            ]);
+
+            return ['unit' => $unit, 'folder' => $formFolder];
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
     /**
      * POST /api/dereporting/forms
      * Membuat formulir baru
@@ -65,31 +93,9 @@ class FormBuilderController extends Controller
         }
 
         // Siapkan folder di BKSDA Drive (Unit Balai Samarinda)
-        $driveFolderId = null;
-        try {
-            $unit = \App\Models\DriveUnit::where('slug', 'balai-samarinda')->first() ?? \App\Models\DriveUnit::find(1);
-            $superAdminId = \App\Models\User::where('role', 'super_admin')->value('id') ?: 1;
-            $parentFolder = \App\Models\DriveFolder::firstOrCreate([
-                'unit_id' => $unit?->id ?: 1,
-                'parent_id' => null,
-                'name' => 'Formulir DeReporting',
-            ], [
-                'user_id' => $superAdminId,
-                'color' => '#10B981',
-            ]);
-
-            $formFolder = \App\Models\DriveFolder::firstOrCreate([
-                'unit_id' => $unit?->id ?: 1,
-                'parent_id' => $parentFolder->id,
-                'name' => $request->title,
-            ], [
-                'user_id' => $request->user()?->id ?: $superAdminId,
-                'color' => '#3B82F6',
-            ]);
-            $driveFolderId = $formFolder->id;
-        } catch (\Throwable $e) {
-            // Non-blocking folder creation
-        }
+        $superAdminId = \App\Models\User::where('role', 'super_admin')->value('id') ?: 1;
+        $driveTarget = $this->resolveDriveFormFolder($request->title, $superAdminId, $request->user()?->id ?: $superAdminId);
+        $driveFolderId = $driveTarget['folder']->id ?? null;
 
         $form = DynamicForm::create([
             'title' => $request->title,
@@ -150,29 +156,10 @@ class FormBuilderController extends Controller
 
         // Jika belum memiliki folder Drive, buatkan otomatis
         if (! $form->drive_folder_id) {
-            try {
-                $unit = \App\Models\DriveUnit::where('slug', 'balai-samarinda')->first() ?? \App\Models\DriveUnit::find(1);
-                $superAdminId = \App\Models\User::where('role', 'super_admin')->value('id') ?: 1;
-                $parentFolder = \App\Models\DriveFolder::firstOrCreate([
-                    'unit_id' => $unit?->id ?: 1,
-                    'parent_id' => null,
-                    'name' => 'Formulir DeReporting',
-                ], [
-                    'user_id' => $superAdminId,
-                    'color' => '#10B981',
-                ]);
-
-                $formFolder = \App\Models\DriveFolder::firstOrCreate([
-                    'unit_id' => $unit?->id ?: 1,
-                    'parent_id' => $parentFolder->id,
-                    'name' => $payload['title'] ?? $form->title,
-                ], [
-                    'user_id' => $form->created_by ?: $superAdminId,
-                    'color' => '#3B82F6',
-                ]);
-                $payload['drive_folder_id'] = $formFolder->id;
-            } catch (\Throwable $e) {
-                // Non-blocking
+            $superAdminId = \App\Models\User::where('role', 'super_admin')->value('id') ?: 1;
+            $driveTarget = $this->resolveDriveFormFolder($payload['title'] ?? $form->title, $superAdminId, $form->created_by ?: $superAdminId);
+            if ($driveTarget) {
+                $payload['drive_folder_id'] = $driveTarget['folder']->id;
             }
         } elseif (! empty($payload['title']) && $payload['title'] !== $form->title) {
             try {
@@ -470,33 +457,13 @@ class FormBuilderController extends Controller
 
         // Resolusi folder BKSDA Drive untuk formulir ini (Unit Balai Samarinda)
         $ownerId = $form->created_by ?: (\App\Models\User::where('role', 'super_admin')->value('id') ?? \App\Models\User::value('id'));
-        $formFolder = null;
-        $unit = null;
+        $driveTarget = $ownerId ? $this->resolveDriveFormFolder($form->title, $ownerId, $ownerId) : null;
+        $formFolder = $driveTarget['folder'] ?? null;
+        $unit = $driveTarget['unit'] ?? null;
 
-        if ($ownerId) {
+        if ($formFolder && $form->drive_folder_id !== $formFolder->id) {
             try {
-                $unit = \App\Models\DriveUnit::where('slug', 'balai-samarinda')->first() ?? \App\Models\DriveUnit::find(1);
-                $parentFolder = \App\Models\DriveFolder::firstOrCreate([
-                    'unit_id' => $unit?->id ?: 1,
-                    'parent_id' => null,
-                    'name' => 'Formulir DeReporting',
-                ], [
-                    'user_id' => $ownerId,
-                    'color' => '#10B981',
-                ]);
-
-                $formFolder = \App\Models\DriveFolder::firstOrCreate([
-                    'unit_id' => $unit?->id ?: 1,
-                    'parent_id' => $parentFolder->id,
-                    'name' => $form->title,
-                ], [
-                    'user_id' => $ownerId,
-                    'color' => '#3B82F6',
-                ]);
-
-                if ($form->drive_folder_id !== $formFolder->id) {
-                    $form->update(['drive_folder_id' => $formFolder->id]);
-                }
+                $form->update(['drive_folder_id' => $formFolder->id]);
             } catch (\Throwable $e) {
                 // Non-blocking folder creation
             }
@@ -551,8 +518,11 @@ class FormBuilderController extends Controller
                         finfo_close($finfo);
 
                         $dangerousMimes = [
-                            'text/html', 'text/x-php', 'application/x-php', 'application/x-msdownload',
-                            'application/x-sh', 'application/x-bat', 'application/javascript', 'application/x-executable'
+                            'text/html', 'application/xhtml+xml', 'image/svg+xml',
+                            'text/xml', 'application/xml', 'text/javascript', 'application/javascript',
+                            'text/x-php', 'application/x-php', 'application/x-httpd-php',
+                            'application/x-msdownload', 'application/x-sh', 'application/x-bat',
+                            'application/x-executable',
                         ];
                         if (in_array(strtolower($detectedMime), $dangerousMimes, true)) {
                             return response()->json([
@@ -561,6 +531,8 @@ class FormBuilderController extends Controller
                         }
 
                         // Simpan langsung ke disk S3 drive di bawah folder Unit Balai
+                        $safeOrigName = preg_replace('/[\x00-\x1F\x7F"\\\\\/:*?<>|]+/', '_', basename(str_replace('\\', '/', $file->getClientOriginalName())));
+                        $safeOrigName = trim((string) $safeOrigName, ". \t") ?: ('file.' . $ext);
                         $s3Key = "units/balai-samarinda/dereporting/{$form->slug}/" . Str::uuid() . ".{$ext}";
                         $stream = fopen($file->getPathname(), 'r');
                         Storage::disk('drive')->put($s3Key, $stream);
@@ -575,7 +547,7 @@ class FormBuilderController extends Controller
                                 'unit_id' => $unit?->id ?: 1,
                                 'user_id' => $ownerId,
                                 'folder_id' => $formFolder->id,
-                                'name' => $file->getClientOriginalName(),
+                                'name' => mb_substr($safeOrigName, 0, 200),
                                 's3_key' => $s3Key,
                                 'size_bytes' => $file->getSize(),
                                 'mime_type' => $detectedMime,

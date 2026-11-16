@@ -2,31 +2,6 @@
  * Konstanta bersama untuk modul Kepegawaian (Satuan Kerja & Pangkat PNS / PPPK).
  */
 
-export const SATUAN_KERJA_OPTIONS = [
-  // Kantor Balai
-  "Kantor Balai KSDA Kalimantan Timur",
-  // Seksi KSDA Wilayah I Berau
-  "Seksi KSDA Wilayah I Berau",
-  "Seksi KSDA Wil I - Resor 01. Berau",
-  "Seksi KSDA Wil I - Resor 02. Pulau Semama dan Pulau Sangalaki",
-  "Seksi KSDA Wil I - Resor 03. Tanjung Selor",
-  "Seksi KSDA Wil I - Resor 04. Tarakan",
-  // Seksi KSDA Wilayah II Tenggarong
-  "Seksi KSDA Wilayah II Tenggarong",
-  "Seksi KSDA Wil II - Resor 05. Samarinda",
-  "Seksi KSDA Wil II - Resor 06. Padang Luway",
-  "Seksi KSDA Wil II - Resor 07. Muara Kaman Sedulang",
-  "Seksi KSDA Wil II - Resor 08. Sangatta",
-  "Seksi KSDA Wil II - Resor 09. Suaka Badak Kelian",
-  // Seksi KSDA Wilayah III Balikpapan
-  "Seksi KSDA Wilayah III Balikpapan",
-  "Seksi KSDA Wil III - Resor 10. Balikpapan",
-  "Seksi KSDA Wil III - Resor 11. Teluk Adang",
-  "Seksi KSDA Wil III - Resor 12. Teluk Apar",
-  "Seksi KSDA Wil III - Resor 13. Paser",
-  "Seksi KSDA Wil III - Resor 14. Ibu Kota Nusantara",
-];
-
 export interface ResorOption {
   code: string;
   name: string;
@@ -99,10 +74,4 @@ export const PANGKAT_PPPK_OPTIONS = [
   "PPPK Golongan XV",
   "PPPK Golongan XVI",
   "PPPK Golongan XVII",
-];
-
-export const PANGKAT_OPTIONS = [
-  "- (Tidak ada pangkat)",
-  ...PANGKAT_PNS_OPTIONS,
-  ...PANGKAT_PPPK_OPTIONS,
 ];

@@ -42,17 +42,23 @@ class EnsureAccountSecure
             ], 403);
         }
 
-        // Allowlist routes yang boleh diakses saat terkunci
-        if ($this->isAllowedRoute($request)) {
-            return $next($request);
-        }
+        $path = trim($request->path(), '/');
 
-        // 1. Cek kewajiban ganti password
+        // Saat wajib ganti password, blokir seluruh rute kecuali pembacaan profil, ganti password, dan logout (termasuk menolak api/me/2fa*).
         if (! empty($user->must_change_password)) {
+            if (in_array($path, ['api/me', 'api/user', 'api/me/change-password', 'api/logout'], true)) {
+                return $next($request);
+            }
+
             return response()->json([
                 'reason' => 'must_change_password',
                 'message' => 'Anda wajib mengubah kata sandi akun sebelum dapat mengakses modul sistem lainnya.',
             ], 423);
+        }
+
+        // Allowlist routes yang boleh diakses saat terkunci untuk setup 2FA wajib
+        if ($this->isAllowedRoute($request)) {
+            return $next($request);
         }
 
         // 2. Cek kewajiban 2FA untuk akun administrator (global atau per-modul)

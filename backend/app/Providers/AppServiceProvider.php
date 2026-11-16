@@ -35,23 +35,34 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($username.'|'.$request->ip());
         });
 
-        // Signed URL untuk verifikasi email pegawai (mengutamakan PUBLIC_APP_URL agar bisa dibuka di HP)
+        // Signed URL untuk verifikasi email pegawai (mengutamakan app.public_url agar bisa dibuka di HP)
         VerifyEmail::createUrlUsing(function ($notifiable) {
-            $rootUrl = env('PUBLIC_APP_URL') ?: config('app.url');
-            if ($rootUrl) {
-                URL::forceRootUrl(rtrim($rootUrl, '/'));
-                if (str_starts_with($rootUrl, 'https://')) {
-                    URL::forceScheme('https');
+            $rootUrl = config('app.public_url') ?: config('app.url');
+            $previousRoot = URL::to('/');
+            $previousScheme = parse_url($previousRoot, PHP_URL_SCHEME) ?: 'http';
+
+            try {
+                if ($rootUrl) {
+                    URL::forceRootUrl(rtrim($rootUrl, '/'));
+                    if (str_starts_with($rootUrl, 'https://')) {
+                        URL::forceScheme('https');
+                    }
+                }
+
+                return URL::temporarySignedRoute(
+                    'verification.verify',
+                    now()->addMinutes(60),
+                    [
+                        'id' => $notifiable->getKey(),
+                        'hash' => sha1($notifiable->getEmailForVerification()),
+                    ]
+                );
+            } finally {
+                if ($rootUrl) {
+                    URL::forceRootUrl(null);
+                    URL::forceScheme($previousScheme);
                 }
             }
-            return URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addMinutes(60),
-                [
-                    'id' => $notifiable->getKey(),
-                    'hash' => sha1($notifiable->getEmailForVerification()),
-                ]
-            );
         });
 
         // Link reset password mandiri yang mengarah langsung ke frontend Next.js

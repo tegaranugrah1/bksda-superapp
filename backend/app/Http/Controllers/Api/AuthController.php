@@ -779,7 +779,12 @@ class AuthController extends Controller
         }
 
         $user = User::findOrFail($data['user_id']);
-        if (! $user->is_active) {
+        $employee = $user->employee;
+        if (! $user->is_active || ($employee && ! $employee->isEffectiveActive())) {
+            if ($user->is_active && $employee && ! $employee->isEffectiveActive()) {
+                $user->update(['is_active' => false]);
+            }
+            $user->tokens()->delete();
             Cache::forget($challengeKey);
 
             return response()->json([

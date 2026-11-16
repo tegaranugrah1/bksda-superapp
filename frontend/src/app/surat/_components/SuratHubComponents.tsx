@@ -26,7 +26,7 @@ export interface SuratMasukItem extends Partial<SuratMasuk> {
 }
 export type SuratKeluarItem = Partial<SuratKeluar>;
 
-function formatDisplayDate(dateStr?: string | null): string {
+export function formatDisplayDate(dateStr?: string | null): string {
   if (!dateStr) return "-";
   const [y, m, d] = String(dateStr).split(/[T ]/)[0].split("-");
   return y && m && d ? `${d}/${m}/${y}` : String(dateStr);

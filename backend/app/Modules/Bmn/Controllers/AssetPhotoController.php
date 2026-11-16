@@ -97,7 +97,7 @@ class AssetPhotoController extends Controller
     {
         $request->validate([
             'photo' => UploadValidationRules::image(required: false),
-            'url' => 'nullable|url',
+            'url' => ['nullable', 'url:http,https', 'max:2048'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'location_note' => ['nullable', 'string', 'max:500'],
@@ -107,6 +107,10 @@ class AssetPhotoController extends Controller
             return response()->json([
                 'message' => 'Harus menyertakan file foto atau URL.',
             ], 422);
+        }
+
+        if ($request->filled('url') && ! self::isSafeExternalGeotagUrl((string) $request->input('url'))) {
+            return response()->json(['message' => 'URL foto geotag harus mengarah ke host publik yang valid (bukan alamat jaringan internal).'], 422);
         }
 
         $asset = Asset::findOrFail($assetId);
@@ -277,7 +281,7 @@ class AssetPhotoController extends Controller
                 ]);
             }
 
-            if ($asset->foto_geotag_url) {
+            if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://')) && self::isSafeExternalGeotagUrl($asset->foto_geotag_url)) {
                 return response()->json(['redirect' => $asset->foto_geotag_url]);
             }
 
@@ -379,7 +383,7 @@ class AssetPhotoController extends Controller
                     ->header('X-Content-Type-Options', 'nosniff');
             }
 
-            if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://'))) {
+            if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://')) && self::isSafeExternalGeotagUrl($asset->foto_geotag_url)) {
                 return redirect()->away($asset->foto_geotag_url);
             }
 
@@ -404,5 +408,21 @@ class AssetPhotoController extends Controller
         return response($file, 200)
             ->header('Content-Type', $mime)
             ->header('X-Content-Type-Options', 'nosniff');
+    }
+
+    private static function isSafeExternalGeotagUrl(?string $url): bool
+    {
+        if (! $url || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower(trim((string) parse_url($url, PHP_URL_HOST), '[]'));
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '' || $host === 'localhost' || str_ends_with($host, '.local') || str_ends_with($host, '.internal')) {
+            return false;
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+        }
+        return true;
     }
 }

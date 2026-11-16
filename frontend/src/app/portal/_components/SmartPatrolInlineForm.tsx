@@ -9,16 +9,21 @@ import {
   ArrowLeft,
   Loader2,
   FileSpreadsheet,
-  Search,
-  ChevronsUpDown,
-  Check,
   Plus,
   Trash2,
   Printer,
   Layers,
   Sparkles,
+  Search,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ALLOWED_REPORT_IMAGE_MIMES,
+  MAX_REPORT_IMAGE_BYTES,
+  filterValidReportImageFiles,
+} from "./ReportFormShared";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { SmartPatrolPrint, SmartPatrolReportData, TemuanSatwaLiarItem } from "./SmartPatrolPrint";
@@ -293,25 +298,24 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   }, [selectedSTId, stOptions]);
 
   const handleCustomCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
-        e.target.value = "";
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Ukuran file cover maksimal 10 MB.");
-        e.target.value = "";
-        return;
-      }
-      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(customCoverPreview);
-      }
-      setCustomCoverPreview(URL.createObjectURL(file));
-      setCoverMode("custom");
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_REPORT_IMAGE_MIMES.includes(file.type)) {
+      toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
       e.target.value = "";
+      return;
     }
+    if (file.size > MAX_REPORT_IMAGE_BYTES) {
+      toast.error("Ukuran file cover maksimal 10 MB.");
+      e.target.value = "";
+      return;
+    }
+    if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(customCoverPreview);
+    }
+    setCustomCoverPreview(URL.createObjectURL(file));
+    setCoverMode("custom");
+    e.target.value = "";
   };
 
   const [isPrintMode, setIsPrintMode] = useState(false);
@@ -320,20 +324,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
 
   const handleDokumentasiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    const incoming = Array.from(e.target.files);
-    const validFiles: File[] = [];
-
-    for (const file of incoming) {
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error(`File ${file.name} bukan format gambar.`);
-        continue;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`File ${file.name} melebihi batas maksimal 10 MB.`);
-        continue;
-      }
-      validFiles.push(file);
-    }
+    const validFiles = filterValidReportImageFiles(e.target.files);
 
     if (validFiles.length > 0) {
       setDokumentasiFiles((prev) => {
@@ -501,72 +492,83 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                 <Loader2 className="w-4 h-4 animate-spin" /> Memuat Surat Tugas...
               </div>
             ) : (
-              <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between bg-[var(--ds-surface)] h-auto py-3 px-4 rounded-lg border-slate-200/80 dark:border-zinc-800"
-                  >
-                    <div className="flex flex-col items-start gap-1 text-left truncate pr-4">
-                      {selectedSTId ? (
-                        <>
-                          <span className="font-bold text-[var(--ds-fg)] text-sm truncate w-full">
-                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.nomor_surat || "[ Tanpa Nomor ST ]"}
-                          </span>
-                          <span className="text-xs text-[var(--ds-fg-muted)] font-normal truncate w-full">
-                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.maksud_tujuan}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-[var(--ds-fg-muted)] font-normal text-sm">Pilih Surat Tugas...</span>
-                      )}
-                    </div>
-                    <ChevronsUpDown className="w-4 h-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent data-module="portal" className="w-200 p-0 rounded-lg shadow-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)]" align="start">
-                  <div className="p-3 border-b border-slate-200/70 dark:border-zinc-800 relative">
-                    <Search className="w-4 h-4 absolute left-6 top-6 text-[var(--ds-fg-muted)]" />
-                    <Input 
-                      placeholder="Cari ST..." 
-                      value={stSearch}
-                      onChange={(e) => setStSearch(e.target.value)}
-                      className="pl-9 bg-[var(--ds-surface-muted)] rounded-lg"
-                    />
-                  </div>
-                  <div className="max-h-75 overflow-y-auto p-2">
-                    {stOptions
-                      .filter(st => 
-                        (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || 
-                        (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())
-                      )
-                      .map((st) => (
-                      <div
-                        key={st.id}
-                        className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors mb-1",
-                          String(selectedSTId) === String(st.id) ? "bg-[var(--ds-accent-soft)]" : "hover:bg-[var(--ds-surface-muted)]"
-                        )}
-                        onClick={() => {
-                          setSelectedSTId(String(st.id));
-                          setStPopoverOpen(false);
-                          setStSearch("");
-                        }}
+              (() => {
+                const selectedST = selectedSTId ? stOptions.find((o) => String(o.id) === String(selectedSTId)) : null;
+                const needle = stSearch.toLowerCase();
+                const filteredST = stOptions.filter((st) =>
+                  (st.nomor_surat || "").toLowerCase().includes(needle) ||
+                  (st.maksud_tujuan || "").toLowerCase().includes(needle)
+                );
+                return (
+                  <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={stPopoverOpen}
+                        className="w-full justify-between bg-[var(--ds-surface)] h-auto py-3 px-4 rounded-lg border-slate-200/80 dark:border-zinc-800"
                       >
-                        <Check className={cn("w-4 h-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
-                        <div>
-                          <p className="text-sm font-bold text-[var(--ds-fg)]">{st.nomor_surat}</p>
-                          <p className="text-xs text-[var(--ds-fg-muted)] mt-1 line-clamp-2">{st.maksud_tujuan}</p>
+                        <div className="flex flex-col items-start gap-1 text-left truncate pr-4">
+                          {selectedST ? (
+                            <>
+                              <span className="font-bold text-[var(--ds-fg)] text-sm truncate w-full">
+                                {selectedST.nomor_surat || "[ Tanpa Nomor ST ]"}
+                              </span>
+                              <span className="text-xs text-[var(--ds-fg-muted)] font-normal truncate w-full">
+                                {selectedST.maksud_tujuan}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-[var(--ds-fg-muted)] font-normal text-sm">Pilih Surat Tugas...</span>
+                          )}
+                        </div>
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent data-module="portal" className="w-200 p-0 rounded-lg shadow-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)]" align="start">
+                      <div className="flex flex-col max-h-88">
+                        <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3">
+                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                          <Input
+                            className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
+                            placeholder="Cari nomor atau tujuan ST..."
+                            value={stSearch}
+                            onChange={(e) => setStSearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="overflow-y-auto flex-1 p-2">
+                          {filteredST.map((st) => (
+                            <div
+                              key={st.id}
+                              className={cn(
+                                "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
+                                String(selectedSTId) === String(st.id) && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
+                              )}
+                              onClick={() => {
+                                setSelectedSTId(String(st.id));
+                                setStPopoverOpen(false);
+                                setStSearch("");
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="truncate text-xs">
+                                  {st.nomor_surat ? `${st.nomor_surat} - ` : ""}{st.maksud_tujuan}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          {filteredST.length === 0 && (
+                            <div className="py-6 text-center text-sm text-[var(--ds-fg-muted)]">
+                              Tidak ada Surat Tugas yang cocok.
+                            </div>
+                          )}
                         </div>
                       </div>
-                    ))}
-                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
-                      <p className="p-4 text-center text-sm text-[var(--ds-fg-muted)]">Tidak ada ST yang cocok.</p>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()
             )}
           </div>
 

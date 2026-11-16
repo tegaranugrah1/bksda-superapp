@@ -84,14 +84,12 @@ src/
 │   │   └── ...
 │   │
 │   └── custom/                 # Custom components
-│       ├── EmployeePicker.tsx
 │       └── ...
 │
 └── lib/
     ├── api.ts                  # Axios instance with Bearer token
     ├── utils.ts                # Utilities (cn, formatDate, etc.)
     ├── constants.ts            # Environment URLs, menu items
-    ├── bmn-utils.ts           # BMN formatting (rupiah, kondisi)
     └── letter-utils.ts         # Letter formatting (date, number)
 ```
 

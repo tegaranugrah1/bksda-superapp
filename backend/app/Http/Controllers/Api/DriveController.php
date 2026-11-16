@@ -8,6 +8,7 @@ use App\Models\DriveFolder;
 use App\Models\DriveUnit;
 use App\Models\DriveUpload;
 use App\Support\Security\DriveAccess;
+use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -148,8 +149,13 @@ class DriveController extends Controller
             }
         }
 
-        // Hitung kuota
-        [$usedBytes, , $quotaBytes] = $this->resolveQuotaState($unit?->id, (int) $user->id);
+        // Hitung kuota (sembunyikan kuota unit jika user hanya mengakses subfolder berbagi tanpa keanggotaan unit)
+        if ($unit && ! DriveAccess::canRead($user, $unit)) {
+            $usedBytes = 0;
+            $quotaBytes = 0;
+        } else {
+            [$usedBytes, , $quotaBytes] = $this->resolveQuotaState($unit?->id, (int) $user->id);
+        }
         $userRole = $unit ? DriveAccess::unitRole($user, $unit) : 'manager';
 
         // Daftar unit kerja yang dapat diakses pengguna
@@ -176,7 +182,6 @@ class DriveController extends Controller
                 'quota_bytes' => $quotaBytes,
                 'used_percent' => $quotaBytes > 0 ? round(($usedBytes / $quotaBytes) * 100, 1) : 0,
             ],
-            'available_units' => $allUnits,
             'units' => $allUnits,
             'can_write' => $filter === 'shared_with_me' ? false : ($unit ? DriveAccess::canWrite($user, $unit) : true),
         ]);
@@ -608,20 +613,17 @@ class DriveController extends Controller
         if ($upload->folder_id) {
             $targetFolder = DriveFolder::find($upload->folder_id);
             if (! $targetFolder) {
-                Storage::disk('drive')->delete($upload->s3_key);
-                $upload->update(['status' => 'aborted']);
+                $this->cleanupFailedUpload($upload);
                 return response()->json(['message' => 'Folder tujuan telah dihapus sebelum upload selesai.'], 404);
             }
             if ($user && ! DriveAccess::canWriteFolder($user, $targetFolder)) {
-                Storage::disk('drive')->delete($upload->s3_key);
-                $upload->update(['status' => 'aborted']);
+                $this->cleanupFailedUpload($upload);
                 return response()->json(['message' => 'Anda tidak lagi memiliki hak menulis di folder tujuan.'], 403);
             }
         } elseif ($upload->unit_id) {
             $targetUnit = DriveUnit::find($upload->unit_id);
             if (! $targetUnit || ($user && ! DriveAccess::canWrite($user, $targetUnit))) {
-                Storage::disk('drive')->delete($upload->s3_key);
-                $upload->update(['status' => 'aborted']);
+                $this->cleanupFailedUpload($upload);
                 return response()->json(['message' => 'Anda tidak lagi memiliki hak menulis di Drive Unit tujuan.'], 403);
             }
         }
@@ -640,7 +642,7 @@ class DriveController extends Controller
                     ],
                 ]);
             } catch (\Throwable $e) {
-                $upload->update(['status' => 'aborted']);
+                $this->cleanupFailedUpload($upload);
                 return response()->json([
                     'message' => config('app.debug')
                         ? 'Gagal menyelesaikan multipart upload: ' . $e->getMessage()
@@ -657,12 +659,11 @@ class DriveController extends Controller
 
         $actualSize = (int) Storage::disk('drive')->size($upload->s3_key);
         if ($actualSize <= 0) {
-            Storage::disk('drive')->delete($upload->s3_key);
-            $upload->update(['status' => 'aborted']);
+            $this->cleanupFailedUpload($upload);
             return response()->json(['message' => 'Ukuran berkas di storage tidak valid.'], 422);
         }
 
-        // Magic bytes + extension validation (security audit: cegah file aktif/HTML/SVG/executable menyamar)
+        // Magic bytes + allowlist MIME/extension validation (cegah active content/HTML/SVG/executable menyamar)
         $detectedMime = 'application/octet-stream';
         try {
             $stream = Storage::disk('drive')->readStream($upload->s3_key);
@@ -677,28 +678,23 @@ class DriveController extends Controller
             // Fallback extension detection
         }
 
-        // Cegah stored XSS & executable upload
-        $blockedMimes = [
-            'text/html',
-            'application/xhtml+xml',
-            'image/svg+xml',
-            'text/xml',
-            'application/xml',
-            'text/javascript',
-            'application/javascript',
-            'text/x-php',
-            'application/x-httpd-php',
-            'application/x-dosexec',
-            'application/x-msdownload',
-            'application/x-executable',
-            'application/x-sh',
-            'text/x-shellscript',
+        $blockedExts = ['html', 'htm', 'xhtml', 'svg', 'svgz', 'xml', 'php', 'phtml', 'phar', 'exe', 'msi', 'bat', 'cmd', 'ps1', 'vbs', 'sh', 'js', 'mjs'];
+        $allowedMimes = [
+            'application/pdf',
+            'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/tiff', 'image/bmp',
+            'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed', 'application/vnd.rar', 'application/x-7z-compressed', 'application/gzip',
+            'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.presentation',
+            'text/plain', 'text/csv', 'application/csv', 'application/json', 'application/rtf',
+            'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/x-matroska',
+            'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/webm',
+            'application/octet-stream', 'application/cdfv2',
         ];
-        $blockedExts = ['html', 'htm', 'xhtml', 'svg', 'svgz', 'php', 'phtml', 'exe', 'msi', 'bat', 'cmd', 'ps1', 'vbs', 'sh', 'js'];
         $ext = strtolower(pathinfo((string) $upload->filename, PATHINFO_EXTENSION));
-        if (in_array(strtolower($detectedMime), $blockedMimes, true) || in_array($ext, $blockedExts, true)) {
-            Storage::disk('drive')->delete($upload->s3_key);
-            $upload->update(['status' => 'aborted']);
+        if (in_array($ext, $blockedExts, true) || ! in_array(strtolower($detectedMime), $allowedMimes, true)) {
+            $this->cleanupFailedUpload($upload);
             return response()->json(['message' => 'Berkas mengandung tipe konten berbahaya dan ditolak sistem.'], 422);
         }
 
@@ -725,8 +721,7 @@ class DriveController extends Controller
         });
 
         if ($quotaExceeded) {
-            Storage::disk('drive')->delete($upload->s3_key);
-            $upload->update(['status' => 'aborted']);
+            $this->cleanupFailedUpload($upload);
             return response()->json(['message' => 'Ukuran berkas melebihi sisa kuota penyimpanan.'], 422);
         }
 
@@ -734,6 +729,27 @@ class DriveController extends Controller
             'message' => 'Berkas berhasil diunggah.',
             'file' => $file,
         ], 201);
+    }
+
+    private function cleanupFailedUpload(DriveUpload $upload): void
+    {
+        if ($upload->upload_id) {
+            try {
+                Storage::disk('drive')->getClient()->abortMultipartUpload([
+                    'Bucket' => config('filesystems.disks.drive.bucket', 'bksda-drive'),
+                    'Key' => $upload->s3_key,
+                    'UploadId' => $upload->upload_id,
+                ]);
+            } catch (\Throwable $e) {
+                // Best-effort abort
+            }
+        }
+        try {
+            Storage::disk('drive')->delete($upload->s3_key);
+        } catch (\Throwable $e) {
+            // Best-effort cleanup
+        }
+        $upload->update(['status' => 'aborted']);
     }
 
     /**
@@ -749,26 +765,8 @@ class DriveController extends Controller
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
-        if ($upload->status === 'initiated') {
-            if ($upload->upload_id) {
-                try {
-                    Storage::disk('drive')->getClient()->abortMultipartUpload([
-                        'Bucket' => config('filesystems.disks.drive.bucket', 'bksda-drive'),
-                        'Key' => $upload->s3_key,
-                        'UploadId' => $upload->upload_id,
-                    ]);
-                } catch (\Throwable $e) {
-                    // Best-effort abort
-                }
-            }
-            try {
-                if (Storage::disk('drive')->exists($upload->s3_key)) {
-                    Storage::disk('drive')->delete($upload->s3_key);
-                }
-            } catch (\Throwable $e) {
-                // Best-effort cleanup
-            }
-            $upload->update(['status' => 'aborted']);
+        if (in_array($upload->status, ['initiated', 'completing'], true)) {
+            $this->cleanupFailedUpload($upload);
         }
 
         return response()->json(['message' => 'Sesi upload dibatalkan.']);
@@ -791,9 +789,9 @@ class DriveController extends Controller
             'image/jpeg',
             'image/png',
             'image/webp',
+            'image/gif',
             'application/pdf',
             'video/mp4',
-            'text/plain',
         ];
 
         $isInline = in_array(strtolower($file->mime_type), $safeInlineMimes, true)
@@ -872,9 +870,11 @@ class DriveController extends Controller
         $folder = DriveFolder::findOrFail($id);
         $user = $userId !== null
             ? \App\Models\User::find($userId)
-            : ($request->user() ?? \App\Models\User::find($folder->user_id));
+            : ($request->user() ?: ($folder->unit_id === null ? \App\Models\User::find($folder->user_id) : null));
 
-        if (! $user || ! $user->is_active || ! DriveAccess::canReadFolder($user, $folder)) {
+        if (! $user || ! $user->is_active || ! empty($user->must_change_password)
+            || ($user->employee && ! $user->employee->isEffectiveActive())
+            || ! DriveAccess::canReadFolder($user, $folder)) {
             abort(403, 'Anda tidak memiliki hak untuk mengunduh arsip ZIP folder ini.');
         }
 
@@ -882,14 +882,22 @@ class DriveController extends Controller
         $zipFilename = "{$cleanFolderName}.zip";
 
         return response()->streamDownload(function () use ($folder, $user) {
-            $zip = new \ZipStream\ZipStream(
-                outputStream: fopen('php://output', 'wb'),
-                sendHttpHeaders: false
-            );
+            $out = fopen('php://output', 'wb');
+            try {
+                $zip = new \ZipStream\ZipStream(
+                    outputStream: $out,
+                    sendHttpHeaders: false
+                );
 
-            $this->addFolderToZipStream($zip, $folder, '', $user);
+                $state = ['files' => 0, 'bytes' => 0, 'visited' => []];
+                $this->addFolderToZipStream($zip, $folder, '', $user, 0, $state);
 
-            $zip->finish();
+                $zip->finish();
+            } finally {
+                if (is_resource($out)) {
+                    fclose($out);
+                }
+            }
         }, $zipFilename, [
             'Content-Type' => 'application/zip',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
@@ -897,15 +905,32 @@ class DriveController extends Controller
     }
 
     /**
-     * Rekursif menambahkan berkas dan subfolder ke ZipStream dengan proteksi anti Zip-Slip (CWE-22) dan isolasi RBAC.
+     * Rekursif menambahkan berkas dan subfolder ke ZipStream dengan proteksi anti Zip-Slip (CWE-22), cycle guard, dan batas DoS.
      */
-    protected function addFolderToZipStream(\ZipStream\ZipStream $zip, DriveFolder $folder, string $basePath, \App\Models\User $user): void
-    {
+    protected function addFolderToZipStream(
+        \ZipStream\ZipStream $zip,
+        DriveFolder $folder,
+        string $basePath,
+        \App\Models\User $user,
+        int $depth = 0,
+        array &$state = ['files' => 0, 'bytes' => 0, 'visited' => []]
+    ): void {
+        if ($depth > 20 || isset($state['visited'][$folder->id])) {
+            return;
+        }
+        $state['visited'][$folder->id] = true;
+
+        $maxFiles = 500;
+        $maxBytes = 500 * 1024 * 1024;
+
         // Ambil semua berkas di folder ini
         $files = DriveFile::where('folder_id', $folder->id)->whereNull('deleted_at')->get();
         foreach ($files as $file) {
             if (! DriveAccess::canReadFile($user, $file)) {
                 continue;
+            }
+            if ($state['files'] >= $maxFiles || ($state['bytes'] + (int) $file->size_bytes) > $maxBytes) {
+                return;
             }
 
             // Anti-Zip-Slip (CWE-22): Sanitasi nama berkas, cegah path traversal & RTL overrides
@@ -917,6 +942,8 @@ class DriveController extends Controller
                     $stream = Storage::disk('drive')->readStream($file->s3_key);
                     if ($stream) {
                         $zip->addFileFromStream(fileName: $safePath, stream: $stream);
+                        $state['files']++;
+                        $state['bytes'] += (int) $file->size_bytes;
                         if (is_resource($stream)) {
                             fclose($stream);
                         }
@@ -930,13 +957,13 @@ class DriveController extends Controller
         // Telusuri subfolder (Anti-Bulk ZIP bypass: lewati subfolder yang tidak dapat dibaca user)
         $subfolders = DriveFolder::where('parent_id', $folder->id)->whereNull('deleted_at')->get();
         foreach ($subfolders as $sub) {
-            if (! DriveAccess::canReadFolder($user, $sub)) {
+            if (! DriveAccess::canReadFolder($user, $sub) || $state['files'] >= $maxFiles) {
                 continue;
             }
 
             $subClean = $this->sanitizeFilesystemName((string) $sub->name, "folder_{$sub->id}");
             $subPath = ltrim(($basePath !== '' ? "{$basePath}/" : '') . $subClean, '/');
-            $this->addFolderToZipStream($zip, $sub, $subPath, $user);
+            $this->addFolderToZipStream($zip, $sub, $subPath, $user, $depth + 1, $state);
         }
     }
 
@@ -987,6 +1014,8 @@ class DriveController extends Controller
             $targetUserId = $user->id;
         }
 
+        $changingSpace = ((int) ($file->unit_id ?? 0) !== (int) ($targetUnitId ?? 0))
+            || ($targetUnitId === null && (int) $file->user_id !== (int) $targetUserId);
         $sourceFolder = $file->folder_id ? DriveFolder::find($file->folder_id) : null;
         if ($sourceFolder && $sourceFolder->is_restricted && ! ($destFolder && $destFolder->is_restricted)) {
             if ((int) $file->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
@@ -994,24 +1023,28 @@ class DriveController extends Controller
             }
         }
 
-        if (($file->unit_id !== null && $targetUnitId === null) || (int) $file->user_id !== (int) $targetUserId) {
-            if ((int) $file->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
-                return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan berkas ke Drive pribadi pengguna lain.'], 403);
-            }
+        if (($changingSpace || ($file->unit_id !== null && $targetUnitId === null) || (int) $file->user_id !== (int) $targetUserId)
+            && (int) $file->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan berkas antar ruang penyimpanan.'], 403);
         }
 
-        $changingSpace = (int) ($file->unit_id ?? 0) !== (int) ($targetUnitId ?? 0)
-            || ($targetUnitId === null && (int) $file->user_id !== (int) $targetUserId);
+        $quotaExceeded = false;
+        DB::transaction(function () use ($file, $changingSpace, $targetFolderId, $targetUnitId, $targetUserId, &$quotaExceeded) {
+            if ($changingSpace && $this->exceedsQuota($targetUnitId, (int) $targetUserId, (int) $file->size_bytes, lockForUpdate: true)) {
+                $quotaExceeded = true;
+                return;
+            }
 
-        if ($changingSpace && $this->exceedsQuota($targetUnitId, (int) $targetUserId, (int) $file->size_bytes)) {
+            $file->update([
+                'folder_id' => $targetFolderId,
+                'unit_id' => $targetUnitId,
+                'user_id' => $targetUserId,
+            ]);
+        });
+
+        if ($quotaExceeded) {
             return response()->json(['message' => 'Kapasitas penyimpanan ruang tujuan tidak mencukupi.'], 422);
         }
-
-        $file->update([
-            'folder_id' => $targetFolderId,
-            'unit_id' => $targetUnitId,
-            'user_id' => $targetUserId,
-        ]);
 
         return response()->json([
             'message' => 'Berkas berhasil dipindahkan.',
@@ -1084,56 +1117,74 @@ class DriveController extends Controller
             return response()->json(['message' => 'Folder induk resmi unit/ruangan/resor hanya dapat dipindahkan melalui Master Lokasi atau Admin Drive.'], 403);
         }
 
-        if ($folder->unit_id !== null && $targetUnitId === null && (int) $folder->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
-            return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan folder unit ke Drive pribadi.'], 403);
-        }
-
         $allFolderIds = array_merge([$folder->id], $this->collectDescendantFolderIds($folder->id, withTrashed: true));
         $changingUnit = (int) ($folder->unit_id ?? 0) !== (int) ($targetUnitId ?? 0);
 
-        if (($changingUnit || ! $destParent) && $folder->is_restricted && ! DriveAccess::isDriveAdmin($user)) {
-            return response()->json(['message' => 'Hanya Admin Drive yang dapat memindahkan folder terbatas ke luar hierarkinya.'], 403);
+        if (($changingUnit || ($folder->unit_id !== null && $targetUnitId === null))
+            && (int) $folder->user_id !== (int) $user->id && ! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Hanya pemilik atau Admin Drive yang dapat memindahkan folder antar ruang atau unit.'], 403);
+        }
+
+        $hasRestrictedInTree = DriveFolder::withTrashed()
+            ->whereIn('id', $allFolderIds)
+            ->where(fn ($q) => $q->where('is_restricted', true)->orWhereNotNull('location_id'))
+            ->exists();
+
+        if (($changingUnit || ! $destParent || ! $destParent->is_restricted) && $hasRestrictedInTree && ! DriveAccess::isDriveAdmin($user)) {
+            return response()->json(['message' => 'Hanya Admin Drive yang dapat memindahkan folder terbatas atau turunannya ke luar hierarki terbatas.'], 403);
         }
 
         $targetUserId = ($targetUnitId === null && $folder->unit_id !== null)
             ? (int) ($destParent?->user_id ?? $user->id)
             : (int) $folder->user_id;
 
-        if ($changingUnit) {
-            $treeBytes = (int) DriveFile::withTrashed()->whereIn('folder_id', $allFolderIds)->sum('size_bytes');
-            if ($treeBytes > 0 && $this->exceedsQuota($targetUnitId, $targetUserId, $treeBytes)) {
-                return response()->json(['message' => 'Kapasitas penyimpanan ruang tujuan tidak mencukupi.'], 422);
-            }
-        }
+        $treeBytes = $changingUnit
+            ? (int) DriveFile::withTrashed()->whereIn('folder_id', $allFolderIds)->sum('size_bytes')
+            : 0;
 
         $inheritedAttrs = $destParent ? [
             'unit_id' => $targetUnitId,
             'location_id' => $destParent->location_id,
-            'is_restricted' => (bool) $destParent->is_restricted,
             'folder_scope' => $destParent->folder_scope ?: 'general',
             'resor_code' => $destParent->resor_code,
             'room_code' => $destParent->room_code,
         ] : [
             'unit_id' => $targetUnitId,
             'location_id' => null,
-            'is_restricted' => false,
             'folder_scope' => 'general',
             'resor_code' => null,
             'room_code' => null,
         ];
 
-        DB::transaction(function () use ($folder, $targetParentId, $targetUnitId, $targetUserId, $allFolderIds, $changingUnit, $inheritedAttrs) {
+        $quotaExceeded = false;
+        DB::transaction(function () use ($folder, $destParent, $targetParentId, $targetUnitId, $targetUserId, $allFolderIds, $changingUnit, $treeBytes, $inheritedAttrs, &$quotaExceeded) {
+            if ($changingUnit && $treeBytes > 0 && $this->exceedsQuota($targetUnitId, $targetUserId, $treeBytes, lockForUpdate: true)) {
+                $quotaExceeded = true;
+                return;
+            }
+
             $folderUpdates = array_merge($inheritedAttrs, [
                 'parent_id' => $targetParentId,
             ]);
+            if ($destParent && $destParent->is_restricted) {
+                $folderUpdates['is_restricted'] = true;
+            }
             if ($changingUnit && $targetUnitId === null) {
                 $folderUpdates['user_id'] = $targetUserId;
             }
             $folder->update($folderUpdates);
 
-            DriveFolder::withTrashed()->whereIn('id', $allFolderIds)->update($inheritedAttrs + (
-                ($changingUnit && $targetUnitId === null) ? ['user_id' => $targetUserId] : []
-            ));
+            $descendantUpdates = ['unit_id' => $targetUnitId];
+            if ($destParent && $destParent->is_restricted) {
+                $descendantUpdates['is_restricted'] = true;
+            }
+            if ($changingUnit && $targetUnitId === null) {
+                $descendantUpdates['user_id'] = $targetUserId;
+            }
+            // Jangan menimpa is_restricted / location_id milik subfolder terisolasi yang sudah ada.
+            DriveFolder::withTrashed()->whereIn('id', $allFolderIds)
+                ->where('id', '!=', $folder->id)
+                ->update($descendantUpdates);
 
             if ($changingUnit) {
                 $fileUpdates = ['unit_id' => $targetUnitId];
@@ -1143,6 +1194,10 @@ class DriveController extends Controller
                 DriveFile::withTrashed()->whereIn('folder_id', $allFolderIds)->update($fileUpdates);
             }
         });
+
+        if ($quotaExceeded) {
+            return response()->json(['message' => 'Kapasitas penyimpanan ruang tujuan tidak mencukupi.'], 422);
+        }
 
         return response()->json([
             'message' => 'Folder berhasil dipindahkan.',
@@ -1204,29 +1259,11 @@ class DriveController extends Controller
     }
 
     /**
-     * Sanitasi nama berkas dan folder agar tahan terhadap Zip-Slip, OS Reserved Devices,
-     * Path Traversal, Null Bytes, dan Unicode Directional Overrides (CWE-22, CWE-73).
+     * Sanitasi nama berkas dan folder (CWE-22, CWE-73) melalui helper terpusat.
      */
     protected function sanitizeFilesystemName(string $name, string $default = 'item'): string
     {
-        // 1. Bersihkan null byte dan Unicode RTL / LTR overrides
-        $name = str_replace(["\0", "\u{202E}", "\u{202D}", "\u{202C}", "\u{200E}", "\u{200F}"], '', $name);
-
-        // 2. Cegah path traversal
-        $name = preg_replace('/(\.\.[\/\\\\])+/', '', $name);
-
-        // 3. Ganti karakter terlarang filesystem & kontrol dengan underscore
-        $name = preg_replace('/[\x00-\x1F\x7F\/\\\\:*?"<>|]/', '_', $name);
-
-        // 4. Trim spasi dan titik di awal/akhir
-        $clean = trim($name, " .\t\n\r\0\x0B");
-
-        // 5. Windows reserved device names (CON, PRN, AUX, NUL, COM1-9, LPT1-9)
-        if (preg_match('/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i', $clean)) {
-            $clean = "safe_{$clean}";
-        }
-
-        return $clean !== '' ? $clean : $default;
+        return UploadValidationRules::sanitizeFilename($name, $default);
     }
 
     /**
@@ -1253,25 +1290,36 @@ class DriveController extends Controller
 
         if ($model instanceof DriveFolder) {
             $allFolderIds = array_merge([$model->id], $this->collectDescendantFolderIds($model->id, withTrashed: true));
-            if ($model->unit_id === null) {
-                $treeBytes = (int) DriveFile::withTrashed()
-                    ->whereIn('folder_id', $allFolderIds)
-                    ->whereNull('unit_id')
-                    ->sum('size_bytes');
-                if ($treeBytes > 0 && $this->exceedsQuota(null, (int) $targetUser->id, $treeBytes)) {
-                    return response()->json(['message' => 'Kuota Drive pribadi pengguna tujuan tidak mencukupi.'], 422);
+            $quotaExceeded = false;
+            DB::transaction(function () use ($model, $allFolderIds, $targetUser, &$quotaExceeded) {
+                if ($model->unit_id === null) {
+                    $treeBytes = (int) DriveFile::withTrashed()
+                        ->whereIn('folder_id', $allFolderIds)
+                        ->whereNull('unit_id')
+                        ->sum('size_bytes');
+                    if ($treeBytes > 0 && $this->exceedsQuota(null, (int) $targetUser->id, $treeBytes, lockForUpdate: true)) {
+                        $quotaExceeded = true;
+                        return;
+                    }
                 }
-            }
-
-            DB::transaction(function () use ($allFolderIds, $targetUser) {
                 DriveFolder::withTrashed()->whereIn('id', $allFolderIds)->update(['user_id' => $targetUser->id]);
                 DriveFile::withTrashed()->whereIn('folder_id', $allFolderIds)->update(['user_id' => $targetUser->id]);
             });
-        } else {
-            if ($model->unit_id === null && $this->exceedsQuota(null, (int) $targetUser->id, (int) $model->size_bytes)) {
+            if ($quotaExceeded) {
                 return response()->json(['message' => 'Kuota Drive pribadi pengguna tujuan tidak mencukupi.'], 422);
             }
-            $model->update(['user_id' => $targetUser->id]);
+        } else {
+            $quotaExceeded = false;
+            DB::transaction(function () use ($model, $targetUser, &$quotaExceeded) {
+                if ($model->unit_id === null && $this->exceedsQuota(null, (int) $targetUser->id, (int) $model->size_bytes, lockForUpdate: true)) {
+                    $quotaExceeded = true;
+                    return;
+                }
+                $model->update(['user_id' => $targetUser->id]);
+            });
+            if ($quotaExceeded) {
+                return response()->json(['message' => 'Kuota Drive pribadi pengguna tujuan tidak mencukupi.'], 422);
+            }
         }
 
         return response()->json([
@@ -1287,7 +1335,7 @@ class DriveController extends Controller
      */
     protected function resolveQuotaState(?int $unitId, int $userId, ?string $excludeUploadId = null, bool $lockForUpdate = false): array
     {
-        $reservedQuery = DriveUpload::where('status', 'initiated')
+        $reservedQuery = DriveUpload::whereIn('status', ['initiated', 'completing'])
             ->where('expires_at', '>', now());
         if ($excludeUploadId) {
             $reservedQuery->where('id', '!=', $excludeUploadId);

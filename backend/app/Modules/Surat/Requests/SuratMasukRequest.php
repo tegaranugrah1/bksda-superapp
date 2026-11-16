@@ -14,6 +14,11 @@ class SuratMasukRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $disposisi = $this->input('disposisi');
+        if (is_array($disposisi) && isset($disposisi['catatan']) && is_string($disposisi['catatan'])) {
+            $disposisi['catatan'] = strip_tags(trim($disposisi['catatan']));
+        }
+
         $this->merge([
             'tanggal_agenda' => $this->tanggal_agenda ?: null,
             'tanggal_penyelesaian' => $this->tanggal_penyelesaian ?: null,
@@ -26,6 +31,7 @@ class SuratMasukRequest extends FormRequest
             'isi_ringkas' => $this->isi_ringkas ? strip_tags(trim((string)$this->isi_ringkas)) : null,
             'lampiran' => $this->lampiran ? strip_tags(trim((string)$this->lampiran)) : null,
             'catatan' => $this->catatan ? strip_tags(trim((string)$this->catatan)) : null,
+            ...(is_array($disposisi) ? ['disposisi' => $disposisi] : []),
         ]);
     }
 
@@ -53,15 +59,18 @@ class SuratMasukRequest extends FormRequest
             'isi_ringkas' => 'nullable|string',
             'asal_surat' => 'nullable|string|max:255',
             'lampiran' => 'nullable|string|max:255',
-            'sifat_json' => 'nullable|array',
-            'catatan' => 'nullable|string',
+            'sifat_json' => 'nullable|array|max:20',
+            'sifat_json.*' => 'string|max:100',
+            'catatan' => 'nullable|string|max:5000',
             'file_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240',
 
             // Disposisi fields
             'disposisi' => 'nullable|array',
-            'disposisi.diteruskan_json' => 'nullable|array',
-            'disposisi.instruksi_json' => 'nullable|array',
-            'disposisi.catatan' => 'nullable|string',
+            'disposisi.diteruskan_json' => 'nullable|array|max:50',
+            'disposisi.diteruskan_json.*' => 'string|max:255',
+            'disposisi.instruksi_json' => 'nullable|array|max:50',
+            'disposisi.instruksi_json.*' => 'string|max:255',
+            'disposisi.catatan' => 'nullable|string|max:5000',
             'disposisi.ka_subbag_tu_id' => 'nullable|exists:kpg_employees,id',
             'disposisi.kepala_balai_id' => 'nullable|exists:kpg_employees,id',
         ];

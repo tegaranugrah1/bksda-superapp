@@ -86,6 +86,107 @@ const TYPE_STYLES: Record<string, string> = {
   system: "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border border-[var(--ds-status-neutral-border)]",
 };
 
+function NotificationRowItem({
+  item,
+  variant,
+  onSelect,
+}: {
+  item: PortalNotificationItem;
+  variant: "popover" | "history";
+  onSelect: (item: PortalNotificationItem) => void;
+}) {
+  const isHistory = variant === "history";
+  return (
+    <motion.div
+      variants={itemMotionVariants}
+      onClick={() => onSelect(item)}
+      className={cn(
+        "flex items-start gap-3 p-4 cursor-pointer transition-colors duration-150 relative text-left",
+        isHistory
+          ? cn(
+              "rounded-lg mb-2 active:scale-[0.99]",
+              item.read_at
+                ? "hover:bg-[var(--ds-surface-muted)] bg-transparent border border-transparent"
+                : "bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]"
+            )
+          : cn("hover:bg-[var(--ds-surface-muted)]", !item.read_at && "bg-[var(--ds-accent-soft)]")
+      )}
+    >
+      <div
+        className={cn(
+          isHistory ? "w-9 h-9 transition-transform duration-200" : "w-8 h-8",
+          "rounded-lg shrink-0 flex items-center justify-center shadow-xs mt-1",
+          TYPE_STYLES[item.type] || TYPE_STYLES.system
+        )}
+      >
+        {getTypeIcon(item.type)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={cn(
+                "text-xs leading-tight truncate transition-colors duration-200",
+                item.read_at ? "text-[var(--ds-fg-secondary)] font-medium" : "text-[var(--ds-fg)] font-bold"
+              )}
+            >
+              {item.title}
+            </span>
+            {isHistory && item.action_tab && (
+              <Badge
+                variant="secondary"
+                className="text-xs uppercase tracking-wider py-0 px-2 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800"
+              >
+                {item.action_tab}
+              </Badge>
+            )}
+          </div>
+          <span className="text-xs text-[var(--ds-fg-muted)] shrink-0 flex items-center gap-1 tabular-nums">
+            <Clock className="w-3 h-3" />
+            {formatRelativeTime(item.created_at)}
+          </span>
+        </div>
+        <p className={cn("text-xs text-[var(--ds-fg-muted)] mt-1 break-words", isHistory ? "leading-relaxed" : "line-clamp-2 leading-snug")}>
+          {item.message}
+        </p>
+      </div>
+      {isHistory ? (
+        <div className="shrink-0 flex items-center gap-2 self-center pl-2">
+          <AnimatePresence>
+            {!item.read_at && (
+              <motion.span
+                key={`dot-history-${item.id}`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shadow-xs"
+                title="Belum dibaca"
+              />
+            )}
+          </AnimatePresence>
+          <div className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] transition-colors">
+            <ExternalLink className="w-4 h-4" />
+          </div>
+        </div>
+      ) : (
+        <AnimatePresence>
+          {!item.read_at && (
+            <motion.span
+              key={`dot-popover-${item.id}`}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shrink-0 mt-2 shadow-xs"
+            />
+          )}
+        </AnimatePresence>
+      )}
+    </motion.div>
+  );
+}
+
 function getTypeIcon(type: string) {
   switch (type) {
     case "surat_tugas":
@@ -321,6 +422,18 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     };
   }, [fetchLatest]);
 
+  // Track auth/session swaps so Echo tears down the previous user's private channel cleanly.
+  const [authEpoch, setAuthEpoch] = useState(0);
+  useEffect(() => {
+    const bump = () => setAuthEpoch((v) => v + 1);
+    window.addEventListener("auth-change", bump);
+    window.addEventListener("storage", bump);
+    return () => {
+      window.removeEventListener("auth-change", bump);
+      window.removeEventListener("storage", bump);
+    };
+  }, []);
+
   // Real-time WebSocket subscription via Laravel Reverb
   useEffect(() => {
     const user = parseAuthSnapshot(getAuthSnapshot()).user;
@@ -366,7 +479,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
         // Safe fallback
       }
     };
-  }, [onSelectTab, fetchLatest, fetchHistory]);
+  }, [authEpoch, onSelectTab, fetchLatest, fetchHistory]);
 
   // Handle open history modal
   useEffect(() => {
@@ -647,57 +760,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                 >
                   <motion.div variants={listContainerVariants} initial="hidden" animate="show">
                     {displayedNotifications.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemMotionVariants}
-                        onClick={() => handleItemClick(item)}
-                        className={cn(
-                          "flex items-start gap-3 p-4 cursor-pointer relative text-left transition-colors duration-150 hover:bg-[var(--ds-surface-muted)]",
-                          !item.read_at && "bg-[var(--ds-accent-soft)]"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-lg shrink-0 flex items-center justify-center shadow-xs mt-1",
-                            TYPE_STYLES[item.type] || TYPE_STYLES.system
-                          )}
-                        >
-                          {getTypeIcon(item.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p
-                              className={cn(
-                                "text-xs leading-tight truncate transition-colors duration-200",
-                                item.read_at
-                                  ? "text-[var(--ds-fg-secondary)] font-medium"
-                                  : "text-[var(--ds-fg)] font-bold"
-                              )}
-                            >
-                              {item.title}
-                            </p>
-                            <span className="text-xs text-[var(--ds-fg-muted)] shrink-0 flex items-center gap-1 tabular-nums">
-                              <Clock className="w-3 h-3" />
-                              {formatRelativeTime(item.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 mt-1 leading-snug break-words">
-                            {item.message}
-                          </p>
-                        </div>
-                        <AnimatePresence>
-                          {!item.read_at && (
-                            <motion.span
-                              key={`dot-popover-${item.id}`}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                              className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shrink-0 mt-2 shadow-xs"
-                            />
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
+                      <NotificationRowItem key={item.id} item={item} variant="popover" onSelect={handleItemClick} />
                     ))}
                   </motion.div>
                 </motion.div>
@@ -871,75 +934,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                 >
                   <motion.div variants={listContainerVariants} initial="hidden" animate="show">
                     {historyItems.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemMotionVariants}
-                        onClick={() => handleItemClick(item)}
-                        className={cn(
-                          "flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors duration-150 relative text-left mb-2 active:scale-[0.99]",
-                          item.read_at
-                            ? "hover:bg-[var(--ds-surface-muted)] bg-transparent border border-transparent"
-                            : "bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-9 h-9 rounded-lg shrink-0 flex items-center justify-center shadow-xs mt-1 transition-transform duration-200",
-                            TYPE_STYLES[item.type] || TYPE_STYLES.system
-                          )}
-                        >
-                          {getTypeIcon(item.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "text-xs leading-tight transition-colors duration-200",
-                                  item.read_at
-                                    ? "text-[var(--ds-fg-secondary)] font-medium"
-                                    : "text-[var(--ds-fg)] font-bold"
-                                )}
-                              >
-                                {item.title}
-                              </span>
-                              {item.action_tab && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs uppercase tracking-wider py-0 px-2 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800"
-                                >
-                                  {item.action_tab}
-                                </Badge>
-                              )}
-                            </div>
-                            <span className="text-xs text-[var(--ds-fg-muted)] shrink-0 flex items-center gap-1 tabular-nums">
-                              <Clock className="w-3 h-3" />
-                              {formatRelativeTime(item.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-[var(--ds-fg-muted)] mt-1 leading-relaxed break-words">
-                            {item.message}
-                          </p>
-                        </div>
-                        <div className="shrink-0 flex items-center gap-2 self-center pl-2">
-                          <AnimatePresence>
-                            {!item.read_at && (
-                              <motion.span
-                                key={`dot-history-${item.id}`}
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                                className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shadow-xs"
-                                title="Belum dibaca"
-                              />
-                            )}
-                          </AnimatePresence>
-                          <div className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] transition-colors">
-                            <ExternalLink className="w-4 h-4" />
-                          </div>
-                        </div>
-                      </motion.div>
+                      <NotificationRowItem key={item.id} item={item} variant="history" onSelect={handleItemClick} />
                     ))}
                   </motion.div>
                 </motion.div>

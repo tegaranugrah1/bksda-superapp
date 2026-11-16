@@ -63,7 +63,7 @@ class CheckModuleAccess
                         $asset = $assetId instanceof \App\Modules\Bmn\Models\Asset ? $assetId : \App\Modules\Bmn\Models\Asset::find($assetId);
                         $isPublicPhoto = $request->is('api/bmn/assets/*/photo/*')
                             && in_array($request->route('type'), ['depan', 'belakang', 'kiri', 'kanan', 'lokasi', 'geotag'], true);
-                        if ($asset && ($asset->isOwnedByEmployee($employee) || ($isPublicPhoto && $this->hasActiveLoan($asset, $employee)))) {
+                        if ($asset && $asset->canEmployeeView($employee, $isPublicPhoto)) {
                             return $next($request);
                         }
                     }
@@ -90,13 +90,5 @@ class CheckModuleAccess
         }
 
         return $next($request);
-    }
-
-    private function hasActiveLoan(\App\Modules\Bmn\Models\Asset $asset, $employee): bool
-    {
-        return $asset->loans()
-            ->where('employee_id', $employee->id)
-            ->whereIn('status', ['dipinjam', 'terlambat', 'DIPINJAM', 'TERLAMBAT'])
-            ->exists();
     }
 }

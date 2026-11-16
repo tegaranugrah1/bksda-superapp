@@ -21,6 +21,11 @@ import {
   Check,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ALLOWED_REPORT_IMAGE_MIMES,
+  MAX_REPORT_IMAGE_BYTES,
+  filterValidReportImageFiles,
+} from "./ReportFormShared";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -144,6 +149,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const [stOptions, setStOptions] = useState<MySuratTugasOption[]>([]);
   const [loadingSTOptions, setLoadingSTOptions] = useState(false);
   const [selectedSTId, setSelectedSTId] = useState<string>("");
+  const [stSearch, setStSearch] = useState("");
+  const [stPopoverOpen, setStPopoverOpen] = useState(false);
 
   // Report Form States
   const [judulLaporan, setJudulLaporan] = useState("");
@@ -171,15 +178,10 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     Array<{ url: string; caption?: string }>
   >([]);
 
-  const [stSearch, setStSearch] = useState("");
-  const [stPopoverOpen, setStPopoverOpen] = useState(false);
-
   // Cover Configuration States
   const [useCustomCover, setUseCustomCover] = useState(false);
   const [coverMode, setCoverMode] = useState<"standard" | "image" | "custom_text">("standard");
   const [customCoverImageUrl, setCustomCoverImageUrl] = useState("");
-  const [customCoverTitle, setCustomCoverTitle] = useState("");
-  const [customCoverAuthor, setCustomCoverAuthor] = useState("");
   const [customCoverFooter, setCustomCoverFooter] = useState(
     "BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR"
   );
@@ -195,23 +197,20 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("File cover harus berupa gambar (JPG, PNG, WebP).");
+    if (!ALLOWED_REPORT_IMAGE_MIMES.includes(file.type)) {
+      toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
       e.target.value = "";
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_REPORT_IMAGE_BYTES) {
       toast.error("Ukuran file cover maksimal 10MB.");
       e.target.value = "";
       return;
     }
-
     if (customCoverImageUrl && customCoverImageUrl.startsWith("blob:")) {
       URL.revokeObjectURL(customCoverImageUrl);
     }
-    const blobUrl = URL.createObjectURL(file);
-    setCustomCoverImageUrl(blobUrl);
+    setCustomCoverImageUrl(URL.createObjectURL(file));
     toast.success("Gambar cover terpilih!");
     e.target.value = "";
   };
@@ -317,17 +316,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       return;
     }
 
-    const validFiles = Array.from(files).filter((file) => {
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error(`File ${file.name} bukan format gambar.`);
-        return false;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`File ${file.name} melebihi batas maksimal 10MB.`);
-        return false;
-      }
-      return true;
-    });
+    const validFiles = filterValidReportImageFiles(files);
 
     const filesToProcess = validFiles.slice(0, remainingSlots);
     if (validFiles.length > remainingSlots) {
@@ -399,12 +388,10 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     use_custom_cover: useCustomCover,
     cover_mode: coverMode,
     custom_cover_image_url: customCoverImageUrl,
-    custom_cover_title: customCoverTitle,
-    custom_cover_author: customCoverAuthor,
+    custom_cover_title: "",
+    custom_cover_author: "",
     custom_cover_footer: customCoverFooter,
   };
-
-  const selectedST = selectedSTId ? stOptions.find(st => String(st.id) === String(selectedSTId)) : null;
 
   return (
     <div className="w-full bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 print:border-none print:shadow-none print:rounded-none print:overflow-visible print:bg-transparent">
@@ -490,84 +477,91 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                 <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
               )}
             </div>
-            <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen} modal={true}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={stPopoverOpen}
-                  className="w-full justify-between p-3 h-auto min-h-11 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-xs font-semibold text-[var(--ds-fg)] cursor-pointer"
-                >
-                  <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
-                    {selectedST
-                      ? (selectedST.nomor_surat
-                          ? `${selectedST.nomor_surat} - `
-                          : "") +
-                        ((selectedST.maksud_tujuan || "").substring(0, 60) || "") +
-                        "..."
-                      : "[ Tanpa Surat Tugas / Input Manual ]"}
-                  </span>
-                  <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent data-module="portal" className="w-[80vw] md:w-150 p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg" align="start">
-                <div className="flex flex-col max-h-88">
-                  <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3">
-                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                    <Input
-                      className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
-                      placeholder="Cari nomor atau tujuan ST..."
-                      value={stSearch}
-                      onChange={(e) => setStSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="overflow-y-auto flex-1 p-2">
-                    <div
-                      className={cn(
-                        "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
-                        selectedSTId === "" && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
-                      )}
-                      onClick={() => {
-                        handleSelectSuratTugas("");
-                        setStPopoverOpen(false);
-                      }}
+            {(() => {
+              const selectedST = selectedSTId ? stOptions.find(st => String(st.id) === String(selectedSTId)) : null;
+              const needle = stSearch.toLowerCase();
+              const filteredST = stOptions.filter((st) =>
+                (st.nomor_surat || "").toLowerCase().includes(needle) ||
+                (st.maksud_tujuan || "").toLowerCase().includes(needle)
+              );
+              return (
+                <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen} modal={true}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={stPopoverOpen}
+                      className="w-full justify-between p-3 h-auto min-h-11 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-xs font-semibold text-[var(--ds-fg)] cursor-pointer"
                     >
-                      <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === "" ? "opacity-100" : "opacity-0")} />
-                      <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
-                    </div>
-                    {stOptions
-                      .filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase()))
-                      .map((st) => (
+                      <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
+                        {selectedST
+                          ? `${selectedST.nomor_surat ? `${selectedST.nomor_surat} - ` : ""}${((selectedST.maksud_tujuan || "").substring(0, 60) || "")}...`
+                          : "[ Tanpa Surat Tugas / Input Manual ]"}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent data-module="portal" className="w-[80vw] md:w-150 p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg" align="start">
+                    <div className="flex flex-col max-h-88">
+                      <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3">
+                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <Input
+                          className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
+                          placeholder="Cari nomor atau tujuan ST..."
+                          value={stSearch}
+                          onChange={(e) => setStSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="overflow-y-auto flex-1 p-2">
                         <div
-                          key={st.id}
                           className={cn(
                             "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
-                            String(selectedSTId) === String(st.id) && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
+                            selectedSTId === "" && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
                           )}
                           onClick={() => {
-                            handleSelectSuratTugas(String(st.id));
+                            handleSelectSuratTugas("");
                             setStPopoverOpen(false);
                           }}
                         >
-                          <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
-                          <div className="flex flex-col flex-1 min-w-0">
-                            <span className="truncate text-xs">
-                              {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
-                              {st.maksud_tujuan}
-                            </span>
-                            <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{formatDateIndonesian(st.tanggal_mulai)}</span>
-                          </div>
+                          <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === "" ? "opacity-100" : "opacity-0")} />
+                          <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
                         </div>
-                      ))}
-                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
-                      <div className="py-6 text-center text-sm text-[var(--ds-fg-muted)]">
-                        Tidak ada Surat Tugas yang cocok.
+                        {filteredST.map((st) => (
+                          <div
+                            key={st.id}
+                            className={cn(
+                              "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
+                              String(selectedSTId) === String(st.id) && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
+                            )}
+                            onClick={() => {
+                              handleSelectSuratTugas(String(st.id));
+                              setStPopoverOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="truncate text-xs">
+                                {st.nomor_surat ? `${st.nomor_surat} - ` : ""}{st.maksud_tujuan}
+                              </span>
+                              {st.tanggal_mulai && (
+                                <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
+                                  {formatDateIndonesian(st.tanggal_mulai)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {filteredST.length === 0 && (
+                          <div className="py-6 text-center text-sm text-[var(--ds-fg-muted)]">
+                            Tidak ada Surat Tugas yang cocok.
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              );
+            })()}
             <p className="text-xs text-[var(--ds-fg-muted)]">
               Memilih Surat Tugas akan otomatis mengisi Agenda, Dasar, Pelaksana, dan Waktu Pelaksanaan. Pilih &quot;Tanpa Surat Tugas&quot; jika ingin mengisi manual.
             </p>
