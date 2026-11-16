@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (17 November 2026):** Penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada modul **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`codex/portal-security-pentest`); perbaikan kontras radio button dana/switch Surat Tugas dan filter pill SPJ panjar Portal, navbar adaptif mobile, serta penyesuaian CSS token `--ds-accent-*` Forest Green di `globals.css`. Pasca-edit Portal: `audit-5tokens.cjs portal` (`0 violations`, `0 undefined`), `tsc --noEmit` (`0`), `eslint src/app/portal` (`0 errors`), `portal-review-check.cjs` (`PASS`), Playwright ST Portal (`6/6 suites`, `PASS`), Playwright Live E2E Notifikasi (`10/10 assertions PASS`, sandbox auto-cleanup), inspeksi visual browser Light & Dark (`1440x900` & `390x844`, `0 error`, `0 overflow`). (Bagian 115–121).
+**Status terbaru (17 November 2026):** Audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) selesai dikerjakan serta diverifikasi lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**), melengkapi penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`fc993464`). Verifikasi akhir BE/FE/E2E: `phpunit` (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `tsc --noEmit` (`0`), `eslint` (`0` error), `next build` (`86/86` rute pada retry), `9/9` skrip CJS, serta `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` blocked karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi). Knowledge Graph diperbarui (`graphify update .`: `15331` nodes, `28499` edges, `1032` communities). (Bagian 115–122).
 
 ## Status Update: 2 November 2026
 
@@ -2642,4 +2642,42 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - `kepegawaian-surat-tugas-portal.playwright.cjs`: `6/6` suites lulus (`9` assertions green).
   - `portal-notifications-live-e2e.playwright.cjs`: `E2E-LIVE-01A` s.d. `E2E-LIVE-06B` `PASS` (sandbox auto-cleaned).
   - Visual Browser Verification (`verify-portal-ui.cjs`): Desktop `1440x900` & Mobile `390x844` Light/Dark `0` console error, `0` server error, `0` horizontal overflow.
-- **Status**: ✅ Selesai Diimplementasikan & Diverifikasi.
+- **Status**: ✅ Selesai Diimplementasikan & Diverifikasi (`fc993464`).
+
+---
+
+## 122. Audit `/ponytail-audit` & `/security-audit`, Hardening Keamanan (`SEC-01`–`SEC-11`), & Refactoring Ponytail (`P-01`–`P-07`) Lintas 6 Modul Utama (17 November 2026)
+
+- **Konteks & Tujuan**: Menjalankan audit menyeluruh `/ponytail-audit` dan `/security-audit` pada 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**), mendokumentasikan seluruh temuan ke berkas markdown audit, mengeksekusi perbaikan keamanan serta refactoring berprinsip Ponytail, lalu memverifikasi BE, FE, dan E2E Playwright secara penuh.
+- **Dokumen Audit Tercatat**:
+  - [`docs/ponytail-audit-6-modules-2026-11-17.md`](file:///e:/bksda-superapp/docs/ponytail-audit-6-modules-2026-11-17.md) — Checklist `P-01`–`P-07` (`[x]` selesai dikerjakan sesuai cakupan).
+  - [`docs/security/security-audit-6-modules-2026-11-17.md`](file:///e:/bksda-superapp/docs/security/security-audit-6-modules-2026-11-17.md) — Checklist `SEC-01`–`SEC-11` (`Mitigated (Code)`, `[x]`) beserta daftar validasi operasional `NV-01`–`NV-06` (`Needs Validation`).
+- **Ringkasan Perbaikan Keamanan (`SEC-01`–`SEC-11`)**:
+  - Implementasi & penyatuan proteksi CSRF (`ValidateApiCsrfToken.php`), pengerasan otorisasi & isolasi aksi sensitif lintas 6 modul, pembatasan `EmployeeLeaveSnapshotCheck` agar melampirkan resolver user `super_admin` (`SEC-03`), penghapusan `employee.email` ke `null` tanpa perlu `current_password`, serta guard `enable2Fa` `409` bila 2FA sudah aktif.
+  - Penyelarasan pengujian regresi keamanan lewat `SixModulesSecurityHardeningTest.php` bersama kebijakan yang berlaku (`StActorAcceptanceTest` untuk penomoran draf & `StLifecycleAcceptanceTest` untuk pemulihan oleh pembuat dokumen).
+- **Ringkasan Refactoring Ponytail (`P-01`–`P-07`)**:
+  - Pembersihan besar berkas & dependensi mati: penghapusan `46` berkas BMN tidak terpakai (+ pembersihan referensi usang `bmn-utils.ts`, `constants/bmn.ts`, `EmployeePicker.tsx` pada `frontend/src/app/_docs/utility-functions.md` dan `frontend/README.md`), penghapusan `GoogleSheetsService` & UI mati, pengurangan `5` paket npm dan `2` paket composer.
+  - Penyatuan duplikasi logika ke helper/komponen bersama BE & FE: `ResolvesDocumentStatus.php`, `PhotoLampiranPages.tsx`, `ReportFormShared.tsx`, `SuratTugasA4Parts.tsx`, dan `print-window.ts`.
+  - Sinkronisasi Knowledge Graph via `graphify update .`: membangun ulang `15331` nodes, `28499` edges, dan `1032` communities di `graphify-out/`.
+- **Hasil Verifikasi Pasca-Edit Akhir**:
+  - **Backend**:
+    - `php -d memory_limit=512M ./vendor/bin/phpunit`: `583` tests (`581` passed, `2` skipped, `6023` assertions, `exit 0`).
+    - `php tests/portal_security_check.php`: `PASS` (`exit 0`).
+    - `php tests/EmployeeLeaveSnapshotCheck.php`: `PASS` (`exit 0`).
+    - `php tests/EmployeeLifecycleTest.php`: `10/10` passed (`exit 0`).
+  - **Frontend**:
+    - `npx tsc --noEmit`: `exit 0`.
+    - `npx eslint src/app/surat-tugas src/app/portal src/app/kepegawaian src/app/drive src/app/bmn src/app/surat src/components/SuratTugas*.tsx src/lib/print-window.ts`: `0` error, `4` warning `@next/next/no-img-element` (`SmartPatrolInlineForm.tsx` & `SmartPatrolPrint.tsx`), `exit 0`.
+    - `npm run build` (`Next.js 16.4.2`): run awal mengenai imbauan upgrade `SecurityFatalError`; retry mengompilasi `86/86` rute dengan bersih (`exit 0`).
+    - `9/9` skrip CJS relevan lulus (`exit 0`): `export-pdf-route.cjs`, `portal-review-check.cjs`, `persuratan-ui.cjs`, `kepegawaian-ui.cjs`, `diktum-capitalization-check.cjs`, `st-legacy-items.cjs`, `test-export-transform.cjs`, `nota-dinas-template-check.cjs`, `cache-security.cjs`. *(Catatan: harness CJS lawas `portal-notification-bell.cjs`, `portal-notification-callbacks.cjs`, `portal-leave-callbacks.cjs`, `notification-transport.cjs` menggunakan path Linux `/frontend/...`; `animate-ui-motion-check.cjs` mengecek `AnimatePresence` yang telah dihapus; `bmn-assets-ui.cjs`/`bmn-sidebar-ui.cjs` menolak import pra-ada).*
+  - **Playwright E2E (`9/9` berkas `exit 0`)**:
+    - `surat-tugas-security.playwright.cjs` (`5/5`, `23` assertions)
+    - `bmn-security-ui.playwright.cjs` (`12/12`, `31` assertions)
+    - `drive-security-ui.playwright.cjs` (`12/12`, `30` assertions)
+    - `drive-agentic-root.playwright.cjs` (`10/10`, `22` assertions)
+    - `kepegawaian-uang-makan.playwright.cjs` (`8/8`)
+    - `kepegawaian-surat-tugas-portal.playwright.cjs` (`6/6`, `9` assertions)
+    - `kepegawaian-bank-allocation.playwright.cjs` (`6/6`, `12` assertions)
+    - `portal-notifications-live-e2e.playwright.cjs` (`9` skenario live `PASS`; `E2E-LIVE-07` `[STOPPED / BLOCKED]` karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi di `frontend/.env.local`)
+    - `location-hierarchy-drive-sync.playwright.cjs` (`7/7` skenario live `PASS`)
+- **Status**: ✅ Selesai Dikerjakan & Diverifikasi (`SEC-01`–`SEC-11` & `P-01`–`P-07`; `NV-01`–`NV-06` menunggu validasi runtime/staging).

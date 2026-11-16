@@ -3222,22 +3222,26 @@ Setelah semua command clean:
 
 ---
 
-## 📌 Handoff Sesi Terbaru — 16 November 2026
+## 📌 Handoff Sesi Terbaru — 17 November 2026
 
-> **Catatan Konteks Aktif:** Catatan progres operasional terbaru (per November 2026) dipusatkan pada [`progress.md`](../progress.md) (Bagian 109–119) di root repository, sedangkan dokumen khusus fitur lifecycle pegawai berada pada [`doc.md`](../doc.md).
-> **Kebijakan Git Aktif:** Commit lokal pada branch **`codex/portal-security-pentest`**, **jangan `git push` atau deploy tanpa instruksi eksplisit pengguna**.
+> **Catatan Konteks Aktif:** Catatan progres operasional terbaru (per November 2026) dipusatkan pada [`progress.md`](../progress.md) (Bagian 109–122) di root repository, sedangkan dokumen khusus fitur lifecycle pegawai berada pada [`doc.md`](../doc.md).
+> **Kebijakan Git Aktif:** Commit lokal pada branch **`codex/portal-security-pentest`**, **jangan `git push` atau deploy tanpa instruksi eksplisit pengguna** (hindari `git add .` membabi buta; pastikan staging eksplisit via `git status --short`).
 
-### Status Terakhir (Commit `9d7a4ce6` & Portal 5-Token Update)
+### Status Terakhir (Pasca-`fc993464`: Hardening `/security-audit` & Refactoring `/ponytail-audit` 6 Modul)
 1. **Sistem Desain 5 Token (`docs/DESIGN_SYSTEM_5_TOKENS.md`) Selesai Diterapkan di 5 Modul Utama:**
    - **Persuratan (`/surat`):** [`c499257f` & `a41549b4`] Dashboard + seluruh halaman agenda/keluar/dinas/pengaturan/modal + pelembutan `.kpg-secondary` global.
    - **Kepegawaian (`/kepegawaian`):** [`540fb44b`] 38 berkas UI halaman, modal, tab, dan kontrol Surat Tugas di shell Kepegawaian.
    - **BMN (`/bmn`):** [`d20bfcaf`] Seluruh halaman & komponen UI BMN (dashboard, aset, peminjaman, pemeliharaan, disposal, import review, laporan BA, pengaturan master, paket lelang, & kandidat rusak berat).
    - **Surat Tugas Standalone (`/surat-tugas`):** [`9d7a4ce6`] Seluruh berkas UI surat-tugas + perbaikan kontras radio button sumber dana DIPA/PNBP/Lainnya & switch.
-   - **Portal ASN (`/portal`):** Dashboard utama, quick stats, banner hero forest green, tab pinjaman/aset/cuti/surat tugas/kalkulator dinas panjar, notification bell & dialog riwayat penuh, inline form laporan patroli & umum, security modal password & 2FA, serta navbar adaptif mobile. Tetap mengecualikan komponen kertas cetak fisik resmi (`FormulirCutiPrint.tsx`, `GeneralReportPrint.tsx`, `SmartPatrolPrint.tsx`, dan lembar LPJ panjar).
-2. **RBAC Per-Modul & Pengerasan Fitur Harian:**
+   - **Portal ASN (`/portal`):** [`fc993464`] Dashboard utama, quick stats, banner hero forest green, tab pinjaman/aset/cuti/surat tugas/kalkulator dinas panjar, notification bell & dialog riwayat penuh, inline form laporan patroli & umum, security modal password & 2FA, serta navbar adaptif mobile. Tetap mengecualikan komponen kertas cetak fisik resmi (`FormulirCutiPrint.tsx`, `GeneralReportPrint.tsx`, `SmartPatrolPrint.tsx`, dan lembar LPJ panjar).
+2. **Audit Keamanan & Refactoring Ponytail Lintas 6 Modul (`surat-tugas`, `portal`, `kepegawaian`, `drive`, `bmn`, `surat`):**
+   - **Hardening Keamanan ([`docs/security/security-audit-6-modules-2026-11-17.md`](security/security-audit-6-modules-2026-11-17.md)):** Seluruh `SEC-01`–`SEC-11` berstatus `Mitigated (Code)` (`ValidateApiCsrfToken.php`, proteksi `EmployeeLeaveSnapshotCheck`, guard `enable2Fa` `409`, penghapusan `employee.email` ke `null` tanpa `current_password`, penyelarasan kebijakan `StActorAcceptanceTest` draft numbering & `StLifecycleAcceptanceTest` creator restore, serta `SixModulesSecurityHardeningTest.php`). Item `NV-01`–`NV-06` tetap berstatus `Needs Validation` pada tahap staging/deploy.
+   - **Refactoring & Pembersihan `/ponytail-audit` ([`docs/ponytail-audit-6-modules-2026-11-17.md`](ponytail-audit-6-modules-2026-11-17.md)):** Seluruh `P-01`–`P-07` selesai dikerjakan: penghapusan `46` berkas BMN mati (+ pembersihan referensi usang `bmn-utils.ts`, `constants/bmn.ts`, `EmployeePicker.tsx` pada `frontend/src/app/_docs/utility-functions.md` & `frontend/README.md`) dan `GoogleSheetsService`/UI mati, pengurangan `5` paket npm & `2` paket composer, serta penyatuan helper bersama (`ResolvesDocumentStatus.php`, `PhotoLampiranPages.tsx`, `ReportFormShared.tsx`, `SuratTugasA4Parts.tsx`, `print-window.ts`).
+   - **Verifikasi Pasca-Edit Akhir:** PHPUnit (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `tsc --noEmit` (`0`), `eslint` lintas 6 modul (`0` error, `4` warning `@next/next/no-img-element`), `npm run build` (`86/86` rute pada retry; `Next.js 16.4.2` memunculkan imbauan upgrade keamanan pada run awal), `9/9` skrip CJS, dan `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` `[STOPPED / BLOCKED]` menunggu `NEXT_PUBLIC_REVERB_APP_KEY`).
+3. **RBAC Per-Modul & Pengerasan Fitur Harian:**
    - Role independen per modul (`users.module_roles`, `f4379c2d`, `faed1785`, `862ec6f0`), ekspor PDF vektor searchable SRIKANDI + Word surat dinas (`93656c64`, `f8ca5a1f`), serta manajemen/hapus scan cuti + arsip Drive (`370c9622`, `7692933a`, `465b1307`).
-3. **Modul Lain untuk Sprint Berikutnya:**
-   - Modul **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS**.
-4. **Rujukan Audit & Cek Cepat untuk Sesi Berikutnya:**
-   - Rinci hasil pengujian & perubahan terakhir: lihat [`progress.md`](../progress.md) (Bagian 117–121).
-   - Pastikan selalu memperbarui Knowledge Graph dengan `graphify update .` pasca mengubah kode.
+4. **Agenda Sesi Berikutnya:**
+   - Validasi runtime/deploy `NV-01`–`NV-06`, konfigurasi `NEXT_PUBLIC_REVERB_APP_KEY` di `frontend/.env.local` untuk pengujian live WebSocket `E2E-LIVE-07`, evaluasi upgrade **Next.js** `16.4.2` sesuai imbauan `SecurityFatalError`, serta penerapan 5 Design Tokens / lanjutan pada modul **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS**.
+5. **Rujukan Audit & Cek Cepat untuk Sesi Berikutnya:**
+   - Rinci hasil pengujian & perubahan terakhir: lihat [`progress.md`](../progress.md) (Bagian 117–122).
+   - Knowledge Graph disinkronkan via `graphify update .` (`15331` nodes, `28499` edges, `1032` communities di `graphify-out/`); jalankan ulang `graphify update .` setiap selesai mengubah kode.
