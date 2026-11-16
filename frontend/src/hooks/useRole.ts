@@ -19,21 +19,13 @@ export function useRole() {
     hasPermission: (permission: string) => {
       if (role === "super_admin") return true;
 
-      // bmn.asset.force_delete, surat.manage, dan kepegawaian.manage strictly super_admin
-      if (["bmn.asset.force_delete", "surat.manage", "kepegawaian.manage"].includes(permission)) return false;
+      // bmn.asset.force_delete, bmn.manage, surat.manage, dan kepegawaian.manage strictly super_admin
+      if (["bmn.asset.force_delete", "bmn.manage", "surat.manage", "kepegawaian.manage"].includes(permission)) return false;
 
       // Fallback untuk backward compatibility jika data permissions tidak ada atau kosong []
       if (!user?.permissions || user.permissions.length === 0) {
         if (permission.startsWith("bmn.")) {
-          if (permission.startsWith("bmn.auction.")) {
-            if (permission === "bmn.auction.view") {
-              return user?.access_modules?.includes("bmn") || false;
-            }
-            return role === "admin" && (user?.access_modules?.includes("bmn") || false);
-          }
-
-          const isReadPermission = ["bmn.view", "bmn.document.history.view"].includes(permission);
-          if (isReadPermission) {
+          if (permission === "bmn.view") {
             return user?.access_modules?.includes("bmn") || false;
           }
           return role === "admin" && (user?.access_modules?.includes("bmn") || false);

@@ -138,7 +138,7 @@ class BmnMasterDataTest extends TestCase
         $res->assertStatus(403);
     }
 
-    public function test_admin_can_create_location_with_existing_unit_kerja(): void
+    public function test_admin_cannot_create_location_even_with_existing_unit_kerja_because_settings_is_super_admin_only(): void
     {
         $admin = User::factory()->create([
             'username' => 'admin_bmn_' . uniqid(),
@@ -152,7 +152,14 @@ class BmnMasterDataTest extends TestCase
             'name' => 'Ruang Rapat Meranti',
         ]);
 
-        $res->assertStatus(201)
+        $res->assertStatus(403);
+
+        Sanctum::actingAs($this->user); // super_admin
+        $resSuper = $this->postJson('/api/bmn/locations', [
+            'unit_kerja' => 'Kantor Balai KSDA Kalimantan Timur',
+            'name' => 'Ruang Rapat Meranti',
+        ]);
+        $resSuper->assertStatus(201)
             ->assertJsonPath('data.name', 'Ruang Rapat Meranti');
     }
 

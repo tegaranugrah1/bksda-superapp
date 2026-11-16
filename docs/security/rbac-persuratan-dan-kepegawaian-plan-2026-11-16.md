@@ -1,8 +1,8 @@
-# Blueprint & Rencana Implementasi RBAC (`User` vs `Admin` vs `Super Admin`): Modul Persuratan & Kepegawaian
+# Blueprint & Rencana Implementasi RBAC (`User` vs `Admin` vs `Super Admin`): Modul Persuratan, Kepegawaian, & BMN
 
 **Tanggal:** 2026-11-16  
-**Cakupan Tahap 1:** Modul **Persuratan (`/surat`)** dan Modul **Kepegawaian (`/kepegawaian`)** *(beserta catatan arsitektur untuk BMN, Keuangan, DeReporting, & Inventory pada tahap berikutnya)*  
-**Status Dokumen:** ✅ Selesai Diimplementasikan & Terverifikasi (`108/108` PHPUnit tests, `612` assertions, `0` TypeScript errors)
+**Cakupan:** Modul **Persuratan (`/surat`)**, Modul **Kepegawaian (`/kepegawaian`)**, dan Modul **BMN (`/bmn`)**  
+**Status Dokumen:** ✅ Selesai Diimplementasikan & Terverifikasi (`User` vs `Admin` vs `Super Admin`)
 
 ---
 
@@ -66,18 +66,38 @@ Berdasarkan sesi wawancara desain (`/grill-me`) dan penelusuran menyeluruh pada 
 
 ---
 
-## 4. Peta Rekomendasi Awal untuk Modul Lain (Referensi Sesi `/grill-me` Berikutnya)
+## 4. Matriks RBAC Modul BMN (`/bmn`) — Hasil `/grill-me` Tahap 2
 
-Sebagai dokumentasi hasil diskusi awal kita untuk tahap selanjutnya:
-1. **Modul BMN (`/bmn`)**:
-   - `User`: Lihat Dashboard, Katalog Aset (`/bmn/assets`), Peminjaman (`/bmn/loans`), & Pemeliharaan (`/bmn/maintenances`). Tidak bisa buka Import Review, Kandidat/Paket Lelang, Disposal, Laporan BA, maupun Pengaturan Master (`/bmn/settings`).
-   - `Admin`: Kelola operasional aset, pinjaman, pemeliharaan, import review, laporan BA, dan lelang (sesuai permission granular), tetapi **tidak bisa buka Pengaturan Master (`/bmn/settings`)** dan tidak bisa `force_delete`.
-   - `Super Admin`: Akses penuh termasuk `/bmn/settings` & `force_delete`.
-2. **Modul Keuangan (`/keuangan`)**:
+Berdasarkan sesi `/grill-me` lanjutan untuk **Modul BMN (`/bmn`)**, berikut adalah aturan yang telah dikunci dan diimplementasikan:
+
+1. **Menu & Akses `User` (`role: user` + `access_modules: ["bmn"]`)**:
+   - Hanya dapat membuka 4 menu inventaris dasar secara **Read-Only**: **Dashboard (`/bmn`)**, **Data Aset (`/bmn/assets` & `/bmn/assets/[id]`)**, **Peminjaman (`/bmn/loans`)**, dan **Pemeliharaan (`/bmn/maintenances`)**.
+   - Di halaman **Detail Aset (`/bmn/assets/[id]`)**, `User` dapat melihat seluruh tab (`Identitas`, `Finansial & Akuntansi`, `Dokumen Legalitas`, `Lokasi & Penanggung Jawab`, `Organisasi`, `Riwayat Perubahan Data`) serta melihat/mengunduh seluruh foto dan dokumen aset (termasuk BPKB/STNK) secara **Read-Only** (seluruh tombol Edit/Hapus/Pinjam/Tag dikunci).
+   - Menu **Import Review (`/bmn/import-review`)**, **Kandidat Rusak Berat (`/bmn/auction-candidates`)**, **Paket Lelang BMN (`/bmn/auction-batches`)**, **Aset Dihapus (`/bmn/disposal`)**, **Dokumen & Laporan (`/bmn/reports`)**, dan **Pengaturan Master (`/bmn/settings`)** disembunyikan di sidebar, di-redirect ke `/bmn` jika diakses via URL, dan ditolak `403 Forbidden` di API.
+2. **Batas Kewenangan `Admin` vs `Super Admin` di BMN**:
+   - `Admin` (`role: admin` + `access_modules: ["bmn"]`) mengelola seluruh operasional BMN: CRUD Aset, Upload/Hapus Foto & Dokumen, Assign Tag ke Aset, Peminjaman, Pemeliharaan, Import Review & Approval, Kandidat & Paket Lelang, Usulan Penghapusan/Disposal & Restore, serta Dokumen/Laporan BA (`/bmn/reports`).
+   - `Admin` **tidak bisa** membuka halaman maupun API mutasi **Pengaturan Master (`/bmn/settings`)** (CRUD Master Tag Aset, Master Lokasi & Ruangan, serta Master Jenis BMN dikunci khusus `Super Admin` dengan `bmn.manage`), dan **tidak bisa** melakukan **Hapus Permanen Aset (`bmn.asset.force_delete`)**.
+3. **Penyederhanaan Modal IAM (`EmployeeAccessSheet.tsx`)**:
+   - Menghapus daftar 16 kotak centang permission granular BMN di modal IAM agar seragam dengan seluruh modul lain: cukup pilih `Role` (`User` / `Admin` / `Super Admin`) + centang modul `BMN & Aset`.
+
+| Fitur / Halaman / Endpoint BMN | `User` (`role: user` + modul `bmn`) | `Admin` (`role: admin` + modul `bmn`) | `Super Admin` (`role: super_admin`) |
+| :--- | :--- | :--- | :--- |
+| **Dashboard BMN** (`/bmn` & `GET /api/bmn/dashboard/stats`) | ✅ Read-only (pintasan ke Dokumen/Laporan disembunyikan) | ✅ Penuh | ✅ Penuh |
+| **Katalog & Detail Aset** (`/bmn/assets`, `/bmn/assets/[id]`, foto & dokumen BPKB/STNK) | ✅ Read-only (bisa lihat semua tab & unduh dokumen/foto; tanpa tombol Tambah/Edit/Hapus/Tag/Verify) | ✅ Kelola penuh (Tambah, Edit, Verify, Upload/Hapus Foto & Dokumen, Assign Tag, Export Excel) | ✅ Penuh |
+| **Peminjaman & Pemeliharaan** (`/bmn/loans`, `/bmn/maintenances`) | ✅ Read-only daftar pinjaman & riwayat servis | ✅ Kelola penuh (Pinjam, Kembalikan, Edit/Hapus Pinjaman, Catat Servis, Export Excel) | ✅ Penuh |
+| **Import Review, Kandidat & Paket Lelang, Disposal, & Laporan BA** (`/bmn/import-review`, `/auction-*`, `/disposal`, `/reports`) | ❌ Disembunyikan di sidebar, redirect di UI, & ditolak `403` di API | ✅ Kelola penuh (termasuk Disposal & Restore; tanpa Hapus Permanen) | ✅ Penuh |
+| **Hapus Permanen Aset** (`POST /api/bmn/assets/bulk-force-delete`) | ❌ Ditolak `403` | ❌ Ditolak `403` | ✅ Bisa |
+| **Pengaturan Master BMN** (`/bmn/settings`: CRUD Master Tag, Lokasi & Ruangan, Jenis BMN) | ❌ Disembunyikan & ditolak `403` | ❌ Disembunyikan di sidebar, redirect di UI, & ditolak `403` di API (`bmn.manage` khusus `super_admin`) | ✅ Penuh |
+
+---
+
+## 5. Peta Rekomendasi Awal untuk Modul Lain (Referensi Sesi `/grill-me` Berikutnya)
+
+1. **Modul Keuangan (`/keuangan`)**:
    - `User`: Cetak Visum SPD & hanya bisa membuat/melihat/mengedit **SPJ miliknya sendiri** (`created_by = user.id`).
    - `Admin`: Melihat, memverifikasi (`updateStatus`), dan mengekspor seluruh SPJ pegawai; tidak bisa mengubah Setting Master.
    - `Super Admin`: Akses penuh termasuk Setting & Template Master Visum SPD.
-3. **Modul DeReporting (`/dereporting`) & Inventory (`/inventory`)**:
+2. **Modul DeReporting (`/dereporting`) & Inventory (`/inventory`)**:
    - `User`: Pelaporan/pembacaan sesuai scope tanpa akses konfigurasi master/operator/mutasi stok gudang.
    - `Admin`: Operasional modul tanpa akses pengaturan master level tinggi / hapus permanen.
 

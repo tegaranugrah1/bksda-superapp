@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useId, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useId, useRef, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -61,7 +61,7 @@ const BMN_SIDEBAR_ITEMS: BmnSidebarItem[] = [
 
   // 4. Dokumen & Pengaturan
   { href: "/bmn/reports", label: "Dokumen & Laporan", icon: FileText, permission: "bmn.document.history.view", group: "Dokumen & Pengaturan" },
-  { href: "/bmn/settings", label: "Pengaturan Master", icon: Settings, permission: "bmn.view", group: "Dokumen & Pengaturan" },
+  { href: "/bmn/settings", label: "Pengaturan Master", icon: Settings, permission: "bmn.manage", group: "Dokumen & Pengaturan" },
 ];
 
 const GROUP_ORDER: BmnSidebarGroup[] = [
@@ -73,13 +73,28 @@ const GROUP_ORDER: BmnSidebarGroup[] = [
 
 export default function BmnLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const sidebarId = useId();
   const menuTrigger = useRef<HTMLButtonElement | null>(null);
   const reduced = useReducedMotion();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
-  const { hasPermission } = useRole();
+  const { hasPermission, canWrite, isSuperAdmin } = useRole();
+
+  const isRouteForbidden =
+    (pathname.startsWith("/bmn/settings") && !isSuperAdmin && !hasPermission("bmn.manage")) ||
+    (!canWrite &&
+      (pathname.startsWith("/bmn/import-review") && !hasPermission("bmn.import.review") ||
+        (pathname.startsWith("/bmn/auction-candidates") || pathname.startsWith("/bmn/auction-batches")) && !hasPermission("bmn.auction.view") ||
+        pathname.startsWith("/bmn/disposal") && !hasPermission("bmn.asset.dispose") ||
+        pathname.startsWith("/bmn/reports") && !hasPermission("bmn.document.history.view")));
+
+  useEffect(() => {
+    if (user && isRouteForbidden) {
+      router.replace("/bmn");
+    }
+  }, [user, isRouteForbidden, router]);
 
   const visibleItems = BMN_SIDEBAR_ITEMS.filter((item) => {
     return hasPermission(item.permission);
@@ -298,7 +313,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                 transition={{ duration: reduced ? 0 : 0.12, ease: "easeOut" }}
                 className="min-h-full w-full"
               >
-                {children}
+                {isRouteForbidden ? null : children}
               </motion.div>
             </AnimatePresence>
           </main>

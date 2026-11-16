@@ -174,24 +174,16 @@ class User extends Authenticatable
             return true;
         }
 
-        // bmn.asset.force_delete, surat.manage, dan kepegawaian.manage HANYA untuk super_admin
-        if (in_array($permission, ['bmn.asset.force_delete', 'surat.manage', 'kepegawaian.manage'], true)) {
+        // bmn.asset.force_delete, bmn.manage, surat.manage, dan kepegawaian.manage HANYA untuk super_admin
+        if (in_array($permission, ['bmn.asset.force_delete', 'bmn.manage', 'surat.manage', 'kepegawaian.manage'], true)) {
             return false;
         }
 
         // 2. Jika kolom permissions bernilai null atau kosong (empty array), gunakan fallback backward compatibility:
-        // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi penulisan tetap memerlukan role admin.
+        // Izinkan aksi BMN jika user memiliki akses modul BMN. Aksi operasional/penulisan memerlukan role admin.
         if (is_null($this->permissions) || empty($this->permissions)) {
             if (str_starts_with($permission, 'bmn.')) {
-                if (str_starts_with($permission, 'bmn.auction.')) {
-                    if ($permission === 'bmn.auction.view') {
-                        return in_array('bmn', $this->access_modules ?? []);
-                    }
-                    return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);
-                }
-
-                $isReadPermission = in_array($permission, ['bmn.view', 'bmn.document.history.view']);
-                if ($isReadPermission) {
+                if ($permission === 'bmn.view') {
                     return in_array('bmn', $this->access_modules ?? []);
                 }
                 return $this->role === 'admin' && in_array('bmn', $this->access_modules ?? []);

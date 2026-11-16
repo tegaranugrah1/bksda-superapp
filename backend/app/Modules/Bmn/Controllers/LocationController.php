@@ -408,8 +408,7 @@ class LocationController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        if ($user->role === 'super_admin'
-            || $user->hasPermission('bmn.asset.update')) {
+        if ($user->role === 'super_admin' || $user->hasPermission('bmn.manage')) {
             return;
         }
 

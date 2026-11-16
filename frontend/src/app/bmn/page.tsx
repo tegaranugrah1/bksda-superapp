@@ -25,16 +25,17 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
+import { useRole } from "@/hooks/useRole";
 import { motion } from "framer-motion";
 
 interface JenisData { jenis_bmn: string; total: number; total_nilai: number }
 interface LokasiData { lokasi_ruang: string; total: number }
 
 const quickActions = [
-  { href: "/bmn/assets", label: "Data Aset", description: "Master inventaris", icon: Package },
-  { href: "/bmn/loans", label: "Peminjaman", description: "Pinjam pakai unit", icon: HandCoins },
-  { href: "/bmn/maintenances", label: "Pemeliharaan", description: "Servis & perawatan", icon: Wrench },
-  { href: "/bmn/reports", label: "Dokumen / Laporan", description: "BAST, DBR & KIB", icon: FileText },
+  { href: "/bmn/assets", label: "Data Aset", description: "Master inventaris", icon: Package, permission: "bmn.view" },
+  { href: "/bmn/loans", label: "Peminjaman", description: "Pinjam pakai unit", icon: HandCoins, permission: "bmn.view" },
+  { href: "/bmn/maintenances", label: "Pemeliharaan", description: "Servis & perawatan", icon: Wrench, permission: "bmn.view" },
+  { href: "/bmn/reports", label: "Dokumen / Laporan", description: "BAST, DBR & KIB", icon: FileText, permission: "bmn.document.history.view" },
 ];
 
 interface DashboardData {
@@ -148,6 +149,9 @@ function KpiCard({
 
 export default function BmnDashboardPage() {
   const queryClient = useQueryClient();
+  const { hasPermission } = useRole();
+  const canViewReports = hasPermission("bmn.document.history.view");
+  const visibleQuickActions = quickActions.filter((item) => hasPermission(item.permission));
   useAdminInboxLive("bmn", () => {
     void queryClient.invalidateQueries({ queryKey: ["bmn-dashboard-stats"] });
   });
@@ -678,9 +682,11 @@ export default function BmnDashboardPage() {
 
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Total Valuasi: <strong className="text-slate-700 dark:text-zinc-200">{formatRupiah(data?.total_asset_value || 0)}</strong></span>
-            <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] hover:underline font-semibold">
-              Lihat Rincian Akun
-            </Link>
+            {canViewReports && (
+              <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] hover:underline font-semibold">
+                Lihat Rincian Akun
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -810,9 +816,11 @@ export default function BmnDashboardPage() {
 
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
             <span>Audit trail otomatis aktif</span>
-            <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] font-semibold cursor-pointer hover:underline">
-              Buka Log Audit
-            </Link>
+            {canViewReports && (
+              <Link href="/bmn/reports" className="text-[var(--ds-accent-fg)] font-semibold cursor-pointer hover:underline">
+                Buka Log Audit
+              </Link>
+            )}
           </div>
         </div>
 
@@ -837,7 +845,7 @@ export default function BmnDashboardPage() {
                 if (!event.currentTarget.contains(event.relatedTarget)) setFocusedAction(null);
               }}
             >
-              {quickActions.map(({ href, label, description, icon: Icon }) => (
+              {visibleQuickActions.map(({ href, label, description, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}

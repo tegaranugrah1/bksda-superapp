@@ -380,4 +380,98 @@ class SuratAndKepegawaianRbacTest extends TestCase
         $this->deleteJson("/api/kepegawaian/employees/{$tempEmp->id}/force")->assertOk();
         $this->assertDatabaseMissing('kpg_employees', ['id' => $tempEmp->id]);
     }
+
+    public function test_bmn_rbac_user_admin_and_super_admin_boundaries(): void
+    {
+        $bmnUser = User::factory()->create([
+            'username' => 'user_bmn_rbac',
+            'role' => 'user',
+            'access_modules' => ['bmn'],
+            'permissions' => [],
+            'is_active' => true,
+        ]);
+
+        $bmnAdmin = User::factory()->create([
+            'username' => 'admin_bmn_rbac',
+            'role' => 'admin',
+            'access_modules' => ['bmn'],
+            'permissions' => [],
+            'is_active' => true,
+        ]);
+
+        $asset = \App\Modules\Bmn\Models\Asset::create([
+            'kode_barang' => '3020101001',
+            'nup' => '1',
+            'nama_barang' => 'Mobil Patroli Hilux',
+            'kondisi' => 'Baik',
+            'nilai_perolehan' => 450000000,
+        ]);
+
+        $tag = \App\Modules\Bmn\Models\Tag::create([
+            'name' => 'patroli',
+            'label' => '#patroli',
+            'color' => 'emerald',
+        ]);
+
+        // 1. User BMN (role=user, access_modules=['bmn'], permissions=[])
+        // Can read Dashboard, Assets, Asset Detail, Loans, Maintenances, and filter Tags/Locations/AssetTypes
+        Sanctum::actingAs($bmnUser);
+        $this->getJson('/api/bmn/dashboard/stats')->assertOk();
+        $this->getJson('/api/bmn/assets')->assertOk();
+        $this->getJson("/api/bmn/assets/{$asset->id}")->assertOk();
+        $this->getJson('/api/bmn/loans')->assertOk();
+        $this->getJson('/api/bmn/maintenances')->assertOk();
+        $this->getJson('/api/bmn/tags')->assertOk();
+        $this->getJson('/api/bmn/locations')->assertOk();
+        $this->getJson('/api/bmn/asset-types')->assertOk();
+
+        // User BMN is FORBIDDEN from Import Review, Auction Candidates/Batches, Document History/Reports, Asset Mutations, and Master Settings
+        $this->getJson('/api/bmn/import-review')->assertForbidden();
+        $this->getJson('/api/bmn/auction-candidates')->assertForbidden();
+        $this->getJson('/api/bmn/auction-batches')->assertForbidden();
+        $this->getJson('/api/bmn/document-histories')->assertForbidden();
+        $this->getJson('/api/bmn/usage-agreements')->assertForbidden();
+        $this->postJson('/api/bmn/assets', [
+            'kode_barang' => '3020101002',
+            'nup' => '2',
+            'nama_barang' => 'Ilegal',
+            'kondisi' => 'Baik',
+            'nilai_perolehan' => 1000,
+        ])->assertForbidden();
+        $this->putJson("/api/bmn/assets/{$asset->id}", ['nama_barang' => 'Diubah User'])->assertForbidden();
+        $this->deleteJson("/api/bmn/assets/{$asset->id}/dispose")->assertForbidden();
+        $this->postJson("/api/bmn/assets/{$asset->id}/tags", ['tag_ids' => [$tag->id]])->assertForbidden();
+        $this->postJson('/api/bmn/tags', ['name' => 'baru', 'color' => 'blue'])->assertForbidden();
+
+        // 2. Admin BMN (role=admin, access_modules=['bmn'], permissions=[])
+        // Automatically gets all operational BMN permissions (without needing 16 checkboxes), EXCEPT Settings Master & Force Delete
+        Sanctum::actingAs($bmnAdmin);
+        $this->getJson('/api/bmn/import-review')->assertOk();
+        $this->getJson('/api/bmn/auction-candidates')->assertOk();
+        $this->getJson('/api/bmn/auction-batches')->assertOk();
+        $this->getJson('/api/bmn/document-histories')->assertOk();
+        $this->postJson("/api/bmn/assets/{$asset->id}/tags", ['tag_ids' => [$tag->id]])->assertOk();
+
+        // Admin BMN is FORBIDDEN from Master Settings (/bmn/settings: CRUD Tags, Locations, AssetTypes) and Force Delete
+        $this->postJson('/api/bmn/tags', ['name' => 'tag_admin', 'color' => 'blue'])->assertForbidden();
+        $this->putJson("/api/bmn/tags/{$tag->id}", ['name' => 'tag_admin_edit', 'color' => 'blue'])->assertForbidden();
+        $this->deleteJson("/api/bmn/tags/{$tag->id}")->assertForbidden();
+        $this->postJson('/api/bmn/locations', [
+            'unit_kerja' => 'Kantor Balai KSDA Kalimantan Timur',
+            'name' => 'Ruang Admin Coba',
+        ])->assertForbidden();
+        $this->postJson('/api/bmn/asset-types', [
+            'name' => 'JENIS BARU ADMIN',
+            'category_mode' => 'peralatan',
+        ])->assertForbidden();
+        $this->postJson('/api/bmn/assets/bulk-force-delete', ['ids' => [$asset->id]])->assertForbidden();
+
+        // 3. Super Admin CAN manage Master Settings (Tags, Locations, AssetTypes) and Force Delete
+        Sanctum::actingAs($this->superAdmin);
+        $this->postJson('/api/bmn/tags', ['name' => 'tag_super', 'color' => 'blue'])->assertCreated();
+        $this->postJson('/api/bmn/asset-types', [
+            'name' => 'JENIS BARU SUPER',
+            'category_mode' => 'peralatan',
+        ])->assertCreated();
+    }
 }

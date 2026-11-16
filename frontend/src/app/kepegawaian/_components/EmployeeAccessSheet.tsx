@@ -48,25 +48,6 @@ const AVAILABLE_MODULES = [
   { id: "keuangan", label: "Keuangan", description: "Visum SPD, SPJ, & Pembayaran" },
 ];
 
-const BMN_PERMISSIONS = [
-  { id: "bmn.view", label: "Lihat Data Aset" },
-  { id: "bmn.asset.create", label: "Tambah Aset" },
-  { id: "bmn.asset.update", label: "Edit/Update Aset" },
-  { id: "bmn.asset.dispose", label: "Usulan Penghapusan/Lelang" },
-  { id: "bmn.asset.force_delete", label: "Hapus Permanen Aset" },
-  { id: "bmn.import.review", label: "Upload & Review Excel" },
-  { id: "bmn.import.approve", label: "Approve/Reject Excel" },
-  { id: "bmn.document.generate", label: "Generate Dokumen Lelang" },
-  { id: "bmn.document.delete", label: "Hapus Arsip BA" },
-  { id: "bmn.document.history.view", label: "Lihat Riwayat Dokumen" },
-  { id: "bmn.auction.view", label: "Lihat Paket Lelang" },
-  { id: "bmn.auction.create", label: "Buat Paket Lelang" },
-  { id: "bmn.auction.update", label: "Edit Draft Paket Lelang" },
-  { id: "bmn.auction.delete", label: "Hapus Draft Paket Lelang" },
-  { id: "bmn.auction.print", label: "Cetak Dokumen Lelang" },
-  { id: "bmn.auction.finalize", label: "Finalisasi/Jadwal Lelang" },
-];
-
 interface EmployeeAccessSheetProps {
   employee: { id: string; nip: string; nama_lengkap: string } | null;
   open: boolean;
@@ -83,7 +64,6 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
   });
 
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
-  const selectedRole = useWatch({ control: form.control, name: "role", defaultValue: "user" });
 
   const { data: currentAccess, isLoading, isError, refetch } = useQuery({
     queryKey: ["employee-access", employee?.id],
@@ -109,7 +89,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
         role: resolvedRole || "user",
         is_active: currentAccess.is_active === true,
         access_modules: currentAccess.access_modules || [],
-        permissions: currentAccess.permissions || [],
+        permissions: [],
         password: "",
       });
       lastSyncedId.current = employee.id;
@@ -128,7 +108,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
         role: values.role,
         is_active: values.is_active,
         access_modules: values.access_modules,
-        permissions: values.permissions || [],
+        permissions: [],
       };
       if (values.password && values.password.length > 0) {
         payload.password = values.password;
@@ -269,49 +249,6 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                   <p className="text-xs text-[var(--ds-status-danger-fg)]">{form.formState.errors.access_modules.message}</p>
                 )}
               </div>
-
-              {/* BMN Granular Permissions (Hanya tampil jika modul BMN dicentang & role = admin) */}
-              {accessModules.includes("bmn") && selectedRole === "admin" && (
-                <div className="space-y-2 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-[var(--ds-fg)]">Hak Akses Granular BMN</label>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[var(--ds-surface)] p-3 rounded-xl border border-[var(--ds-border-subtle)]">
-                    {BMN_PERMISSIONS.map((perm) => {
-                      const currentPerms = form.getValues("permissions") || [];
-                      const isPermSelected = currentPerms.includes(perm.id);
-                      return (
-                        <div
-                          key={perm.id}
-                          className={cn(
-                            "flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer select-none transition-colors",
-                            isPermSelected
-                              ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)]   text-[var(--ds-status-success-fg)] "
-                              : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]   text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface)]"
-                          )}
-                          onClick={() => {
-                            const current = form.getValues("permissions") || [];
-                            const updated = isPermSelected
-                              ? current.filter((v) => v !== perm.id)
-                              : [...current, perm.id];
-                            form.setValue("permissions", updated, { shouldValidate: true });
-                          }}
-                        >
-                          <div className={cn(
-                            "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                            isPermSelected ? "bg-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] text-[var(--ds-accent-on-solid)]" : "border-[var(--ds-border-subtle)] "
-                          )}>
-                            {isPermSelected && <Check className="w-2.5 h-2.5" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold truncate">{perm.label}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
