@@ -1291,6 +1291,50 @@ export function resolveImageUrl(url: string): string {
   return url;
 }
 
+export const SURAT_DINAS_PRINT_CSS = `
+  @page { size: A4 portrait; margin: 0; }
+  @page :first { margin: 0; }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+  .surat-dinas-print-root, .pkpknl-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+  .kop-surat, .pkpknl-kop {
+    width: 210mm !important;
+    margin: -7.5mm auto 4mm auto !important;
+    text-align: center !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  thead td {
+    height: 10mm !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  tfoot {
+    display: table-footer-group !important;
+    height: 10mm !important;
+  }
+  tfoot td {
+    height: 10mm !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  .bsre-placeholder,
+  .pkpknl-footer-bsre,
+  .print\\:hidden {
+    display: none !important;
+  }
+`;
+
 export function handlePrintSuratDinas() {
   const printContent = document.getElementById("surat-dinas-print-root");
   if (!printContent) {
@@ -1331,39 +1375,7 @@ export function handlePrintSuratDinas() {
         ${headElements}
         <style>
           ${SURAT_DINAS_BASE_CSS}
-          .surat-dinas-print-root, .pkpknl-page {
-            box-shadow: none !important;
-            border: none !important;
-            margin: 0 auto !important;
-            min-height: auto !important;
-            padding: 0 !important;
-          }
-          .kop-surat, .pkpknl-kop {
-            width: 210mm !important;
-            margin: -7.5mm auto 4mm auto !important;
-            text-align: center !important;
-          }
-          thead {
-            display: table-header-group !important;
-          }
-          thead td {
-            height: 10mm !important;
-            padding: 0 !important;
-            border: none !important;
-          }
-          tfoot {
-            display: table-footer-group !important;
-            height: 10mm !important;
-          }
-          tfoot td {
-            height: 10mm !important;
-            padding: 0 !important;
-            border: none !important;
-          }
-          .bsre-placeholder,
-          .pkpknl-footer-bsre {
-            display: none !important;
-          }
+          ${SURAT_DINAS_PRINT_CSS}
         </style>
       </head>
       <body>

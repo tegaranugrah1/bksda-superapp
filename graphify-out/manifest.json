@@ -1545,13 +1545,13 @@
     "semantic_hash": "f0560bd9b20dbdcb47a5db59a9221bee"
   },
   "frontend/next.config.ts": {
-    "mtime": 1793964378.9242969,
-    "ast_hash": "f1f9ad62ddf3def9b824d67201dd9771",
+    "mtime": 1794814864.189008,
+    "ast_hash": "2c4dccaa1e46bc83da667991706be2a4",
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1793704048.8266356,
-    "ast_hash": "49f14e7a753a8e1b1e795090431565d1",
+    "mtime": 1794814862.2445378,
+    "ast_hash": "f24c1c50766de7eaf9b62884588bbd54",
     "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
@@ -6370,8 +6370,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794812838.9744935,
-    "ast_hash": "07e35fc7399ff6f27674b7107eed9ebe",
+    "mtime": 1794814899.676131,
+    "ast_hash": "bdfce588b100e563c028ee1378ac98d9",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
@@ -7985,8 +7985,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794812353.9596615,
-    "ast_hash": "a85f64fda7c48b813754d1055a139168",
+    "mtime": 1794814951.1067655,
+    "ast_hash": "e71f047d9735ca88ddfd18773afff087",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_components/DokumenDasarDrawer.tsx": {
@@ -9252,6 +9252,16 @@
   "backend/database/migrations/2026_11_16_000002_add_module_roles_to_users_table.php": {
     "mtime": 1794797894.2281604,
     "ast_hash": "79029d8b8cebb52e84218277d0236e0f",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/export-pdf/route.ts": {
+    "mtime": 1794815345.9007633,
+    "ast_hash": "886783bf728247e2d1b00b2e42a7a386",
+    "semantic_hash": ""
+  },
+  "frontend/tests/export-pdf-route.cjs": {
+    "mtime": 1794815466.4633331,
+    "ast_hash": "81065e8a97f4890ad797113e49368ae7",
     "semantic_hash": ""
   }
 }

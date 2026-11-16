@@ -1,7 +1,9 @@
+import { SURAT_DINAS_BASE_CSS, SURAT_DINAS_PRINT_CSS } from "../_components/SuratDinasDocument";
+
 /**
  * Helper untuk Export Dokumen Tata Naskah Dinas ke Microsoft Word (.doc) dan PDF (.pdf).
- * Dibangun dengan prinsip Ponytail (minimalis & efisien), 100% kompatibel dengan MS Word (MHTML table layout),
- * serta presisi A4 untuk berkas PDF (menghindari halaman kosong ke-2).
+ * Dibangun dengan prinsip Ponytail (minimalis & efisien), kompatibel penuh dengan MS Word (MHTML)
+ * dan vector PDF ber-text layer (Headless Chromium) untuk TTE SRIKANDI/BSrE.
  */
 
 function sanitizeFilenamePart(text: string, maxLen: number = 40): string {
@@ -69,22 +71,14 @@ async function inlineImagesAsBase64(container: HTMLElement): Promise<void> {
   );
 }
 
-/**
- * Transformasi elemen DOM clone agar kompatibel penuh dengan mesin render HTML Microsoft Word:
- * - Mengganti layout CSS flexbox dengan table HTML (Word tidak mendukung flexbox).
- * - Menata metadata (Yth, Dari, Hal, Lampiran, Tanggal) dalam tabel 3 kolom rapi.
- * - Mengubah butir penomoran (.poin-item) menjadi tabel 2 kolom agar nomor & teks tidak rapat/menempel.
- * - Menata Tembusan (kiri) dan Tanda Tangan (kanan) dalam tabel 2 kolom sejajar.
- */
-function transformCloneForWord(clone: HTMLElement): void {
-  // 1. Bersihkan elemen non-cetak, web spacers, dan atribut editing
+function sanitizeExportClone(clone: HTMLElement, stripTableChrome: boolean): void {
   const removeSelectors = [
     ".bsre-placeholder",
     ".page-break-indicator",
     ".halaman-divider",
+    ".pkpknl-footer-bsre",
     ".print\\:hidden",
-    "thead",
-    "tfoot",
+    ...(stripTableChrome ? ["thead", "tfoot"] : []),
     "script",
     "iframe",
   ];
@@ -98,6 +92,29 @@ function transformCloneForWord(clone: HTMLElement): void {
       }
     });
   });
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const downloadUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = downloadUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(downloadUrl);
+}
+
+/**
+ * Transformasi elemen DOM clone agar kompatibel penuh dengan mesin render HTML Microsoft Word:
+ * - Mengganti layout CSS flexbox dengan table HTML (Word tidak mendukung flexbox).
+ * - Menata metadata (Yth, Dari, Hal, Lampiran, Tanggal) dalam tabel 3 kolom rapi.
+ * - Mengubah butir penomoran (.poin-item) menjadi tabel 2 kolom agar nomor & teks tidak rapat/menempel.
+ * - Menata Tembusan (kiri) dan Tanda Tangan (kanan) dalam tabel 2 kolom sejajar.
+ */
+function transformCloneForWord(clone: HTMLElement): void {
+  // 1. Bersihkan elemen non-cetak, web spacers, dan atribut editing
+  sanitizeExportClone(clone, true);
 
   // 1b. Pastikan Judul Naskah (NOTA DINAS/MEMORANDUM) turun sedikit dari kop dan Nomor dekat dengan judul
   const titleBlocks = Array.from(
@@ -541,19 +558,38 @@ Content-Type: text/html; charset="utf-8"
 `;
 
   const blob = new Blob([mhtml], { type: "application/msword;charset=utf-8" });
-  const downloadUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = downloadUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(downloadUrl);
+  triggerBlobDownload(blob, filename);
+}
+
+async function collectInlinedStylesHtml(): Promise<string> {
+  const nodes = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"));
+  const chunks = await Promise.all(
+    nodes.map(async (node) => {
+      if (node.tagName === "STYLE") {
+        return node.outerHTML;
+      }
+      const href = node.getAttribute("href");
+      if (!href) return "";
+      const absUrl = resolveAbsoluteUrl(href);
+      try {
+        const parsed = new URL(absUrl, window.location.origin);
+        if (parsed.origin !== window.location.origin) return "";
+        const res = await fetch(parsed.toString(), { credentials: "same-origin" });
+        if (!res.ok) return "";
+        const cssText = await res.text();
+        return `<style>${cssText.replace(/<\/style/gi, "<\\/style")}</style>`;
+      } catch {
+        return "";
+      }
+    })
+  );
+  return chunks.join("\n");
 }
 
 /**
- * Ekspor Naskah Dinas ke format PDF (.pdf) langsung unduh di browser.
- * Menjamin dokumen 1 halaman tetap tepat 1 halaman tanpa halaman ke-2 kosong.
+ * Ekspor Naskah Dinas ke format Vector PDF (.pdf) via headless Chromium (/surat/export-pdf).
+ * Menghasilkan PDF dengan text layer asli sehingga placeholder TTE (${ttd_pengirim}, ${nomor_naskah})
+ * terbaca langsung di SRIKANDI / BSrE, identik dengan Cetak Dokumen -> Save as PDF.
  */
 export async function exportSuratDinasPdf(
   nomor: string,
@@ -565,106 +601,49 @@ export async function exportSuratDinasPdf(
     throw new Error("Elemen pratinjau surat dinas tidak ditemukan.");
   }
 
-  const { jsPDF } = await import("jspdf");
-  const html2canvas = (await import("html2canvas-pro")).default;
+  const clone = previewDoc.cloneNode(true) as HTMLElement;
+  await inlineImagesAsBase64(clone);
+  sanitizeExportClone(clone, false);
 
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-    compress: true,
+  const inlinedStyles = await collectInlinedStylesHtml();
+  const filename = buildSuratDinasFilename(nomor, templateType, perihal, "pdf");
+
+  const html = `<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>${filename.replace(/\.pdf$/i, "")}</title>
+    ${inlinedStyles}
+    <style>
+      ${SURAT_DINAS_BASE_CSS}
+      ${SURAT_DINAS_PRINT_CSS}
+    </style>
+  </head>
+  <body>
+    <div class="surat-dinas-print-root" style="width: 210mm; margin: 0 auto; background: white;">
+      ${clone.innerHTML}
+    </div>
+  </body>
+</html>`;
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = typeof window !== "undefined" ? localStorage.getItem("bksda_token") : null;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch("/surat/export-pdf", {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify({ html, filename }),
   });
 
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const page1MaxContentMm = 270; // Batas aman konten halaman 1 agar margin bawah tetap ~27mm
-
-  // Ukur jarak elemen penutup / ttd / tembusan untuk mendeteksi apakah naskah muat dalam 1 halaman A4
-  const penutupGroup = (
-    previewDoc.querySelector(".penutup-ttd-group") ||
-    previewDoc.querySelector(".pkpknl-ttd") ||
-    previewDoc.querySelector(".pkpknl-tembusan")
-  ) as HTMLElement | null;
-
-  const previewRect = previewDoc.getBoundingClientRect();
-  const previewWidthPx = previewDoc.clientWidth || 794;
-  const pxToMm = 210 / previewWidthPx;
-
-  const penutupRect = penutupGroup ? penutupGroup.getBoundingClientRect() : null;
-  const penutupTopMm = penutupRect ? (penutupRect.top - previewRect.top) * pxToMm : 0;
-  const penutupBottomMm = penutupRect
-    ? (penutupRect.bottom - previewRect.top) * pxToMm
-    : (previewDoc.scrollHeight * pxToMm);
-
-  // Dokumen 1 halaman A4 jika batas bawah penutup muat di bawah batas aman (<= 270mm)
-  const isSinglePage = penutupBottomMm <= page1MaxContentMm;
-
-  let pushedToNextPage = false;
-  const originalMarginTop = penutupGroup?.style.marginTop || "";
-
-  if (!isSinglePage && penutupGroup) {
-    const currentPageIndex = Math.floor(penutupTopMm / pageHeight);
-    const safePageCeilingMm = currentPageIndex * pageHeight + page1MaxContentMm;
-
-    // Jika blok penutup (paragraf terakhir, TTD, dan tembusan) melewati batas bawah halaman,
-    // dorong seluruh blok bersama-sama ke halaman berikutnya dengan margin atas 22mm
-    if (penutupBottomMm > safePageCeilingMm) {
-      const targetTopMm = (currentPageIndex + 1) * pageHeight + 22;
-      const neededExtraMm = targetTopMm - penutupTopMm;
-      if (neededExtraMm > 0) {
-        penutupGroup.style.setProperty("margin-top", `${neededExtraMm}mm`, "important");
-        pushedToNextPage = true;
-      }
-    }
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Export PDF gagal (${res.status}): ${errText || "Server error"}`);
   }
 
-  try {
-    const canvas = await html2canvas(previewDoc, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: "#ffffff",
-      logging: false,
-      windowWidth: previewDoc.scrollWidth,
-      ignoreElements: (el: Element) =>
-        el.classList.contains("print:hidden") ||
-        el.classList.contains("halaman-divider") ||
-        el.classList.contains("page-break-indicator") ||
-        el.classList.contains("bsre-placeholder"),
-    });
-
-    const imgData = canvas.toDataURL("image/jpeg", 0.96);
-
-    if (isSinglePage) {
-      // Tepat 1 Halaman A4 Penuh (tidak pernah memicu halaman ke-2 kosong)
-      pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
-    } else {
-      // Multi-Halaman: Bagi dengan pergeseran tepat per halaman A4 (297mm)
-      const totalHeightMm = (canvas.height * pageWidth) / canvas.width;
-      let heightLeft = totalHeightMm;
-      let position = 0;
-      let pageNum = 0;
-
-      while (heightLeft > 25) {
-        if (pageNum > 0) {
-          pdf.addPage();
-        }
-        pdf.addImage(imgData, "JPEG", 0, position, pageWidth, totalHeightMm, undefined, "FAST");
-        position -= pageHeight;
-        heightLeft -= pageHeight;
-        pageNum++;
-      }
-    }
-
-    const filename = buildSuratDinasFilename(nomor, templateType, perihal, "pdf");
-    pdf.save(filename);
-  } finally {
-    if (pushedToNextPage && penutupGroup) {
-      if (originalMarginTop) {
-        penutupGroup.style.setProperty("margin-top", originalMarginTop);
-      } else {
-        penutupGroup.style.removeProperty("margin-top");
-      }
-    }
-  }
+  const pdfBlob = await res.blob();
+  triggerBlobDownload(pdfBlob, filename);
 }
