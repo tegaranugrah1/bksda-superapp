@@ -171,19 +171,19 @@ export function BatchPrintDisposisiModal({
         className="no-print sm:max-w-6xl max-h-[92vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] px-5 py-3.5 bg-[var(--ds-surface-muted)]">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+        <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 px-6 py-4 bg-slate-50/70 dark:bg-zinc-800/30">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
               <Printer className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-2">
+              <h2 className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
                 Pratinjau Cetak 2-Up ({selectedSurat.length} Surat)
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] font-semibold">
+                <span className="text-xs px-2 py-1 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] font-semibold">
                   {sheets.length} Lembar Kertas
                 </span>
               </h2>
-              <p className="text-xs text-[var(--ds-fg-muted)]">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Format kertas Letter/Folio Landscape (330mm x 215mm) dibagi dua berdampingan.
               </p>
             </div>
@@ -195,7 +195,7 @@ export function BatchPrintDisposisiModal({
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="kpg-secondary h-9 px-3 text-xs font-semibold rounded-xl"
+              className="kpg-secondary h-9 px-3 text-xs font-semibold rounded-lg"
             >
               <X className="h-4 w-4 mr-1" />
               Tutup
@@ -204,9 +204,9 @@ export function BatchPrintDisposisiModal({
               type="button"
               size="sm"
               onClick={handlePrint}
-              className="h-9 px-4 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl"
+              className="h-9 px-4 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg"
             >
-              <Printer className="h-4 w-4 mr-1.5" />
+              <Printer className="h-4 w-4 mr-2" />
               Cetak Sekarang ({sheets.length} Lembar)
             </Button>
           </div>
@@ -214,7 +214,7 @@ export function BatchPrintDisposisiModal({
 
         {/* Odd Tail Info Note */}
         {selectedSurat.length % 2 !== 0 && (
-          <div className="mx-5 mt-3 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-200">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-600" />
             <span>
               Jumlah surat ganjil ({selectedSurat.length} surat). Lembar ke-{sheets.length} mencetak Surat Agenda #{sheets[sheets.length - 1]?.left.no_agenda} di sisi kiri saja, dan sisi kanan kosong agar separuh kertas dapat digunakan lagi.
@@ -227,7 +227,7 @@ export function BatchPrintDisposisiModal({
           {sheets.map((sheet, idx) => (
             <div key={idx} className="space-y-2">
               <div className="flex items-center justify-between px-1 text-xs font-semibold text-[var(--ds-fg-muted)]">
-                <span className="flex items-center gap-1.5 text-[var(--ds-fg)]">
+                <span className="flex items-center gap-2 text-[var(--ds-fg)]">
                   <FileText className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
                   Lembar Ke-{sheet.sheetIndex} dari {sheets.length}
                 </span>
@@ -238,7 +238,7 @@ export function BatchPrintDisposisiModal({
 
               {/* Screen Preview Container */}
               <div className="overflow-x-auto">
-                <div className="min-w-[880px] rounded-xl border border-[var(--ds-border-subtle)] bg-white p-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3">
+                <div className="min-w-[880px] rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white p-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3">
                   {/* Left */}
                   <div className="w-full h-full flex flex-col">
                     <LembarDisposisiSheet
@@ -265,7 +265,7 @@ export function BatchPrintDisposisiModal({
                       <span className="text-xs font-semibold uppercase tracking-wider block">
                         Sisi Kanan Kosong
                       </span>
-                      <span className="text-[11px] text-zinc-400 mt-1">
+                      <span className="text-xs text-zinc-400 mt-1">
                         (Disimpan untuk pencetakan berikutnya)
                       </span>
                     </div>

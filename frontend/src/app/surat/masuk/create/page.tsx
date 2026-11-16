@@ -51,29 +51,29 @@ function EditSuratMasukContent() {
     : undefined;
 
   return (
-    <div className="psr-ui w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)]">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <Link href="/surat/masuk">
               <Button
                 variant="outline"
                 size="sm"
                 aria-label="Kembali ke Agenda Surat Masuk"
-                className="kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0"
+                className="kpg-secondary h-10 w-10 p-0 rounded-lg shrink-0"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
               <Inbox className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                 {idParam ? "Edit Surat Masuk & Lembar Disposisi" : "Input Surat Masuk Baru & Lembar Disposisi"}
               </h1>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Form Lembar Disposisi presisi BKSDA KALTIM (Ukuran Kertas Letter dibagi 2).
               </p>
             </div>
@@ -84,7 +84,7 @@ function EditSuratMasukContent() {
               <Button
                 variant="outline"
                 size="sm"
-                className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5"
+                className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2"
               >
                 <Inbox className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                 Daftar Agenda Masuk

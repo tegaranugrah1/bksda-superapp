@@ -209,19 +209,19 @@ export default function SuratSettingsPage() {
   const tabs = useKepegawaianTabs(selectedKategori, "Filter kategori template");
 
   return (
-    <div className="psr-ui w-full p-4 md:p-5 space-y-3 text-[var(--ds-fg)]">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
               <SlidersHorizontal className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                 Pengaturan Template Naskah Dinas
               </h1>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Konfigurasi template persuratan resmi, kode klasifikasi arsip, dan nomor prefix BKSDA Kalimantan Timur.
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function SuratSettingsPage() {
               size="sm"
               onClick={handleResetDefaults}
               disabled={resetMutation.isPending}
-              className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5 cursor-pointer"
+              className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset Bawaan Sistem</span>
@@ -242,7 +242,7 @@ export default function SuratSettingsPage() {
             <Button
               size="sm"
               onClick={openCreateModal}
-              className="h-9 px-3.5 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl gap-1.5 cursor-pointer"
+              className="h-9 px-4 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Template</span>
@@ -252,20 +252,20 @@ export default function SuratSettingsPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5">
-        <div className="relative w-full sm:w-80">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative w-full lg:w-72 shrink-0">
           <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari template, kode, atau kategori..."
-            className="pl-9 h-8 text-xs rounded-xl"
+            className="pl-9 h-8 text-xs rounded-lg"
           />
         </div>
 
         <div
           {...tabs.tabListProps}
-          className="kpg-pill-tabs flex items-center gap-1 p-1 rounded-xl overflow-x-auto w-full sm:w-auto"
+          className="kpg-pill-tabs flex items-center flex-wrap gap-1 p-1 rounded-lg w-full lg:w-auto"
         >
           {categoryKeys.map((cat) => {
             const isActive = selectedKategori === cat;
@@ -276,7 +276,7 @@ export default function SuratSettingsPage() {
                 {...tabs.tabProps(cat)}
                 onClick={() => setSelectedKategori(cat)}
                 className={cn(
-                  "relative px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
+                  "relative px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
                   isActive
                     ? "text-[var(--ds-accent-on-solid)]"
                     : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
@@ -298,14 +298,14 @@ export default function SuratSettingsPage() {
 
       {/* Error State */}
       {isError && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-xs text-rose-700 dark:text-rose-300">
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-3xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 text-xs text-[var(--ds-status-danger-fg)] shadow-xs">
           <span>Gagal memuat daftar template persuratan dari server.</span>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            className="h-7 px-2.5 text-xs font-semibold border-rose-500/40 text-rose-700 dark:text-rose-200 hover:bg-rose-500/15"
+            className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
           >
             Coba lagi
           </Button>
@@ -315,20 +315,20 @@ export default function SuratSettingsPage() {
       {/* Templates Table */}
       <div {...tabs.panelProps}>
         <KepegawaianTabContent key={selectedKategori}>
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden">
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-2 px-3.5">Nama Template & Key</th>
-                  <th className="py-2 px-3.5">Kategori</th>
-                  <th className="py-2 px-3.5">Prefix & Klasifikasi</th>
-                  <th className="py-2 px-3.5">Tipe</th>
-                  <th className="py-2 px-3.5 text-center">Status</th>
-                  <th className="py-2 px-3.5 text-right">Aksi</th>
+                <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 text-[var(--ds-fg-muted)] font-bold uppercase tracking-wider text-xs">
+                  <th className="py-3 px-4">Nama Template & Key</th>
+                  <th className="py-3 px-4">Kategori</th>
+                  <th className="py-3 px-4">Prefix & Klasifikasi</th>
+                  <th className="py-3 px-4">Tipe</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-[var(--ds-fg-muted)]">
@@ -343,69 +343,69 @@ export default function SuratSettingsPage() {
                   </tr>
                 ) : (
                   templates.map((tpl) => (
-                    <tr key={tpl.id} className="hover:bg-[var(--ds-surface-muted)] transition-colors">
-                      <td className="py-2.5 px-3.5 align-middle">
-                        <div className="font-bold text-[var(--ds-fg)] text-xs">
+                    <tr key={tpl.id} className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors">
+                      <td className="py-3 px-4 align-middle">
+                        <div className="font-bold text-[var(--ds-fg)] text-sm">
                           {tpl.nama}
                         </div>
-                        <div className="font-mono text-[10.5px] text-[var(--ds-fg-muted)] mt-0.5">
+                        <div className="font-mono text-xs text-[var(--ds-fg-muted)] mt-1">
                           key: {tpl.key}
                         </div>
                         {tpl.deskripsi && (
-                          <p className="text-[11px] text-[var(--ds-fg-muted)] line-clamp-1 mt-0.5">
+                          <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-1 mt-1">
                             {tpl.deskripsi}
                           </p>
                         )}
                       </td>
 
-                      <td className="py-2.5 px-3.5 align-middle">
-                        <span className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium">
+                      <td className="py-3 px-4 align-middle whitespace-nowrap">
+                        <span className="inline-block px-3 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium text-xs whitespace-nowrap">
                           {tpl.kategori || "-"}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3.5 align-middle">
+                      <td className="py-3 px-4 align-middle">
                         <div className="font-mono text-[var(--ds-fg)] font-semibold">
                           {tpl.nomor_prefix || "S"}
                         </div>
-                        <span className="text-[10px] text-[var(--ds-fg-muted)] block font-mono">
+                        <span className="text-xs text-[var(--ds-fg-muted)] block font-mono">
                           {tpl.kode_klasifikasi || "KSA.01.05"}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3.5 align-middle">
+                      <td className="py-3 px-4 align-middle">
                         {tpl.is_system ? (
-                          <Badge variant="outline" className="text-[10px] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]">
+                          <Badge variant="outline" className="text-xs bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] rounded-lg">
                             Sistem
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+                          <Badge variant="outline" className="text-xs bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] rounded-lg">
                             Kustom
                           </Badge>
                         )}
                       </td>
 
-                      <td className="py-2.5 px-3.5 align-middle text-center">
+                      <td className="py-3 px-4 align-middle text-center">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
                             tpl.is_active
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                              : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+                              ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                              : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border-transparent"
                           }`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${tpl.is_active ? "bg-emerald-600" : "bg-zinc-400"}`} />
+                          <span className={`w-2 h-2 rounded-full ${tpl.is_active ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-fg-muted)]"}`} />
                           {tpl.is_active ? "Aktif" : "Nonaktif"}
                         </span>
                       </td>
 
-                      <td className="py-2.5 px-3.5 text-right whitespace-nowrap align-middle">
+                      <td className="py-3 px-4 text-right whitespace-nowrap align-middle">
                         <div className="flex items-center justify-end gap-1">
                           <Button
                             asChild
                             variant="ghost"
                             size="sm"
                             aria-label={`Buka generator untuk ${tpl.nama}`}
-                            className="h-7 px-2 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-xl"
+                            className="h-8 px-2 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg"
                             title="Buka Editor Naskah Dinas dengan Template Ini"
                           >
                             <Link href={`/surat/keluar/dinas?template=${tpl.key}`}>
@@ -419,7 +419,7 @@ export default function SuratSettingsPage() {
                             size="sm"
                             aria-label={`Edit template ${tpl.nama}`}
                             onClick={() => openEditModal(tpl)}
-                            className="h-7 px-2 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl cursor-pointer"
+                            className="h-8 px-2 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                             title="Edit Template"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ export default function SuratSettingsPage() {
                               size="sm"
                               aria-label={`Hapus template ${tpl.nama}`}
                               onClick={() => handleDeleteTemplate(tpl)}
-                              className="h-7 px-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl cursor-pointer"
+                              className="h-8 px-2 text-xs text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg cursor-pointer"
                               title="Hapus Template Kustom"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -459,9 +459,9 @@ export default function SuratSettingsPage() {
         module="persuratan"
         className="sm:max-w-lg p-6 space-y-4"
       >
-        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center font-bold">
+        <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center font-bold">
               <FileBadge className="w-4 h-4" />
             </div>
             <div>
@@ -478,7 +478,7 @@ export default function SuratSettingsPage() {
             size="sm"
             aria-label="Tutup dialog template"
             onClick={() => setModalMode(null)}
-            className="h-8 w-8 p-0 rounded-xl"
+            className="h-8 w-8 p-0 rounded-lg"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -493,7 +493,7 @@ export default function SuratSettingsPage() {
               updateMutation.mutate({ id: activeItem.id, data: formData });
             }
           }}
-          className="space-y-3.5 text-xs"
+          className="space-y-4 text-xs"
         >
           <div>
             <label className="font-bold text-[var(--ds-fg)] block mb-1">
@@ -504,7 +504,7 @@ export default function SuratSettingsPage() {
               onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
               placeholder="Contoh: Surat Izin Masuk Kawasan (SIMAKSI)"
               required
-              className="rounded-xl"
+              className="rounded-lg"
             />
           </div>
 
@@ -519,10 +519,10 @@ export default function SuratSettingsPage() {
                 onChange={(e) => setFormData({ ...formData, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })}
                 placeholder="contoh: surat_izin_simaksi"
                 required
-                className="font-mono rounded-xl"
+                className="font-mono rounded-lg"
               />
               {modalMode === "edit" && activeItem?.is_system && (
-                <span className="text-[10px] text-[var(--ds-fg-muted)]">Key sistem terkunci</span>
+                <span className="text-xs text-[var(--ds-fg-muted)] mt-1 block">Key sistem terkunci</span>
               )}
             </div>
 
@@ -534,7 +534,7 @@ export default function SuratSettingsPage() {
                 value={formData.kategori}
                 onChange={(e) => setFormData({ ...formData, kategori: e.target.value })}
                 placeholder="Contoh: Izin & Kepegawaian"
-                className="rounded-xl"
+                className="rounded-lg"
               />
             </div>
           </div>
@@ -548,7 +548,7 @@ export default function SuratSettingsPage() {
                 value={formData.nomor_prefix}
                 onChange={(e) => setFormData({ ...formData, nomor_prefix: e.target.value })}
                 placeholder="Contoh: SI atau S atau ND"
-                className="font-mono rounded-xl"
+                className="font-mono rounded-lg"
               />
             </div>
 
@@ -560,7 +560,7 @@ export default function SuratSettingsPage() {
                 value={formData.kode_klasifikasi}
                 onChange={(e) => setFormData({ ...formData, kode_klasifikasi: e.target.value })}
                 placeholder="Contoh: PEG.11.01 atau KSA.01.05"
-                className="font-mono rounded-xl"
+                className="font-mono rounded-lg"
               />
             </div>
           </div>
@@ -574,7 +574,7 @@ export default function SuratSettingsPage() {
               onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
               placeholder="Deskripsi singkat fungsi dan tujuan penggunaan naskah dinas ini..."
               rows={2}
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)] outline-none"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)] outline-none"
             />
           </div>
 
@@ -591,19 +591,19 @@ export default function SuratSettingsPage() {
             </label>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
+          <div className="flex justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 pt-3">
             <Button
               variant="outline"
               type="button"
               onClick={() => setModalMode(null)}
-              className="kpg-secondary rounded-xl"
+              className="kpg-secondary rounded-lg"
             >
               Batal
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-xl"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-lg"
             >
               {createMutation.isPending || updateMutation.isPending ? "Menyimpan..." : "Simpan Template"}
             </Button>

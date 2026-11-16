@@ -163,17 +163,17 @@ function PartySelectorBlock({
   };
 
   return (
-    <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)] space-y-2">
+    <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)] space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
+        <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
           <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
           {label}
         </div>
-        <div className="flex rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface)]">
+        <div className="flex rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface)]">
           <button
             type="button"
             onClick={() => handleTypeChange("internal")}
-            className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+            className={`px-2 py-1 rounded-lg text-xs font-semibold transition ${
               currentPartyType === "internal"
                 ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                 : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
@@ -184,7 +184,7 @@ function PartySelectorBlock({
           <button
             type="button"
             onClick={() => handleTypeChange("external")}
-            className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+            className={`px-2 py-1 rounded-lg text-xs font-semibold transition ${
               currentPartyType === "external"
                 ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                 : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
@@ -200,7 +200,7 @@ function PartySelectorBlock({
           <select
             onChange={(e) => handleSelectEmployee(e.target.value)}
             defaultValue=""
-            className="w-full text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
+            className="w-full text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
           >
             <option value="">-- Pilih dari Database Pegawai --</option>
             {employeeOptions?.map((emp: any) => {
@@ -217,25 +217,25 @@ function PartySelectorBlock({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Input
           value={party?.nama || ""}
           onChange={(e) => onChange({ ...(party || {} as PersonItem), nama: e.target.value })}
           placeholder="Nama Lengkap"
-          className="h-8 text-xs bg-[var(--ds-surface)]"
+          className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
         />
         <div className="grid grid-cols-2 gap-2">
           <Input
             value={party?.nip || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), nip: e.target.value })}
             placeholder={currentPartyType === "external" ? "NIK (16 digit)" : "NIP (18 digit)"}
-            className="h-8 text-xs bg-[var(--ds-surface)] font-mono"
+            className="h-8 text-xs bg-[var(--ds-surface)] font-mono rounded-lg"
           />
           <Input
             value={party?.jabatan || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), jabatan: e.target.value })}
             placeholder={currentPartyType === "external" ? "Jabatan / Instansi" : "Jabatan Kedinasan"}
-            className="h-8 text-xs bg-[var(--ds-surface)]"
+            className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
           />
         </div>
         {showAddress && (
@@ -243,7 +243,7 @@ function PartySelectorBlock({
             value={party?.alamat || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), alamat: e.target.value })}
             placeholder="Alamat Domisili / Instansi"
-            className="h-8 text-xs bg-[var(--ds-surface)]"
+            className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
           />
         )}
       </div>
@@ -837,52 +837,52 @@ function GenerateSuratDinasContent() {
   const activeTabMeta = ALL_TEMPLATES.find((t) => t.id === activeTemplate) || ALL_TEMPLATES[0];
 
   return (
-    <div className="psr-ui w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)]">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/surat/keluar">
               <Button
                 variant="outline"
                 size="sm"
                 aria-label="Kembali ke Agenda Surat Keluar"
-                className="kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0"
+                className="kpg-secondary h-10 w-10 p-0 rounded-lg shrink-0"
                 title="Kembali ke Agenda Surat Keluar"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
               <activeTabMeta.icon className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+                <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                   {editingSuratKeluarId ? `Edit ${activeTabMeta.name}` : `Buat ${activeTabMeta.name}`}
                 </h1>
                 {editingSuratKeluarId ? (
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] rounded-lg">
                       Mode Edit: #{editingSuratKeluarId}
                     </Badge>
                     {editingSuratKeluarStatus === "draft" ? (
-                      <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]">
+                      <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] rounded-lg">
                         Draft
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]">
+                      <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] rounded-lg">
                         Terdaftar
                       </Badge>
                     )}
                   </div>
                 ) : (
-                  <Badge variant="outline" className="text-[10px] uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]">
+                  <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] rounded-lg">
                     Permen Kehutanan 1/2025 (Hal. {activeTabMeta.hal})
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Generator naskah dinas resmi BKSDA Kalimantan Timur dengan pratinjau A4 presisi cetak.
               </p>
             </div>
@@ -895,7 +895,7 @@ function GenerateSuratDinasContent() {
               variant="outline"
               size="sm"
               onClick={handleCreateNew}
-              className="kpg-secondary rounded-xl text-xs gap-1.5"
+              className="kpg-secondary rounded-lg text-xs gap-2"
               title="Keluar dari mode edit dan buat dokumen baru"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -906,7 +906,7 @@ function GenerateSuratDinasContent() {
             variant="outline"
             size="sm"
             onClick={handleResetTemplate}
-            className="kpg-secondary rounded-xl text-xs gap-1.5"
+            className="kpg-secondary rounded-lg text-xs gap-2"
             title="Reset ke template standar naskah ini"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -916,7 +916,7 @@ function GenerateSuratDinasContent() {
             variant="outline"
             size="sm"
             onClick={handleBlankForm}
-            className="kpg-secondary rounded-xl text-xs gap-1.5"
+            className="kpg-secondary rounded-lg text-xs gap-2"
             title="Kosongkan form"
           >
             <Eraser className="w-3.5 h-3.5" />
@@ -927,7 +927,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("draft")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 bg-[var(--ds-surface-raised)] dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/70 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 shadow-xs"
+            className="rounded-lg text-xs gap-2 bg-[var(--ds-surface-raised)] dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/70 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 shadow-xs"
             title="Simpan sebagai draf di Daftar Surat Keluar"
           >
             <Bookmark className="w-3.5 h-3.5" />
@@ -937,7 +937,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("terdaftar")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 font-semibold text-[var(--ds-accent-on-solid)] bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)]"
+            className="rounded-lg text-xs gap-2 font-semibold text-[var(--ds-accent-on-solid)] bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)]"
             title="Daftarkan resmi ke Daftar Surat Keluar"
           >
             <Send className="w-3.5 h-3.5" />
@@ -949,10 +949,10 @@ function GenerateSuratDinasContent() {
                 variant="outline"
                 size="sm"
                 disabled={isExporting !== null}
-                className="kpg-secondary rounded-xl text-xs gap-1.5"
+                className="kpg-secondary rounded-lg text-xs gap-2"
               >
                 {isExporting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-0.5 text-[var(--ds-accent-fg)]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1 text-[var(--ds-accent-fg)]" />
                 ) : (
                   <Download className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                 )}
@@ -963,28 +963,28 @@ function GenerateSuratDinasContent() {
             <DropdownMenuContent
               data-module="persuratan"
               align="end"
-              className="psr-ui w-52 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl rounded-xl p-1.5 z-50"
+              className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
             >
               <DropdownMenuItem
                 onClick={handleExportPdf}
                 disabled={isExporting !== null}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+                className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
               >
-                <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
                 <div className="flex flex-col text-left">
                   <span>Unduh PDF (.pdf)</span>
-                  <span className="text-[10px] text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
+                  <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleExportWord}
                 disabled={isExporting !== null}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+                className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                 <div className="flex flex-col text-left">
                   <span>Unduh Word (.doc)</span>
-                  <span className="text-[10px] text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
+                  <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -994,7 +994,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             variant="outline"
             onClick={handlePrintSuratDinas}
-            className="kpg-secondary rounded-xl text-xs gap-1.5"
+            className="kpg-secondary rounded-lg text-xs gap-2"
           >
             <Printer className="w-3.5 h-3.5" />
             Cetak Dokumen
@@ -1009,27 +1009,27 @@ function GenerateSuratDinasContent() {
           <button
             type="button"
             onClick={() => setIsPickerModalOpen(true)}
-            className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] transition-all text-xs cursor-pointer"
+            className="group flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] transition-all text-xs cursor-pointer"
           >
             <div className="w-6 h-6 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <activeTabMeta.icon className="w-3.5 h-3.5" />
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span className="font-bold text-[var(--ds-fg)]">
                 {activeTabMeta.name}
               </span>
-              <span className="text-[10px] font-mono text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded">
+              <span className="text-xs font-mono text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg">
                 Hal. {activeTabMeta.hal}
               </span>
             </div>
-            <span className="text-[11px] font-semibold text-[var(--ds-accent-fg)] flex items-center gap-1 pl-2 border-l border-[var(--ds-border-subtle)]">
+            <span className="text-xs font-semibold text-[var(--ds-accent-fg)] flex items-center gap-1 pl-2 border-l border-slate-200/70 dark:border-zinc-800">
               Ganti Format (20 Naskah)
               <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
             </span>
           </button>
         </div>
 
-        <div className="text-[11px] text-[var(--ds-fg-muted)] flex items-center gap-1.5">
+        <div className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] inline-block" />
           <span>Format resmi Permen Kehutanan 1/2025</span>
         </div>
@@ -1040,24 +1040,24 @@ function GenerateSuratDinasContent() {
         {/* LEFT COLUMN: Editor Form (5 cols on lg) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Card 1: Metadata Surat */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-              1. Identitas & Meta Dokumen
+              1. Identitas &amp; Meta Dokumen
             </h2>
 
             <div className="space-y-3 text-xs">
               {/* Nomor Surat Editor */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <label className="font-semibold text-[var(--ds-fg)]">Nomor Naskah</label>
-                  <span className="font-mono text-[11px] font-medium text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-0.5 rounded-md whitespace-pre">
+                  <span className="font-mono text-xs font-medium text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-lg whitespace-pre">
                     {data.nomor}
                   </span>
                 </div>
 
                 {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
-                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-950/60 rounded-xl border border-[var(--ds-border-subtle)] text-xs">
+                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-950/60 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-xs">
                   <button
                     type="button"
                     aria-pressed={!isAutoNomorNaskah}
@@ -1067,9 +1067,9 @@ function GenerateSuratDinasContent() {
                       updateField("nomor", `${prefix}/K.18/TU/${klasifikasi}/B/${currentMonthSuffix}`);
                     }}
                     className={cn(
-                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      "flex-1 py-2 px-3 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       !isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1080,9 +1080,9 @@ function GenerateSuratDinasContent() {
                     aria-pressed={isAutoNomorNaskah}
                     onClick={() => updateField("nomor", "${nomor_naskah}")}
                     className={cn(
-                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      "flex-1 py-2 px-3 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1091,8 +1091,8 @@ function GenerateSuratDinasContent() {
                 </div>
 
                 {isAutoNomorNaskah ? (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 h-9 transition-[border-color,box-shadow] focus-within:border-[var(--ds-accent-fg)] focus-within:ring-[3px] focus-within:ring-[var(--ds-accent-fg)]/15">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 h-9 transition-[border-color,box-shadow] focus-within:border-[var(--ds-accent-fg)] focus-within:ring-[3px] focus-within:ring-[var(--ds-accent-fg)]/15">
                       <span className="text-[var(--ds-fg-muted)] font-medium text-xs shrink-0 font-mono">
                         Nomor :
                       </span>
@@ -1107,15 +1107,15 @@ function GenerateSuratDinasContent() {
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
-                    <div className="grid grid-cols-12 gap-1.5 items-end">
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
+                    <div className="grid grid-cols-12 gap-2 items-end">
                       <div className="col-span-4">
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-[10px] font-medium text-[var(--ds-fg-muted)]">Awalan/No</label>
+                          <label className="text-xs font-medium text-[var(--ds-fg-muted)]">Awalan/No</label>
                           <button
                             type="button"
                             onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
-                            className="text-[9px] px-1 py-0.2 rounded border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] font-mono"
+                            className="text-xs px-1 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] font-mono"
                             title="Format baku"
                           >
                             {getDefaultNomorPrefix(activeTemplate)}
@@ -1125,41 +1125,41 @@ function GenerateSuratDinasContent() {
                           value={nomorSegments.nomorUrut}
                           onChange={(e) => handleUpdateNomorUrut(e.target.value)}
                           placeholder="Contoh: S.888 atau ND.102"
-                          className="h-8 text-xs font-mono font-medium text-left bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)] px-2"
+                          className="h-8 text-xs font-mono font-medium text-left bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] px-2 rounded-lg"
                         />
                       </div>
 
                       <div className="col-span-3 text-center pb-2">
-                        <span className="text-[11px] font-mono font-normal text-[var(--ds-fg-muted)] select-none">
+                        <span className="text-xs font-mono font-normal text-[var(--ds-fg-muted)] select-none">
                           /K.18/TU/
                         </span>
                       </div>
 
                       <div className="col-span-3">
-                        <label className="text-[10px] font-medium text-[var(--ds-fg-muted)] block mb-1">Klasifikasi</label>
+                        <label className="text-xs font-medium text-[var(--ds-fg-muted)] block mb-1">Klasifikasi</label>
                         <Input
                           value={nomorSegments.kodeKlasifikasi}
                           onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
                           placeholder="KSA.01.05"
-                          className="h-8 text-xs font-mono font-medium bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)] px-1.5"
+                          className="h-8 text-xs font-mono font-medium bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] px-2 rounded-lg"
                         />
                       </div>
 
                       <div className="col-span-2 text-center pb-2">
-                        <span className="text-[11px] font-mono font-normal text-[var(--ds-fg-muted)] select-none">
+                        <span className="text-xs font-mono font-normal text-[var(--ds-fg-muted)] select-none">
                           /B/{currentMonthSuffix}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-[var(--ds-fg-muted)] pt-1.5 border-t border-[var(--ds-border-subtle)]">
-                      <span className="text-[10.5px]">
+                    <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)] pt-2 border-t border-slate-200/70 dark:border-zinc-800">
+                      <span className="text-xs">
                         Pola: <span className="font-medium text-[var(--ds-fg-secondary)] font-mono">/K.18/TU/</span> ... <span className="font-medium text-[var(--ds-fg-secondary)] font-mono">/B/{currentMonthSuffix}</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => setShowManualNomor(!showManualNomor)}
-                        className="text-[11px] text-[var(--ds-accent-fg)] hover:underline"
+                        className="text-xs text-[var(--ds-accent-fg)] hover:underline"
                       >
                         {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
                       </button>
@@ -1171,7 +1171,7 @@ function GenerateSuratDinasContent() {
                           value={data.nomor}
                           onChange={(e) => updateField("nomor", e.target.value)}
                           placeholder="Ketik nomor surat lengkap..."
-                          className="h-8 text-xs font-mono bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
+                          className="h-8 text-xs font-mono bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] rounded-lg"
                         />
                       </div>
                     )}
@@ -1187,7 +1187,7 @@ function GenerateSuratDinasContent() {
                     <select
                       value={data.sifat || "Biasa"}
                       onChange={(e) => updateField("sifat", e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
+                      className="w-full mt-1 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="Biasa">Biasa</option>
                       <option value="Penting">Penting</option>
@@ -1198,12 +1198,12 @@ function GenerateSuratDinasContent() {
                   </div>
 
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Lampiran</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Lampiran</label>
                     <Input
                       value={data.lampiran}
                       onChange={(e) => updateField("lampiran", e.target.value)}
                       placeholder="Contoh: - atau 1 Berkas"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </div>
@@ -1212,19 +1212,19 @@ function GenerateSuratDinasContent() {
               {/* Lampiran Saja (Khusus Nota Dinas & Memorandum: Sifat di-hidden) */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <div>
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Lampiran</label>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Lampiran</label>
                   <Input
                     value={data.lampiran}
                     onChange={(e) => updateField("lampiran", e.target.value)}
                     placeholder="Contoh: - atau 1 Berkas"
-                    className="mt-1 text-xs"
+                    className="mt-1 text-xs rounded-lg"
                   />
                 </div>
               )}
 
               {/* Tanggal Naskah */}
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Naskah</label>
+                <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Naskah</label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input
                     type="date"
@@ -1234,20 +1234,20 @@ function GenerateSuratDinasContent() {
                         updateField("kotaTanggal", formatIsoDateToIndo(e.target.value));
                       }
                     }}
-                    className="w-44 text-xs"
+                    className="w-36 text-xs rounded-lg shrink-0"
                   />
                   <Input
                     value={data.kotaTanggal}
                     onChange={(e) => updateField("kotaTanggal", e.target.value)}
                     placeholder="Contoh: 24 September 2026"
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs rounded-lg"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => updateField("kotaTanggal", getTodayIndoDate())}
-                    className="kpg-secondary text-[11px] h-9 px-2.5 rounded-lg whitespace-nowrap"
+                    className="kpg-secondary text-xs h-9 px-3 rounded-lg whitespace-nowrap"
                   >
                     Hari Ini
                   </Button>
@@ -1256,21 +1256,21 @@ function GenerateSuratDinasContent() {
 
               {/* Perihal / Hal */}
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Perihal / Judul Ringkas</label>
+                <label className="font-semibold text-[var(--ds-fg-secondary)]">Perihal / Judul Ringkas</label>
                 <Textarea
                   value={data.perihal}
                   onChange={(e) => updateField("perihal", e.target.value)}
                   rows={2}
                   placeholder="Isi perihal naskah dinas..."
-                  className="mt-1 text-xs"
+                  className="mt-1 text-xs rounded-lg"
                 />
               </div>
             </div>
           </div>
 
           {/* Card 2: Field Spesifik Template */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
               <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               2. Data Spesifik ({activeTabMeta.name})
             </h2>
@@ -1279,12 +1279,12 @@ function GenerateSuratDinasContent() {
               {/* NOTA DINAS & MEMORANDUM */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-2">
+                      <label className="font-semibold text-[var(--ds-fg-secondary)] flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                         Yth. (Penerima)
-                        <span className="text-[10px] text-zinc-400 font-normal">
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">
                           ({currentYthList.filter((s) => s.trim()).length} penerima)
                         </span>
                       </label>
@@ -1293,7 +1293,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddYth}
-                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
+                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 px-3 gap-1 rounded-lg font-medium transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Tambah Penerima
@@ -1301,8 +1301,8 @@ function GenerateSuratDinasContent() {
                     </div>
 
                     {/* Pilihan Cepat / Preset Button Penerima */}
-                    <div className="flex flex-wrap gap-1.5 items-center">
-                      <span className="text-[10px] text-zinc-400 font-medium">Pilihan cepat:</span>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className="text-xs text-[var(--ds-fg-muted)] font-medium">Pilihan cepat:</span>
                       {COMMON_YTH_PRESETS.map((preset) => {
                         const shortLabel = preset
                           .replace(/^Kepala\s+/, "")
@@ -1315,7 +1315,7 @@ function GenerateSuratDinasContent() {
                             type="button"
                             onClick={() => handleAppendYthPreset(preset)}
                             disabled={isAdded}
-                            className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${
+                            className={`text-xs px-2 py-1 rounded-full border transition-colors flex items-center gap-1 ${
                               isAdded
                                 ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
                                 : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)]"
@@ -1330,10 +1330,10 @@ function GenerateSuratDinasContent() {
                     </div>
 
                     {/* Baris Input Interaktif Tiap Penerima */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {currentYthList.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-zinc-400 w-5 text-right shrink-0">
+                          <span className="text-xs font-semibold text-[var(--ds-fg-muted)] w-5 text-right shrink-0">
                             {currentYthList.length > 1 ? `${idx + 1}.` : "•"}
                           </span>
                           <Input
@@ -1344,13 +1344,13 @@ function GenerateSuratDinasContent() {
                                 ? "Contoh: Kepala Seksi KSDA Wilayah I Berau"
                                 : `Penerima ke-${idx + 1}...`
                             }
-                            className="h-8 text-xs flex-1"
+                            className="h-8 text-xs flex-1 rounded-lg"
                           />
                           {currentYthList.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveYth(idx)}
-                              className="text-zinc-400 hover:text-red-500 p-1 shrink-0 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 shrink-0 transition-colors rounded-lg hover:bg-[var(--ds-status-danger-bg)]"
                               title="Hapus penerima ini"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1362,12 +1362,12 @@ function GenerateSuratDinasContent() {
                   </div>
 
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Dari (Pengirim)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Dari (Pengirim)</label>
                     <Input
                       value={data.dari || ""}
                       onChange={(e) => updateField("dari", e.target.value)}
                       placeholder="Contoh: Kepala Subbagian Tata Usaha"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1377,17 +1377,17 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "surat_pengantar" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tujuan Pengiriman (Yth.)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tujuan Pengiriman (Yth.)</label>
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
                       placeholder="Contoh: Kepala Kantor Pelayanan Perbendaharaan Negara Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                      <span className="font-semibold text-[var(--ds-fg-secondary)]">
                         Daftar Berkas Dikirim ({data.tabelPengantar?.length || 0})
                       </span>
                       <Button
@@ -1395,19 +1395,19 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddPengantarRow}
-                        className="h-6 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 p-1"
+                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 p-1 rounded-lg"
                       >
                         <Plus className="w-3 h-3" /> Tambah Baris
                       </Button>
                     </div>
                     {(data.tabelPengantar || []).map((row, rIdx) => (
-                      <div key={rIdx} className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 bg-zinc-50/50 dark:bg-zinc-950/40">
+                      <div key={rIdx} className="p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 space-y-2 bg-zinc-50/50 dark:bg-zinc-950/40">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-[11px]">Berkas #{rIdx + 1}</span>
+                          <span className="font-bold text-xs">Berkas #{rIdx + 1}</span>
                           <button
                             type="button"
                             onClick={() => handleRemovePengantarRow(rIdx)}
-                            className="text-zinc-400 hover:text-red-500"
+                            className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)]"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1416,20 +1416,20 @@ function GenerateSuratDinasContent() {
                           value={row.naskah}
                           onChange={(e) => handlePengantarRowChange(rIdx, "naskah", e.target.value)}
                           placeholder="Nama naskah dinas..."
-                          className="h-8 text-xs"
+                          className="h-8 text-xs rounded-lg"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <Input
                             value={row.banyaknya}
                             onChange={(e) => handlePengantarRowChange(rIdx, "banyaknya", e.target.value)}
                             placeholder="Banyaknya (mis: 1 Berkas)"
-                            className="h-8 text-xs"
+                            className="h-8 text-xs rounded-lg"
                           />
                           <Input
                             value={row.keterangan}
                             onChange={(e) => handlePengantarRowChange(rIdx, "keterangan", e.target.value)}
                             placeholder="Keterangan..."
-                            className="h-8 text-xs"
+                            className="h-8 text-xs rounded-lg"
                           />
                         </div>
                       </div>
@@ -1442,41 +1442,41 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "undangan" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Yth. / Kepada</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Yth. / Kepada</label>
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
                       placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
-                    <span className="font-bold text-zinc-700 dark:text-zinc-200 block text-[11px]">Rincian Acara</span>
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
+                    <span className="font-bold text-[var(--ds-fg-secondary)] block text-xs">Rincian Acara</span>
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         value={data.acaraHariTanggal || ""}
                         onChange={(e) => updateField("acaraHariTanggal", e.target.value)}
                         placeholder="Hari, Tanggal"
-                        className="h-8 text-xs"
+                        className="h-8 text-xs rounded-lg"
                       />
                       <Input
                         value={data.acaraWaktu || ""}
                         onChange={(e) => updateField("acaraWaktu", e.target.value)}
                         placeholder="Waktu"
-                        className="h-8 text-xs"
+                        className="h-8 text-xs rounded-lg"
                       />
                     </div>
                     <Input
                       value={data.acaraTempat || ""}
                       onChange={(e) => updateField("acaraTempat", e.target.value)}
                       placeholder="Tempat Acara"
-                      className="h-8 text-xs"
+                      className="h-8 text-xs rounded-lg"
                     />
                     <Input
                       value={data.acaraNama || ""}
                       onChange={(e) => updateField("acaraNama", e.target.value)}
                       placeholder="Nama Acara"
-                      className="h-8 text-xs"
+                      className="h-8 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1485,13 +1485,13 @@ function GenerateSuratDinasContent() {
               {/* SURAT KUASA */}
               {activeTemplate === "surat_kuasa" && (
                 <div>
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Materi Yang Dikuasakan</label>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Materi Yang Dikuasakan</label>
                   <Textarea
                     value={data.materiKuasa || ""}
                     onChange={(e) => updateField("materiKuasa", e.target.value)}
                     rows={3}
                     placeholder="Untuk mewakili..."
-                    className="mt-1 text-xs"
+                    className="mt-1 text-xs rounded-lg"
                   />
                 </div>
               )}
@@ -1500,21 +1500,21 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "berita_acara" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Hari & Tanggal Acara</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Hari & Tanggal Acara</label>
                     <Input
                       value={data.hariTanggalAcara || ""}
                       onChange={(e) => updateField("hariTanggalAcara", e.target.value)}
                       placeholder="Contoh: Kamis, 24 September 2026"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat Dibuat</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat Dibuat</label>
                     <Input
                       value={data.lokasiDibuat || ""}
                       onChange={(e) => updateField("lokasiDibuat", e.target.value)}
                       placeholder="Contoh: Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </div>
@@ -1524,31 +1524,31 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "perjanjian" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Judul Perjanjian Kerja Sama</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Judul Perjanjian Kerja Sama</label>
                     <Input
                       value={data.judulPerjanjian || ""}
                       onChange={(e) => updateField("judulPerjanjian", e.target.value)}
                       placeholder="PERJANJIAN KERJA SAMA ANTARA ... DENGAN ..."
-                      className="mt-1 text-xs uppercase"
+                      className="mt-1 text-xs uppercase rounded-lg"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Hari & Tanggal Perjanjian</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Hari & Tanggal Perjanjian</label>
                       <Input
                         value={data.hariTanggalAcara || ""}
                         onChange={(e) => updateField("hariTanggalAcara", e.target.value)}
                         placeholder="Contoh: Kamis, 24 September 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat Dibuat</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat Dibuat</label>
                       <Input
                         value={data.lokasiDibuat || ""}
                         onChange={(e) => updateField("lokasiDibuat", e.target.value)}
                         placeholder="Samarinda"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   </div>
@@ -1559,22 +1559,22 @@ function GenerateSuratDinasContent() {
               {(activeTemplate === "piagam" || activeTemplate === "sertifikat") && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Diberikan Kepada</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Diberikan Kepada</label>
                     <Input
                       value={data.diberikanKepada || ""}
                       onChange={(e) => updateField("diberikanKepada", e.target.value)}
                       placeholder="Nama Penerima / Lembaga"
-                      className="mt-1 text-xs font-bold"
+                      className="mt-1 text-xs font-bold rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Atas Peran / Prestasi</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Atas Peran / Prestasi</label>
                     <Textarea
                       value={data.atasPeran || ""}
                       onChange={(e) => updateField("atasPeran", e.target.value)}
                       rows={3}
                       placeholder="Uraian prestasi..."
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1584,21 +1584,21 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "surat_dinas" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kepada Yth.</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Kepada Yth.</label>
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
                       placeholder="Contoh: Direktur PT. Hutan Lindung Kelian Lestari"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat (Di -)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat (Di -)</label>
                     <Input
                       value={data.tujuanDi || ""}
                       onChange={(e) => updateField("tujuanDi", e.target.value)}
                       placeholder="Contoh: Kutai Barat atau Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1614,55 +1614,55 @@ function GenerateSuratDinasContent() {
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jenis Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jenis Cuti</label>
                       <Input
                         value={data.jenisCuti || ""}
                         onChange={(e) => updateField("jenisCuti", e.target.value)}
                         placeholder="Contoh: Alasan Penting / Tahunan"
-                        className="mt-1 text-xs font-semibold"
+                        className="mt-1 text-xs font-semibold rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jumlah Hari</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jumlah Hari</label>
                       <div className="grid grid-cols-2 gap-2 mt-1">
                         <Input
                           type="number"
                           value={data.jumlahHari ?? ""}
                           onChange={(e) => updateField("jumlahHari", Number(e.target.value))}
                           placeholder="5"
-                          className="text-xs"
+                          className="text-xs rounded-lg"
                         />
                         <Input
                           value={data.terbilangHari || ""}
                           onChange={(e) => updateField("terbilangHari", e.target.value)}
                           placeholder="lima"
-                          className="text-xs"
+                          className="text-xs rounded-lg"
                         />
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Mulai Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Mulai Cuti</label>
                       <Input
                         value={data.tanggalMulai || ""}
                         onChange={(e) => updateField("tanggalMulai", e.target.value)}
                         placeholder="Contoh: 22 Oktober 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Selesai Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Selesai Cuti</label>
                       <Input
                         value={data.tanggalSelesai || ""}
                         onChange={(e) => updateField("tanggalSelesai", e.target.value)}
                         placeholder="Contoh: 28 Oktober 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Satuan Kerja</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Satuan Kerja</label>
                     <Input
                       value={data.pegawai?.satuanKerja || (data.pegawai as any)?.unit || ""}
                       onChange={(e) =>
@@ -1672,17 +1672,17 @@ function GenerateSuratDinasContent() {
                         })
                       }
                       placeholder="Balai Konservasi Sumber Daya Alam Kalimantan Timur"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   {data.jenisCuti?.toLowerCase().includes("tahunan") && (
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Akumulasi Tahun Cuti (Opsional)</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Akumulasi Tahun Cuti (Opsional)</label>
                       <Input
                         value={data.tahunCutiText || ""}
                         onChange={(e) => updateField("tahunCutiText", e.target.value)}
                         placeholder="Contoh: untuk tahun 2025 dan tahun 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   )}
@@ -1693,20 +1693,20 @@ function GenerateSuratDinasContent() {
 
           {/* Card 3: Paragraf Isi */}
           {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
               {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
-              <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-[var(--ds-border-subtle)] flex flex-col gap-2.5">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
+              <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-3xl border-b border-slate-200/70 dark:border-zinc-800 flex flex-col gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
                   <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                   3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
                 </h2>
-                <div className="flex items-center flex-wrap gap-1.5">
+                <div className="flex items-center flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("plain")}
-                    className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold"
+                    className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold rounded-lg"
                     title="Tambah paragraf biasa ke akhir"
                   >
                     <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
@@ -1717,7 +1717,7 @@ function GenerateSuratDinasContent() {
                     variant="default"
                     size="sm"
                     onClick={() => handleInsertPoint("num")}
-                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
                     title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
                   >
                     <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
@@ -1728,7 +1728,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("letter")}
-                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
                     title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
                   >
                     + Sub a.
@@ -1738,7 +1738,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("roman")}
-                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
                     title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
                   >
                     + Butir i.
@@ -1748,7 +1748,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
                     title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
                   >
                     + Butir 1)
@@ -1758,7 +1758,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowSmartPaste(!showSmartPaste)}
-                    className="kpg-secondary h-7 text-xs p-1 px-2.5 gap-1 font-semibold"
+                    className="kpg-secondary h-7 text-xs p-1 px-3 gap-1 font-semibold rounded-lg"
                     title="Tempel teks utuh naskah dinas bertingkat"
                   >
                     <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
@@ -1769,9 +1769,9 @@ function GenerateSuratDinasContent() {
 
               {/* Smart Paste Drawer */}
               {showSmartPaste && (
-                <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-xl space-y-2">
+                <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2">
                       <ClipboardPaste className="w-3.5 h-3.5" />
                       Tempel & Parse Naskah Dinas Bertingkat Otomatis
                     </span>
@@ -1783,7 +1783,7 @@ function GenerateSuratDinasContent() {
                       ✕
                     </button>
                   </div>
-                  <p className="text-[11px] text-[var(--ds-fg-muted)] leading-normal">
+                  <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
                     Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
                   </p>
                   <Textarea
@@ -1791,7 +1791,7 @@ function GenerateSuratDinasContent() {
                     onChange={(e) => setSmartPasteText(e.target.value)}
                     rows={6}
                     placeholder="Tempel teks nota dinas di sini..."
-                    className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed"
+                    className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed rounded-lg"
                   />
                   <div className="flex items-center justify-between pt-1">
                     <Button
@@ -1802,7 +1802,7 @@ function GenerateSuratDinasContent() {
                         setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
                         handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
                       }}
-                      className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium"
+                      className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium rounded-lg"
                       title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
                     >
                       <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
@@ -1814,7 +1814,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowSmartPaste(false)}
-                        className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+                        className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
                       >
                         Batal
                       </Button>
@@ -1822,7 +1822,7 @@ function GenerateSuratDinasContent() {
                         type="button"
                         size="sm"
                         onClick={() => handleApplySmartPaste()}
-                        className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1"
+                        className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1 rounded-lg"
                       >
                         <FileCheck className="w-3 h-3" />
                         Terapkan ke Dokumen
@@ -1832,7 +1832,7 @@ function GenerateSuratDinasContent() {
                 </div>
               )}
 
-              <div className="space-y-2.5 text-xs">
+              <div className="space-y-2 text-xs">
                 {(data.paragraf || []).map((pText, idx) => {
                   const pList = data.paragraf || [];
                   const isPenutup = idx === pList.length - 1;
@@ -1851,7 +1851,7 @@ function GenerateSuratDinasContent() {
                   return (
                     <div
                       key={idx}
-                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${indentClass} ${
+                      className={`relative rounded-lg border p-3 space-y-2 transition-colors ${indentClass} ${
                         isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
                           : lvl === 1
@@ -1862,41 +1862,41 @@ function GenerateSuratDinasContent() {
                           ? "border-blue-200 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20"
                           : lvl === 4
                           ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-800/40"
-                          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
+                          : "border-slate-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
                       }`}
                     >
                       <div className="flex items-center justify-between flex-wrap gap-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">
                             {idx + 1}.
                           </span>
                           {isPenutup ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300 rounded-lg">
                               Penutup (Bawah)
                             </Badge>
                           ) : lvl === 1 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1 rounded-lg">
                               <ListOrdered className="w-2.5 h-2.5" />
                               Poin Utama (Tingkat 1)
                             </Badge>
                           ) : lvl === 2 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg">
                               Sub-Poin (Tingkat 2)
                             </Badge>
                           ) : lvl === 3 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300 rounded-lg">
                               Sub-Butir (Tingkat 3)
                             </Badge>
                           ) : lvl === 4 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-lg">
                               Sub-Butir (Tingkat 4)
                             </Badge>
                           ) : isPembuka ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80 rounded-lg">
                               Pembuka
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50">
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50 rounded-lg">
                               Paragraf Biasa
                             </Badge>
                           )}
@@ -1910,59 +1910,59 @@ function GenerateSuratDinasContent() {
                               <DropdownMenuTrigger asChild>
                                 <button
                                   type="button"
-                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-2 py-1 rounded-lg transition-colors cursor-pointer mr-1"
                                   title="Sisipkan butir baru tepat di bawah ini"
                                 >
-                                  <Plus className="w-2.5 h-2.5" />
+                                  <Plus className="w-3 h-3" />
                                   <span>Sisipkan</span>
-                                  <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                  <ChevronDown className="w-3 h-3 opacity-60" />
                                 </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 data-module="persuratan"
                                 align="end"
-                                className="psr-ui w-48 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-lg rounded-xl p-1 z-50 text-xs"
+                                className="psr-ui w-48 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
                               >
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
+                                  className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
                                 >
                                   <span>↳ + Sub-Butir Anak</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
+                                  className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
                                 >
                                   <span>= + Poin Setara</span>
                                 </DropdownMenuItem>
-                                <div className="my-1 border-t border-[var(--ds-border-subtle)]" />
+                                <div className="my-1 border-t border-slate-200/70 dark:border-zinc-800" />
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("num", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
                                 >
                                   <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("letter", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
                                 >
                                   <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("roman", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
                                 >
                                   <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">i.</span> Butir Romawi
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
                                 >
                                   <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("plain", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-[11px]"
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs"
                                 >
                                   <span className="font-mono w-4">¶</span> Paragraf Biasa
                                 </DropdownMenuItem>
@@ -1970,7 +1970,7 @@ function GenerateSuratDinasContent() {
                             </DropdownMenu>
                           )}
 
-                          <span className="text-[10px] text-[var(--ds-fg-muted)]">Level:</span>
+                          <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
                           {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
                             const active = ctrl.isActive(lvl, pText);
                             return (
@@ -1979,10 +1979,10 @@ function GenerateSuratDinasContent() {
                                 type="button"
                                 onClick={() => handleChangeParagraphLevel(idx, ctrl.level)}
                                 className={cn(
-                                  "text-[9.5px] px-1.5 py-0.5 rounded border transition-colors",
+                                  "text-xs px-2 py-1 rounded-lg border transition-colors",
                                   active
                                     ? ctrl.activeClass
-                                    : cn("text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
+                                    : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
                                 )}
                                 title={ctrl.title}
                               >
@@ -1995,7 +1995,7 @@ function GenerateSuratDinasContent() {
                             <button
                               type="button"
                               onClick={() => handleRemoveParagraph(idx)}
-                              className="text-zinc-400 hover:text-red-500 p-1 ml-1 rounded transition-colors"
+                              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 ml-1 rounded-lg transition-colors"
                               title="Hapus butir ini"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -2018,7 +2018,7 @@ function GenerateSuratDinasContent() {
                             ? `Tulis isi butir...`
                             : `Tulis isi paragraf...`
                         }
-                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
+                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
                       />
                     </div>
                   );
@@ -2028,8 +2028,8 @@ function GenerateSuratDinasContent() {
           )}
 
           {/* Card 4: Penandatangan */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
               <UserCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               {activeTemplate === "berita_acara"
                 ? `4. Penandatangan Berita Acara (${data.signerCount || 2} Pihak)`
@@ -2066,16 +2066,16 @@ function GenerateSuratDinasContent() {
             {activeTemplate === "berita_acara" && (
               <div className="space-y-3">
                 {/* Toggle Jumlah Tanda Tangan: 2 TTD vs 3 TTD */}
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-2.5 bg-[var(--ds-surface-muted)]">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)]">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[11px] text-[var(--ds-fg)]">
+                    <span className="font-bold text-xs text-[var(--ds-fg)]">
                       Format Penandatangan
                     </span>
-                    <div className="flex rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface)]">
+                    <div className="flex rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface)]">
                       <button
                         type="button"
                         onClick={() => updateField("signerCount", 2)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                           (data.signerCount || 2) === 2
                             ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                             : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
@@ -2086,7 +2086,7 @@ function GenerateSuratDinasContent() {
                       <button
                         type="button"
                         onClick={() => updateField("signerCount", 3)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                           data.signerCount === 3
                             ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                             : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
@@ -2148,8 +2148,8 @@ function GenerateSuratDinasContent() {
             {activeTemplate === "surat_pengantar" && (
               <div className="space-y-3">
                 {/* Pengirim (TTD Kanan) */}
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)] space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)] space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
                     <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Pengirim Naskah (TTD Kanan)
                   </div>
@@ -2157,7 +2157,7 @@ function GenerateSuratDinasContent() {
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
                       defaultValue=""
-                      className="w-full text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
+                      className="w-full text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih dari Database Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {
@@ -2172,25 +2172,25 @@ function GenerateSuratDinasContent() {
                       })}
                     </select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Input
                       value={data.namaPenandatangan}
                       onChange={(e) => updateField("namaPenandatangan", e.target.value)}
                       placeholder="Nama Pengirim"
-                      className="h-8 text-xs bg-[var(--ds-surface)] font-semibold"
+                      className="h-8 text-xs bg-[var(--ds-surface)] font-semibold rounded-lg"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         value={data.nipPenandatangan}
                         onChange={(e) => updateField("nipPenandatangan", e.target.value)}
                         placeholder="NIP Pengirim"
-                        className="h-8 text-xs bg-[var(--ds-surface)] font-mono"
+                        className="h-8 text-xs bg-[var(--ds-surface)] font-mono rounded-lg"
                       />
                       <Input
                         value={data.jabatanPenandatangan}
                         onChange={(e) => updateField("jabatanPenandatangan", e.target.value)}
                         placeholder="Jabatan Pengirim"
-                        className="h-8 text-xs bg-[var(--ds-surface)]"
+                        className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
                       />
                     </div>
                   </div>
@@ -2216,7 +2216,7 @@ function GenerateSuratDinasContent() {
                     <label className="font-semibold text-[var(--ds-fg-secondary)]">Pilih dari Database Pegawai</label>
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
+                      className="w-full mt-1 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih Pejabat / Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {
@@ -2234,37 +2234,37 @@ function GenerateSuratDinasContent() {
 
                   {activeTemplate !== "nota_dinas" && activeTemplate !== "memorandum" ? (
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jabatan Penandatangan</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jabatan Penandatangan</label>
                       <Input
                         value={data.jabatanPenandatangan}
                         onChange={(e) => updateField("jabatanPenandatangan", e.target.value)}
                         placeholder="Contoh: Kepala Balai,"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   ) : (
-                    <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[11px] text-[var(--ds-accent-fg)]">
+                    <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-accent-fg)]">
                       Format {activeTemplate === "nota_dinas" ? "Nota Dinas" : "Memorandum"}: Langsung nama &amp; NIP (jabatan pengirim ada pada &apos;Dari&apos; di kepala surat).
                     </div>
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Lengkap & Gelar</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Nama Lengkap &amp; Gelar</label>
                       <Input
                         value={data.namaPenandatangan}
                         onChange={(e) => updateField("namaPenandatangan", e.target.value)}
                         placeholder="M. ARI WIBAWANTO, S.Hut., M.Sc."
-                        className="mt-1 text-xs font-semibold"
+                        className="mt-1 text-xs font-semibold rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">NIP</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">NIP</label>
                       <Input
                         value={data.nipPenandatangan}
                         onChange={(e) => updateField("nipPenandatangan", e.target.value)}
                         placeholder="19740514 199903 1 001"
-                        className="mt-1 text-xs font-mono"
+                        className="mt-1 text-xs font-mono rounded-lg"
                       />
                     </div>
                   </div>
@@ -2282,9 +2282,9 @@ function GenerateSuratDinasContent() {
             activeTemplate === "surat_panggilan" ||
             activeTemplate === "surat_pernyataan"
           ) && (
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
                   <UserCheck className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                   5. Tembusan ({(data.tembusan || []).length})
                 </h2>
@@ -2292,7 +2292,7 @@ function GenerateSuratDinasContent() {
                   variant="ghost"
                   size="sm"
                   onClick={handleAddTembusan}
-                  className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1"
+                  className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1 rounded-lg"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah Tembusan
@@ -2302,17 +2302,17 @@ function GenerateSuratDinasContent() {
               <div className="space-y-2">
                 {(data.tembusan || []).map((t, i) => (
                   <div key={t.id || i} className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-400 w-4">{(data.tembusan || []).length > 1 ? `${i + 1}.` : ""}</span>
+                    <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-4">{(data.tembusan || []).length > 1 ? `${i + 1}.` : ""}</span>
                     <Input
                       value={t.text}
                       onChange={(e) => handleTembusanChange(t.id, e.target.value)}
                       placeholder="Nama instansi/pejabat tembusan..."
-                      className="h-8 text-xs flex-1"
+                      className="h-8 text-xs flex-1 rounded-lg"
                     />
                     <button
                       type="button"
                       onClick={() => handleRemoveTembusan(t.id)}
-                      className="text-zinc-400 hover:text-red-500 p-1"
+                      className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 rounded-lg"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -2323,9 +2323,9 @@ function GenerateSuratDinasContent() {
           )}
 
           {/* Integrasi Info */}
-          <div className="rounded-2xl border border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3 text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
+          <div className="rounded-3xl border border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4 text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
               <span>Otomatis terhubung dengan <strong>Daftar Surat Keluar</strong> BKSDA Kaltim.</span>
             </div>
             <Link
@@ -2339,9 +2339,9 @@ function GenerateSuratDinasContent() {
 
         {/* RIGHT COLUMN: Live A4 Preview (7 cols on lg) */}
         <div className="lg:col-span-7 sticky top-4">
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 lg:p-5 shadow-xs space-y-3">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ds-fg-secondary)]">
-              <span className="flex items-center gap-1.5 font-semibold">
+              <span className="flex items-center gap-2 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)]" />
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
@@ -2355,7 +2355,7 @@ function GenerateSuratDinasContent() {
                       className="kpg-secondary h-7 text-xs gap-1 rounded-lg"
                     >
                       {isExporting ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-0.5 text-[var(--ds-accent-fg)]" />
+                        <Loader2 className="w-3 h-3 animate-spin mr-1 text-[var(--ds-accent-fg)]" />
                       ) : (
                         <Download className="w-3 h-3 text-[var(--ds-accent-fg)]" />
                       )}
@@ -2366,28 +2366,28 @@ function GenerateSuratDinasContent() {
                   <DropdownMenuContent
                     data-module="persuratan"
                     align="end"
-                    className="psr-ui w-52 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl rounded-xl p-1.5 z-50"
+                    className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
                   >
                     <DropdownMenuItem
                       onClick={handleExportPdf}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
-                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
+                      <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh PDF (.pdf)</span>
-                        <span className="text-[10px] text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleExportWord}
                       disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                     >
                       <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                       <div className="flex flex-col text-left">
                         <span>Unduh Word (.doc)</span>
-                        <span className="text-[10px] text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -2405,7 +2405,7 @@ function GenerateSuratDinasContent() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-950/40 p-3 sm:p-4 overflow-x-auto">
+            <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 p-4 overflow-x-auto">
               <div className="w-fit mx-auto shadow-xs">
                 <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
               </div>

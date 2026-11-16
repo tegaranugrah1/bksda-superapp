@@ -9095,8 +9095,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
-    "mtime": 1794452859.7751873,
-    "ast_hash": "1ff51f90026572677546a7c1964b955d",
+    "mtime": 1794821350.5769434,
+    "ast_hash": "17f7c885b665983aa145404ac579a781",
     "semantic_hash": ""
   },
   "docs/bmn-ui-ux-modernization/remaining-sidebar-audit.md": {
@@ -9262,6 +9262,11 @@
   "frontend/tests/export-pdf-route.cjs": {
     "mtime": 1794815466.4633331,
     "ast_hash": "81065e8a97f4890ad797113e49368ae7",
+    "semantic_hash": ""
+  },
+  "docs/DESIGN_SYSTEM_5_TOKENS.md": {
+    "mtime": 1794821348.4516964,
+    "ast_hash": "ed7ec9d36a154bccdd7651ef0f25c88a",
     "semantic_hash": ""
   }
 }

@@ -57,29 +57,29 @@ export default function CreateSuratKeluarPage() {
   };
 
   return (
-    <div className="psr-ui w-full p-4 md:p-6 space-y-4 text-[var(--ds-fg)]">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <Link href="/surat/keluar">
               <Button
                 variant="outline"
                 size="sm"
                 aria-label="Kembali ke Agenda Surat Keluar"
-                className="kpg-secondary h-10 w-10 p-0 rounded-xl shrink-0"
+                className="kpg-secondary h-10 w-10 p-0 rounded-lg shrink-0"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
               <Send className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                 Input Surat Keluar Baru
               </h1>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Pencatatan &amp; pengagendaan naskah dinas keluar resmi BKSDA Kalimantan Timur.
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function CreateSuratKeluarPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5"
+                className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2"
               >
                 <Send className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                 Daftar Agenda Keluar
@@ -101,7 +101,7 @@ export default function CreateSuratKeluarPage() {
       </div>
 
       {/* Form Card */}
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 md:p-6">
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 md:p-6 shadow-xs">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-semibold text-[var(--ds-fg)]">Nomor Surat Keluar *</label>
@@ -109,7 +109,7 @@ export default function CreateSuratKeluarPage() {
               value={formData.no_surat}
               onChange={(e) => setFormData({ ...formData, no_surat: e.target.value })}
               placeholder="Contoh: S.450/KSDAE/TU/KAP.06.01/B/07/2026"
-              className="mt-1 text-xs font-semibold"
+              className="mt-1 text-xs font-semibold rounded-lg"
               required
             />
           </div>
@@ -120,7 +120,7 @@ export default function CreateSuratKeluarPage() {
               type="date"
               value={formData.tanggal_surat}
               onChange={(e) => setFormData({ ...formData, tanggal_surat: e.target.value })}
-              className="mt-1 text-xs"
+              className="mt-1 text-xs rounded-lg"
               required
             />
           </div>
@@ -133,7 +133,7 @@ export default function CreateSuratKeluarPage() {
               value={formData.kode_klasifikasi}
               onChange={(e) => setFormData({ ...formData, kode_klasifikasi: e.target.value })}
               placeholder="KAP.06.01"
-              className="mt-1 text-xs"
+              className="mt-1 text-xs rounded-lg"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function CreateSuratKeluarPage() {
             <select
               value={formData.sifat}
               onChange={(e) => setFormData({ ...formData, sifat: e.target.value })}
-              className="mt-1 flex h-9 w-full rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-1 text-xs text-[var(--ds-fg)] transition-colors"
+              className="mt-1 flex h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-1 text-xs text-[var(--ds-fg)] transition-colors"
             >
               <option value="Biasa">Biasa</option>
               <option value="Penting">Penting</option>
@@ -160,7 +160,7 @@ export default function CreateSuratKeluarPage() {
             value={formData.tujuan_surat}
             onChange={(e) => setFormData({ ...formData, tujuan_surat: e.target.value })}
             placeholder="Contoh: Kepala Balai Besar KSDA Jawa Timur"
-            className="mt-1 text-xs"
+            className="mt-1 text-xs rounded-lg"
             required
           />
         </div>
@@ -172,7 +172,7 @@ export default function CreateSuratKeluarPage() {
             onChange={(e) => setFormData({ ...formData, perihal: e.target.value })}
             placeholder="Ringkasan atau perihal surat keluar..."
             rows={3}
-            className="mt-1 text-xs"
+            className="mt-1 text-xs rounded-lg"
             required
           />
         </div>
@@ -183,7 +183,7 @@ export default function CreateSuratKeluarPage() {
             value={formData.lampiran}
             onChange={(e) => setFormData({ ...formData, lampiran: e.target.value })}
             placeholder="1 (Satu) Berkas"
-            className="mt-1 text-xs"
+            className="mt-1 text-xs rounded-lg"
           />
         </div>
 
@@ -193,7 +193,7 @@ export default function CreateSuratKeluarPage() {
           </label>
           <label
             htmlFor="surat-keluar-file-upload"
-            className="kpg-upload flex items-center gap-3 p-3 border border-dashed border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface-muted)] cursor-pointer transition-colors"
+            className="kpg-upload flex items-center gap-3 p-4 border border-dashed border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] cursor-pointer transition-colors"
           >
             <Upload className="h-5 w-5 text-[var(--ds-fg-muted)] shrink-0" />
             <input
@@ -206,18 +206,18 @@ export default function CreateSuratKeluarPage() {
           </label>
         </div>
 
-        <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-[var(--ds-border-subtle)]">
+        <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800">
           <Link href="/surat/keluar">
-            <Button type="button" variant="outline" className="kpg-secondary h-9 text-xs rounded-xl">
+            <Button type="button" variant="outline" className="kpg-secondary h-9 text-xs rounded-lg">
               Batal
             </Button>
           </Link>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-9 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl"
+            className="h-9 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-2"
           >
-            <CheckCircle2 className="mr-1.5 h-4 w-4" />
+            <CheckCircle2 className="h-4 w-4" />
             Simpan Surat Keluar
           </Button>
         </div>

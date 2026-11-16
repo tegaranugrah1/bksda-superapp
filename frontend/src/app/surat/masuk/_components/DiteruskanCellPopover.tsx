@@ -239,7 +239,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
             type="button"
             variant="outline"
             size="sm"
-            className="kpg-secondary h-8 px-2.5 text-xs font-medium rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+            className="kpg-secondary h-8 px-3 text-xs font-medium rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
           >
             <Plus className="h-3 w-3 text-[var(--ds-accent-fg)]" />
             <span>Pilih Penerus</span>
@@ -254,7 +254,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
               <span
                 key={name}
                 data-status="info"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold truncate max-w-[140px]"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold truncate max-w-[140px]"
               >
                 {name.includes("Ruang") || name.includes("Urusan") || name.includes("Kantor") ? (
                   <Building2 className="h-3 w-3 shrink-0" />
@@ -266,7 +266,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
             ))}
 
             {selectedList.length > 2 && (
-              <span data-status="neutral" className="px-1.5 py-0.5 rounded-md text-xs font-bold">
+              <span data-status="neutral" className="px-2 py-1 rounded-lg text-xs font-bold">
                 +{selectedList.length - 2}
               </span>
             )}
@@ -280,10 +280,10 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
         side="bottom"
         sideOffset={8}
         collisionPadding={16}
-        className="psr-ui w-80 sm:w-96 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-2xl z-50 p-3.5 space-y-3"
+        className="psr-ui w-80 sm:w-96 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg z-50 p-4 space-y-3"
       >
-        <div className="flex items-center justify-between pb-2 border-b border-[var(--ds-border-subtle)]">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-zinc-800">
+          <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-[var(--ds-accent-fg)]" />
             <h4 className="text-xs font-bold text-[var(--ds-fg)]">
               Arahan Pimpinan (Sifat &amp; Penerus Balai)
@@ -293,14 +293,14 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Tutup arahan pimpinan"
-            className="p-1.5 rounded-md text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
+            className="p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {/* Sifat Surat Selector: Single Select */}
-        <div className="space-y-1.5 bg-[var(--ds-surface-muted)] p-2.5 rounded-xl border border-[var(--ds-border-subtle)]">
+        <div className="space-y-2 bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-[var(--ds-fg-secondary)] flex items-center gap-1">
               <Tag className="h-3 w-3 text-[var(--ds-accent-fg)]" />
@@ -317,13 +317,13 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
                   type="button"
                   aria-pressed={isSelected}
                   onClick={() => selectSifat(sifat)}
-                  className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+                  className={`px-2 py-1 rounded-full text-xs font-bold transition-all border cursor-pointer ${
                     isSelected
                       ? getSifatBadgeStyle(sifat)
-                      : "bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-accent-soft)]"
+                      : "bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-accent-soft)]"
                   }`}
                 >
-                  {isSelected && <Check className="inline h-2.5 w-2.5 mr-0.5 stroke-[3]" />}
+                  {isSelected && <Check className="inline h-2.5 w-2.5 mr-1 stroke-[3]" />}
                   {sifat}
                 </button>
               );
@@ -333,13 +333,13 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
 
         {/* Search Box */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--ds-fg-muted)]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--ds-fg-muted)]" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari ruangan atau nama pegawai balai..."
             aria-label="Cari ruangan atau nama pegawai balai"
-            className="pl-8 h-9 text-xs"
+            className="pl-8 h-9 text-xs rounded-lg"
           />
         </div>
 
@@ -349,7 +349,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
             type="button"
             {...tabs.tabProps("ruang")}
             onClick={() => setActiveTab("ruang")}
-            className={`flex-1 py-1.5 px-2 rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 px-2 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === "ruang"
                 ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-bold"
                 : "text-[var(--ds-fg-secondary)] hover:text-[var(--ds-fg)]"
@@ -362,7 +362,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
             type="button"
             {...tabs.tabProps("pegawai")}
             onClick={() => setActiveTab("pegawai")}
-            className={`flex-1 py-1.5 px-2 rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 px-2 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === "pegawai"
                 ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-bold"
                 : "text-[var(--ds-fg-secondary)] hover:text-[var(--ds-fg)]"
@@ -461,17 +461,17 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 border-t border-[var(--ds-border-subtle)] flex items-center justify-between">
+        <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between">
           <span className="text-xs text-[var(--ds-fg-muted)] font-medium tabular-nums">
             {selectedList.length} penerus dipilih
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(false)}
-              className="h-8 px-2.5 text-xs cursor-pointer"
+              className="h-8 px-3 text-xs rounded-lg cursor-pointer"
             >
               Batal
             </Button>
@@ -480,7 +480,7 @@ export function DiteruskanCellPopover({ item, onUpdated }: DiteruskanCellPopover
               size="sm"
               onClick={handleSave}
               disabled={isSaving}
-              className="h-8 px-3 text-xs font-semibold rounded-lg shadow-2xs cursor-pointer"
+              className="h-8 px-3 text-xs font-semibold rounded-lg shadow-xs cursor-pointer"
             >
               {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Simpan"}
             </Button>

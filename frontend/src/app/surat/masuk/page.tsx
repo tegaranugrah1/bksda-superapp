@@ -201,7 +201,7 @@ export default function SuratMasukListPage() {
           <p className="text-sm text-[var(--ds-fg-muted)]">
             Apakah Anda yakin ingin menghapus data surat masuk ini?
           </p>
-          <div className="p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs font-mono font-semibold text-[var(--ds-fg)] break-all text-center select-all">
+          <div className="p-4 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/70 dark:border-zinc-800 text-xs font-mono font-semibold text-[var(--ds-fg)] break-all text-center select-all">
             {item.no_surat ? `${item.no_surat}` : `Agenda #${item.no_agenda}`}
           </div>
           <p className="text-xs text-[var(--ds-status-danger-fg)] font-medium">
@@ -229,19 +229,19 @@ export default function SuratMasukListPage() {
   };
 
   return (
-    <div className="psr-ui w-full p-4 md:p-5 space-y-3 text-[var(--ds-fg)]">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
               <Inbox className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                 Agenda Surat Masuk
               </h1>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Penatausahaan surat masuk, pencatatan agenda, dan penerbitan lembar disposisi resmi.
               </p>
             </div>
@@ -252,13 +252,13 @@ export default function SuratMasukListPage() {
               type="button"
               variant="outline"
               onClick={() => setIsExportModalOpen(true)}
-              className="kpg-secondary h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5"
+              className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2"
             >
               <FileSpreadsheet className="h-4 w-4 text-[var(--ds-accent-fg)]" />
               Export Excel
             </Button>
 
-            <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
+            <Button asChild className="h-9 px-4 text-xs font-bold rounded-lg gap-2">
               <Link href="/surat/masuk/create">
                 <Plus className="h-4 w-4" />
                 Input Surat Masuk
@@ -269,21 +269,21 @@ export default function SuratMasukListPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2.5 px-3.5">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ds-fg-muted)]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ds-fg-muted)]" />
           <Input
             value={searchInput}
             onChange={handleSearchChange}
             placeholder="Cari no surat, no agenda, pengirim, perihal..."
             aria-label="Cari surat masuk"
-            className="pl-9 h-9 text-xs"
+            className="pl-9 h-9 text-xs rounded-lg"
           />
         </div>
 
         <div className="flex items-center justify-between sm:justify-end gap-2 text-xs font-semibold text-[var(--ds-fg-muted)]">
           {isFetching && (
-            <span className="flex items-center gap-1.5 text-xs text-[var(--ds-accent-fg)]">
+            <span className="flex items-center gap-2 text-xs text-[var(--ds-accent-fg)]">
               <RefreshCw className="h-3.5 w-3.5 animate-spin" />
               Menyinkronkan...
             </span>
@@ -310,9 +310,9 @@ export default function SuratMasukListPage() {
       {isError && (
         <div
           role="alert"
-          className="rounded-2xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+          className="rounded-3xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
         >
-          <div className="flex items-center gap-2.5 text-xs font-semibold text-[var(--ds-status-danger-fg)]">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-status-danger-fg)]">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>Gagal memuat data agenda surat masuk dari server.</span>
           </div>
@@ -321,7 +321,7 @@ export default function SuratMasukListPage() {
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            className="kpg-secondary h-8 px-3 text-xs font-bold rounded-xl gap-1.5"
+            className="kpg-secondary h-8 px-3 text-xs font-bold rounded-lg gap-2"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Coba lagi
@@ -330,15 +330,15 @@ export default function SuratMasukListPage() {
       )}
 
       {/* Tabel Master (Desktop) & Kartu Tumpuk (Mobile) */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] overflow-hidden">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs overflow-hidden">
         {isLoading ? (
           <div className="p-4 space-y-2">
             {[1, 2, 3, 4, 5].map((n) => (
-              <div key={n} className="h-11 w-full animate-pulse rounded-xl bg-[var(--ds-surface-muted)]" />
+              <div key={n} className="h-11 w-full animate-pulse rounded-lg bg-[var(--ds-surface-muted)]" />
             ))}
           </div>
         ) : suratList.length === 0 ? (
-          <div className="p-10 text-center space-y-2.5">
+          <div className="p-8 text-center space-y-2">
             <Inbox className="h-9 w-9 text-[var(--ds-fg-muted)] mx-auto" />
             <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum Ada Surat Masuk Terarsip</h3>
             <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -350,9 +350,9 @@ export default function SuratMasukListPage() {
             {/* Desktop Table View (Compact for 1366x768) */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-bold uppercase tracking-wider text-xs">
+                <thead className="bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)] font-bold uppercase tracking-wider text-xs">
                   <tr>
-                    <th className="py-2.5 px-3 w-10 text-center">
+                    <th className="py-3 px-3 w-10 text-center">
                       <input
                         type="checkbox"
                         checked={
@@ -364,16 +364,16 @@ export default function SuratMasukListPage() {
                         className="h-4 w-4 rounded cursor-pointer"
                       />
                     </th>
-                    <th className="py-2.5 px-3">No Agenda</th>
-                    <th className="py-2.5 px-3">Nomor &amp; Tanggal Surat</th>
-                    <th className="py-2.5 px-3">Asal Surat &amp; Lampiran</th>
-                    <th className="py-2.5 px-3">Isi Ringkas / Perihal</th>
-                    <th className="py-2.5 px-3">Sifat</th>
-                    <th className="py-2.5 px-3">Diteruskan Ke</th>
-                    <th className="py-2.5 px-3 text-right">Aksi</th>
+                    <th className="py-3 px-3">No Agenda</th>
+                    <th className="py-3 px-3">Nomor &amp; Tanggal Surat</th>
+                    <th className="py-3 px-3">Asal Surat &amp; Lampiran</th>
+                    <th className="py-3 px-3">Isi Ringkas / Perihal</th>
+                    <th className="py-3 px-3">Sifat</th>
+                    <th className="py-3 px-3">Diteruskan Ke</th>
+                    <th className="py-3 px-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                   {suratList.map((item) => {
                     const isSelected = selectedIds.has(String(item.id || item.no_agenda));
                     return (
@@ -384,7 +384,7 @@ export default function SuratMasukListPage() {
                           isSelected ? "bg-[var(--ds-accent-soft)]" : ""
                         }`}
                       >
-                        <td className="py-2.5 px-3 text-center align-middle">
+                        <td className="py-2 px-3 text-center align-middle">
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -393,56 +393,56 @@ export default function SuratMasukListPage() {
                             className="h-4 w-4 rounded cursor-pointer"
                           />
                         </td>
-                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 font-semibold text-[var(--ds-accent-fg)] tabular-nums">
+                        <td className="py-2 px-3 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-2 font-semibold text-[var(--ds-accent-fg)] tabular-nums">
                             <FileText className="h-3.5 w-3.5 shrink-0" />
                             <span>{item.no_agenda}</span>
                           </div>
-                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 tabular-nums">
+                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-1 tabular-nums">
                             {formatDisplayDate(item.tanggal_agenda)}
                           </span>
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle max-w-[190px]">
+                        <td className="py-2 px-3 align-middle max-w-[190px]">
                           <span className="font-semibold text-[var(--ds-fg)] block truncate" title={item.no_surat}>
                             {item.no_surat || "-"}
                           </span>
-                          <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 mt-0.5 tabular-nums">
+                          <span className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 mt-1 tabular-nums">
                             <Calendar className="h-3 w-3 shrink-0" /> {formatDisplayDate(item.tanggal_surat)}
                           </span>
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle max-w-[180px]">
-                          <span className="font-semibold text-[var(--ds-fg)] flex items-center gap-1.5">
+                        <td className="py-2 px-3 align-middle max-w-[180px]">
+                          <span className="font-semibold text-[var(--ds-fg)] flex items-center gap-2">
                             <Building2 className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
                             <span className="truncate" title={item.asal_surat}>{item.asal_surat || "-"}</span>
                           </span>
-                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 truncate">
+                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-1 truncate">
                             Lampiran: {item.lampiran || "-"}
                           </span>
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle max-w-[230px]">
+                        <td className="py-2 px-3 align-middle max-w-[230px]">
                           <p className="text-xs text-[var(--ds-fg-secondary)] line-clamp-2 leading-snug" title={item.isi_ringkas}>
                             {item.isi_ringkas || "-"}
                           </p>
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                        <td className="py-2 px-3 align-middle whitespace-nowrap">
                           <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle">
+                        <td className="py-2 px-3 align-middle">
                           <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
                         </td>
 
-                        <td className="py-2.5 px-3 align-middle text-right whitespace-nowrap">
+                        <td className="py-2 px-3 align-middle text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
                             <Button
                               asChild
                               variant="outline"
                               size="sm"
-                              className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
+                              className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
                             >
                               <Link href={`/surat/masuk/create?id=${item.id}`} title="Edit Surat Masuk">
                                 <Pencil className="mr-1 h-3 w-3" />
@@ -454,7 +454,7 @@ export default function SuratMasukListPage() {
                               asChild
                               variant="outline"
                               size="sm"
-                              className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg text-[var(--ds-accent-fg)]"
+                              className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg text-[var(--ds-accent-fg)]"
                             >
                               <Link href={`/surat/masuk/create?id=${item.id}`} title="Cetak Disposisi">
                                 <Printer className="mr-1 h-3 w-3" />
@@ -482,9 +482,9 @@ export default function SuratMasukListPage() {
             </div>
 
             {/* Mobile Stacked Card View (< sm) */}
-            <div className="sm:hidden divide-y divide-[var(--ds-border-subtle)]">
+            <div className="sm:hidden divide-y divide-slate-200/70 dark:divide-zinc-800">
               {suratList.map((item) => (
-                <div key={item.id} className="p-3.5 space-y-2.5">
+                <div key={item.id} className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <input
@@ -507,7 +507,7 @@ export default function SuratMasukListPage() {
                     <h3 className="font-bold text-xs text-[var(--ds-fg)] leading-snug">
                       {item.no_surat}
                     </h3>
-                    <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                       Asal: {item.asal_surat || "-"} • Tanggal: {formatDisplayDate(item.tanggal_surat)}
                     </p>
                     <p className="text-xs text-[var(--ds-fg-secondary)] mt-1 line-clamp-2">
@@ -515,12 +515,12 @@ export default function SuratMasukListPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
                     <SifatCellPopover item={item} onUpdated={handleItemUpdated} />
                     <DiteruskanCellPopover item={item} onUpdated={handleItemUpdated} />
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--ds-border-subtle)]">
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800">
                     <Button asChild variant="outline" size="sm" className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg">
                       <Link href={`/surat/masuk/create?id=${item.id}`}>
                         <Pencil className="mr-1 h-3 w-3" /> Edit
@@ -536,7 +536,7 @@ export default function SuratMasukListPage() {
                       size="sm"
                       onClick={() => handleDeleteSurat(item)}
                       aria-label={`Hapus surat agenda ${item.no_agenda}`}
-                      className="h-9 w-9 p-0 text-[var(--ds-status-danger-fg)]"
+                      className="h-9 w-9 p-0 text-[var(--ds-status-danger-fg)] rounded-lg"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -549,24 +549,24 @@ export default function SuratMasukListPage() {
 
         {/* Server-Side Pagination Footer */}
         {!isLoading && totalCount > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 p-3 sm:px-4 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] text-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 text-xs">
             <div className="text-[var(--ds-fg-muted)] font-medium">
               Menampilkan <span className="font-bold text-[var(--ds-fg)] tabular-nums">{startRecord}</span> -{" "}
               <span className="font-bold text-[var(--ds-fg)] tabular-nums">{endRecord}</span> dari{" "}
               <span className="font-bold text-[var(--ds-fg)] tabular-nums">{totalCount}</span> Surat Masuk
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
                 <span className="text-[var(--ds-fg-muted)] text-xs font-semibold">Tampilkan:</span>
-                <div className="flex items-center gap-1 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-0.5 rounded-lg">
+                <div className="flex items-center gap-1 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-1 rounded-lg">
                   {PER_PAGE_OPTIONS.map((opt) => (
                     <button
                       key={opt}
                       type="button"
                       aria-pressed={perPage === opt}
                       onClick={() => handlePerPageChange(opt)}
-                      className={`px-2 py-1 rounded-md text-xs font-bold transition-colors ${
+                      className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
                         perPage === opt
                           ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
                           : "text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]"
@@ -579,15 +579,15 @@ export default function SuratMasukListPage() {
               </div>
 
               {!isAll && totalPages > 1 && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(page - 1)}
                     disabled={safePage <= 1}
-                    className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
                   >
-                    <ChevronLeft className="h-4 w-4 mr-0.5" />
+                    <ChevronLeft className="h-4 w-4 mr-1" />
                     Sebelumnya
                   </Button>
 
@@ -600,10 +600,10 @@ export default function SuratMasukListPage() {
                     size="sm"
                     onClick={() => handlePageChange(page + 1)}
                     disabled={safePage >= totalPages}
-                    className="kpg-secondary h-8 px-2.5 text-xs font-semibold rounded-lg"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
                   >
                     Selanjutnya
-                    <ChevronRight className="h-4 w-4 ml-0.5" />
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               )}
@@ -628,7 +628,7 @@ export default function SuratMasukListPage() {
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 20, x: "-50%" }}
             transition={{ type: "spring", stiffness: 450, damping: 32 }}
-            className="fixed bottom-5 left-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-2xl border border-[var(--ds-accent-soft-border)]"
+            className="fixed bottom-5 left-1/2 z-40 flex items-center gap-3 px-4 py-2 rounded-2xl bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-lg border border-[var(--ds-accent-soft-border)]"
           >
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ds-accent-solid)] text-xs font-bold text-[var(--ds-accent-on-solid)] tabular-nums">
@@ -639,13 +639,13 @@ export default function SuratMasukListPage() {
               </span>
             </div>
 
-            <div className="h-4 w-px bg-[var(--ds-border-subtle)]" />
+            <div className="h-4 w-px bg-slate-200/80 dark:bg-zinc-800" />
 
             <Button
               type="button"
               size="sm"
               onClick={() => setIsBatchPrintModalOpen(true)}
-              className="h-8 px-3.5 text-xs font-bold rounded-xl gap-1.5"
+              className="h-8 px-4 text-xs font-bold rounded-lg gap-2"
             >
               <Printer className="h-3.5 w-3.5" />
               Cetak 2-Up ({selectedIds.size} Surat)
@@ -656,7 +656,7 @@ export default function SuratMasukListPage() {
               variant="ghost"
               size="sm"
               onClick={handleClearSelection}
-              className="h-8 px-2.5 text-xs rounded-xl"
+              className="h-8 px-3 text-xs rounded-lg"
             >
               Batal
             </Button>

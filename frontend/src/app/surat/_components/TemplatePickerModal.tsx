@@ -375,23 +375,23 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
       <DialogContent
         data-module="persuratan"
         {...focusReturn}
-        className="psr-ui max-w-4xl sm:max-w-5xl p-5 md:p-6 bg-[var(--ds-surface)] rounded-2xl shadow-2xl border border-[var(--ds-border-subtle)]"
+        className="psr-ui max-w-4xl sm:max-w-5xl p-6 bg-[var(--ds-surface)] rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800"
       >
-        <DialogHeader className="pb-3 border-b border-[var(--ds-border-subtle)]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+        <DialogHeader className="pb-4 border-b border-slate-200/70 dark:border-zinc-800 sm:pr-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-base sm:text-lg font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <DialogTitle className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2 flex-wrap">
                   Katalog Tata Naskah Dinas Resmi
-                  <Badge variant="outline" className="text-[10px] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-semibold">
+                  <Badge variant="outline" className="text-xs bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-semibold rounded-lg">
                     Permen Kehutanan 1/2025
                   </Badge>
                 </DialogTitle>
-                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
-                  20 format baku naskah dinas Kementerian Kehutanan & BKSDA Kalimantan Timur.
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                  20 format baku naskah dinas Kementerian Kehutanan &amp; BKSDA Kalimantan Timur.
                 </DialogDescription>
               </div>
             </div>
@@ -401,7 +401,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                 placeholder="Cari jenis naskah..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 text-xs"
+                className="h-8 text-xs rounded-lg"
               />
             </div>
           </div>
@@ -409,7 +409,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
           {/* Filter Categories Tabs */}
           <div
             {...tabs.tabListProps}
-            className="kpg-pill-tabs flex items-center gap-1 pt-2 p-1 rounded-xl overflow-x-auto"
+            className="kpg-pill-tabs flex items-center gap-1 pt-2 p-1 rounded-lg overflow-x-auto"
           >
             {CATEGORY_TABS.map((cat) => {
               const isActive = activeCategory === cat.id;
@@ -419,7 +419,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   type="button"
                   {...tabs.tabProps(cat.id)}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`relative px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer select-none ${
+                  className={`relative px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer select-none ${
                     isActive
                       ? "text-[var(--ds-accent-on-solid)]"
                       : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
@@ -442,7 +442,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
         {/* Grid Template Cards */}
         <div {...tabs.panelProps}>
           <KepegawaianTabContent key={activeCategory}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 py-3 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 py-3 max-h-[60vh] overflow-y-auto pr-1">
             {filteredTemplates.map((tpl) => {
               const Icon = tpl.icon;
               return (
@@ -456,40 +456,40 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   <Link
                     href={`/surat/keluar/dinas?template=${tpl.id}`}
                     onClick={(e) => handleCardClick(e, tpl.id)}
-                    className="kpg-card group relative flex flex-col justify-between p-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-150 text-left h-full"
+                    className="kpg-card group relative flex flex-col justify-between p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs hover:bg-[var(--ds-surface-muted)] hover:border-[var(--ds-accent-soft-border)] transition-all duration-150 text-left h-full"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`p-1.5 rounded-lg border ${tpl.colorClass}`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`p-2 rounded-lg border ${tpl.colorClass}`}>
                             <Icon className="h-4 w-4" />
                           </div>
                           {tpl.isFavorite && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800">
                               <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
                               Favorit
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] font-mono text-[var(--ds-fg-muted)] font-semibold">
+                        <span className="text-xs font-mono text-[var(--ds-fg-muted)] font-semibold">
                           Hal. {tpl.hal}
                         </span>
                       </div>
 
-                      <h3 className="text-xs font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
+                      <h3 className="text-sm font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
                         {tpl.name}
                       </h3>
 
-                      <div className="text-[9.5px] font-mono text-[var(--ds-fg-muted)] mt-1 mb-1.5 bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded inline-block">
+                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-1 mb-2 bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg inline-block">
                         {tpl.prefix}
                       </div>
 
-                      <p className="text-[11px] text-[var(--ds-fg-muted)] leading-snug line-clamp-2">
+                      <p className="text-xs text-[var(--ds-fg-muted)] leading-snug line-clamp-2">
                         {tpl.description}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2.5 mt-2.5 border-t border-[var(--ds-border-subtle)] text-[11px] font-semibold text-[var(--ds-accent-fg)]">
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-200/70 dark:border-zinc-800 text-xs font-semibold text-[var(--ds-accent-fg)]">
                       <span>Buat Dokumen</span>
                       <ArrowRight className="h-3.5 w-3.5 transform group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -502,12 +502,12 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
         </div>
 
         {/* Footer Info */}
-        <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-[11px] text-[var(--ds-fg-muted)]">
-          <div className="flex items-center gap-1.5">
+        <div className="pt-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
+          <div className="flex items-center gap-2">
             <ShieldCheck className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
             <span>Format baku resmi Balai KSDA Kalimantan Timur</span>
           </div>
-          <span className="text-[10.5px]">20 Jenis Format Tersedia</span>
+          <span className="text-xs">20 Jenis Format Tersedia</span>
         </div>
       </DialogContent>
     </Dialog>

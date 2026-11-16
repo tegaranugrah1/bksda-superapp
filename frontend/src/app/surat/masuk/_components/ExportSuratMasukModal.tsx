@@ -106,10 +106,10 @@ export function ExportSuratMasukModal({
   ];
 
   const getOptionClass = (active: boolean) =>
-    `flex items-start gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+    `flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer ${
       active
         ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
-        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface)] text-[var(--ds-fg)]"
+        : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface)] text-[var(--ds-fg)]"
     }`;
 
   return (
@@ -121,16 +121,16 @@ export function ExportSuratMasukModal({
       className="sm:max-w-lg overflow-hidden"
     >
       {/* Modal Header */}
-      <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-5 py-4">
+      <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shrink-0">
             <FileSpreadsheet className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[var(--ds-fg)]">
+            <h2 className="text-xl font-bold text-[var(--ds-fg)]">
               Export Laporan Surat Masuk
             </h2>
-            <p className="text-xs text-[var(--ds-fg-muted)]">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Unduh rekapitulasi data arsip surat masuk ke format Excel (.xlsx)
             </p>
           </div>
@@ -139,20 +139,20 @@ export function ExportSuratMasukModal({
           type="button"
           onClick={onClose}
           aria-label="Tutup dialog export"
-          className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface)] hover:text-[var(--ds-fg)] transition-colors"
+          className="rounded-lg p-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface)] hover:text-[var(--ds-fg)] transition-colors"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {/* Modal Body */}
-      <div className="p-5 space-y-4">
+      <div className="p-6 space-y-4">
         {/* Periode Options */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
             Pilih Rentang / Periode Data
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {currentSearch.trim() && (
               <button
                 type="button"
@@ -160,10 +160,10 @@ export function ExportSuratMasukModal({
                 onClick={() => setPeriod("current_filter")}
                 className={`${getOptionClass(period === "current_filter")} col-span-full`}
               >
-                <Filter className="h-4 w-4 mt-0.5 shrink-0 text-[var(--ds-accent-fg)]" />
+                <Filter className="h-4 w-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]" />
                 <div className="text-xs">
                   <div className="font-semibold">Filter Pencarian Saat Ini</div>
-                  <div className="text-[11px] opacity-80 mt-0.5">
+                  <div className="text-xs opacity-80 mt-1">
                     Keyword: &quot;{currentSearch}&quot; ({totalCurrentItems} surat ditemukan)
                   </div>
                 </div>
@@ -176,10 +176,10 @@ export function ExportSuratMasukModal({
               onClick={() => setPeriod("all")}
               className={getOptionClass(period === "all")}
             >
-              <TableProperties className="h-4 w-4 mt-0.5 shrink-0 text-[var(--ds-accent-fg)]" />
+              <TableProperties className="h-4 w-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]" />
               <div className="text-xs">
                 <div className="font-semibold">Semua Data</div>
-                <div className="text-[11px] opacity-80 mt-0.5">Seluruh arsip surat masuk</div>
+                <div className="text-xs opacity-80 mt-1">Seluruh arsip surat masuk</div>
               </div>
             </button>
 
@@ -189,10 +189,10 @@ export function ExportSuratMasukModal({
               onClick={() => setPeriod("this_month")}
               className={getOptionClass(period === "this_month")}
             >
-              <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-[var(--ds-accent-fg)]" />
+              <Calendar className="h-4 w-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]" />
               <div className="text-xs">
                 <div className="font-semibold">Bulan Ini</div>
-                <div className="text-[11px] opacity-80 mt-0.5">
+                <div className="text-xs opacity-80 mt-1">
                   {monthNames[currentMonth - 1]} {currentYear}
                 </div>
               </div>
@@ -204,10 +204,10 @@ export function ExportSuratMasukModal({
               onClick={() => setPeriod("this_year")}
               className={getOptionClass(period === "this_year")}
             >
-              <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-[var(--ds-accent-fg)]" />
+              <Calendar className="h-4 w-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]" />
               <div className="text-xs">
                 <div className="font-semibold">Tahun {currentYear}</div>
-                <div className="text-[11px] opacity-80 mt-0.5">Rekap 1 tahun anggaran</div>
+                <div className="text-xs opacity-80 mt-1">Rekap 1 tahun anggaran</div>
               </div>
             </button>
 
@@ -217,10 +217,10 @@ export function ExportSuratMasukModal({
               onClick={() => setPeriod("custom")}
               className={getOptionClass(period === "custom")}
             >
-              <Filter className="h-4 w-4 mt-0.5 shrink-0 text-[var(--ds-accent-fg)]" />
+              <Filter className="h-4 w-4 mt-1 shrink-0 text-[var(--ds-accent-fg)]" />
               <div className="text-xs">
                 <div className="font-semibold">Rentang Kustom</div>
-                <div className="text-[11px] opacity-80 mt-0.5">Pilih tanggal spesifik</div>
+                <div className="text-xs opacity-80 mt-1">Pilih tanggal spesifik</div>
               </div>
             </button>
           </div>
@@ -228,28 +228,28 @@ export function ExportSuratMasukModal({
 
         {/* Custom Date Inputs */}
         {period === "custom" && (
-          <div className="p-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] space-y-3">
+          <div className="p-4 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-[var(--ds-fg-muted)]">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                   Dari Tanggal
                 </label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="h-9 text-xs"
+                  className="h-9 text-xs rounded-lg"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-[var(--ds-fg-muted)]">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-[var(--ds-fg-muted)]">
                   Sampai Tanggal
                 </label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-9 text-xs"
+                  className="h-9 text-xs rounded-lg"
                 />
               </div>
             </div>
@@ -257,12 +257,12 @@ export function ExportSuratMasukModal({
         )}
 
         {/* Kolom Information Info Box */}
-        <div className="rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-3.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)] mb-1.5">
+        <div className="rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)] mb-2">
             <CheckCircle2 className="h-4 w-4 text-[var(--ds-accent-fg)]" />
             <span>Format 7 Kolom Excel:</span>
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-[var(--ds-fg-muted)]">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--ds-fg-muted)]">
             <div>1. <b>No Agenda</b></div>
             <div>2. <b>Tanggal</b> (Penerimaan)</div>
             <div>3. <b>No Surat</b></div>
@@ -275,13 +275,13 @@ export function ExportSuratMasukModal({
       </div>
 
       {/* Modal Footer */}
-      <div className="flex items-center justify-end gap-2.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-5 py-3.5">
+      <div className="flex items-center justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 px-6 py-4">
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
           disabled={isExporting}
-          className="kpg-secondary h-9 text-xs font-medium rounded-xl"
+          className="kpg-secondary h-9 text-xs font-medium rounded-lg"
         >
           Batal
         </Button>
@@ -289,7 +289,7 @@ export function ExportSuratMasukModal({
           type="button"
           onClick={handleDownload}
           disabled={isExporting}
-          className="h-9 px-4 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl gap-2"
+          className="h-9 px-4 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-2"
         >
           {isExporting ? (
             <>

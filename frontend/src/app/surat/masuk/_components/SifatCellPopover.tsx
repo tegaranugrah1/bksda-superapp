@@ -120,7 +120,7 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
           aria-label={`Sifat surat: ${selectedSifat}`}
         >
           <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-bold border transition-colors ${getSifatBadgeStyle(
+            className={`px-2 py-1 rounded-full text-xs font-bold border transition-colors ${getSifatBadgeStyle(
               selectedSifat
             )}`}
           >
@@ -135,10 +135,10 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
         side="bottom"
         sideOffset={6}
         collisionPadding={16}
-        className="psr-ui w-52 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-xl z-50 p-2.5 space-y-2"
+        className="psr-ui w-52 rounded-2xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg z-50 p-2 space-y-2"
       >
-        <div className="flex items-center justify-between pb-1.5 border-b border-[var(--ds-border-subtle)]">
-          <span className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-zinc-800">
+          <span className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-2">
             <Tag className="h-3.5 w-3.5 text-[var(--ds-accent-fg)]" />
             Pilih 1 Sifat Surat
           </span>
@@ -154,9 +154,9 @@ export function SifatCellPopover({ item, onUpdated }: SifatCellPopoverProps) {
                 type="button"
                 aria-pressed={isChecked}
                 onClick={() => selectSifatOption(opt)}
-                className="w-full flex items-center justify-between p-1.5 rounded-lg cursor-pointer text-xs transition-colors text-left"
+                className="w-full flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs transition-colors text-left"
               >
-                <span className={`px-2 py-0.5 rounded-md text-xs font-bold border ${getSifatBadgeStyle(opt)}`}>
+                <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${getSifatBadgeStyle(opt)}`}>
                   {opt}
                 </span>
                 {isChecked && <Check className="h-3.5 w-3.5 text-[var(--ds-accent-fg)] stroke-[3]" />}
