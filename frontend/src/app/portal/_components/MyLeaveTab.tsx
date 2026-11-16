@@ -27,24 +27,24 @@ function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; clas
   if (status === "DITOLAK" || status === "REJECTED" || atasanStatus === "DITOLAK" || atasanStatus === "REJECTED") {
     return {
       label: "Ditolak",
-      className: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300",
+      className: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)]",
     };
   }
   if (status === "DISETUJUI" || status === "APPROVED") {
     return {
       label: "Disetujui",
-      className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+      className: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]",
     };
   }
   if (atasanStatus === "DISETUJUI" || atasanStatus === "APPROVED") {
     return {
       label: "Verifikasi Atasan",
-      className: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
+      className: "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)]",
     };
   }
   return {
     label: "Pengajuan",
-    className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+    className: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]",
   };
 }
 
@@ -101,26 +101,26 @@ export function MyLeaveTab({
   }, [myLeaveRequests, selectedYear]);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-4 sm:p-6 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
             <span>Riwayat & Pengajuan Cuti Saya</span>
-            <span className="text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-900">
+            <span className="text-xs font-semibold bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] px-2 py-0 rounded-full border border-[var(--ds-status-info-border)] tabular-nums">
               {filteredRequests.length} Data
             </span>
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Daftar seluruh riwayat surat izin cuti resmi (SI/ST) dan pengajuan mandiri Anda.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {availableYears.length > 0 && (
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-slate-200 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none"
+              className="h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none tabular-nums cursor-pointer"
             >
               <option value="all">Semua Tahun</option>
               {availableYears.map((yr) => (
@@ -133,7 +133,7 @@ export function MyLeaveTab({
 
           <Button
             onClick={onOpenLeaveDialog}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl shadow-xs gap-1.5"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-9 rounded-lg shadow-xs gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Ajukan Cuti Baru
@@ -142,12 +142,12 @@ export function MyLeaveTab({
       </div>
 
       {filteredRequests.length === 0 ? (
-        <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/30 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl space-y-3">
-          <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+        <div className="p-12 text-center bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg space-y-3">
+          <Calendar className="w-10 h-10 text-[var(--ds-fg-muted)] mx-auto" />
+          <p className="text-sm font-bold text-[var(--ds-fg)]">
             Belum Ada Riwayat Cuti
           </p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[var(--ds-fg-muted)]">
             {selectedYear === "all"
               ? 'Klik tombol "Ajukan Cuti Baru" untuk mengisi formulir permohonan cuti.'
               : `Tidak ada data cuti yang tercatat untuk tahun ${selectedYear}.`}
@@ -174,12 +174,12 @@ export function MyLeaveTab({
                 show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }
               }}
               whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-              className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-4 space-y-3 shadow-xs hover:shadow-md transition-shadow"
+              className="bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-3 shadow-xs transition-colors"
             >
-              <div className="flex items-start justify-between border-b border-slate-200/50 dark:border-slate-800 pb-2.5 gap-2">
+              <div className="flex items-start justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3 gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-[var(--ds-fg)]">
                       {item.jenis_cuti}
                     </span>
                     {(() => {
@@ -187,7 +187,7 @@ export function MyLeaveTab({
                       return (
                         <span
                           className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                            "text-xs font-bold px-2 py-0 rounded-full uppercase tracking-wider",
                             badge.className
                           )}
                         >
@@ -197,52 +197,52 @@ export function MyLeaveTab({
                     })()}
                   </div>
                   {item.nomor_pengajuan ? (
-                    <div className="font-mono text-[10px] text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-900 px-1.5 py-0.5 rounded mt-1 inline-block">
+                    <div className="font-mono text-xs text-[var(--ds-status-info-fg)] bg-[var(--ds-status-info-bg)] border border-[var(--ds-status-info-border)] px-2 py-0 rounded-lg mt-1 inline-block tabular-nums">
                       SI: {item.nomor_pengajuan}
                     </div>
                   ) : (
-                    <div className="text-[10px] text-slate-400 dark:text-slate-500 italic mt-1">
+                    <div className="text-xs text-[var(--ds-fg-muted)] italic mt-1">
                       (Nomor surat penetapan belum diterbitkan)
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200/80 text-slate-800 dark:bg-slate-800 dark:text-slate-200 shrink-0">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--ds-surface)] text-[var(--ds-fg)] border border-slate-200/80 dark:border-zinc-800 shrink-0 tabular-nums">
                   {item.jumlah_hari} Hari
                 </span>
               </div>
 
               <div className="space-y-1 text-xs">
-                <div className="text-slate-600 dark:text-slate-400 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400">Periode:</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                <div className="text-[var(--ds-fg-muted)] flex items-center justify-between text-xs gap-2">
+                  <span>Periode:</span>
+                  <span className="font-semibold text-[var(--ds-fg)] tabular-nums text-right">
                     {formatDateRangeIndonesian(item.tanggal_mulai, item.tanggal_selesai)}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium pt-1">
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">Alasan: </span>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-medium pt-1">
+                  <span className="font-semibold text-[var(--ds-fg)]">Alasan: </span>
                   {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
-                    <span className="text-slate-400 italic">Sesuai ketentuan {item.jenis_cuti}</span>
+                    <span className="text-[var(--ds-fg-muted)] italic">Sesuai ketentuan {item.jenis_cuti}</span>
                   ) : (
                     <span>{item.alasan_cuti}</span>
                   )}
                 </p>
                 {item.catatan_atasan && (
-                  <div className="text-[11px] text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 rounded-lg p-2 font-medium mt-1.5">
+                  <div className="text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] rounded-lg p-2 font-medium mt-2">
                     <span className="font-bold">Catatan Persetujuan: </span>
                     {item.catatan_atasan}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-200/40 dark:border-slate-800 text-[11px]">
-                <span className="text-slate-400">Tgl: {formatDateIndonesian(item.tanggal_pengajuan)}</span>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800 text-xs">
+                <span className="text-[var(--ds-fg-muted)] tabular-nums">Tgl: {formatDateIndonesian(item.tanggal_pengajuan)}</span>
+                <div className="flex flex-wrap items-center gap-2">
                   {(item.status?.toUpperCase() === "PENGAJUAN" || item.status?.toUpperCase() === "PENDING") && onCancelLeave && item.id && (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => onCancelLeave(item.id!)}
-                      className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40 text-xs h-8 rounded-xl font-bold"
+                      className="border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] text-xs h-8 rounded-lg font-bold cursor-pointer"
                     >
                       Batalkan
                     </Button>
@@ -278,14 +278,14 @@ export function MyLeaveTab({
                               }
                             }}
                             className={cn(
-                              "font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs transition-colors",
+                              "font-bold text-xs h-8 rounded-lg gap-2 shadow-xs transition-colors",
                               hasSuratIzin
-                                ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                                : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-500 border border-slate-200 dark:border-zinc-700 cursor-not-allowed opacity-70"
+                                ? "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] cursor-pointer"
+                                : "bg-[var(--ds-disabled-bg)] text-[var(--ds-disabled-fg)] border border-slate-200/80 dark:border-zinc-800 cursor-not-allowed"
                             )}
                             title={hasSuratIzin ? "Lihat Surat Izin Cuti Resmi (TTE Kepala Balai)" : "Menunggu Unggahan Admin"}
                           >
-                            <FileCheck className="w-3.5 h-3.5" />
+                            <FileCheck className="w-4 h-4" />
                             <span>Surat Izin (Fisik/TTE)</span>
                           </Button>
 
@@ -303,14 +303,14 @@ export function MyLeaveTab({
                               }
                             }}
                             className={cn(
-                              "font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs transition-colors",
+                              "font-bold text-xs h-8 rounded-lg gap-2 shadow-xs transition-colors",
                               hasFormulir
                                 ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                                : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-500 border border-slate-200 dark:border-zinc-700 cursor-not-allowed opacity-70"
+                                : "bg-[var(--ds-disabled-bg)] text-[var(--ds-disabled-fg)] border border-slate-200/80 dark:border-zinc-800 cursor-not-allowed"
                             )}
                             title={hasFormulir ? "Lihat Scan Formulir Cuti (TTD Manual & Cap Balai)" : "Menunggu Unggahan Admin"}
                           >
-                            <FileText className="w-3.5 h-3.5" />
+                            <FileText className="w-4 h-4" />
                             <span>Formulir Scan</span>
                           </Button>
                         </>
@@ -323,10 +323,10 @@ export function MyLeaveTab({
                         type="button"
                         size="sm"
                         onClick={() => onPrintLeave(item)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-xl gap-1.5 shadow-xs cursor-pointer"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-lg gap-2 shadow-xs cursor-pointer"
                         title="Cetak Formulir Cuti untuk penandatanganan fisik"
                       >
-                        <Printer className="w-3.5 h-3.5" />
+                        <Printer className="w-4 h-4" />
                         Cetak Formulir Cuti
                       </Button>
                     );

@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (16 November 2026):** Penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada modul **Persuratan** (`c499257f`, `a41549b4` + pelembutan global `.kpg-secondary`), **Kepegawaian** (`540fb44b`, `/ponytail`), dan **BMN** (`d20bfcaf`, `/ponytail`); pengerasan UX & ekspor Word/Vector PDF SRIKANDI (`f8ca5a1f`, `93656c64`, `42dc747e`, `07d7c99c`, `f3802c9f`), manajemen hapus scan cuti + arsip Drive (`370c9622`, `7692933a`, `465b1307`), serta **role per modul (`module_roles`)** lintas modul (`f4379c2d`, `faed1785`, `862ec6f0`). Pasca-edit BMN (`d20bfcaf`): `audit-5tokens.cjs bmn` (`1` pengecualian outline `.bmn-secondary` di `page.tsx:220`), `tsc --noEmit` (`0`), `eslint src/app/bmn` (`0`), `bmn-asset-grid.cjs` (`PASS`), `bmn-security-ui.playwright.cjs` (`12/12`, `31` assertions `PASS`), Playwright visual check `11` rute BMN (`28` viewport, `0` error/overflow), dan `graphify update .`. (Bagian 115–119).
+**Status terbaru (17 November 2026):** Penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada modul **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`codex/portal-security-pentest`); perbaikan kontras radio button dana/switch Surat Tugas dan filter pill SPJ panjar Portal, navbar adaptif mobile, serta penyesuaian CSS token `--ds-accent-*` Forest Green di `globals.css`. Pasca-edit Portal: `audit-5tokens.cjs portal` (`0 violations`, `0 undefined`), `tsc --noEmit` (`0`), `eslint src/app/portal` (`0 errors`), `portal-review-check.cjs` (`PASS`), Playwright ST Portal (`6/6 suites`, `PASS`), Playwright Live E2E Notifikasi (`10/10 assertions PASS`, sandbox auto-cleanup), inspeksi visual browser Light & Dark (`1440x900` & `390x844`, `0 error`, `0 overflow`). (Bagian 115–121).
 
 ## Status Update: 2 November 2026
 
@@ -2606,3 +2606,40 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - **Playwright Visual & Overflow Check (`visual-check-bmn.cjs`)**: Menguji `11` rute BMN (`/bmn`, `/bmn/assets`, `/bmn/loans`, `/bmn/loans/create`, `/bmn/maintenances`, `/bmn/disposal`, `/bmn/import-review`, `/bmn/reports`, `/bmn/settings`, `/bmn/auction-batches`, `/bmn/auction-candidates`) dalam mode `light` & `dark` (`1440x900`) serta `6` rute kunci mobile `dark` (`390x844`) — total **`28` pengecekan viewport** dengan **`ERRORS_COUNT=0`** dan **`0` horizontal overflow**, dilengkapi inspeksi screenshot langsung. *(Rute detail dinamis `/bmn/assets/[id]` dan `/bmn/auction-batches/[id]` terverifikasi lewat `bmn-security-ui.playwright.cjs`, tidak masuk 11 rute statis `visual-check-bmn.cjs`.)*
   - **Knowledge Graph**: `graphify update .` selesai diperbarui (`exit 0`).
 - **Status**: ✅ Selesai Diimplementasikan, Diverifikasi, & Di-commit Lokal (`d20bfcaf`, belum di-`push`).
+
+---
+
+## 120. Penerapan 5 Design Tokens & Perbaikan Kontras Radio/Switch pada Modul Surat Tugas Standalone (16 November 2026)
+
+- **Commit**: `9d7a4ce6` — `style(surat-tugas): apply 5-token design system and fix radio/switch contrast` (`codex/portal-security-pentest`, belum di-`push`).
+- **Cakupan & Perbaikan**:
+  - Menerapkan 5 Design Tokens pada seluruh berkas UI modul [`frontend/src/app/surat-tugas/`](file:///e:/bksda-superapp/frontend/src/app/surat-tugas/) (dashboard, pembuatan surat tugas, riwayat audit log, dan komponen formulir).
+  - Memperbaiki kontras seleksi radio button sumber dana (`DIPA`, `PNBP`, `Lainnya`) serta switch status pada formulir pembuatan surat tugas agar terbaca jelas pada Light dan Dark Mode.
+  - Mempertahankan integritas layout dan rule CSS modul `surat-tugas`.
+
+---
+
+## 121. Penerapan Menyeluruh 5 Design Tokens pada Modul Portal ASN dengan Prinsip `/ponytail` (17 November 2026)
+
+- **Commit**: `style(portal): apply 5-token design system and dark/light parity across all portal pages and modals` (`codex/portal-security-pentest`, belum di-`push`).
+- **Pendekatan & Cakupan Implementasi**:
+  - Menambahkan selector token `[data-module="portal"]` (Light & Dark) pada [`frontend/src/app/globals.css`](file:///e:/bksda-superapp/frontend/src/app/globals.css) dengan palet Brand Forest Green (`--ds-accent-solid: #1e5433` light, `#86efac` dark) serta rule outline button sekunder.
+  - Menerapkan 5 Design Tokens pada 18 berkas modul Portal ([`frontend/src/app/portal/`](file:///e:/bksda-superapp/frontend/src/app/portal/)):
+    - Shell utama ([`page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/page.tsx)) & rute detail ([`surat-tugas/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/surat-tugas/[id]/page.tsx)).
+    - Hero & Navigasi: [`PortalHeaderBanner.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalHeaderBanner.tsx), [`PortalInfoSidebar.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalInfoSidebar.tsx), [`PortalProfileSidebar.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalProfileSidebar.tsx), [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx).
+    - Tab Workspace: [`ActiveLoansTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/ActiveLoansTab.tsx), [`MyAssetsTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/MyAssetsTab.tsx), [`MyLeaveTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/MyLeaveTab.tsx), [`SuratTugasTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/SuratTugasTab.tsx), [`KalkulatorDinasTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/KalkulatorDinasTab.tsx).
+    - Notifikasi & Dialog: [`NotificationBell.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/NotificationBell.tsx), [`EmailConnectDialog.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/EmailConnectDialog.tsx), [`LeaveRequestDialog.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/LeaveRequestDialog.tsx), [`SecurityModals.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/SecurityModals.tsx).
+    - Formulir Laporan Inline: [`GeneralReportInlineForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/GeneralReportInlineForm.tsx), [`SmartPatrolInlineForm.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx).
+  - Menginjeksi `data-module="portal"` pada Radix overlay/portal (`PopoverContent`, `DialogContent`, `DropdownMenuContent`) agar variabel CSS `--ds-*` ter-resolve di `document.body`.
+  - Memperbaiki kontras filter pill SPJ panjar (`Semua`, `Bisa SPJ`, `Non-SPJ`) di [`KalkulatorDinasTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/KalkulatorDinasTab.tsx) menggunakan kombinasi `--ds-status-*-bg`, `--ds-status-*-fg`, dan `--ds-status-*-border`.
+  - Memperbaiki header navbar responsif di [`page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/page.tsx) (`flex justify-between gap-2 sm:grid sm:grid-cols-12 sm:gap-6` dengan `hidden sm:flex` untuk logo sekunder pada mobile) agar bebas benturan tombol di layar sempit (`390x844`).
+  - Menjaga pengecualian dokumen cetak fisik (`FormulirCutiPrint.tsx`, `GeneralReportPrint.tsx`, `SmartPatrolPrint.tsx`, lembar cetak LPJ panjar) tetap *black-on-white*.
+- **Hasil Verifikasi Pasca-Edit**:
+  - `audit-5tokens.cjs portal`: `TOTAL_VIOLATIONS=0`, `UNDEFINED_DS_TOKENS=0`.
+  - `npx tsc --noEmit`: `exit 0` (0 error).
+  - `npx eslint src/app/portal`: `exit 0` (0 error, 4 warning bawaan `next/image` dipertahankan).
+  - `portal-review-check.cjs`: `PASS`.
+  - `kepegawaian-surat-tugas-portal.playwright.cjs`: `6/6` suites lulus (`9` assertions green).
+  - `portal-notifications-live-e2e.playwright.cjs`: `E2E-LIVE-01A` s.d. `E2E-LIVE-06B` `PASS` (sandbox auto-cleaned).
+  - Visual Browser Verification (`verify-portal-ui.cjs`): Desktop `1440x900` & Mobile `390x844` Light/Dark `0` console error, `0` server error, `0` horizontal overflow.
+- **Status**: ✅ Selesai Diimplementasikan & Diverifikasi.

@@ -102,15 +102,15 @@ export function ChangePasswordModal({
 
   return (
     <Dialog open={open} onOpenChange={isMandatory ? () => {} : (isOpen) => !isOpen && onClose?.()}>
-      <DialogContent className={cn("sm:max-w-md", isMandatory && "[&>button]:hidden")}>
+      <DialogContent data-module="portal" className={cn("sm:max-w-md rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-6 shadow-lg", isMandatory && "[&>button]:hidden")}>
         <DialogHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400 mb-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] mb-2">
             <Lock className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-center text-lg font-bold">
+          <DialogTitle className="text-center text-xl font-bold text-[var(--ds-fg)]">
             {isMandatory ? "Wajib Mengubah Kata Sandi" : "Ubah Kata Sandi Akun"}
           </DialogTitle>
-          <DialogDescription className="text-center text-xs text-slate-500">
+          <DialogDescription className="text-center text-xs text-[var(--ds-fg-muted)]">
             {isMandatory
               ? "Kata sandi Anda baru saja diatur ulang oleh administrator. Demi keamanan akun, Anda wajib menetapkan kata sandi baru untuk melanjutkan."
               : "Perbarui kata sandi Anda secara berkala untuk menjaga keamanan akun portal ASN."}
@@ -119,13 +119,13 @@ export function ChangePasswordModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {errorMsg && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
+            <div className="rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-3 text-xs text-[var(--ds-status-danger-fg)]">
               {errorMsg}
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-[var(--ds-fg)]">
               {isMandatory ? "Kata Sandi Sementara Saat Ini" : "Kata Sandi Saat Ini"}
             </Label>
             <Input
@@ -135,12 +135,12 @@ export function ChangePasswordModal({
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="h-10 text-sm"
+              className="h-10 text-sm rounded-lg"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Kata Sandi Baru</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-[var(--ds-fg)]">Kata Sandi Baru</Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -149,20 +149,20 @@ export function ChangePasswordModal({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                className="h-10 text-sm pr-10"
+                className="h-10 text-sm pr-10 rounded-lg"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Konfirmasi Kata Sandi Baru</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-[var(--ds-fg)]">Konfirmasi Kata Sandi Baru</Label>
             <Input
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
@@ -170,7 +170,7 @@ export function ChangePasswordModal({
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
               required
-              className="h-10 text-sm"
+              className="h-10 text-sm rounded-lg"
             />
           </div>
 
@@ -181,7 +181,7 @@ export function ChangePasswordModal({
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="w-1/2 rounded-xl text-xs h-10 cursor-pointer"
+                className="w-1/2 rounded-lg text-xs h-10 cursor-pointer"
               >
                 Batal
               </Button>
@@ -190,8 +190,8 @@ export function ChangePasswordModal({
               type="submit"
               disabled={loading}
               className={cn(
-                "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs h-10 rounded-xl cursor-pointer",
-                isMandatory ? "w-full shadow-md mt-2" : "w-1/2"
+                "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold text-xs h-10 rounded-lg shadow-xs cursor-pointer",
+                isMandatory ? "w-full mt-2" : "w-1/2"
               )}
             >
               {loading ? (
@@ -290,15 +290,15 @@ export function TwoFactorSetupModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent data-module="portal" className="sm:max-w-md rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-6 shadow-lg">
         <DialogHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] mb-2">
             <ShieldCheck className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-center text-lg font-bold">
+          <DialogTitle className="text-center text-xl font-bold text-[var(--ds-fg)]">
             {step === "recovery" ? "Simpan Recovery Code Anda" : "Autentikasi Dua Langkah (2FA)"}
           </DialogTitle>
-          <DialogDescription className="text-center text-xs text-slate-500">
+          <DialogDescription className="text-center text-xs text-[var(--ds-fg-muted)]">
             {step === "recovery"
               ? "Simpan 8 kode ini di tempat aman. Masing-masing hanya dapat digunakan 1 kali jika Anda kehilangan HP."
               : "Scan QR code berikut di Google Authenticator atau aplikasi sejenis."}
@@ -307,35 +307,35 @@ export function TwoFactorSetupModal({
 
         {step === "loading" ? (
           <div className="flex h-48 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--ds-accent-fg)]" />
           </div>
         ) : step === "scan" ? (
           <form onSubmit={handleConfirm} className="space-y-4 pt-1">
             {errorMsg && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
+              <div className="rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-3 text-xs text-[var(--ds-status-danger-fg)]">
                 {errorMsg}
               </div>
             )}
 
             {/* QR Code Container */}
-            <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-white border border-slate-200/80 dark:border-zinc-800 shadow-xs">
               {qrUri && (
-                <div className="p-2 bg-white rounded-xl">
+                <div className="p-2 bg-white rounded-lg">
                   <QRCode value={qrUri} size={160} />
                 </div>
               )}
               <div className="mt-3 text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+                <p className="text-xs text-slate-600 uppercase tracking-wider font-semibold">
                   Atau masukkan kunci manual:
                 </p>
-                <code className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-sm select-all">
+                <code className="text-xs font-mono font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded-lg select-all">
                   {secret}
                 </code>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Kode 6-Digit dari Aplikasi</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-[var(--ds-fg)]">Kode 6-Digit dari Aplikasi</Label>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -345,19 +345,19 @@ export function TwoFactorSetupModal({
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "")) }
                 required
-                className="h-11 text-center font-mono text-xl tracking-[0.25em] font-bold"
+                className="h-11 text-center font-mono text-xl tracking-[0.25em] font-bold rounded-lg tabular-nums"
               />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-lg text-xs cursor-pointer">
                 Batal
               </Button>
               <Button
                 type="submit"
                 size="sm"
                 disabled={submitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg shadow-xs text-xs cursor-pointer"
               >
                 {submitting ? (
                   <>
@@ -372,9 +372,9 @@ export function TwoFactorSetupModal({
           </form>
         ) : (
           <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 font-mono text-xs text-center font-bold">
+            <div className="grid grid-cols-2 gap-2 p-4 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 font-mono text-xs text-center font-bold tabular-nums">
               {recoveryCodes.map((c, idx) => (
-                <div key={idx} className="p-1.5 rounded-lg bg-white dark:bg-slate-900 shadow-2xs">
+                <div key={idx} className="p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs text-[var(--ds-fg)]">
                   {c}
                 </div>
               ))}
@@ -385,9 +385,9 @@ export function TwoFactorSetupModal({
               variant="outline"
               size="sm"
               onClick={copyRecoveryCodes}
-              className="w-full text-xs font-semibold"
+              className="w-full text-xs font-semibold rounded-lg cursor-pointer"
             >
-              {copied ? <Check className="w-4 h-4 mr-2 text-emerald-600" /> : <Copy className="w-4 h-4 mr-2" />}
+              {copied ? <Check className="w-4 h-4 mr-2 text-[var(--ds-accent-fg)]" /> : <Copy className="w-4 h-4 mr-2" />}
               {copied ? "Berhasil Disalin!" : "Salin Semua Kode"}
             </Button>
 
@@ -398,7 +398,7 @@ export function TwoFactorSetupModal({
                 onOpenChange(false);
                 onSuccess?.();
               }}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              className="w-full bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg shadow-xs text-xs cursor-pointer"
             >
               Selesai & Simpan
             </Button>

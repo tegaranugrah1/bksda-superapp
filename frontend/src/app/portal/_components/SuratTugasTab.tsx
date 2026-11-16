@@ -56,19 +56,19 @@ export function SuratTugasTab({
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-bold text-xs h-9 rounded-xl shadow-xs gap-1.5 cursor-pointer transition-colors"
+                  className="border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-bold text-xs h-9 rounded-lg shadow-xs gap-2 cursor-pointer transition-colors"
                 >
                   <FileText className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                   Buat Laporan
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70 ml-0.5" />
+                  <ChevronDown className="w-4 h-4 opacity-70 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent data-module="surat-tugas" align="end" className="st-ui w-64 p-1.5 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+              <DropdownMenuContent data-module="surat-tugas" align="end" className="st-ui w-64 p-2 rounded-3xl shadow-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
                 <DropdownMenuItem
                   onClick={() => onOpenReportModal("general")}
-                  className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-[var(--ds-surface-muted)] text-xs font-semibold text-[var(--ds-fg-muted)] transition-colors"
+                  className="rounded-lg px-3 py-2 cursor-pointer flex items-center gap-3 hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] text-xs font-semibold text-[var(--ds-fg)] transition-colors"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center shrink-0">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div>
@@ -79,9 +79,9 @@ export function SuratTugasTab({
 
                 <DropdownMenuItem
                   onClick={() => onOpenReportModal("smart_patrol")}
-                  className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2.5 hover:bg-[var(--ds-surface-muted)] text-xs font-semibold text-[var(--ds-fg-muted)] transition-colors"
+                  className="rounded-lg px-3 py-2 cursor-pointer flex items-center gap-3 hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] text-xs font-semibold text-[var(--ds-fg)] transition-colors"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
                     <FileSpreadsheet className="w-4 h-4" />
                   </div>
                   <div>
@@ -93,7 +93,7 @@ export function SuratTugasTab({
             </DropdownMenu>
           )}
 
-          <Button asChild size="sm" className="font-bold text-xs h-9 rounded-xl shadow-xs gap-1.5 cursor-pointer transition-colors st-primary">
+          <Button asChild size="sm" className="font-bold text-xs h-9 rounded-lg shadow-xs gap-2 cursor-pointer transition-colors st-primary">
             <Link href="/surat-tugas">
               <Plus className="w-4 h-4" />
               Ajukan Surat Tugas
@@ -113,7 +113,7 @@ export function SuratTugasTab({
         </div>
       ) : (
         <div
-          className="divide-y divide-[var(--ds-border-subtle)]"
+          className="divide-y divide-slate-200/70 dark:divide-zinc-800"
         >
           {suratTugas.map((st) => (
             <div
@@ -125,11 +125,11 @@ export function SuratTugasTab({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--ds-fg)] truncate group-hover:text-[var(--ds-status-success-fg)] transition-colors">{st.maksud_tujuan}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                  {st.nomor_surat && <span className="text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full">{st.nomor_surat}</span>}
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {st.nomor_surat && <span className="text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-2 py-1 rounded-full tabular-nums">{st.nomor_surat}</span>}
                   {st.status && (
                     <span className={cn(
-                      "text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                      "text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider",
                       ["diterbitkan", "disetujui", "approved", "completed", "published"].includes(st.status.toLowerCase())
                         ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]"
                         : st.status.toLowerCase() === "pending"
@@ -141,7 +141,7 @@ export function SuratTugasTab({
                       {st.status}
                     </span>
                   )}
-                  <span className="text-xs text-[var(--ds-fg-muted)]">
+                  <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                     {formatDateRangeIndonesian(st.tanggal_mulai, st.tanggal_selesai)}
                   </span>
                 </div>

@@ -211,13 +211,13 @@ export function PortalProfileSidebar({
   };
 
     const profileCard = (
-    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 sm:p-4.5 shadow-xs space-y-4 relative flex flex-col justify-between", part === "profile" && "h-full", className)}>
+    <div className={cn("bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs space-y-4 relative flex flex-col justify-between", part === "profile" && "h-full", className)}>
       {/* Edit Profile Icon (Top Right Pencil) */}
       <button
         type="button"
         onClick={openEditDialog}
         title="Edit Informasi Kontak Profil"
-        className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-[#16a34a] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        className="absolute top-4 right-4 p-2 rounded-full text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
       >
         <Pencil className="w-4 h-4" />
       </button>
@@ -233,7 +233,7 @@ export function PortalProfileSidebar({
               className="hidden"
               onChange={handlePhotoSelect}
             />
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#1e5433]/20 shadow-md bg-[#e4f0e6] dark:bg-emerald-950 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[var(--ds-accent-soft-border)] shadow-xs bg-[var(--ds-accent-soft)] flex items-center justify-center">
               {employee?.photo ? (
                 <Image
                   src={`${employee.photo}${employee.photo.includes("?") ? "&" : "?"}v=${photoVersion}`}
@@ -244,7 +244,7 @@ export function PortalProfileSidebar({
                   unoptimized
                 />
               ) : (
-                <div className="w-full h-full bg-[#1e5433] flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-full h-full bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] text-2xl font-bold">
                   {displayName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -254,60 +254,60 @@ export function PortalProfileSidebar({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               title="Ganti Foto Profil"
-              className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#164227] hover:bg-[#153e24] text-white shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
+              className="absolute bottom-0 right-0 p-2 rounded-full bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-xs border-2 border-[var(--ds-surface)] transition-all hover:scale-110 active:scale-95 cursor-pointer z-10"
             >
-              <Camera className="w-3.5 h-3.5" />
+              <Camera className="w-4 h-4" />
             </button>
             {/* Status Pill */}
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1e5433] text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 z-20">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] text-xs font-bold px-2 rounded-full shadow-xs flex items-center gap-1 z-20">
+              <span className="w-2 h-2 rounded-full bg-current animate-pulse"></span>
               AKTIF
             </div>
           </div>
 
-          <div className="space-y-1 pt-1">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+          <div className="space-y-1 pt-2">
+            <h3 className="text-sm font-bold text-[var(--ds-fg)] leading-tight">
               {displayName}
             </h3>
-            <p className="text-xs font-mono font-medium text-[#1e5433] dark:text-emerald-300 bg-[#e4f0e6] dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-[#dce8dd] inline-block">
+            <p className="text-xs font-mono font-medium text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-3 py-1 rounded-full border border-[var(--ds-accent-soft-border)] inline-block tabular-nums">
               {displayNip}
             </p>
           </div>
         </div>
 
         {/* Info Details List */}
-        <div className="space-y-2.5 pt-2.5 border-t border-[#edf3ee] dark:border-slate-800 text-xs">
-          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-            <UserCheck className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+        <div className="space-y-3 pt-3 border-t border-slate-200/70 dark:border-zinc-800 text-xs">
+          <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+            <UserCheck className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
             <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Jabatan</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayPosition}</span>
+              <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Jabatan</span>
+              <span className="font-semibold text-[var(--ds-fg)]">{displayPosition}</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-            <Building className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+            <Building className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
             <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Kerja</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">{displayDept}</span>
+              <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Unit Kerja</span>
+              <span className="font-semibold text-[var(--ds-fg)]">{displayDept}</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-            <Mail className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+            <Mail className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Email</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block">
+              <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Email</span>
+              <span className="font-semibold text-[var(--ds-fg)] truncate block">
                 {displayEmail}
               </span>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
-            <Phone className="w-4 h-4 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+            <Phone className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
             <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Telepon / WhatsApp</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
+              <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Telepon / WhatsApp</span>
+              <span className="font-semibold text-[var(--ds-fg)] tabular-nums">
                 {displayPhone}
               </span>
             </div>
@@ -320,9 +320,9 @@ export function PortalProfileSidebar({
         <button
           type="button"
           onClick={() => setPwDialogOpen(true)}
-          className="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-[#edf3ee] dark:bg-slate-800 hover:bg-[#e4f0e6] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-[#1e5433] dark:hover:text-emerald-300 transition-colors border border-[#dce8dd] dark:border-slate-700 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)] transition-colors border border-slate-200/80 dark:border-zinc-800 cursor-pointer"
         >
-          <Key className="w-3.5 h-3.5 text-slate-500" />
+          <Key className="w-4 h-4 text-[var(--ds-fg-muted)]" />
           <span>Ganti Password</span>
         </button>
       </div>
@@ -330,9 +330,9 @@ export function PortalProfileSidebar({
   );
 
   const menuCard = (
-    <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-3.5 shadow-sm flex flex-col justify-between", part === "menu" && "h-full", className)}>
+    <div className={cn("bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs flex flex-col justify-between", part === "menu" && "h-full", className)}>
       <div className="space-y-1">
-        <p className="px-3 py-1 text-[10px] uppercase tracking-wider font-bold text-slate-400">
+        <p className="px-3 py-1 text-xs uppercase tracking-wider font-bold text-[var(--ds-fg-muted)]">
           Menu Utama
         </p>
 
@@ -345,8 +345,8 @@ export function PortalProfileSidebar({
             { id: "aset", label: "Aset Saya", icon: Briefcase, count: assetCount },
             { id: "surat_tugas", label: "Surat Tugas & Laporan", icon: ClipboardList, count: suratTugasCount },
             ...(!isMmp ? [{ id: "cuti", label: "Pengajuan Cuti", icon: Calendar, count: leaveCount }] : []),
-            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300" },
-            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[#e4f0e6] text-[#1e5433] dark:bg-emerald-950/60 dark:text-emerald-300 border border-[#dce8dd]" },
+            { id: "visum", label: "Visum SPD", icon: FileSpreadsheet, badgeText: "Baru", badgeClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]" },
+            { id: "kalkulator_dinas", label: "Kalkulator Dinas", icon: Calculator, badgeText: "Estimasi", badgeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]" },
           ];
         })().map((item) => {
           const Icon = item.icon;
@@ -357,28 +357,28 @@ export function PortalProfileSidebar({
               type="button"
               onClick={() => onSelectNavTab(item.id)}
               className={cn(
-                "relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left select-none cursor-pointer",
-                isActive ? "text-[#1e5433] dark:text-emerald-300 font-bold"
-                  : "text-slate-700 dark:text-slate-300 hover:bg-[#edf3ee] dark:hover:bg-slate-800 hover:text-[#1e5433] dark:hover:text-emerald-400"
+                "relative w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors text-left select-none cursor-pointer",
+                isActive ? "text-[var(--ds-accent-fg)] font-bold"
+                  : "text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-accent-fg)]"
               )}
             >
               {isActive && (
                 <motion.span
                   layoutId="activePortalSidebarIndicator"
-                  className="absolute inset-0 bg-[#d5e8d9] dark:bg-emerald-950/80 rounded-xl shadow-2xs border border-[#b8dabf] dark:border-emerald-800/60"
+                  className="absolute inset-0 bg-[var(--ds-accent-soft)] rounded-lg shadow-xs border border-[var(--ds-accent-soft-border)]"
                   transition={{ type: "spring", stiffness: 420, damping: 32 }}
                 />
               )}
-              <div className={cn("flex items-center gap-2.5 relative z-10", isActive && "text-[#1e5433] dark:text-emerald-300")}>
-                <Icon className={cn("w-4 h-4", isActive ? "text-[#1e5433] dark:text-emerald-300" : "text-slate-500 dark:text-slate-400")} />
+              <div className={cn("flex items-center gap-3 relative z-10", isActive && "text-[var(--ds-accent-fg)]")}>
+                <Icon className={cn("w-4 h-4", isActive ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]")} />
                 <span>{item.label}</span>
               </div>
               {item.count !== undefined && item.count > 0 && (
                 <span
                   className={cn(
-                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300"
-                      : "bg-[#edf3ee] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-[#dce8dd] dark:border-slate-700"
+                    "relative z-10 px-2 py-0 rounded-full text-xs font-bold tabular-nums",
+                    isActive ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                      : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800"
                   )}
                 >
                   {item.count}
@@ -387,8 +387,8 @@ export function PortalProfileSidebar({
               {item.badgeText && (
                 <span
                   className={cn(
-                    "relative z-10 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                    isActive ? "bg-[#1e5433]/15 text-[#1e5433] dark:bg-emerald-800/40 dark:text-emerald-300" : item.badgeClass
+                    "relative z-10 px-2 py-0 rounded-full text-xs font-bold",
+                    isActive ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]" : item.badgeClass
                   )}
                 >
                   {item.badgeText}
@@ -401,39 +401,39 @@ export function PortalProfileSidebar({
 
       {/* FAST ACTION: BUAT LAPORAN DROPDOWN */}
       {onOpenInlineReport && (
-        <div className="pt-2.5 mt-auto border-t border-[#edf3ee] dark:border-slate-800">
+        <div className="pt-3 mt-auto border-t border-slate-200/70 dark:border-zinc-800">
           <DropdownMenu>
-            <DropdownMenuTrigger className="w-full flex items-center justify-between px-3 py-2 font-bold text-xs rounded-xl shadow-xs bg-[#1e5433] hover:bg-[#164227] text-white transition-all focus:outline-none">
+            <DropdownMenuTrigger className="w-full flex items-center justify-between px-3 py-2 font-bold text-xs rounded-lg shadow-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] transition-all focus:outline-none cursor-pointer">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-white" />
+                <FileText className="w-4 h-4" />
                 <span>{isInlineReportOpen ? "Form Laporan Aktif" : "Buat Laporan"}</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+              <ChevronDown className="w-4 h-4 opacity-80" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 p-2 rounded-2xl border border-slate-200 shadow-xl bg-white dark:bg-slate-900">
+            <DropdownMenuContent data-module="portal" align="start" className="w-64 p-2 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg bg-[var(--ds-surface)]">
               <DropdownMenuItem
                 onClick={() => onOpenInlineReport("general")}
-                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+                className="flex items-start gap-3 p-2 rounded-lg cursor-pointer hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] transition-colors"
               >
-                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-[#1e5433] dark:text-emerald-400 shrink-0 mt-0.5">
+                <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] shrink-0 mt-1">
                   <FileCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">1. Laporan Pelaksanaan ST</p>
-                  <p className="text-[10px] text-slate-500 font-normal">Buka Mode Inline Form Laporan</p>
+                  <p className="text-xs font-bold text-[var(--ds-fg)]">1. Laporan Pelaksanaan ST</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)] font-normal">Buka Mode Inline Form Laporan</p>
                 </div>
               </DropdownMenuItem>
 
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onOpenInlineReport("smart_patrol")}
-                className="flex items-start gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-[#edf3ee] dark:hover:bg-emerald-950/40 focus:bg-emerald-50 transition-colors"
+                className="flex items-start gap-3 p-2 rounded-lg cursor-pointer hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] transition-colors"
               >
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 shrink-0 mt-0.5">
+                <div className="p-2 rounded-lg bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] shrink-0 mt-1">
                   <FileSpreadsheet className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">2. Laporan SMART PATROL</p>
-                  <p className="text-[10px] text-slate-500 font-normal">Buka Form Patroli Kawasan</p>
+                  <p className="text-xs font-bold text-[var(--ds-fg)]">2. Laporan SMART PATROL</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)] font-normal">Buka Form Patroli Kawasan</p>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -447,54 +447,54 @@ export function PortalProfileSidebar({
     <>
       {/* DIALOG EDIT PROFIL KONTAK */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl p-6">
+        <DialogContent data-module="portal" className="sm:max-w-md rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-6 shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-[#1e5433]" />
+            <DialogTitle className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-[var(--ds-accent-fg)]" />
               Edit Informasi Profil Kontak
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
               Perbarui alamat email dan nomor telepon pegawai BKSDA.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveProfile} className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Email</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--ds-fg)]">Email</Label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-3" />
                 <Input
                   type="email"
                   placeholder="contoh@ksdae.go.id"
                   value={editData.email}
                   onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
+                  className="pl-9 text-sm rounded-lg"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold">Nomor Telepon / WhatsApp</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-[var(--ds-fg)]">Nomor Telepon / WhatsApp</Label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Phone className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-3" />
                 <Input
                   type="text"
                   placeholder="08123456789"
                   value={editData.phone}
                   onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                  className="pl-9 text-xs rounded-xl"
+                  className="pl-9 text-sm rounded-lg tabular-nums"
                 />
               </div>
             </div>
 
             {editData.email.trim().toLowerCase() !== (employee?.email || user?.email || "").toLowerCase() && (
-              <div className="space-y-1.5 rounded-xl p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40">
-                <Label className="text-xs font-bold flex justify-between items-center text-amber-900 dark:text-amber-200">
+              <div className="space-y-2 rounded-lg p-3 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)]">
+                <Label className="text-xs font-bold flex justify-between items-center text-[var(--ds-status-warning-fg)]">
                   <span>Kata Sandi Akun Saat Ini</span>
-                  <span className="text-[10px] font-normal text-amber-700 dark:text-amber-400">Wajib konfirmasi</span>
+                  <span className="text-xs font-normal text-[var(--ds-status-warning-fg)]">Wajib konfirmasi</span>
                 </Label>
                 <div className="relative mt-1">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <Lock className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-3" />
                   <Input
                     type="password"
                     autoComplete="current-password"
@@ -502,20 +502,20 @@ export function PortalProfileSidebar({
                     placeholder="Masukkan kata sandi login Anda"
                     value={editData.current_password}
                     onChange={(e) => setEditData({ ...editData, current_password: e.target.value })}
-                    className="pl-9 text-xs rounded-xl bg-white dark:bg-slate-900"
+                    className="pl-9 text-sm rounded-lg bg-[var(--ds-surface)]"
                   />
                 </div>
-                <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80">
+                <p className="text-xs text-[var(--ds-status-warning-fg)]">
                   Verifikasi kata sandi diperlukan untuk melindungi akun saat mengganti alamat email.
                 </p>
               </div>
             )}
 
             <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-xl text-xs">
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-lg text-xs cursor-pointer">
                 Batal
               </Button>
-              <Button type="submit" disabled={editLoading} className="bg-[#1e5433] hover:bg-[#164227] text-white rounded-xl text-xs">
+              <Button type="submit" disabled={editLoading} className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg text-xs font-semibold shadow-xs cursor-pointer">
                 {editLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan Perubahan"}
               </Button>
             </DialogFooter>
@@ -531,19 +531,19 @@ export function PortalProfileSidebar({
 
       {/* DIALOG PREVIEW GANTI FOTO */}
       <Dialog open={photoDialogOpen} onOpenChange={(open) => !open && closePhotoDialog()}>
-        <DialogContent className="sm:max-w-sm rounded-2xl p-6 text-center">
+        <DialogContent data-module="portal" className="sm:max-w-sm rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-6 shadow-lg text-center">
           <DialogHeader className="text-center sm:text-center">
-            <DialogTitle className="text-base font-bold flex items-center justify-center gap-2">
-              <Camera className="w-5 h-5 text-[#1e5433]" />
+            <DialogTitle className="text-xl font-bold text-[var(--ds-fg)] flex items-center justify-center gap-2">
+              <Camera className="w-5 h-5 text-[var(--ds-accent-fg)]" />
               Pratinjau Foto Profil
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
               Pastikan foto sudah sesuai sebelum disimpan ke server.
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 flex flex-col items-center">
-            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#1e5433]/30 shadow-lg bg-slate-100 dark:bg-slate-800">
+            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[var(--ds-accent-soft-border)] shadow-xs bg-[var(--ds-surface-muted)]">
               {photoPreviewUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -554,7 +554,7 @@ export function PortalProfileSidebar({
               )}
             </div>
             {selectedPhotoFile && (
-              <p className="mt-3 text-[11px] text-slate-500 font-mono truncate max-w-60">
+              <p className="mt-3 text-xs text-[var(--ds-fg-muted)] font-mono truncate max-w-60 tabular-nums">
                 {selectedPhotoFile.name} ({(selectedPhotoFile.size / 1024).toFixed(0)} KB)
               </p>
             )}
@@ -566,7 +566,7 @@ export function PortalProfileSidebar({
               variant="outline"
               onClick={closePhotoDialog}
               disabled={photoLoading}
-              className="rounded-xl text-xs w-full sm:w-auto"
+              className="rounded-lg text-xs w-full sm:w-auto cursor-pointer"
             >
               Batal
             </Button>
@@ -574,11 +574,11 @@ export function PortalProfileSidebar({
               type="button"
               onClick={handleUploadPhoto}
               disabled={photoLoading}
-              className="bg-[#1e5433] hover:bg-[#164227] text-white rounded-xl text-xs w-full sm:w-auto"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg text-xs font-semibold shadow-xs w-full sm:w-auto cursor-pointer"
             >
               {photoLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   Mengunggah...
                 </>
               ) : (

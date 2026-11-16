@@ -3227,15 +3227,17 @@ Setelah semua command clean:
 > **Catatan Konteks Aktif:** Catatan progres operasional terbaru (per November 2026) dipusatkan pada [`progress.md`](../progress.md) (Bagian 109–119) di root repository, sedangkan dokumen khusus fitur lifecycle pegawai berada pada [`doc.md`](../doc.md).
 > **Kebijakan Git Aktif:** Commit lokal pada branch **`codex/portal-security-pentest`**, **jangan `git push` atau deploy tanpa instruksi eksplisit pengguna**.
 
-### Status Terakhir (Commit `d20bfcaf`)
-1. **Sistem Desain 5 Token (`docs/DESIGN_SYSTEM_5_TOKENS.md`) Selesai Diterapkan di 3 Modul Utama:**
+### Status Terakhir (Commit `9d7a4ce6` & Portal 5-Token Update)
+1. **Sistem Desain 5 Token (`docs/DESIGN_SYSTEM_5_TOKENS.md`) Selesai Diterapkan di 5 Modul Utama:**
    - **Persuratan (`/surat`):** [`c499257f` & `a41549b4`] Dashboard + seluruh halaman agenda/keluar/dinas/pengaturan/modal + pelembutan `.kpg-secondary` global.
    - **Kepegawaian (`/kepegawaian`):** [`540fb44b`] 38 berkas UI halaman, modal, tab, dan kontrol Surat Tugas di shell Kepegawaian.
-   - **BMN (`/bmn`):** [`d20bfcaf`] Seluruh halaman & komponen UI BMN (dashboard, aset, peminjaman, pemeliharaan, disposal, import review, laporan BA, pengaturan master, paket lelang, & kandidat rusak berat), tetap mengecualikan komponen kertas cetak fisik resmi (`*Document.tsx`, blok `[210mm]`, & `.kk-page`).
+   - **BMN (`/bmn`):** [`d20bfcaf`] Seluruh halaman & komponen UI BMN (dashboard, aset, peminjaman, pemeliharaan, disposal, import review, laporan BA, pengaturan master, paket lelang, & kandidat rusak berat).
+   - **Surat Tugas Standalone (`/surat-tugas`):** [`9d7a4ce6`] Seluruh berkas UI surat-tugas + perbaikan kontras radio button sumber dana DIPA/PNBP/Lainnya & switch.
+   - **Portal ASN (`/portal`):** Dashboard utama, quick stats, banner hero forest green, tab pinjaman/aset/cuti/surat tugas/kalkulator dinas panjar, notification bell & dialog riwayat penuh, inline form laporan patroli & umum, security modal password & 2FA, serta navbar adaptif mobile. Tetap mengecualikan komponen kertas cetak fisik resmi (`FormulirCutiPrint.tsx`, `GeneralReportPrint.tsx`, `SmartPatrolPrint.tsx`, dan lembar LPJ panjar).
 2. **RBAC Per-Modul & Pengerasan Fitur Harian:**
    - Role independen per modul (`users.module_roles`, `f4379c2d`, `faed1785`, `862ec6f0`), ekspor PDF vektor searchable SRIKANDI + Word surat dinas (`93656c64`, `f8ca5a1f`), serta manajemen/hapus scan cuti + arsip Drive (`370c9622`, `7692933a`, `465b1307`).
-3. **Modul Lain yang Belum Disapu 5-Token Sprint:**
-   - Modul **Portal** (`/portal`), **Surat Tugas publik/standalone** (`/surat-tugas`), **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS** belum mendapat audit sapu-bersih 5 Design Tokens menyeluruh seperti `/surat`, `/kepegawaian`, dan `/bmn`.
+3. **Modul Lain untuk Sprint Berikutnya:**
+   - Modul **BKSDA Drive** (`/drive`), **DeReporting** (`/dereporting`), **Keuangan**, dan **CMS**.
 4. **Rujukan Audit & Cek Cepat untuk Sesi Berikutnya:**
-   - Rinci hasil pengujian & perubahan BMN terakhir: lihat [`progress.md`](../progress.md#L2564) (Bagian 117–119).
+   - Rinci hasil pengujian & perubahan terakhir: lihat [`progress.md`](../progress.md) (Bagian 117–121).
    - Pastikan selalu memperbarui Knowledge Graph dengan `graphify update .` pasca mengubah kode.

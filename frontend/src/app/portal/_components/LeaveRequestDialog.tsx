@@ -152,48 +152,48 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative">
+    <div data-module="portal" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+          className="absolute top-4 right-4 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] p-2 rounded-lg cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2 mb-4">
-          <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="text-xl font-bold text-[var(--ds-fg)]">
               Formulir Permintaan Cuti Mandiri
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Isi data pengajuan cuti secara lengkap untuk diterbitkan formulirnya.
             </p>
           </div>
         </div>
 
         {/* Banner Informatif Sisa Cuti */}
-        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 mb-4 flex items-center justify-between shadow-sm">
+        <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg p-4 mb-4 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-[var(--ds-accent-fg)] shrink-0" />
             <div>
-              <span className="text-[11px] font-bold text-emerald-950 dark:text-emerald-200 block leading-tight">
+              <span className="text-xs font-bold text-[var(--ds-fg)] block leading-tight tabular-nums">
                 Sisa Hak Cuti Tahunan ({currentYear})
               </span>
-              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-400">
+              <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                 Sesuai saldo akumulasi PerBKN 24/2017
               </span>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-lg font-extrabold text-emerald-700 dark:text-emerald-300">
+            <span className="text-xl font-bold text-[var(--ds-accent-fg)] tabular-nums">
               {leaveBalance ? (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia) : 12} Hari
             </span>
             {leaveBalance && (leaveBalance.pending_cuti_tahunan ?? 0) > 0 && (
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 block font-semibold">
+              <span className="text-xs text-[var(--ds-status-warning-fg)] block font-semibold tabular-nums">
                 ({leaveBalance.pending_cuti_tahunan} hari dalam proses pengajuan)
               </span>
             )}
@@ -259,11 +259,11 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
           {/* Jenis Cuti */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-semibold text-[var(--ds-fg)]">
                 Jenis Cuti Yang Diambil *
               </label>
               {selectedLeaveType?.maks_hari && (
-                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                <span className="text-xs text-[var(--ds-status-info-fg)] font-medium tabular-nums">
                   Maksimal {selectedLeaveType.maks_hari} hari
                 </span>
               )}
@@ -271,7 +271,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
             <select
               value={form.jenis_cuti}
               onChange={(e) => setForm({ ...form, jenis_cuti: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs font-semibold text-[var(--ds-fg)]"
             >
               {availableLeaveOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -282,38 +282,38 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
           </div>
 
           {/* Tanggal Mulai & Tanggal Selesai */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-semibold text-[var(--ds-fg)] block mb-1">
                   Mulai Tanggal *
                 </label>
                 <Input
                   type="date"
                   value={form.tanggal_mulai}
                   onChange={(e) => setForm({ ...form, tanggal_mulai: e.target.value })}
-                  className="text-xs font-semibold"
+                  className="text-xs font-semibold rounded-lg tabular-nums"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-xs font-semibold text-[var(--ds-fg)] block mb-1">
                   Sampai Tanggal *
                 </label>
                 <Input
                   type="date"
                   value={form.tanggal_selesai}
                   onChange={(e) => setForm({ ...form, tanggal_selesai: e.target.value })}
-                  className="text-xs font-semibold"
+                  className="text-xs font-semibold rounded-lg tabular-nums"
                 />
               </div>
             </div>
 
             {/* Indikator Durasi Cuti */}
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/60 text-xs">
-              <span className="text-slate-600 dark:text-slate-400 font-medium">
+            <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--ds-status-info-bg)] border border-[var(--ds-status-info-border)] text-xs">
+              <span className="text-[var(--ds-fg-muted)] font-medium">
                 Lamanya Cuti ({isHariKerja ? "Hari Kerja" : "Hari Kalender"}):
               </span>
-              <span className="font-extrabold text-blue-700 dark:text-blue-300">
+              <span className="font-bold text-[var(--ds-status-info-fg)] tabular-nums">
                 {calculatedDays > 0
                   ? `${calculatedDays} ${isHariKerja ? "Hari Kerja" : "Hari"}`
                   : "Tanggal tidak valid"}
@@ -323,7 +323,7 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
 
           {/* Alasan Cuti */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-semibold text-[var(--ds-fg)] block mb-1">
               Alasan Cuti *
             </label>
             <Textarea
@@ -331,15 +331,15 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               value={form.alasan_cuti}
               onChange={(e) => setForm({ ...form, alasan_cuti: e.target.value })}
               placeholder="Contoh: Perpanjang SIM di Balikpapan / Acara keluarga..."
-              className="text-xs"
+              className="text-xs rounded-lg"
               required
             />
           </div>
 
           {/* Alamat Selama Menjalankan Cuti */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+            <label className="text-xs font-semibold text-[var(--ds-fg)] mb-1 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[var(--ds-fg-muted)]" />
               Alamat Selama Menjalankan Cuti *
             </label>
             <Input
@@ -347,15 +347,15 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               value={form.alamat_menjalankan_cuti}
               onChange={(e) => setForm({ ...form, alamat_menjalankan_cuti: e.target.value })}
               placeholder="Contoh: Jl. Sudirman No. 12, Balikpapan"
-              className="text-xs"
+              className="text-xs rounded-lg"
               required
             />
           </div>
 
           {/* Nomor Telepon */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <Phone className="w-3.5 h-3.5 text-slate-400" />
+            <label className="text-xs font-semibold text-[var(--ds-fg)] mb-1 flex items-center gap-2">
+              <Phone className="w-4 h-4 text-[var(--ds-fg-muted)]" />
               Nomor Telepon Kontak Cuti
             </label>
             <Input
@@ -363,17 +363,17 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               value={form.telepon}
               onChange={(e) => setForm({ ...form, telepon: e.target.value })}
               placeholder="Contoh: 081351458775"
-              className="text-xs"
+              className="text-xs rounded-lg tabular-nums"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="text-xs rounded-xl"
+              className="text-xs rounded-lg cursor-pointer"
             >
               Batal
             </Button>
@@ -381,9 +381,9 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               type="submit"
               size="sm"
               disabled={submitMutation.isPending || calculatedDays <= 0 || calculatedDays > 365 || ((selectedLeaveType ? selectedLeaveType.potong_kuota_tahunan : form.jenis_cuti.toLowerCase().includes("tahunan")) && leaveBalance !== null && calculatedDays > (leaveBalance.sisa_cuti_dapat_diajukan ?? leaveBalance.sisa_cuti_tersedia))}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl gap-1.5"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-lg gap-2 shadow-xs cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-4 h-4" />
               {submitMutation.isPending ? "Mengirim..." : "Kirim Pengajuan Cuti"}
             </Button>
           </div>

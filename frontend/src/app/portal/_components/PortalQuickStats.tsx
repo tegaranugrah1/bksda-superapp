@@ -53,24 +53,24 @@ export function PortalQuickStats({
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
+      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
     >
       {/* 1. PANGKAT & GOLONGAN */}
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
         whileTap={{ scale: 0.98 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-2.5 sm:p-3 shadow-2xs hover:shadow-sm transition-shadow flex items-start gap-3 select-none"
+        className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-3 select-none"
       >
-        <div className="p-2 rounded-xl bg-[#eff6ff] dark:bg-blue-950/60 text-[#2563eb] dark:text-blue-400 shrink-0 border border-[#dbeafe] dark:border-blue-900/40">
+        <div className="p-2 rounded-lg bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] shrink-0 border border-[var(--ds-status-info-border)]">
           <Award className="w-4 h-4" />
         </div>
-        <div className="space-y-0.5 min-w-0">
-          <p className="text-[9.5px] uppercase font-bold tracking-tight text-slate-400 truncate">Pangkat / Golongan</p>
-          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+        <div className="space-y-1 min-w-0">
+          <p className="text-xs uppercase font-bold tracking-tight text-[var(--ds-fg-muted)] truncate">Pangkat / Golongan</p>
+          <p className="text-sm font-bold text-[var(--ds-fg)] truncate tabular-nums">
             {rank || "-"}
           </p>
-          <p className="text-[10px] text-slate-500 truncate">
+          <p className="text-xs text-[var(--ds-fg-muted)] truncate">
             {rank ? "Golongan Aktif" : "Non-PNS / Belum Diatur"}
           </p>
         </div>
@@ -82,34 +82,34 @@ export function PortalQuickStats({
           tab: "cuti" as const,
           icon: Calendar,
           iconBoxClass:
-            "bg-[#fffbeb] dark:bg-amber-950/60 text-[#d97706] dark:text-amber-400 border-[#fef3c7] dark:border-amber-900/40",
+            "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]",
           label: `Sisa Cuti (${year || new Date().getFullYear()})`,
           value: leaveBalance ? `${leaveBalance.sisa_cuti_tersedia} Hari Kerja` : "-",
           subtitle:
             leaveBalance && (leaveBalance.pending_cuti_tahunan ?? 0) > 0
               ? `${leaveBalance.pending_cuti_tahunan} Hari Diajukan`
               : "Cuti Tahunan Ready",
-          subtitleClass: "text-[#d97706] dark:text-amber-400",
+          subtitleClass: "text-[var(--ds-status-warning-fg)]",
         }] : []),
         {
           tab: "surat_tugas" as const,
           icon: FileCheck,
           iconBoxClass:
-            "bg-[#faf5ff] dark:bg-purple-950/60 text-[#9333ea] dark:text-purple-400 border-[#f3e8ff] dark:border-purple-900/40",
+            "bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800",
           label: "Surat Tugas",
           value: `${activeSuratTugasCount} ST Aktif`,
           subtitle: activeSuratTugasCount > 0 ? "Dalam Penugasan" : "Tidak Ada Penugasan",
-          subtitleClass: "text-[#9333ea] dark:text-purple-400",
+          subtitleClass: "text-sky-700 dark:text-sky-300",
         },
         {
           tab: "aset" as const,
           icon: Package,
           iconBoxClass:
-            "bg-[#e4f0e6] dark:bg-emerald-950/60 text-[#1e5433] dark:text-emerald-400 border-[#dce8dd] dark:border-emerald-800/40",
+            "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
           label: "Aset Saya",
           value: `${myAssetsCount} Barang / Alat`,
           subtitle: myAssetsCount > 0 ? "Dalam Penguasaan" : "Tidak Ada Aset",
-          subtitleClass: "text-[#1e5433] dark:text-emerald-400",
+          subtitleClass: "text-[var(--ds-accent-fg)]",
         },
       ]).map(({ tab, icon: Icon, iconBoxClass, label, value, subtitle, subtitleClass }) => (
         <motion.div
@@ -126,17 +126,17 @@ export function PortalQuickStats({
               onSelectTab?.(tab);
             }
           }}
-          className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-2.5 sm:p-3 shadow-2xs hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 transition-all flex items-start gap-3 cursor-pointer select-none"
+          className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-3 cursor-pointer select-none"
         >
-          <div className={`p-2 rounded-xl shrink-0 border ${iconBoxClass}`}>
+          <div className={`p-2 rounded-lg shrink-0 border ${iconBoxClass}`}>
             <Icon className="w-4 h-4" />
           </div>
-          <div className="space-y-0.5 min-w-0">
-            <p className="text-[9.5px] uppercase font-bold tracking-tight text-slate-400 truncate">
+          <div className="space-y-1 min-w-0">
+            <p className="text-xs uppercase font-bold tracking-tight text-[var(--ds-fg-muted)] truncate">
               {label}
             </p>
-            <p className="text-xs font-bold text-slate-900 dark:text-white">{value}</p>
-            <p className={`text-[10px] font-semibold truncate ${subtitleClass}`}>{subtitle}</p>
+            <p className="text-sm font-bold text-[var(--ds-fg)] tabular-nums truncate">{value}</p>
+            <p className={`text-xs font-semibold truncate tabular-nums ${subtitleClass}`}>{subtitle}</p>
           </div>
         </motion.div>
       ))}

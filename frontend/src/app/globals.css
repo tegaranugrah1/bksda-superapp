@@ -139,7 +139,8 @@
 [data-module="bmn"],
 [data-module="surat-tugas"],
 [data-module="kepegawaian"],
-[data-module="persuratan"] {
+[data-module="persuratan"],
+[data-module="portal"] {
   --ds-canvas: #f8fafc;
   --ds-surface: #ffffff;
   --ds-fg: #0f172a;
@@ -214,6 +215,15 @@
   --ds-accent-soft-border: #99f6e4;
 }
 
+[data-module="portal"] {
+  --ds-accent-solid: #1e5433;
+  --ds-accent-hover: #164227;
+  --ds-accent-active: #153e24;
+  --ds-accent-fg: #1e5433;
+  --ds-accent-soft: #edf3ee;
+  --ds-accent-soft-border: #dce8dd;
+}
+
 .dark[data-module="bmn"],
 .dark [data-module="bmn"],
 .dark[data-module="surat-tugas"],
@@ -221,7 +231,9 @@
 .dark[data-module="kepegawaian"],
 .dark [data-module="kepegawaian"],
 .dark[data-module="persuratan"],
-.dark [data-module="persuratan"] {
+.dark [data-module="persuratan"],
+.dark[data-module="portal"],
+.dark [data-module="portal"] {
   --ds-canvas: #09090b;
   --ds-surface: #18181b;
   --ds-fg: #f8fafc;
@@ -298,6 +310,33 @@
   --ds-accent-fg: #5eead4;
   --ds-accent-soft: #042f2e;
   --ds-accent-soft-border: #115e59;
+}
+
+.dark[data-module="portal"],
+.dark [data-module="portal"] {
+  --ds-accent-solid: #86efac;
+  --ds-accent-hover: #bbf7d0;
+  --ds-accent-active: #dcfce7;
+  --ds-accent-fg: #86efac;
+  --ds-accent-soft: #0d281a;
+  --ds-accent-soft-border: #24583a;
+}
+
+[data-module="portal"] :is(button, a)[data-variant="outline"] {
+  background: var(--ds-surface-raised);
+  color: var(--ds-secondary-fg);
+  border: 1px solid var(--ds-border-subtle);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+}
+
+.dark [data-module="portal"] :is(button, a)[data-variant="outline"],
+.dark[data-module="portal"] :is(button, a)[data-variant="outline"] {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+[data-module="portal"] :is(button, a)[data-variant="outline"]:hover {
+  background: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
 }
 
 /* Marquee animation for photo gallery */

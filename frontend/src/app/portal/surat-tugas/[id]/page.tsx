@@ -175,7 +175,7 @@ function SuratTugasPreviewContent() {
       <div data-module="surat-tugas" className="st-ui st-portal-preview min-h-screen st-page-enter bg-[var(--ds-canvas)] py-8 px-4 print:p-0 print:bg-white">
         {/* Top actions bar */}
         <div className="max-w-4xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
-          <Link href="/portal" className="inline-flex items-center gap-2 text-sm text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors">
+          <Link href="/portal" className="inline-flex items-center gap-2 text-sm font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Kembali ke Portal
           </Link>
@@ -183,21 +183,21 @@ function SuratTugasPreviewContent() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-raised)] hover:border-[var(--ds-border-control)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] transition-colors shadow-xs cursor-pointer"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-4 h-4" />
               Cetak
             </button>
             <button
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] transition-colors shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {downloading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
               )}
               Unduh Surat
             </button>
@@ -205,14 +205,14 @@ function SuratTugasPreviewContent() {
         </div>
 
         {/* Letter preview */}
-        <div className="max-w-4xl mx-auto bg-[var(--ds-surface)] rounded-xl shadow-sm border border-[var(--ds-border-subtle)] overflow-hidden print:border-none print:shadow-none">
+        <div className="max-w-4xl mx-auto bg-[var(--ds-surface)] rounded-3xl shadow-xs border border-slate-200/80 dark:border-zinc-800 overflow-hidden print:border-none print:shadow-none">
           {/* Header */}
-          <div className="border-b border-[var(--ds-border-subtle)] p-4 sm:p-8 text-center">
-            <h1 className="text-lg font-bold text-[var(--ds-fg)] uppercase tracking-wide">
+          <div className="border-b border-slate-200/70 dark:border-zinc-800 p-4 sm:p-8 text-center">
+            <h1 className="text-xl font-bold text-[var(--ds-fg)] uppercase tracking-wide">
               Surat Tugas
             </h1>
             {data.nomor_surat && (
-              <p className="text-sm text-[var(--ds-fg-muted)] mt-1">
+              <p className="text-sm text-[var(--ds-fg-muted)] mt-1 tabular-nums">
                 Nomor: {data.nomor_surat}
               </p>
             )}
@@ -224,7 +224,7 @@ function SuratTugasPreviewContent() {
             {parseItems(data.menimbang).length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1">Menimbang</h3>
-                <ul className="text-sm text-[var(--ds-fg-muted)] space-y-1 list-disc list-inside">
+                <ul className="text-sm text-[var(--ds-fg)] space-y-1 list-disc list-inside">
                   {parseItems(data.menimbang).map((text, idx) => (
                     <li key={idx} className="leading-relaxed">{text}</li>
                   ))}
@@ -236,7 +236,7 @@ function SuratTugasPreviewContent() {
             {parseItems(data.dasar).length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1">Dasar</h3>
-                <ul className="text-sm text-[var(--ds-fg-muted)] space-y-1 list-disc list-inside">
+                <ul className="text-sm text-[var(--ds-fg)] space-y-1 list-disc list-inside">
                   {parseItems(data.dasar).map((text, idx) => (
                     <li key={idx} className="leading-relaxed">{text}</li>
                   ))}
@@ -247,44 +247,44 @@ function SuratTugasPreviewContent() {
             {/* Maksud & Tujuan */}
             <div>
               <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1">Maksud & Tujuan</h3>
-              <p className="text-sm text-[var(--ds-fg-muted)]">{data.maksud_tujuan}</p>
+              <p className="text-sm text-[var(--ds-fg)]">{data.maksud_tujuan}</p>
             </div>
 
             {/* Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[var(--ds-surface)] rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg">
               {data.tempat_tujuan && (
                 <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-[var(--ds-status-success-fg)] mt-0.5 shrink-0" />
+                  <MapPin className="w-4 h-4 text-[var(--ds-accent-fg)] mt-1 shrink-0" />
                   <div>
                     <p className="text-xs text-[var(--ds-fg-muted)]">Tempat Tujuan</p>
-                    <p className="text-sm font-medium text-[var(--ds-fg-muted)]">{data.tempat_tujuan}</p>
+                    <p className="text-sm font-medium text-[var(--ds-fg)]">{data.tempat_tujuan}</p>
                   </div>
                 </div>
               )}
               <div className="flex items-start gap-2">
-                <Calendar className="w-4 h-4 text-[var(--ds-status-success-fg)] mt-0.5 shrink-0" />
+                <Calendar className="w-4 h-4 text-[var(--ds-accent-fg)] mt-1 shrink-0" />
                 <div>
                   <p className="text-xs text-[var(--ds-fg-muted)]">Tanggal</p>
-                  <p className="text-sm font-medium text-[var(--ds-fg-muted)]">
+                  <p className="text-sm font-medium text-[var(--ds-fg)] tabular-nums">
                     {formatDateRangeIndonesian(data.tanggal_mulai, data.tanggal_selesai)}
                   </p>
                 </div>
               </div>
               {data.transportasi && (
                 <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-[var(--ds-status-success-fg)] mt-0.5 shrink-0" />
+                  <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] mt-1 shrink-0" />
                   <div>
                     <p className="text-xs text-[var(--ds-fg-muted)]">Transportasi</p>
-                    <p className="text-sm font-medium text-[var(--ds-fg-muted)]">{data.transportasi}</p>
+                    <p className="text-sm font-medium text-[var(--ds-fg)]">{data.transportasi}</p>
                   </div>
                 </div>
               )}
               {data.anggaran_dari && (
                 <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-[var(--ds-status-success-fg)] mt-0.5 shrink-0" />
+                  <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] mt-1 shrink-0" />
                   <div>
                     <p className="text-xs text-[var(--ds-fg-muted)]">Anggaran</p>
-                    <p className="text-sm font-medium text-[var(--ds-fg-muted)]">{data.anggaran_dari}</p>
+                    <p className="text-sm font-medium text-[var(--ds-fg)]">{data.anggaran_dari}</p>
                   </div>
                 </div>
               )}
@@ -293,36 +293,36 @@ function SuratTugasPreviewContent() {
             {/* Personil */}
             {data.employees && data.employees.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" />
+                <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
                   Personil yang Ditugaskan
                 </h3>
-                <div className="border border-[var(--ds-border-subtle)] rounded-lg overflow-x-auto">
+                <div className="border border-slate-200/80 dark:border-zinc-800 rounded-lg overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-[var(--ds-surface)]">
+                    <thead className="bg-[var(--ds-surface-muted)] border-b border-slate-200/70 dark:border-zinc-800">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--ds-fg-muted)]">No</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--ds-fg-muted)]">Nama</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--ds-fg-muted)]">NIP</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--ds-fg-muted)]">Jabatan</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--ds-fg-muted)]">No</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--ds-fg-muted)]">Nama</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--ds-fg-muted)]">NIP</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--ds-fg-muted)]">Jabatan</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                    <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                       {data.employees.map((emp, idx) => (
                         <tr key={emp.id} className="hover:bg-[var(--ds-surface-muted)]">
-                          <td className="px-4 py-2 text-[var(--ds-fg-muted)]">{idx + 1}</td>
-                          <td className="px-4 py-2 font-medium text-[var(--ds-fg-muted)]">{emp.nama_lengkap}</td>
-                          <td className="px-4 py-2 text-[var(--ds-fg-muted)]">{formatNIP(emp.nip)}</td>
+                          <td className="px-4 py-2 text-[var(--ds-fg-muted)] tabular-nums">{idx + 1}</td>
+                          <td className="px-4 py-2 font-medium text-[var(--ds-fg)]">{emp.nama_lengkap}</td>
+                          <td className="px-4 py-2 text-[var(--ds-fg-muted)] font-mono tabular-nums">{formatNIP(emp.nip)}</td>
                           <td className="px-4 py-2 text-[var(--ds-fg-muted)]">{emp.jabatan || "-"}</td>
                         </tr>
                       ))}
                       {Boolean(data.jumlah_buruh && data.jumlah_buruh > 0) &&
                         Array.from({ length: Math.min(Math.max(0, Number(data.jumlah_buruh) || 0), 100) }).map((_, bIdx) => (
                           <tr key={`pm-${bIdx}`} className="hover:bg-[var(--ds-surface-muted)]">
-                            <td className="px-4 py-2 text-[var(--ds-fg-muted)]">
+                            <td className="px-4 py-2 text-[var(--ds-fg-muted)] tabular-nums">
                               {(data.employees?.length || 0) + bIdx + 1}
                             </td>
-                            <td className="px-4 py-2 font-bold text-[var(--ds-fg-muted)]">PM</td>
+                            <td className="px-4 py-2 font-bold text-[var(--ds-fg)]">PM</td>
                             <td className="px-4 py-2 text-[var(--ds-fg-muted)]">-</td>
                             <td className="px-4 py-2 text-[var(--ds-fg-muted)]">-</td>
                           </tr>
@@ -337,13 +337,13 @@ function SuratTugasPreviewContent() {
             {data.keterangan && (
               <div>
                 <h3 className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1">Keterangan</h3>
-                <p className="text-sm text-[var(--ds-fg-muted)] whitespace-pre-line">{data.keterangan}</p>
+                <p className="text-sm text-[var(--ds-fg)] whitespace-pre-line">{data.keterangan}</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="border-t border-[var(--ds-border-subtle)] p-6 text-center text-xs text-[var(--ds-fg-muted)]">
+          <div className="border-t border-slate-200/70 dark:border-zinc-800 p-6 text-center text-xs text-[var(--ds-fg-muted)]">
             Dokumen ini dihasilkan oleh sistem BKSDA SuperApp
           </div>
         </div>

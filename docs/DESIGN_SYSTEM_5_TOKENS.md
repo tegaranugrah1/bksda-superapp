@@ -20,7 +20,7 @@ Dokumen ini menjadi kiblat praktis untuk tata letak, tipografi, warna, kelengkun
 
 ## Token 1 — Color Roles (Berdasarkan Job, Bukan Hue)
 
-Jangan mengetik hex mentah atau meracik `color-mix(...)` manual di komponen UI. Gunakan CSS custom property `--ds-*` dari [`globals.css`](../frontend/src/app/globals.css) dalam scope `[data-module="persuratan" | "kepegawaian" | "bmn" | "surat-tugas"]` agar Light Mode dan Dark Mode bertukar otomatis:
+Jangan mengetik hex mentah atau meracik `color-mix(...)` manual di komponen UI. Gunakan CSS custom property `--ds-*` dari [`globals.css`](../frontend/src/app/globals.css) dalam scope `[data-module="persuratan" | "kepegawaian" | "bmn" | "surat-tugas" | "portal"]` agar Light Mode dan Dark Mode bertukar otomatis:
 
 | Role | Token | Light | Dark | Pemakaian |
 | --- | --- | --- | --- | --- |
@@ -111,4 +111,6 @@ console.log(JSON.stringify({ texts, oddSpace, radii, shadows }, null, 2));
 - **Modul Persuratan (`c499257f`, `a41549b4`):** [`frontend/src/app/surat/`](../frontend/src/app/surat/page.tsx) (seluruh halaman, dialog, & popover non-cetak) + tombol sekunder global `.kpg-secondary` / `.psr-secondary` di [`kepegawaian.css`](../frontend/src/app/kepegawaian/kepegawaian.css).
 - **Modul Kepegawaian & Surat Tugas (`540fb44b`):** [`frontend/src/app/kepegawaian/`](../frontend/src/app/kepegawaian/page.tsx) (dashboard, daftar & detail pegawai, cuti, uang makan, surat masuk, surat tugas, & pengaturan).
 - **Modul BMN (`d20bfcaf`):** [`frontend/src/app/bmn/`](../frontend/src/app/bmn/page.tsx) + `.bmn-secondary` di [`bmn-ui.css`](../frontend/src/app/bmn/bmn-ui.css) (dashboard, aset, peminjaman, pemeliharaan, disposal, import review, laporan BA, pengaturan master, paket lelang, & kandidat rusak berat).
-- **Pengecualian Dokumen Cetak Fisik:** Template naskah dan kertas kerja cetak (`LembarDisposisiSheet`, `SuratDinasDocument`, `reports/_components/*Document.tsx`, `auction-candidates/_components/*Document.tsx`, blok `[210mm]` pada `DocumentContentEditorModal.tsx`, dan blok `.kk-page` pada `KertasKerjaAssetSection.tsx`) tetap mempertahankan kertas putih (`#ffffff`) dan tinta hitam (`#000000`) sesuai standar fisik resmi.
+- **Modul Surat Tugas Standalone (`9d7a4ce6`):** [`frontend/src/app/surat-tugas/`](../frontend/src/app/surat-tugas/) (dashboard, pembuatan ST, audit log, perbaikan kontras radio button sumber dana & switch).
+- **Modul Portal ASN (`codex/portal-security-pentest`):** [`frontend/src/app/portal/`](../frontend/src/app/portal/page.tsx) (dashboard utama, banner hero forest green, quick stats, navigasi tab pinjaman/aset/cuti/surat tugas/kalkulator dinas panjar, notification bell & dialog riwayat penuh, inline form laporan patroli & umum, security modal password & 2FA, serta navbar adaptif mobile).
+- **Pengecualian Dokumen Cetak Fisik:** Template naskah dan kertas kerja cetak (`LembarDisposisiSheet`, `SuratDinasDocument`, `reports/_components/*Document.tsx`, `auction-candidates/_components/*Document.tsx`, blok `[210mm]` pada `DocumentContentEditorModal.tsx`, blok `.kk-page` pada `KertasKerjaAssetSection.tsx`, `FormulirCutiPrint.tsx`, `GeneralReportPrint.tsx`, `SmartPatrolPrint.tsx`, dan lembar cetak LPJ panjar) tetap mempertahankan kertas putih (`#ffffff`) dan tinta hitam (`#000000`) sesuai standar fisik resmi.
