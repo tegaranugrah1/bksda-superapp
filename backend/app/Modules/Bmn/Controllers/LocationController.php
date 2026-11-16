@@ -84,15 +84,6 @@ class LocationController extends Controller
                 : Location::TYPE_ROOM;
         }
 
-        if (in_array($locationType, [Location::TYPE_BALAI, Location::TYPE_SEKSI], true)) {
-            $user = $request->user();
-            if ($user && $user->role !== 'super_admin') {
-                return response()->json([
-                    'message' => 'Hanya Super Admin yang diizinkan menambahkan unit kerja baru.',
-                ], 403);
-            }
-        }
-
         if ($parent) {
             if ($locationType === Location::TYPE_RESOR && $parent->location_type !== Location::TYPE_SEKSI) {
                 return response()->json([
@@ -120,8 +111,6 @@ class LocationController extends Controller
                 }
             }
         }
-
-        $this->ensureUnitKerjaAllowed($request, $unitKerja);
 
         $location = DB::transaction(function () use ($request, $validated, $parent, $locationType, $unitKerja) {
             $code = isset($validated['code']) && trim((string) $validated['code']) !== ''
@@ -258,9 +247,6 @@ class LocationController extends Controller
             ? $parent->effectiveUnitKerja()
             : ($validated['unit_kerja'] ?? $location->unit_kerja);
 
-        $this->ensureUnitKerjaAllowed($request, $location->unit_kerja);
-        $this->ensureUnitKerjaAllowed($request, $newUnitKerja);
-
         DB::transaction(function () use ($request, $location, $validated, $parent, $newType, $newName, $newUnitKerja) {
             $oldName = $location->name;
             $oldDriveUnitId = $location->effectiveDriveUnitId();
@@ -338,8 +324,6 @@ class LocationController extends Controller
             'employees as active_employees_count' => fn ($q) => $q->where('is_active', true),
         ])->findOrFail($id);
 
-        $this->ensureUnitKerjaAllowed($request, $location->unit_kerja);
-
         if ($location->children_count > 0) {
             return response()->json([
                 'message' => "Lokasi '{$location->name}' tidak dapat dihapus karena masih memiliki {$location->children_count} sub-unit/ruangan/resor.",
@@ -413,26 +397,5 @@ class LocationController extends Controller
         }
 
         abort(403, 'Anda tidak memiliki hak untuk mengelola Master Lokasi.');
-    }
-
-    private function ensureUnitKerjaAllowed(Request $request, string $unitKerja): void
-    {
-        $user = $request->user();
-        if ($user && $user->role !== 'super_admin') {
-            $standardUnits = [
-                'Kantor Balai KSDA Kalimantan Timur',
-                'Seksi KSDA Wilayah I (Berau)',
-                'Seksi KSDA Wilayah II (Tenggarong)',
-                'Seksi KSDA Wilayah III (Balikpapan)',
-            ];
-            $existingUnits = Location::distinct()->pluck('unit_kerja')->toArray();
-            $allowedUnits = array_unique(array_merge($standardUnits, $existingUnits));
-
-            if (!in_array($unitKerja, $allowedUnits, true)) {
-                abort(response()->json([
-                    'message' => 'Hanya Super Admin yang diizinkan menambahkan unit kerja baru. Silakan pilih unit kerja yang sudah ada.',
-                ], 403));
-            }
-        }
     }
 }

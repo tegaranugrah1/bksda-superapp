@@ -29,7 +29,7 @@ export default function BmnSettingsPage() {
   const [activeTab, setActiveTab] = useState<"tags" | "locations" | "asset-types">("tags");
 
   const { hasPermission, isSuperAdmin } = useRole();
-  const canManage = hasPermission("bmn.asset.update");
+  const canManage = isSuperAdmin || hasPermission("bmn.manage");
 
   // ==========================================
   // DATA QUERIES

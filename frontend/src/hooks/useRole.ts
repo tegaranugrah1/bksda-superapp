@@ -51,27 +51,9 @@ export function useRole() {
         }
 
         if (permission.startsWith("surat.")) {
-          const hasSuratModule = user?.access_modules?.includes("surat") || false;
-          if (!hasSuratModule) return false;
-          if (permission.startsWith("surat.masuk.") || permission === "surat.export") {
-            return role === "admin";
-          }
-          if (
-            [
-              "surat.view",
-              "surat.document.view",
-              "surat.create",
-              "surat.update",
-              "surat.delete",
-              "surat.keluar.view",
-              "surat.keluar.create",
-              "surat.keluar.update",
-              "surat.keluar.delete",
-            ].includes(permission)
-          ) {
-            return true;
-          }
-          return role === "admin";
+          if (!user?.access_modules?.includes("surat")) return false;
+          if (role === "admin") return true;
+          return !permission.startsWith("surat.masuk.") && permission !== "surat.export";
         }
 
         return false;

@@ -208,27 +208,13 @@ class User extends Authenticatable
             }
 
             if (str_starts_with($permission, 'surat.')) {
-                $hasSuratModule = in_array('surat', $this->access_modules ?? []);
-                if (! $hasSuratModule) {
+                if (! in_array('surat', $this->access_modules ?? [])) {
                     return false;
                 }
-                if (str_starts_with($permission, 'surat.masuk.') || $permission === 'surat.export') {
-                    return $this->role === 'admin';
-                }
-                if (in_array($permission, [
-                    'surat.view',
-                    'surat.document.view',
-                    'surat.create',
-                    'surat.update',
-                    'surat.delete',
-                    'surat.keluar.view',
-                    'surat.keluar.create',
-                    'surat.keluar.update',
-                    'surat.keluar.delete',
-                ], true)) {
+                if ($this->role === 'admin') {
                     return true;
                 }
-                return $this->role === 'admin';
+                return ! str_starts_with($permission, 'surat.masuk.') && $permission !== 'surat.export';
             }
 
             return false;

@@ -156,11 +156,66 @@ Berdasarkan sesi `/grill-me` lanjutan untuk **Modul BMN (`/bmn`)**, berikut adal
    - [`BmnTagTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/BmnTagTest.php)
    - [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php)
    - [`LocationHierarchyAndDriveSyncTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/LocationHierarchyAndDriveSyncTest.php)
-   - **Total Hasil**: **`178/178 tests PASSED` (`1.059 assertions`, `0 failed`)**.
-2. **TypeScript Compiler Check (`tsc --noEmit`)**:
+   - [`SuratTugasSecurityPentestTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/SuratTugasSecurityPentestTest.php)
+   - **Total Hasil Backend PHPUnit**: **`181/181 tests PASSED` (`1.242 assertions`, `0 failed`)**.
+2. **Frontend Playwright E2E 5-User Suite ([`rbac-5-user-persuratan-kepegawaian-bmn.playwright.cjs`](file:///e:/bksda-superapp/frontend/tests/rbac-5-user-persuratan-kepegawaian-bmn.playwright.cjs))**:
+   - **Total Hasil Frontend E2E**: **`15/15 persona-module suites PASSED` (`137 assertions`, `0 failed`)**.
+3. **TypeScript Compiler Check (`tsc --noEmit`)**:
    - `node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit --incremental false` -> **`0 errors`**.
-3. **Knowledge Graph**:
+4. **Knowledge Graph**:
    - `graphify update .` -> **100% updated**.
-4. **Riwayat Commit Lokal (`codex/portal-security-pentest`)**:
+5. **Riwayat Commit Lokal (`codex/portal-security-pentest`)**:
    - `62ded7a3` — `feat(rbac): enforce user/admin/super_admin boundaries in Persuratan and Kepegawaian`
    - `0cd371fb` — `feat(bmn): enforce user/admin/super_admin RBAC in BMN and simplify IAM sheet`
+   - `f3b82687` — `docs(rbac): finalize Persuratan, Kepegawaian, and BMN RBAC status in progress.md and plan doc`
+
+---
+
+## 9. Hasil Audit Keamanan (`/security-audit`) & Penyederhanaan Kode (`/ponytail-review`)
+
+### A. Temuan `/security-audit` (FE & BE) yang Ditemukan & Ditutup
+
+| ID | Severity | Lokasi Berkas | Deskripsi Celah (Root Cause) | Remediasi yang Diterapkan |
+| :--- | :--- | :--- | :--- | :--- |
+| **SEC-01** | **High** | [`AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php#L46-L97) | Route `/api/surat-tugas` dan `/api/surat-tugas/status-counts` menggunakan middleware `module.access:surat_tugas,kepegawaian`. Akibatnya, `role: user` yang hanya memiliki `access_modules: ['kepegawaian']` (untuk direktori pegawai) dapat memanggil API tersebut dan membaca seluruh Surat Tugas pegawai se-Balai. | Menambahkan guard `ensureCanAccessManagementInbox($request)` pada `index()` dan `statusCounts()` yang mewajibkan `role: admin/super_admin` atau kepemilikan modul `surat_tugas` eksplisit (selaras dengan `show()`/`exportPdf()`). |
+| **SEC-02** | **Medium** | [`AssetController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/AssetController.php#L103-L115) | `GET /api/bmn/assets?status=disposed` berada di bawah `permission:bmn.view`. Akibatnya, `role: user` dapat mengintip daftar aset BMN yang sudah dihapus (`onlyTrashed()`) melalui query parameter meskipun halaman `/bmn/disposal` dikunci `bmn.asset.dispose`. | Menambahkan guard `abort_unless($request->user()?->hasPermission('bmn.asset.dispose'), 403)` saat `$request->input('status') === 'disposed'`. |
+| **SEC-03** | **Medium** | [`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php#L36-L49) | Saat `role: user` mengirim `GET /api/kepegawaian/employees?status=trashed` atau `?trashed=1`, controller sebelumnya hanya mengabaikan filter tersebut dan mengembalikan pegawai aktif (`200 OK`) alih-alih menolak akses secara eksplisit. | Menambahkan `abort(403, 'Hanya Admin yang dapat melihat data pegawai terhapus.')` bila non-admin meminta `status=trashed` atau `trashed=1`. |
+| **SEC-04** | **Low** | [`StTemplateController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/StTemplateController.php#L20-L53) | `GET /api/kepegawaian/st-templates?include_inactive=true` dan `show()` masih mengizinkan `role: admin` membaca template nonaktif, padahal halaman `/kepegawaian/settings` sudah dikunci khusus `super_admin`. | Membatasi pembacaan template nonaktif (`include_inactive` & `show()` saat `!is_active`) khusus `role === 'super_admin'`. |
+| **SEC-05** | **Low (FE)** | [`kepegawaian/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/page.tsx#L20-L25) & [`bmn/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/settings/page.tsx#L20-L30) | Prop `canManage` pada `LocationManagementTab` sebelumnya masih bernilai `true` untuk `role: admin`, tidak sinkron dengan backend `LocationController::ensureCanManageLocations()` yang khusus `super_admin`. | Menyelaraskan prop `canManage` menjadi `isSuperAdmin` / `isSuperAdmin \|\| hasPermission("bmn.manage")`. |
+
+### B. Temuan `/ponytail-review` (Over-Engineering & Dead Code yang Dihapus)
+
+- [`backend/app/Modules/Bmn/Controllers/LocationController.php:L87-L116,L261-L262,L329,L403-L425`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/LocationController.php#L84-L120) — `delete:` metode `ensureUnitKerjaAllowed()` beserta 3 pemanggilannya dan pengecekan ganda `$request->user()?->role !== 'super_admin'` yang menjadi dead code karena `ensureCanManageLocations()` sudah mewajibkan `super_admin` (`-37 lines`).
+- [`backend/app/Models/User.php:L210-L216`](file:///e:/bksda-superapp/backend/app/Models/User.php#L208-L218) — `shrink:` mengganti daftar 8 string `in_array($permission, [...])` pada fallback `surat.*` menjadi ekspresi 1 baris `!str_starts_with($permission, 'surat.masuk.') && $permission !== 'surat.export'` karena `surat.manage` sudah dicegat di baris atas (`-14 lines`).
+- [`frontend/src/hooks/useRole.ts:L53-L61`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts#L50-L63) — `shrink:` menyederhanakan daftar array `surat.*` di frontend menjadi `!permission.startsWith("surat.masuk.") && permission !== "surat.export"` identik dengan backend (`-18 lines`).
+- [`frontend/src/app/kepegawaian/settings/page.tsx:L23`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/page.tsx#L20-L25) — `delete:` variabel perantara `canManageLocations` yang redundan (`-1 line`).
+- **Total Pengurangan Kompleksitas (`/ponytail-review`)**: **`4 findings, net -70 lines`**.
+
+---
+
+## 10. Matriks Skenario & Hasil Pengujian 5 User (`1 Super Admin`, `1 Admin`, `3 User`)
+
+Pengujian otomatis dilakukan secara menyeluruh pada **Backend (PHPUnit)** dan **Frontend (Playwright Headless Chromium E2E)** menggunakan **5 akun berbeda**:
+1. **`super_admin`** — Akses penuh lintas modul, Pengaturan Master/Template, IAM, dan Hapus Permanen.
+2. **`admin`** — Pengelola operasional harian (`Persuratan`, `Kepegawaian`, `BMN`) tanpa akses Pengaturan Master/Template, IAM, maupun Hapus Permanen.
+3. **`user_1`** — Pegawai biasa 1 (`access_modules: ['surat', 'kepegawaian', 'bmn']`).
+4. **`user_2`** — Pegawai biasa 2 (`access_modules: ['surat', 'kepegawaian', 'bmn']`).
+5. **`user_3`** — Pegawai biasa 3 (`access_modules: ['surat', 'kepegawaian', 'bmn']`).
+
+### Tabel Rencana & Hasil Eksekusi Test 5-User (BE PHPUnit + FE Playwright E2E)
+
+| ID Test | Modul | Persona (5 User) | Skenario yang Diuji (FE & BE) | Ekspektasi | Status BE (PHPUnit) | Status FE (Playwright) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **T-SRT-01** | Persuratan (`/surat`) | `user_1`, `user_2`, `user_3` | Masing-masing user membuat 1 Surat Keluar manual dan membuka daftar `/surat/keluar` & statistik `/api/surat/stats`. | Setiap user **hanya** melihat 1 surat keluar miliknya sendiri (`total: 1`), tidak bisa melihat milik 2 user lainnya. | ✅ PASS | ✅ PASS (`SRT-USER_1..3`) |
+| **T-SRT-02** | Persuratan (`/surat`) | `user_1`, `user_2`, `user_3` | Percobaan akses silang (IDOR) `GET/PUT/DELETE /api/surat/surat-keluar/{id_milik_user_lain}`. | Ditolak `403 Forbidden` pada seluruh kombinasi lintas `user_1` ↔ `user_2` ↔ `user_3`. | ✅ PASS | ✅ PASS |
+| **T-SRT-03** | Persuratan (`/surat`) | `user_1`, `user_2`, `user_3` | Navigasi ke `/surat/masuk`, `/surat/laporan`, dan `/surat/settings` serta akses `/api/surat/surat-masuk*`. | Menu sidebar tersembunyi, URL langsung di-redirect ke `/surat`, dan API mengembalikan `403`. | ✅ PASS | ✅ PASS (`SRT-USER_1..3`) |
+| **T-SRT-04** | Persuratan (`/surat`) | `admin` | Membuka `/surat/keluar`, `/surat/masuk`, dan mencoba mengakses `/surat/settings` & mutasi `/api/surat/templates`. | Melihat seluruh **3** surat keluar milik `user_1..3` & dapat membuat Surat Masuk (`201`), tetapi di-redirect dari `/surat/settings` & ditolak `403` saat mutasi template. | ✅ PASS | ✅ PASS (`SRT-ADMIN`) |
+| **T-SRT-05** | Persuratan (`/surat`) | `super_admin` | Membuka `/surat/settings` dan mengubah/membuat Template Naskah Dinas. | Menu `Pengaturan Template` tampil, halaman `/surat/settings` terbuka, dan mutasi API berhasil (`200/201`). | ✅ PASS | ✅ PASS (`SRT-SUPERADMIN`) |
+| **T-KPG-01** | Kepegawaian (`/kepegawaian`) | `user_1`, `user_2`, `user_3` | Membuka direktori `/kepegawaian/employees` dan profil pegawai lain (`/kepegawaian/employees/[id]`). | Hanya melihat tab **Biodata Lengkap**; `nama_bank`, `nomor_rekening`, `inactive_notes`, serta tab ST/Cuti/Uang Makan/Audit disembunyikan (`403` di API). | ✅ PASS | ✅ PASS (`KPG-USER_1..3`) |
+| **T-KPG-02** | Kepegawaian (`/kepegawaian`) | `user_1`, `user_2`, `user_3` | Mencoba mengakses `?status=trashed`, `/api/surat-tugas` (inbox manajemen), `/api/kepegawaian/surat-masuk`, dan `/kepegawaian/settings`. | Seluruh endpoint menolak dengan `403 Forbidden` (`SEC-01`, `SEC-03`), dan URL `/kepegawaian/settings` di-redirect ke `/kepegawaian`. | ✅ PASS | ✅ PASS (`KPG-USER_1..3`) |
+| **T-KPG-03** | Kepegawaian & IAM | `admin` | Mengelola pegawai aktif/terhapus (`restore`), membuka profil pegawai, mencoba `DELETE /employees/{id}/force`, IAM, dan `/kepegawaian/settings`. | Dapat mengedit & memulihkan pegawai (`200`), namun tombol IAM/Hapus Permanen tersembunyi, `/kepegawaian/settings` redirect ke `/kepegawaian`, dan API `force` / IAM / `settings` menolak `403`. | ✅ PASS | ✅ PASS (`KPG-ADMIN`) |
+| **T-KPG-04** | Kepegawaian & IAM | `super_admin` | Membuka `Kelola Akses (IAM)` pada detail pegawai, membuka `/kepegawaian/settings`, dan menjalankan `DELETE /employees/{id}/force`. | Drawer IAM terbuka bersih (tanpa 16 checkbox BMN lama), `/kepegawaian/settings` dapat diakses, dan mutasi `settings` / `forceDestroy` berhasil (`200/201`). | ✅ PASS | ✅ PASS (`KPG-SUPERADMIN`) |
+| **T-BMN-01** | BMN (`/bmn`) | `user_1`, `user_2`, `user_3` | Membuka `/bmn`, `/bmn/assets/[id]`, `/bmn/loans`, `/bmn/maintenances`, serta mencoba `/bmn/disposal`, `?status=disposed`, dan `/bmn/settings`. | Sidebar hanya menampilkan 4 menu read-only; detail aset tampil transparan tanpa tombol `Edit Aset`; `/bmn/disposal` & `/bmn/settings` redirect ke `/bmn`; API mutasi & `?status=disposed` ditolak `403` (`SEC-02`). | ✅ PASS | ✅ PASS (`BMN-USER_1..3`) |
+| **T-BMN-02** | BMN (`/bmn`) | `admin` | Membuka `/bmn/assets/[id]`, mengedit aset, memasang tag pada aset, membuka menu operasional, dan mencoba `/bmn/settings` / `bulk-force-delete`. | Tombol `Edit Aset` & menu operasional tampil (`200`), namun menu `Pengaturan Master` tersembunyi, `/bmn/settings` redirect ke `/bmn`, dan mutasi Master Tag/Lokasi/Jenis BMN & `bulk-force-delete` ditolak `403`. | ✅ PASS | ✅ PASS (`BMN-ADMIN`) |
+| **T-BMN-03** | BMN (`/bmn`) | `super_admin` | Membuka `/bmn/settings` dan mengelola Master Tag, Master Lokasi, Jenis BMN, serta `bulk-force-delete`. | Menu `Pengaturan Master` tampil, `/bmn/settings` terbuka penuh, dan seluruh endpoint master & `bulk-force-delete` mengembalikan `200/201`. | ✅ PASS | ✅ PASS (`BMN-SUPERADMIN`) |
+

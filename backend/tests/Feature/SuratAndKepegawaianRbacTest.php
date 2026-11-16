@@ -474,4 +474,187 @@ class SuratAndKepegawaianRbacTest extends TestCase
             'category_mode' => 'peralatan',
         ])->assertCreated();
     }
+
+    public function test_five_user_matrix_across_persuratan_kepegawaian_bmn_and_iam(): void
+    {
+        // Setup 5 Users: 1 Super Admin, 1 Admin, and 3 Regular Users (each linked to an Employee)
+        $emp1 = Employee::create([
+            'nip' => '199301012022031001',
+            'nama_lengkap' => 'User Satu LimaMatrix',
+            'jabatan' => 'PEH Pertama',
+            'nama_bank' => 'BRI',
+            'nomor_rekening' => '1000000001',
+            'inactive_notes' => 'Rahasia Emp 1',
+            'is_active' => true,
+        ]);
+        $emp2 = Employee::create([
+            'nip' => '199302022022031002',
+            'nama_lengkap' => 'User Dua LimaMatrix',
+            'jabatan' => 'Polhut Pertama',
+            'nama_bank' => 'Mandiri',
+            'nomor_rekening' => '2000000002',
+            'inactive_notes' => 'Rahasia Emp 2',
+            'is_active' => true,
+        ]);
+        $emp3 = Employee::create([
+            'nip' => '199303032022031003',
+            'nama_lengkap' => 'User Tiga LimaMatrix',
+            'jabatan' => 'Penyuluh Kehutanan',
+            'nama_bank' => 'BSI',
+            'nomor_rekening' => '3000000003',
+            'inactive_notes' => 'Rahasia Emp 3',
+            'is_active' => true,
+        ]);
+
+        $admin = User::factory()->create([
+            'username' => 'admin_5matrix',
+            'role' => 'admin',
+            'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+            'permissions' => [],
+            'is_active' => true,
+        ]);
+
+        $users = [
+            1 => User::factory()->create([
+                'username' => $emp1->nip,
+                'role' => 'user',
+                'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+                'permissions' => [],
+                'is_active' => true,
+            ]),
+            2 => User::factory()->create([
+                'username' => $emp2->nip,
+                'role' => 'user',
+                'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+                'permissions' => [],
+                'is_active' => true,
+            ]),
+            3 => User::factory()->create([
+                'username' => $emp3->nip,
+                'role' => 'user',
+                'access_modules' => ['surat', 'kepegawaian', 'bmn'],
+                'permissions' => [],
+                'is_active' => true,
+            ]),
+        ];
+        $emps = [1 => $emp1, 2 => $emp2, 3 => $emp3];
+
+        // =====================================================================
+        // A. MODUL PERSURATAN (5-USER MATRIX)
+        // =====================================================================
+        $letterIds = [];
+        foreach ($users as $idx => $u) {
+            Sanctum::actingAs($u);
+            $res = $this->postJson('/api/surat/surat-keluar', [
+                'no_surat' => "S.50{$idx}/K.18/TU/2026",
+                'tanggal_surat' => '2026-11-16',
+                'tujuan_surat' => "Tujuan User {$idx}",
+                'perihal' => "Perihal Khusus User {$idx}",
+                'sifat' => 'Biasa',
+                'template_type' => 'nota_dinas',
+            ])->assertCreated();
+            $letterIds[$idx] = $res->json('data.id');
+        }
+
+        // Each of the 3 users ONLY sees their own letter and gets 403 on the other 2 users' letters
+        foreach ($users as $idx => $u) {
+            Sanctum::actingAs($u);
+            $list = $this->getJson('/api/surat/surat-keluar')->assertOk();
+            $list->assertJsonCount(1, 'data')
+                ->assertJsonPath('data.0.id', $letterIds[$idx]);
+
+            foreach ($letterIds as $otherIdx => $otherLetterId) {
+                if ($otherIdx === $idx) {
+                    $this->getJson("/api/surat/surat-keluar/{$otherLetterId}")->assertOk();
+                } else {
+                    $this->getJson("/api/surat/surat-keluar/{$otherLetterId}")->assertForbidden();
+                    $this->putJson("/api/surat/surat-keluar/{$otherLetterId}", [
+                        'no_surat' => 'S.TAMPER/2026',
+                        'tanggal_surat' => '2026-11-16',
+                        'tujuan_surat' => 'Tamper',
+                        'perihal' => 'Tamper',
+                    ])->assertForbidden();
+                    $this->deleteJson("/api/surat/surat-keluar/{$otherLetterId}")->assertForbidden();
+                }
+            }
+
+            $this->getJson('/api/surat/surat-masuk')->assertForbidden();
+            $this->postJson('/api/surat/templates', ['key' => "k_{$idx}", 'nama' => 'T', 'kategori' => 'Umum'])->assertForbidden();
+        }
+
+        // Admin sees all 3 letters, can manage Surat Masuk, but gets 403 on template settings
+        Sanctum::actingAs($admin);
+        $this->getJson('/api/surat/surat-keluar')->assertOk()->assertJsonCount(3, 'data');
+        $this->postJson('/api/surat/templates', ['key' => 'k_adm', 'nama' => 'T', 'kategori' => 'Umum'])->assertForbidden();
+
+        // =====================================================================
+        // B. MODUL KEPEGAWAIAN & SURAT TUGAS INBOX (5-USER MATRIX)
+        // =====================================================================
+        foreach ($users as $idx => $u) {
+            Sanctum::actingAs($u);
+            // Cannot access trashed employees (SEC-05) or ST management inbox (SEC-01)
+            $this->getJson('/api/kepegawaian/employees?status=trashed')->assertForbidden();
+            $this->getJson('/api/surat-tugas')->assertForbidden();
+            $this->getJson('/api/surat-tugas/status-counts')->assertForbidden();
+            $this->getJson('/api/kepegawaian/surat-masuk')->assertForbidden();
+
+            // Directory privacy check across all 3 employees
+            foreach ($emps as $otherIdx => $targetEmp) {
+                $detail = $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}")->assertOk()->json('data');
+                if ($otherIdx === $idx) {
+                    $this->assertSame("{$idx}00000000{$idx}", $detail['nomor_rekening'] ?? null);
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/leaves")->assertOk();
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/assignment-letters")->assertOk();
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/meal-allowances")->assertOk();
+                } else {
+                    $this->assertArrayNotHasKey('nomor_rekening', $detail);
+                    $this->assertArrayNotHasKey('nama_bank', $detail);
+                    $this->assertArrayNotHasKey('inactive_notes', $detail);
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/leaves")->assertForbidden();
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/assignment-letters")->assertForbidden();
+                    $this->getJson("/api/kepegawaian/employees/{$targetEmp->id}/meal-allowances")->assertForbidden();
+                }
+            }
+        }
+
+        // Admin Kepegawaian can access ST Inbox, trashed employees, and all 3 employees' details, but NOT Settings/IAM/ForceDelete
+        Sanctum::actingAs($admin);
+        $this->getJson('/api/kepegawaian/employees?status=trashed')->assertOk();
+        $this->getJson('/api/surat-tugas')->assertOk();
+        $this->getJson('/api/surat-tugas/status-counts')->assertOk();
+        $this->getJson('/api/kepegawaian/settings/holidays')->assertForbidden();
+        $this->getJson("/api/kepegawaian/employees/{$emp1->id}/access")->assertForbidden();
+
+        // =====================================================================
+        // C. MODUL BMN (5-USER MATRIX)
+        // =====================================================================
+        $disposedAsset = \App\Modules\Bmn\Models\Asset::create([
+            'kode_barang' => '3020101999',
+            'nup' => '99',
+            'nama_barang' => 'Aset Rusak Dihapus',
+            'kondisi' => 'Rusak Berat',
+            'nilai_perolehan' => 10000000,
+        ]);
+        $disposedAsset->delete();
+
+        foreach ($users as $u) {
+            Sanctum::actingAs($u);
+            $this->getJson('/api/bmn/assets')->assertOk();
+            // SEC-04: User cannot query disposed/trashed assets via ?status=disposed
+            $this->getJson('/api/bmn/assets?status=disposed')->assertForbidden();
+            $this->getJson('/api/bmn/import-review')->assertForbidden();
+            $this->getJson('/api/bmn/auction-candidates')->assertForbidden();
+            $this->getJson('/api/bmn/document-histories')->assertForbidden();
+            $this->postJson('/api/bmn/tags', ['name' => 'illegal_tag', 'color' => 'red'])->assertForbidden();
+        }
+
+        Sanctum::actingAs($admin);
+        $this->getJson('/api/bmn/assets?status=disposed')->assertOk()->assertJsonCount(1, 'data');
+        $this->postJson('/api/bmn/tags', ['name' => 'admin_tag_blocked', 'color' => 'red'])->assertForbidden();
+        $this->postJson('/api/bmn/assets/bulk-force-delete', ['ids' => [$disposedAsset->id]])->assertForbidden();
+
+        Sanctum::actingAs($this->superAdmin);
+        $this->postJson('/api/bmn/assets/bulk-force-delete', ['ids' => [$disposedAsset->id]])->assertOk();
+        $this->assertDatabaseMissing('bmn_assets', ['id' => $disposedAsset->id]);
+    }
 }

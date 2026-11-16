@@ -55,7 +55,11 @@ class EmployeeController extends Controller
         ];
 
         $statusFilter = strtolower(trim((string) $request->input('status', '')));
-        $isTrashedView = $canViewTrashed && ($statusFilter === 'trashed' || $request->boolean('trashed'));
+        $wantsTrashed = $statusFilter === 'trashed' || $request->boolean('trashed');
+        if ($wantsTrashed && ! $canViewTrashed) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat data pegawai terhapus.');
+        }
+        $isTrashedView = $canViewTrashed && $wantsTrashed;
 
         $query = clone $baseQuery;
         if ($isTrashedView) {

@@ -33,6 +33,9 @@ class AssetController extends Controller
         }])->latest();
 
         if ($request->query('status') === 'disposed') {
+            if (! $request->user()?->hasPermission('bmn.asset.dispose')) {
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat daftar aset dihapus.');
+            }
             $query->onlyTrashed();
         }
 

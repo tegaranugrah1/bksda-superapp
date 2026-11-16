@@ -189,8 +189,21 @@ class AssignmentLetterController extends Controller
         ]);
     }
 
+    private function ensureCanAccessManagementInbox(Request $request): void
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(401, 'Unauthenticated.');
+        }
+        if (! in_array($user->role, ['admin', 'super_admin'], true) && ! in_array('surat_tugas', $user->access_modules ?? [], true)) {
+            abort(403, 'Anda tidak memiliki hak akses ke Inbox Surat Tugas.');
+        }
+    }
+
     public function index(Request $request)
     {
+        $this->ensureCanAccessManagementInbox($request);
+
         $query = AssignmentLetter::with(['creator:id,name', 'approver:id,name', 'employees:id,nama_lengkap,nip,jabatan,pangkat_golongan,satuan_kerja']);
 
         if ($search = ($request->query('search') ?? $request->query('q'))) {
@@ -844,8 +857,10 @@ class AssignmentLetterController extends Controller
         return response()->json(['message' => 'Dokumen dihapus permanen dari arsip.']);
     }
 
-    public function statusCounts()
+    public function statusCounts(Request $request)
     {
+        $this->ensureCanAccessManagementInbox($request);
+
         $counts = AssignmentLetter::selectRaw('LOWER(status) as status_lower, count(*) as total')
             ->groupByRaw('LOWER(status)')
             ->pluck('total', 'status_lower');

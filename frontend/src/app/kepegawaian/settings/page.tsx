@@ -20,7 +20,6 @@ import { MealAllowanceHolidaysTab } from "./_components/MealAllowanceHolidaysTab
 function KepegawaianSettingsContent() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "super_admin";
-  const canManageLocations = user?.role === "super_admin" || user?.role === "admin";
   const reducedMotion = useReducedMotion();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
@@ -119,7 +118,7 @@ function KepegawaianSettingsContent() {
           {activeTab === "leave_types" && <LeaveTypesTab />}
           {activeTab === "uang_makan" && <MealAllowanceHolidaysTab />}
           {activeTab === "locations" && (
-            <LocationManagementTab canManage={canManageLocations} isSuperAdmin={isSuperAdmin} />
+            <LocationManagementTab canManage={isSuperAdmin} isSuperAdmin={isSuperAdmin} />
           )}
         </KepegawaianTabContent>
       </AnimatePresence>
