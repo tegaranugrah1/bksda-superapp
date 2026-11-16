@@ -22,11 +22,25 @@
 :is(.kpg-ui, .psr-ui) .kpg-photo-upload { transition: opacity 150ms ease-out; }
 :is(.kpg-ui, .psr-ui) .kpg-photo-upload:has(input:disabled) { cursor: default; opacity: 1; }
 :is(.kpg-ui, .psr-ui) tr:hover { background: var(--ds-surface-muted); }
-:is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary { background: var(--ds-secondary-bg); color: var(--ds-secondary-fg); border-color: transparent; }
-:is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary:hover { background: var(--ds-secondary-hover); }
-:is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary:active { background: var(--ds-secondary-active); }
+:is(.kpg-ui, .psr-ui) .surat-dinas-print-root tr:hover { background: transparent; }
+@layer components {
+  :is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary {
+    background: var(--ds-surface);
+    color: var(--ds-secondary-fg);
+    border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  }
+  :is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary:hover {
+    background: var(--ds-surface-muted);
+    border-color: var(--ds-border-control);
+  }
+  :is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary:active {
+    background: var(--ds-secondary-active);
+  }
+}
 :is(.kpg-ui, .psr-ui) button:disabled { background: var(--ds-disabled-bg); color: var(--ds-disabled-fg); cursor: default; }
 :is(.kpg-ui, .psr-ui) tr:focus-within { background: var(--ds-surface-muted); }
+:is(.kpg-ui, .psr-ui) .surat-dinas-print-root tr:focus-within { background: transparent; }
 :is(.kpg-ui, .psr-ui) button:is([title], [aria-label]) { min-width: 36px; min-height: 36px; }
 :is(.kpg-ui, .psr-ui) .kpg-presence-button,
 :is(.kpg-ui, .psr-ui) .kpg-presence-button:disabled { background: transparent; color: inherit; }

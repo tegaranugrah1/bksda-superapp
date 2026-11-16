@@ -347,8 +347,8 @@
       "source_location": "L249",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_clearscrolly",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "clearscrolly()"
     },
     {
@@ -578,8 +578,8 @@
       "source_location": "L890",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_isimekeydown",
-      "community": 912,
-      "community_name": "onAnnotDown",
+      "community": 335,
+      "community_name": "el",
       "norm_label": "isimekeydown()"
     },
     {
@@ -633,8 +633,8 @@
       "source_location": "L975",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stripmanualeditruntimestate",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "stripmanualeditruntimestate()"
     },
     {
@@ -644,8 +644,8 @@
       "source_location": "L1000",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_sanitizedcontextclone",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "sanitizedcontextclone()"
     },
     {
@@ -666,8 +666,8 @@
       "source_location": "L1063",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_contextelementformanualedit",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "contextelementformanualedit()"
     },
     {
@@ -699,8 +699,8 @@
       "source_location": "L1112",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_addmanualcontexttext",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "addmanualcontexttext()"
     },
     {
@@ -721,8 +721,8 @@
       "source_location": "L1123",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_normalizemanualcontexttext",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "normalizemanualcontexttext()"
     },
     {
@@ -754,8 +754,8 @@
       "source_location": "L1211",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showbar",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "showbar()"
     },
     {
@@ -809,8 +809,8 @@
       "source_location": "L1311",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_syncconfigureinputchrome",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 335,
+      "community_name": "el",
       "norm_label": "syncconfigureinputchrome()"
     },
     {
@@ -1370,8 +1370,8 @@
       "source_location": "L2101",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_deferredrecoverysuperseded",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "deferredrecoverysuperseded()"
     },
     {
@@ -1425,8 +1425,8 @@
       "source_location": "L2165",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findinsertanchorindom",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findinsertanchorindom()"
     },
     {
@@ -1656,8 +1656,8 @@
       "source_location": "L2681",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cyclingshownvariant",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "cyclingshownvariant()"
     },
     {
@@ -1667,8 +1667,8 @@
       "source_location": "L2695",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cyclingcountertext",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "cyclingcountertext()"
     },
     {
@@ -1678,8 +1678,8 @@
       "source_location": "L2700",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildcyclingrow",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "buildcyclingrow()"
     },
     {
@@ -1722,8 +1722,8 @@
       "source_location": "L2940",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_navbtn",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "navbtn()"
     },
     {
@@ -1788,8 +1788,8 @@
       "source_location": "L3081",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_ensurecyclingrenderable",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "ensurecyclingrenderable()"
     },
     {
@@ -1799,8 +1799,8 @@
       "source_location": "L3090",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_recoveremptycycling",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "recoveremptycycling()"
     },
     {
@@ -1986,8 +1986,8 @@
       "source_location": "L3539",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_unwrapmixedcontenttextnodes",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "unwrapmixedcontenttextnodes()"
     },
     {
@@ -2008,8 +2008,8 @@
       "source_location": "L3572",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_disableinlineedit",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "disableinlineedit()"
     },
     {
@@ -2107,8 +2107,8 @@
       "source_location": "L3697",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildlocatorforleaf",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "buildlocatorforleaf()"
     },
     {
@@ -2140,8 +2140,8 @@
       "source_location": "L3747",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_documentrefforelement",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "documentrefforelement()"
     },
     {
@@ -2151,8 +2151,8 @@
       "source_location": "L3764",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_documentrefsegment",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "documentrefsegment()"
     },
     {
@@ -2162,8 +2162,8 @@
       "source_location": "L3769",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_documentrefidsuffix",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "documentrefidsuffix()"
     },
     {
@@ -2173,8 +2173,8 @@
       "source_location": "L3773",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_documentrefclasssuffix",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "documentrefclasssuffix()"
     },
     {
@@ -2184,8 +2184,8 @@
       "source_location": "L3784",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_normalizedocumentreftoken",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "normalizedocumentreftoken()"
     },
     {
@@ -2195,8 +2195,8 @@
       "source_location": "L3788",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_indexamongsametag",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "indexamongsametag()"
     },
     {
@@ -2206,8 +2206,8 @@
       "source_location": "L3802",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_copyeditleafcontext",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "copyeditleafcontext()"
     },
     {
@@ -2217,8 +2217,8 @@
       "source_location": "L3817",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_nearbyeditabletextsformanualedit",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "nearbyeditabletextsformanualedit()"
     },
     {
@@ -2228,8 +2228,8 @@
       "source_location": "L3837",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_copyeditcontainercontext",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "copyeditcontainercontext()"
     },
     {
@@ -2239,8 +2239,8 @@
       "source_location": "L3850",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_forbiddenmanualtextchars",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "forbiddenmanualtextchars()"
     },
     {
@@ -2250,8 +2250,8 @@
       "source_location": "L3858",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applyediting",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "applyediting()"
     },
     {
@@ -2481,8 +2481,8 @@
       "source_location": "L4209",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_maybeshowfirstsavetoast",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "maybeshowfirstsavetoast()"
     },
     {
@@ -2514,8 +2514,8 @@
       "source_location": "L4275",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_onpendingtrashclick",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "onpendingtrashclick()"
     },
     {
@@ -2602,8 +2602,8 @@
       "source_location": "L4463",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_restorediscardedmanualedits",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "restorediscardedmanualedits()"
     },
     {
@@ -2613,8 +2613,8 @@
       "source_location": "L4482",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_canrestoremanualeditelement",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "canrestoremanualeditelement()"
     },
     {
@@ -2624,8 +2624,8 @@
       "source_location": "L4488",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_mixedtextwraprestorehint",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "mixedtextwraprestorehint()"
     },
     {
@@ -2635,8 +2635,8 @@
       "source_location": "L4499",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_restoremixedtextnodemanualedit",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "restoremixedtextnodemanualedit()"
     },
     {
@@ -2646,8 +2646,8 @@
       "source_location": "L4517",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_directmixedtextrestorenodes",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "directmixedtextrestorenodes()"
     },
     {
@@ -2657,8 +2657,8 @@
       "source_location": "L4527",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findmanualeditrestoreelement",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "findmanualeditrestoreelement()"
     },
     {
@@ -2668,8 +2668,8 @@
       "source_location": "L4546",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_querymanualeditref",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "querymanualeditref()"
     },
     {
@@ -2679,8 +2679,8 @@
       "source_location": "L4566",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_parsemanualeditrefsegment",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "parsemanualeditrefsegment()"
     },
     {
@@ -2690,8 +2690,8 @@
       "source_location": "L4582",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_elementmatchesmanualrefsegment",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "elementmatchesmanualrefsegment()"
     },
     {
@@ -2701,8 +2701,8 @@
       "source_location": "L4593",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cssident",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "cssident()"
     },
     {
@@ -2998,8 +2998,8 @@
       "source_location": "L5106",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_synccyclingcontrols",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "synccyclingcontrols()"
     },
     {
@@ -3042,8 +3042,8 @@
       "source_location": "L5145",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_parseoriginalmarkupelement",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "parseoriginalmarkupelement()"
     },
     {
@@ -3053,8 +3053,8 @@
       "source_location": "L5151",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_normalizeelementclassname",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "normalizeelementclassname()"
     },
     {
@@ -3075,8 +3075,8 @@
       "source_location": "L5173",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_isusableinjectionanchor",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "isusableinjectionanchor()"
     },
     {
@@ -3086,8 +3086,8 @@
       "source_location": "L5181",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_elementmatchesoriginalmarkup",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "elementmatchesoriginalmarkup()"
     },
     {
@@ -3097,8 +3097,8 @@
       "source_location": "L5202",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findliveelementfromanchorsnapshot",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findliveelementfromanchorsnapshot()"
     },
     {
@@ -3108,8 +3108,8 @@
       "source_location": "L5225",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findliveelementfororiginalmarkup",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findliveelementfororiginalmarkup()"
     },
     {
@@ -3119,8 +3119,8 @@
       "source_location": "L5265",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_resolveliveinjectionanchor",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "resolveliveinjectionanchor()"
     },
     {
@@ -3130,8 +3130,8 @@
       "source_location": "L5289",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_issvelteinsertmanifest",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "issvelteinsertmanifest()"
     },
     {
@@ -3141,8 +3141,8 @@
       "source_location": "L5293",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findliveelementforsveltemanifest",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "findliveelementforsveltemanifest()"
     },
     {
@@ -3174,8 +3174,8 @@
       "source_location": "L5345",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_detectdevserverbase",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "detectdevserverbase()"
     },
     {
@@ -3185,8 +3185,8 @@
       "source_location": "L5358",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_componentmodulecandidates",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "componentmodulecandidates()"
     },
     {
@@ -3196,8 +3196,8 @@
       "source_location": "L5373",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_importfirstreachable",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "importfirstreachable()"
     },
     {
@@ -3207,8 +3207,8 @@
       "source_location": "L5391",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_probepreviewtree",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "probepreviewtree()"
     },
     {
@@ -3218,8 +3218,8 @@
       "source_location": "L5402",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_loadsvelteruntime",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "loadsvelteruntime()"
     },
     {
@@ -3240,8 +3240,8 @@
       "source_location": "L5444",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_removesveltecomponentvariantstyle",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "removesveltecomponentvariantstyle()"
     },
     {
@@ -3317,8 +3317,8 @@
       "source_location": "L5555",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildsveltepropvaluesfromliveelement",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "buildsveltepropvaluesfromliveelement()"
     },
     {
@@ -3328,8 +3328,8 @@
       "source_location": "L5579",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildsveltepropvaluesv2",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "buildsveltepropvaluesv2()"
     },
     {
@@ -3339,8 +3339,8 @@
       "source_location": "L5649",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cssescapeident",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "cssescapeident()"
     },
     {
@@ -3350,8 +3350,8 @@
       "source_location": "L5653",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_collectvisibletexts",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "collectvisibletexts()"
     },
     {
@@ -3361,8 +3361,8 @@
       "source_location": "L5669",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stripsvelteblockregions",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "stripsvelteblockregions()"
     },
     {
@@ -3372,8 +3372,8 @@
       "source_location": "L5698",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stripsveltekeydelimiters",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "stripsveltekeydelimiters()"
     },
     {
@@ -3383,8 +3383,8 @@
       "source_location": "L5722",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_clonewithoutelements",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "clonewithoutelements()"
     },
     {
@@ -3394,8 +3394,8 @@
       "source_location": "L5739",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_mountsveltecomponentvariant",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "mountsveltecomponentvariant()"
     },
     {
@@ -3405,8 +3405,8 @@
       "source_location": "L5824",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_describemountfailure",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "describemountfailure()"
     },
     {
@@ -3416,8 +3416,8 @@
       "source_location": "L5836",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_teardownsveltecomponentsession",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "teardownsveltecomponentsession()"
     },
     {
@@ -3427,8 +3427,8 @@
       "source_location": "L5852",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applyoriginalattrstosvelteanchor",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "applyoriginalattrstosvelteanchor()"
     },
     {
@@ -3438,8 +3438,8 @@
       "source_location": "L5867",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_commitacceptedsveltecomponenttodom",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "commitacceptedsveltecomponenttodom()"
     },
     {
@@ -3460,8 +3460,8 @@
       "source_location": "L6050",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_waitforsveltecomponenttargetandretry",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "waitforsveltecomponenttargetandretry()"
     },
     {
@@ -3471,8 +3471,8 @@
       "source_location": "L6080",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_reportvariantmounted",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "reportvariantmounted()"
     },
     {
@@ -3482,8 +3482,8 @@
       "source_location": "L6091",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_reportvariantmountfailed",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "reportvariantmountfailed()"
     },
     {
@@ -3493,8 +3493,8 @@
       "source_location": "L6107",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_truncatemiddle",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "truncatemiddle()"
     },
     {
@@ -3504,8 +3504,8 @@
       "source_location": "L6121",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showmounterrorcard",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "showmounterrorcard()"
     },
     {
@@ -3515,8 +3515,8 @@
       "source_location": "L6132",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_clearmounterrorcard",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "clearmounterrorcard()"
     },
     {
@@ -3526,8 +3526,8 @@
       "source_location": "L6140",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_mounterrorcardbottomoffset",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "mounterrorcardbottomoffset()"
     },
     {
@@ -3537,8 +3537,8 @@
       "source_location": "L6147",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_rendermounterrorcard",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "rendermounterrorcard()"
     },
     {
@@ -3548,8 +3548,8 @@
       "source_location": "L6225",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_retrymounterrorcard",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "retrymounterrorcard()"
     },
     {
@@ -3559,8 +3559,8 @@
       "source_location": "L6247",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_abortsveltecomponentinjection",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "abortsveltecomponentinjection()"
     },
     {
@@ -3570,8 +3570,8 @@
       "source_location": "L6281",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_resetsveltecomponentsession",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "resetsveltecomponentsession()"
     },
     {
@@ -3647,8 +3647,8 @@
       "source_location": "L6593",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildsvelteexpressiontextmap",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "buildsvelteexpressiontextmap()"
     },
     {
@@ -3658,8 +3658,8 @@
       "source_location": "L6636",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_expressiontextmatcher",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "expressiontextmatcher()"
     },
     {
@@ -3669,8 +3669,8 @@
       "source_location": "L6650",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_collecttextnodes",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "collecttextnodes()"
     },
     {
@@ -3680,8 +3680,8 @@
       "source_location": "L6662",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_normalizepreviewtext",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "normalizepreviewtext()"
     },
     {
@@ -3691,8 +3691,8 @@
       "source_location": "L6666",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_escaperegexp",
-      "community": 505,
-      "community_name": "resolveLiveInjectionAnchor",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "escaperegexp()"
     },
     {
@@ -3713,8 +3713,8 @@
       "source_location": "L6705",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cyclevariant",
-      "community": 335,
-      "community_name": "el",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "cyclevariant()"
     },
     {
@@ -3790,8 +3790,8 @@
       "source_location": "L6814",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_removevariantstatestylesheet",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "removevariantstatestylesheet()"
     },
     {
@@ -3801,8 +3801,8 @@
       "source_location": "L6818",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_discardstatestyleid",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "discardstatestyleid()"
     },
     {
@@ -3812,8 +3812,8 @@
       "source_location": "L6822",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showoriginalduringdiscard",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "showoriginalduringdiscard()"
     },
     {
@@ -3823,8 +3823,8 @@
       "source_location": "L6836",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_removediscardstatestylesheet",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "removediscardstatestylesheet()"
     },
     {
@@ -3834,8 +3834,8 @@
       "source_location": "L6846",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_discardedwrappers",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "discardedwrappers()"
     },
     {
@@ -3845,8 +3845,8 @@
       "source_location": "L6851",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_releasediscardedstaticwrapper",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "releasediscardedstaticwrapper()"
     },
     {
@@ -3856,8 +3856,8 @@
       "source_location": "L6868",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_releasediscardedstaticwrappers",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "releasediscardedstaticwrappers()"
     },
     {
@@ -3867,8 +3867,8 @@
       "source_location": "L6874",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_watchfordiscardedframeworkwrapperremoval",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "watchfordiscardedframeworkwrapperremoval()"
     },
     {
@@ -3889,8 +3889,8 @@
       "source_location": "L6920",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_startscrolllock",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "startscrolllock()"
     },
     {
@@ -3900,8 +3900,8 @@
       "source_location": "L7039",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stopscrolllock",
-      "community": 10,
-      "community_name": "connectSSE",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "stopscrolllock()"
     },
     {
@@ -3955,8 +3955,8 @@
       "source_location": "L7202",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_startscrolltracking",
-      "community": 64,
-      "community_name": "setLiveState",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "startscrolltracking()"
     },
     {
@@ -4307,8 +4307,8 @@
       "source_location": "L8131",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_maybewarnconditionalancestor",
-      "community": 790,
-      "community_name": "actOnAgentTarget",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "maybewarnconditionalancestor()"
     },
     {
@@ -4318,8 +4318,8 @@
       "source_location": "L8185",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_maybeprefetchpage",
-      "community": 790,
-      "community_name": "actOnAgentTarget",
+      "community": 217,
+      "community_name": "showToast",
       "norm_label": "maybeprefetchpage()"
     },
     {
@@ -4384,8 +4384,8 @@
       "source_location": "L8499",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_loadmodernscreenshot",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "loadmodernscreenshot()"
     },
     {
@@ -4428,8 +4428,8 @@
       "source_location": "L8585",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_istransparentcolor",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "istransparentcolor()"
     },
     {
@@ -4439,8 +4439,8 @@
       "source_location": "L8601",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_resolvecanvasbackground",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "resolvecanvasbackground()"
     },
     {
@@ -4450,8 +4450,8 @@
       "source_location": "L8622",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_capturechromenodes",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "capturechromenodes()"
     },
     {
@@ -4461,8 +4461,8 @@
       "source_location": "L8646",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_hidecapturechromeforshaderproxy",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "hidecapturechromeforshaderproxy()"
     },
     {
@@ -4472,8 +4472,8 @@
       "source_location": "L8665",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_shoulduseancestorcropshaderproxy",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "shoulduseancestorcropshaderproxy()"
     },
     {
@@ -4483,8 +4483,8 @@
       "source_location": "L8675",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_paintsshaderproxysurface",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "paintsshaderproxysurface()"
     },
     {
@@ -4494,8 +4494,8 @@
       "source_location": "L8682",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findshaderproxycaptureroot",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "findshaderproxycaptureroot()"
     },
     {
@@ -4505,8 +4505,8 @@
       "source_location": "L8705",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_captureelementfromrenderedancestor",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "captureelementfromrenderedancestor()"
     },
     {
@@ -4516,8 +4516,8 @@
       "source_location": "L8729",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_captureelementtoblob",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "captureelementtoblob()"
     },
     {
@@ -4538,8 +4538,8 @@
       "source_location": "L8962",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_csscolortorgb01",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "csscolortorgb01()"
     },
     {
@@ -4549,8 +4549,8 @@
       "source_location": "L8976",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_resolvepaperrgb",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "resolvepaperrgb()"
     },
     {
@@ -4560,8 +4560,8 @@
       "source_location": "L8993",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_paintsbackdrop",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "paintsbackdrop()"
     },
     {
@@ -4571,8 +4571,8 @@
       "source_location": "L9008",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findbackdropancestor",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "findbackdropancestor()"
     },
     {
@@ -4582,8 +4582,8 @@
       "source_location": "L9019",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_averagergb01",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "averagergb01()"
     },
     {
@@ -4593,8 +4593,8 @@
       "source_location": "L9030",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_dominantrgb01",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "dominantrgb01()"
     },
     {
@@ -4604,8 +4604,8 @@
       "source_location": "L9056",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_samplesurroundingrgb",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "samplesurroundingrgb()"
     },
     {
@@ -4615,8 +4615,8 @@
       "source_location": "L9074",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_compileshader",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "compileshader()"
     },
     {
@@ -4659,8 +4659,8 @@
       "source_location": "L9121",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showshaderbitmapfallback",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "showshaderbitmapfallback()"
     },
     {
@@ -4670,8 +4670,8 @@
       "source_location": "L9140",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_showshaderoverlay",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 616,
+      "community_name": "captureElementToBlob",
       "norm_label": "showshaderoverlay()"
     },
     {
@@ -4692,8 +4692,8 @@
       "source_location": "L9335",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_maybecompleteacceptedsession",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "maybecompleteacceptedsession()"
     },
     {
@@ -4703,8 +4703,8 @@
       "source_location": "L9354",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_scheduleacceptcleanup",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "scheduleacceptcleanup()"
     },
     {
@@ -4714,8 +4714,8 @@
       "source_location": "L9380",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_snapshotacceptedvariantdom",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "snapshotacceptedvariantdom()"
     },
     {
@@ -4725,8 +4725,8 @@
       "source_location": "L9393",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_selectorforacceptedroot",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 534,
+      "community_name": "applyEditing",
       "norm_label": "selectorforacceptedroot()"
     },
     {
@@ -4736,8 +4736,8 @@
       "source_location": "L9401",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_accepteddomalreadyclean",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "accepteddomalreadyclean()"
     },
     {
@@ -4747,8 +4747,8 @@
       "source_location": "L9408",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_ensureaccepteddomclean",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "ensureaccepteddomclean()"
     },
     {
@@ -4758,8 +4758,8 @@
       "source_location": "L9448",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_findacceptedruntimewrappers",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "findacceptedruntimewrappers()"
     },
     {
@@ -4769,8 +4769,8 @@
       "source_location": "L9456",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_restoreaccepteddomfromsnapshot",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "restoreaccepteddomfromsnapshot()"
     },
     {
@@ -4780,8 +4780,8 @@
       "source_location": "L9478",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_reloadaftermissingaccepteddom",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "reloadaftermissingaccepteddom()"
     },
     {
@@ -5044,8 +5044,8 @@
       "source_location": "L9843",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_cleanup",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "cleanup()"
     },
     {
@@ -5077,8 +5077,8 @@
       "source_location": "L9992",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_handledwrapperreloadkey",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "handledwrapperreloadkey()"
     },
     {
@@ -5088,8 +5088,8 @@
       "source_location": "L9996",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_clearhandledwrapperreloadstamp",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "clearhandledwrapperreloadstamp()"
     },
     {
@@ -5099,8 +5099,8 @@
       "source_location": "L10014",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_schedulehandledruntimewrapperreload",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "schedulehandledruntimewrapperreload()"
     },
     {
@@ -5110,8 +5110,8 @@
       "source_location": "L10053",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_watchforhandledruntimewrapper",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 505,
+      "community_name": "scheduleAcceptCleanup",
       "norm_label": "watchforhandledruntimewrapper()"
     },
     {
@@ -5561,8 +5561,8 @@
       "source_location": "L10884",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildsteerprocessingdots",
-      "community": 335,
-      "community_name": "el",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "buildsteerprocessingdots()"
     },
     {
@@ -5737,8 +5737,8 @@
       "source_location": "L11151",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stopvoice",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "stopvoice()"
     },
     {
@@ -5781,8 +5781,8 @@
       "source_location": "L11257",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_configurevoicecontext",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 335,
+      "community_name": "el",
       "norm_label": "configurevoicecontext()"
     },
     {
@@ -5803,8 +5803,8 @@
       "source_location": "L11278",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_toggleconfigurevoice",
-      "community": 451,
-      "community_name": "initPageChat",
+      "community": 335,
+      "community_name": "el",
       "norm_label": "toggleconfigurevoice()"
     },
     {
@@ -5946,8 +5946,8 @@
       "source_location": "L11657",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_stopagentstatuspoll",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "stopagentstatuspoll()"
     },
     {
@@ -5968,8 +5968,8 @@
       "source_location": "L11679",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_fetchagentpollingstatus",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "fetchagentpollingstatus()"
     },
     {
@@ -5979,8 +5979,8 @@
       "source_location": "L11690",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_startagentstatuspoll",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 9,
+      "community_name": "live-browser.js",
       "norm_label": "startagentstatuspoll()"
     },
     {
@@ -6078,8 +6078,8 @@
       "source_location": "L12339",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_teardown",
-      "community": 407,
-      "community_name": "initGlobalBar",
+      "community": 64,
+      "community_name": "setLiveState",
       "norm_label": "teardown()"
     },
     {
@@ -16682,8 +16682,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "assetcontroller"
     },
     {
@@ -16693,8 +16693,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_construct",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".__construct()"
     },
     {
@@ -16704,8 +16704,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_index",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -16715,8 +16715,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_resolveperpage",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".resolveperpage()"
     },
     {
@@ -16726,8 +16726,8 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_store",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -16737,8 +16737,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_show",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -16759,8 +16759,8 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_dispose",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".dispose()"
     },
     {
@@ -16770,8 +16770,8 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_bulkdispose",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".bulkdispose()"
     },
     {
@@ -16781,8 +16781,8 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_bulkrestore",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".bulkrestore()"
     },
     {
@@ -16792,8 +16792,8 @@
       "source_location": "L205",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_assetcontroller_assetcontroller_bulkforcedelete",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".bulkforcedelete()"
     },
     {
@@ -17507,8 +17507,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_dashboardcontroller_dashboardcontroller_stats",
-      "community": 5,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 497,
+      "community_name": "Asset",
       "norm_label": ".stats()"
     },
     {
@@ -17793,8 +17793,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "importreviewcontroller"
     },
     {
@@ -17804,8 +17804,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_upload",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".upload()"
     },
     {
@@ -17815,8 +17815,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_show",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".show()"
     },
     {
@@ -17826,8 +17826,8 @@
       "source_location": "L146",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_toggleselection",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".toggleselection()"
     },
     {
@@ -17837,8 +17837,8 @@
       "source_location": "L175",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_togglefieldselection",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".togglefieldselection()"
     },
     {
@@ -17848,8 +17848,8 @@
       "source_location": "L204",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_bulkselection",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".bulkselection()"
     },
     {
@@ -17859,8 +17859,8 @@
       "source_location": "L286",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_approve",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".approve()"
     },
     {
@@ -17870,8 +17870,8 @@
       "source_location": "L416",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_reject",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".reject()"
     },
     {
@@ -17881,8 +17881,8 @@
       "source_location": "L431",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_index",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -17892,8 +17892,8 @@
       "source_location": "L440",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_setallfieldselection",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".setallfieldselection()"
     },
     {
@@ -17903,8 +17903,8 @@
       "source_location": "L449",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_hasselectedchangedfield",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".hasselectedchangedfield()"
     },
     {
@@ -17914,8 +17914,8 @@
       "source_location": "L460",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_historyvalue",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".historyvalue()"
     },
     {
@@ -17925,8 +17925,8 @@
       "source_location": "L473",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_buildfilteredrowsquery",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".buildfilteredrowsquery()"
     },
     {
@@ -17936,8 +17936,8 @@
       "source_location": "L484",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_importreviewcontroller_importreviewcontroller_applyidentityfilters",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".applyidentityfilters()"
     },
     {
@@ -18860,8 +18860,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_exports_maintenanceexport_maintenanceexport_collection",
-      "community": 5,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 497,
+      "community_name": "Asset",
       "norm_label": ".collection()"
     },
     {
@@ -20367,8 +20367,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance",
-      "community": 5,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 497,
+      "community_name": "Asset",
       "norm_label": "assetmaintenance"
     },
     {
@@ -20378,8 +20378,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetmaintenance_assetmaintenance_asset",
-      "community": 5,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 497,
+      "community_name": "Asset",
       "norm_label": ".asset()"
     },
     {
@@ -20719,8 +20719,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "importbatch"
     },
     {
@@ -20730,8 +20730,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_uploader",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".uploader()"
     },
     {
@@ -20741,8 +20741,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_approver",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".approver()"
     },
     {
@@ -20752,8 +20752,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importbatch_importbatch_stagingrows",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".stagingrows()"
     },
     {
@@ -20774,8 +20774,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "importstaging"
     },
     {
@@ -20785,8 +20785,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging_batch",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".batch()"
     },
     {
@@ -20796,8 +20796,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_importstaging_importstaging_existingasset",
-      "community": 545,
-      "community_name": "ImportBatch",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".existingasset()"
     },
     {
@@ -23414,8 +23414,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_maintenanceservice_maintenanceservice_recordmaintenance",
-      "community": 5,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 497,
+      "community_name": "Asset",
       "norm_label": ".recordmaintenance()"
     },
     {
@@ -25240,8 +25240,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "eksternalcontroller"
     },
     {
@@ -25251,8 +25251,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_index",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -25262,8 +25262,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_show",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".show()"
     },
     {
@@ -25273,8 +25273,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_storepublic",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".storepublic()"
     },
     {
@@ -25284,8 +25284,8 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_updatestatus",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".updatestatus()"
     },
     {
@@ -25295,8 +25295,8 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_downloadfile",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".downloadfile()"
     },
     {
@@ -25306,8 +25306,8 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_eksternalcontroller_eksternalcontroller_destroy",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".destroy()"
     },
     {
@@ -26197,8 +26197,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_models_ekternal_ekternal",
-      "community": 1016,
-      "community_name": "Ekternal",
+      "community": 5,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "ekternal"
     },
     {
@@ -34150,8 +34150,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukcontroller"
     },
     {
@@ -34161,8 +34161,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_exportexcel",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".exportexcel()"
     },
     {
@@ -34172,8 +34172,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_index",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".index()"
     },
     {
@@ -34183,8 +34183,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_nextagenda",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".nextagenda()"
     },
     {
@@ -34194,8 +34194,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_locations",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".locations()"
     },
     {
@@ -34205,8 +34205,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_store",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".store()"
     },
     {
@@ -34216,8 +34216,8 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_show",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".show()"
     },
     {
@@ -34227,8 +34227,8 @@
       "source_location": "L176",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_update",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".update()"
     },
     {
@@ -34238,8 +34238,8 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_destroy",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".destroy()"
     },
     {
@@ -34370,8 +34370,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_surat_exports_suratmasukexport_suratmasukexport_collection",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".collection()"
     },
     {
@@ -34524,8 +34524,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasuk"
     },
     {
@@ -34535,8 +34535,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_booted",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".booted()"
     },
     {
@@ -34546,8 +34546,8 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_disposisi",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".disposisi()"
     },
     {
@@ -34557,8 +34557,8 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "backend_app_modules_surat_models_suratmasuk_suratmasuk_creator",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".creator()"
     },
     {
@@ -34645,8 +34645,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukrequest.php"
     },
     {
@@ -34656,8 +34656,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmasukrequest"
     },
     {
@@ -34667,8 +34667,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_authorize",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".authorize()"
     },
     {
@@ -34678,8 +34678,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_prepareforvalidation",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".prepareforvalidation()"
     },
     {
@@ -34689,8 +34689,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_rules",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".rules()"
     },
     {
@@ -34700,8 +34700,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_messages",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".messages()"
     },
     {
@@ -39925,8 +39925,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "testcase",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": "testcase"
     },
     {
@@ -44226,8 +44226,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": "notificationhealthmonitortest"
     },
     {
@@ -44237,8 +44237,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_setup",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".setup()"
     },
     {
@@ -44248,8 +44248,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_teardown",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".teardown()"
     },
     {
@@ -44259,8 +44259,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_test_rv02_health_distinguishes_controlled_dns_failure_from_tcp_refusal",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".test_rv02_health_distinguishes_controlled_dns_failure_from_tcp_refusal()"
     },
     {
@@ -44270,8 +44270,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_test_rv03_native_open_tcp_is_not_presented_as_end_to_end_websocket_proof",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".test_rv03_native_open_tcp_is_not_presented_as_end_to_end_websocket_proof()"
     },
     {
@@ -44281,8 +44281,8 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_test_rv05_06_first_heartbeat_never_consumed_eventually_alerts_instead_of_resetting_forever",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".test_rv05_06_first_heartbeat_never_consumed_eventually_alerts_instead_of_resetting_forever()"
     },
     {
@@ -44292,8 +44292,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "backend_tests_feature_notificationhealthmonitortest_notificationhealthmonitortest_test_rv07_sync_transport_failure_does_not_erase_or_hide_the_committed_notification",
-      "community": 497,
-      "community_name": "Asset",
+      "community": 93,
+      "community_name": "User",
       "norm_label": ".test_rv07_sync_transport_failure_does_not_erase_or_hide_the_committed_notification()"
     },
     {
@@ -47119,8 +47119,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": "suratmoduletest"
     },
     {
@@ -47130,8 +47130,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_setup",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".setup()"
     },
     {
@@ -47141,8 +47141,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_can_list_surat_masuk",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_can_list_surat_masuk()"
     },
     {
@@ -47152,8 +47152,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_can_list_surat_masuk_with_pagination",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_can_list_surat_masuk_with_pagination()"
     },
     {
@@ -47163,8 +47163,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_regular_user_cannot_export_excel",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_regular_user_cannot_export_excel()"
     },
     {
@@ -47174,8 +47174,8 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_regular_user_cannot_create_surat_masuk",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_regular_user_cannot_create_surat_masuk()"
     },
     {
@@ -47185,8 +47185,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_admin_can_create_surat_masuk_with_disposisi",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_admin_can_create_surat_masuk_with_disposisi()"
     },
     {
@@ -47196,8 +47196,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_cannot_create_duplicate_no_agenda",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_cannot_create_duplicate_no_agenda()"
     },
     {
@@ -47207,8 +47207,8 @@
       "source_location": "L161",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_next_agenda_endpoint",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_next_agenda_endpoint()"
     },
     {
@@ -47229,8 +47229,8 @@
       "source_location": "L205",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_admin_can_create_surat_keluar",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_admin_can_create_surat_keluar()"
     },
     {
@@ -47240,8 +47240,8 @@
       "source_location": "L226",
       "_origin": "ast",
       "id": "backend_tests_feature_suratmoduletest_suratmoduletest_test_can_fetch_surat_masuk_locations_with_surat_view",
-      "community": 804,
-      "community_name": "SuratMasuk",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\JsonResponse",
       "norm_label": ".test_can_fetch_surat_masuk_locations_with_surat_view()"
     },
     {
@@ -52132,8 +52132,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_components_bmntabcontent",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "bmntabcontent.tsx"
     },
     {
@@ -52143,8 +52143,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_components_bmntabcontent_bmntabcontent",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "bmntabcontent()"
     },
     {
@@ -52352,8 +52352,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_lib_asset_utils_getassetuser",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "getassetuser()"
     },
     {
@@ -58468,8 +58468,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_components_assetcatalogmodal_loanasset",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "loanasset"
     },
     {
@@ -58479,8 +58479,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_components_assetcatalogmodal_non_loanable_types",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "non_loanable_types"
     },
     {
@@ -58490,8 +58490,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_components_assetcatalogmodal_formatmerktipe",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "formatmerktipe()"
     },
     {
@@ -58523,8 +58523,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_components_assetcatalogmodal_assetcatalogmodal",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "assetcatalogmodal()"
     },
     {
@@ -58534,8 +58534,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_page",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "loans/create/page.tsx"
     },
     {
@@ -58545,8 +58545,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_app_bmn_loans_create_page_loancreatepage",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "loancreatepage()"
     },
     {
@@ -63011,8 +63011,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_lib_employee_helpers_ismmpemployee",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "ismmpemployee()"
     },
     {
@@ -63022,8 +63022,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_lib_employee_helpers_detectemployeetype",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "detectemployeetype()"
     },
     {
@@ -63077,8 +63077,8 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_lib_employee_helpers_getannualleaveeligibledate",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "getannualleaveeligibledate()"
     },
     {
@@ -63088,8 +63088,8 @@
       "source_location": "L145",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_lib_employee_helpers_iseligibleforannualleave",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "iseligibleforannualleave()"
     },
     {
@@ -63165,8 +63165,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "catatsuratizinmodal.tsx"
     },
     {
@@ -63176,8 +63176,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_dynamicleavetype",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "dynamicleavetype"
     },
     {
@@ -63187,8 +63187,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_default_jenis_cuti",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "default_jenis_cuti"
     },
     {
@@ -63198,8 +63198,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_parselocaldate",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "parselocaldate()"
     },
     {
@@ -63209,8 +63209,8 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_calculateleavedays",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "calculateleavedays()"
     },
     {
@@ -63220,8 +63220,8 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_catatsuratizinmodalprops",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "catatsuratizinmodalprops"
     },
     {
@@ -63231,8 +63231,8 @@
       "source_location": "L109",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_cuti_components_catatsuratizinmodal_catatsuratizinmodal",
-      "community": 12,
-      "community_name": "employees/[id]/page.tsx",
+      "community": 481,
+      "community_name": "EmployeeLeaveTab.tsx",
       "norm_label": "catatsuratizinmodal()"
     },
     {
@@ -64474,7 +64474,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "expensetemplatestab.tsx"
     },
@@ -64485,7 +64485,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_expense_categories",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "expense_categories"
     },
@@ -64496,7 +64496,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_expensetemplatestab_expensetemplatestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "expensetemplatestab()"
     },
@@ -64540,7 +64540,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_sttemplatestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "sttemplatestab.tsx"
     },
@@ -64551,7 +64551,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_sttemplatestab_templatekind",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "templatekind"
     },
@@ -64562,7 +64562,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_sttemplatestab_template_types",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "template_types"
     },
@@ -64573,7 +64573,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_sttemplatestab_sttemplatestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "sttemplatestab()"
     },
@@ -64584,7 +64584,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_tasktypestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "tasktypestab.tsx"
     },
@@ -64595,7 +64595,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_tasktypestab_sttasktype",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "sttasktype"
     },
@@ -64606,7 +64606,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_tasktypestab_tasktypestab",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "tasktypestab()"
     },
@@ -64617,7 +64617,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_utils",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "_components/utils.ts"
     },
@@ -64628,7 +64628,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_utils_templatecodefromname",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "templatecodefromname()"
     },
@@ -64639,7 +64639,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_settings_st_templates_components_utils_errormessage",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "errormessage()"
     },
@@ -64870,7 +64870,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_editableitemlistsection",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "editableitemlistsection.tsx"
     },
@@ -64881,7 +64881,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_editableitemlistsection_placeholderchip",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "placeholderchip"
     },
@@ -64892,7 +64892,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_editableitemlistsection_editableitemlistsectionprops",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "editableitemlistsectionprops"
     },
@@ -64903,7 +64903,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_components_editableitemlistsection_editableitemlistsection",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "editableitemlistsection()"
     },
@@ -65420,7 +65420,7 @@
       "source_location": "L419",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_activity_helpers_buildbiayatextfor",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "buildbiayatextfor()"
     },
@@ -65948,7 +65948,7 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_sumber_dana_isfundingdasartext",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "isfundingdasartext()"
     },
@@ -65981,7 +65981,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_surat_tugas_lib_types_dasaritem",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "dasaritem"
     },
@@ -69633,8 +69633,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "kalkulatordinastab.tsx"
     },
     {
@@ -69644,8 +69644,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_surattugassimpleoption",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "surattugassimpleoption"
     },
     {
@@ -69655,8 +69655,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_pengeluaranitem",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "pengeluaranitem"
     },
     {
@@ -69666,8 +69666,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_kategori_options",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "kategori_options"
     },
     {
@@ -69677,8 +69677,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_formatrupiah",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "formatrupiah()"
     },
     {
@@ -69688,8 +69688,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_formatribuan",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "formatribuan()"
     },
     {
@@ -69699,8 +69699,8 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_parseribuan",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "parseribuan()"
     },
     {
@@ -69710,8 +69710,8 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_getstoragekey",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "getstoragekey()"
     },
     {
@@ -69721,8 +69721,8 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "frontend_src_app_portal_components_kalkulatordinastab_kalkulatordinastab",
-      "community": 562,
-      "community_name": "auction-batches/[id]/page.tsx",
+      "community": 785,
+      "community_name": "KalkulatorDinasTab.tsx",
       "norm_label": "kalkulatordinastab()"
     },
     {
@@ -70854,7 +70854,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_app_surat_tugas_components_surattugasdialog_surattugasdialog",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "surattugasdialog()"
     },
@@ -71335,7 +71335,7 @@
       "label": "resolveImageUrl()",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1285",
+      "source_location": "L1282",
       "_origin": "ast",
       "id": "frontend_src_app_surat_components_suratdinasdocument_resolveimageurl",
       "community": 105,
@@ -71346,7 +71346,7 @@
       "label": "handlePrintSuratDinas()",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1338",
+      "source_location": "L1335",
       "_origin": "ast",
       "id": "frontend_src_app_surat_components_suratdinasdocument_handleprintsuratdinas",
       "community": 105,
@@ -71357,7 +71357,7 @@
       "label": "SuratDinasDocumentComponent()",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1417",
+      "source_location": "L1414",
       "_origin": "ast",
       "id": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
       "community": 105,
@@ -71368,7 +71368,7 @@
       "label": "SuratDinasDocument",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2453",
+      "source_location": "L2450",
       "_origin": "ast",
       "id": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocument",
       "community": 105,
@@ -72028,7 +72028,7 @@
       "label": "INDO_MONTH_MAP",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2411",
+      "source_location": "L2414",
       "_origin": "ast",
       "id": "frontend_src_app_surat_keluar_dinas_page_indo_month_map",
       "community": 105,
@@ -72039,7 +72039,7 @@
       "label": "parseIndoDateToIso()",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2416",
+      "source_location": "L2419",
       "_origin": "ast",
       "id": "frontend_src_app_surat_keluar_dinas_page_parseindodatetoiso",
       "community": 105,
@@ -72050,7 +72050,7 @@
       "label": "GenerateSuratDinasPage()",
       "file_type": "code",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2425",
+      "source_location": "L2428",
       "_origin": "ast",
       "id": "frontend_src_app_surat_keluar_dinas_page_generatesuratdinaspage",
       "community": 105,
@@ -73857,8 +73857,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_components_ui_employee_select",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "employee-select.tsx"
     },
     {
@@ -73868,8 +73868,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_components_ui_employee_select_employee",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "employee"
     },
     {
@@ -73879,8 +73879,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_components_ui_employee_select_employeeselectprops",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "employeeselectprops"
     },
     {
@@ -73890,8 +73890,8 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "frontend_src_components_ui_employee_select_employeeselect",
-      "community": 68,
-      "community_name": "button.tsx",
+      "community": 601,
+      "community_name": "assets/page.tsx",
       "norm_label": "employeeselect()"
     },
     {
@@ -75738,7 +75738,7 @@
       "source_location": "L213",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_renderformatteditalic",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "renderformatteditalic()"
     },
@@ -75749,7 +75749,7 @@
       "source_location": "L233",
       "_origin": "ast",
       "id": "frontend_src_lib_letter_utils_toggleitalicintextarea",
-      "community": 534,
+      "community": 545,
       "community_name": "StTemplatesTab.tsx",
       "norm_label": "toggleitalicintextarea()"
     },
@@ -77267,8 +77267,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_tests_bmn_detail_ui_el",
-      "community": 652,
-      "community_name": "kepegawaian-uang-makan.playwright.cjs",
+      "community": 745,
+      "community_name": "bmn-security-ui.playwright.cjs",
       "norm_label": "el()"
     },
     {
@@ -86724,7 +86724,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "mobile_package_dependencies_expo_camera",
-      "community": 994,
+      "community": 1016,
       "community_name": "expo-camera",
       "norm_label": "expo-camera"
     },
@@ -86735,7 +86735,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "expo_camera",
-      "community": 994,
+      "community": 1016,
       "community_name": "expo-camera",
       "norm_label": "expo-camera"
     },
@@ -101200,8 +101200,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_ai_and_llm",
-      "community": 888,
-      "community_name": "AI, LLM, and Agent Hunting",
+      "community": 803,
+      "community_name": "ATTACK-CLASSES.md",
       "norm_label": "ai-and-llm.md"
     },
     {
@@ -101585,8 +101585,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_data_isolation_and_lifecycle",
-      "community": 803,
-      "community_name": "ATTACK-CLASSES.md",
+      "community": 659,
+      "community_name": "Data Isolation and Lifecycle Hunting",
       "norm_label": "data-isolation-and-lifecycle.md"
     },
     {
@@ -142274,7 +142274,7 @@
       "source_location": "L665",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_225_sistem_notifikasi_in_app_portal_pegawai_akses_publik_form_surat_tugas_pemformatan_huruf_miring_markdown_italic_naskah_dinas_hardening_keamanan",
-      "community": 795,
+      "community": 953,
       "community_name": "Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan",
       "norm_label": "progress - phase 225: sistem notifikasi in-app portal pegawai, akses publik form surat tugas, pemformatan huruf miring (markdown italic) naskah dinas, & hardening keamanan"
     },
@@ -142285,7 +142285,7 @@
       "source_location": "L673",
       "_origin": "ast",
       "id": "docs_progress_1_masalah_kebutuhan_673",
-      "community": 795,
+      "community": 953,
       "community_name": "Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan",
       "norm_label": "1. masalah & kebutuhan"
     },
@@ -142296,7 +142296,7 @@
       "source_location": "L685",
       "_origin": "ast",
       "id": "docs_progress_2_perubahan_yang_dilakukan_685",
-      "community": 795,
+      "community": 953,
       "community_name": "Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan",
       "norm_label": "2. perubahan yang dilakukan"
     },
@@ -142307,7 +142307,7 @@
       "source_location": "L734",
       "_origin": "ast",
       "id": "docs_progress_3_validasi_pengujian_734",
-      "community": 795,
+      "community": 953,
       "community_name": "Progress - Phase 225: Sistem Notifikasi In-App Portal Pegawai, Akses Publik Form Surat Tugas, Pemformatan Huruf Miring (Markdown Italic) Naskah Dinas, & Hardening Keamanan",
       "norm_label": "3. validasi & pengujian"
     },
@@ -142450,7 +142450,7 @@
       "source_location": "L884",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_221_optimasi_request_storming_in_flight_deduplication_cooldown_throttling_issue_581",
-      "community": 770,
+      "community": 922,
       "community_name": "Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)",
       "norm_label": "progress - phase 221: optimasi request storming, in-flight deduplication, & cooldown throttling (issue #581)"
     },
@@ -142461,7 +142461,7 @@
       "source_location": "L892",
       "_origin": "ast",
       "id": "docs_progress_1_masalah_analisis_root_cause",
-      "community": 770,
+      "community": 922,
       "community_name": "Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)",
       "norm_label": "1. masalah & analisis root cause"
     },
@@ -142472,7 +142472,7 @@
       "source_location": "L899",
       "_origin": "ast",
       "id": "docs_progress_2_perubahan_yang_dilakukan_899",
-      "community": 770,
+      "community": 922,
       "community_name": "Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)",
       "norm_label": "2. perubahan yang dilakukan"
     },
@@ -142483,7 +142483,7 @@
       "source_location": "L910",
       "_origin": "ast",
       "id": "docs_progress_3_validasi",
-      "community": 770,
+      "community": 922,
       "community_name": "Progress - Phase 221: Optimasi Request Storming, In-Flight Deduplication, & Cooldown Throttling (Issue #581)",
       "norm_label": "3. validasi"
     },
@@ -143605,7 +143605,7 @@
       "source_location": "L1629",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_175_perbaikan_evaluasi_pratinjau_teks_formulasi_menugaskan_staf",
-      "community": 972,
+      "community": 994,
       "community_name": "Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf",
       "norm_label": "progress - phase 175: perbaikan evaluasi pratinjau teks & formulasi menugaskan staf"
     },
@@ -143616,7 +143616,7 @@
       "source_location": "L1636",
       "_origin": "ast",
       "id": "docs_progress_perbaikan_evaluasi_pratinjau_teks_hasil_resmi_format_menugaskan_staf",
-      "community": 972,
+      "community": 994,
       "community_name": "Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf",
       "norm_label": "perbaikan evaluasi pratinjau teks hasil resmi & format menugaskan staf"
     },
@@ -143627,7 +143627,7 @@
       "source_location": "L1638",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1638",
-      "community": 972,
+      "community": 994,
       "community_name": "Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf",
       "norm_label": "status: selesai"
     },
@@ -143638,7 +143638,7 @@
       "source_location": "L1649",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1649",
-      "community": 972,
+      "community": 994,
       "community_name": "Perbaikan Evaluasi Pratinjau Teks Hasil Resmi & Format Menugaskan Staf",
       "norm_label": "validasi & git workflow pro"
     },
@@ -143869,8 +143869,8 @@
       "source_location": "L1804",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_169_pemisahan_rute_perjalanan_dari_ke_kolom_pada_kegiatan",
-      "community": 953,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 169: pemisahan rute perjalanan (dari/ke) & kolom pada kegiatan"
     },
     {
@@ -143880,8 +143880,8 @@
       "source_location": "L1811",
       "_origin": "ast",
       "id": "docs_progress_pemisahan_rute_perjalanan_2_kolom_dari_ke_kolom_pada_clean_state_default",
-      "community": 953,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "pemisahan rute perjalanan 2 kolom (dari & ke) + kolom 'pada' + clean state default"
     },
     {
@@ -143891,8 +143891,8 @@
       "source_location": "L1813",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1813",
-      "community": 953,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -143902,8 +143902,8 @@
       "source_location": "L1829",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1829",
-      "community": 953,
-      "community_name": "Pemisahan Rute Perjalanan 2 Kolom (Dari & Ke) + Kolom 'Pada' + Clean State Default",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144089,8 +144089,8 @@
       "source_location": "L1944",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_164_penataan_daftar_personil_di_atas_lokasi_fix_gestur_swipe_back_detail_st",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 972,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "progress - phase 164: penataan daftar personil di atas lokasi & fix gestur swipe back detail st"
     },
     {
@@ -144100,8 +144100,8 @@
       "source_location": "L1951",
       "_origin": "ast",
       "id": "docs_progress_penataan_daftar_personil_di_atas_lokasi_fix_gestur_swipe_back_detail_st",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 972,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "penataan daftar personil di atas lokasi & fix gestur swipe back detail st"
     },
     {
@@ -144111,8 +144111,8 @@
       "source_location": "L1953",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1953",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 972,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "status: selesai"
     },
     {
@@ -144122,8 +144122,8 @@
       "source_location": "L1963",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1963",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 972,
+      "community_name": "Penataan Daftar Personil di Atas Lokasi & Fix Gestur Swipe Back Detail ST",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144133,8 +144133,8 @@
       "source_location": "L1969",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_163_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 875,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 163: inbox surat tugas alur master-detail mobile"
     },
     {
@@ -144144,8 +144144,8 @@
       "source_location": "L1976",
       "_origin": "ast",
       "id": "docs_progress_inbox_surat_tugas_alur_master_detail_mobile",
-      "community": 875,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "inbox surat tugas alur master-detail mobile"
     },
     {
@@ -144155,8 +144155,8 @@
       "source_location": "L1978",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1978",
-      "community": 875,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -144166,8 +144166,8 @@
       "source_location": "L1987",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1987",
-      "community": 875,
-      "community_name": "Inbox Surat Tugas Alur Master-Detail Mobile",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144177,7 +144177,7 @@
       "source_location": "L1993",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_162_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 969,
+      "community": 976,
       "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "progress - phase 162: penghapusan tombol toggle tema header modul"
     },
@@ -144188,7 +144188,7 @@
       "source_location": "L2000",
       "_origin": "ast",
       "id": "docs_progress_penghapusan_tombol_toggle_tema_header_modul",
-      "community": 969,
+      "community": 976,
       "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "penghapusan tombol toggle tema header modul"
     },
@@ -144199,7 +144199,7 @@
       "source_location": "L2002",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2002",
-      "community": 969,
+      "community": 976,
       "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "status: selesai"
     },
@@ -144210,7 +144210,7 @@
       "source_location": "L2010",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2010",
-      "community": 969,
+      "community": 976,
       "community_name": "Penghapusan Tombol Toggle Tema Header Modul",
       "norm_label": "validasi & git workflow pro"
     },
@@ -144353,7 +144353,7 @@
       "source_location": "L2113",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_158_floating_popover_overlay_card_modul_aktif_fix_ionicons_warning",
-      "community": 974,
+      "community": 968,
       "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "progress - phase 158: floating popover overlay card modul aktif & fix ionicons warning"
     },
@@ -144364,7 +144364,7 @@
       "source_location": "L2120",
       "_origin": "ast",
       "id": "docs_progress_floating_popover_overlay_card_modul_aktif_fix_ionicons_warning",
-      "community": 974,
+      "community": 968,
       "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "floating popover overlay card modul aktif & fix ionicons warning"
     },
@@ -144375,7 +144375,7 @@
       "source_location": "L2122",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2122",
-      "community": 974,
+      "community": 968,
       "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "status: selesai"
     },
@@ -144386,7 +144386,7 @@
       "source_location": "L2141",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2141",
-      "community": 974,
+      "community": 968,
       "community_name": "Floating Popover Overlay Card Modul Aktif & Fix Ionicons Warning",
       "norm_label": "validasi & git workflow pro"
     },
@@ -144485,8 +144485,8 @@
       "source_location": "L2208",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_155_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 922,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 155: mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -144496,8 +144496,8 @@
       "source_location": "L2215",
       "_origin": "ast",
       "id": "docs_progress_mobile_kepegawaian_table_pagination_superadmin_edit_detail",
-      "community": 922,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile kepegawaian table pagination & superadmin edit detail"
     },
     {
@@ -144507,8 +144507,8 @@
       "source_location": "L2217",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2217",
-      "community": 922,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -144518,8 +144518,8 @@
       "source_location": "L2232",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2232",
-      "community": 922,
-      "community_name": "Mobile Kepegawaian Table Pagination & SuperAdmin Edit Detail",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144529,7 +144529,7 @@
       "source_location": "L2238",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_154_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 976,
+      "community": 969,
       "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "progress - phase 154: mobile employee full search sync & single-line nip layout"
     },
@@ -144540,7 +144540,7 @@
       "source_location": "L2245",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 976,
+      "community": 969,
       "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "mobile employee full search sync & single-line nip layout"
     },
@@ -144551,7 +144551,7 @@
       "source_location": "L2247",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2247",
-      "community": 976,
+      "community": 969,
       "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "status: selesai"
     },
@@ -144562,7 +144562,7 @@
       "source_location": "L2258",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2258",
-      "community": 976,
+      "community": 969,
       "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
       "norm_label": "validasi & git workflow pro"
     },
@@ -144749,8 +144749,8 @@
       "source_location": "L2383",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_149_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 974,
+      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "progress - phase 149: mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -144760,8 +144760,8 @@
       "source_location": "L2390",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_keyboard_avoiding_input_focus_fix",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 974,
+      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "mobile login keyboard avoiding & input focus fix"
     },
     {
@@ -144771,8 +144771,8 @@
       "source_location": "L2392",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2392",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 974,
+      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "status: selesai"
     },
     {
@@ -144782,8 +144782,8 @@
       "source_location": "L2404",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2404",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 974,
+      "community_name": "Mobile Login Keyboard Avoiding & Input Focus Fix",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144793,7 +144793,7 @@
       "source_location": "L2410",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_148_mobile_login_screen_branding_clean_up",
-      "community": 860,
+      "community": 971,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "progress - phase 148: mobile login screen branding & clean up"
     },
@@ -144804,7 +144804,7 @@
       "source_location": "L2417",
       "_origin": "ast",
       "id": "docs_progress_mobile_login_screen_branding_clean_up",
-      "community": 860,
+      "community": 971,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "mobile login screen branding & clean up"
     },
@@ -144815,7 +144815,7 @@
       "source_location": "L2419",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2419",
-      "community": 860,
+      "community": 971,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "status: selesai"
     },
@@ -144826,7 +144826,7 @@
       "source_location": "L2432",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2432",
-      "community": 860,
+      "community": 971,
       "community_name": "Mobile Login Screen Branding & Clean Up",
       "norm_label": "validasi & git workflow pro"
     },
@@ -147972,7 +147972,7 @@
       "source_location": "L4158",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_97_mobile_api_readiness",
-      "community": 785,
+      "community": 804,
       "community_name": "Mobile API Readiness",
       "norm_label": "progress - phase 97: mobile api readiness"
     },
@@ -147983,7 +147983,7 @@
       "source_location": "L4165",
       "_origin": "ast",
       "id": "docs_progress_mobile_api_readiness",
-      "community": 785,
+      "community": 804,
       "community_name": "Mobile API Readiness",
       "norm_label": "mobile api readiness"
     },
@@ -147994,7 +147994,7 @@
       "source_location": "L4167",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_4167",
-      "community": 785,
+      "community": 804,
       "community_name": "Mobile API Readiness",
       "norm_label": "status: selesai"
     },
@@ -148005,7 +148005,7 @@
       "source_location": "L4171",
       "_origin": "ast",
       "id": "docs_progress_implementasi_4171",
-      "community": 785,
+      "community": 804,
       "community_name": "Mobile API Readiness",
       "norm_label": "implementasi"
     },
@@ -148016,7 +148016,7 @@
       "source_location": "L4188",
       "_origin": "ast",
       "id": "docs_progress_validasi_4188",
-      "community": 785,
+      "community": 804,
       "community_name": "Mobile API Readiness",
       "norm_label": "validasi"
     },
@@ -148027,7 +148027,7 @@
       "source_location": "L4194",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_96_surat_kuasa_kendaraan_document_generator",
-      "community": 968,
+      "community": 860,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "progress - phase 96: surat kuasa kendaraan document generator"
     },
@@ -148038,7 +148038,7 @@
       "source_location": "L4201",
       "_origin": "ast",
       "id": "docs_progress_surat_kuasa_kendaraan_document_generator",
-      "community": 968,
+      "community": 860,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "surat kuasa kendaraan document generator"
     },
@@ -148049,7 +148049,7 @@
       "source_location": "L4203",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_4203",
-      "community": 968,
+      "community": 860,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "status: selesai"
     },
@@ -148060,7 +148060,7 @@
       "source_location": "L4207",
       "_origin": "ast",
       "id": "docs_progress_implementasi_4207",
-      "community": 968,
+      "community": 860,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "implementasi"
     },
@@ -148071,7 +148071,7 @@
       "source_location": "L4221",
       "_origin": "ast",
       "id": "docs_progress_validasi_4221",
-      "community": 968,
+      "community": 860,
       "community_name": "Surat Kuasa Kendaraan Document Generator",
       "norm_label": "validasi"
     },
@@ -151514,7 +151514,7 @@
       "source_location": "L6439",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_47_ba_sk_ttd_spacing",
-      "community": 616,
+      "community": 795,
       "community_name": "Issue #346: Widen TTD Spacing in BA and SK Documents",
       "norm_label": "progress - phase 47: ba & sk ttd spacing"
     },
@@ -151525,7 +151525,7 @@
       "source_location": "L6446",
       "_origin": "ast",
       "id": "docs_progress_issue_346_widen_ttd_spacing_in_ba_and_sk_documents",
-      "community": 616,
+      "community": 795,
       "community_name": "Issue #346: Widen TTD Spacing in BA and SK Documents",
       "norm_label": "issue #346: widen ttd spacing in ba and sk documents"
     },
@@ -151536,7 +151536,7 @@
       "source_location": "L6448",
       "_origin": "ast",
       "id": "docs_progress_completed_6448",
-      "community": 616,
+      "community": 795,
       "community_name": "Issue #346: Widen TTD Spacing in BA and SK Documents",
       "norm_label": "completed:"
     },
@@ -151547,7 +151547,7 @@
       "source_location": "L6459",
       "_origin": "ast",
       "id": "docs_progress_key_files_6459",
-      "community": 616,
+      "community": 795,
       "community_name": "Issue #346: Widen TTD Spacing in BA and SK Documents",
       "norm_label": "key files:"
     },
@@ -151558,7 +151558,7 @@
       "source_location": "L6463",
       "_origin": "ast",
       "id": "docs_progress_validation_6463",
-      "community": 616,
+      "community": 795,
       "community_name": "Issue #346: Widen TTD Spacing in BA and SK Documents",
       "norm_label": "validation:"
     },
@@ -151844,8 +151844,8 @@
       "source_location": "L6624",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_41_kepegawaian_st_builder_tte_tembusan_fix",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 770,
+      "community_name": "Issue #332: ST Builder TTE Placeholder & Tembusan Numbering",
       "norm_label": "progress - phase 41: kepegawaian st builder tte & tembusan fix"
     },
     {
@@ -151855,8 +151855,8 @@
       "source_location": "L6631",
       "_origin": "ast",
       "id": "docs_progress_issue_332_st_builder_tte_placeholder_tembusan_numbering",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 770,
+      "community_name": "Issue #332: ST Builder TTE Placeholder & Tembusan Numbering",
       "norm_label": "issue #332: st builder tte placeholder & tembusan numbering"
     },
     {
@@ -151866,8 +151866,8 @@
       "source_location": "L6633",
       "_origin": "ast",
       "id": "docs_progress_completed_6633",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 770,
+      "community_name": "Issue #332: ST Builder TTE Placeholder & Tembusan Numbering",
       "norm_label": "completed:"
     },
     {
@@ -151877,8 +151877,8 @@
       "source_location": "L6641",
       "_origin": "ast",
       "id": "docs_progress_key_files_6641",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 770,
+      "community_name": "Issue #332: ST Builder TTE Placeholder & Tembusan Numbering",
       "norm_label": "key files:"
     },
     {
@@ -151888,8 +151888,8 @@
       "source_location": "L6644",
       "_origin": "ast",
       "id": "docs_progress_validation_6644",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 770,
+      "community_name": "Issue #332: ST Builder TTE Placeholder & Tembusan Numbering",
       "norm_label": "validation:"
     },
     {
@@ -167915,8 +167915,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tatanaskahdinas_lampiran_peraturan_menteri_kehutanan_republik_indonesia",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 875,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "lampiran peraturan menteri kehutanan republik indonesia"
     },
     {
@@ -167926,8 +167926,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "tatanaskahdinas_nomor_1_tahun_2025",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 875,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "nomor 1 tahun 2025"
     },
     {
@@ -167937,8 +167937,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "tatanaskahdinas_tentang_tata_naskah_dinas_kementerian_kehutanan",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 875,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "tentang tata naskah dinas kementerian kehutanan"
     },
     {
@@ -167948,8 +167948,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "tatanaskahdinas_daftar_isi",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 875,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "daftar isi"
     },
     {
@@ -167959,8 +167959,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "tatanaskahdinas_sistematika_lampiran",
-      "community": 6,
-      "community_name": "tatanaskahdinas.md",
+      "community": 875,
+      "community_name": "LAMPIRAN PERATURAN MENTERI KEHUTANAN REPUBLIK INDONESIA",
       "norm_label": "sistematika lampiran"
     },
     {
@@ -169818,8 +169818,8 @@
       "source_location": "L4963",
       "_origin": "ast",
       "id": "tatanaskahdinas_bab_iii_pengamanan_naskah_dinas_4963",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "bab iii pengamanan naskah dinas"
     },
     {
@@ -169829,8 +169829,8 @@
       "source_location": "L4966",
       "_origin": "ast",
       "id": "tatanaskahdinas_a_penggunaan_amplop_4966",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "a. penggunaan amplop"
     },
     {
@@ -169840,8 +169840,8 @@
       "source_location": "L4995",
       "_origin": "ast",
       "id": "tatanaskahdinas_b_metode_security_printing_4995",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "b. metode security printing"
     },
     {
@@ -169851,8 +169851,8 @@
       "source_location": "L5014",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_rosettes_guilloche_relief_pattern",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan rosettes, guilloche, relief pattern"
     },
     {
@@ -169862,8 +169862,8 @@
       "source_location": "L5055",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_anticopy_rainbow_printing",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan anticopy, rainbow printing"
     },
     {
@@ -169873,8 +169873,8 @@
       "source_location": "L5079",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_microtext_hidden_image",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan microtext, hidden image"
     },
     {
@@ -169884,8 +169884,8 @@
       "source_location": "L5119",
       "_origin": "ast",
       "id": "tatanaskahdinas_format_contoh_teknik_pengamanan_barcode_2d_qr_code_invisible_ink",
-      "community": 971,
-      "community_name": "B. Metode Security Printing",
+      "community": 6,
+      "community_name": "tatanaskahdinas.md",
       "norm_label": "format / contoh teknik pengamanan barcode 2d / qr code, invisible ink"
     },
     {
@@ -384770,7 +384770,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1338",
+      "source_location": "L1335",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument",
@@ -384847,7 +384847,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1285",
+      "source_location": "L1282",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument",
@@ -384880,7 +384880,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2453",
+      "source_location": "L2450",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument",
@@ -384891,7 +384891,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2453",
+      "source_location": "L2450",
       "weight": 1.0,
       "_origin": "ast",
       "context": "argument",
@@ -385154,7 +385154,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L1183",
+      "source_location": "L1184",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_keluar_dinas_page_generatesuratdinascontent",
@@ -385189,7 +385189,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1642",
+      "source_location": "L1639",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385249,7 +385249,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2253",
+      "source_location": "L2250",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385285,7 +385285,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2256",
+      "source_location": "L2253",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385345,7 +385345,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L2255",
+      "source_location": "L2252",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385477,7 +385477,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1480",
+      "source_location": "L1477",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385561,7 +385561,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1358",
+      "source_location": "L1355",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_handleprintsuratdinas",
@@ -385573,7 +385573,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1601",
+      "source_location": "L1598",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385610,7 +385610,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1754",
+      "source_location": "L1751",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -385622,7 +385622,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/surat/_components/SuratDinasDocument.tsx",
-      "source_location": "L1903",
+      "source_location": "L1900",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_components_suratdinasdocument_suratdinasdocumentcomponent",
@@ -387240,7 +387240,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2425",
+      "source_location": "L2428",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_keluar_dinas_page",
@@ -387262,7 +387262,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2411",
+      "source_location": "L2414",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_keluar_dinas_page",
@@ -387273,7 +387273,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2416",
+      "source_location": "L2419",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_keluar_dinas_page",
@@ -387572,7 +387572,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/surat/keluar/dinas/page.tsx",
-      "source_location": "L2152",
+      "source_location": "L2153",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_surat_keluar_dinas_page_generatesuratdinascontent",
@@ -504418,5 +504418,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f8ca5a1ff12bc5a5db28f568bfadaf4eedcfb296"
+  "built_at_commit": "93656c640ea1ed052d3a0632ab0d02e07a5b284d"
 }

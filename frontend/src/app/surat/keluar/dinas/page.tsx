@@ -789,7 +789,7 @@ function GenerateSuratDinasContent() {
   return (
     <div className="psr-ui w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)]">
       {/* Enterprise Header Card */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link href="/surat/keluar">
@@ -877,7 +877,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("draft")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+            className="rounded-xl text-xs gap-1.5 bg-[var(--ds-surface)] border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 shadow-xs"
             title="Simpan sebagai draf di Daftar Surat Keluar"
           >
             <Bookmark className="w-3.5 h-3.5" />
@@ -954,12 +954,12 @@ function GenerateSuratDinasContent() {
       </div>
 
       {/* Template Selector Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-[var(--ds-border-subtle)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsPickerModalOpen(true)}
-            className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] transition-all text-xs cursor-pointer"
+            className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] transition-all text-xs cursor-pointer"
           >
             <div className="w-6 h-6 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <activeTabMeta.icon className="w-3.5 h-3.5" />
@@ -990,8 +990,8 @@ function GenerateSuratDinasContent() {
         {/* LEFT COLUMN: Editor Form (5 cols on lg) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Card 1: Metadata Surat */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               1. Identitas & Meta Dokumen
             </h2>
@@ -1007,7 +1007,7 @@ function GenerateSuratDinasContent() {
                 </div>
 
                 {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
-                <div className="flex items-center p-1 bg-[var(--ds-surface-muted)] rounded-xl text-xs">
+                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-900 rounded-xl border border-[var(--ds-border-subtle)] text-xs">
                   <button
                     type="button"
                     aria-pressed={!isAutoNomorNaskah}
@@ -1019,7 +1019,7 @@ function GenerateSuratDinasContent() {
                     className={cn(
                       "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       !isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)]"
+                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1032,7 +1032,7 @@ function GenerateSuratDinasContent() {
                     className={cn(
                       "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)]"
+                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1042,21 +1042,22 @@ function GenerateSuratDinasContent() {
 
                 {isAutoNomorNaskah ? (
                   <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 bg-[var(--ds-surface-muted)] p-2.5 rounded-xl border border-[var(--ds-border-subtle)]">
+                    <div className="flex items-center gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 h-9 transition-[border-color,box-shadow] focus-within:border-[var(--ds-accent-fg)] focus-within:ring-[3px] focus-within:ring-[var(--ds-accent-fg)]/15">
                       <span className="text-[var(--ds-fg-muted)] font-medium text-xs shrink-0 font-mono">
                         Nomor :
                       </span>
-                      <Input
+                      <input
+                        data-plain="true"
                         type="text"
                         placeholder="${nomor_naskah}"
                         value={data.nomor}
                         onChange={(e) => updateField("nomor", e.target.value)}
-                        className="w-full font-mono text-xs font-medium bg-[var(--ds-surface)] h-8 border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
+                        className="w-full min-w-0 bg-transparent font-mono text-xs font-medium text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] outline-none focus:outline-none"
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3 space-y-2">
+                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-900/50 p-3 space-y-2">
                     <div className="grid grid-cols-12 gap-1.5 items-end">
                       <div className="col-span-4">
                         <div className="flex items-center justify-between mb-1">
@@ -1218,8 +1219,8 @@ function GenerateSuratDinasContent() {
           </div>
 
           {/* Card 2: Field Spesifik Template */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               2. Data Spesifik ({activeTabMeta.name})
             </h2>
@@ -1642,9 +1643,9 @@ function GenerateSuratDinasContent() {
 
           {/* Card 3: Paragraf Isi */}
           {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
+            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
               {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
-              <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-[var(--ds-border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-[var(--ds-border-subtle)] flex flex-col gap-2.5">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
                   <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                   3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
@@ -1655,10 +1656,10 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("plain")}
-                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs text-[var(--ds-fg)] bg-[var(--ds-surface)] border-zinc-300 dark:border-zinc-700 hover:bg-[var(--ds-surface-muted)] shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah paragraf biasa ke akhir"
                   >
-                    <Plus className="w-3.5 h-3.5 text-zinc-500" />
+                    <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                     Paragraf
                   </Button>
                   <Button
@@ -1666,7 +1667,7 @@ function GenerateSuratDinasContent() {
                     variant="default"
                     size="sm"
                     onClick={() => handleInsertPoint("num")}
-                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
                   >
                     <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
@@ -1677,7 +1678,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("letter")}
-                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
                   >
                     + Sub a.
@@ -1687,7 +1688,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("roman")}
-                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/60 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
                   >
                     + Butir i.
@@ -1697,17 +1698,17 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/60 hover:bg-blue-100 dark:border-blue-800 dark:text-blue-300 dark:bg-blue-950/40 p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-800 dark:text-blue-300 dark:bg-blue-950/40 shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
                   >
                     + Butir 1)
                   </Button>
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowSmartPaste(!showSmartPaste)}
-                    className="h-7 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 p-1 px-2.5 gap-1 font-semibold"
+                    className="kpg-secondary h-7 text-xs p-1 px-2.5 gap-1 font-semibold"
                     title="Tempel teks utuh naskah dinas bertingkat"
                   >
                     <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
@@ -2014,8 +2015,8 @@ function GenerateSuratDinasContent() {
           )}
 
           {/* Card 4: Penandatangan */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] pb-2">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               {activeTemplate === "berita_acara"
                 ? `4. Penandatangan Berita Acara (${data.signerCount || 2} Pihak)`
@@ -2268,9 +2269,9 @@ function GenerateSuratDinasContent() {
             activeTemplate === "surat_panggilan" ||
             activeTemplate === "surat_pernyataan"
           ) && (
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3">
-              <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1.5">
+            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                   5. Tembusan ({(data.tembusan || []).length})
                 </h2>
@@ -2325,13 +2326,13 @@ function GenerateSuratDinasContent() {
 
         {/* RIGHT COLUMN: Live A4 Preview (7 cols on lg) */}
         <div className="lg:col-span-7 sticky top-4">
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3 lg:p-5 overflow-x-auto">
-            <div className="flex items-center justify-between mb-3 text-xs text-[var(--ds-fg-muted)]">
-              <span className="flex items-center gap-1.5 font-medium">
+          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 lg:p-5 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ds-fg-secondary)]">
+              <span className="flex items-center gap-1.5 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)]" />
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -2391,8 +2392,10 @@ function GenerateSuratDinasContent() {
               </div>
             </div>
 
-            <div className="w-fit mx-auto">
-              <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
+            <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-950/40 p-3 sm:p-4 overflow-x-auto">
+              <div className="w-fit mx-auto shadow-xs">
+                <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
+              </div>
             </div>
           </div>
         </div>

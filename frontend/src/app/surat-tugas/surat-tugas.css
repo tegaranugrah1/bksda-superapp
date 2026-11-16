@@ -11,7 +11,7 @@
 :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a[href], input, select, textarea, [role="menuitem"], .st-upload, .st-letter-row, label:has(input[type="radio"])) {
   transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
 }
-:is(.st-ui, .kpg-ui, .psr-ui) :is(button, a[href], input, select, textarea, [role="menuitem"]):focus-visible,
+:is(.st-ui, .kpg-ui, .psr-ui) :is(button, a[href], input:is([type="checkbox"], [type="radio"], [type="submit"]), [role="menuitem"]):focus-visible,
 :is(.st-ui, .kpg-ui, .psr-ui) label:has(input:is([type="radio"], [type="checkbox"]):focus-visible),
 :is(.st-ui, .kpg-ui, .psr-ui) input[type="file"]:focus-visible + .st-upload {
   outline: 2px solid var(--ds-accent-fg);
@@ -23,12 +23,21 @@
 :is(.st-ui, .kpg-ui, .psr-ui) .st-row-actions button { min-width: 36px; }
 :is(.st-ui, .kpg-ui, .psr-ui) .st-status-tabs { scroll-padding-inline: 6px; }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--ds-accent-solid); }
-:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"]), textarea, select) {
+:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), textarea, select) {
   border-color: var(--ds-border-subtle);
   background-color: var(--ds-surface);
   color: var(--ds-fg);
   caret-color: var(--ds-accent-fg);
   min-height: 36px;
+}
+:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), select, textarea):is(:focus, :focus-visible) {
+  outline: none;
+  border-color: var(--ds-accent-fg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent-fg) 15%, transparent);
+}
+:is(.st-ui, .kpg-ui, .psr-ui) input[data-plain]:is(:focus, :focus-visible) {
+  outline: none;
+  box-shadow: none;
 }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(input, textarea)::placeholder { color: var(--ds-fg-muted); opacity: 1; }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(input, select, textarea):is(:disabled, [readonly]) {
@@ -38,6 +47,7 @@
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary) {
   background: var(--ds-accent-solid);
   color: var(--ds-accent-on-solid);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.12);
 }
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary):hover { background: var(--ds-accent-hover); }
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="default"]:not(.st-danger), .st-primary):active { background: var(--ds-accent-active); }
@@ -48,13 +58,21 @@
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="destructive"], .st-danger):hover { background: var(--ds-danger-hover); }
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="destructive"], .st-danger):active { background: var(--ds-danger-active); }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="destructive"]:focus-visible, :is(.st-ui, .kpg-ui, .psr-ui) .st-danger:focus-visible { outline-color: var(--ds-danger-focus); }
-:is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary) {
-  background: var(--ds-secondary-bg);
-  color: var(--ds-secondary-fg);
-  border-color: transparent;
+@layer components {
+  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary) {
+    background: var(--ds-surface);
+    color: var(--ds-secondary-fg);
+    border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  }
+  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):hover {
+    background: var(--ds-surface-muted);
+    border-color: var(--ds-border-control);
+  }
+  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):active {
+    background: var(--ds-secondary-active);
+  }
 }
-:is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):hover { background: var(--ds-secondary-hover); }
-:is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):active { background: var(--ds-secondary-active); }
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="ghost"]):hover,
 :is(.st-ui, .kpg-ui, .psr-ui) [role="menuitem"]:is(:hover, [data-highlighted]):not([data-disabled]) { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }
 :is(.st-ui, .kpg-ui, .psr-ui) button:disabled {

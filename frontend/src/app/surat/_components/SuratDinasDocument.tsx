@@ -1072,28 +1072,25 @@ interface SuratDinasDocumentProps {
 export const SURAT_DINAS_BASE_CSS = `
   @page { size: A4 portrait; margin: 0; }
   @page :first { margin: 0; }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-  }
-  body {
+  .surat-dinas-print-root, .surat-dinas-print-root * { box-sizing: border-box; }
+  .surat-dinas-print-root {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11pt;
     line-height: 1.35;
     color: #000;
     text-align: justify;
   }
-  h1, h2, h3, h4, p { margin: 0; padding: 0; }
-  table { width: 100%; border-collapse: collapse; }
-  .whitespace-pre { white-space: pre !important; }
-  .font-bold { font-weight: bold !important; }
-  .font-normal { font-weight: normal !important; }
-  .text-center { text-align: center !important; }
-  .text-justify { text-align: justify !important; text-justify: inter-word !important; }
-  .text-right { text-align: right !important; }
-  .uppercase { text-transform: uppercase !important; }
+  .surat-dinas-print-root :is(h1, h2, h3, h4, p) { margin: 0; padding: 0; }
+  .surat-dinas-print-root table { width: 100%; border-collapse: collapse; }
+  .surat-dinas-print-root tr:hover,
+  .surat-dinas-print-root tr:focus-within { background: transparent !important; }
+  .surat-dinas-print-root .whitespace-pre { white-space: pre !important; }
+  .surat-dinas-print-root .font-bold { font-weight: bold !important; }
+  .surat-dinas-print-root .font-normal { font-weight: normal !important; }
+  .surat-dinas-print-root .text-center { text-align: center !important; }
+  .surat-dinas-print-root .text-justify { text-align: justify !important; text-justify: inter-word !important; }
+  .surat-dinas-print-root .text-right { text-align: right !important; }
+  .surat-dinas-print-root .uppercase { text-transform: uppercase !important; }
 
   .kop-surat, .pkpknl-kop {
     width: 210mm !important;
@@ -1115,31 +1112,31 @@ export const SURAT_DINAS_BASE_CSS = `
     box-sizing: border-box !important;
   }
 
-  /* thead disembunyikan pada live screen preview & html2canvas, hanya aktif saat @media print */
-  thead {
+  /* thead disembunyikan pada live screen preview, hanya aktif saat @media print */
+  .surat-dinas-print-root thead {
     display: none;
   }
-  thead td {
+  .surat-dinas-print-root thead td {
     height: 0;
     padding: 0;
     border: none;
   }
 
-  tfoot {
+  .surat-dinas-print-root tfoot {
     display: table-footer-group;
     height: 25mm;
   }
-  tfoot td {
+  .surat-dinas-print-root tfoot td {
     height: 25mm;
     padding: 0;
     border: none;
   }
 
-  .bsre-placeholder,
-  .page-break-indicator,
-  .halaman-divider,
-  .pkpknl-footer-bsre,
-  .print\\:hidden {
+  .surat-dinas-print-root .bsre-placeholder,
+  .surat-dinas-print-root .page-break-indicator,
+  .surat-dinas-print-root .halaman-divider,
+  .surat-dinas-print-root .pkpknl-footer-bsre,
+  .surat-dinas-print-root .print\\:hidden {
     display: none !important;
   }
 
