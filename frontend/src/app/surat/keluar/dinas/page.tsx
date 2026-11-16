@@ -70,6 +70,56 @@ import {
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
 
+const LEVEL_SWITCH_CONTROLS: {
+  level: "num" | "letter" | "roman" | "bracket" | "plain";
+  label: string;
+  title: string;
+  isActive: (lvl: number, text: string) => boolean;
+  activeClass: string;
+  hoverClass: string;
+}[] = [
+  {
+    level: "num",
+    label: "1.",
+    title: "Jadikan Poin 1.",
+    isActive: (lvl) => lvl === 1,
+    activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-bold",
+    hoverClass: "hover:border-[var(--ds-accent-soft-border)]",
+  },
+  {
+    level: "letter",
+    label: "a.",
+    title: "Jadikan Sub-Poin a.",
+    isActive: (lvl) => lvl === 2,
+    activeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-bold",
+    hoverClass: "hover:border-amber-300 dark:hover:border-amber-700",
+  },
+  {
+    level: "roman",
+    label: "i.",
+    title: "Jadikan Romawi i.",
+    isActive: (lvl, text) => lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(text.trim()),
+    activeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-bold",
+    hoverClass: "hover:border-amber-300 dark:hover:border-amber-700",
+  },
+  {
+    level: "bracket",
+    label: "1)",
+    title: "Jadikan Kurung 1)",
+    isActive: (lvl, text) => lvl === 3 && /^[0-9]+\)/.test(text.trim()),
+    activeClass: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700 font-bold",
+    hoverClass: "hover:border-blue-300 dark:hover:border-blue-700",
+  },
+  {
+    level: "plain",
+    label: "Teks",
+    title: "Jadikan Teks Biasa (Hapus Prefix)",
+    isActive: (lvl) => lvl === 0,
+    activeClass: "bg-zinc-200 text-zinc-800 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-600 font-bold",
+    hoverClass: "hover:border-zinc-400 dark:hover:border-zinc-500",
+  },
+];
+
 interface PartySelectorBlockProps {
   label: string;
   party?: PersonItem;
@@ -172,20 +222,20 @@ function PartySelectorBlock({
           value={party?.nama || ""}
           onChange={(e) => onChange({ ...(party || {} as PersonItem), nama: e.target.value })}
           placeholder="Nama Lengkap"
-          className="h-8 text-xs bg-white dark:bg-zinc-950"
+          className="h-8 text-xs bg-[var(--ds-surface)]"
         />
         <div className="grid grid-cols-2 gap-2">
           <Input
             value={party?.nip || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), nip: e.target.value })}
             placeholder={currentPartyType === "external" ? "NIK (16 digit)" : "NIP (18 digit)"}
-            className="h-8 text-xs bg-white dark:bg-zinc-950 font-mono"
+            className="h-8 text-xs bg-[var(--ds-surface)] font-mono"
           />
           <Input
             value={party?.jabatan || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), jabatan: e.target.value })}
             placeholder={currentPartyType === "external" ? "Jabatan / Instansi" : "Jabatan Kedinasan"}
-            className="h-8 text-xs bg-white dark:bg-zinc-950"
+            className="h-8 text-xs bg-[var(--ds-surface)]"
           />
         </div>
         {showAddress && (
@@ -193,7 +243,7 @@ function PartySelectorBlock({
             value={party?.alamat || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), alamat: e.target.value })}
             placeholder="Alamat Domisili / Instansi"
-            className="h-8 text-xs bg-white dark:bg-zinc-950"
+            className="h-8 text-xs bg-[var(--ds-surface)]"
           />
         )}
       </div>
@@ -877,7 +927,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("draft")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 bg-[var(--ds-surface)] border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 shadow-xs"
+            className="rounded-xl text-xs gap-1.5 bg-[var(--ds-surface-raised)] dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/70 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 shadow-xs"
             title="Simpan sebagai draf di Daftar Surat Keluar"
           >
             <Bookmark className="w-3.5 h-3.5" />
@@ -1007,7 +1057,7 @@ function GenerateSuratDinasContent() {
                 </div>
 
                 {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
-                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-900 rounded-xl border border-[var(--ds-border-subtle)] text-xs">
+                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-950/60 rounded-xl border border-[var(--ds-border-subtle)] text-xs">
                   <button
                     type="button"
                     aria-pressed={!isAutoNomorNaskah}
@@ -1019,7 +1069,7 @@ function GenerateSuratDinasContent() {
                     className={cn(
                       "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       !isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1032,7 +1082,7 @@ function GenerateSuratDinasContent() {
                     className={cn(
                       "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       isAutoNomorNaskah
-                        ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-[var(--ds-border-subtle)] shadow-xs"
                         : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
@@ -1057,7 +1107,7 @@ function GenerateSuratDinasContent() {
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-900/50 p-3 space-y-2">
+                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-slate-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
                     <div className="grid grid-cols-12 gap-1.5 items-end">
                       <div className="col-span-4">
                         <div className="flex items-center justify-between mb-1">
@@ -1133,11 +1183,11 @@ function GenerateSuratDinasContent() {
               {(activeTemplate === "surat_dinas" || activeTemplate === "undangan") && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Sifat Naskah</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Sifat Naskah</label>
                     <select
                       value={data.sifat || "Biasa"}
                       onChange={(e) => updateField("sifat", e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full mt-1 text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="Biasa">Biasa</option>
                       <option value="Penting">Penting</option>
@@ -1197,7 +1247,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => updateField("kotaTanggal", getTodayIndoDate())}
-                    className="text-[11px] h-9 px-2.5 rounded-lg whitespace-nowrap"
+                    className="kpg-secondary text-[11px] h-9 px-2.5 rounded-lg whitespace-nowrap"
                   >
                     Hari Ini
                   </Button>
@@ -1351,7 +1401,7 @@ function GenerateSuratDinasContent() {
                       </Button>
                     </div>
                     {(data.tabelPengantar || []).map((row, rIdx) => (
-                      <div key={rIdx} className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 bg-zinc-50/50">
+                      <div key={rIdx} className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 bg-zinc-50/50 dark:bg-zinc-950/40">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[11px]">Berkas #{rIdx + 1}</span>
                           <button
@@ -1656,7 +1706,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("plain")}
-                    className="h-7 text-xs text-[var(--ds-fg)] bg-[var(--ds-surface)] border-zinc-300 dark:border-zinc-700 hover:bg-[var(--ds-surface-muted)] shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah paragraf biasa ke akhir"
                   >
                     <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
@@ -1688,7 +1738,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("roman")}
-                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
                   >
                     + Butir i.
@@ -1698,7 +1748,7 @@ function GenerateSuratDinasContent() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-800 dark:text-blue-300 dark:bg-blue-950/40 shadow-xs p-1 px-2 gap-1 font-semibold"
+                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold"
                     title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
                   >
                     + Butir 1)
@@ -1719,7 +1769,7 @@ function GenerateSuratDinasContent() {
 
               {/* Smart Paste Drawer */}
               {showSmartPaste && (
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-[var(--ds-accent-soft-border)] rounded-xl space-y-2">
+                <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-xl space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-1.5">
                       <ClipboardPaste className="w-3.5 h-3.5" />
@@ -1728,12 +1778,12 @@ function GenerateSuratDinasContent() {
                     <button
                       type="button"
                       onClick={() => setShowSmartPaste(false)}
-                      className="text-xs text-zinc-400 hover:text-zinc-600"
+                      className="text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                     >
                       ✕
                     </button>
                   </div>
-                  <p className="text-[11px] text-zinc-500 leading-normal">
+                  <p className="text-[11px] text-[var(--ds-fg-muted)] leading-normal">
                     Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
                   </p>
                   <Textarea
@@ -1741,7 +1791,7 @@ function GenerateSuratDinasContent() {
                     onChange={(e) => setSmartPasteText(e.target.value)}
                     rows={6}
                     placeholder="Tempel teks nota dinas di sini..."
-                    className="text-xs font-mono bg-white dark:bg-zinc-900 leading-relaxed"
+                    className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed"
                   />
                   <div className="flex items-center justify-between pt-1">
                     <Button
@@ -1752,7 +1802,7 @@ function GenerateSuratDinasContent() {
                         setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
                         handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
                       }}
-                      className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium"
+                      className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium"
                       title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
                     >
                       <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
@@ -1764,7 +1814,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowSmartPaste(false)}
-                        className="h-7 text-xs text-zinc-500"
+                        className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       >
                         Batal
                       </Button>
@@ -1821,7 +1871,7 @@ function GenerateSuratDinasContent() {
                             {idx + 1}.
                           </span>
                           {isPenutup ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300">
                               Penutup (Bawah)
                             </Badge>
                           ) : lvl === 1 ? (
@@ -1830,23 +1880,23 @@ function GenerateSuratDinasContent() {
                               Poin Utama (Tingkat 1)
                             </Badge>
                           ) : lvl === 2 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300">
                               Sub-Poin (Tingkat 2)
                             </Badge>
                           ) : lvl === 3 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300">
                               Sub-Butir (Tingkat 3)
                             </Badge>
                           ) : lvl === 4 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                               Sub-Butir (Tingkat 4)
                             </Badge>
                           ) : isPembuka ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-500 border-zinc-200">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80">
                               Pembuka
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-600 border-blue-200 bg-blue-50/50 dark:text-blue-400">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50">
                               Paragraf Biasa
                             </Badge>
                           )}
@@ -1868,7 +1918,11 @@ function GenerateSuratDinasContent() {
                                   <ChevronDown className="w-2.5 h-2.5 opacity-60" />
                                 </button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-xl p-1 z-50 text-xs">
+                              <DropdownMenuContent
+                                data-module="persuratan"
+                                align="end"
+                                className="psr-ui w-48 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] shadow-lg rounded-xl p-1 z-50 text-xs"
+                              >
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
                                   className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
@@ -1877,38 +1931,38 @@ function GenerateSuratDinasContent() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-medium"
+                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
                                 >
                                   <span>= + Poin Setara</span>
                                 </DropdownMenuItem>
-                                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                                <div className="my-1 border-t border-[var(--ds-border-subtle)]" />
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("num", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
                                 >
                                   <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("letter", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
                                 >
                                   <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("roman", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
                                 >
-                                  <span className="font-mono font-bold text-amber-600 w-4">i.</span> Butir Romawi
+                                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">i.</span> Butir Romawi
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-[11px]"
                                 >
                                   <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleInsertPoint("plain", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-500 text-[11px]"
+                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-[11px]"
                                 >
                                   <span className="font-mono w-4">¶</span> Paragraf Biasa
                                 </DropdownMenuItem>
@@ -1916,67 +1970,26 @@ function GenerateSuratDinasContent() {
                             </DropdownMenu>
                           )}
 
-                          <span className="text-[10px] text-zinc-400">Level:</span>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "num")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 1
-                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-[var(--ds-accent-soft-border)]"
-                            }`}
-                            title="Jadikan Poin 1."
-                          >
-                            1.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "letter")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 2
-                                ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
-                            }`}
-                            title="Jadikan Sub-Poin a."
-                          >
-                            a.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "roman")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(pText.trim())
-                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
-                            }`}
-                            title="Jadikan Romawi i."
-                          >
-                            i.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "bracket")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 3 && /^[0-9]+\)/.test(pText.trim())
-                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
-                            }`}
-                            title="Jadikan Kurung 1)"
-                          >
-                            1)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "plain")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 0
-                                ? "bg-zinc-200 text-zinc-700 border-zinc-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-zinc-400"
-                            }`}
-                            title="Jadikan Teks Biasa (Hapus Prefix)"
-                          >
-                            Teks
-                          </button>
+                          <span className="text-[10px] text-[var(--ds-fg-muted)]">Level:</span>
+                          {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
+                            const active = ctrl.isActive(lvl, pText);
+                            return (
+                              <button
+                                key={ctrl.level}
+                                type="button"
+                                onClick={() => handleChangeParagraphLevel(idx, ctrl.level)}
+                                className={cn(
+                                  "text-[9.5px] px-1.5 py-0.5 rounded border transition-colors",
+                                  active
+                                    ? ctrl.activeClass
+                                    : cn("text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
+                                )}
+                                title={ctrl.title}
+                              >
+                                {ctrl.label}
+                              </button>
+                            );
+                          })}
 
                           {!isPenutup && pList.length > 1 && (
                             <button
@@ -2135,8 +2148,8 @@ function GenerateSuratDinasContent() {
             {activeTemplate === "surat_pengantar" && (
               <div className="space-y-3">
                 {/* Pengirim (TTD Kanan) */}
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
+                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)] space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
                     <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Pengirim Naskah (TTD Kanan)
                   </div>
@@ -2144,7 +2157,7 @@ function GenerateSuratDinasContent() {
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
                       defaultValue=""
-                      className="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih dari Database Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {
@@ -2164,20 +2177,20 @@ function GenerateSuratDinasContent() {
                       value={data.namaPenandatangan}
                       onChange={(e) => updateField("namaPenandatangan", e.target.value)}
                       placeholder="Nama Pengirim"
-                      className="h-8 text-xs bg-white dark:bg-zinc-950 font-semibold"
+                      className="h-8 text-xs bg-[var(--ds-surface)] font-semibold"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         value={data.nipPenandatangan}
                         onChange={(e) => updateField("nipPenandatangan", e.target.value)}
                         placeholder="NIP Pengirim"
-                        className="h-8 text-xs bg-white dark:bg-zinc-950 font-mono"
+                        className="h-8 text-xs bg-[var(--ds-surface)] font-mono"
                       />
                       <Input
                         value={data.jabatanPenandatangan}
                         onChange={(e) => updateField("jabatanPenandatangan", e.target.value)}
                         placeholder="Jabatan Pengirim"
-                        className="h-8 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8 text-xs bg-[var(--ds-surface)]"
                       />
                     </div>
                   </div>
@@ -2200,10 +2213,10 @@ function GenerateSuratDinasContent() {
               activeTemplate !== "surat_pengantar" && (
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Pilih dari Database Pegawai</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Pilih dari Database Pegawai</label>
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full mt-1 text-xs rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih Pejabat / Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {

@@ -809,7 +809,7 @@ function PortalContent() {
                                 >
                                   <Link
                                     href={mod.href}
-                                    className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-2.5 sm:p-3 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
+                                    className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-2.5 sm:p-3 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 dark:hover:bg-slate-800 transition-all duration-200 text-center flex flex-col items-center justify-center space-y-1.5 h-full cursor-pointer"
                                   >
                                     <div className={cn("w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5 group-hover:shadow-xs border", mod.bg, mod.color, (mod).border)}>
                                       <mod.icon className="w-5 h-5" />
@@ -838,7 +838,7 @@ function PortalContent() {
                                   >
                                     <Link
                                       href={mod.href}
-                                      className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-3.5 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 transition-all duration-200 flex items-center gap-3 cursor-pointer"
+                                      className="group bg-white dark:bg-slate-800/60 rounded-xl border border-[#dce8dd] dark:border-slate-800 p-3.5 hover:shadow-sm hover:border-[#1e5433]/40 dark:hover:border-emerald-700 hover:bg-[#edf3ee]/40 dark:hover:bg-slate-800 transition-all duration-200 flex items-center gap-3 cursor-pointer"
                                     >
                                       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xs border shrink-0", mod.bg, mod.color, (mod).border)}>
                                         <mod.icon className="w-5 h-5" />

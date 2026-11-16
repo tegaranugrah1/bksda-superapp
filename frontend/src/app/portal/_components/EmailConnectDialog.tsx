@@ -166,7 +166,7 @@ export function EmailConnectDialog({
     <>
       {/* Banner Notifikasi jika email belum aktif/resmi */}
       {needsVerification && (
-        <div className="w-full rounded-2xl border border-[#fef3c7] bg-[#fffbeb] py-2.5 px-3.5 sm:px-4 shadow-2xs dark:border-amber-900/40 dark:from-amber-950/30 dark:via-amber-950/20 dark:to-orange-950/10">
+        <div className="w-full rounded-2xl border border-[#fef3c7] bg-[#fffbeb] py-2.5 px-3.5 sm:px-4 shadow-2xs dark:border-amber-800/60 dark:bg-amber-950/40">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef3c7] text-[#d97706] dark:bg-amber-400/10 dark:text-amber-400">

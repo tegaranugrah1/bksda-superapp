@@ -59,19 +59,48 @@
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="destructive"], .st-danger):active { background: var(--ds-danger-active); }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="destructive"]:focus-visible, :is(.st-ui, .kpg-ui, .psr-ui) .st-danger:focus-visible { outline-color: var(--ds-danger-focus); }
 @layer components {
-  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary) {
-    background: var(--ds-surface);
+  :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"] {
+    background: var(--ds-surface-raised);
     color: var(--ds-secondary-fg);
     border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
     box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
   }
-  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):hover {
+  :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"]:hover {
     background: var(--ds-surface-muted);
     border-color: var(--ds-border-control);
   }
-  :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="outline"], .st-secondary):active {
+  .dark :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"] {
+    border-color: color-mix(in srgb, var(--ds-border-control) 35%, var(--ds-border-subtle));
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  }
+  .dark :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"]:hover {
+    background: var(--ds-secondary-hover);
+    border-color: var(--ds-border-control);
+  }
+  :is(.st-ui, .kpg-ui, .psr-ui) :is(button, a)[data-variant="outline"]:active {
     background: var(--ds-secondary-active);
   }
+}
+:is(.st-ui, .kpg-ui, .psr-ui) .st-secondary {
+  background: var(--ds-surface-raised);
+  color: var(--ds-secondary-fg);
+  border: 1px solid color-mix(in srgb, var(--ds-border-control) 45%, var(--ds-border-subtle));
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+}
+:is(.st-ui, .kpg-ui, .psr-ui) .st-secondary:hover {
+  background: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
+}
+.dark :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary {
+  border-color: color-mix(in srgb, var(--ds-border-control) 35%, var(--ds-border-subtle));
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+}
+.dark :is(.st-ui, .kpg-ui, .psr-ui) .st-secondary:hover {
+  background: var(--ds-secondary-hover);
+  border-color: var(--ds-border-control);
+}
+:is(.st-ui, .kpg-ui, .psr-ui) .st-secondary:active {
+  background: var(--ds-secondary-active);
 }
 :is(.st-ui, .kpg-ui, .psr-ui) :where(:is(button, a)[data-variant="ghost"]):hover,
 :is(.st-ui, .kpg-ui, .psr-ui) [role="menuitem"]:is(:hover, [data-highlighted]):not([data-disabled]) { background: var(--ds-accent-soft); color: var(--ds-accent-fg); }

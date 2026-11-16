@@ -299,7 +299,7 @@ export function RecentSuratWidget({
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)]">
+              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/80 dark:bg-zinc-950/40">
                 <tr>
                   <th className="py-2 px-3">No Agenda</th>
                   <th className="py-2 px-3">No &amp; Tgl Surat</th>
@@ -407,7 +407,7 @@ export function RecentSuratWidget({
             </div>
           ) : (
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)]">
+              <thead className="border-b border-[var(--ds-border-subtle)] text-xs uppercase font-bold text-[var(--ds-fg-muted)] bg-slate-50/80 dark:bg-zinc-950/40">
                 <tr>
                   <th className="py-2 px-3">No Surat</th>
                   <th className="py-2 px-3">Tanggal</th>
