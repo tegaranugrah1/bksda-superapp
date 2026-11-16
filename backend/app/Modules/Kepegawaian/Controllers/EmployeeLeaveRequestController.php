@@ -582,17 +582,7 @@ class EmployeeLeaveRequestController extends Controller
 
             DB::commit();
 
-            if (!empty($updateData['scan_surat_izin_path'])) {
-                \App\Jobs\ArchiveOfficialDocument::dispatch(
-                    'cuti',
-                    $leaveReq->id,
-                    'local',
-                    $updateData['scan_surat_izin_path'],
-                    $updateData['scan_surat_izin_nama'] ?? null,
-                    null,
-                    $leaveReq->employee?->user?->id ?? Auth::id()
-                );
-            }
+            $this->archiveLeaveScan($leaveReq, $updateData);
 
             try {
                 event(new \App\Events\AdminInboxChanged('kepegawaian', 'approved', (string) $leaveReq->id));
@@ -660,23 +650,6 @@ class EmployeeLeaveRequestController extends Controller
             $leaveReq->update($updateData);
 
             DB::commit();
-
-            if (!empty($updateData['scan_surat_izin_path'])) {
-                \App\Jobs\ArchiveOfficialDocument::dispatch(
-                    'cuti',
-                    $leaveReq->id,
-                    'local',
-                    $updateData['scan_surat_izin_path'],
-                    $updateData['scan_surat_izin_nama'] ?? null,
-                    null,
-                    $leaveReq->employee?->user?->id ?? Auth::id()
-                );
-            }
-
-            return response()->json([
-                'message' => 'Berkas scan surat cuti berhasil diunggah.',
-                'data' => $leaveReq->fresh('employee'),
-            ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
             throw $e;
@@ -687,6 +660,30 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat mengunggah berkas.',
             ], 500);
         }
+
+        $this->archiveLeaveScan($leaveReq, $updateData);
+
+        return response()->json([
+            'message' => 'Berkas scan surat cuti berhasil diunggah.',
+            'data' => $leaveReq->fresh('employee'),
+        ]);
+    }
+
+    private function archiveLeaveScan(EmployeeLeaveRequest $leaveReq, array $updateData): void
+    {
+        if (empty($updateData['scan_surat_izin_path'])) {
+            return;
+        }
+
+        \App\Jobs\ArchiveOfficialDocument::dispatchBestEffort(
+            'cuti',
+            $leaveReq->id,
+            'local',
+            $updateData['scan_surat_izin_path'],
+            $updateData['scan_surat_izin_nama'] ?? null,
+            null,
+            $leaveReq->employee?->user?->id ?? Auth::id()
+        );
     }
 
     /**

@@ -44,6 +44,37 @@ class ArchiveOfficialDocument implements ShouldQueue
         $this->userId = $userId;
     }
 
+    /**
+     * Best-effort background archival: never blocks or fails the originating HTTP commit.
+     */
+    public static function dispatchBestEffort(
+        string $sourceModule,
+        string|int $sourceId,
+        string $sourceDisk,
+        string $sourcePath,
+        ?string $targetName = null,
+        ?int $unitId = null,
+        ?int $userId = null
+    ): void {
+        try {
+            if (config('queue.default') === 'sync' && ! app()->runningUnitTests()) {
+                $job = new static($sourceModule, $sourceId, $sourceDisk, $sourcePath, $targetName, $unitId, $userId);
+                app()->terminating(static function () use ($job, $sourceModule, $sourceId): void {
+                    try {
+                        $job->handle();
+                    } catch (\Throwable $e) {
+                        Log::warning("AutoArchive terminating skipped ({$sourceModule} #{$sourceId}): {$e->getMessage()}");
+                    }
+                });
+                return;
+            }
+
+            static::dispatch($sourceModule, $sourceId, $sourceDisk, $sourcePath, $targetName, $unitId, $userId);
+        } catch (\Throwable $e) {
+            Log::warning("AutoArchive dispatch skipped ({$sourceModule} #{$sourceId}): {$e->getMessage()}");
+        }
+    }
+
     public function handle(): void
     {
         // 1. Idempotency check: Already archived?

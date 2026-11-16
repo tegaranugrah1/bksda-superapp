@@ -184,6 +184,7 @@ export default function InboxSuratCutiPage() {
         }
         await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          timeout: 60000,
         });
       }
     },
@@ -219,6 +220,7 @@ export default function InboxSuratCutiPage() {
       }
       await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 60000,
       });
     },
     onSuccess: () => {

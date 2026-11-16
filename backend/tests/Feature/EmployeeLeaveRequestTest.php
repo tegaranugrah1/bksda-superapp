@@ -133,4 +133,48 @@ class EmployeeLeaveRequestTest extends TestCase
             'cuti_terpakai_n0' => 0,
         ]);
     }
+
+    public function test_admin_upload_scan_succeeds_even_when_drive_archive_fails(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        config([
+            'filesystems.disks.drive.driver' => 'local',
+            'filesystems.disks.drive.root' => '',
+            'filesystems.disks.drive.throw' => true,
+        ]);
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'username' => 'admin_upload_cuti',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $leaveReq = EmployeeLeaveRequest::create([
+            'employee_id' => $this->employee->id,
+            'nomor_pengajuan' => 'CUTI/2026/003',
+            'tanggal_pengajuan' => '2026-11-16',
+            'jenis_cuti' => 'Cuti Tahunan',
+            'alasan_cuti' => 'Tes Upload Scan',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => '2026-11-18',
+            'tanggal_selesai' => '2026-11-18',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081234567890',
+            'status' => 'DISETUJUI',
+        ]);
+
+        $pdf = \Illuminate\Http\UploadedFile::fake()->create('surat-izin-tte.pdf', 120, 'application/pdf');
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->post('/api/kepegawaian/leave-requests/' . $leaveReq->id . '/upload-scan', [
+                'file_scan_surat_izin' => $pdf,
+            ], ['Accept' => 'application/json']);
+
+        $response->assertOk()
+            ->assertJsonPath('data.scan_surat_izin_nama', 'surat-izin-tte.pdf');
+
+        $leaveReq->refresh();
+        $this->assertNotEmpty($leaveReq->scan_surat_izin_path);
+        $this->assertTrue(\Illuminate\Support\Facades\Storage::disk('local')->exists($leaveReq->scan_surat_izin_path));
+    }
 }

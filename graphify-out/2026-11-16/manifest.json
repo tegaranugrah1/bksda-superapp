@@ -2320,8 +2320,8 @@
     "semantic_hash": "a19bc97abe7dc25c3a8ba89fb8e39770"
   },
   "frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx": {
-    "mtime": 1794799578.8259702,
-    "ast_hash": "44ce584274da24f6e8ac9b68f4423fc9",
+    "mtime": 1794799955.223552,
+    "ast_hash": "1212fafc3ccff17d7ff60585c1d9ed61",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
@@ -9245,8 +9245,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/rbac-5-user-persuratan-kepegawaian-bmn.playwright.cjs": {
-    "mtime": 1794798333.5589774,
-    "ast_hash": "a64467906e03c28595b289b1f56f48b3",
+    "mtime": 1794799968.6627934,
+    "ast_hash": "62062e92c34af12cb9c3bb4e45e159d0",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_16_000002_add_module_roles_to_users_table.php": {
