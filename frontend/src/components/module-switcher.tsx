@@ -157,7 +157,7 @@ export function ModuleSwitcher() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-1">
+          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] max-h-[calc(100dvh-160px)] overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-1">
             {visibleModules.map((mod) => {
               const isCurrent = activeModule.slug === mod.slug;
               return (

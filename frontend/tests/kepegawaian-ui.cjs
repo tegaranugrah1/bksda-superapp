@@ -214,6 +214,19 @@ const fundingCol = findElement(inboxRow, node => typeof node.props?.className ==
 const statusCol = findElement(inboxRow, node => typeof node.props?.className === 'string' && node.props.className.includes('st-row-status') && node.props.className.includes('overflow-hidden'));
 assert(fundingCol && statusCol, 'Inbox row columns keep overflow-hidden guards.');
 
+for (const role of ['user', 'admin']) {
+  const { ModuleSwitcher } = load('components/module-switcher.tsx', {
+    react: { useState: () => [true, () => {}], useEffect() {} },
+    'react/jsx-runtime': { jsx: element, jsxs: element },
+    'lucide-react': icons,
+    'next/link': { default: 'a' },
+    'next/navigation': { usePathname: () => '/kepegawaian' },
+    '@/hooks/useAuth': { useAuth: () => ({ user: { role, access_modules: ['kepegawaian', 'surat'] } }) },
+  });
+  const switcherLinks = links(ModuleSwitcher());
+  assert(switcherLinks.includes('/surat'), `ModuleSwitcher renders Persuratan (/surat) for role=${role}.`);
+}
+
 const { EmployeeLifecycleModal } = load('app/kepegawaian/employees/_components/EmployeeLifecycleModal.tsx', {
   react: { useState: value => [value, () => {}], useEffect() {} },
   'react/jsx-runtime': { jsx: element, jsxs: element },
@@ -318,5 +331,40 @@ async function checkPhotoUpload() {
   assert.deepEqual(busy, [true, false, true, false], 'The file control becomes available after failure.');
   assert.equal(invalidations, 1);
   console.log('PASS: photo empty/oversize validation, pending reset on success/failure and cache refresh; stub requests only.');
+
+  const authSyncSource = fs.readFileSync(path.join(__dirname, '../src/components/AuthSync.tsx'), 'utf8');
+  const authSyncOutput = ts.transpileModule(authSyncSource, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText;
+  for (const [payload, expectedCount] of [
+    [{ data: [] }, 0],
+    [{ data: { id: 125, username: '199907072025061006', role: 'user', access_modules: ['kepegawaian', 'surat'] } }, 1],
+  ]) {
+    const syncEffects = [];
+    const updatedUsers = [];
+    const authSyncExports = {};
+    vm.runInNewContext(authSyncOutput, {
+      exports: authSyncExports,
+      window: { addEventListener() {}, removeEventListener() {} },
+      document: { visibilityState: 'visible', addEventListener() {}, removeEventListener() {} },
+      localStorage: { getItem: () => 'tok' },
+      fetch: async () => ({ ok: true, json: async () => payload }),
+      require: name => ({
+        react: { useEffect: fn => syncEffects.push(fn), useRef: value => ({ current: value }) },
+        'react/jsx-runtime': { jsx: element, jsxs: element },
+        'next/navigation': { useRouter: () => ({ push() {} }), usePathname: () => '/kepegawaian' },
+        '@/hooks/useAuth': { useAuth: () => ({ isAuthenticated: true, user: { username: '199907072025061006', role: 'user', access_modules: ['kepegawaian'] } }) },
+        '@/lib/auth-store': { authStore: { updateUser: u => updatedUsers.push(u), logout() {} } },
+        '@/lib/api': { default: { defaults: { baseURL: 'http://localhost:8000/api' } } },
+        sonner: { toast: { info() {} } },
+      }[name]),
+    });
+    authSyncExports.AuthSync();
+    syncEffects[0]();
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(updatedUsers.length, expectedCount);
+    if (expectedCount === 1) assert(updatedUsers[0].access_modules.includes('surat'));
+  }
+  console.log('PASS: ModuleSwitcher renders Persuratan for user/admin and AuthSync syncs fresh /user access_modules.');
 }
 checkPhotoUpload().catch(error => { console.error(error); process.exitCode = 1; });

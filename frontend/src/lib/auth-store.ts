@@ -181,6 +181,7 @@ export const authStore = {
 
     localStorage.setItem("bksda_user", userJson);
     setAuthCookie("bksda_user", userJson);
+    clearGetCache();
 
     window.dispatchEvent(new Event("auth-change"));
 

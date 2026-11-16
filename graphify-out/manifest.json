@@ -2550,8 +2550,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
-    "mtime": 1794147362.212643,
-    "ast_hash": "d0edb10e720c67c797ba91d77b130280",
+    "mtime": 1794795562.499507,
+    "ast_hash": "b13b9c64d8f446fa8a6ee5ca90ff86d3",
     "semantic_hash": ""
   },
   "frontend/src/components/RouteGuard.tsx": {
@@ -2590,8 +2590,8 @@
     "semantic_hash": "ea417068a977a69dec1080f0dbacaf46"
   },
   "frontend/src/components/module-switcher.tsx": {
-    "mtime": 1794445392.699988,
-    "ast_hash": "c04dac8a6c70bc192d3ef4ca5056ec4b",
+    "mtime": 1794795521.256214,
+    "ast_hash": "2d86997daf894d821d41d7f7358c8f48",
     "semantic_hash": ""
   },
   "frontend/src/components/providers.tsx": {
@@ -2745,8 +2745,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
-    "mtime": 1793593288.6488907,
-    "ast_hash": "134555337ecb53c15047d07a753bc3a0",
+    "mtime": 1794795576.8032758,
+    "ast_hash": "8002a7773c621ec237c3f4e99ee394b7",
     "semantic_hash": ""
   },
   "frontend/src/lib/bmn-utils.ts": {
@@ -9090,8 +9090,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-ui.cjs": {
-    "mtime": 1794794768.2789357,
-    "ast_hash": "29b86e1a4216306d5893ec6bc5dc7600",
+    "mtime": 1794795805.936082,
+    "ast_hash": "6ce6a2b647a346922a19852f9c2afdad",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
