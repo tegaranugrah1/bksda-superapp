@@ -7,9 +7,32 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+function releaseStalePointerLock() {
+  window.setTimeout(() => {
+    if (
+      document.body.style.pointerEvents === "none" &&
+      !document.querySelector('[data-state="open"]:is([role="dialog"], [role="alertdialog"], [data-slot="dialog-content"])')
+    ) {
+      document.body.style.pointerEvents = ""
+    }
+  }, 250)
+}
+
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  React.useEffect(() => {
+    if (props.open === false) {
+      releaseStalePointerLock()
+    }
+    return () => {
+      // ponytail: release body pointer lock when conditional <Dialog open /> unmounts during exit animation.
+      if (props.open !== false) {
+        releaseStalePointerLock()
+      }
+    }
+  }, [props.open])
+
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
