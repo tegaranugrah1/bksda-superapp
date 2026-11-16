@@ -9,7 +9,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bksda_prod"]
+      test: ["CMD-SHELL", "pg_isready -U bksda_prod -d bksda_superapp"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,6 +25,7 @@ services:
       - rustfs-data:/data
 
   backend:
+    restart: always
     build:
       context: ./backend
       dockerfile: Dockerfile
