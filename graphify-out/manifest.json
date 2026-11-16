@@ -2425,8 +2425,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_lib/status-helpers.ts": {
-    "mtime": 1794356440.0573761,
-    "ast_hash": "5195040a94f2fac0d7f58b0fe898753a",
+    "mtime": 1794794764.7951124,
+    "ast_hash": "fe291c1525e5d502bc1776ee78bf8a29",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_lib/types.ts": {
@@ -6170,8 +6170,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx": {
-    "mtime": 1794401129.7097569,
-    "ast_hash": "5a4981426c2236fdc1006bfb512a65a3",
+    "mtime": 1794794766.1390238,
+    "ast_hash": "5734eabc581a167cc6d3def52b9be6a6",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/inbox/_components/GmailStatusTabs.tsx": {
@@ -9090,8 +9090,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-ui.cjs": {
-    "mtime": 1794384049.4994917,
-    "ast_hash": "5d64bfb9ed6fdc58cf53258097f33e2e",
+    "mtime": 1794794768.2789357,
+    "ast_hash": "29b86e1a4216306d5893ec6bc5dc7600",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {

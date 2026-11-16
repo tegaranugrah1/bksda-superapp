@@ -150,11 +150,11 @@ export function GmailRowItem({
         )}
       </div>
 
-      {/* Dedicated Column: Sumber Dana (DIPA / FOLU) */}
-      <div className="st-row-meta w-14 shrink-0 hidden sm:flex items-center justify-start">
+      {/* Dedicated Column: Sumber Dana (DIPA / FOLU / KJA / MITRA / DL 1) */}
+      <div className="st-row-meta w-20 shrink-0 overflow-hidden hidden sm:flex items-center justify-start">
         {letter.sumber_dana ? (
           <span
-            className="px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] whitespace-nowrap"
+            className="max-w-full truncate px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] whitespace-nowrap"
             title={formatFormalSumberDana(letter.sumber_dana, letter.sumber_dana_other)}
           >
             {formatShortSumberDana(letter.sumber_dana)}
@@ -165,13 +165,14 @@ export function GmailRowItem({
       </div>
 
       {/* Dedicated Column: Status Badge (Left-aligned so DRAFT & DITERBITKAN align perfectly) */}
-      <div className="st-row-status w-36 2xl:w-44 shrink-0 flex items-center justify-start">
+      <div className="st-row-status w-32 shrink-0 overflow-hidden flex items-center justify-start">
         <span
-          className={`px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-wider whitespace-nowrap truncate ${getStatusStyle(
+          className={`max-w-full px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-wider whitespace-nowrap truncate ${getStatusStyle(
             letter.status
           )}`}
+          title={getStatusLabel(letter.status)}
         >
-          {getStatusLabel(letter.status)}
+          {letter.status?.toLowerCase() === "pending" ? "Menunggu" : getStatusLabel(letter.status)}
         </span>
       </div>
 

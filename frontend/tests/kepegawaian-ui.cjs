@@ -185,6 +185,35 @@ for (const [status, label] of [['PENDING', 'Menunggu Persetujuan'], ['approved',
 }
 console.log('PASS: dashboard status labels reuse Inbox semantics and dates use the light/dark text token.');
 
+assert.equal(statusHelpers.formatShortSumberDana('RKT Kerjasama PT Kideco Jaya Agung'), 'KJA');
+assert.equal(statusHelpers.formatShortSumberDana('Biaya Kerjasama CAN (Conservation Action Network)'), 'CAN');
+assert.equal(statusHelpers.formatShortSumberDana('kerjasama BARU'), 'MITRA');
+assert.equal(statusHelpers.formatShortSumberDana('dl1'), 'DL 1');
+assert.equal(statusHelpers.formatShortSumberDana('Perencanaan Daerah'), 'PERENC');
+const { GmailRowItem } = load('app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx', {
+  react: { default: {} },
+  'react/jsx-runtime': { jsx: element, jsxs: element },
+  'lucide-react': icons,
+  '../_lib/status-helpers': statusHelpers,
+});
+const inboxRow = GmailRowItem({
+  letter: {
+    id: 'st-row-1',
+    status: 'pending',
+    sumber_dana: 'Biaya Kerjasama CAN (Conservation Action Network)',
+    maksud_tujuan: 'Dalam rangka patroli',
+    created_at: '2026-11-16',
+  },
+  isSelected: false, onToggleSelect() {}, onClick() {}, isTrashView: false, isActive: false,
+});
+const fundingBadge = findElement(inboxRow, node => node.type === 'span' && node.props?.children === 'CAN');
+assert(fundingBadge && fundingBadge.props.title.includes('CAN') && fundingBadge.props.className.includes('truncate'));
+const statusBadge = findElement(inboxRow, node => node.type === 'span' && node.props?.children === 'Menunggu');
+assert(statusBadge && statusBadge.props.title === 'Menunggu Persetujuan' && statusBadge.props.className.includes('truncate'));
+const fundingCol = findElement(inboxRow, node => typeof node.props?.className === 'string' && node.props.className.includes('w-20') && node.props.className.includes('overflow-hidden'));
+const statusCol = findElement(inboxRow, node => typeof node.props?.className === 'string' && node.props.className.includes('st-row-status') && node.props.className.includes('overflow-hidden'));
+assert(fundingCol && statusCol, 'Inbox row columns keep overflow-hidden guards.');
+
 const { EmployeeLifecycleModal } = load('app/kepegawaian/employees/_components/EmployeeLifecycleModal.tsx', {
   react: { useState: value => [value, () => {}], useEffect() {} },
   'react/jsx-runtime': { jsx: element, jsxs: element },

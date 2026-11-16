@@ -181,20 +181,31 @@ export function formatAssignmentDateRange(
   return "-";
 }
 
+const SHORT_SUMBER_DANA_MAP: ReadonlyArray<[RegExp, string]> = [
+  [/FOLU/, "FOLU"],
+  [/DIPA/, "DIPA"],
+  [/\bKJA\b|KIDECO/, "KJA"],
+  [/\bMJA\b|JAYANTARA/, "MJA"],
+  [/\bCOP\b|ORANGUTAN PROTECTION/, "COP"],
+  [/TJIWI/, "TJIWI"],
+  [/\bBOSF\b/, "BOSF"],
+  [/\bCAN\b|CONSERVATION ACTION/, "CAN"],
+  [/\bALERT\b/, "ALERT"],
+  [/\bDL\s*1\b|TIDAK ADA|TANPA BIAYA/, "DL 1"],
+  [/MITRA|KERJASAMA|\bPKS\b/, "MITRA"],
+  [/APBD/, "APBD"],
+  [/SWADAYA/, "SWADAYA"],
+];
+
 /**
- * Singkat tampilan sumber dana untuk kolom tabel inbox (misal: "DIPA", "FOLU", "MITRA", dll).
+ * Singkat tampilan sumber dana untuk kolom tabel inbox (misal: "DIPA", "FOLU", "KJA", "MITRA", "DL 1").
  */
 export function formatShortSumberDana(sumberDana?: string | null): string {
   if (!sumberDana) return "-";
   const s = sumberDana.toUpperCase().trim();
-  if (s.includes("FOLU")) return "FOLU";
-  if (s.includes("DIPA")) return "DIPA";
-  if (s.includes("MITRA")) return "MITRA";
-  if (s.includes("APBD")) return "APBD";
-  if (s.includes("SWADAYA")) return "SWADAYA";
-  if (s.includes("KERJASAMA")) return "KERJASAMA";
-  if (s.includes("DL 1") || s.includes("TIDAK ADA")) return "NON-BIAYA";
-  return s.length > 8 ? s.substring(0, 8) : s;
+  const matched = SHORT_SUMBER_DANA_MAP.find(([pattern]) => pattern.test(s));
+  if (matched) return matched[1];
+  return s.length > 6 ? s.slice(0, 6).trim() : s;
 }
 
 /**
