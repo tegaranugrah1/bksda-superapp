@@ -33,9 +33,12 @@ import {
   ApproveLeaveModal,
   UploadScanModal,
   ScanViewerModal,
-  CatatSuratIzinModal,
   DigitalSuratIzinModal,
+  useUploadProgress,
+  deleteLeaveScan,
+  type ScanSlot,
 } from "./_components/CutiModals";
+import { CatatSuratIzinModal } from "./_components/CatatSuratIzinModal";
 
 function notifyLeaveSync(status?: string, id?: number) {
   try {
@@ -77,6 +80,8 @@ export default function InboxSuratCutiPage() {
   const [approveMode, setApproveMode] = useState<"approve" | "regenerate">("approve");
   const [digitalSuratItem, setDigitalSuratItem] = useState<LeaveRequestItem | null>(null);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRequestItem | null>(null);
+  const approveUpload = useUploadProgress();
+  const scanUpload = useUploadProgress();
   const viewerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const [isCatatModalOpen, setIsCatatModalOpen] = useState(false);
@@ -168,6 +173,7 @@ export default function InboxSuratCutiPage() {
       catatan: string;
       tanggalSurat?: string;
     }) => {
+      approveUpload.startSaving(fileFormulir || fileSuratIzin ? 5 : 15);
       await api.post(`/kepegawaian/leave-requests/${id}/generate-surat-izin`, {
         nomor_surat: nomorSurat,
         catatan_atasan: catatan,
@@ -182,11 +188,13 @@ export default function InboxSuratCutiPage() {
         if (fileSuratIzin) {
           formData.append("file_scan_surat_izin", fileSuratIzin);
         }
-        await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-          timeout: 60000,
-        });
+        await api.post(
+          `/kepegawaian/leave-requests/${id}/upload-scan`,
+          formData,
+          approveUpload.getConfig(true)
+        );
       }
+      approveUpload.finish();
     },
     onSuccess: () => {
       toast.success("Surat Izin Cuti Resmi berhasil diterbitkan & disetujui! Kuota cuti terpotong.");
@@ -198,6 +206,7 @@ export default function InboxSuratCutiPage() {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses permohonan cuti.";
       toast.error(msg);
     },
+    onSettled: () => approveUpload.reset(),
   });
 
   // Upload or Replace Scan File Mutation
@@ -218,10 +227,12 @@ export default function InboxSuratCutiPage() {
       if (fileSuratIzin) {
         formData.append("file_scan_surat_izin", fileSuratIzin);
       }
-      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 60000,
-      });
+      await api.post(
+        `/kepegawaian/leave-requests/${id}/upload-scan`,
+        formData,
+        scanUpload.getConfig(true)
+      );
+      scanUpload.finish();
     },
     onSuccess: () => {
       toast.success("Berkas cuti resmi berhasil disimpan!");
@@ -231,6 +242,23 @@ export default function InboxSuratCutiPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal mengunggah berkas scan.";
+      toast.error(msg);
+    },
+    onSettled: () => scanUpload.reset(),
+  });
+
+  const deleteScanMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: number; type: ScanSlot }) => deleteLeaveScan(id, type),
+    onSuccess: (updated, { id }) => {
+      toast.success("Berkas scan cuti berhasil dihapus.");
+      if (updated) {
+        setUploadScanItem((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+      }
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+      notifyLeaveSync();
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal menghapus berkas scan.";
       toast.error(msg);
     },
   });
@@ -944,6 +972,7 @@ export default function InboxSuratCutiPage() {
         item={approveItem}
         mode={approveMode}
         isPending={approveMutation.isPending}
+        uploadProgress={approveUpload.progress}
         onClose={() => setApproveItem(null)}
         onApprove={(nomorSurat, fileFormulir, fileSuratIzin, catatan, tanggalSurat) => {
           if (approveItem) {
@@ -978,6 +1007,8 @@ export default function InboxSuratCutiPage() {
       <UploadScanModal
         item={uploadScanItem}
         isPending={uploadScanMutation.isPending}
+        uploadProgress={scanUpload.progress}
+        deletingSlot={deleteScanMutation.isPending ? deleteScanMutation.variables?.type ?? null : null}
         onClose={() => setUploadScanItem(null)}
         onUpload={({ fileFormulir, fileSuratIzin }) => {
           if (uploadScanItem) {
@@ -986,6 +1017,11 @@ export default function InboxSuratCutiPage() {
               fileFormulir,
               fileSuratIzin,
             });
+          }
+        }}
+        onDeleteScan={(type) => {
+          if (uploadScanItem) {
+            return deleteScanMutation.mutateAsync({ id: uploadScanItem.id, type });
           }
         }}
       />

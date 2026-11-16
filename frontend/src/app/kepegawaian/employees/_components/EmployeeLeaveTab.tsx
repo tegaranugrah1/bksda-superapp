@@ -53,7 +53,16 @@ import {
 } from "@/components/ui/dialog";
 import { isAxiosError } from "axios";
 import { cn } from "@/lib/utils";
-import { ScanViewerModal, UploadScanModal } from "@/app/kepegawaian/cuti/_components/CutiModals";
+import {
+  ScanViewerModal,
+  UploadScanModal,
+  UploadProgressBar,
+  ActiveScanFileRow,
+  formatPendingUploadLabel,
+  useUploadProgress,
+  deleteLeaveScan,
+  type ScanSlot,
+} from "@/app/kepegawaian/cuti/_components/CutiModals";
 
 interface EmployeeLeaveData {
   id?: number;
@@ -201,6 +210,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const closeViewer = useCallback(() => setViewerModal(null), []);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRecordItem | null>(null);
+  const recordUpload = useUploadProgress();
+  const scanUpload = useUploadProgress();
 
   // Form for Leave Balance (Admin Quota)
   const [balanceForm, setBalanceForm] = useState({
@@ -378,16 +389,24 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
         formData.append("file_scan_surat_izin", fileScanSuratIzin);
       }
 
+      const hasFiles = Boolean(fileScanFormulir || fileScanSuratIzin);
+      const uploadConfig = recordUpload.getConfig(hasFiles);
+
       if (editingRecord) {
         formData.append("_method", "PUT");
-        await api.post(`/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`,
+          formData,
+          uploadConfig
+        );
       } else {
-        await api.post(`/kepegawaian/employees/${employeeId}/leave-records`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/kepegawaian/employees/${employeeId}/leave-records`,
+          formData,
+          uploadConfig
+        );
       }
+      recordUpload.finish();
     },
     onSuccess: () => {
       toast.success(editingRecord ? "Penetapan cuti berhasil diperbarui!" : "Surat Izin Cuti berhasil dicatat!");
@@ -407,6 +426,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       }
       toast.error(msg);
     },
+    onSettled: () => recordUpload.reset(),
   });
 
   // Mutation: Upload or Replace Scan File on Existing Record
@@ -427,9 +447,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       if (fileSuratIzin) {
         formData.append("file_scan_surat_izin", fileSuratIzin);
       }
-      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post(
+        `/kepegawaian/leave-requests/${id}/upload-scan`,
+        formData,
+        scanUpload.getConfig(true)
+      );
+      scanUpload.finish();
     },
     onSuccess: () => {
       toast.success("Berkas cuti resmi berhasil disimpan!");
@@ -438,6 +461,26 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
     onError: (err: unknown) => {
       let msg = "Gagal mengunggah berkas scan.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+    onSettled: () => scanUpload.reset(),
+  });
+
+  const deleteRecordScanMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: number; type: ScanSlot }) => deleteLeaveScan(id, type),
+    onSuccess: (updated, { id }) => {
+      toast.success("Berkas scan cuti berhasil dihapus.");
+      if (updated) {
+        setUploadScanItem((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+        setEditingRecord((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+      }
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal menghapus berkas scan.";
       if (isAxiosError<{ message?: string }>(err)) {
         msg = err.response?.data?.message || msg;
       }
@@ -1325,13 +1368,15 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 </div>
 
                 {editingRecord?.scan_formulir_nama && !fileScanFormulir && (
-                  <div className="mb-1.5 p-1.5 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-accent-fg)] flex items-center justify-between gap-1">
-                    <span className="flex items-center gap-1 truncate">
-                      <FileCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
-                      <span className="truncate font-semibold">{editingRecord.scan_formulir_nama}</span>
-                    </span>
-                    <span className="text-xs text-[var(--ds-accent-fg)] font-medium shrink-0">Tersimpan</span>
-                  </div>
+                  <ActiveScanFileRow
+                    fileName={editingRecord.scan_formulir_nama}
+                    slot="formulir"
+                    label=""
+                    className="mb-1.5"
+                    busy={saveRecordMutation.isPending || deleteRecordScanMutation.isPending}
+                    deleting={deleteRecordScanMutation.isPending && deleteRecordScanMutation.variables?.type === "formulir"}
+                    onDelete={(type) => deleteRecordScanMutation.mutateAsync({ id: editingRecord.id, type })}
+                  />
                 )}
 
                 <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
@@ -1389,13 +1434,15 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 </div>
 
                 {(editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama) && !fileScanSuratIzin && (
-                  <div className="mb-1.5 p-1.5 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-xs text-[var(--ds-status-success-fg)] flex items-center justify-between gap-1">
-                    <span className="flex items-center gap-1 truncate">
-                      <FileCheck className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)] shrink-0" />
-                      <span className="truncate font-semibold">{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</span>
-                    </span>
-                    <span className="text-xs text-[var(--ds-status-success-fg)] font-medium shrink-0">Tersimpan</span>
-                  </div>
+                  <ActiveScanFileRow
+                    fileName={(editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama)!}
+                    slot="surat_izin"
+                    label=""
+                    className="mb-1.5"
+                    busy={saveRecordMutation.isPending || deleteRecordScanMutation.isPending}
+                    deleting={deleteRecordScanMutation.isPending && deleteRecordScanMutation.variables?.type === "surat_izin"}
+                    onDelete={(type) => deleteRecordScanMutation.mutateAsync({ id: editingRecord.id, type })}
+                  />
                 )}
 
                 <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
@@ -1441,6 +1488,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
             </div>
 
+            <UploadProgressBar progress={saveRecordMutation.isPending ? recordUpload.progress : null} />
+
             {/* Footer */}
             <DialogFooter className="gap-2 pt-3 border-t border-[var(--ds-border-subtle)]">
               <Button
@@ -1459,11 +1508,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold gap-1.5 shadow-xs"
               >
                 <Save className="w-3.5 h-3.5" />
-                {saveRecordMutation.isPending
-                  ? "Menyimpan..."
-                  : editingRecord
-                  ? "Simpan Perubahan"
-                  : "Simpan Penetapan Cuti"}
+                {formatPendingUploadLabel(
+                  saveRecordMutation.isPending,
+                  recordUpload.progress,
+                  editingRecord ? "Simpan Perubahan" : "Simpan Penetapan Cuti"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -1528,6 +1577,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           employee: { nama_lengkap: apiResponse?.employee?.nama_lengkap || "Pegawai" },
         } : null}
         isPending={uploadRecordScanMutation.isPending}
+        uploadProgress={scanUpload.progress}
+        deletingSlot={deleteRecordScanMutation.isPending ? deleteRecordScanMutation.variables?.type ?? null : null}
         onClose={() => setUploadScanItem(null)}
         onUpload={({ fileFormulir, fileSuratIzin }) => {
           if (uploadScanItem) {
@@ -1536,6 +1587,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               fileFormulir,
               fileSuratIzin,
             });
+          }
+        }}
+        onDeleteScan={(type) => {
+          if (uploadScanItem) {
+            return deleteRecordScanMutation.mutateAsync({ id: uploadScanItem.id, type });
           }
         }}
       />

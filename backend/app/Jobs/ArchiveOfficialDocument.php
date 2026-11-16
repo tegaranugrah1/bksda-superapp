@@ -60,10 +60,25 @@ class ArchiveOfficialDocument implements ShouldQueue
             if (config('queue.default') === 'sync' && ! app()->runningUnitTests()) {
                 $job = new static($sourceModule, $sourceId, $sourceDisk, $sourcePath, $targetName, $unitId, $userId);
                 app()->terminating(static function () use ($job, $sourceModule, $sourceId): void {
+                    $prevRetries = config('filesystems.disks.drive.retries');
+                    $prevHttp = config('filesystems.disks.drive.http');
+                    // ponytail: sync queue runs inside PHP request lifecycle (30s ceiling under php artisan serve);
+                    // cap S3 stall when Drive/RustFS is unresponsive so HTTP sockets don't block; queued workers keep 60s.
+                    config([
+                        'filesystems.disks.drive.retries' => 0,
+                        'filesystems.disks.drive.http' => ['connect_timeout' => 1.5, 'timeout' => 2],
+                    ]);
+                    \Illuminate\Support\Facades\Storage::forgetDisk('drive');
                     try {
                         $job->handle();
                     } catch (\Throwable $e) {
                         Log::warning("AutoArchive terminating skipped ({$sourceModule} #{$sourceId}): {$e->getMessage()}");
+                    } finally {
+                        config([
+                            'filesystems.disks.drive.retries' => $prevRetries,
+                            'filesystems.disks.drive.http' => $prevHttp,
+                        ]);
+                        \Illuminate\Support\Facades\Storage::forgetDisk('drive');
                     }
                 });
                 return;

@@ -382,9 +382,7 @@ class EmployeeLeaveController extends Controller
             $hasUploaded = false;
             if ($request->hasFile('file_scan_formulir')) {
                 $f = $request->file('file_scan_formulir');
-                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
-                }
+                $leaveReq->clearScanSlot('formulir');
                 $updatePayload['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
                 $updatePayload['scan_formulir_nama'] = basename(str_replace('\\', '/', $f->getClientOriginalName()));
                 $hasUploaded = true;
@@ -392,12 +390,7 @@ class EmployeeLeaveController extends Controller
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
             if ($suratIzinFile) {
-                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
-                }
-                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
-                }
+                $leaveReq->clearScanSlot('surat_izin');
                 $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
                 $updatePayload['scan_surat_izin_path'] = $path;
                 $updatePayload['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));

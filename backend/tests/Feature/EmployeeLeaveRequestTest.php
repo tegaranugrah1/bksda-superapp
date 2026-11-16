@@ -177,4 +177,83 @@ class EmployeeLeaveRequestTest extends TestCase
         $this->assertNotEmpty($leaveReq->scan_surat_izin_path);
         $this->assertTrue(\Illuminate\Support\Facades\Storage::disk('local')->exists($leaveReq->scan_surat_izin_path));
     }
+
+    public function test_admin_can_delete_uploaded_scan_slot_without_removing_other_slot(): void
+    {
+        $disk = \Illuminate\Support\Facades\Storage::fake('local');
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'username' => 'admin_delete_scan',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $regularUser = User::factory()->create([
+            'role' => 'user',
+            'username' => 'regular_no_delete_scan',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $formulirPath = \Illuminate\Http\UploadedFile::fake()->create('formulir.pdf', 50, 'application/pdf')->store('cuti_scans/formulir', 'local');
+        $izinPath = \Illuminate\Http\UploadedFile::fake()->create('surat-izin.pdf', 50, 'application/pdf')->store('cuti_scans/surat_izin', 'local');
+
+        $leaveReq = EmployeeLeaveRequest::create([
+            'employee_id' => $this->employee->id,
+            'nomor_pengajuan' => 'CUTI/2026/004',
+            'tanggal_pengajuan' => '2026-11-16',
+            'jenis_cuti' => 'Cuti Tahunan',
+            'alasan_cuti' => 'Tes Hapus Scan',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => '2026-11-18',
+            'tanggal_selesai' => '2026-11-18',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081234567890',
+            'status' => 'DISETUJUI',
+            'scan_formulir_path' => $formulirPath,
+            'scan_formulir_nama' => 'formulir.pdf',
+            'scan_surat_izin_path' => $izinPath,
+            'scan_surat_izin_nama' => 'surat-izin.pdf',
+            'scan_surat_path' => $izinPath,
+            'scan_surat_nama' => 'surat-izin.pdf',
+            'scan_surat_uploaded_at' => now(),
+            'scan_surat_uploaded_by' => $admin->id,
+        ]);
+
+        $this->actingAs($regularUser, 'sanctum')
+            ->deleteJson('/api/kepegawaian/leave-requests/' . $leaveReq->id . '/scan?type=formulir')
+            ->assertForbidden();
+
+        // Deleting formulir keeps surat_izin intact
+        $this->actingAs($admin, 'sanctum')
+            ->deleteJson('/api/kepegawaian/leave-requests/' . $leaveReq->id . '/scan?type=formulir')
+            ->assertOk()
+            ->assertJsonPath('data.scan_formulir_nama', null)
+            ->assertJsonPath('data.scan_surat_izin_nama', 'surat-izin.pdf');
+
+        $this->assertFalse($disk->exists($formulirPath));
+        $this->assertTrue($disk->exists($izinPath));
+
+        $leaveReq->refresh();
+        $this->assertNull($leaveReq->scan_formulir_path);
+        $this->assertNotNull($leaveReq->scan_surat_uploaded_at);
+
+        // Deleting already-removed slot yields 404
+        $this->actingAs($admin, 'sanctum')
+            ->deleteJson('/api/kepegawaian/leave-requests/' . $leaveReq->id . '/scan?type=formulir')
+            ->assertNotFound();
+
+        // Deleting remaining surat_izin clears legacy fields and upload timestamp
+        $this->actingAs($admin, 'sanctum')
+            ->deleteJson('/api/kepegawaian/leave-requests/' . $leaveReq->id . '/scan?type=surat_izin')
+            ->assertOk()
+            ->assertJsonPath('data.scan_surat_izin_nama', null)
+            ->assertJsonPath('data.scan_surat_nama', null);
+
+        $this->assertFalse($disk->exists($izinPath));
+        $leaveReq->refresh();
+        $this->assertNull($leaveReq->scan_surat_izin_path);
+        $this->assertNull($leaveReq->scan_surat_path);
+        $this->assertNull($leaveReq->scan_surat_uploaded_at);
+        $this->assertNull($leaveReq->scan_surat_uploaded_by);
+    }
 }

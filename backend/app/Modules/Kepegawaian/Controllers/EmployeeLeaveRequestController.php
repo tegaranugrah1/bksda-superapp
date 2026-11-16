@@ -669,6 +669,60 @@ class EmployeeLeaveRequestController extends Controller
         ]);
     }
 
+    /**
+     * Admin Delete Scan Berkas (Formulir / Surat Izin Resmi Cuti)
+     */
+    public function adminDeleteScan(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:formulir,surat_izin',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $leaveReq = EmployeeLeaveRequest::findOrFail($id);
+            Employee::lockForLeaveUpdate($leaveReq->employee_id);
+            $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
+
+            $type = $validated['type'];
+            $hasTarget = $type === 'formulir'
+                ? ! empty($leaveReq->scan_formulir_path)
+                : ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path);
+
+            if (! $hasTarget) {
+                DB::rollBack();
+                return response()->json(['message' => 'Berkas scan belum tersedia untuk dihapus.'], 404);
+            }
+
+            $updateData = $leaveReq->clearScanSlot($type);
+            $otherRemains = $type === 'formulir'
+                ? ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path)
+                : ! empty($leaveReq->scan_formulir_path);
+
+            if (! $otherRemains) {
+                $updateData['scan_surat_uploaded_at'] = null;
+                $updateData['scan_surat_uploaded_by'] = null;
+            }
+
+            $leaveReq->update($updateData);
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Berkas scan cuti berhasil dihapus.',
+                'data' => $leaveReq->fresh('employee'),
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            throw $e;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Gagal menghapus berkas scan',
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menghapus berkas.',
+            ], 500);
+        }
+    }
+
     private function archiveLeaveScan(EmployeeLeaveRequest $leaveReq, array $updateData): void
     {
         if (empty($updateData['scan_surat_izin_path'])) {
@@ -694,21 +748,14 @@ class EmployeeLeaveRequestController extends Controller
         $updateData = [];
         if ($request->hasFile('file_scan_formulir')) {
             $fileFormulir = $request->file('file_scan_formulir');
-            if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
-                Storage::disk('local')->delete($leaveReq->scan_formulir_path);
-            }
+            $leaveReq->clearScanSlot('formulir');
             $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
             $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
         }
 
         $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
         if ($suratIzinFile) {
-            if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
-                Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
-            }
-            if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                Storage::disk('local')->delete($leaveReq->scan_surat_path);
-            }
+            $leaveReq->clearScanSlot('surat_izin');
             $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
             $safeOrigName = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
             $updateData['scan_surat_izin_path'] = $path;

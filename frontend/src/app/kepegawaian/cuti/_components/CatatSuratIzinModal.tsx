@@ -27,6 +27,11 @@ import {
 import { EmployeeSelect, type Employee } from "@/components/ui/employee-select";
 import { api } from "@/lib/api";
 import {
+  UploadProgressBar,
+  formatPendingUploadLabel,
+  useUploadProgress,
+} from "./CutiModals";
+import {
   isMmpEmployee,
   detectEmployeeType,
   isEligibleForAnnualLeave,
@@ -128,6 +133,7 @@ export function CatatSuratIzinModal({
   const [fileScanSuratIzin, setFileScanSuratIzin] = useState<File | null>(null);
   const focusReturn = useDialogFocusReturn();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { progress: uploadProgress, getConfig, finish, reset } = useUploadProgress();
 
   // Quota Data State
   const [leaveLoading, setLeaveLoading] = useState(false);
@@ -386,10 +392,14 @@ export function CatatSuratIzinModal({
 
     setIsSubmitting(true);
     try {
-      await api.post(`/kepegawaian/employees/${selectedEmployee.id}/leave-records`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const hasFiles = Boolean(fileScanFormulir || fileScanSuratIzin);
+      await api.post(
+        `/kepegawaian/employees/${selectedEmployee.id}/leave-records`,
+        formData,
+        getConfig(hasFiles)
+      );
 
+      finish();
       toast.success("Surat izin penetapan cuti berhasil dicatat!");
       onSuccess();
       onClose();
@@ -397,6 +407,7 @@ export function CatatSuratIzinModal({
       const msg = err?.response?.data?.message || "Gagal mencatat surat izin penetapan cuti.";
       toast.error(msg);
     } finally {
+      reset();
       setIsSubmitting(false);
     }
   };
@@ -766,6 +777,8 @@ export function CatatSuratIzinModal({
             </div>
           )}
 
+          <UploadProgressBar progress={isSubmitting ? uploadProgress : null} />
+
           {/* Footer Buttons */}
           <DialogFooter className="gap-2 pt-3 border-t border-[var(--ds-border-subtle)]">
             <Button
@@ -787,7 +800,7 @@ export function CatatSuratIzinModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Menyimpan...
+                  {formatPendingUploadLabel(isSubmitting, uploadProgress, "", "Menyimpan...")}
                 </>
               ) : (
                 "Simpan Surat Izin"

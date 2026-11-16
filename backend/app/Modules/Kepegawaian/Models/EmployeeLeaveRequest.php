@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeLeaveRequest extends Model
 {
@@ -86,5 +87,34 @@ class EmployeeLeaveRequest extends Model
             $annual->whereIn($column, (clone $types)->selectRaw('LOWER(TRIM(nama))'))
                 ->orWhereIn($column, (clone $types)->whereNotNull('kode')->selectRaw('LOWER(TRIM(kode))'));
         });
+    }
+
+    /**
+     * Delete stored local scan files for one slot ('formulir' | 'surat_izin') and return nulled attributes.
+     */
+    public function clearScanSlot(string $slot): array
+    {
+        $disk = Storage::disk('local');
+
+        if ($slot === 'formulir') {
+            if ($this->scan_formulir_path && $disk->exists($this->scan_formulir_path)) {
+                $disk->delete($this->scan_formulir_path);
+            }
+            return ['scan_formulir_path' => null, 'scan_formulir_nama' => null];
+        }
+
+        if ($this->scan_surat_izin_path && $disk->exists($this->scan_surat_izin_path)) {
+            $disk->delete($this->scan_surat_izin_path);
+        }
+        if ($this->scan_surat_path && $this->scan_surat_path !== $this->scan_surat_izin_path && $disk->exists($this->scan_surat_path)) {
+            $disk->delete($this->scan_surat_path);
+        }
+
+        return [
+            'scan_surat_izin_path' => null,
+            'scan_surat_izin_nama' => null,
+            'scan_surat_path' => null,
+            'scan_surat_nama' => null,
+        ];
     }
 }

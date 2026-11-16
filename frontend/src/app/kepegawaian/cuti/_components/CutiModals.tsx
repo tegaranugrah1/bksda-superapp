@@ -2,7 +2,7 @@
 
 import { KepegawaianDialog } from "../../_components/KepegawaianDialog";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -18,15 +18,123 @@ import {
   ChevronUp,
   Loader2,
   Calendar,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { FormulirCutiPrint } from "@/app/portal/_components/FormulirCutiPrint";
 import { formatDateIndonesian, formatNipLabel, isPppk } from "@/lib/letter-utils";
 
 export { ScanViewerModal } from "./ScanViewerModal";
-export { CatatSuratIzinModal } from "./CatatSuratIzinModal";
 export { DigitalSuratIzinModal } from "./DigitalSuratIzinModal";
+
+export interface UploadProgressState {
+  percent: number;
+  phase: "uploading" | "saving";
+}
+
+export function createUploadProgressConfig(
+  onProgress: (state: UploadProgressState) => void,
+  hasFiles = true
+) {
+  onProgress({ percent: hasFiles ? 0 : 15, phase: hasFiles ? "uploading" : "saving" });
+  return {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 60000,
+    onUploadProgress: (progressEvent: { loaded: number; total?: number }) => {
+      if (!hasFiles) return;
+      const total = progressEvent.total || 0;
+      if (total > 0) {
+        // Reserve 0-70% for HTTP upload bytes and 70-100% for server commit/storage work.
+        const rawPct = Math.round((progressEvent.loaded * 70) / total);
+        if (progressEvent.loaded >= total) {
+          onProgress({ percent: 70, phase: "saving" });
+        } else {
+          onProgress({ percent: Math.max(0, Math.min(69, rawPct)), phase: "uploading" });
+        }
+      }
+    },
+  };
+}
+
+/** Tracks upload (0-70%) plus smoothly advancing server-save feedback (70-98%) until settlement. */
+export function useUploadProgress() {
+  const [progress, setProgress] = useState<UploadProgressState | null>(null);
+
+  useEffect(() => {
+    if (progress?.phase !== "saving") return;
+    // ponytail: ease asymptote toward 98% because backend commit/archival does not stream progress events.
+    const timer = window.setInterval(() => {
+      setProgress((prev) => {
+        if (!prev || prev.phase !== "saving" || prev.percent >= 98) return prev;
+        const step = Math.max(1, Math.ceil((98 - prev.percent) * 0.18));
+        return { phase: "saving", percent: Math.min(98, prev.percent + step) };
+      });
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [progress?.phase]);
+
+  const getConfig = useCallback(
+    (hasFiles = true) => createUploadProgressConfig(setProgress, hasFiles),
+    []
+  );
+  const startSaving = useCallback((percent = 15) => {
+    setProgress({ phase: "saving", percent });
+  }, []);
+  const finish = useCallback(() => {
+    setProgress((prev) => (prev ? { phase: "saving", percent: 100 } : null));
+  }, []);
+  const reset = useCallback(() => setProgress(null), []);
+
+  return { progress, getConfig, startSaving, finish, reset };
+}
+
+export function formatPendingUploadLabel(
+  isPending: boolean,
+  progress: UploadProgressState | null | undefined,
+  idleLabel: string,
+  fallbackPending = "Menyimpan..."
+): string {
+  if (!isPending) return idleLabel;
+  if (progress?.phase === "uploading") return `Mengunggah... ${progress.percent}%`;
+  if (progress?.phase === "saving") return `Menyimpan... ${progress.percent}%`;
+  return fallbackPending;
+}
+
+export function UploadProgressBar({ progress }: { progress: UploadProgressState | null | undefined }) {
+  if (!progress) return null;
+  const pct = Math.max(0, Math.min(100, progress.percent));
+  const isSaving = progress.phase === "saving";
+
+  return (
+    <div className="space-y-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5">
+      <div className="flex items-center justify-between text-xs font-semibold">
+        <span className="flex items-center gap-1.5 text-[var(--ds-fg)]">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--ds-accent-fg)]" />
+          {isSaving ? "Menyimpan berkas ke server..." : "Mengunggah berkas..."}
+        </span>
+        <span className="font-mono font-bold tabular-nums text-[var(--ds-accent-fg)]">{pct}%</span>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={isSaving ? "Menyimpan berkas ke server" : "Progres unggah berkas"}
+        className="h-2 w-full overflow-hidden rounded-full bg-[var(--ds-border-subtle)]"
+      >
+        <div
+          className={cn(
+            "h-full rounded-full transition-all duration-150",
+            isSaving ? "bg-[var(--ds-status-success-fg)] animate-pulse" : "bg-[var(--ds-accent-solid)]"
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export interface LeaveRequestItem {
   id: number;
@@ -343,6 +451,7 @@ interface ApproveLeaveModalProps {
   item: LeaveRequestItem | null;
   mode?: "approve" | "regenerate";
   isPending: boolean;
+  uploadProgress?: UploadProgressState | null;
   onClose: () => void;
   onApprove: (
     nomorSurat: string,
@@ -424,6 +533,7 @@ export function ApproveLeaveModal({
   item,
   mode = "approve",
   isPending,
+  uploadProgress,
   onClose,
   onApprove,
 }: ApproveLeaveModalProps) {
@@ -836,6 +946,8 @@ export function ApproveLeaveModal({
             )}
           </div>
 
+          <UploadProgressBar progress={isPending ? (uploadProgress ?? null) : null} />
+
           <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
             <Button variant="ghost" type="button" onClick={onClose} disabled={isPending} className="rounded-xl">
               Batal
@@ -848,7 +960,7 @@ export function ApproveLeaveModal({
               {isPending ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Memproses...</span>
+                  <span>{formatPendingUploadLabel(isPending, uploadProgress, "", "Memproses...")}</span>
                 </>
               ) : isRegenerate ? (
                 <>
@@ -869,6 +981,90 @@ export function ApproveLeaveModal({
   );
 }
 
+export type ScanSlot = "formulir" | "surat_izin";
+
+export async function deleteLeaveScan(id: number, type: ScanSlot) {
+  const res = await api.delete(`/kepegawaian/leave-requests/${id}/scan`, { params: { type } });
+  return res.data?.data as Record<string, unknown> | undefined;
+}
+
+export function ActiveScanFileRow({
+  fileName,
+  slot,
+  busy,
+  deleting,
+  onDelete,
+  label = "Berkas aktif:",
+  className,
+}: {
+  fileName: string;
+  slot: ScanSlot;
+  busy?: boolean;
+  deleting?: boolean;
+  onDelete?: (slot: ScanSlot) => Promise<unknown> | void;
+  label?: string;
+  className?: string;
+}) {
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    setConfirming(false);
+  }, [fileName, slot]);
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2.5 py-1.5 text-xs",
+        className
+      )}
+    >
+      <p className="font-mono text-[var(--ds-fg-muted)] truncate">
+        {label ? `${label} ` : ""}<span className="font-semibold text-[var(--ds-fg)]">{fileName}</span>
+      </p>
+      {onDelete && (
+        confirming ? (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[var(--ds-status-danger-fg)] font-semibold hidden sm:inline">Hapus berkas?</span>
+            <button
+              type="button"
+              disabled={busy || deleting}
+              onClick={async () => {
+                try {
+                  await onDelete(slot);
+                  setConfirming(false);
+                } catch {
+                  // Caller toast handles error; keep row intact
+                }
+              }}
+              className="px-2 py-0.5 rounded border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold hover:opacity-90 disabled:opacity-50"
+            >
+              {deleting ? "Menghapus..." : "Ya, Hapus"}
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setConfirming(false)}
+              className="px-1.5 py-0.5 rounded font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-50"
+            >
+              Batal
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={busy || deleting}
+            onClick={() => setConfirming(true)}
+            className="inline-flex items-center gap-1 shrink-0 rounded px-1.5 py-0.5 font-semibold text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] disabled:opacity-50"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Hapus</span>
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 interface UploadScanModalProps {
   item: {
     id: number;
@@ -883,15 +1079,21 @@ interface UploadScanModalProps {
     };
   } | null;
   isPending: boolean;
+  uploadProgress?: UploadProgressState | null;
+  deletingSlot?: ScanSlot | null;
   onClose: () => void;
   onUpload: (files: { fileFormulir: File | null; fileSuratIzin: File | null }) => void;
+  onDeleteScan?: (slot: ScanSlot) => Promise<unknown> | void;
 }
 
 export function UploadScanModal({
   item,
   isPending,
+  uploadProgress,
+  deletingSlot = null,
   onClose,
   onUpload,
+  onDeleteScan,
 }: UploadScanModalProps) {
   const [fileFormulir, setFileFormulir] = useState<File | null>(null);
   const [fileSuratIzin, setFileSuratIzin] = useState<File | null>(null);
@@ -902,6 +1104,8 @@ export function UploadScanModal({
   }, [item]);
 
   if (!item) return null;
+
+  const isBusy = isPending || Boolean(deletingSlot);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -915,7 +1119,7 @@ export function UploadScanModal({
   const currentSuratIzin = item.scan_surat_izin_nama || item.scan_surat_nama;
 
   return (
-    <KepegawaianDialog title="Unggah berkas cuti" onClose={onClose} busy={isPending} className="sm:max-w-lg">
+    <KepegawaianDialog title="Unggah berkas cuti" onClose={onClose} busy={isBusy} className="sm:max-w-lg">
       <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
           <div className="flex items-center gap-2">
@@ -931,7 +1135,7 @@ export function UploadScanModal({
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-xl" aria-label="Tutup">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isBusy} className="h-8 w-8 p-0 rounded-xl" aria-label="Tutup">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -939,25 +1143,29 @@ export function UploadScanModal({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Slot 1: Scan Formulir */}
           <div className="space-y-1.5 p-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                <FileText className="w-3.5 h-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
                 1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
               </label>
               {item.scan_formulir_nama ? (
-                <span className="text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full">
+                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full">
                   Sudah Terunggah
                 </span>
               ) : (
-                <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-full">
+                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-full">
                   Belum ada
                 </span>
               )}
             </div>
             {item.scan_formulir_nama && (
-              <p className="text-xs text-[var(--ds-fg-muted)] font-mono truncate">
-                Berkas aktif: {item.scan_formulir_nama}
-              </p>
+              <ActiveScanFileRow
+                fileName={item.scan_formulir_nama}
+                slot="formulir"
+                busy={isBusy}
+                deleting={deletingSlot === "formulir"}
+                onDelete={onDeleteScan}
+              />
             )}
             <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] rounded-lg p-2.5 text-center bg-[var(--ds-surface)]">
               <input
@@ -1020,9 +1228,13 @@ export function UploadScanModal({
               )}
             </div>
             {currentSuratIzin && (
-              <p className="text-xs text-[var(--ds-fg-muted)] font-mono truncate">
-                Berkas aktif: {currentSuratIzin}
-              </p>
+              <ActiveScanFileRow
+                fileName={currentSuratIzin}
+                slot="surat_izin"
+                busy={isBusy}
+                deleting={deletingSlot === "surat_izin"}
+                onDelete={onDeleteScan}
+              />
             )}
             <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] rounded-lg p-2.5 text-center bg-[var(--ds-surface)]">
               <input
@@ -1067,16 +1279,18 @@ export function UploadScanModal({
             )}
           </div>
 
+          <UploadProgressBar progress={isPending ? (uploadProgress ?? null) : null} />
+
           <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
-            <Button variant="ghost" type="button" onClick={onClose} disabled={isPending} className="rounded-xl">
+            <Button variant="ghost" type="button" onClick={onClose} disabled={isBusy} className="rounded-xl">
               Batal
             </Button>
             <Button
               type="submit"
-              disabled={isPending || (!fileFormulir && !fileSuratIzin)}
+              disabled={isBusy || (!fileFormulir && !fileSuratIzin)}
               className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-xl shadow-xs gap-1.5"
             >
-              {isPending ? "Mengunggah..." : "Simpan Berkas"}
+              {formatPendingUploadLabel(isPending, uploadProgress, "Simpan Berkas", "Mengunggah...")}
             </Button>
           </div>
         </form>
