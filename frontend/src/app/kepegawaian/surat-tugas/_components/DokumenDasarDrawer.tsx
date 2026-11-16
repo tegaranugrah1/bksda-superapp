@@ -155,14 +155,14 @@ export function DokumenDasarDrawer({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: reducedMotion ? 1 : 0, x: reducedMotion ? 0 : 12 }}
           transition={{ duration: reducedMotion ? 0 : 0.15, ease: "easeOut" }}
-          className="fixed top-14 right-0 bottom-0 z-30 w-[640px] xl:w-[750px] 2xl:w-[850px] max-w-full lg:max-w-[calc(100vw-28rem)] bg-[var(--ds-surface)] border-l border-[var(--ds-border-subtle)] shadow-2xl flex flex-col overflow-hidden"
+          className="fixed top-14 right-0 bottom-0 z-30 w-[640px] xl:w-[750px] 2xl:w-[850px] max-w-full lg:max-w-[calc(100vw-28rem)] bg-[var(--ds-surface)] border-l border-slate-200/70 dark:border-zinc-800 shadow-lg flex flex-col overflow-hidden"
           aria-label="Panel Dokumen Dasar"
           onKeyDown={(event) => { if (event.key === "Escape") onClose(); }}
         >
           {/* Header Panel */}
-          <div className="px-5 py-3 bg-[var(--ds-surface)] flex items-center justify-between border-b border-[var(--ds-border-subtle)] shrink-0">
+          <div className="px-5 py-3 bg-[var(--ds-surface)] flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-[var(--ds-border-subtle)] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-center shrink-0">
                 <Paperclip className="w-4 h-4" />
               </div>
               <div className="min-w-0">
@@ -171,7 +171,7 @@ export function DokumenDasarDrawer({
                     Dokumen Dasar Permohonan
                   </h3>
                   {hasFile && (
-                    <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-[var(--ds-border-subtle)] shrink-0">
+                    <span className="text-xs font-semibold px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800 shrink-0">
                       {isPdf ? "PDF" : "Gambar"}
                     </span>
                   )}
@@ -186,7 +186,7 @@ export function DokumenDasarDrawer({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0 ml-3">
+            <div className="flex items-center gap-2 shrink-0 ml-3">
               {(blobUrl || dataUrl) && (
                 <>
                   <Button
@@ -194,10 +194,10 @@ export function DokumenDasarDrawer({
                     size="sm"
                     variant="outline"
                     onClick={handleOpenExternal}
-                    className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-1.5"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold text-[var(--ds-fg-muted)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-2"
                     title="Buka Berkas di Tab Baru (Layar Penuh)"
                   >
-                    <ExternalLink className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+                    <ExternalLink className="w-4 h-4 text-[var(--ds-fg-muted)]" />
                     <span>Tab Baru</span>
                   </Button>
                   <Button
@@ -205,10 +205,10 @@ export function DokumenDasarDrawer({
                     size="sm"
                     variant="outline"
                     onClick={handleDownload}
-                    className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-1.5"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold text-[var(--ds-fg-muted)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer gap-2"
                     title="Unduh Berkas Dasar"
                   >
-                    <Download className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+                    <Download className="w-4 h-4 text-[var(--ds-fg-muted)]" />
                     <span>Unduh</span>
                   </Button>
                 </>
@@ -248,7 +248,7 @@ export function DokumenDasarDrawer({
                       : undefined
                   }
                   title="Pratinjau Dokumen Dasar"
-                  className="w-full h-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm"
+                  className="w-full h-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs"
                 />
               ) : (
                 <div className="w-full h-full overflow-auto flex items-center justify-center p-3">
@@ -257,13 +257,13 @@ export function DokumenDasarDrawer({
                   <img
                     src={blobUrl || dataUrl || undefined}
                     alt="Pratinjau Dokumen Dasar"
-                    className="max-h-full max-w-full object-contain rounded-xl shadow-md border border-[var(--ds-border-subtle)]"
+                    className="max-h-full max-w-full object-contain rounded-lg shadow-xs border border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
               )
             ) : (
               <div className="text-center py-16 px-6 max-w-md space-y-3 text-[var(--ds-fg-muted)]">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--ds-surface-muted)] flex items-center justify-center mx-auto text-[var(--ds-fg-muted)]">
+                <div className="w-12 h-12 rounded-lg bg-[var(--ds-surface-muted)] flex items-center justify-center mx-auto text-[var(--ds-fg-muted)]">
                   <FileQuestion className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">

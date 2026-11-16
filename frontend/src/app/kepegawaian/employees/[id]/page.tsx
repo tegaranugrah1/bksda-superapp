@@ -112,8 +112,8 @@ function getWaLink(phone?: string | null): string | null {
 
 function CopyIcon({ copied, checkClass = "text-[var(--ds-status-success-fg)]" }: { copied: boolean; checkClass?: string }) {
   return copied
-    ? <Check className={cn("w-3.5 h-3.5", checkClass)} />
-    : <Copy className="w-3.5 h-3.5" />;
+    ? <Check className={cn("w-3 h-3", checkClass)} />
+    : <Copy className="w-3 h-3" />;
 }
 
 export default function EmployeeDetailPage() {
@@ -482,14 +482,14 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
-      <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6     w-full min-h-screen">
-        <div className="h-8 w-48 bg-[var(--ds-surface-muted)] rounded-xl animate-pulse" />
+      <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-6 space-y-6 w-full min-h-screen">
+        <div className="h-8 w-48 bg-[var(--ds-surface-muted)] rounded-lg animate-pulse" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-4 xl:col-span-3 h-[600px] bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
+          <div className="lg:col-span-4 xl:col-span-3 h-[600px] bg-[var(--ds-surface-muted)] rounded-3xl animate-pulse" />
           <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-            <div className="h-24 bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
-            <div className="h-12 bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
-            <div className="h-[460px] bg-[var(--ds-surface-muted)] rounded-2xl animate-pulse" />
+            <div className="h-24 bg-[var(--ds-surface-muted)] rounded-3xl animate-pulse" />
+            <div className="h-12 bg-[var(--ds-surface-muted)] rounded-3xl animate-pulse" />
+            <div className="h-[460px] bg-[var(--ds-surface-muted)] rounded-3xl animate-pulse" />
           </div>
         </div>
       </div>
@@ -498,15 +498,15 @@ export default function EmployeeDetailPage() {
 
   if (isError || !employee) {
     return (
-      <div data-module="kepegawaian" className="kpg-ui p-6 md:p-10 py-20 text-center     max-w-md mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] mx-auto flex items-center justify-center mb-4">
+      <div data-module="kepegawaian" className="kpg-ui p-6 py-20 text-center max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-3xl bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] mx-auto flex items-center justify-center mb-4">
           <User className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-bold text-[var(--ds-fg)]">Pegawai Tidak Ditemukan</h2>
         <p className="text-xs text-[var(--ds-fg-muted)] mt-1 mb-6">
           Data pegawai yang Anda cari mungkin telah dinonaktifkan atau dihapus dari sistem.
         </p>
-        <Button variant="default" className="rounded-xl" onClick={() => router.push("/kepegawaian/employees")}>
+        <Button variant="default" className="rounded-lg shadow-xs" onClick={() => router.push("/kepegawaian/employees")}>
           Kembali ke Daftar Pegawai
         </Button>
       </div>
@@ -523,15 +523,15 @@ export default function EmployeeDetailPage() {
   const latestAllowance = allowancesData?.data?.[0];
 
   return (
-    <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-8 2xl:px-12 space-y-6     w-full min-h-screen">
+    <div data-module="kepegawaian" className="kpg-ui p-4 sm:p-6 lg:p-6 space-y-6 w-full min-h-screen">
       {/* Top Breadcrumb & Quick Actions Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/kepegawaian/employees"
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] hover:border-[var(--ds-status-success-border)] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg kpg-secondary text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors shadow-xs cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Daftar Pegawai</span>
           </Link>
           <span className="text-[var(--ds-fg-muted)]">/</span>
@@ -545,10 +545,10 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-warning-border)] hover:bg-[var(--ds-status-warning-bg)] text-[var(--ds-fg)] cursor-pointer"
+              className="rounded-lg text-xs gap-2 border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-warning-border)] hover:bg-[var(--ds-status-warning-bg)] text-[var(--ds-fg)] cursor-pointer"
               onClick={() => setResetDialogOpen(true)}
             >
-              <KeyRound className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
+              <KeyRound className="w-4 h-4 text-[var(--ds-status-warning-fg)]" />
               <span>Reset Password</span>
             </Button>
           )}
@@ -556,10 +556,10 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-fg)] cursor-pointer"
+              className="rounded-lg text-xs gap-2 border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-success-border)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-fg)] cursor-pointer"
               onClick={(event) => { accessTriggerRef.current = event.currentTarget; setAccessSheetOpen(true); }}
             >
-              <Shield className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+              <Shield className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
               <span>Kelola Akses (IAM)</span>
             </Button>
           )}
@@ -567,10 +567,10 @@ export default function EmployeeDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl text-xs gap-1.5 border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-danger-border)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-fg)] cursor-pointer"
+              className="rounded-lg text-xs gap-2 border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-danger-border)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-fg)] cursor-pointer"
               onClick={() => setLifecycleModalOpen(true)}
             >
-              <UserX className="w-3.5 h-3.5 text-[var(--ds-status-danger-fg)]" />
+              <UserX className="w-4 h-4 text-[var(--ds-status-danger-fg)]" />
               <span>Status & Pensiun</span>
             </Button>
           )}
@@ -584,12 +584,12 @@ export default function EmployeeDetailPage() {
         {/* ======================================================== */}
         <div className="lg:col-span-4 xl:col-span-3 space-y-5 lg:sticky lg:top-6">
           {/* Cockpit Card */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs">
 
             {/* Profile Avatar & Primary Badges */}
-            <div className="flex flex-col items-center text-center pb-5 border-b border-[var(--ds-border-subtle)]">
+            <div className="flex flex-col items-center text-center pb-5 border-b border-slate-200/70 dark:border-zinc-800">
               <div className="relative group mb-4">
-                <div className="w-24 h-24 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] overflow-hidden flex items-center justify-center">
+                <div className="w-24 h-24 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 overflow-hidden flex items-center justify-center">
                   {employee.foto_url ? (
                     <Image
                       src={employee.foto_url}
@@ -599,7 +599,7 @@ export default function EmployeeDetailPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-3xl font-black text-[var(--ds-fg-muted)]">
+                    <span className="text-2xl font-black text-[var(--ds-fg-muted)]">
                       {employee.nama_lengkap.charAt(0)}
                     </span>
                   )}
@@ -608,7 +608,7 @@ export default function EmployeeDetailPage() {
                 {/* Status Dot */}
                 <span
                   className={cn(
-                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white  flex items-center justify-center shadow-xs",
+                    "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[var(--ds-surface)] flex items-center justify-center shadow-xs",
                     employee.is_active ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-danger-solid)]"
                   )}
                   title={employee.is_active ? "Status: Pegawai Aktif" : "Status: Non-Aktif"}
@@ -618,7 +618,7 @@ export default function EmployeeDetailPage() {
 
                 {/* Upload Photo Overlay (for admins) */}
                 {canManageAccess && (
-                  <label className="kpg-photo-upload absolute inset-0 bg-black/75 rounded-2xl flex flex-col items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 cursor-pointer text-white text-xs font-semibold">
+                  <label className="kpg-photo-upload absolute inset-0 bg-black/75 rounded-lg flex flex-col items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 cursor-pointer text-white text-xs font-semibold">
                     <User className="w-6 h-6 mb-1" />
                     <span>{photoUploading ? "Mengunggah..." : "Ubah Foto"}</span>
                     <input
@@ -653,19 +653,19 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* Name & Category Badges */}
-              <h1 className="text-lg font-black text-[var(--ds-fg)] leading-tight">
+              <h1 className="text-xl font-black text-[var(--ds-fg)] leading-tight">
                 {employee.nama_lengkap}
               </h1>
 
-              <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
+              <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
                 <span
                   className={cn(
-                    "inline-flex items-center text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider",
+                    "inline-flex items-center text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider",
                     empCategory === "MMP"
-                      ? "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  border border-[var(--ds-status-success-border)] "
+                      ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]"
                       : empCategory === "PPPK"
-                      ? "bg-[var(--ds-status-warning-bg)]  text-[var(--ds-status-warning-fg)]  border border-[var(--ds-status-warning-border)] "
-                      : "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border border-[var(--ds-accent-soft-border)] "
+                      ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]"
+                      : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
                   )}
                 >
                   {empCategory === "PPPK" ? "PPPK (P3K)" : empCategory}
@@ -673,12 +673,12 @@ export default function EmployeeDetailPage() {
 
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1 text-xs font-extrabold px-2.5 py-0.5 rounded-full",
+                    "inline-flex items-center gap-1 text-xs font-extrabold px-3 py-1 rounded-full",
                     employee.status_badge?.color === "emerald"
-                      ? "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  border border-[var(--ds-status-success-border)] "
+                      ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]"
                       : employee.status_badge?.color === "amber"
-                      ? "bg-[var(--ds-status-warning-bg)]  text-[var(--ds-status-warning-fg)]  border border-[var(--ds-status-warning-border)] "
-                      : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)]  border border-[var(--ds-border-subtle)] "
+                      ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]"
+                      : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border border-slate-200/80 dark:border-zinc-800"
                   )}
                 >
                   <BadgeCheck className="w-3 h-3" />
@@ -687,7 +687,7 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* NIP / Username with 1-click Copy */}
-              <div className="mt-2.5 flex items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface)] px-3 py-1 rounded-xl border border-[var(--ds-border-subtle)]">
+              <div className="mt-3 flex items-center gap-2 font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface)] px-3 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800">
                 <span>
                   {empCategory === "MMP"
                     ? `Username: ${employee.nip}`
@@ -697,7 +697,7 @@ export default function EmployeeDetailPage() {
                   <button
                     type="button"
                     onClick={() => handleCopy(employee.nip, "nip")}
-                    className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors p-0.5 rounded cursor-pointer"
+                    className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors p-1 rounded-lg cursor-pointer"
                     title={empCategory === "MMP" ? "Salin Username Portal" : "Salin NIP"}
                   >
                     <CopyIcon copied={copiedField === "nip"} />
@@ -707,10 +707,10 @@ export default function EmployeeDetailPage() {
             </div>
 
             {/* Info Details List (Mirip Portal, Natural & Terpadu) */}
-            <div className="py-3.5 space-y-3 text-xs border-b border-[var(--ds-border-subtle)]">
+            <div className="py-4 space-y-3 text-xs border-b border-slate-200/70 dark:border-zinc-800">
               {/* Jabatan */}
-              <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
-                <Briefcase className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+                <Briefcase className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                 <div className="min-w-0 flex-1">
                   <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Jabatan</span>
                   <span className="font-semibold text-[var(--ds-fg)] truncate block">
@@ -720,8 +720,8 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* Unit Kerja */}
-              <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
-                <Building2 className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+                <Building2 className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                 <div className="min-w-0 flex-1">
                   <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Unit Kerja</span>
                   <span className="font-semibold text-[var(--ds-fg)] truncate block">
@@ -737,8 +737,8 @@ export default function EmployeeDetailPage() {
 
               {/* Pangkat & Golongan (Non-MMP) */}
               {empCategory !== "MMP" && (
-                <div className="flex items-start gap-2.5 text-[var(--ds-fg-muted)]">
-                  <Hash className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 text-[var(--ds-fg-muted)]">
+                  <Hash className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                   <div className="min-w-0 flex-1">
                     <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Pangkat & Golongan</span>
                     <span className="font-semibold text-[var(--ds-fg)] block">
@@ -750,8 +750,8 @@ export default function EmployeeDetailPage() {
 
               {/* Email Resmi */}
               <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <Mail className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <Mail className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                   <div className="min-w-0 flex-1">
                     <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Email Akun Resmi</span>
                     {validEmail ? (
@@ -779,7 +779,7 @@ export default function EmployeeDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleCopy(employee.email!, "email")}
-                      className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                       title="Salin Alamat Email"
                     >
                       <CopyIcon copied={copiedField === "email"} checkClass="text-[var(--ds-accent-fg)]" />
@@ -790,8 +790,8 @@ export default function EmployeeDetailPage() {
 
               {/* Telepon / WhatsApp */}
               <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <Phone className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <Phone className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                   <div className="min-w-0 flex-1">
                     <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] block">Telepon / WhatsApp</span>
                     {validTelepon ? (
@@ -819,7 +819,7 @@ export default function EmployeeDetailPage() {
                     <button
                       type="button"
                       onClick={() => handleCopy(employee.telepon!, "telepon")}
-                      className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                       title="Salin Nomor HP"
                     >
                       <CopyIcon copied={copiedField === "telepon"} />
@@ -831,12 +831,12 @@ export default function EmployeeDetailPage() {
               {/* Rekening Penyalur Uang Makan (Non-MMP) */}
               {!isMmp && canViewSensitive && (
                 <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <CreditCard className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <CreditCard className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0 mt-1" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs uppercase font-bold text-[var(--ds-fg-muted)]">Rekening Penyalur</span>
-                        <span className={cn("px-1.5 py-0.2 rounded text-xs font-black border", bankTheme.bgBadge)}>
+                        <span className={cn("px-2 py-1 rounded-lg text-xs font-black border", bankTheme.bgBadge)}>
                           {employee.nama_bank || "BRI"}
                         </span>
                       </div>
@@ -865,7 +865,7 @@ export default function EmployeeDetailPage() {
                       <button
                         type="button"
                         onClick={() => handleCopy(validRekening, "rekening")}
-                        className="p-1 rounded-md border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
+                        className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                         title="Salin Nomor Rekening"
                       >
                         <CopyIcon copied={copiedField === "rekening"} />
@@ -882,10 +882,10 @@ export default function EmployeeDetailPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full rounded-xl gap-2 font-bold text-xs h-9 border-[#dce8dd] hover:bg-[#edf3ee] text-[var(--ds-fg)] hover:text-[#1e5433] transition-colors cursor-pointer"
+                  className="w-full rounded-lg kpg-secondary gap-2 font-bold text-xs h-9 text-[var(--ds-fg)] transition-colors cursor-pointer"
                   onClick={startEditing}
                 >
-                  <Pencil className="w-3.5 h-3.5" />
+                  <Pencil className="w-4 h-4" />
                   <span>Edit Data Pegawai</span>
                 </Button>
               </div>
@@ -898,89 +898,85 @@ export default function EmployeeDetailPage() {
         {/* ======================================================== */}
         <div className="lg:col-span-8 xl:col-span-9 space-y-6">
           {/* Top 4 Metric Summary Cards */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
             {/* Metric 1: Masa Kerja */}
             <div
-
               onClick={() => setActiveTab("biodata")}
-                aria-pressed={activeTab === "biodata"}
-              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-warning-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+              aria-pressed={activeTab === "biodata"}
+              className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-warning-border)] cursor-pointer transition-colors shadow-xs group"
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Masa Kerja</span>
-                <div className="w-7 h-7 rounded-xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Award className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Award className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-lg xl:text-xl font-black text-[var(--ds-fg)] truncate">
+              <div className="text-xl font-black text-[var(--ds-fg)] truncate">
                 {empCategory === "MMP"
                   ? "-"
                   : employee.masa_kerja || calculateMasaKerja(employee.nip, employee.nama_lengkap)}
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Pengabdian Resmi</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">Pengabdian Resmi</p>
             </div>
 
             {/* Metric 2: Riwayat Penugasan */}
             {canViewSensitive && (
             <div
-
               onClick={() => setActiveTab("history")}
-                aria-pressed={activeTab === "history"}
-              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+              aria-pressed={activeTab === "history"}
+              className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-xs group"
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Penugasan</span>
-                <div className="w-7 h-7 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <FileText className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <FileText className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-xl font-black text-[var(--ds-fg)]">
                 {assignmentsData?.meta?.total ?? 0}
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Total Surat Tugas</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">Total Surat Tugas</p>
             </div>
             )}
 
             {/* Metric 3: Sisa Cuti PNS */}
             {!isMmp && canViewSensitive && (
             <div
-
               onClick={() => setActiveTab("leave")}
-                aria-pressed={activeTab === "leave"}
-              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+              aria-pressed={activeTab === "leave"}
+              className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-success-border)] cursor-pointer transition-colors shadow-xs group"
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Sisa Cuti</span>
-                <div className="w-7 h-7 rounded-xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Calendar className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Calendar className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-xl font-black text-[var(--ds-fg)]">
                 {leaveBalance?.sisa_cuti_tersedia ?? 12}{" "}
                 <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Hari</span>
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Tahun {currentYear}</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">Tahun {currentYear}</p>
             </div>
             )}
 
             {/* Metric 4: Uang Makan Terakhir */}
             {!isMmp && canViewSensitive && (
             <div
-
               onClick={() => setActiveTab("meal_allowance")}
-                aria-pressed={activeTab === "meal_allowance"}
-              className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-2xs hover:shadow-sm group"
+              aria-pressed={activeTab === "meal_allowance"}
+              className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] cursor-pointer transition-colors shadow-xs group"
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Uang Makan</span>
-                <div className="w-7 h-7 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Receipt className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Receipt className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-base font-black text-[var(--ds-status-success-fg)] truncate">
+              <div className="text-xl font-black text-[var(--ds-status-success-fg)] truncate">
                 {latestAllowance ? formatRupiah(latestAllowance.uang_makan_netto) : "Rp 0"}
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">
                 {latestAllowance?.batch?.periode_bulan || "Bulan berjalan"}
               </p>
             </div>
@@ -988,28 +984,28 @@ export default function EmployeeDetailPage() {
           </div>
 
           {/* Dynamic Tabs Navigation Bar (WRAP 2-TINGKAT, TANPA SCROLL HORIZONTAL) */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-1.5 shadow-2xs">
-            <div {...tabs.tabListProps} className="kpg-pill-tabs flex flex-wrap items-center gap-1.5">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-2 shadow-xs">
+            <div {...tabs.tabListProps} className="kpg-pill-tabs flex flex-wrap items-center gap-2">
               {/* Tab 1: Biodata Lengkap (UTAMA - DEFAULT AKTIF) */}
               <button
                 type="button"
                 onClick={() => setActiveTab("biodata")}
                 {...tabs.tabProps("biodata")}
                 className={cn(
-                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "biodata"
                     ? "text-[var(--ds-accent-on-solid)]"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 {activeTab === "biodata" && (
                   <motion.span
                     layoutId={tabs.indicatorId}
-                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
                     transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
-                <User className="w-3.5 h-3.5 relative z-10" />
+                <User className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">Biodata Lengkap</span>
               </button>
 
@@ -1020,26 +1016,26 @@ export default function EmployeeDetailPage() {
                 onClick={() => setActiveTab("history")}
                 {...tabs.tabProps("history")}
                 className={cn(
-                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "history"
                     ? "text-[var(--ds-accent-on-solid)]"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 {activeTab === "history" && (
                   <motion.span
                     layoutId={tabs.indicatorId}
-                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
                     transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
-                <FileText className="w-3.5 h-3.5 relative z-10" />
+                <FileText className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">Riwayat Penugasan</span>
                 {assignmentsData?.meta && (
                   <span
                     className={cn(
-                      "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
-                      activeTab === "history" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
+                      "relative z-10 px-2 py-1 rounded-full text-xs font-black",
+                      activeTab === "history" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                     )}
                   >
                     {assignmentsData.meta.total}
@@ -1055,27 +1051,27 @@ export default function EmployeeDetailPage() {
                 onClick={() => setActiveTab("leave")}
                 {...tabs.tabProps("leave")}
                 className={cn(
-                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "leave"
                     ? "text-[var(--ds-accent-on-solid)]"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 {activeTab === "leave" && (
                   <motion.span
                     layoutId={tabs.indicatorId}
-                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
                     transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
-                <Calendar className="w-3.5 h-3.5 relative z-10" />
+                <Calendar className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">Cuti Pegawai (PNS)</span>
                 <span
                   className={cn(
-                    "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
+                    "relative z-10 px-2 py-1 rounded-full text-xs font-black",
                     activeTab === "leave"
                       ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]"
-                      : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  "
+                      : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]"
                   )}
                 >
                   {leaveBalance?.sisa_cuti_tersedia ?? 12} Hari
@@ -1090,26 +1086,26 @@ export default function EmployeeDetailPage() {
                 onClick={() => setActiveTab("meal_allowance")}
                 {...tabs.tabProps("meal_allowance")}
                 className={cn(
-                  "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                   activeTab === "meal_allowance"
                     ? "text-[var(--ds-accent-on-solid)]"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 {activeTab === "meal_allowance" && (
                   <motion.span
                     layoutId={tabs.indicatorId}
-                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
                     transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                   />
                 )}
-                <UtensilsCrossed className="w-3.5 h-3.5 relative z-10" />
+                <UtensilsCrossed className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">Presensi & Uang Makan</span>
                 {allowancesData?.meta?.total !== undefined && allowancesData.meta.total > 0 && (
                   <span
                     className={cn(
-                      "relative z-10 px-1.5 py-0.2 rounded-full text-xs font-black",
-                      activeTab === "meal_allowance" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
+                      "relative z-10 px-2 py-1 rounded-full text-xs font-black",
+                      activeTab === "meal_allowance" ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]" : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                     )}
                   >
                     {allowancesData.meta.total} Batch
@@ -1123,22 +1119,22 @@ export default function EmployeeDetailPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("audit")}
-                {...tabs.tabProps("audit")}
+                  {...tabs.tabProps("audit")}
                   className={cn(
-                    "relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer select-none",
+                    "relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                     activeTab === "audit"
                       ? "text-[var(--ds-accent-on-solid)]"
-                      : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] "
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                   )}
                 >
                   {activeTab === "audit" && (
                     <motion.span
                       layoutId={tabs.indicatorId}
-                      className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-xl shadow-xs"
+                      className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg shadow-xs"
                       transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                     />
                   )}
-                  <History className="w-3.5 h-3.5 relative z-10" />
+                  <History className="w-4 h-4 relative z-10" />
                   <span className="relative z-10">Riwayat Perubahan</span>
                 </button>
               )}
@@ -1154,14 +1150,14 @@ export default function EmployeeDetailPage() {
             >
               {/* TAB 1: BIODATA LENGKAP (DEFAULT AKTIF) */}
           {activeTab === "biodata" && (
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[var(--ds-border-subtle)]">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200/70 dark:border-zinc-800">
                 <div>
-                  <h3 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
                     <User className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                     Identitas & Data Lengkap Pegawai
                   </h3>
-                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                     {isMmp
                       ? "Informasi profil resmi, unit kerja penempatan, serta kontak WhatsApp & Email"
                       : "Informasi profil resmi, unit kerja penempatan, kontak WhatsApp & Email, serta rekening bank uang makan"}
@@ -1172,10 +1168,10 @@ export default function EmployeeDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-xl gap-1.5 text-xs font-bold hover:bg-[var(--ds-status-success-bg)] hover:text-[var(--ds-status-success-fg)] hover:border-[var(--ds-status-success-border)] cursor-pointer"
+                    className="rounded-lg gap-2 text-xs font-bold hover:bg-[var(--ds-status-success-bg)] hover:text-[var(--ds-status-success-fg)] hover:border-[var(--ds-status-success-border)] cursor-pointer"
                     onClick={startEditing}
                   >
-                    <Pencil className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                    <Pencil className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                     <span>Edit Biodata</span>
                   </Button>
                 )}
@@ -1185,20 +1181,20 @@ export default function EmployeeDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-xl gap-1.5 text-xs cursor-pointer"
+                      className="rounded-lg gap-2 text-xs cursor-pointer"
                       onClick={cancelEditing}
                       disabled={saving}
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                       <span>Batal</span>
                     </Button>
                     <Button
                       size="sm"
-                      className="rounded-xl gap-1.5 text-xs bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] font-bold cursor-pointer"
+                      className="rounded-lg gap-2 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold cursor-pointer"
                       onClick={handleSave}
                       disabled={saving}
                     >
-                      <Save className="w-3.5 h-3.5" />
+                      <Save className="w-4 h-4" />
                       <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
                     </Button>
                   </div>
@@ -1209,11 +1205,11 @@ export default function EmployeeDetailPage() {
                 <div className="space-y-6">
                   {/* Bagian 1: Data Kepegawaian Utama */}
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                       Data Kepegawaian & Penempatan
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
                       <BioItem
                         label="Kategori Pegawai"
                         value={
@@ -1280,32 +1276,32 @@ export default function EmployeeDetailPage() {
 
                   {/* Bagian 2: Kontak & Komunikasi */}
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                       Kontak WhatsApp & Email
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Nomor WhatsApp / HP
                           </p>
-                          <p className={cn("text-sm mt-0.5", validTelepon ? "font-mono font-bold text-[var(--ds-fg)] " : "font-medium text-[var(--ds-fg-muted)]")}>
+                          <p className={cn("text-sm mt-1", validTelepon ? "font-mono font-bold text-[var(--ds-fg)]" : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validTelepon || "Belum diatur"}
                           </p>
                         </div>
                         {validTelepon && (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => handleCopy(employee.telepon!, "bio-tel")}
-                              className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
+                              className="p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                               title="Salin Nomor HP"
                             >
                               {copiedField === "bio-tel" ? (
-                                <Check className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                                <Check className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                               ) : (
-                                <Copy className="w-3.5 h-3.5" />
+                                <Copy className="w-4 h-4" />
                               )}
                             </button>
                             {waLink && (
@@ -1313,45 +1309,45 @@ export default function EmployeeDetailPage() {
                                 href={waLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-status-success-fg)] transition-colors"
+                                className="p-2 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] transition-colors"
                                 title="Chat WhatsApp"
                               >
-                                <MessageCircle className="w-3.5 h-3.5" />
+                                <MessageCircle className="w-4 h-4" />
                               </a>
                             )}
                           </div>
                         )}
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
+                      <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Alamat Email Resmi
                           </p>
-                          <p className={cn("text-sm mt-0.5", validEmail ? "font-mono font-bold text-[var(--ds-fg)] " : "font-medium text-[var(--ds-fg-muted)]")}>
+                          <p className={cn("text-sm mt-1", validEmail ? "font-mono font-bold text-[var(--ds-fg)]" : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validEmail || "Belum diatur"}
                           </p>
                         </div>
                         {validEmail && (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => handleCopy(employee.email!, "bio-mail")}
-                              className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
+                              className="p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                               title="Salin Alamat Email"
                             >
                               {copiedField === "bio-mail" ? (
-                                <Check className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                                <Check className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                               ) : (
-                                <Copy className="w-3.5 h-3.5" />
+                                <Copy className="w-4 h-4" />
                               )}
                             </button>
                             <a
                               href={`mailto:${employee.email}`}
-                              className="p-1.5 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] transition-colors"
+                              className="p-2 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] transition-colors"
                               title="Kirim Email"
                             >
-                              <Mail className="w-3.5 h-3.5" />
+                              <Mail className="w-4 h-4" />
                             </a>
                           </div>
                         )}
@@ -1362,12 +1358,12 @@ export default function EmployeeDetailPage() {
                   {/* Bagian 3: Finansial & Rekening Uang Makan */}
                   {!isMmp && canViewSensitive && (
                   <div>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                       Rekening Bank Penyalur Uang Makan
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Bank Penyalur
@@ -1375,7 +1371,7 @@ export default function EmployeeDetailPage() {
                           <div className="mt-1 flex items-center gap-2">
                             <span
                               className={cn(
-                                "px-2.5 py-0.5 rounded-lg text-xs font-black border",
+                                "px-2 py-1 rounded-lg text-xs font-black border",
                                 bankTheme.bgBadge
                               )}
                             >
@@ -1388,12 +1384,12 @@ export default function EmployeeDetailPage() {
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between">
+                      <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                             Nomor Rekening Bank
                           </p>
-                          <p className={cn("text-sm mt-0.5", validRekening ? "font-mono font-bold text-[var(--ds-fg)]  tracking-wider" : "font-medium text-[var(--ds-fg-muted)]")}>
+                          <p className={cn("text-sm mt-1", validRekening ? "font-mono font-bold text-[var(--ds-fg)] tracking-wider" : "font-medium text-[var(--ds-fg-muted)]")}>
                             {validRekening || "Belum diatur"}
                           </p>
                         </div>
@@ -1401,13 +1397,13 @@ export default function EmployeeDetailPage() {
                           <button
                             type="button"
                             onClick={() => handleCopy(employee.nomor_rekening!, "bio-rek")}
-                            className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
+                            className="p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                             title="Salin Nomor Rekening"
                           >
                             {copiedField === "bio-rek" ? (
-                              <Check className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                              <Check className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                             ) : (
-                              <Copy className="w-3.5 h-3.5" />
+                              <Copy className="w-4 h-4" />
                             )}
                           </button>
                         )}
@@ -1421,7 +1417,7 @@ export default function EmployeeDetailPage() {
                 <div className="space-y-6">
                   {/* Pemilihan Kategori Pegawai */}
                   <BioField label="Kategori / Jenis Pegawai">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {JENIS_PEGAWAI_OPTIONS.map((opt) => {
                         const isSelected = editJenis === opt.value;
                         return (
@@ -1430,17 +1426,17 @@ export default function EmployeeDetailPage() {
                             type="button"
                             onClick={() => handleEditJenisChange(opt.value)}
                             className={cn(
-                              "flex flex-col items-start p-3 rounded-2xl border text-left transition-colors cursor-pointer",
+                              "flex flex-col items-start p-3 rounded-lg border text-left transition-colors cursor-pointer",
                               isSelected
-                                ? "bg-[var(--ds-status-success-bg)]  border-[var(--ds-status-success-border)] ring-2 ring-[var(--ds-status-success-border)]"
-                                : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)]"
+                                ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)] ring-2 ring-[var(--ds-status-success-border)]"
+                                : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
                             )}
                           >
-                            <div className="flex items-center justify-between w-full mb-0.5">
+                            <div className="flex items-center justify-between w-full mb-1">
                               <span
                                 className={cn(
                                   "text-xs font-bold",
-                                  isSelected ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-fg)] "
+                                  isSelected ? "text-[var(--ds-status-success-fg)]" : "text-[var(--ds-fg)]"
                                 )}
                               >
                                 {opt.label}
@@ -1448,7 +1444,7 @@ export default function EmployeeDetailPage() {
                               <span
                                 className={cn(
                                   "w-2 h-2 rounded-full",
-                                  isSelected ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-surface-muted)] "
+                                  isSelected ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-surface-muted)]"
                                 )}
                               />
                             </div>
@@ -1472,7 +1468,7 @@ export default function EmployeeDetailPage() {
                               ? "19930425 202421 2 053..."
                               : "19800101 200501 1 001..."
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] font-mono" aria-label="NIP atau NIPPPK"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] font-mono" aria-label="NIP atau NIPPPK"
                         />
                       </BioField>
                     )}
@@ -1485,7 +1481,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, nama_lengkap: e.target.value })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Nama lengkap pegawai"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Nama lengkap pegawai"
                         />
                       </BioField>
                     </div>
@@ -1496,7 +1492,7 @@ export default function EmployeeDetailPage() {
                           type="text"
                           value={editForm.jabatan}
                           onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Jabatan"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)]" aria-label="Jabatan"
                         />
                       </BioField>
                     </div>
@@ -1513,7 +1509,7 @@ export default function EmployeeDetailPage() {
                             onChange={(e) =>
                               setEditForm({ ...editForm, pangkat_golongan: e.target.value })
                             }
-                            className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Pangkat atau golongan"
+                            className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Pangkat atau golongan"
                           >
                             <option value="">
                               {editJenis === "PPPK"
@@ -1536,7 +1532,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editParentId}
                           onChange={(e) => handleEditParentLocationChange(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
                           aria-label="Satuan kerja"
                         >
                           <option value="">
@@ -1582,10 +1578,10 @@ export default function EmployeeDetailPage() {
                               value={editForm.location_id === editParentId ? "" : editForm.location_id}
                               onChange={(e) => handleEditChildLocationChange(e.target.value)}
                               className={cn(
-                                "w-full px-4 py-3 rounded-xl border outline-none text-sm font-semibold appearance-none cursor-pointer",
+                                "w-full px-4 py-3 rounded-lg border outline-none text-sm font-semibold appearance-none cursor-pointer",
                                 isDisabled
-                                  ? "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)] cursor-not-allowed border-[var(--ds-border-subtle)] "
-                                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-[var(--ds-fg)] "
+                                  ? "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] cursor-not-allowed border-slate-200/80 dark:border-zinc-800"
+                                  : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-[var(--ds-fg)]"
                               )}
                             >
                               <option value="">{emptyLabel}</option>
@@ -1603,14 +1599,14 @@ export default function EmployeeDetailPage() {
 
                     {editJenis !== "MMP" && (
                       <BioField label="Masa Kerja">
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
                               value={editForm.masa_kerja}
                               onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
                               placeholder="Contoh: 4 Tahun 5 Bulan"
-                              className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-sm font-semibold text-[var(--ds-fg)] outline-none transition-colors" aria-label="Masa kerja"
+                              className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] text-sm font-semibold text-[var(--ds-fg)] outline-none transition-colors" aria-label="Masa kerja"
                             />
                             <Button
                               type="button"
@@ -1621,10 +1617,10 @@ export default function EmployeeDetailPage() {
                                 setEditForm({ ...editForm, masa_kerja: autoVal });
                                 toast.info(`Masa kerja direset ke hitungan otomatis: ${autoVal}`);
                               }}
-                              className="shrink-0 h-11 px-3 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1.5 cursor-pointer"
+                              className="shrink-0 h-11 px-3 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-lg gap-2 cursor-pointer"
                               title="Hitung ulang otomatis berdasarkan NIP & Gelar"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-4 h-4" />
                               <span>Reset Otomatis</span>
                             </Button>
                           </div>
@@ -1643,9 +1639,9 @@ export default function EmployeeDetailPage() {
                           value={editForm.telepon}
                           onChange={(e) => setEditForm({ ...editForm, telepon: e.target.value })}
                           placeholder="Misal: 081234567890"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor telepon"
+                          className="w-full px-4 py-3 pl-10 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor telepon"
                         />
-                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-status-success-fg)] pointer-events-none" />
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-status-success-fg)] pointer-events-none" />
                       </div>
                       <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Format nomor HP lokal diawali 08 (misal: 081234567890).
@@ -1660,9 +1656,9 @@ export default function EmployeeDetailPage() {
                           value={editForm.email}
                           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                           placeholder="Misal: nama@kemenlhk.go.id atau @bksda.local"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Email pegawai"
+                          className="w-full px-4 py-3 pl-10 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Email pegawai"
                         />
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
                       </div>
                       <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Email login dan notifikasi persuratan resmi pegawai.
@@ -1677,7 +1673,7 @@ export default function EmployeeDetailPage() {
                         <select
                           value={editForm.nama_bank}
                           onChange={(e) => setEditForm({ ...editForm, nama_bank: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Bank pembayaran"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer" aria-label="Bank pembayaran"
                         >
                           {availableBanks.map((b) => (
                             <option key={b} value={b}>
@@ -1688,7 +1684,7 @@ export default function EmployeeDetailPage() {
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                       </div>
 
-                      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-1 text-xs text-[var(--ds-fg-muted)] mt-1.5">
+                      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-1 text-xs text-[var(--ds-fg-muted)] mt-2">
                         <span>Pilihan bank tersinkronisasi otomatis dari Pengaturan.</span>
                         <Link
                           href="/kepegawaian/settings?tab=uang_makan&sub=banks"
@@ -1709,9 +1705,9 @@ export default function EmployeeDetailPage() {
                           value={editForm.nomor_rekening}
                           onChange={(e) => setEditForm({ ...editForm, nomor_rekening: e.target.value })}
                           placeholder="Nomor rekening tanpa spasi / tanda hubung"
-                          className="w-full px-4 py-3 pl-10 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor rekening"
+                          className="w-full px-4 py-3 pl-10 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold font-mono text-[var(--ds-fg)]" aria-label="Nomor rekening"
                         />
-                        <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
+                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-accent-fg)] pointer-events-none" />
                       </div>
                       <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         Nomor rekening buku tabungan atas nama pegawai yang bersangkutan.
@@ -1727,7 +1723,7 @@ export default function EmployeeDetailPage() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, is_active: e.target.value === "active" })
                           }
-                          className="w-full px-4 py-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-status-success-border)] focus:border-[var(--ds-status-success-border)] outline-none text-sm font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer"
                         >
                           <option value="active">Aktif Bertugas</option>
                           <option value="inactive">Non-Aktif</option>
@@ -1743,14 +1739,14 @@ export default function EmployeeDetailPage() {
 
           {/* TAB 2: RIWAYAT PENUGASAN */}
           {activeTab === "history" && (
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs">
               <AssignmentLetterHistory employeeId={String(employee.id)} />
             </div>
           )}
 
           {/* TAB 3: CUTI PEGAWAI */}
           {activeTab === "leave" && !isMmp && (
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs">
               <EmployeeLeaveTab employeeId={employee.id} />
             </div>
           )}
@@ -1762,7 +1758,7 @@ export default function EmployeeDetailPage() {
 
           {/* TAB 5: RIWAYAT PERUBAHAN (ADMIN ONLY) */}
           {activeTab === "audit" && isAdmin && (
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs">
               <EmployeeAuditHistoryTab employeeId={employee.id} />
             </div>
           )}
@@ -1774,15 +1770,15 @@ export default function EmployeeDetailPage() {
       {/* Reset Password Dialog */}
       {resetDialogOpen && (
         <KepegawaianDialog title="Reset password pegawai" onClose={() => setResetDialogOpen(false)} busy={resetting} className="sm:max-w-md">
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[var(--ds-fg)]">Reset Password</h3>
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-lg space-y-4">
+            <h3 className="text-xl font-bold text-[var(--ds-fg)]">Reset Password</h3>
             <p className="text-xs text-[var(--ds-fg-muted)]">
               Masukkan password baru untuk akun pegawai{" "}
               <span className="font-semibold text-[var(--ds-fg)]">
                 {employee.nama_lengkap}
               </span>.
             </p>
-            <div className="p-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-between text-xs font-mono">
+            <div className="p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between text-xs font-mono">
               <span className="text-[var(--ds-fg-muted)]">{empCategory === "MMP" ? "Username Portal:" : "Username / NIP:"}</span>
               <span className="font-bold text-[var(--ds-fg)]">{employee.nip}</span>
             </div>
@@ -1793,13 +1789,13 @@ export default function EmployeeDetailPage() {
               placeholder="Minimal 8 karakter"
               minLength={8}
               autoComplete="new-password"
-              className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none focus:border-[var(--ds-status-warning-border)] text-[var(--ds-fg)]" aria-label="Minimal 8 karakter"
+              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none focus:border-[var(--ds-status-warning-border)] text-[var(--ds-fg)]" aria-label="Minimal 8 karakter"
             />
             <div className="flex items-center gap-2 justify-end pt-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl text-xs cursor-pointer"
+                className="rounded-lg text-xs cursor-pointer"
                 onClick={() => setResetDialogOpen(false)}
                 disabled={resetting}
               >
@@ -1807,7 +1803,7 @@ export default function EmployeeDetailPage() {
               </Button>
               <Button
                 size="sm"
-                className="rounded-xl bg-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-fg)] text-[var(--ds-accent-on-solid)] text-xs font-bold cursor-pointer"
+                className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold cursor-pointer"
                 onClick={handleResetPassword}
                 disabled={resetting}
               >
@@ -1842,7 +1838,7 @@ export default function EmployeeDetailPage() {
 
 function BioItem({ label, value }: { label: string; value: string }) {
   return (
-    <div  className="p-3.5 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+    <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
       <p className="text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)] mb-1">{label}</p>
       <p className="text-xs font-bold text-[var(--ds-fg)]">{value}</p>
     </div>
@@ -1852,7 +1848,7 @@ function BioItem({ label, value }: { label: string; value: string }) {
 function BioField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)] mb-1.5">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)] mb-2">{label}</p>
       {children}
     </div>
   );

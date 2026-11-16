@@ -29,7 +29,7 @@ export function GmailStatusTabs({ activeTab, onTabChange, counts }: GmailStatusT
     <div
       role="tablist"
       aria-label="Status surat tugas"
-      className="st-status-tabs flex items-center overflow-x-auto border-b border-[var(--ds-border-subtle)] px-1.5 py-1"
+      className="st-status-tabs flex items-center overflow-x-auto border-b border-slate-200/70 dark:border-zinc-800 px-2 py-1"
     >
       {tabs.map(({ id, label, icon: Icon }, index) => {
         const active = activeTab === id;
@@ -59,12 +59,12 @@ export function GmailStatusTabs({ activeTab, onTabChange, counts }: GmailStatusT
               button?.focus({ preventScroll: true });
               button?.scrollIntoView({ block: "nearest", inline: "nearest" });
             }}
-            className="relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] aria-selected:text-[var(--ds-accent-fg)]"
+            className="relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] aria-selected:text-[var(--ds-accent-fg)]"
           >
             <Icon aria-hidden="true" className="size-4" />
             {label}
             {count !== undefined && count > 0 && (
-              <span className={`rounded-full border px-1.5 py-0.5 text-xs tabular-nums ${getStatusStyle(id)}`}>
+              <span className={`rounded-full border px-2 py-1 text-xs tabular-nums ${getStatusStyle(id)}`}>
                 {count.toLocaleString("id-ID")}
               </span>
             )}
@@ -72,7 +72,7 @@ export function GmailStatusTabs({ activeTab, onTabChange, counts }: GmailStatusT
               <motion.span
                 aria-hidden="true"
                 layoutId={indicatorId}
-                className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[var(--ds-accent-fg)]"
+                className="absolute inset-x-2 bottom-0 h-1 rounded-full bg-[var(--ds-accent-fg)]"
                 transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
               />
             )}

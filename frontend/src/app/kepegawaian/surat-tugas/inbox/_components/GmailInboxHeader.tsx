@@ -66,23 +66,23 @@ export function GmailInboxHeader({
       }
     }}>
       {/* Filter Toolbar ala /kepegawaian/cuti */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-3 shadow-xs">
         {/* Left: Search Input & Advanced Filter Action */}
         <div className="relative flex-1 flex items-center gap-2 max-w-xl">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--ds-fg-muted)]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
             <input
               type="text"
               aria-label="Cari surat tugas"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cari nomor surat, maksud perjalanan, nama pegawai, atau tujuan..."
-              className="w-full pl-9 pr-8 h-9 text-xs bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] placeholder-slate-400 dark:placeholder-zinc-500 font-medium transition-colors"
+              className="w-full pl-9 pr-8 h-9 text-xs bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] placeholder-slate-400 dark:placeholder-zinc-500 font-medium transition-colors"
             />
             {search && (
               <button
                 onClick={() => onSearchChange("")}
-                className="absolute right-2.5 top-2.5 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)]"
                 title="Hapus pencarian"
               >
                 <X className="w-4 h-4" />
@@ -95,17 +95,17 @@ export function GmailInboxHeader({
             aria-expanded={isFilterOpen}
             aria-controls="st-advanced-filters"
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-xl border text-xs font-semibold transition-all relative shrink-0 ${
+            className={`flex items-center gap-2 h-9 px-3 rounded-lg border text-xs font-semibold transition-all relative shrink-0 ${
               isFilterOpen || hasActiveFilters
                 ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] shadow-xs"
-                : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+                : "st-secondary bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
             }`}
             title="Opsi filter penelusuran lanjutan"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filter</span>
             {hasActiveFilters && (
-              <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-soft)] ring-2 ring-[var(--ds-border-subtle)]" />
+              <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-soft)] ring-2 ring-slate-200 dark:ring-zinc-700" />
             )}
           </button>
 
@@ -131,8 +131,8 @@ export function GmailInboxHeader({
 
       {/* Advanced Filter Popup Panel */}
       {isFilterOpen && (
-        <div id="st-advanced-filters" className="absolute left-0 right-0 top-full mt-2 z-30 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-2xl p-5 space-y-4 st-panel-enter">
-          <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
+        <div id="st-advanced-filters" className="absolute left-0 right-0 top-full mt-2 z-30 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-lg p-5 space-y-4 st-panel-enter">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800">
             <h4 className="text-xs font-black uppercase tracking-wider text-[var(--ds-fg-muted)]">
               Filter Penelusuran Lanjutan
             </h4>
@@ -155,7 +155,7 @@ export function GmailInboxHeader({
                 placeholder="Contoh: ST.123/K.18..."
                 value={localFilters.nomor_surat || ""}
                 onChange={(e) => setLocalFilters({ ...localFilters, nomor_surat: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
               />
             </div>
 
@@ -166,7 +166,7 @@ export function GmailInboxHeader({
                 placeholder="Nama personel atau NIP..."
                 value={localFilters.pegawai || ""}
                 onChange={(e) => setLocalFilters({ ...localFilters, pegawai: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
               />
             </div>
 
@@ -177,7 +177,7 @@ export function GmailInboxHeader({
                 placeholder="Kota / Kabupaten / Lokasi..."
                 value={localFilters.tempat_tujuan || ""}
                 onChange={(e) => setLocalFilters({ ...localFilters, tempat_tujuan: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
               />
             </div>
 
@@ -186,7 +186,7 @@ export function GmailInboxHeader({
               <select
                 value={localFilters.template_type || ""}
                 onChange={(e) => setLocalFilters({ ...localFilters, template_type: e.target.value || undefined })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)] font-medium"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)] font-medium"
               >
                 <option value="">Semua Jenis Template</option>
                 <option value="bmn-pemeriksaan">BMN Penghapusan / Pemeriksaan</option>
@@ -202,7 +202,7 @@ export function GmailInboxHeader({
                 placeholder="DIPA, FOLU, Mitra, dll..."
                 value={localFilters.sumber_dana || ""}
                 onChange={(e) => setLocalFilters({ ...localFilters, sumber_dana: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)]"
               />
             </div>
 
@@ -213,30 +213,30 @@ export function GmailInboxHeader({
                   type="date"
                   value={localFilters.date_from || ""}
                   onChange={(e) => setLocalFilters({ ...localFilters, date_from: e.target.value })}
-                  className="w-full px-2 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] text-xs outline-none"
+                  className="w-full px-2 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] text-xs outline-none"
                   title="Dari Tanggal"
                 />
                 <input
                   type="date"
                   value={localFilters.date_to || ""}
                   onChange={(e) => setLocalFilters({ ...localFilters, date_to: e.target.value })}
-                  className="w-full px-2 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-[var(--ds-fg)] text-xs outline-none"
+                  className="w-full px-2 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] text-xs outline-none"
                   title="Sampai Tanggal"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border-subtle)]">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
             <button
               onClick={() => { setIsFilterOpen(false); filterTrigger.current?.focus(); }}
-              className="px-4 py-2 text-xs font-bold text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+              className="st-secondary border border-slate-200/80 dark:border-zinc-800 rounded-lg px-4 py-2 text-xs font-bold text-[var(--ds-fg-muted)]"
             >
               Batal
             </button>
             <button
               onClick={handleApply}
-              className="px-5 py-2 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl shadow-sm transition-colors"
+              className="px-5 py-2 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg shadow-xs transition-colors"
             >
               Terapkan Filter
             </button>

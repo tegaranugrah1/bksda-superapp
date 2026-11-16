@@ -26,8 +26,8 @@ export function FormSection({ title, children, action, nested = false }: FormSec
   }
 
   return (
-    <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 shadow-2xs space-y-3">
-      <div className="flex items-center justify-between pb-2 border-b border-[var(--ds-border-subtle)]">
+    <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs space-y-3">
+      <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-zinc-800">
         <label className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
           {title}
         </label>

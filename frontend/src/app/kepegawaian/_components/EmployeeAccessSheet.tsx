@@ -169,11 +169,11 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
           returnFocusRef.current.focus();
         }}
         data-module="kepegawaian"
-        className="kpg-ui sm:max-w-[820px] p-5 gap-3 max-h-[94vh] overflow-y-auto sm:overflow-visible"
+        className="kpg-ui sm:max-w-[820px] p-6 gap-4 max-h-[94vh] overflow-y-auto sm:overflow-visible rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg"
       >
         <DialogHeader className="space-y-0">
-          <DialogTitle className="flex items-center gap-2 text-base font-bold">
-            <div className="w-7 h-7 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)]">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)]">
               <Shield className="w-4 h-4" />
             </div>
             Manajemen Hak Akses
@@ -183,8 +183,8 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
         {/* Employee Info Strip */}
         {employee && (
-          <div className="px-3 py-2 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
+          <div className="px-3 py-2 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)] text-xs font-bold shrink-0">
                 {employee.nama_lengkap.charAt(0)}
               </div>
@@ -205,31 +205,31 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
             <p className="text-sm font-medium text-[var(--ds-fg-muted)]">Memuat data akses...</p>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3 text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] rounded-xl border border-[var(--ds-status-danger-border)]">
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] rounded-lg border border-[var(--ds-status-danger-border)]">
             <AlertCircle className="w-8 h-8 opacity-50" />
             <p className="text-sm font-semibold">Gagal memuat data akses</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>Coba Lagi</Button>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Status & Super Admin Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
                 <FormField control={form.control} name="is_active" render={({ field }) => (
                   <FormItem className="space-y-1 flex flex-col">
                     <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Status Akun</span>
-                    <label className="flex-1 flex items-start gap-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 cursor-pointer">
+                    <label className="flex-1 flex items-start gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-3 cursor-pointer">
                       <FormControl>
                         <input
                           type="checkbox"
                           checked={field.value}
                           onChange={event => field.onChange(event.target.checked)}
-                          className="mt-0.5 shrink-0"
+                          className="mt-1 shrink-0"
                         />
                       </FormControl>
                       <div className="min-w-0">
                         <span className="text-sm font-semibold text-[var(--ds-fg)] block leading-tight">Aktifkan akun akses aplikasi</span>
-                        <span className="text-[11px] leading-snug text-[var(--ds-fg-muted)] block mt-0.5">Akun nonaktif tidak dapat login &amp; sesi akses dicabut.</span>
+                        <span className="text-xs leading-snug text-[var(--ds-fg-muted)] block mt-1">Akun nonaktif tidak dapat login &amp; sesi akses dicabut.</span>
                       </div>
                     </label>
                     <FormMessage />
@@ -246,10 +246,10 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                         <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Wewenang Global</span>
                         <label
                           className={cn(
-                            "flex-1 flex items-start gap-2.5 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors",
+                            "flex-1 flex items-start gap-2 rounded-lg border p-3 cursor-pointer transition-colors",
                             isSuperAdmin
                               ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]"
-                              : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]"
+                              : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800"
                           )}
                         >
                           <FormControl>
@@ -259,14 +259,14 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                               onChange={(e) => {
                                 field.onChange(e.target.checked ? "super_admin" : "user");
                               }}
-                              className="mt-0.5 shrink-0"
+                              className="mt-1 shrink-0"
                             />
                           </FormControl>
                           <div className="min-w-0">
                             <span className={cn("text-sm font-semibold block leading-tight", isSuperAdmin ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>
                               Super Admin (Akses Penuh)
                             </span>
-                            <span className="text-[11px] leading-snug text-[var(--ds-fg-muted)] block mt-0.5">
+                            <span className="text-xs leading-snug text-[var(--ds-fg-muted)] block mt-1">
                               Akses penuh ke semua modul, pengaturan &amp; IAM.
                             </span>
                           </div>
@@ -279,17 +279,17 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
               </div>
 
               {/* Module Access */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Akses Modul</label>
-                    <span className="text-[11px] text-[var(--ds-fg-muted)]">
+                    <span className="text-xs text-[var(--ds-fg-muted)]">
                       {selectedRole === "super_admin"
                         ? "Semua modul otomatis penuh."
                         : "Centang modul lalu pilih User / Admin."}
                     </span>
                   </div>
-                  <Badge variant="outline" className="text-xs font-bold shrink-0">
+                  <Badge variant="outline" className="text-xs font-bold shrink-0 rounded-lg">
                     {selectedRole === "super_admin" ? "Semua Aktif" : `${accessModules.length} Terpilih`}
                   </Badge>
                 </div>
@@ -307,8 +307,8 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                       <div
                         key={module.id}
                         className={cn(
-                          "flex flex-col justify-center gap-1 rounded-xl border px-3 py-2 transition-colors cursor-pointer select-none",
-                          isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
+                          "flex flex-col justify-center gap-1 rounded-lg border px-3 py-2 transition-colors cursor-pointer select-none",
+                          isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800"
                         )}
                         onClick={() => {
                           if (isSuperAdmin) return;
@@ -326,10 +326,10 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                           form.setValue("module_roles", currentRoles, { shouldDirty: true });
                         }}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
                           <div className={cn(
-                            "w-4.5 h-4.5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                            isSelected ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)]" : "border-[var(--ds-border-subtle)]"
+                            "w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors",
+                            isSelected ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)]" : "border-slate-300 dark:border-zinc-700"
                           )}>
                             {isSelected && <Check className="w-3 h-3 text-[var(--ds-accent-on-solid)]" />}
                           </div>
@@ -338,7 +338,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                           </p>
                           {isSelected && selectedRole !== "super_admin" && (
                             <div
-                              className="inline-flex items-center rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-0.5 shrink-0"
+                              className="inline-flex items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-1 shrink-0"
                               onClick={(e) => e.stopPropagation()}
                               role="group"
                               aria-label={`Peran modul ${module.label}`}
@@ -356,7 +356,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                                       })
                                     }
                                     className={cn(
-                                      "px-2.5 py-0.5 text-[11px] font-bold rounded-md transition-colors cursor-pointer",
+                                      "px-2 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer",
                                       active
                                         ? modRole === "admin"
                                           ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs"
@@ -371,7 +371,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                             </div>
                           )}
                         </div>
-                        <p className="text-[11px] text-[var(--ds-fg-muted)] leading-snug pl-7 truncate">{module.description}</p>
+                        <p className="text-xs text-[var(--ds-fg-muted)] leading-snug pl-6 truncate">{module.description}</p>
                       </div>
                     );
                   })}
@@ -382,9 +382,9 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-3 border-t">
-                <Button type="button" variant="outline" className="flex-1 h-9 rounded-xl" onClick={() => onOpenChange(false)}>Batal</Button>
-                <Button type="submit" className="flex-1 h-9 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold" disabled={mutation.isPending}>
+              <div className="flex gap-3 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
+                <Button type="button" variant="outline" className="kpg-secondary flex-1 h-9 rounded-lg" onClick={() => onOpenChange(false)}>Batal</Button>
+                <Button type="submit" className="flex-1 h-9 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold" disabled={mutation.isPending}>
                   {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
                   {isNewAccount ? "Terbitkan Akses" : "Simpan"}
                 </Button>

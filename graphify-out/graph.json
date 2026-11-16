@@ -1821,8 +1821,8 @@
       "source_location": "L3195",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_getmountedsveltecomponentanchor",
-      "community": 217,
-      "community_name": "showToast",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "getmountedsveltecomponentanchor()"
     },
     {
@@ -1865,8 +1865,8 @@
       "source_location": "L3241",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applyparamvalue",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "applyparamvalue()"
     },
     {
@@ -1876,8 +1876,8 @@
       "source_location": "L3266",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applyparamdefaults",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "applyparamdefaults()"
     },
     {
@@ -1920,8 +1920,8 @@
       "source_location": "L3300",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_isvalidsavedparamvalue",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "isvalidsavedparamvalue()"
     },
     {
@@ -1931,8 +1931,8 @@
       "source_location": "L3314",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_applysavedparamvalues",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "applysavedparamvalues()"
     },
     {
@@ -3757,8 +3757,8 @@
       "source_location": "L6771",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_variantstateselector",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "variantstateselector()"
     },
     {
@@ -3768,8 +3768,8 @@
       "source_location": "L6782",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_variantparamdecls",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "variantparamdecls()"
     },
     {
@@ -3779,8 +3779,8 @@
       "source_location": "L6792",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_updatevariantstatestylesheet",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 10,
+      "community_name": "connectSSE",
       "norm_label": "updatevariantstatestylesheet()"
     },
     {
@@ -5253,8 +5253,8 @@
       "source_location": "L10511",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_pagechatcollapsedwidthpx",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 451,
+      "community_name": "initPageChat",
       "norm_label": "pagechatcollapsedwidthpx()"
     },
     {
@@ -5264,8 +5264,8 @@
       "source_location": "L10516",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_pagechatexpandedwidth",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 451,
+      "community_name": "initPageChat",
       "norm_label": "pagechatexpandedwidth()"
     },
     {
@@ -5275,8 +5275,8 @@
       "source_location": "L10526",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_syncpagechatexpandedwidth",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 451,
+      "community_name": "initPageChat",
       "norm_label": "syncpagechatexpandedwidth()"
     },
     {
@@ -5319,8 +5319,8 @@
       "source_location": "L10591",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_steerqueuedbehindgeneration",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "steerqueuedbehindgeneration()"
     },
     {
@@ -5330,8 +5330,8 @@
       "source_location": "L10595",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_buildsteerqueuehint",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "buildsteerqueuehint()"
     },
     {
@@ -5341,8 +5341,8 @@
       "source_location": "L10610",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_syncsteerqueuehint",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "syncsteerqueuehint()"
     },
     {
@@ -5638,8 +5638,8 @@
       "source_location": "L10975",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_steertimeoutmessage",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "steertimeoutmessage()"
     },
     {
@@ -5880,8 +5880,8 @@
       "source_location": "L11565",
       "_origin": "ast",
       "id": "agents_skills_impeccable_scripts_live_browser_agenthasworkinflight",
-      "community": 9,
-      "community_name": "live-browser.js",
+      "community": 407,
+      "community_name": "initGlobalBar",
       "norm_label": "agenthasworkinflight()"
     },
     {
@@ -14647,8 +14647,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "drivesharecontroller"
     },
     {
@@ -14669,8 +14669,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_listshares",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".listshares()"
     },
     {
@@ -14680,8 +14680,8 @@
       "source_location": "L136",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_deleteshare",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".deleteshare()"
     },
     {
@@ -14691,8 +14691,8 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_getpublicshareinfo",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".getpublicshareinfo()"
     },
     {
@@ -14702,8 +14702,8 @@
       "source_location": "L181",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_downloadpublicshare",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".downloadpublicshare()"
     },
     {
@@ -14713,8 +14713,8 @@
       "source_location": "L225",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_resolveactivepublicshare",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".resolveactivepublicshare()"
     },
     {
@@ -14724,8 +14724,8 @@
       "source_location": "L248",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_drivesharecontroller_drivesharecontroller_candidates",
-      "community": 560,
-      "community_name": "DriveFile",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".candidates()"
     },
     {
@@ -14768,8 +14768,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_portalnotificationcontroller",
-      "community": 5,
-      "community_name": "Controller",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "portalnotificationcontroller.php"
     },
     {
@@ -14779,8 +14779,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_portalnotificationcontroller_portalnotificationcontroller",
-      "community": 46,
-      "community_name": "PortalNotification",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "portalnotificationcontroller"
     },
     {
@@ -14790,8 +14790,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_portalnotificationcontroller_portalnotificationcontroller_index",
-      "community": 46,
-      "community_name": "PortalNotification",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".index()"
     },
     {
@@ -14801,8 +14801,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_portalnotificationcontroller_portalnotificationcontroller_markasread",
-      "community": 46,
-      "community_name": "PortalNotification",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".markasread()"
     },
     {
@@ -14812,8 +14812,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "backend_app_http_controllers_api_portalnotificationcontroller_portalnotificationcontroller_markallasread",
-      "community": 46,
-      "community_name": "PortalNotification",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": ".markallasread()"
     },
     {
@@ -15219,8 +15219,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "medashboardresource.php"
     },
     {
@@ -15230,8 +15230,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource_medashboardresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "medashboardresource"
     },
     {
@@ -15241,8 +15241,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "backend_app_http_resources_medashboardresource_medashboardresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".toarray()"
     },
     {
@@ -15252,8 +15252,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "userresource.php"
     },
     {
@@ -15263,8 +15263,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "userresource"
     },
     {
@@ -15274,8 +15274,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".toarray()"
     },
     {
@@ -15285,8 +15285,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_http_resources_userresource_userresource_getemployeedata",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".getemployeedata()"
     },
     {
@@ -15571,8 +15571,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "backend_app_models_drivefile_drivefile_unit",
-      "community": 577,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 560,
+      "community_name": "DriveFile",
       "norm_label": ".unit()"
     },
     {
@@ -15582,8 +15582,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_app_models_drivefile_drivefile_user",
-      "community": 577,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 560,
+      "community_name": "DriveFile",
       "norm_label": ".user()"
     },
     {
@@ -15593,8 +15593,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "backend_app_models_drivefile_drivefile_folder",
-      "community": 577,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 560,
+      "community_name": "DriveFile",
       "norm_label": ".folder()"
     },
     {
@@ -15780,8 +15780,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "backend_app_models_driveshare_driveshare_user",
-      "community": 577,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 560,
+      "community_name": "DriveFile",
       "norm_label": ".user()"
     },
     {
@@ -15802,8 +15802,8 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "backend_app_models_driveshare_driveshare_creator",
-      "community": 577,
-      "community_name": "Illuminate\\Database\\Eloquent\\Model",
+      "community": 560,
+      "community_name": "DriveFile",
       "norm_label": ".creator()"
     },
     {
@@ -15978,8 +15978,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_models_emaillog",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 577,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "emaillog.php"
     },
     {
@@ -15989,8 +15989,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_models_emaillog_emaillog",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 577,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": "emaillog"
     },
     {
@@ -16000,8 +16000,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "backend_app_models_emaillog_emaillog_user",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 577,
+      "community_name": "Illuminate\\Database\\Eloquent\\Model",
       "norm_label": ".user()"
     },
     {
@@ -17210,8 +17210,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_auctionbatchcontroller_auctionbatchcontroller_candidates",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".candidates()"
     },
     {
@@ -17397,8 +17397,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "coveringlettercontroller.php"
     },
     {
@@ -17408,8 +17408,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "coveringlettercontroller"
     },
     {
@@ -17419,8 +17419,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_index",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -17430,8 +17430,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_show",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".show()"
     },
     {
@@ -17441,8 +17441,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_determinestatus",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".determinestatus()"
     },
     {
@@ -17452,8 +17452,8 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_store",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".store()"
     },
     {
@@ -17463,8 +17463,8 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_update",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".update()"
     },
     {
@@ -17474,8 +17474,8 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_coveringlettercontroller_coveringlettercontroller_destroy",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".destroy()"
     },
     {
@@ -17530,7 +17530,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "documenthistorycontroller"
     },
     {
@@ -17541,7 +17541,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller_index",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".index()"
     },
     {
@@ -17552,7 +17552,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller_usagehistoryquery",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".usagehistoryquery()"
     },
     {
@@ -17563,7 +17563,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller_handoverhistoryquery",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".handoverhistoryquery()"
     },
     {
@@ -17574,7 +17574,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller_powerofattorneyhistoryquery",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".powerofattorneyhistoryquery()"
     },
     {
@@ -17585,7 +17585,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_documenthistorycontroller_documenthistorycontroller_coveringletterhistoryquery",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".coveringletterhistoryquery()"
     },
     {
@@ -17662,7 +17662,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "handoveragreementcontroller"
     },
     {
@@ -17672,8 +17672,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_index",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": ".index()"
     },
     {
@@ -17684,7 +17684,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_show",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".show()"
     },
     {
@@ -17695,7 +17695,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_determinestatus",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".determinestatus()"
     },
     {
@@ -17706,7 +17706,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_store",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".store()"
     },
     {
@@ -17717,7 +17717,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_update",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".update()"
     },
     {
@@ -17728,7 +17728,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_destroy",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".destroy()"
     },
     {
@@ -17739,7 +17739,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_partysnapshot",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".partysnapshot()"
     },
     {
@@ -17750,7 +17750,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_witnesssnapshot",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".witnesssnapshot()"
     },
     {
@@ -17761,7 +17761,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_generalitems",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".generalitems()"
     },
     {
@@ -17772,7 +17772,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_handoveragreementcontroller_handoveragreementcontroller_vehicleitems",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".vehicleitems()"
     },
     {
@@ -18156,8 +18156,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_maintenancecontroller_maintenancecontroller_index",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -18190,7 +18190,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "powerofattorneycontroller"
     },
     {
@@ -18201,7 +18201,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_index",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".index()"
     },
     {
@@ -18212,7 +18212,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_show",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".show()"
     },
     {
@@ -18223,7 +18223,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_destroy",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".destroy()"
     },
     {
@@ -18234,7 +18234,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_determinestatus",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".determinestatus()"
     },
     {
@@ -18245,7 +18245,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_store",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".store()"
     },
     {
@@ -18256,7 +18256,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_powerofattorneycontroller_powerofattorneycontroller_update",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".update()"
     },
     {
@@ -18366,7 +18366,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreementcontroller"
     },
     {
@@ -18376,8 +18376,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_index",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": ".index()"
     },
     {
@@ -18388,7 +18388,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_show",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".show()"
     },
     {
@@ -18399,7 +18399,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_destroy",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".destroy()"
     },
     {
@@ -18410,7 +18410,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_determinestatus",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".determinestatus()"
     },
     {
@@ -18421,7 +18421,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_store",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".store()"
     },
     {
@@ -18432,7 +18432,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_update",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".update()"
     },
     {
@@ -18443,7 +18443,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_resolveemployeeassets",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".resolveemployeeassets()"
     },
     {
@@ -18454,7 +18454,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_applyemployeeassetfilter",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".applyemployeeassetfilter()"
     },
     {
@@ -18465,7 +18465,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_employeesnapshot",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".employeesnapshot()"
     },
     {
@@ -18476,7 +18476,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_controllers_usageagreementcontroller_usageagreementcontroller_assetsnapshot",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".assetsnapshot()"
     },
     {
@@ -20345,8 +20345,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_assetloan_assetloan_scopeactive",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 852,
+      "community_name": "EmployeeIncomingLetter",
       "norm_label": ".scopeactive()"
     },
     {
@@ -20620,8 +20620,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_coveringletter_coveringletter",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "coveringletter"
     },
     {
@@ -20631,8 +20631,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_coveringletter_coveringletter_senderemployee",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".senderemployee()"
     },
     {
@@ -20642,8 +20642,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_coveringletter_coveringletter_generator",
-      "community": 208,
-      "community_name": "CoveringLetter",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".generator()"
     },
     {
@@ -20665,7 +20665,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_handoveragreement_handoveragreement",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "handoveragreement"
     },
     {
@@ -20676,7 +20676,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_handoveragreement_handoveragreement_firstpartyemployee",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".firstpartyemployee()"
     },
     {
@@ -20687,7 +20687,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_handoveragreement_handoveragreement_secondpartyemployee",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".secondpartyemployee()"
     },
     {
@@ -20698,7 +20698,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_handoveragreement_handoveragreement_generator",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".generator()"
     },
     {
@@ -21028,7 +21028,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_powerofattorney_powerofattorney",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "powerofattorney"
     },
     {
@@ -21039,7 +21039,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_powerofattorney_powerofattorney_employee",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".employee()"
     },
     {
@@ -21050,7 +21050,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_powerofattorney_powerofattorney_generator",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".generator()"
     },
     {
@@ -21160,7 +21160,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreement"
     },
     {
@@ -21171,7 +21171,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_employee",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".employee()"
     },
     {
@@ -21182,7 +21182,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_models_usageagreement_usageagreement_generator",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".generator()"
     },
     {
@@ -21907,8 +21907,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "assetmaintenanceresource.php"
     },
     {
@@ -21918,8 +21918,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "assetmaintenanceresource"
     },
     {
@@ -21929,8 +21929,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetmaintenanceresource_assetmaintenanceresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".toarray()"
     },
     {
@@ -21952,7 +21952,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "assetresource"
     },
     {
@@ -21963,7 +21963,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_toarray",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -21974,7 +21974,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpayload",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".vehicledocumentpayload()"
     },
     {
@@ -21985,7 +21985,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_vehicledocumentpreviewurls",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".vehicledocumentpreviewurls()"
     },
     {
@@ -21996,7 +21996,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_documentversion",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".documentversion()"
     },
     {
@@ -22007,7 +22007,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_assetresource_assetresource_isimagedocument",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".isimagedocument()"
     },
     {
@@ -22017,8 +22017,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatchassetresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctionbatchassetresource.php"
     },
     {
@@ -22050,8 +22050,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatcheventresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctionbatcheventresource.php"
     },
     {
@@ -22083,8 +22083,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctionbatchresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctionbatchresource.php"
     },
     {
@@ -22116,8 +22116,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctioncandidateassetresource.php"
     },
     {
@@ -22127,8 +22127,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource_auctioncandidateassetresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctioncandidateassetresource"
     },
     {
@@ -22138,8 +22138,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_auctioncandidateassetresource_auctioncandidateassetresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".toarray()"
     },
     {
@@ -22149,8 +22149,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "coveringletterresource.php"
     },
     {
@@ -22160,8 +22160,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource_coveringletterresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "coveringletterresource"
     },
     {
@@ -22171,8 +22171,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_coveringletterresource_coveringletterresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".toarray()"
     },
     {
@@ -22193,8 +22193,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": "handoveragreementresource"
     },
     {
@@ -22204,8 +22204,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_handoveragreementresource_handoveragreementresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -22227,7 +22227,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_powerofattorneyresource_powerofattorneyresource",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": "powerofattorneyresource"
     },
     {
@@ -22238,7 +22238,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_powerofattorneyresource_powerofattorneyresource_toarray",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -22249,7 +22249,7 @@
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_powerofattorneyresource_powerofattorneyresource_resolvektpurl",
       "community": 208,
-      "community_name": "CoveringLetter",
+      "community_name": "HandoverAgreement",
       "norm_label": ".resolvektpurl()"
     },
     {
@@ -22303,8 +22303,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": "usageagreementresource"
     },
     {
@@ -22314,8 +22314,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_resources_usageagreementresource_usageagreementresource_toarray",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 208,
+      "community_name": "HandoverAgreement",
       "norm_label": ".toarray()"
     },
     {
@@ -22490,8 +22490,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_bmn_services_auctionassetdocumentreadinessservice",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "auctionassetdocumentreadinessservice.php"
     },
     {
@@ -25603,8 +25603,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "masterdatacontroller"
     },
     {
@@ -25614,8 +25614,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller_resolvemodel",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".resolvemodel()"
     },
     {
@@ -25625,8 +25625,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller_index",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".index()"
     },
     {
@@ -25636,8 +25636,8 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller_store",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".store()"
     },
     {
@@ -25647,8 +25647,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller_update",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".update()"
     },
     {
@@ -25658,8 +25658,8 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "backend_app_modules_dereporting_controllers_masterdatacontroller_masterdatacontroller_destroy",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": ".destroy()"
     },
     {
@@ -30135,8 +30135,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeincomingletter_employeeincomingletter_scopefilter",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 852,
+      "community_name": "EmployeeIncomingLetter",
       "norm_label": ".scopefilter()"
     },
     {
@@ -30410,8 +30410,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_employeeleaverequest_employeeleaverequest_scopeannual",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 852,
+      "community_name": "EmployeeIncomingLetter",
       "norm_label": ".scopeannual()"
     },
     {
@@ -30509,8 +30509,8 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_models_leavetype_leavetype_scopematchingnameorcode",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 852,
+      "community_name": "EmployeeIncomingLetter",
       "norm_label": ".scopematchingnameorcode()"
     },
     {
@@ -31246,8 +31246,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_kepegawaian_resources_stexpensetemplateresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "stexpensetemplateresource.php"
     },
     {
@@ -34150,8 +34150,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": "suratmasukcontroller"
     },
     {
@@ -34161,8 +34161,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_exportexcel",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".exportexcel()"
     },
     {
@@ -34172,8 +34172,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_index",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".index()"
     },
     {
@@ -34183,8 +34183,8 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_nextagenda",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".nextagenda()"
     },
     {
@@ -34194,8 +34194,8 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_locations",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".locations()"
     },
     {
@@ -34205,8 +34205,8 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_store",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".store()"
     },
     {
@@ -34216,8 +34216,8 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_show",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".show()"
     },
     {
@@ -34227,8 +34227,8 @@
       "source_location": "L176",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_update",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".update()"
     },
     {
@@ -34238,8 +34238,8 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "backend_app_modules_surat_controllers_suratmasukcontroller_suratmasukcontroller_destroy",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".destroy()"
     },
     {
@@ -34645,8 +34645,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": "suratmasukrequest.php"
     },
     {
@@ -34656,8 +34656,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": "suratmasukrequest"
     },
     {
@@ -34667,8 +34667,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_authorize",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".authorize()"
     },
     {
@@ -34678,8 +34678,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_prepareforvalidation",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".prepareforvalidation()"
     },
     {
@@ -34689,8 +34689,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_rules",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".rules()"
     },
     {
@@ -34700,8 +34700,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "backend_app_modules_surat_requests_suratmasukrequest_suratmasukrequest_messages",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 105,
+      "community_name": "SuratMasuk",
       "norm_label": ".messages()"
     },
     {
@@ -37692,8 +37692,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_database_migrations_2026_10_12_203000_sync_st_and_expense_templates",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "2026_10_12_203000_sync_st_and_expense_templates.php"
     },
     {
@@ -37703,8 +37703,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "backend_database_migrations_2026_10_12_203000_sync_st_and_expense_templates_up",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "up()"
     },
     {
@@ -37714,8 +37714,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "backend_database_migrations_2026_10_12_203000_sync_st_and_expense_templates_down",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "down()"
     },
     {
@@ -39606,8 +39606,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_database_seeders_stexpensetemplateseeder",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "stexpensetemplateseeder.php"
     },
     {
@@ -39617,8 +39617,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "backend_database_seeders_stexpensetemplateseeder_stexpensetemplateseeder",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": "stexpensetemplateseeder"
     },
     {
@@ -39628,8 +39628,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "backend_database_seeders_stexpensetemplateseeder_stexpensetemplateseeder_run",
-      "community": 811,
-      "community_name": "StTemplate",
+      "community": 490,
+      "community_name": "Illuminate\\Database\\Seeder",
       "norm_label": ".run()"
     },
     {
@@ -39837,8 +39837,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_routes_api",
-      "community": 5,
-      "community_name": "Controller",
+      "community": 377,
+      "community_name": "Illuminate\\Http\\Request",
       "norm_label": "routes/api.php"
     },
     {
@@ -49066,8 +49066,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "st-concurrency.php"
     },
     {
@@ -49077,8 +49077,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_putjson",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "putjson()"
     },
     {
@@ -49088,8 +49088,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_waitfor",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "waitfor()"
     },
     {
@@ -49099,8 +49099,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_bootfixture",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "bootfixture()"
     },
     {
@@ -49110,8 +49110,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_php_application",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "application"
     },
     {
@@ -49121,8 +49121,8 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_workerenvironment",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "workerenvironment()"
     },
     {
@@ -49132,8 +49132,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_spawnworker",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "spawnworker()"
     },
     {
@@ -49143,8 +49143,8 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_collectworkers",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "collectworkers()"
     },
     {
@@ -49154,8 +49154,8 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_employee",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "employee()"
     },
     {
@@ -49165,8 +49165,8 @@
       "source_location": "L142",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_document",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "document()"
     },
     {
@@ -49176,8 +49176,8 @@
       "source_location": "L154",
       "_origin": "ast",
       "id": "backend_tests_security_st_concurrency_schedulinglock",
-      "community": 825,
-      "community_name": "st-concurrency.php",
+      "community": 811,
+      "community_name": "StTemplate",
       "norm_label": "schedulinglock()"
     },
     {
@@ -63668,7 +63668,7 @@
       "label": "BioItem()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/[id]/page.tsx",
-      "source_location": "L1843",
+      "source_location": "L1839",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_bioitem",
       "community": 12,
@@ -63679,7 +63679,7 @@
       "label": "BioField()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/[id]/page.tsx",
-      "source_location": "L1852",
+      "source_location": "L1848",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_id_page_biofield",
       "community": 12,
@@ -64163,7 +64163,7 @@
       "label": "InputGroupProps",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L712",
+      "source_location": "L710",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_create_page_inputgroupprops",
       "community": 12,
@@ -64174,7 +64174,7 @@
       "label": "InputGroup()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L720",
+      "source_location": "L718",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_create_page_inputgroup",
       "community": 12,
@@ -64185,7 +64185,7 @@
       "label": "SelectGroup()",
       "file_type": "code",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L740",
+      "source_location": "L738",
       "_origin": "ast",
       "id": "frontend_src_app_kepegawaian_employees_create_page_selectgroup",
       "community": 12,
@@ -101838,8 +101838,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_vulnerability_hunting",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "vulnerability hunting"
     },
     {
@@ -101849,8 +101849,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_phase_2_run_coverage_led_hunting_waves",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "phase 2: run coverage-led hunting waves"
     },
     {
@@ -101860,8 +101860,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_required_hunter_prompt",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "required hunter prompt"
     },
     {
@@ -101871,8 +101871,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_core_hunting_method_include_in_every_hunter_prompt",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "core hunting method \u2014 include in every hunter prompt"
     },
     {
@@ -101882,8 +101882,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_promotion_procedure_copy_this_promotion_procedure_verbatim_into_every_hunter_prompt",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "promotion procedure \u2014 copy this promotion procedure verbatim into every hunter prompt"
     },
     {
@@ -101893,8 +101893,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_core_validation_rules_include_in_every_hunter_prompt",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "core validation rules \u2014 include in every hunter prompt"
     },
     {
@@ -101904,8 +101904,8 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_local_validation_boundaries",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "local validation boundaries"
     },
     {
@@ -101915,8 +101915,8 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_structured_hunter_result",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "structured hunter result"
     },
     {
@@ -101926,8 +101926,8 @@
       "source_location": "L215",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_parent_consolidation_and_ledger_update",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "parent consolidation and ledger update"
     },
     {
@@ -101937,8 +101937,8 @@
       "source_location": "L221",
       "_origin": "ast",
       "id": "agents_skills_security_audit_hunting_coverage_critic_waves",
-      "community": 532,
-      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
+      "community": 785,
+      "community_name": "Vulnerability Hunting",
       "norm_label": "coverage-critic waves"
     },
     {
@@ -144133,8 +144133,8 @@
       "source_location": "L1894",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_166_pengajuan_surat_tugas_baru_3_step_wizard_mobile",
-      "community": 991,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 166: pengajuan surat tugas baru 3-step wizard mobile"
     },
     {
@@ -144144,8 +144144,8 @@
       "source_location": "L1901",
       "_origin": "ast",
       "id": "docs_progress_fitur_pengajuan_surat_tugas_baru_3_step_wizard_mobile_presisi_http_localhost_3000_surat_tugas",
-      "community": 991,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "fitur pengajuan surat tugas baru 3-step wizard mobile presisi `http://localhost:3000/surat-tugas`"
     },
     {
@@ -144155,8 +144155,8 @@
       "source_location": "L1903",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_1903",
-      "community": 991,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -144166,8 +144166,8 @@
       "source_location": "L1915",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_1915",
-      "community": 991,
-      "community_name": "Fitur Pengajuan Surat Tugas Baru 3-Step Wizard Mobile Presisi `http://localhost:3000/surat-tugas`",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144397,8 +144397,8 @@
       "source_location": "L2052",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_160_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 825,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "progress - phase 160: screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -144408,8 +144408,8 @@
       "source_location": "L2059",
       "_origin": "ast",
       "id": "docs_progress_screen_tambah_pegawai_baru_inbox_surat_tugas_presisi_100_web_portal",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 825,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "screen tambah pegawai baru & inbox surat tugas presisi 100% web portal"
     },
     {
@@ -144419,8 +144419,8 @@
       "source_location": "L2061",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2061",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 825,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "status: selesai"
     },
     {
@@ -144430,8 +144430,8 @@
       "source_location": "L2081",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2081",
-      "community": 52,
-      "community_name": "docs/progress.md",
+      "community": 825,
+      "community_name": "Screen Tambah Pegawai Baru & Inbox Surat Tugas Presisi 100% Web Portal",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -144661,8 +144661,8 @@
       "source_location": "L2238",
       "_origin": "ast",
       "id": "docs_progress_progress_phase_154_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 969,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "progress - phase 154: mobile employee full search sync & single-line nip layout"
     },
     {
@@ -144672,8 +144672,8 @@
       "source_location": "L2245",
       "_origin": "ast",
       "id": "docs_progress_mobile_employee_full_search_sync_single_line_nip_layout",
-      "community": 969,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "mobile employee full search sync & single-line nip layout"
     },
     {
@@ -144683,8 +144683,8 @@
       "source_location": "L2247",
       "_origin": "ast",
       "id": "docs_progress_status_selesai_2247",
-      "community": 969,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "status: selesai"
     },
     {
@@ -144694,8 +144694,8 @@
       "source_location": "L2258",
       "_origin": "ast",
       "id": "docs_progress_validasi_git_workflow_pro_2258",
-      "community": 969,
-      "community_name": "Mobile Employee Full Search Sync & Single-Line NIP Layout",
+      "community": 52,
+      "community_name": "docs/progress.md",
       "norm_label": "validasi & git workflow pro"
     },
     {
@@ -164824,8 +164824,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_pengujian_ui_ux_dan_alur_surat_tugas",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "pengujian ui/ux dan alur surat tugas"
     },
     {
@@ -164835,8 +164835,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_1_apa_yang_dimaksud_pengujian_lengkap",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "1. apa yang dimaksud pengujian lengkap?"
     },
     {
@@ -164846,8 +164846,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_2_lingkungan_dan_batas_keselamatan",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "2. lingkungan dan batas keselamatan"
     },
     {
@@ -164857,8 +164857,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_3_alur_aktual_aplikasi",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "3. alur aktual aplikasi"
     },
     {
@@ -164868,8 +164868,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_4_hasil_browser_e2e_yang_dijalankan",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "4. hasil browser e2e yang dijalankan"
     },
     {
@@ -164879,8 +164879,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_5_unit_dan_feature_test_yang_benar_benar_dijalankan_ulang",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "5. unit dan feature test yang benar-benar dijalankan ulang"
     },
     {
@@ -164890,8 +164890,8 @@
       "source_location": "L112",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_6_ui_ux_pemeriksaan_langsung_dan_temuan",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "6. ui/ux: pemeriksaan langsung dan temuan"
     },
     {
@@ -164901,8 +164901,8 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_hasil_yang_diamati_pada_browser",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "hasil yang diamati pada browser"
     },
     {
@@ -164912,8 +164912,8 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_risiko_berdasarkan_pemeriksaan_source_belum_direproduksi_browser_pada_sesi_ini",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "risiko berdasarkan pemeriksaan source, belum direproduksi browser pada sesi ini"
     },
     {
@@ -164923,8 +164923,8 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_7_cara_menjalankan_ulang_browser_e2e",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "7. cara menjalankan ulang browser e2e"
     },
     {
@@ -164934,8 +164934,8 @@
       "source_location": "L176",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_8_matriks_lanjutan_sebelum_sign_off_penuh",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "8. matriks lanjutan sebelum sign-off penuh"
     },
     {
@@ -164945,8 +164945,8 @@
       "source_location": "L199",
       "_origin": "ast",
       "id": "docs_testing_surat_tugas_flow_test_9_catatan_tentang_suite_playwright_sebelumnya",
-      "community": 785,
-      "community_name": "Pengujian UI/UX dan alur Surat Tugas",
+      "community": 532,
+      "community_name": "panduan-uji-keamanan-dan-pentest-portal.md",
       "norm_label": "9. catatan tentang suite playwright sebelumnya"
     },
     {
@@ -170291,8 +170291,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_http_resources_json_jsonresource",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 5,
+      "community_name": "Controller",
       "norm_label": "illuminate\\http\\resources\\json\\jsonresource"
     },
     {
@@ -170588,8 +170588,8 @@
       "source_location": "",
       "_origin": "ast",
       "id": "illuminate_database_eloquent_builder",
-      "community": 377,
-      "community_name": "Illuminate\\Http\\Request",
+      "community": 852,
+      "community_name": "EmployeeIncomingLetter",
       "norm_label": "illuminate\\database\\eloquent\\builder"
     },
     {
@@ -195263,7 +195263,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L526",
+      "source_location": "L524",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_create_page_employeecreatepage",
@@ -353390,7 +353390,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L639",
+      "source_location": "L632",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -356220,7 +356220,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/cuti/page.tsx",
-      "source_location": "L420",
+      "source_location": "L419",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_cuti_page_inboxsuratcutipage",
@@ -356350,7 +356350,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/[id]/page.tsx",
-      "source_location": "L1852",
+      "source_location": "L1848",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_id_page",
@@ -356361,7 +356361,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/[id]/page.tsx",
-      "source_location": "L1843",
+      "source_location": "L1839",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_id_page",
@@ -356656,7 +356656,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/[id]/page.tsx",
-      "source_location": "L981",
+      "source_location": "L977",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_id_page_employeedetailpage",
@@ -357998,7 +357998,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L720",
+      "source_location": "L718",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_create_page",
@@ -358009,7 +358009,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L712",
+      "source_location": "L710",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_create_page",
@@ -358020,7 +358020,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/create/page.tsx",
-      "source_location": "L740",
+      "source_location": "L738",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_create_page",
@@ -358410,7 +358410,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L657",
+      "source_location": "L650",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -358447,7 +358447,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L640",
+      "source_location": "L633",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -358459,7 +358459,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/employees/page.tsx",
-      "source_location": "L673",
+      "source_location": "L666",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_employees_page_employeelistpage",
@@ -367276,7 +367276,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/app/kepegawaian/uang-makan/page.tsx",
-      "source_location": "L848",
+      "source_location": "L834",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app_kepegawaian_uang_makan_page_uangmakanpage",
@@ -504693,5 +504693,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "c499257fd11fd6b6dabff7e244cb21c9e8435a43"
+  "built_at_commit": "a41549b4b0d47a191a0c490f9bca09552aacb89c"
 }

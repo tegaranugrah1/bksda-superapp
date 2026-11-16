@@ -81,7 +81,7 @@ export function GmailToolbar({
   const hasPrevPage = page > 1;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs select-none">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs select-none">
       {/* Left side: Selection & Actions */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Master Selection Box with Dropdown */}
@@ -95,7 +95,7 @@ export function GmailToolbar({
                 onSelectAllPage();
               }
             }}
-            className="p-1.5 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)]"
+            className="p-2 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)]"
             title={selectedCount > 0 ? "Batalkan pilihan" : "Pilih semua di halaman ini"}
           >
             {allSelectedOnPage ? (
@@ -117,13 +117,13 @@ export function GmailToolbar({
           </button>
 
           {isSelectMenuOpen && (
-            <div className="absolute left-0 top-full mt-1 z-20 w-36 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl shadow-lg py-1 text-xs">
+            <div className="absolute left-0 top-full mt-1 z-20 w-36 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg shadow-lg py-1 text-xs">
               <button
                 onClick={() => {
                   onSelectAllPage();
                   setIsSelectMenuOpen(false);
                 }}
-                className="w-full text-left px-3 py-1.5 hover:bg-[var(--ds-surface-muted)] font-medium text-[var(--ds-fg-muted)]"
+                className="w-full text-left px-3 py-2 hover:bg-[var(--ds-surface-muted)] font-medium text-[var(--ds-fg-muted)]"
               >
                 Pilih Semua ({totalOnPage})
               </button>
@@ -132,7 +132,7 @@ export function GmailToolbar({
                   onDeselectAll();
                   setIsSelectMenuOpen(false);
                 }}
-                className="w-full text-left px-3 py-1.5 hover:bg-[var(--ds-surface-muted)] font-medium text-[var(--ds-fg-muted)]"
+                className="w-full text-left px-3 py-2 hover:bg-[var(--ds-surface-muted)] font-medium text-[var(--ds-fg-muted)]"
               >
                 Kosongkan Pilihan
               </button>
@@ -144,7 +144,7 @@ export function GmailToolbar({
         <button
           disabled={loading}
           onClick={onRefresh}
-          className="p-1.5 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] transition-colors"
+          className="p-2 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] transition-colors"
           title="Segarkan data"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[var(--ds-accent-fg)]" : ""}`} />
@@ -152,8 +152,8 @@ export function GmailToolbar({
 
         {/* Contextual Bulk Action Buttons */}
         {selectedCount > 0 && (
-          <div className="flex flex-wrap items-center gap-2 pl-2 border-l border-[var(--ds-border-subtle)]">
-            <span className="font-bold text-xs text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-0.5 rounded-full">
+          <div className="flex flex-wrap items-center gap-2 pl-2 border-l border-slate-200/70 dark:border-zinc-800">
+            <span className="font-bold text-xs text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full">
               {selectedCount} dipilih
             </span>
 
@@ -161,19 +161,19 @@ export function GmailToolbar({
               <>
                 <button
                   onClick={onBulkRestore}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] font-bold text-xs transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] font-bold text-xs transition-colors cursor-pointer"
                   title="Pulihkan dokumen terpilih"
                 >
-                  <Undo2 className="w-3.5 h-3.5" />
+                  <Undo2 className="w-4 h-4" />
                   <span>Pulihkan</span>
                 </button>
                 {onBulkForceDelete && (
                   <button
                     onClick={onBulkForceDelete}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold text-xs transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold text-xs transition-colors cursor-pointer"
                     title="Hapus permanen dokumen terpilih"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                     <span>Hapus Permanen</span>
                   </button>
                 )}
@@ -181,10 +181,10 @@ export function GmailToolbar({
             ) : (
               <button
                 onClick={onBulkTrash}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold text-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold text-xs transition-colors cursor-pointer"
                 title="Pindahkan ke sampah"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
                 <span>Hapus ke Sampah</span>
               </button>
             )}
@@ -198,14 +198,14 @@ export function GmailToolbar({
         <button
           aria-pressed={splitView}
           onClick={onToggleSplitView}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-colors ${
+          className={`flex items-center gap-2 px-3 py-1 rounded-lg border text-xs font-bold transition-colors ${
             splitView
               ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]"
-              : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]"
+              : "border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 text-[var(--ds-fg-muted)]"
           }`}
           title={splitView ? "Beralih ke Tampilan Baris Penuh" : "Beralih ke Mode Split-Pane"}
         >
-          <Columns className="w-3.5 h-3.5" />
+          <Columns className="w-4 h-4" />
           <span className="hidden sm:inline">{splitView ? "Split View" : "Full View"}</span>
         </button>
 
@@ -216,7 +216,7 @@ export function GmailToolbar({
             aria-label="Jumlah baris per halaman"
             value={perPage}
             onChange={(e) => onPerPageChange(Number(e.target.value))}
-            className="bg-[var(--ds-surface-muted)] border-none rounded-md px-1.5 py-0.5 font-bold text-[var(--ds-fg-muted)] outline-none cursor-pointer"
+            className="bg-[var(--ds-surface-muted)] border-none rounded-lg px-2 py-1 font-bold text-[var(--ds-fg-muted)] outline-none cursor-pointer"
           >
             <option value={25}>25</option>
             <option value={50}>50</option>
@@ -241,7 +241,7 @@ export function GmailToolbar({
           <button
             disabled={!hasPrevPage || loading}
             onClick={() => onPageChange(page - 1)}
-            className="p-1.5 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
+            className="p-2 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
             title="Halaman sebelumnya"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -249,7 +249,7 @@ export function GmailToolbar({
           <button
             disabled={!hasNextPage || loading}
             onClick={() => onPageChange(page + 1)}
-            className="p-1.5 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
+            className="p-2 hover:bg-[var(--ds-surface-muted)] disabled:opacity-30 disabled:hover:bg-transparent rounded-lg text-[var(--ds-fg-muted)] transition-colors"
             title="Halaman berikutnya"
           >
             <ChevronRight className="w-4 h-4" />

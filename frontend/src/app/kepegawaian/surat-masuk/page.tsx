@@ -69,11 +69,11 @@ const CATEGORIES: Category[] = ["Mahasiswa", "Instansi", "Internal", "Masyarakat
 const FILE_ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png";
 
 const CATEGORY_STYLES: Record<Category, { badge: string }> = {
-  Mahasiswa: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   " },
-  Instansi: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]   " },
-  Internal: { badge: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   " },
-  Masyarakat: { badge: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   " },
-  Lainnya: { badge: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-[var(--ds-border-subtle)]   " },
+  Mahasiswa: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]" },
+  Instansi: { badge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]" },
+  Internal: { badge: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]" },
+  Masyarakat: { badge: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]" },
+  Lainnya: { badge: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800" },
 };
 
 const UPLOAD_CONFIG: Record<AttachmentType, { title: string; description: string; hint: string; card: string; icon: string }> = {
@@ -81,22 +81,22 @@ const UPLOAD_CONFIG: Record<AttachmentType, { title: string; description: string
     title: "Surat Masuk Utama",
     description: "Upload berkas surat atau dokumen utama yang diterima.",
     hint: "PDF, DOC, XLS, JPG, PNG (Maks 20MB)",
-    card: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]  ",
+    card: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]",
     icon: "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]",
   },
   supporting: {
     title: "Dokumen Pendukung",
     description: "Proposal, lampiran teknis, materi PPT, atau berkas tambahan.",
     hint: "PPT, PPTX, PDF, DOC, XLS, JPG, PNG",
-    card: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:border-[var(--ds-status-warning-border)]  ",
-    icon: "bg-[var(--ds-status-warning-fg)] text-[var(--ds-accent-on-solid)]",
+    card: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:border-[var(--ds-status-warning-border)]",
+    icon: "bg-amber-600 text-white",
   },
   reply: {
     title: "Surat Balasan Balai",
     description: "Upload salinan surat balasan yang sudah diterbitkan.",
     hint: "PDF, DOC, JPG, PNG",
-    card: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:border-[var(--ds-status-success-border)]  ",
-    icon: "bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)]",
+    card: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:border-[var(--ds-status-success-border)]",
+    icon: "bg-emerald-600 text-white",
   },
 };
 
@@ -472,26 +472,26 @@ export default function EmployeeIncomingLettersPage() {
   return (
     <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7 space-y-5">
       {/* Header Halaman - Clean Enterprise Pro Max */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col gap-4 xl:flex-row xl:items-center sm:justify-between">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col gap-4 xl:flex-row xl:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
             <Inbox className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight mt-0.5">
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight mt-1">
               Arsip Surat Masuk
             </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Pencatatan agenda surat masuk, pengelolaan berkas lampiran, dan penelusuran status balasan balai.
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setExportOpen(true)}
-            className="h-9 px-3.5 rounded-xl gap-1.5 text-xs font-semibold cursor-pointer"
+            className="kpg-secondary h-9 px-3 rounded-lg gap-2 text-xs font-semibold cursor-pointer"
           >
             <FileSpreadsheet className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
             <span>Export Excel</span>
@@ -500,7 +500,7 @@ export default function EmployeeIncomingLettersPage() {
             <Button
               size="sm"
               onClick={openCreate}
-              className="h-9 px-4 rounded-xl gap-1.5 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-xs cursor-pointer"
+              className="h-9 px-4 rounded-lg gap-2 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-xs cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Tambah Arsip</span>
@@ -581,14 +581,14 @@ export default function EmployeeIncomingLettersPage() {
               type="button"
 
               onClick={card.onClick}
-              className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer ${
+              className={`flex items-center justify-between p-4 rounded-3xl border text-left transition-colors cursor-pointer ${
                 card.isActive
                   ? card.activeClass
-                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)] "
+                  : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
               }`}
             >
               <div>
-                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-2">
                   {card.key === "pending" && card.count > 0 && (
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
@@ -597,11 +597,11 @@ export default function EmployeeIncomingLettersPage() {
                   )}
                   {card.label}
                 </p>
-                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-0.5 tabular-nums">
+                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-1 tabular-nums">
                   {card.count}
                 </p>
               </div>
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.iconClass}`}>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${card.iconClass}`}>
                 <Icon className="w-4 h-4" />
               </div>
             </button>
@@ -610,22 +610,22 @@ export default function EmployeeIncomingLettersPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 shadow-xs">
-        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-12 items-center">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 items-center">
           {/* Search Input */}
           <div className="relative sm:col-span-2 lg:col-span-3">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--ds-fg-muted)]" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari agenda, nomor, pengirim, perihal..."
-              className="pl-9 pr-8 h-9 text-xs border-[var(--ds-border-subtle)]"
+              className="pl-9 pr-8 h-9 text-xs border-slate-200/80 dark:border-zinc-800 rounded-lg"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-2 rounded-full p-1 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
+                className="absolute right-3 top-2 rounded-full p-1 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -640,7 +640,7 @@ export default function EmployeeIncomingLettersPage() {
                 setKategori(event.target.value);
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Kategori surat"
+              className="h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Kategori surat"
             >
               <option value="">Semua Kategori</option>
               {CATEGORIES.map((value) => (
@@ -659,7 +659,7 @@ export default function EmployeeIncomingLettersPage() {
                 setStatusBalasan(event.target.value as "" | "pending" | "replied");
                 setPage(1);
               }}
-              className="h-9 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Status balasan"
+              className="h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] transition focus:border-[var(--ds-accent-soft-border)] focus:outline-none" aria-label="Status balasan"
             >
               <option value="">Semua Status Balasan</option>
               <option value="pending">Menunggu Balasan</option>
@@ -677,7 +677,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Dari Tanggal Diterima"
-              className="h-9 text-xs border-[var(--ds-border-subtle)]"
+              className="h-9 text-xs border-slate-200/80 dark:border-zinc-800 rounded-lg"
             />
             <Input
               type="date"
@@ -687,7 +687,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Sampai Tanggal Diterima"
-              className="h-9 text-xs border-[var(--ds-border-subtle)]"
+              className="h-9 text-xs border-slate-200/80 dark:border-zinc-800 rounded-lg"
             />
           </div>
 
@@ -700,7 +700,7 @@ export default function EmployeeIncomingLettersPage() {
                 setPage(1);
               }}
               title="Jumlah baris per halaman"
-              className="h-9 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Jumlah per halaman"
+              className="h-9 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Jumlah per halaman"
             >
               <option value="10">10 / hal</option>
               <option value="20">20 / hal</option>
@@ -712,10 +712,10 @@ export default function EmployeeIncomingLettersPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleResetFilters}
-                className="h-9 px-2.5 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-xl"
+                className="h-9 px-3 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
                 title="Reset Semua Filter"
               >
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                <RotateCcw className="h-4 w-4 mr-1" />
                 Reset
               </Button>
             )}
@@ -728,7 +728,7 @@ export default function EmployeeIncomingLettersPage() {
         <KepegawaianTabContent
           key={`${statusBalasan}-${kategori}-${page}-${isThisMonthFilter}-${debouncedSearch}`}
 
-          className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs min-h-[460px] flex flex-col justify-between"
+          className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs min-h-[460px] flex flex-col justify-between"
         >
           <div className="overflow-x-auto flex-1 flex flex-col">
             {loading ? (
@@ -748,7 +748,7 @@ export default function EmployeeIncomingLettersPage() {
                     : "Mulai pencatatan dengan menekan tombol Tambah Arsip di atas."}
                 </p>
                 {hasActiveFilters && (
-                  <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-2 text-xs rounded-xl">
+                  <Button variant="outline" size="sm" onClick={handleResetFilters} className="kpg-secondary mt-2 text-xs rounded-lg">
                     Reset Filter
                   </Button>
                 )}
@@ -756,18 +756,18 @@ export default function EmployeeIncomingLettersPage() {
             ) : (
               <div className="flex-1 flex flex-col justify-between">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <thead className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   <tr>
                     <th className="py-3 px-3 whitespace-nowrap">Agenda &amp; Kategori</th>
                     <th className="py-3 px-3 whitespace-nowrap">Nomor &amp; Tgl Surat</th>
                     <th className="py-3 px-3">Asal Surat / Pengirim</th>
                     <th className="py-3 px-3">Perihal</th>
                     <th className="py-3 px-3 whitespace-nowrap">Status Balasan</th>
-                    <th className="py-3 px-2.5 text-center whitespace-nowrap">Lampiran</th>
+                    <th className="py-3 px-3 text-center whitespace-nowrap">Lampiran</th>
                     <th className="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                   {items.map((item) => {
                     const isReplied = Boolean(item.has_reply || (item.no_surat_balasan && item.no_surat_balasan.trim()));
                     const catStyle = CATEGORY_STYLES[item.kategori] || CATEGORY_STYLES.Lainnya;
@@ -776,16 +776,16 @@ export default function EmployeeIncomingLettersPage() {
                       <tr
                         key={item.id}
                         onClick={() => setDetailItem(item)}
-                        className="group cursor-pointer transition-colors hover:bg-[var(--ds-accent-soft)]"
+                        className="group cursor-pointer transition-colors hover:bg-slate-50/60 dark:hover:bg-zinc-800/30"
                       >
                         {/* Kolom Agenda & Kategori */}
                         <td className="py-3 px-3 align-top whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className="inline-block rounded-md border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-0.5 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-block rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2 py-1 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
                               #{item.no_agenda || "-"}
                             </span>
                             <span
-                              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${catStyle.badge}`}
+                              className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold ${catStyle.badge}`}
                             >
                               {item.kategori}
                             </span>
@@ -831,8 +831,8 @@ export default function EmployeeIncomingLettersPage() {
                         {/* Kolom Status Balasan */}
                         <td className="py-3 px-3 align-top whitespace-nowrap">
                           {isReplied ? (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-success-fg)]">
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2 py-1 text-xs font-bold text-[var(--ds-status-success-fg)]">
                                 <CheckCircle2 className="h-3 w-3 text-[var(--ds-status-success-fg)]" />
                                 Sudah Dibalas
                               </span>
@@ -846,7 +846,7 @@ export default function EmployeeIncomingLettersPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2 py-0.5 text-xs font-medium text-[var(--ds-fg-muted)]">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-2 py-1 text-xs font-medium text-[var(--ds-fg-muted)]">
                               <Clock className="h-3 w-3 text-[var(--ds-fg-muted)]" />
                               Belum Dibalas
                             </span>
@@ -854,7 +854,7 @@ export default function EmployeeIncomingLettersPage() {
                         </td>
 
                         {/* Kolom Lampiran (Badge Kapsul Cerdas) */}
-                        <td className="py-3 px-2.5 align-top text-center whitespace-nowrap">
+                        <td className="py-3 px-3 align-top text-center whitespace-nowrap">
                           {item.attachments && item.attachments.length > 0 ? (
                             <button
                               type="button"
@@ -863,7 +863,7 @@ export default function EmployeeIncomingLettersPage() {
                                 setDetailItem(item);
                               }}
                               title="Klik untuk melihat berkas lampiran"
-                              className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-fg)] transition hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]"
+                              className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs font-semibold text-[var(--ds-fg)] transition hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]"
                             >
                               <Paperclip className="h-3 w-3 text-[var(--ds-accent-fg)]" />
                               <span>{item.attachments.length} Berkas</span>
@@ -884,7 +884,7 @@ export default function EmployeeIncomingLettersPage() {
                               size="sm"
                               onClick={() => setDetailItem(item)}
                               title="Lihat Detail Lengkap"
-                              className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-xl"
+                              className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -895,18 +895,18 @@ export default function EmployeeIncomingLettersPage() {
                                   size="sm"
                                   onClick={() => openEdit(item)}
                                   title="Edit Arsip"
-                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] rounded-xl"
+                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] rounded-lg"
                                 >
-                                  <Pencil className="h-3.5 w-3.5" />
+                                  <Pencil className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleDelete(item)}
                                   title="Hapus Arsip"
-                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-xl"
+                                  className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg"
                                 >
-                                  <Trash2 className="h-3.5 w-3.5 text-[var(--ds-status-danger-fg)]" />
+                                  <Trash2 className="h-4 w-4 text-[var(--ds-status-danger-fg)]" />
                                 </Button>
                               </>
                             )}
@@ -919,7 +919,7 @@ export default function EmployeeIncomingLettersPage() {
               </table>
 
               {/* Pagination Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs">
                 <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-muted)]">
                   <span>
                     Menampilkan{" "}
@@ -933,7 +933,7 @@ export default function EmployeeIncomingLettersPage() {
                     dari <b className="text-[var(--ds-fg)]">{total}</b> arsip surat
                   </span>
                   {hasActiveFilters && (
-                    <span className="inline-flex items-center rounded-full bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
+                    <span className="inline-flex items-center rounded-full bg-[var(--ds-accent-soft)] px-2 py-1 text-xs font-semibold text-[var(--ds-accent-fg)]">
                       Terfilter
                     </span>
                   )}
@@ -945,7 +945,7 @@ export default function EmployeeIncomingLettersPage() {
                     size="sm"
                     disabled={page <= 1}
                     onClick={() => setPage((value) => value - 1)}
-                    className="h-8 px-3 text-xs font-semibold rounded-xl"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
                   >
                     Sebelumnya
                   </Button>
@@ -958,7 +958,7 @@ export default function EmployeeIncomingLettersPage() {
                     size="sm"
                     disabled={page >= lastPage}
                     onClick={() => setPage((value) => value + 1)}
-                    className="h-8 px-3 text-xs font-semibold rounded-xl"
+                    className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
                   >
                     Selanjutnya
                   </Button>
@@ -976,28 +976,28 @@ export default function EmployeeIncomingLettersPage() {
           <KepegawaianDialog title="Detail surat masuk" onClose={() => setDetailItem(null)} busy={false} className="sm:max-w-3xl">
             <div
 
-              className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl flex flex-col max-h-[90vh]"
+              className="w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg flex flex-col max-h-[90vh]"
             >
             {/* Header Modal Detail */}
-            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-4">
+            <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-4">
               <div className="flex items-center gap-3">
-                <span className="rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-2.5 py-1 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
+                <span className="rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] px-3 py-1 font-mono text-xs font-bold text-[var(--ds-accent-fg)]">
                   #{detailItem.no_agenda}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
                     CATEGORY_STYLES[detailItem.kategori]?.badge || ""
                   }`}
                 >
                   {detailItem.kategori}
                 </span>
                 {detailItem.has_reply || detailItem.no_surat_balasan ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-2.5 py-0.5 text-xs font-bold text-[var(--ds-status-success-fg)]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] px-3 py-1 text-xs font-bold text-[var(--ds-status-success-fg)]">
                     <CheckCircle2 className="h-3 w-3 text-[var(--ds-status-success-fg)]" />
                     Sudah Dibalas
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2.5 py-0.5 text-xs font-medium text-[var(--ds-fg-muted)]">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-1 text-xs font-medium text-[var(--ds-fg-muted)]">
                     <Clock className="h-3 w-3" />
                     Menunggu Balasan
                   </span>
@@ -1006,7 +1006,7 @@ export default function EmployeeIncomingLettersPage() {
               <button
                 type="button"
                 onClick={() => setDetailItem(null)}
-                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
+                className="rounded-lg p-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1015,7 +1015,7 @@ export default function EmployeeIncomingLettersPage() {
             {/* Isi Detail Surat */}
             <div className="overflow-y-auto p-6 space-y-5">
               {/* Grid Metadata Utama */}
-              <div className="grid gap-3 sm:grid-cols-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+              <div className="grid gap-3 sm:grid-cols-2 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4">
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Nomor Surat Masuk</div>
                   <div className="mt-1 font-semibold text-[var(--ds-fg)]">
@@ -1037,7 +1037,7 @@ export default function EmployeeIncomingLettersPage() {
                   <div className="mt-1 font-medium text-[var(--ds-fg)]">{detailItem.tanggal_diterima}</div>
                 </div>
                 {detailItem.catatan && (
-                  <div className="sm:col-span-2 pt-2 border-t border-[var(--ds-border-subtle)]">
+                  <div className="sm:col-span-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800">
                     <div className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">Catatan Khusus Pengirim</div>
                     <div className="mt-1 text-xs text-[var(--ds-fg-muted)] italic">{detailItem.catatan}</div>
                   </div>
@@ -1047,13 +1047,13 @@ export default function EmployeeIncomingLettersPage() {
               {/* Perihal */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Perihal / Ringkasan Surat</h4>
-                <div className="mt-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3.5 text-sm leading-relaxed text-[var(--ds-fg)]">
+                <div className="mt-2 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 text-sm leading-relaxed text-[var(--ds-fg)]">
                   {detailItem.perihal || <span className="text-[var(--ds-fg-muted)] italic">Tidak ada catatan perihal.</span>}
                 </div>
               </div>
 
               {/* Status Balasan */}
-              <div className="rounded-xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-4 space-y-2">
+              <div className="rounded-3xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-status-success-fg)]">
                   <CheckCircle2 className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
                   <span>Surat Balasan Balai BKSDA</span>
@@ -1084,7 +1084,7 @@ export default function EmployeeIncomingLettersPage() {
                   </h4>
                 </div>
                 {!detailItem.attachments || detailItem.attachments.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-[var(--ds-border-subtle)] p-6 text-center text-xs text-[var(--ds-fg-muted)]">
+                  <div className="rounded-3xl border border-dashed border-slate-200/80 dark:border-zinc-800 p-6 text-center text-xs text-[var(--ds-fg-muted)]">
                     Tidak ada file lampiran pada surat ini.
                   </div>
                 ) : (
@@ -1092,7 +1092,7 @@ export default function EmployeeIncomingLettersPage() {
                     {detailItem.attachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 text-xs"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-3 text-xs"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
@@ -1102,7 +1102,7 @@ export default function EmployeeIncomingLettersPage() {
                             <div className="font-bold text-[var(--ds-fg)] truncate max-w-sm sm:max-w-md">
                               {attachment.original_name}
                             </div>
-                            <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--ds-fg-muted)]">
+                            <div className="mt-1 flex items-center gap-2 text-xs text-[var(--ds-fg-muted)]">
                               <span className="font-semibold text-[var(--ds-accent-fg)]">
                                 {attachmentLabel(attachment.type)}
                               </span>
@@ -1117,18 +1117,18 @@ export default function EmployeeIncomingLettersPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openAttachment(attachment)}
-                            className="h-8 gap-1.5 text-xs"
+                            className="kpg-secondary rounded-lg h-8 gap-2 text-xs"
                           >
-                            <Eye className="h-3.5 w-3.5" />
+                            <Eye className="h-4 w-4" />
                             Pratinjau
                           </Button>
                           <Button
                             type="button"
                             size="sm"
                             onClick={() => download(attachment)}
-                            className="h-8 gap-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
+                            className="rounded-lg h-8 gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
                           >
-                            <Download className="h-3.5 w-3.5" />
+                            <Download className="h-4 w-4" />
                             Unduh
                           </Button>
                         </div>
@@ -1140,7 +1140,7 @@ export default function EmployeeIncomingLettersPage() {
             </div>
 
             {/* Footer Modal Detail */}
-            <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3.5">
+            <div className="flex items-center justify-between border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-4">
               <div>
                 {canWrite && (
                   <Button
@@ -1148,15 +1148,15 @@ export default function EmployeeIncomingLettersPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(detailItem)}
-                    className="gap-1.5 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] text-xs"
+                    className="gap-2 rounded-lg text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] text-xs"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                     Hapus Arsip
                   </Button>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setDetailItem(null)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => setDetailItem(null)} className="kpg-secondary rounded-lg">
                   Tutup
                 </Button>
                 {canWrite && (
@@ -1164,9 +1164,9 @@ export default function EmployeeIncomingLettersPage() {
                     type="button"
                     size="sm"
                     onClick={() => openEdit(detailItem)}
-                    className="gap-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
+                    className="rounded-lg gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-xs text-[var(--ds-accent-on-solid)]"
                   >
-                    <Pencil className="h-3.5 w-3.5" />
+                    <Pencil className="h-4 w-4" />
                     Edit Arsip
                   </Button>
                 )}
@@ -1184,16 +1184,16 @@ export default function EmployeeIncomingLettersPage() {
             <form
 
               onSubmit={handleSave}
-              className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl"
+              className="flex flex-col w-full max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg"
             >
             {/* Header Modal Form (Fixed Top) */}
-            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3.5 shrink-0">
+            <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-4 shrink-0">
               <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
                   {editing ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </span>
                 <div>
-                  <h2 className="text-base font-bold sm:text-lg">
+                  <h2 className="text-xl font-bold">
                     {editing ? `Edit Arsip Agenda #${editing.no_agenda}` : "Tambah Arsip Surat Masuk"}
                   </h2>
                   <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -1209,7 +1209,7 @@ export default function EmployeeIncomingLettersPage() {
                   setEditing(null);
                   setFormOpen(false);
                 }}
-                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
+                className="rounded-lg p-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1218,17 +1218,17 @@ export default function EmployeeIncomingLettersPage() {
             {/* Body Form: 2 Kolom Seimbang (Memanjang ke Samping) */}
             <div className="flex-1 min-h-0 overflow-y-auto p-5 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
               {/* Kolom Kiri (7/12): Data Pokok Surat & Status Balasan */}
-              <div className="lg:col-span-7 flex flex-col gap-3.5">
+              <div className="lg:col-span-7 flex flex-col gap-4">
                 {/* Data Pokok Surat */}
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 space-y-2.5">
+                <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Informasi Identitas Surat
                   </h3>
-                  <div className="grid gap-2.5 sm:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Agenda *</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)] font-mono"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)] font-mono"
                         placeholder="Contoh: 1432"
                         value={form.no_agenda}
                         onChange={(event) => setField("no_agenda", event.target.value)}
@@ -1240,7 +1240,7 @@ export default function EmployeeIncomingLettersPage() {
                       <select
                         value={form.kategori}
                         onChange={(event) => setField("kategori", event.target.value as Category)}
-                        className="h-8.5 w-full rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 text-xs font-medium"
+                        className="h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-xs font-medium"
                       >
                         {CATEGORIES.map((value) => (
                           <option key={value} value={value}>
@@ -1252,7 +1252,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Surat Asal</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         placeholder="Jika ada nomor"
                         value={form.no_surat_masuk || ""}
                         onChange={(event) => setField("no_surat_masuk", event.target.value)}
@@ -1261,7 +1261,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
                       <span>Asal Surat / Nama Pengirim *</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: Ditjen KSDAE / Nama Instansi / Pribadi"
                         value={form.asal_surat}
                         onChange={(event) => setField("asal_surat", event.target.value)}
@@ -1271,7 +1271,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Diterima *</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_diterima}
                         onChange={(event) => setField("tanggal_diterima", event.target.value)}
@@ -1281,7 +1281,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold sm:col-span-2">
                       <span>Catatan Tambahan Pengirim</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: Pengirim dari SKW III Berau"
                         value={form.catatan || ""}
                         onChange={(event) => setField("catatan", event.target.value)}
@@ -1290,7 +1290,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Surat</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_surat || ""}
                         onChange={(event) => setField("tanggal_surat", event.target.value)}
@@ -1303,25 +1303,25 @@ export default function EmployeeIncomingLettersPage() {
                         placeholder="Tuliskan uraian ringkas maksud atau perihal surat..."
                         value={form.perihal || ""}
                         onChange={(event) => setField("perihal", event.target.value)}
-                        className="w-full resize-none rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2 text-xs outline-none transition focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor Agenda"
+                        className="w-full resize-none rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-xs outline-none transition focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor Agenda"
                       />
                     </label>
                   </div>
                 </div>
 
                 {/* Status Balasan Balai */}
-                <div className="rounded-xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-3.5 space-y-2">
+                <div className="rounded-3xl border border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-[var(--ds-status-success-fg)]" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-status-success-fg)]">
                       Status Balasan Balai (Opsional)
                     </h3>
                   </div>
-                  <div className="grid gap-2.5 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Nomor Surat Balasan</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         placeholder="Contoh: S.123/K.18/TU/KSA/10/2026"
                         value={form.no_surat_balasan || ""}
                         onChange={(event) => setField("no_surat_balasan", event.target.value)}
@@ -1330,7 +1330,7 @@ export default function EmployeeIncomingLettersPage() {
                     <label className="block space-y-1 text-xs font-semibold">
                       <span>Tanggal Surat Balasan</span>
                       <Input
-                        className="h-8.5 text-xs bg-[var(--ds-surface)]"
+                        className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs bg-[var(--ds-surface)]"
                         type="date"
                         value={form.tanggal_surat_balasan || ""}
                         onChange={(event) => setField("tanggal_surat_balasan", event.target.value)}
@@ -1344,21 +1344,21 @@ export default function EmployeeIncomingLettersPage() {
               <div className="lg:col-span-5 flex flex-col gap-3">
                 {/* Lampiran Tersimpan di Storage (Khusus Edit) */}
                 {editing && editing.attachments && editing.attachments.length > 0 && (
-                  <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3 space-y-2">
+                  <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                         Lampiran Tersimpan ({editing.attachments.length})
                       </h3>
                       <span className="text-xs text-[var(--ds-fg-muted)]">Klik ikon sampah untuk menghapus</span>
                     </div>
-                    <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                    <div className="max-h-36 overflow-y-auto space-y-2 pr-1">
                       {editing.attachments.map((attachment) => (
                         <div
                           key={attachment.id}
-                          className="flex items-center justify-between gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1.5 text-xs"
+                          className="flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
+                            <FileText className="h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
                             <div className="min-w-0">
                               <p className="font-semibold truncate max-w-[170px] sm:max-w-[210px] text-xs">
                                 {attachment.original_name}
@@ -1373,7 +1373,7 @@ export default function EmployeeIncomingLettersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeAttachment(attachment)}
-                            className="h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)]"
+                            className="h-6 w-6 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] rounded-lg"
                             title="Hapus berkas ini dari arsip"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -1401,14 +1401,14 @@ export default function EmployeeIncomingLettersPage() {
                       return (
                         <div
                           key={type}
-                          className={`rounded-xl border p-2.5 transition-colors ${config.card}`}
+                          className={`rounded-lg border p-3 transition-colors ${config.card}`}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
                               <div
                                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${config.icon}`}
                               >
-                                <Paperclip className="h-3.5 w-3.5" />
+                                <Paperclip className="h-4 w-4" />
                               </div>
                               <div className="min-w-0">
                                 <h4 className="text-xs font-bold leading-tight">{config.title}</h4>
@@ -1420,7 +1420,7 @@ export default function EmployeeIncomingLettersPage() {
 
                             <label
                               htmlFor={`attachment-${type}`}
-                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-fg)] shadow-2xs transition hover:bg-[var(--ds-surface)] shrink-0"
+                              className="kpg-secondary inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-1 text-xs font-semibold text-[var(--ds-fg)] shadow-xs transition shrink-0"
                             >
                               <Upload className="h-3 w-3 text-[var(--ds-accent-fg)]" />
                               <span>Pilih File</span>
@@ -1437,21 +1437,21 @@ export default function EmployeeIncomingLettersPage() {
 
                           {/* Staged file list preview */}
                           {stagedFiles.length > 0 && (
-                            <div className="mt-2 space-y-1 border-t border-current/10 pt-1.5">
+                            <div className="mt-2 space-y-1 border-t border-current/10 pt-2">
                               {stagedFiles.map((file, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-center justify-between rounded-md bg-[var(--ds-surface)] px-2 py-1 text-xs shadow-2xs"
+                                  className="flex items-center justify-between rounded-lg bg-[var(--ds-surface)] px-2 py-1 text-xs shadow-xs"
                                 >
                                   <span className="truncate max-w-[180px] font-medium" title={file.name}>
                                     {file.name}
                                   </span>
-                                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                  <div className="flex items-center gap-2 shrink-0 ml-1">
                                     <span className="text-xs text-[var(--ds-fg-muted)]">{formatBytes(file.size)}</span>
                                     <button
                                       type="button"
                                       onClick={() => removeStagedFile(type, idx)}
-                                      className="p-0.5 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)]"
+                                      className="p-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)]"
                                       title="Batal pilih berkas ini"
                                     >
                                       <X className="h-3 w-3" />
@@ -1470,11 +1470,11 @@ export default function EmployeeIncomingLettersPage() {
             </div>
 
             {/* Footer Form Action (Fixed Bottom) */}
-            <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-3 shrink-0">
+            <div className="flex items-center justify-between border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-3 shrink-0">
               <span className="text-xs text-[var(--ds-fg-muted)] hidden sm:inline">
                 Format didukung: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG
               </span>
-              <div className="flex items-center gap-2.5 ml-auto">
+              <div className="flex items-center gap-3 ml-auto">
                 <Button
                   type="button"
                   variant="outline"
@@ -1483,7 +1483,7 @@ export default function EmployeeIncomingLettersPage() {
                     setEditing(null);
                     setFormOpen(false);
                   }}
-                  className="text-xs"
+                  className="kpg-secondary rounded-lg text-xs"
                 >
                   Batal
                 </Button>
@@ -1491,7 +1491,7 @@ export default function EmployeeIncomingLettersPage() {
                   type="submit"
                   disabled={saving}
                   size="sm"
-                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] min-w-28 text-xs font-semibold shadow-sm"
+                  className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] min-w-28 text-xs font-semibold shadow-xs"
                 >
                   {saving ? "Menyimpan..." : editing ? "Perbarui Arsip" : "Simpan Arsip"}
                 </Button>
@@ -1508,14 +1508,14 @@ export default function EmployeeIncomingLettersPage() {
           <KepegawaianDialog title="Pratinjau berkas surat masuk" onClose={closePreview} busy={false} className="sm:max-w-5xl">
             <div
 
-              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-[var(--ds-surface)] shadow-2xl"
+              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg"
             >
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] p-4">
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-bold" title={preview.attachment.original_name}>
                   {preview.attachment.original_name}
                 </h3>
-                <p className="mt-0.5 truncate text-xs text-[var(--ds-fg-muted)]">
+                <p className="mt-1 truncate text-xs text-[var(--ds-fg-muted)]">
                   {attachmentLabel(preview.attachment.type)} • Pratinjau Berkas
                 </p>
               </div>
@@ -1555,14 +1555,14 @@ export default function EmployeeIncomingLettersPage() {
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] p-3">
-              <Button type="button" variant="outline" onClick={closePreview}>
+            <div className="flex justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 p-4">
+              <Button type="button" variant="outline" onClick={closePreview} className="kpg-secondary rounded-lg">
                 Tutup
               </Button>
               <Button
                 type="button"
                 onClick={() => download(preview.attachment)}
-                className="gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
+                className="gap-2 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
               >
                 <Download className="h-4 w-4" />
                 Unduh Berkas
@@ -1579,22 +1579,22 @@ export default function EmployeeIncomingLettersPage() {
           <KepegawaianDialog title="Export arsip surat masuk" onClose={() => setExportOpen(false)} busy={false} className="sm:max-w-lg">
             <div
 
-              className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xl"
+              className="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg"
             >
-            <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-6 py-4">
+            <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-md">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold">Export Arsip Surat Masuk</h2>
+                  <h2 className="text-xl font-bold">Export Arsip Surat Masuk</h2>
                   <p className="text-xs text-[var(--ds-fg-muted)]">Unduh rekapitulasi arsip ke format Excel (.xlsx)</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setExportOpen(false)}
-                className="rounded-lg p-1.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
+                className="rounded-lg p-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]" aria-label="Tutup"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1605,21 +1605,21 @@ export default function EmployeeIncomingLettersPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Pilih Rentang / Periode Data
                 </label>
-                <div className="grid gap-2.5 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {hasActiveFilters && (
                     <button
                       type="button"
                       onClick={() => setExportPeriod("current_filter")}
-                      className={`col-span-full flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                      className={`col-span-full flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                         exportPeriod === "current_filter"
-                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
                       }`}
                     >
-                      <Filter className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
+                      <Filter className="mt-1 h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
                       <div className="text-xs">
                         <div className="font-semibold">Filter Pencarian Saat Ini</div>
-                        <div className="mt-0.5 text-xs opacity-75">
+                        <div className="mt-1 text-xs opacity-75">
                           Sesuai kriteria pencarian, status balasan, dan tanggal yang sedang aktif
                         </div>
                       </div>
@@ -1628,31 +1628,31 @@ export default function EmployeeIncomingLettersPage() {
                   <button
                     type="button"
                     onClick={() => setExportPeriod("all")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                       exportPeriod === "all"
-                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
                     }`}
                   >
-                    <TableProperties className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
+                    <TableProperties className="mt-1 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Semua Data</div>
-                      <div className="mt-0.5 text-xs opacity-75">Seluruh arsip surat masuk</div>
+                      <div className="mt-1 text-xs opacity-75">Seluruh arsip surat masuk</div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setExportPeriod("this_month")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                       exportPeriod === "this_month"
-                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
                     }`}
                   >
-                    <Calendar className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
+                    <Calendar className="mt-1 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Bulan Ini</div>
-                      <div className="mt-0.5 text-xs opacity-75">
+                      <div className="mt-1 text-xs opacity-75">
                         {new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date())}
                       </div>
                     </div>
@@ -1660,62 +1660,62 @@ export default function EmployeeIncomingLettersPage() {
                   <button
                     type="button"
                     onClick={() => setExportPeriod("this_year")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                       exportPeriod === "this_year"
-                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
                     }`}
                   >
-                    <Calendar className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
+                    <Calendar className="mt-1 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Tahun {new Date().getFullYear()}</div>
-                      <div className="mt-0.5 text-xs opacity-75">Rekap 1 tahun anggaran</div>
+                      <div className="mt-1 text-xs opacity-75">Rekap 1 tahun anggaran</div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setExportPeriod("custom")}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
                       exportPeriod === "custom"
-                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                        : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]  "
+                        ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
                     }`}
                   >
-                    <Filter className="mt-0.5 h-4 w-4 text-[var(--ds-accent-fg)]" />
+                    <Filter className="mt-1 h-4 w-4 text-[var(--ds-accent-fg)]" />
                     <div className="text-xs">
                       <div className="font-semibold">Rentang Kustom</div>
-                      <div className="mt-0.5 text-xs opacity-75">Pilih tanggal spesifik</div>
+                      <div className="mt-1 text-xs opacity-75">Pilih tanggal spesifik</div>
                     </div>
                   </button>
                 </div>
               </div>
 
               {exportPeriod === "custom" && (
-                <div className="space-y-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+                <div className="space-y-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="space-y-1.5 text-xs font-medium text-[var(--ds-fg-muted)]">
+                    <label className="space-y-2 text-xs font-medium text-[var(--ds-fg-muted)]">
                       Dari Tanggal
                       <Input
                         type="date"
                         value={exportStartDate}
                         onChange={(event) => setExportStartDate(event.target.value)}
-                        className="bg-[var(--ds-surface)] text-xs"
+                        className="rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs"
                       />
                     </label>
-                    <label className="space-y-1.5 text-xs font-medium text-[var(--ds-fg-muted)]">
+                    <label className="space-y-2 text-xs font-medium text-[var(--ds-fg-muted)]">
                       Sampai Tanggal
                       <Input
                         type="date"
                         value={exportEndDate}
                         onChange={(event) => setExportEndDate(event.target.value)}
-                        className="bg-[var(--ds-surface)] text-xs"
+                        className="rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs"
                       />
                     </label>
                   </div>
                 </div>
               )}
 
-              <div className="rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-3.5">
+              <div className="rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] p-4">
                 <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)]">
                   <CheckCircle2 className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                   <span>Format 11 Kolom Excel:</span>
@@ -1736,14 +1736,14 @@ export default function EmployeeIncomingLettersPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-4">
-              <Button type="button" variant="outline" onClick={() => setExportOpen(false)}>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-6 py-4">
+              <Button type="button" variant="outline" onClick={() => setExportOpen(false)} className="kpg-secondary rounded-lg">
                 Batal
               </Button>
               <Button
                 type="button"
                 onClick={exportExcel}
-                className="gap-2 bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
+                className="gap-2 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
               >
                 <Download className="h-4 w-4" />
                 Download Excel (.xlsx)

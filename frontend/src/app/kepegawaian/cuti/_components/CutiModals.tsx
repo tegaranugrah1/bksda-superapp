@@ -108,10 +108,10 @@ export function UploadProgressBar({ progress }: { progress: UploadProgressState 
   const isSaving = progress.phase === "saving";
 
   return (
-    <div className="space-y-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5">
+    <div className="space-y-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
       <div className="flex items-center justify-between text-xs font-semibold">
-        <span className="flex items-center gap-1.5 text-[var(--ds-fg)]">
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--ds-accent-fg)]" />
+        <span className="flex items-center gap-2 text-[var(--ds-fg)]">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
           {isSaving ? "Menyimpan berkas ke server..." : "Mengunggah berkas..."}
         </span>
         <span className="font-mono font-bold tabular-nums text-[var(--ds-accent-fg)]">{pct}%</span>
@@ -210,15 +210,15 @@ export function EditLeaveModal({
 
   return (
     <KepegawaianDialog title="Edit pengajuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-lg">
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4">
-        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
           <div>
             <h3 className="text-sm font-bold text-[var(--ds-fg)]">
               Edit Pengajuan Cuti
             </h3>
             <p className="text-xs text-[var(--ds-fg-muted)]">Pemohon: {item.employee?.nama_lengkap}</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0" aria-label="Tutup">
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-lg" aria-label="Tutup">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -239,9 +239,9 @@ export function EditLeaveModal({
               value={editForm.nomor_pengajuan}
               onChange={(e) => setEditForm({ ...editForm, nomor_pengajuan: e.target.value })}
               placeholder="Contoh: SI.12/K.18/TU/KSA/03/2026 (kosongkan jika belum diterbitkan)"
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-mono text-xs focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Contoh: SI.12/K.18/TU/KSA/03/2026 (kosongkan jika belum diterbitkan)"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-mono text-xs focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Contoh: SI.12/K.18/TU/KSA/03/2026 (kosongkan jika belum diterbitkan)"
             />
-            <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5 block">
+            <span className="text-xs text-[var(--ds-fg-muted)] mt-1 block">
               Nomor surat penetapan diisi oleh admin kepegawaian setelah surat izin terbit.
             </span>
           </div>
@@ -251,7 +251,7 @@ export function EditLeaveModal({
             <select
               value={editForm.jenis_cuti}
               onChange={(e) => setEditForm({ ...editForm, jenis_cuti: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Jenis Cuti"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Jenis Cuti"
             >
               <option value="Cuti Tahunan">Cuti Tahunan</option>
               <option value="Cuti Besar">Cuti Besar</option>
@@ -269,7 +269,7 @@ export function EditLeaveModal({
                 type="date"
                 value={editForm.tanggal_mulai}
                 onChange={(e) => setEditForm({ ...editForm, tanggal_mulai: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
                 required
               />
             </div>
@@ -279,7 +279,7 @@ export function EditLeaveModal({
                 type="date"
                 value={editForm.tanggal_selesai}
                 onChange={(e) => setEditForm({ ...editForm, tanggal_selesai: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
                 required
               />
             </div>
@@ -291,7 +291,7 @@ export function EditLeaveModal({
               value={editForm.alasan_cuti}
               onChange={(e) => setEditForm({ ...editForm, alasan_cuti: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
               required
             />
           </div>
@@ -302,7 +302,7 @@ export function EditLeaveModal({
               value={editForm.alamat_menjalankan_cuti}
               onChange={(e) => setEditForm({ ...editForm, alamat_menjalankan_cuti: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
               required
             />
           </div>
@@ -314,7 +314,7 @@ export function EditLeaveModal({
                 type="text"
                 value={editForm.telepon}
                 onChange={(e) => setEditForm({ ...editForm, telepon: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
               />
             </div>
             <div>
@@ -324,19 +324,19 @@ export function EditLeaveModal({
                 value={editForm.masa_kerja}
                 onChange={(e) => setEditForm({ ...editForm, masa_kerja: e.target.value })}
                 placeholder="Contoh: 2 Tahun 0 Bulan"
-                className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Contoh: 2 Tahun 0 Bulan"
+                className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 font-semibold focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Contoh: 2 Tahun 0 Bulan"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
-            <Button variant="ghost" type="button" onClick={onClose}>
+          <div className="flex justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 pt-3">
+            <Button variant="ghost" type="button" onClick={onClose} className="rounded-lg">
               Batal
             </Button>
             <Button
               type="submit"
               disabled={isPending}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold"
+              className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold"
             >
               {isPending ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
@@ -364,12 +364,12 @@ export function DeleteLeaveModal({
 
   return (
     <KepegawaianDialog title="Konfirmasi pengajuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-md">
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 text-center">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-md shadow-lg p-6 space-y-4 text-center">
         <div className="w-12 h-12 rounded-full bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-[var(--ds-fg)]">
+          <h3 className="text-xl font-bold text-[var(--ds-fg)]">
             Konfirmasi Hapus Pengajuan Cuti
           </h3>
           <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -381,14 +381,14 @@ export function DeleteLeaveModal({
           </p>
         </div>
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="rounded-lg">
             Batal
           </Button>
           <Button
             variant="destructive"
             disabled={isPending}
             onClick={onConfirm}
-            className="bg-[var(--ds-danger-solid)] hover:bg-[var(--ds-danger-solid)] text-[var(--ds-accent-on-solid)] font-bold"
+            className="rounded-lg font-bold"
           >
             {isPending ? "Menghapus..." : "Ya, Hapus Pengajuan"}
           </Button>
@@ -408,8 +408,8 @@ export function PrintLeaveModal({ item, onClose }: PrintLeaveModalProps) {
 
   return (
     <KepegawaianDialog title="Pratinjau formulir cuti" onClose={onClose} busy={false} className="sm:max-w-6xl">
-      <div className="bg-[var(--ds-surface)] rounded-2xl max-w-4xl w-full mx-auto shadow-2xl overflow-hidden flex flex-col">
-        <div className="p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl max-w-4xl w-full mx-auto shadow-lg overflow-hidden flex flex-col">
+        <div className="p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <Printer className="w-5 h-5 text-[var(--ds-accent-fg)]" />
             <h3 className="text-sm font-bold">Verifikasi & Preview Formulir Cuti Resmi</h3>
@@ -418,9 +418,9 @@ export function PrintLeaveModal({ item, onClose }: PrintLeaveModalProps) {
             <Button
               size="sm"
               onClick={() => window.print()}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold gap-1 text-xs"
+              className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold gap-1 text-xs"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-4 h-4" />
               Cetak Formulir
             </Button>
             <Button
@@ -428,7 +428,7 @@ export function PrintLeaveModal({ item, onClose }: PrintLeaveModalProps) {
               size="sm"
               aria-label="Tutup pratinjau formulir cuti"
               onClick={onClose}
-              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
+              className="rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -691,11 +691,11 @@ export function ApproveLeaveModal({
 
   return (
     <KepegawaianDialog title="Persetujuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-3xl">
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center">
+        <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] flex items-center justify-center">
               {isRegenerate ? <RefreshCw className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             </div>
             <div>
@@ -707,19 +707,19 @@ export function ApproveLeaveModal({
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-xl" aria-label="Tutup">
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 rounded-lg" aria-label="Tutup">
             <X className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Live Naskah Ringkas / Document Preview Card */}
-        <div className="   border border-[var(--ds-status-success-border)] rounded-xl p-3.5 text-xs space-y-2">
+        <div className="border border-[var(--ds-status-success-border)] rounded-lg p-4 text-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-xs uppercase tracking-wider text-[var(--ds-status-success-fg)] flex items-center gap-1.5">
-              <FileBadge className="w-3.5 h-3.5" />
+            <span className="font-bold text-xs uppercase tracking-wider text-[var(--ds-status-success-fg)] flex items-center gap-2">
+              <FileBadge className="w-4 h-4" />
               SURAT IZIN CUTI {(item.jenis_cuti || "TAHUNAN").toUpperCase().replace(/^CUTI\s+/i, "")}
             </span>
-            <span className="text-xs bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-xs bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] px-2 py-1 rounded-full font-semibold">
               TTE Kepala Balai
             </span>
           </div>
@@ -746,10 +746,10 @@ export function ApproveLeaveModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Pilihan Tanggal Penetapan Surat Izin */}
-          <div className="space-y-1.5 bg-[var(--ds-surface)] p-2.5 rounded-xl border border-[var(--ds-border-subtle)]">
+          <div className="space-y-2 bg-[var(--ds-surface)] p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+              <label className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                 Tanggal Penetapan Surat Izin
               </label>
               <span className="text-xs text-[var(--ds-status-success-fg)] font-semibold">
@@ -761,13 +761,13 @@ export function ApproveLeaveModal({
                 type="date"
                 value={tanggalSurat}
                 onChange={(e) => handleDateChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-xs font-semibold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)]"
+                className="w-full px-3 py-2 text-xs font-semibold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)]"
                 required
               />
               <button
                 type="button"
                 onClick={() => handleDateChange(new Date().toISOString().split("T")[0])}
-                className="px-2.5 py-1.5 text-xs font-semibold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)] rounded-lg whitespace-nowrap transition-colors cursor-pointer"
+                className="px-3 py-2 text-xs font-semibold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] rounded-lg whitespace-nowrap transition-colors cursor-pointer"
                 title="Gunakan tanggal hari ini"
               >
                 Hari Ini
@@ -776,9 +776,9 @@ export function ApproveLeaveModal({
           </div>
 
           {/* Segmented Form Nomor Surat Penetapan Resmi (SI) */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5 text-xs">
+              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-2 text-xs">
                 Nomor Surat Penetapan Resmi (SI)
                 {isLoadingPreview && <Loader2 className="w-3 h-3 animate-spin text-[var(--ds-status-success-fg)]" />}
               </label>
@@ -789,21 +789,21 @@ export function ApproveLeaveModal({
                   className="text-xs text-[var(--ds-status-success-fg)] hover:underline flex items-center gap-1 cursor-pointer font-medium"
                   title="Kembalikan semua form ke nomor urut otomatis yang disarankan sistem"
                 >
-                  <RotateCcw className="w-2.5 h-2.5" />
+                  <RotateCcw className="w-3 h-3" />
                   Reset ke No. Otomatis
                 </button>
               )}
             </div>
 
             {/* 4 Form Inputs: SI.{nomor}, /K.18/TU/, {klasifikasi}, /B/{bulan}/{tahun} */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[var(--ds-surface)] p-2.5 rounded-xl border border-[var(--ds-border-subtle)]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[var(--ds-surface)] p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800">
               {/* Form 1: SI.{nomor} */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-[var(--ds-fg-muted)] block truncate" title="SI.{nomor}">
                   SI.&#123;nomor&#125;
                 </label>
                 <div className="flex items-center">
-                  <span className="px-1.5 py-1.5 bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-mono font-bold text-xs rounded-l-lg border border-r-0 border-[var(--ds-border-subtle)] select-none">
+                  <span className="px-2 py-2 bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-mono font-bold text-xs rounded-l-lg border border-r-0 border-slate-200/80 dark:border-zinc-800 select-none">
                     SI.
                   </span>
                   <input
@@ -811,7 +811,7 @@ export function ApproveLeaveModal({
                     value={formNomorUrut}
                     onChange={(e) => setFormNomorUrut(e.target.value.replace(/^SI\.?\s*/i, ""))}
                     placeholder="93"
-                    className="w-full px-1.5 py-1.5 font-mono text-xs font-bold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-r-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center" aria-label="SI.&#123;nomor&#125;"
+                    className="w-full px-2 py-2 font-mono text-xs font-bold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-r-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center" aria-label="SI.&#123;nomor&#125;"
                   />
                 </div>
               </div>
@@ -826,7 +826,7 @@ export function ApproveLeaveModal({
                   value={formKodeUnit}
                   onChange={(e) => setFormKodeUnit(e.target.value)}
                   placeholder="/K.18/TU/"
-                  className="w-full px-2 py-1.5 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
+                  className="w-full px-2 py-2 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
                   required aria-label="/K.18/TU/"
                 />
               </div>
@@ -841,7 +841,7 @@ export function ApproveLeaveModal({
                   value={formKlasifikasi}
                   onChange={(e) => setFormKlasifikasi(e.target.value)}
                   placeholder="PEG.11.01"
-                  className="w-full px-2 py-1.5 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
+                  className="w-full px-2 py-2 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
                   required aria-label="PEG.11.01"
                 />
               </div>
@@ -856,14 +856,14 @@ export function ApproveLeaveModal({
                   value={formBulanTahun}
                   onChange={(e) => setFormBulanTahun(e.target.value)}
                   placeholder={`/B/${currentMonth}/${currentYear}`}
-                  className="w-full px-2 py-1.5 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
+                  className="w-full px-2 py-2 font-mono text-xs font-semibold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none text-[var(--ds-fg)] text-center"
                   required
                 />
               </div>
             </div>
 
             {/* Live Result Preview Banner */}
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-xs">
+            <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-xs">
               <span className="text-[var(--ds-status-success-fg)] font-medium">
                 Nomor Surat Terbentuk:
               </span>
@@ -892,7 +892,7 @@ export function ApproveLeaveModal({
               onChange={(e) => setCatatan(e.target.value)}
               placeholder={`Contoh: ${defaultCatatanText}`}
               rows={2}
-              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs focus:ring-2 focus:ring-[var(--ds-status-success-border)] outline-none"
             />
             <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               *Jika tidak diisi, otomatis terisi: <span className="font-semibold text-[var(--ds-fg-muted)]">{defaultCatatanText}</span>
@@ -900,21 +900,21 @@ export function ApproveLeaveModal({
           </div>
 
           {/* Collapsible Manual Scan Files (Optional) */}
-          <div className="border border-[var(--ds-border-subtle)] rounded-xl overflow-hidden">
+          <div className="border border-slate-200/80 dark:border-zinc-800 rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => setShowFileUploads(!showFileUploads)}
               className="w-full px-3 py-2 bg-[var(--ds-surface)] flex items-center justify-between text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
             >
-              <span className="flex items-center gap-1.5">
-                <FileUp className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+              <span className="flex items-center gap-2">
+                <FileUp className="w-4 h-4 text-[var(--ds-fg-muted)]" />
                 Lampirkan Berkas Scan Manual / Fisik (Opsional)
               </span>
-              {showFileUploads ? <ChevronUp className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" /> : <ChevronDown className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />}
+              {showFileUploads ? <ChevronUp className="w-4 h-4 text-[var(--ds-fg-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--ds-fg-muted)]" />}
             </button>
 
             {showFileUploads && (
-              <div className="p-3 space-y-3 bg-[var(--ds-surface)] border-t border-[var(--ds-border-subtle)]">
+              <div className="p-3 space-y-3 bg-[var(--ds-surface)] border-t border-slate-200/70 dark:border-zinc-800">
                 {/* Slot 1: Scan Formulir Cuti TTD Manual */}
                 <div className="space-y-1">
                   <label className="font-semibold text-[var(--ds-fg)] flex items-center gap-1 text-xs">
@@ -925,7 +925,7 @@ export function ApproveLeaveModal({
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setFileFormulir(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-[var(--ds-fg-muted)] file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--ds-accent-soft)] file:text-[var(--ds-accent-fg)] hover:file:bg-[var(--ds-accent-soft)] cursor-pointer"
+                    className="w-full text-xs text-[var(--ds-fg-muted)] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--ds-accent-soft)] file:text-[var(--ds-accent-fg)] cursor-pointer"
                   />
                 </div>
 
@@ -939,7 +939,7 @@ export function ApproveLeaveModal({
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setFileSuratIzin(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-[var(--ds-fg-muted)] file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--ds-status-success-bg)] file:text-[var(--ds-status-success-fg)] hover:file:bg-[var(--ds-status-success-bg)] cursor-pointer"
+                    className="w-full text-xs text-[var(--ds-fg-muted)] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--ds-status-success-bg)] file:text-[var(--ds-status-success-fg)] cursor-pointer"
                   />
                 </div>
               </div>
@@ -948,28 +948,28 @@ export function ApproveLeaveModal({
 
           <UploadProgressBar progress={isPending ? (uploadProgress ?? null) : null} />
 
-          <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
-            <Button variant="ghost" type="button" onClick={onClose} disabled={isPending} className="rounded-xl">
+          <div className="flex justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 pt-3">
+            <Button variant="ghost" type="button" onClick={onClose} disabled={isPending} className="rounded-lg">
               Batal
             </Button>
             <Button
               type="submit"
               disabled={isPending || isLoadingPreview}
-              className="bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)] font-bold rounded-xl shadow-xs gap-1.5 px-4 cursor-pointer"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-lg shadow-xs gap-2 px-4 cursor-pointer"
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>{formatPendingUploadLabel(isPending, uploadProgress, "", "Memproses...")}</span>
                 </>
               ) : isRegenerate ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="w-4 h-4" />
                   <span>Terbitkan Ulang Surat Izin</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>Terbitkan Surat Izin & Setujui</span>
                 </>
               )}
@@ -1014,7 +1014,7 @@ export function ActiveScanFileRow({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-2.5 py-1.5 text-xs",
+        "flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-2 text-xs",
         className
       )}
     >
@@ -1023,7 +1023,7 @@ export function ActiveScanFileRow({
       </p>
       {onDelete && (
         confirming ? (
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <span className="text-[var(--ds-status-danger-fg)] font-semibold hidden sm:inline">Hapus berkas?</span>
             <button
               type="button"
@@ -1036,7 +1036,7 @@ export function ActiveScanFileRow({
                   // Caller toast handles error; keep row intact
                 }
               }}
-              className="px-2 py-0.5 rounded border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold hover:opacity-90 disabled:opacity-50"
+              className="px-2 py-1 rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] font-bold hover:opacity-90 disabled:opacity-50"
             >
               {deleting ? "Menghapus..." : "Ya, Hapus"}
             </button>
@@ -1044,7 +1044,7 @@ export function ActiveScanFileRow({
               type="button"
               disabled={deleting}
               onClick={() => setConfirming(false)}
-              className="px-1.5 py-0.5 rounded font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-50"
+              className="px-2 py-1 rounded-lg font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-50"
             >
               Batal
             </button>
@@ -1054,9 +1054,9 @@ export function ActiveScanFileRow({
             type="button"
             disabled={busy || deleting}
             onClick={() => setConfirming(true)}
-            className="inline-flex items-center gap-1 shrink-0 rounded px-1.5 py-0.5 font-semibold text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] disabled:opacity-50"
+            className="inline-flex items-center gap-1 shrink-0 rounded-lg px-2 py-1 font-semibold text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] disabled:opacity-50"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
             <span>Hapus</span>
           </button>
         )
@@ -1120,10 +1120,10 @@ export function UploadScanModal({
 
   return (
     <KepegawaianDialog title="Unggah berkas cuti" onClose={onClose} busy={isBusy} className="sm:max-w-lg">
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-lg shadow-2xl p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <FileUp className="w-4 h-4" />
             </div>
             <div>
@@ -1135,25 +1135,25 @@ export function UploadScanModal({
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isBusy} className="h-8 w-8 p-0 rounded-xl" aria-label="Tutup">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isBusy} className="h-8 w-8 p-0 rounded-lg" aria-label="Tutup">
             <X className="w-4 h-4" />
           </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Slot 1: Scan Formulir */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+          <div className="space-y-2 p-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
             <div className="flex items-center justify-between gap-2">
-              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
+              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <FileText className="w-4 h-4 shrink-0 text-[var(--ds-accent-fg)]" />
                 1. Scan Surat Pengantar dan Formulir Cuti (TTD & Cap)
               </label>
               {item.scan_formulir_nama ? (
-                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full">
+                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-1 rounded-full">
                   Sudah Terunggah
                 </span>
               ) : (
-                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-full">
+                <span className="shrink-0 whitespace-nowrap text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full">
                   Belum ada
                 </span>
               )}
@@ -1167,7 +1167,7 @@ export function UploadScanModal({
                 onDelete={onDeleteScan}
               />
             )}
-            <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] rounded-lg p-2.5 text-center bg-[var(--ds-surface)]">
+            <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)]">
               <input
                 type="file"
                 id="file_scan_formulir_upload"
@@ -1185,7 +1185,7 @@ export function UploadScanModal({
               />
               <label htmlFor="file_scan_formulir_upload" className="kpg-upload cursor-pointer block rounded-lg p-2">
                 {fileFormulir ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[var(--ds-accent-fg)] font-semibold text-xs">
+                  <div className="flex items-center justify-center gap-2 text-[var(--ds-accent-fg)] font-semibold text-xs">
                     <FileCheck className="w-4 h-4" />
                     <span className="truncate max-w-xs">{fileFormulir.name}</span>
                     <span className="text-xs text-[var(--ds-fg-muted)] font-normal">
@@ -1211,18 +1211,18 @@ export function UploadScanModal({
           </div>
 
           {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+          <div className="space-y-2 p-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
-                <FileCheck className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+              <label className="font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                 2. Surat Izin Cuti Resmi (TTE Kepala Balai)
               </label>
               {currentSuratIzin ? (
-                <span className="text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-full">
+                <span className="text-xs text-[var(--ds-status-success-fg)] font-semibold bg-[var(--ds-status-success-bg)] px-2 py-1 rounded-full">
                   Sudah Terunggah
                 </span>
               ) : (
-                <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-full">
+                <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full">
                   Belum ada
                 </span>
               )}
@@ -1236,7 +1236,7 @@ export function UploadScanModal({
                 onDelete={onDeleteScan}
               />
             )}
-            <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] rounded-lg p-2.5 text-center bg-[var(--ds-surface)]">
+            <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-success-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)]">
               <input
                 type="file"
                 id="file_scan_surat_izin_upload"
@@ -1254,7 +1254,7 @@ export function UploadScanModal({
               />
               <label htmlFor="file_scan_surat_izin_upload" className="kpg-upload cursor-pointer block rounded-lg p-2">
                 {fileSuratIzin ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[var(--ds-status-success-fg)] font-semibold text-xs">
+                  <div className="flex items-center justify-center gap-2 text-[var(--ds-status-success-fg)] font-semibold text-xs">
                     <FileCheck className="w-4 h-4" />
                     <span className="truncate max-w-xs">{fileSuratIzin.name}</span>
                     <span className="text-xs text-[var(--ds-fg-muted)] font-normal">
@@ -1281,14 +1281,14 @@ export function UploadScanModal({
 
           <UploadProgressBar progress={isPending ? (uploadProgress ?? null) : null} />
 
-          <div className="flex justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
-            <Button variant="ghost" type="button" onClick={onClose} disabled={isBusy} className="rounded-xl">
+          <div className="flex justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 pt-3">
+            <Button variant="ghost" type="button" onClick={onClose} disabled={isBusy} className="rounded-lg">
               Batal
             </Button>
             <Button
               type="submit"
               disabled={isBusy || (!fileFormulir && !fileSuratIzin)}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-xl shadow-xs gap-1.5"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold rounded-lg shadow-xs gap-2"
             >
               {formatPendingUploadLabel(isPending, uploadProgress, "Simpan Berkas", "Mengunggah...")}
             </Button>

@@ -117,7 +117,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; desc: string
   S: { label: "Sakit", color: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]", desc: "Izin Sakit" },
   I: { label: "Izin", color: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]", desc: "Izin Tidak Masuk" },
   A: { label: "Alpa", color: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]", desc: "Tanpa Keterangan" },
-  L: { label: "Libur", color: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)]", desc: "Akhir Pekan / Libur Nasional" },
+  L: { label: "Libur", color: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border-slate-200/80 dark:border-zinc-800", desc: "Akhir Pekan / Libur Nasional" },
 };
 
 export function EmployeeMealAllowanceTab({ employee }: Props) {
@@ -153,7 +153,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
     <div className="space-y-6">
       {/* Mini Stats Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+        <div className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center gap-2 mb-2 text-[var(--ds-status-success-fg)]">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Penerimaan Terakhir</span>
@@ -166,7 +166,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+        <div className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center gap-2 mb-2 text-[var(--ds-accent-fg)]">
             <Receipt className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Hari Dihitung (Terakhir)</span>
@@ -179,13 +179,13 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+        <div className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center gap-2 mb-2 text-[var(--ds-accent-fg)]">
             <Building className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Bank Penyalur Terdaftar</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-black text-xs">
+            <span className="px-2 py-1 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-black text-xs">
               {employee.nama_bank || "BELUM DISET"}
             </span>
           </div>
@@ -194,12 +194,12 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+        <div className="p-4 rounded-3xl bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center gap-2 mb-2 text-[var(--ds-status-warning-fg)]">
             <UtensilsCrossed className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Tarif & PPh 21</span>
           </div>
-          <p className="text-base font-bold text-[var(--ds-fg)]">
+          <p className="text-sm font-bold text-[var(--ds-fg)]">
             {latestRecord ? `${formatRupiah(latestRecord.tarif_harian)} / hari` : "Sesuai Golongan"}
           </p>
           <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -209,19 +209,19 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs">
-        <div className="p-5 border-b border-[var(--ds-border-subtle)] flex items-center justify-between flex-wrap gap-3">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-slate-200/70 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
               <Receipt className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
               Riwayat Pembayaran Uang Makan Pegawai
             </h3>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Daftar rekapitulasi batch pencairan uang makan resmi berdasarkan presensi SIKADIR & Surat Tugas
             </p>
           </div>
           {meta && meta.total > 0 && (
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
               Total {meta.total} Periode
             </span>
           )}
@@ -234,7 +234,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
           </div>
         ) : records.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] mx-auto flex items-center justify-center">
               <UtensilsCrossed className="w-6 h-6" />
             </div>
             <h4 className="text-sm font-bold text-[var(--ds-fg)]">
@@ -247,25 +247,25 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-[var(--ds-border-subtle)] text-xs">
+              <thead className="bg-slate-50/70 dark:bg-zinc-800/30 text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-slate-200/70 dark:border-zinc-800 text-xs">
                 <tr>
-                  <th className="py-3.5 px-4">Periode & Batch</th>
-                  <th className="py-3.5 px-4 text-center">Kehadiran & PD</th>
-                  <th className="py-3.5 px-4">Tarif & Golongan</th>
-                  <th className="py-3.5 px-4 text-right">Bruto</th>
-                  <th className="py-3.5 px-4 text-right">Pot. PPh 21</th>
-                  <th className="py-3.5 px-4 text-right">Netto Diterima</th>
-                  <th className="py-3.5 px-4">Penyalur</th>
-                  <th className="py-3.5 px-4 text-center">Rincian</th>
+                  <th className="py-3 px-4">Periode & Batch</th>
+                  <th className="py-3 px-4 text-center">Kehadiran & PD</th>
+                  <th className="py-3 px-4">Tarif & Golongan</th>
+                  <th className="py-3 px-4 text-right">Bruto</th>
+                  <th className="py-3 px-4 text-right">Pot. PPh 21</th>
+                  <th className="py-3 px-4 text-right">Netto Diterima</th>
+                  <th className="py-3 px-4">Penyalur</th>
+                  <th className="py-3 px-4 text-center">Rincian</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                 {records.map((rec) => {
                   const totalHari = Number(rec.jml_hadir || 0) + Number(rec.jml_pd || 0);
                   return (
                     <tr
                       key={rec.id}
-                      className="hover:bg-[var(--ds-surface)] transition-colors"
+                      className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="font-bold text-[var(--ds-fg)]">
@@ -277,17 +277,17 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                       </td>
 
                       <td className="py-3 px-4 text-center">
-                        <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]">
+                        <div className="inline-flex items-center gap-2 flex-wrap justify-center">
+                          <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]">
                             {rec.jml_hadir} Hadir
                           </span>
                           {rec.jml_pd > 0 && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+                            <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                               {rec.jml_pd} PD
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5 font-medium">
+                        <div className="text-xs text-[var(--ds-fg-muted)] mt-1 font-medium">
                           Total: {totalHari} hari
                         </div>
                       </td>
@@ -323,13 +323,13 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 rounded font-black text-xs bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 rounded-lg font-black text-xs bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]">
                             {rec.nama_bank || "BRI"}
                           </span>
                         </div>
                         {rec.nomor_rekening && (
-                          <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-0.5 flex items-center gap-1">
+                          <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-1 flex items-center gap-1">
                             <span>{rec.nomor_rekening}</span>
                             <button
                               type="button"
@@ -338,9 +338,9 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                               title="Salin Nomor Rekening"
                             >
                               {copiedField === `table-rek-${rec.id}` ? (
-                                <Check className="w-2.5 h-2.5 text-[var(--ds-status-success-fg)]" />
+                                <Check className="w-3 h-3 text-[var(--ds-status-success-fg)]" />
                               ) : (
-                                <Copy className="w-2.5 h-2.5" />
+                                <Copy className="w-3 h-3" />
                               )}
                             </button>
                           </div>
@@ -351,10 +351,10 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-2 text-xs rounded-lg gap-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)]"
+                          className="h-8 px-2 text-xs rounded-lg gap-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)]"
                           onClick={() => setSelectedRecord(rec)}
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-4 h-4" />
                           <span>Kalender</span>
                         </Button>
                       </td>
@@ -368,7 +368,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
 
         {/* Pagination Footer */}
         {meta && meta.last_page > 1 && (
-          <div className="p-4 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
+          <div className="p-4 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
             <div>
               Halaman {meta.current_page} dari {meta.last_page} ({meta.total} entri)
             </div>
@@ -380,7 +380,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="h-8 rounded-lg" aria-label="Halaman sebelumnya"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
@@ -389,7 +389,7 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                 onClick={() => setPage((p) => Math.min(meta.last_page, p + 1))}
                 className="h-8 rounded-lg" aria-label="Halaman berikutnya"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -398,16 +398,16 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
 
       {/* Modal Rincian Kalender Harian Presensi (Daily Matrix) */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4   ">
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-lg">
             {/* Modal Header */}
-            <div className="p-5 border-b border-[var(--ds-border-subtle)] flex items-center justify-between">
+            <div className="p-6 border-b border-slate-200/70 dark:border-zinc-800 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <h3 className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                   Rincian Matriks Presensi Harian
                 </h3>
-                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   {selectedRecord.batch ? formatPeriodLabel(selectedRecord.batch.periode_bulan) : "Periode"} • {selectedRecord.nama_lengkap}
                 </p>
               </div>
@@ -422,26 +422,26 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-5">
+            <div className="p-6 overflow-y-auto space-y-4">
               {/* Summary Badges */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                <div className="p-2.5 rounded-xl bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)]">
+                <div className="p-3 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)]">
                   <div className="text-xs text-[var(--ds-status-success-fg)] font-bold uppercase">Hadir (H)</div>
-                  <div className="text-lg font-black text-[var(--ds-status-success-fg)]">{selectedRecord.jml_hadir} Hari</div>
+                  <div className="text-sm font-black text-[var(--ds-status-success-fg)]">{selectedRecord.jml_hadir} Hari</div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]">
+                <div className="p-3 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]">
                   <div className="text-xs text-[var(--ds-accent-fg)] font-bold uppercase">Dinas Luar (PD)</div>
-                  <div className="text-lg font-black text-[var(--ds-accent-fg)]">{selectedRecord.jml_pd} Hari</div>
+                  <div className="text-sm font-black text-[var(--ds-accent-fg)]">{selectedRecord.jml_pd} Hari</div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)]">
+                <div className="p-3 rounded-lg bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)]">
                   <div className="text-xs text-[var(--ds-status-warning-fg)] font-bold uppercase">Cuti & Izin</div>
-                  <div className="text-lg font-black text-[var(--ds-status-warning-fg)]">
+                  <div className="text-sm font-black text-[var(--ds-status-warning-fg)]">
                     {Number(selectedRecord.jml_cuti || 0) + Number(selectedRecord.jml_sakit || 0) + Number(selectedRecord.jml_izin || 0)} Hari
                   </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)]">
+                <div className="p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800">
                   <div className="text-xs text-[var(--ds-fg-muted)] font-bold uppercase">Netto Uang Makan</div>
-                  <div className="text-base font-black text-[var(--ds-status-success-fg)]">
+                  <div className="text-sm font-black text-[var(--ds-status-success-fg)]">
                     {formatRupiah(selectedRecord.uang_makan_netto)}
                   </div>
                 </div>
@@ -453,48 +453,48 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
                   Status Kehadiran per Tanggal:
                 </h4>
                 {selectedRecord.daily_matrix && Object.keys(selectedRecord.daily_matrix).length > 0 ? (
-                  <div className="grid grid-cols-5 sm:grid-cols-7 gap-1.5 text-center">
+                  <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 text-center">
                     {Object.entries(selectedRecord.daily_matrix)
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([dateKey, code]) => {
                         const dayNum = dateKey.split("-")[2];
                         const metaCode = STATUS_LABELS[code] || {
                           label: code,
-                          color: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-[var(--ds-border-subtle)]",
+                          color: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800",
                           desc: code,
                         };
                         return (
                           <div
                             key={dateKey}
                             className={cn(
-                              "p-2 rounded-xl border flex flex-col items-center justify-between transition-colors",
+                              "p-2 rounded-lg border flex flex-col items-center justify-between transition-colors",
                               metaCode.color
                             )}
                             title={`${dateKey}: ${metaCode.label} (${metaCode.desc})`}
                           >
                             <span className="text-xs font-mono text-[var(--ds-fg-muted)] font-medium">{dayNum}</span>
-                            <span className="text-xs font-black my-0.5">{code}</span>
-                            <span className="text-[8px] font-semibold truncate max-w-full">{metaCode.label}</span>
+                            <span className="text-xs font-black my-1">{code}</span>
+                            <span className="text-xs font-semibold truncate max-w-full">{metaCode.label}</span>
                           </div>
                         );
                       })}
                   </div>
                 ) : (
-                  <div className="p-6 text-center text-xs text-[var(--ds-fg-muted)] border border-dashed rounded-xl">
+                  <div className="p-6 text-center text-xs text-[var(--ds-fg-muted)] border border-dashed border-slate-200/80 dark:border-zinc-800 rounded-lg">
                     Data matriks harian tidak tersimpan untuk batch ini.
                   </div>
                 )}
               </div>
 
               {/* Legend */}
-              <div className="p-3 bg-[var(--ds-surface)] rounded-xl space-y-1.5 text-xs">
-                <div className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+              <div className="p-3 bg-[var(--ds-surface-muted)] rounded-lg space-y-2 text-xs">
+                <div className="font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[var(--ds-fg-muted)]" />
                   Keterangan Simbol:
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {Object.entries(STATUS_LABELS).map(([code, val]) => (
-                    <span key={code} className={cn("px-2 py-0.5 rounded-md border font-semibold", val.color)}>
+                    <span key={code} className={cn("px-2 py-1 rounded-lg border font-semibold", val.color)}>
                       {code} = {val.label}
                     </span>
                   ))}
@@ -503,11 +503,11 @@ export function EmployeeMealAllowanceTab({ employee }: Props) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] flex justify-end">
+            <div className="p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl text-xs"
+                className="rounded-lg text-xs"
                 onClick={() => setSelectedRecord(null)}
               >
                 Tutup Rincian

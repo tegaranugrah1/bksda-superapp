@@ -685,7 +685,7 @@ export default function SuratTugasInbox() {
         data-module="surat-tugas"
         className="st-ui p-4 md:p-6 space-y-6"
       >
-        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm overflow-hidden min-h-96 lg:h-[max(28rem,calc(100dvh-140px))] flex flex-col">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs overflow-hidden min-h-96 lg:h-[max(28rem,calc(100dvh-140px))] flex flex-col">
           <GmailReaderView
             letter={selectedLetter}
             onBack={() => setSelectedLetter(null)}
@@ -715,12 +715,12 @@ export default function SuratTugasInbox() {
   }
 
   return (
-    <div data-module="surat-tugas" className="st-ui st-page-enter p-4 md:p-5 space-y-3.5">
+    <div data-module="surat-tugas" className="st-ui st-page-enter p-4 md:p-6 space-y-4">
       {/* Header Top Section: Title & Compose Button (Matching /kepegawaian/cuti) */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-3.5 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+            <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
               <Inbox className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold text-[var(--ds-fg)]">
@@ -735,7 +735,7 @@ export default function SuratTugasInbox() {
         {/* Compose Button ala Gmail "Tulis" */}
         <button
           onClick={() => router.push("/surat-tugas")}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-md transition-colors shrink-0"
+          className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-xs transition-colors shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Buat Surat Tugas</span>
@@ -754,7 +754,7 @@ export default function SuratTugasInbox() {
       />
 
       {/* Main Gmail Box Container */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl shadow-sm flex flex-col min-h-80 lg:h-[calc(100dvh-210px)]">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xs overflow-hidden flex flex-col min-h-80 lg:h-[calc(100dvh-210px)]">
         {/* Horizontal Status Tabs ala Gmail */}
         <GmailStatusTabs
           activeTab={activeTab}
@@ -805,13 +805,13 @@ export default function SuratTugasInbox() {
             aria-labelledby={`st-status-${activeTab}`}
             aria-busy={isFetching}
             className={`st-inbox-list flex-1 min-w-0 flex flex-col min-h-0 overflow-y-auto custom-scrollbar ${
-              splitView ? "lg:max-w-120 lg:border-r border-[var(--ds-border-subtle)]" : ""
+              splitView ? "lg:max-w-120 lg:border-r border-slate-200/70 dark:border-zinc-800" : ""
             }`}
           >
             <AnimatePresence mode="wait" initial={false}>
               <InboxTabContent key={activeTab} reducedMotion={reducedMotion}>
                 {loading || isPlaceholderData ? (
-                  <div className="divide-y divide-[var(--ds-border-subtle)] animate-pulse p-2">
+                  <div className="divide-y divide-slate-200/70 dark:divide-zinc-800 animate-pulse p-2">
                     {[...Array(10)].map((_, i) => (
                       <div key={i} className="h-11 bg-[var(--ds-surface)] rounded-lg my-1" />
                     ))}
@@ -835,14 +835,14 @@ export default function SuratTugasInbox() {
                     {(hasActiveFilters || debouncedSearch) && (
                       <button
                         onClick={handleResetFilters}
-                        className="st-secondary mt-4 px-4 py-1.5 rounded-xl text-xs font-bold"
+                        className="st-secondary mt-4 px-4 py-2 rounded-lg text-xs font-bold"
                       >
                         Reset Filter
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="divide-y divide-[var(--ds-border-subtle)]">
+                  <div className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                     {letters.map((letter) => (
                       <GmailRowItem
                         key={letter.id}

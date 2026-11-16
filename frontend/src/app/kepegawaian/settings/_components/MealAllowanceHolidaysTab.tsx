@@ -57,9 +57,9 @@ const getBankTheme = (bank: string): BankTheme => {
   const b = bank.toUpperCase();
   if (b.includes("BRI")) {
     return {
-      border: "border-[var(--ds-accent-soft-border)] ",
-      bgBadge: "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border-[var(--ds-accent-soft-border)] ",
-      text: "text-[var(--ds-accent-fg)] ",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
       accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_BRI & PPPK_BRI",
       iconText: "BRI",
@@ -67,9 +67,9 @@ const getBankTheme = (bank: string): BankTheme => {
   }
   if (b.includes("MANDIRI") || b === "MNDRI") {
     return {
-      border: "border-[var(--ds-accent-soft-border)] ",
-      bgBadge: "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border-[var(--ds-accent-soft-border)] ",
-      text: "text-[var(--ds-accent-fg)] ",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
       accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_MNDRI & PPPK_MNDRI",
       iconText: "MNDR",
@@ -77,20 +77,20 @@ const getBankTheme = (bank: string): BankTheme => {
   }
   if (b.includes("BSI")) {
     return {
-      border: "border-[var(--ds-status-success-border)] ",
-      bgBadge: "bg-[var(--ds-status-success-bg)]  text-[var(--ds-status-success-fg)]  border-[var(--ds-status-success-border)] ",
-      text: "text-[var(--ds-status-success-fg)] ",
-      accent: "bg-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-fg)] text-[var(--ds-accent-on-solid)]",
+      border: "border-[var(--ds-status-success-border)]",
+      bgBadge: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]",
+      text: "text-[var(--ds-status-success-fg)]",
+      accent: "bg-emerald-600 hover:bg-emerald-700 text-white",
       tag: "PNS_BSI & PPPK_BSI",
       iconText: "BSI",
     };
   }
   if (b.includes("KALTIM") || b.includes("BPD")) {
     return {
-      border: "border-[var(--ds-status-warning-border)] ",
-      bgBadge: "bg-[var(--ds-status-warning-bg)]  text-[var(--ds-status-warning-fg)]  border-[var(--ds-status-warning-border)] ",
-      text: "text-[var(--ds-status-warning-fg)] ",
-      accent: "bg-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-fg)] text-[var(--ds-accent-on-solid)]",
+      border: "border-[var(--ds-status-warning-border)]",
+      bgBadge: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]",
+      text: "text-[var(--ds-status-warning-fg)]",
+      accent: "bg-amber-600 hover:bg-amber-700 text-white",
       tag: "PNS_KALTIM & PPPK_KALTIM",
       iconText: "BPD",
     };
@@ -100,16 +100,16 @@ const getBankTheme = (bank: string): BankTheme => {
       border: "border-orange-200 dark:border-orange-900/60",
       bgBadge: "bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800",
       text: "text-orange-700 dark:text-orange-400",
-      accent: "bg-orange-600 hover:bg-orange-700 text-[var(--ds-accent-on-solid)]",
+      accent: "bg-orange-600 hover:bg-orange-700 text-white",
       tag: "PNS_BNI & PPPK_BNI",
       iconText: "BNI",
     };
   }
   if (b.includes("BCA")) {
     return {
-      border: "border-[var(--ds-accent-soft-border)] ",
-      bgBadge: "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border-[var(--ds-accent-soft-border)] ",
-      text: "text-[var(--ds-accent-fg)] ",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
       accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_BCA & PPPK_BCA",
       iconText: "BCA",
@@ -117,9 +117,9 @@ const getBankTheme = (bank: string): BankTheme => {
   }
   const clean = b.replace(/[^A-Z0-9]/g, "");
   return {
-    border: "border-[var(--ds-accent-soft-border)] ",
-    bgBadge: "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border-[var(--ds-accent-soft-border)] ",
-    text: "text-[var(--ds-accent-fg)] ",
+    border: "border-[var(--ds-accent-soft-border)]",
+    bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+    text: "text-[var(--ds-accent-fg)]",
     accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
     tag: `PNS_${clean.slice(0, 5)} & PPPK_${clean.slice(0, 5)}`,
     iconText: clean.slice(0, 4) || "BANK",
@@ -450,37 +450,37 @@ export function MealAllowanceHolidaysTab() {
   return (
     <div className="space-y-6">
       {/* Sub Tab Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] pb-3">
-        <div {...subTabs.tabListProps} className="flex max-w-full flex-wrap items-center gap-2 bg-[var(--ds-surface-muted)] p-1 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+        <div {...subTabs.tabListProps} className="flex max-w-full flex-wrap items-center gap-2 bg-[var(--ds-surface-muted)] p-2 rounded-3xl">
           <button
             type="button"
             onClick={() => setSubTab("holidays")}
             {...subTabs.tabProps("holidays")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
+            className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
               subTab === "holidays"
-                ? "bg-[var(--ds-surface)]  text-[var(--ds-accent-fg)]  shadow-2xs"
-                : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] "
+                ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
+            <Calendar className="w-4 h-4" />
             Hari Libur Nasional &amp; SKB
           </button>
           <button
             type="button"
             onClick={() => setSubTab("banks")}
             {...subTabs.tabProps("banks")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
+            className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
               subTab === "banks"
-                ? "bg-[var(--ds-surface)]  text-[var(--ds-accent-fg)]  shadow-2xs"
-                : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)] "
+                ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
             }`}
           >
-            <Landmark className="w-3.5 h-3.5" />
+            <Landmark className="w-4 h-4" />
             Alokasi Rekening Bank Pegawai
           </button>
         </div>
 
-        <div className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-1.5">
+        <div className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
           <span>Pengaturan tersinkronisasi otomatis dengan modul Uang Makan</span>
         </div>
@@ -496,7 +496,7 @@ export function MealAllowanceHolidaysTab() {
           {/* Header Controls */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Year Selector */}
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col justify-between">
               <div>
                 <span className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Pilih Tahun Kalender
@@ -507,10 +507,10 @@ export function MealAllowanceHolidaysTab() {
                       key={yr}
                       type="button"
                       onClick={() => setSelectedYear(yr)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                         selectedYear === yr
                           ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs"
-                          : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg)]  hover:bg-[var(--ds-surface-muted)]"
+                          : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                       }`}
                     >
                       {yr}
@@ -522,22 +522,22 @@ export function MealAllowanceHolidaysTab() {
                     max="2050"
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value) || currentYear)}
-                    className="w-20 px-2 py-1 text-xs border border-[var(--ds-border-subtle)] rounded-lg bg-transparent text-[var(--ds-fg)] font-semibold text-center"
+                    className="w-20 px-2 py-1 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-transparent text-[var(--ds-fg)] font-semibold text-center"
                     placeholder="Tahun" aria-label="Tahun"
                   />
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
+              <div className="mt-3 pt-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
                 <span>Total Hari Libur ({selectedYear}):</span>
-                <span className="font-bold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-full">
+                <span className="font-bold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full">
                   {holidays.length} hari
                 </span>
               </div>
             </div>
 
             {/* Quick Add Form */}
-            <div className="md:col-span-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 shadow-2xs">
+            <div className="md:col-span-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
               <span className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider block mb-2">
                 Tambah Hari Libur Nasional / Cuti Bersama Kustom
               </span>
@@ -551,7 +551,7 @@ export function MealAllowanceHolidaysTab() {
                     required
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]"
                   />
                 </div>
 
@@ -565,17 +565,17 @@ export function MealAllowanceHolidaysTab() {
                     placeholder="Misal: Cuti Bersama Tambahan BKSDA"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Misal: Cuti Bersama Tambahan BKSDA"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Misal: Cuti Bersama Tambahan BKSDA"
                   />
                 </div>
 
                 <div className="sm:col-span-2 flex items-center h-8">
-                  <label className="inline-flex items-center gap-1.5 text-xs text-[var(--ds-fg)] cursor-pointer">
+                  <label className="inline-flex items-center gap-2 text-xs text-[var(--ds-fg)] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newIsCutiBersama}
                       onChange={(e) => setNewIsCutiBersama(e.target.checked)}
-                      className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)]" aria-label="Cuti Bersama"
+                      className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-[var(--ds-accent-fg)] focus:ring-[var(--ds-accent-soft-border)]" aria-label="Cuti Bersama"
                     />
                     <span className="text-xs">Cuti Bersama</span>
                   </label>
@@ -585,9 +585,9 @@ export function MealAllowanceHolidaysTab() {
                   <button
                     type="submit"
                     disabled={isSubmittingHoliday}
-                    className="w-full px-3 py-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     Simpan
                   </button>
                 </div>
@@ -596,8 +596,8 @@ export function MealAllowanceHolidaysTab() {
           </div>
 
           {/* Holiday Table */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-2xs">
-            <div className="p-4 border-b border-[var(--ds-border-subtle)] flex items-center justify-between">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="p-4 border-b border-slate-200/70 dark:border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                 <h3 className="text-sm font-bold text-[var(--ds-fg)]">
@@ -607,25 +607,25 @@ export function MealAllowanceHolidaysTab() {
               <button
                 type="button"
                 onClick={() => fetchHolidays(selectedYear)}
-                className="p-1.5 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg transition"
+                className="p-2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg transition"
                 title="Refresh"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingHolidays ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 ${loadingHolidays ? "animate-spin" : ""}`} />
               </button>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-[var(--ds-fg-muted)]">
-                <thead className="bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-[var(--ds-border-subtle)]">
+                <thead className="bg-slate-50/70 dark:bg-zinc-800/30 text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-slate-200/70 dark:border-zinc-800">
                   <tr>
-                    <th className="py-2.5 px-4 w-12 text-center">No</th>
-                    <th className="py-2.5 px-4 w-36">Tanggal</th>
-                    <th className="py-2.5 px-4">Nama Hari Libur</th>
-                    <th className="py-2.5 px-4 w-40 text-center">Kategori</th>
-                    <th className="py-2.5 px-4 w-28 text-center">Aksi</th>
+                    <th className="py-3 px-4 w-12 text-center">No</th>
+                    <th className="py-3 px-4 w-36">Tanggal</th>
+                    <th className="py-3 px-4">Nama Hari Libur</th>
+                    <th className="py-3 px-4 w-40 text-center">Kategori</th>
+                    <th className="py-3 px-4 w-28 text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                   {loadingHolidays ? (
                     <tr>
                       <td colSpan={5} className="py-8 text-center text-[var(--ds-fg-muted)]">
@@ -651,37 +651,37 @@ export function MealAllowanceHolidaysTab() {
                       });
 
                       return (
-                        <tr key={h.tanggal} className="hover:bg-[var(--ds-surface)] transition">
-                          <td className="py-2.5 px-4 text-center text-[var(--ds-fg-muted)] font-mono">{idx + 1}</td>
-                          <td className="py-2.5 px-4 font-semibold text-[var(--ds-fg)] whitespace-nowrap">
+                        <tr key={h.tanggal} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition">
+                          <td className="py-3 px-4 text-center text-[var(--ds-fg-muted)] font-mono">{idx + 1}</td>
+                          <td className="py-3 px-4 font-semibold text-[var(--ds-fg)] whitespace-nowrap">
                             {formattedDate}
                           </td>
-                          <td className="py-2.5 px-4 text-[var(--ds-fg)]">{h.nama}</td>
-                          <td className="py-2.5 px-4 text-center">
+                          <td className="py-3 px-4 text-[var(--ds-fg)]">{h.nama}</td>
+                          <td className="py-3 px-4 text-center">
                             {h.is_cuti_bersama ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                                 Cuti Bersama
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]">
                                 Libur Nasional
                               </span>
                             )}
                             {h.is_custom && (
-                              <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+                              <span className="ml-1 inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                                 Kustom
                               </span>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-center">
+                          <td className="py-3 px-4 text-center">
                             {h.id ? (
                               <button
                                 type="button"
                                 onClick={() => handleDeleteHoliday(h.id)}
-                                className="p-1 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded transition cursor-pointer"
+                                className="p-1 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg transition cursor-pointer"
                                 title="Hapus hari libur kustom"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             ) : (
                               <span className="text-xs text-[var(--ds-fg-muted)] italic">Kalender Resmi</span>
@@ -704,14 +704,14 @@ export function MealAllowanceHolidaysTab() {
       {subTab === "banks" && (
         <div className="space-y-5">
           {/* Modular Bank Cards - Otomatis Bertambah Setiap Ada Bank Baru */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Card 1: Total Pegawai */}
             <div
               onClick={() => setFilterBank("all")}
-              className={`bg-[var(--ds-surface)]  border rounded-2xl p-4 shadow-2xs flex flex-col justify-between cursor-pointer transition-colors ${
+              className={`bg-[var(--ds-surface)] border rounded-3xl p-4 shadow-xs flex flex-col justify-between cursor-pointer transition-colors ${
                 filterBank === "all"
-                  ? "ring-2 ring-[var(--ds-accent-soft-border)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] "
-                  : "border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)]"
+                  ? "ring-2 ring-[var(--ds-accent-soft-border)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]"
+                  : "border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
               }`}
             >
               <div className="flex items-start justify-between">
@@ -719,15 +719,15 @@ export function MealAllowanceHolidaysTab() {
                   <span className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                     Total Pegawai
                   </span>
-                  <p className="text-2xl font-black text-[var(--ds-fg)] mt-0.5">
+                  <p className="text-2xl font-black text-[var(--ds-fg)] mt-1">
                     {employees.length}
                   </p>
                 </div>
-                <div className="w-9 h-9 rounded-xl bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-fg-muted)] shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-fg-muted)] shrink-0">
                   <Users className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2 pt-2 border-t border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
+              <div className="mt-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
                 <span>Seluruh Pegawai Aktif</span>
                 <span className="font-semibold text-[var(--ds-accent-fg)]">Semua</span>
               </div>
@@ -743,10 +743,10 @@ export function MealAllowanceHolidaysTab() {
                 <div
                   key={b}
                   onClick={() => setFilterBank(isSelected ? "all" : b)}
-                  className={`bg-[var(--ds-surface)]  border rounded-2xl p-4 shadow-2xs flex flex-col justify-between cursor-pointer transition-colors ${
+                  className={`bg-[var(--ds-surface)] border rounded-3xl p-4 shadow-xs flex flex-col justify-between cursor-pointer transition-colors ${
                     isSelected
-                      ? `ring-2 ring-[var(--ds-accent-soft-border)] ${theme.border} bg-[var(--ds-surface)] `
-                      : `${theme.border} hover:shadow-xs hover:border-[var(--ds-border-subtle)]`
+                      ? `ring-2 ring-[var(--ds-accent-soft-border)] ${theme.border} bg-[var(--ds-surface)]`
+                      : `${theme.border} hover:border-slate-300 dark:hover:border-zinc-700`
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -754,11 +754,11 @@ export function MealAllowanceHolidaysTab() {
                       <span className={`text-xs font-bold uppercase tracking-wider ${theme.text}`}>
                         Bank {b}
                       </span>
-                      <p className={`text-2xl font-black mt-0.5 ${theme.text}`}>
+                      <p className={`text-2xl font-black mt-1 ${theme.text}`}>
                         {count}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {count === 0 && (
                         <button
                           type="button"
@@ -766,15 +766,15 @@ export function MealAllowanceHolidaysTab() {
                           className="w-7 h-7 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] flex items-center justify-center transition cursor-pointer"
                           title={`Hapus Bank ${b} (tidak terpakai / 0 pegawai)`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs border ${theme.bgBadge}`}>
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-black text-xs border ${theme.bgBadge}`}>
                         {theme.iconText}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
+                  <div className="mt-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
                     <span className="truncate pr-1">{theme.tag}</span>
                     <span className="font-bold text-[var(--ds-fg)] shrink-0">
                       {employees.length > 0 ? `${((count / employees.length) * 100).toFixed(0)}%` : "0%"}
@@ -788,9 +788,9 @@ export function MealAllowanceHolidaysTab() {
             <button
               type="button"
               onClick={() => setIsAddBankModalOpen(true)}
-              className="border-2 border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer group min-h-[105px]"
+              className="border-2 border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] rounded-3xl p-4 flex flex-col items-center justify-center gap-2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer group min-h-[105px]"
             >
-              <div className="w-9 h-9 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+              <div className="w-9 h-9 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                 <Plus className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               </div>
               <div className="text-center">
@@ -801,25 +801,25 @@ export function MealAllowanceHolidaysTab() {
           </div>
 
           {/* Filtering & Batch Action Bar */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 shadow-2xs space-y-3">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs space-y-3">
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
               {/* Search & Filters */}
-              <div className="flex flex-wrap items-center gap-2.5 flex-1">
+              <div className="flex flex-wrap items-center gap-3 flex-1">
                 <div className="relative flex-1 min-w-[200px] max-w-sm">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
                   <input
                     type="text"
                     placeholder="Cari NIP atau Nama..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Cari NIP atau Nama..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Cari NIP atau Nama..."
                   />
                 </div>
 
                 <select
                   value={filterGroup}
                   onChange={(e) => setFilterGroup(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)]" aria-label="Filter kelompok pegawai"
+                  className="px-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)]" aria-label="Filter kelompok pegawai"
                 >
                   <option value="all">Semua Status (PNS, PPPK &amp; MMP)</option>
                   <option value="PNS">Hanya PNS</option>
@@ -830,7 +830,7 @@ export function MealAllowanceHolidaysTab() {
                 <select
                   value={filterBank}
                   onChange={(e) => setFilterBank(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)]" aria-label="Filter bank"
+                  className="px-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)]" aria-label="Filter bank"
                 >
                   <option value="all">Semua Bank ({employees.length})</option>
                   {registeredBanks.map((b) => (
@@ -845,16 +845,16 @@ export function MealAllowanceHolidaysTab() {
               <button
                 type="button"
                 onClick={fetchEmployees}
-                className="px-3 py-1.5 text-xs rounded-xl border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-semibold flex items-center justify-center gap-1.5 transition"
+                className="kpg-secondary px-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] font-semibold flex items-center justify-center gap-2 transition"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingEmployees ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 ${loadingEmployees ? "animate-spin" : ""}`} />
                 Segarkan
               </button>
             </div>
 
             {/* Batch Action Floating Pill when items are selected */}
             {selectedEmployeeIds.length > 0 && (
-              <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl p-3 flex flex-wrap items-center justify-between gap-3   ">
+              <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-accent-fg)]">
                   <span className="w-5 h-5 rounded-full bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] flex items-center justify-center text-xs">
                     {selectedEmployeeIds.length}
@@ -881,7 +881,7 @@ export function MealAllowanceHolidaysTab() {
                         type="button"
                         disabled={isUpdatingBatch}
                         onClick={() => handleBatchUpdateBank(b)}
-                        className={`px-2.5 py-1 ${theme.accent} rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50`}
+                        className={`px-3 py-1 ${theme.accent} rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50`}
                       >
                         {b}
                       </button>
@@ -890,7 +890,7 @@ export function MealAllowanceHolidaysTab() {
                   <button
                     type="button"
                     onClick={() => setIsAddBankModalOpen(true)}
-                    className="px-2.5 py-1 border border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                    className="kpg-secondary px-3 py-1 border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1"
                   >
                     <Plus className="w-3 h-3" />
                     + Bank Lain
@@ -908,12 +908,12 @@ export function MealAllowanceHolidaysTab() {
           </div>
 
           {/* Employee Table */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-2xs">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-[var(--ds-fg-muted)]">
-                <thead className="bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-[var(--ds-border-subtle)]">
+                <thead className="bg-slate-50/70 dark:bg-zinc-800/30 text-[var(--ds-fg-muted)] uppercase tracking-wider font-semibold border-b border-slate-200/70 dark:border-zinc-800">
                   <tr>
-                    <th className="py-2.5 px-3 w-10 text-center">
+                    <th className="py-3 px-3 w-10 text-center">
                       <button
                         type="button"
                         onClick={handleSelectAllVisible}
@@ -926,23 +926,23 @@ export function MealAllowanceHolidaysTab() {
                         {isAllVisibleSelected ? (
                           <CheckSquare className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                         ) : isSomeVisibleSelected ? (
-                          <div className="w-4 h-4 rounded border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] flex items-center justify-center">
-                            <span className="w-2 h-0.5 bg-[var(--ds-accent-solid)] rounded-full" />
+                          <div className="w-4 h-4 rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] flex items-center justify-center">
+                            <span className="w-2 h-1 bg-[var(--ds-accent-solid)] rounded-full" />
                           </div>
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
                       </button>
                     </th>
-                    <th className="py-2.5 px-4">Nama Pegawai &amp; NIP</th>
-                    <th className="py-2.5 px-4">Status &amp; Jabatan</th>
-                    <th className="py-2.5 px-4 text-center">Bank Pembayaran</th>
-                    <th className="py-2.5 px-4">Nomor Rekening</th>
-                    <th className="py-2.5 px-4">Nomor HP</th>
-                    <th className="py-2.5 px-4 text-center w-24">Aksi</th>
+                    <th className="py-3 px-4">Nama Pegawai &amp; NIP</th>
+                    <th className="py-3 px-4">Status &amp; Jabatan</th>
+                    <th className="py-3 px-4 text-center">Bank Pembayaran</th>
+                    <th className="py-3 px-4">Nomor Rekening</th>
+                    <th className="py-3 px-4">Nomor HP</th>
+                    <th className="py-3 px-4 text-center w-24">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                   {loadingEmployees ? (
                     <tr>
                       <td colSpan={7} className="py-8 text-center text-[var(--ds-fg-muted)]">
@@ -966,11 +966,11 @@ export function MealAllowanceHolidaysTab() {
                       return (
                         <tr
                           key={emp.id}
-                          className={`hover:bg-[var(--ds-surface)]  transition ${
-                            isSelected ? "bg-[var(--ds-accent-soft)] " : ""
+                          className={`hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition ${
+                            isSelected ? "bg-[var(--ds-accent-soft)]" : ""
                           }`}
                         >
-                          <td className="py-2.5 px-3 text-center">
+                          <td className="py-3 px-3 text-center">
                             <button
                               type="button"
                               onClick={() => handleToggleSelect(emp.id)}
@@ -986,52 +986,52 @@ export function MealAllowanceHolidaysTab() {
                               )}
                             </button>
                           </td>
-                          <td className="py-2.5 px-4">
+                          <td className="py-3 px-4">
                             <p className="font-bold text-[var(--ds-fg)]">{emp.nama}</p>
                             <p className="text-xs font-mono text-[var(--ds-fg-muted)]">{emp.nip}</p>
                           </td>
-                          <td className="py-2.5 px-4">
-                            <div className="flex items-center gap-1.5">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
                               <span
-                                className={`px-1.5 py-0.5 rounded text-xs font-extrabold ${
+                                className={`px-2 py-1 rounded-full text-xs font-extrabold ${
                                   emp.jenis_pegawai === "PPPK"
-                                    ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
+                                    ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                                     : emp.jenis_pegawai === "MMP"
-                                    ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  "
-                                    : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  "
+                                    ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]"
+                                    : "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]"
                                 }`}
                               >
                                 {emp.jenis_pegawai}
                               </span>
                               <span className="text-xs text-[var(--ds-fg-muted)]">{emp.golongan}</span>
                             </div>
-                            <p className="text-xs text-[var(--ds-fg-muted)] truncate max-w-xs mt-0.5">
+                            <p className="text-xs text-[var(--ds-fg-muted)] truncate max-w-xs mt-1">
                               {emp.jabatan}
                             </p>
                           </td>
-                          <td className="py-2.5 px-4 text-center">
+                          <td className="py-3 px-4 text-center">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${theme.bgBadge} ${theme.border} ${theme.text}`}
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${theme.bgBadge} ${theme.border} ${theme.text}`}
                             >
                               <Building2 className="w-3 h-3" />
                               {bankName}
                             </span>
                           </td>
-                          <td className="py-2.5 px-4 font-mono text-[var(--ds-fg)]">
+                          <td className="py-3 px-4 font-mono text-[var(--ds-fg)]">
                             {emp.nomor_rekening && emp.nomor_rekening !== "-" ? (
                               emp.nomor_rekening
                             ) : (
                               <span className="text-[var(--ds-fg-muted)] italic">Belum diatur</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-[var(--ds-fg)]">
+                          <td className="py-3 px-4 text-[var(--ds-fg)]">
                             {emp.telepon && emp.telepon !== "-" ? (
                               emp.telepon
                             ) : (
                               <span className="text-[var(--ds-fg-muted)] italic">Belum diatur</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-center">
+                          <td className="py-3 px-4 text-center">
                             <button
                               type="button"
                               onClick={() => {
@@ -1040,7 +1040,7 @@ export function MealAllowanceHolidaysTab() {
                                 setEditRek(emp.nomor_rekening && emp.nomor_rekening !== "-" ? emp.nomor_rekening : "");
                                 setEditHp(emp.telepon && emp.telepon !== "-" ? emp.telepon : "");
                               }}
-                              className="px-2 py-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-surface-muted)] rounded text-xs font-semibold flex items-center gap-1 mx-auto cursor-pointer transition"
+                              className="px-2 py-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto cursor-pointer transition"
                             >
                               <Edit2 className="w-3 h-3" />
                               Edit
@@ -1055,7 +1055,7 @@ export function MealAllowanceHolidaysTab() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="px-5 py-3.5 border-t border-[var(--ds-border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3 bg-[var(--ds-surface)] text-xs">
+            <div className="px-5 py-3 border-t border-slate-200/70 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[var(--ds-surface)] text-xs">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[var(--ds-fg-muted)]">Tampilkan:</span>
@@ -1065,7 +1065,7 @@ export function MealAllowanceHolidaysTab() {
                       setPerPage(e.target.value);
                       setPage(1);
                     }}
-                    className="px-2.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs font-bold text-[var(--ds-fg)] outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Jumlah per halaman"
+                    className="px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs font-bold text-[var(--ds-fg)] outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] cursor-pointer" aria-label="Jumlah per halaman"
                   >
                     <option value="10">10 baris</option>
                     <option value="20">20 baris</option>
@@ -1083,12 +1083,12 @@ export function MealAllowanceHolidaysTab() {
               </div>
 
               {perPage !== "all" && totalPages > 1 && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setPage(1)}
                     disabled={safePage === 1}
-                    className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--ds-surface)] transition cursor-pointer"
+                    className="kpg-secondary p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     title="Halaman Pertama"
                   >
                     <ChevronsLeft className="w-4 h-4" />
@@ -1097,9 +1097,9 @@ export function MealAllowanceHolidaysTab() {
                     type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={safePage === 1}
-                    className="px-3 py-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-bold text-[var(--ds-fg)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--ds-surface)] transition flex items-center gap-1 cursor-pointer"
+                    className="kpg-secondary px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-bold text-[var(--ds-fg)] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <ChevronLeft className="w-4 h-4" />
                     <span>Sebelumnya</span>
                   </button>
 
@@ -1122,8 +1122,8 @@ export function MealAllowanceHolidaysTab() {
                               onClick={() => setPage(p)}
                               className={`w-7 h-7 rounded-lg text-xs font-bold transition flex items-center justify-center cursor-pointer ${
                                 safePage === p
-                                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-2xs"
-                                  : "text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface-muted)] "
+                                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs"
+                                  : "text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]"
                               }`}
                             >
                               {p}
@@ -1137,16 +1137,16 @@ export function MealAllowanceHolidaysTab() {
                     type="button"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={safePage >= totalPages}
-                    className="px-3 py-1.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-bold text-[var(--ds-fg)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--ds-surface)] transition flex items-center gap-1 cursor-pointer"
+                    className="kpg-secondary px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-bold text-[var(--ds-fg)] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer"
                   >
                     <span>Berikutnya</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setPage(totalPages)}
                     disabled={safePage >= totalPages}
-                    className="p-1.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--ds-surface)] transition cursor-pointer"
+                    className="kpg-secondary p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
                     title="Halaman Terakhir"
                   >
                     <ChevronsRight className="w-4 h-4" />
@@ -1168,16 +1168,16 @@ export function MealAllowanceHolidaysTab() {
       {isAddBankModalOpen && (
         <KepegawaianDialog title="Kelola bank pembayaran" onClose={() => setIsAddBankModalOpen(false)} busy={false} className="sm:max-w-lg">
           <div className="w-full p-6 space-y-5 duration-150">
-            <div className="flex items-start justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
+            <div className="flex items-start justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
                   <Landmark className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-[var(--ds-fg)]">
+                  <h4 className="text-xl font-bold text-[var(--ds-fg)]">
                     Kelola Opsi Bank Pembayaran
                   </h4>
-                  <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                     Daftarkan bank baru atau hapus bank yang tidak dipakai
                   </p>
                 </div>
@@ -1192,31 +1192,31 @@ export function MealAllowanceHolidaysTab() {
             </div>
 
             {/* Modal Internal Tabs */}
-            <div {...bankTabs.tabListProps} className="flex flex-wrap items-center gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-xl">
+            <div {...bankTabs.tabListProps} className="flex flex-wrap items-center gap-1 bg-[var(--ds-surface-muted)] p-2 rounded-3xl">
               <button
                 type="button"
                 onClick={() => setBankModalTab("add")}
                 {...bankTabs.tabProps("add")}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                   bankModalTab === "add"
-                    ? "bg-[var(--ds-surface)]  text-[var(--ds-accent-fg)] shadow-2xs"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)]"
+                    ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 Daftarkan Bank Baru
               </button>
               <button
                 type="button"
                 onClick={() => setBankModalTab("manage")}
                 {...bankTabs.tabProps("manage")}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                   bankModalTab === "manage"
-                    ? "bg-[var(--ds-surface)]  text-[var(--ds-accent-fg)] shadow-2xs"
-                    : "text-[var(--ds-fg-muted)]  hover:text-[var(--ds-fg)]"
+                    ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
-                <Building2 className="w-3.5 h-3.5" />
+                <Building2 className="w-4 h-4" />
                 Daftar Bank Terdaftar ({registeredBanks.length})
               </button>
             </div>
@@ -1242,13 +1242,13 @@ export function MealAllowanceHolidaysTab() {
                         key={item.name}
                         type="button"
                         onClick={() => setNewBankInput(item.name)}
-                        className={`px-3 py-2 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                        className={`px-3 py-2 rounded-lg border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
                           newBankInput.toUpperCase() === item.name
-                            ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
-                            : "border-[var(--ds-border-subtle)]  text-[var(--ds-fg)] hover:bg-[var(--ds-surface)]  "
+                            ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] hover:bg-[var(--ds-surface)]"
                         }`}
                       >
-                        <Building2 className="w-3.5 h-3.5" />
+                        <Building2 className="w-4 h-4" />
                         <span>{item.name}</span>
                       </button>
                     ))}
@@ -1256,7 +1256,7 @@ export function MealAllowanceHolidaysTab() {
                 </div>
 
                 {/* Custom Input */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label className="text-xs font-semibold text-[var(--ds-fg)] block">
                     Nama / Singkatan Bank Baru
                   </label>
@@ -1265,7 +1265,7 @@ export function MealAllowanceHolidaysTab() {
                     placeholder="Misal: BSI, BANKALTIMTARA, BNI, BCA..."
                     value={newBankInput}
                     onChange={(e) => setNewBankInput(e.target.value.toUpperCase())}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] font-bold uppercase focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none" aria-label="Misal: BSI, BANKALTIMTARA, BNI, BCA..."
+                    className="w-full px-4 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] font-bold uppercase focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none" aria-label="Misal: BSI, BANKALTIMTARA, BNI, BCA..."
                   />
                   <p className="text-xs text-[var(--ds-fg-muted)]">
                     Otomatis membuat sheet presensi terpisah: misal <code className="font-mono text-[var(--ds-accent-fg)]">PNS_{newBankInput || "BSI"}</code> &amp; <code className="font-mono text-[var(--ds-accent-fg)]">Nominatif {newBankInput || "BSI"}</code>.
@@ -1273,11 +1273,11 @@ export function MealAllowanceHolidaysTab() {
                 </div>
 
                 {/* Actions */}
-                <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-end gap-2.5">
+                <div className="pt-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setIsAddBankModalOpen(false)}
-                    className="px-4 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-xl"
+                    className="kpg-secondary border border-slate-200/80 dark:border-zinc-800 px-4 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] rounded-lg"
                   >
                     Batal
                   </button>
@@ -1285,9 +1285,9 @@ export function MealAllowanceHolidaysTab() {
                     type="button"
                     disabled={!newBankInput.trim()}
                     onClick={() => handleRegisterNewBank(newBankInput)}
-                    className="px-4 py-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                    className="px-4 py-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     Daftarkan Bank
                   </button>
                 </div>
@@ -1297,7 +1297,7 @@ export function MealAllowanceHolidaysTab() {
                 <p className="text-xs text-[var(--ds-fg-muted)]">
                   Bank yang sedang digunakan oleh pegawai tidak dapat dihapus demi menjaga integritas data presensi dan laporan Excel.
                 </p>
-                <div className="divide-y divide-[var(--ds-border-subtle)] border border-[var(--ds-border-subtle)] rounded-2xl max-h-64 overflow-y-auto">
+                <div className="divide-y divide-slate-200/70 dark:divide-zinc-800 border border-slate-200/80 dark:border-zinc-800 rounded-3xl max-h-64 overflow-y-auto">
                   {registeredBanks.map((b) => {
                     const theme = getBankTheme(b);
                     const count = bankStats[b.toUpperCase()] || 0;
@@ -1306,10 +1306,10 @@ export function MealAllowanceHolidaysTab() {
                     return (
                       <div
                         key={b}
-                        className="p-3 flex items-center justify-between hover:bg-[var(--ds-surface)] transition"
+                        className="p-3 flex items-center justify-between hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs border ${theme.bgBadge}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border ${theme.bgBadge}`}>
                             {theme.iconText}
                           </div>
                           <div>
@@ -1324,11 +1324,11 @@ export function MealAllowanceHolidaysTab() {
 
                         <div className="flex items-center gap-3">
                           {count > 0 ? (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
+                            <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                               {count} Pegawai Aktif
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
+                            <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                               0 Pegawai
                             </span>
                           )}
@@ -1337,7 +1337,7 @@ export function MealAllowanceHolidaysTab() {
                             <button
                               type="button"
                               onClick={() => handleRemoveRegisteredBank(b)}
-                              className="px-2.5 py-1 text-xs font-bold text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-danger-on-solid)] hover:bg-[var(--ds-danger-solid)] border border-[var(--ds-status-danger-border)] hover:border-[var(--ds-status-danger-border)] rounded-lg transition flex items-center gap-1 cursor-pointer"
+                              className="px-3 py-1 text-xs font-bold text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-danger-on-solid)] hover:bg-[var(--ds-danger-solid)] border border-[var(--ds-status-danger-border)] hover:border-[var(--ds-status-danger-border)] rounded-lg transition flex items-center gap-1 cursor-pointer"
                               title="Hapus bank ini dari daftar"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -1357,11 +1357,11 @@ export function MealAllowanceHolidaysTab() {
                   })}
                 </div>
 
-                <div className="pt-2 border-t border-[var(--ds-border-subtle)] flex justify-end">
+                <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800 flex justify-end">
                   <button
                     type="button"
                     onClick={() => setIsAddBankModalOpen(false)}
-                    className="px-4 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-xl"
+                    className="kpg-secondary border border-slate-200/80 dark:border-zinc-800 px-4 py-2 text-xs font-semibold text-[var(--ds-fg-muted)] rounded-lg"
                   >
                     Tutup
                   </button>
@@ -1379,17 +1379,17 @@ export function MealAllowanceHolidaysTab() {
       {editingEmp && (
         <KepegawaianDialog title="Edit rekening pegawai" onClose={() => setEditingEmp(null)} busy={false} className="sm:max-w-md">
           <div className="w-full p-5 space-y-4 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800">
               <div>
-                <h4 className="text-sm font-bold text-[var(--ds-fg)]">
+                <h4 className="text-xl font-bold text-[var(--ds-fg)]">
                   Edit Rekening Pegawai
                 </h4>
-                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">{editingEmp.nama}</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">{editingEmp.nama}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingEmp(null)}
-                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] p-1" aria-label="Tutup"
+                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] p-1 rounded-lg" aria-label="Tutup"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1406,13 +1406,13 @@ export function MealAllowanceHolidaysTab() {
                       key={b}
                       type="button"
                       onClick={() => setEditBank(b)}
-                      className={`py-1.5 px-3 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      className={`py-2 px-3 rounded-lg border text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
                         editBank.toUpperCase() === b.toUpperCase()
-                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
-                          : "border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface)] "
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface)]"
                       }`}
                     >
-                      <Building2 className="w-3.5 h-3.5" />
+                      <Building2 className="w-4 h-4" />
                       {b}
                     </button>
                   ))}
@@ -1427,13 +1427,13 @@ export function MealAllowanceHolidaysTab() {
                   Nomor Rekening
                 </label>
                 <div className="relative">
-                  <CreditCard className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
+                  <CreditCard className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
                   <input
                     type="text"
                     placeholder="Contoh: 0123-01-000123-50-1"
                     value={editRek}
                     onChange={(e) => setEditRek(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor Rekening"
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor Rekening"
                   />
                 </div>
               </div>
@@ -1443,32 +1443,32 @@ export function MealAllowanceHolidaysTab() {
                   Nomor WhatsApp / HP
                 </label>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
+                  <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
                   <input
                     type="text"
                     placeholder="Contoh: 08123456789"
                     value={editHp}
                     onChange={(e) => setEditHp(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor WhatsApp / HP"
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)]" aria-label="Nomor WhatsApp / HP"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setEditingEmp(null)}
-                className="px-3 py-1.5 text-xs text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] rounded-xl"
+                className="kpg-secondary border border-slate-200/80 dark:border-zinc-800 px-3 py-2 text-xs text-[var(--ds-fg-muted)] rounded-lg"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleSaveSingleEdit}
-                className="px-4 py-1.5 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="px-4 py-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer"
               >
-                <Save className="w-3.5 h-3.5" />
+                <Save className="w-4 h-4" />
                 Simpan Perubahan
               </button>
             </div>

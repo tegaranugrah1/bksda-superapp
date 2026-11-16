@@ -106,7 +106,7 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
 
   if (isLoading) {
     return (
-      <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-12 text-center shadow-xs">
+      <div className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-12 text-center shadow-xs">
         <Loader2 className="w-8 h-8 mx-auto text-[var(--ds-accent-fg)] animate-spin mb-3" />
         <p className="text-sm font-semibold text-[var(--ds-fg-muted)]">Memuat riwayat perubahan biodata...</p>
       </div>
@@ -115,7 +115,7 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
 
   if (isError) {
     return (
-      <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-status-danger-border)] p-12 text-center shadow-xs">
+      <div className="bg-[var(--ds-surface)] rounded-3xl border border-[var(--ds-status-danger-border)] p-12 text-center shadow-xs">
         <p className="text-sm font-semibold text-[var(--ds-status-danger-fg)] mb-2">Gagal memuat riwayat perubahan.</p>
         <button
           onClick={() => refetch()}
@@ -129,11 +129,11 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
 
   if (histories.length === 0) {
     return (
-      <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-12 text-center shadow-xs">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--ds-surface)] flex items-center justify-center mb-3 text-[var(--ds-fg-muted)]">
-          <History className="w-7 h-7" />
+      <div className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-12 text-center shadow-xs">
+        <div className="w-12 h-12 mx-auto rounded-lg bg-[var(--ds-surface-muted)] flex items-center justify-center mb-3 text-[var(--ds-fg-muted)]">
+          <History className="w-6 h-6" />
         </div>
-        <h3 className="text-base font-bold text-[var(--ds-fg)] mb-1">
+        <h3 className="text-sm font-bold text-[var(--ds-fg)] mb-1">
           Belum Ada Riwayat Perubahan
         </h3>
         <p className="text-xs text-[var(--ds-fg-muted)] max-w-md mx-auto">
@@ -146,9 +146,9 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
   return (
     <div className="space-y-4">
       {/* Header Info */}
-      <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)]">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)]">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -166,48 +166,48 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
       </div>
 
       {/* Timeline List */}
-      <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-[var(--ds-surface-muted)] dark:before:bg-[var(--ds-fg)]">
+      <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-px before:bg-slate-200/80 dark:before:bg-zinc-800">
         {histories.map((record) => {
           const changeEntries = Object.entries(record.changes || {});
 
           return (
             <div key={record.id} className="relative group">
               {/* Dot Icon */}
-              <div className="absolute -left-6 sm:-left-8 top-1.5 w-6 h-6 rounded-full bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] flex items-center justify-center shadow-xs ring-4 ring-white">
+              <div className="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] flex items-center justify-center shadow-xs ring-4 ring-[var(--ds-surface)]">
                 <History className="w-3 h-3" />
               </div>
 
               {/* Card Container */}
-              <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-5 shadow-xs transition-shadow hover:shadow-md">
+              <div className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs transition-colors hover:border-slate-300 dark:hover:border-zinc-700">
                 {/* Meta Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-[var(--ds-border-subtle)] gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-200/70 dark:border-zinc-800 gap-2">
                   <div className="flex items-center gap-2">
                     <UserCheck className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                     <span className="text-xs font-bold text-[var(--ds-fg)]">
                       {record.user?.name || "Administrator"}
                     </span>
                     {record.user?.username && (
-                      <span className="text-xs font-mono px-2 py-0.5 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] rounded-md">
+                      <span className="text-xs font-mono px-2 py-1 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] rounded-lg">
                         {record.user.username}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-[var(--ds-fg-muted)] text-xs">
-                    <Clock className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-2 text-[var(--ds-fg-muted)] text-xs">
+                    <Clock className="w-4 h-4" />
                     <span>{formatDateTimeIndo(record.created_at)}</span>
                   </div>
                 </div>
 
                 {/* Catatan Tindakan / Administrative Notes */}
                 {record.notes && (
-                  <div className="mb-3 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)]">
-                    <span className="font-bold text-[var(--ds-fg)] mr-1.5">Keterangan:</span>
+                  <div className="mb-3 p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/70 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)]">
+                    <span className="font-bold text-[var(--ds-fg)] mr-2">Keterangan:</span>
                     <span>{record.notes}</span>
                   </div>
                 )}
 
                 {/* Changed Fields Grid */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {changeEntries.map(([field, diff]) => {
                     const label = FIELD_LABELS[field] || field;
                     const oldVal = formatFieldValue(field, diff.old, allLocations);
@@ -216,18 +216,18 @@ export function EmployeeAuditHistoryTab({ employeeId }: EmployeeAuditHistoryTabP
                     return (
                       <div
                         key={field}
-                        className="p-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs"
+                        className="p-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/70 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs"
                       >
                         <span className="font-bold text-[var(--ds-fg)] min-w-36">
                           {label}
                         </span>
 
                         <div className="flex items-center flex-wrap gap-2 grow justify-start md:justify-end">
-                          <span className="px-2.5 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] line-through">
+                          <span className="px-3 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] line-through">
                             {oldVal}
                           </span>
-                          <ArrowRight className="w-3.5 h-3.5 text-[var(--ds-fg-muted)] shrink-0" />
-                          <span className="px-2.5 py-1 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] font-bold border border-[var(--ds-status-success-border)]">
+                          <ArrowRight className="w-4 h-4 text-[var(--ds-fg-muted)] shrink-0" />
+                          <span className="px-3 py-1 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] font-bold border border-[var(--ds-status-success-border)]">
                             {newVal}
                           </span>
                         </div>
