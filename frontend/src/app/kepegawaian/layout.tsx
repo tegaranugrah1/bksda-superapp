@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Users,
@@ -41,7 +41,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/uang-makan", label: "Hitung Uang Makan", icon: UtensilsCrossed, minRole: "admin", group: "Layanan & Persuratan" },
-  { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "user", group: "Layanan & Persuratan" },
+  { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/settings", label: "Setting", icon: Settings, minRole: "super_admin", group: "Konfigurasi" },
 ];
 
@@ -58,6 +58,7 @@ export default function KepegawaianLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const reducedMotion = useReducedMotion();
@@ -76,6 +77,21 @@ export default function KepegawaianLayout({
   }, [isOpen]);
   const { user } = useAuth();
   const { canWrite } = useRole();
+
+  const isRouteForbidden =
+    (pathname.startsWith("/kepegawaian/settings") && user?.role !== "super_admin") ||
+    (!canWrite &&
+      (pathname.startsWith("/kepegawaian/employees/create") ||
+        pathname.startsWith("/kepegawaian/surat-tugas") ||
+        pathname.startsWith("/kepegawaian/cuti") ||
+        pathname.startsWith("/kepegawaian/uang-makan") ||
+        pathname.startsWith("/kepegawaian/surat-masuk")));
+
+  useEffect(() => {
+    if (user && isRouteForbidden) {
+      router.replace("/kepegawaian");
+    }
+  }, [user, isRouteForbidden, router]);
 
   const visibleItems = SIDEBAR_ITEMS.filter((item) => {
     if (item.minRole === "user") return true;
@@ -300,7 +316,7 @@ export default function KepegawaianLayout({
                 transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
                 className="w-full min-h-full"
               >
-                {children}
+                {isRouteForbidden ? null : children}
               </motion.div>
             </AnimatePresence>
           </main>

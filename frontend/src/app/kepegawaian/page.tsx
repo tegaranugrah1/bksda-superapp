@@ -277,96 +277,100 @@ export default function KepegawaianDashboardPage() {
           </div>
         </div>
 
-        {/* Right Column: 2x2 Grid for Surat Tugas, Layanan Cuti, Surat Masuk, Status Keaktifan */}
+        {/* Right Column: 2x2 Grid for Surat Tugas, Layanan Cuti, Surat Masuk (Admin), and Status Keaktifan */}
         <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
-            <Link
-              href="/kepegawaian/surat-tugas/inbox"
-              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-blue-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
-            >
-              <div className="flex items-center justify-between">
-                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
-                  <Inbox className="w-5 h-5" />
-                </div>
-                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
-                  Surat Tugas
-                </span>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {activeStCount}
-                  </p>
-                  <span className="kpg-support-badge text-xs font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
-                    {pendingStCount} Draft/Pending
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                  Surat Tugas Diterbitkan
-                </p>
-              </div>
-            </Link>
-          </motion.div>
+          {canWrite && (
+            <>
+              <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+                <Link
+                  href="/kepegawaian/surat-tugas/inbox"
+                  className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-blue-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="kpg-support-icon w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
+                      <Inbox className="w-5 h-5" />
+                    </div>
+                    <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                      Surat Tugas
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                        {activeStCount}
+                      </p>
+                      <span className="kpg-support-badge text-xs font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                        {pendingStCount} Draft/Pending
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                      Surat Tugas Diterbitkan
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
 
-          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
-            <Link
-              href="/kepegawaian/cuti"
-              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-amber-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
-            >
-              <div className="flex items-center justify-between">
-                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                  Layanan Cuti
-                </span>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {pendingCutiCount}
-                  </p>
-                  <span className="kpg-support-badge text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
-                    {approvedCutiCount} Disetujui
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                  Permohonan Cuti Menunggu
-                </p>
-              </div>
-            </Link>
-          </motion.div>
+              <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+                <Link
+                  href="/kepegawaian/cuti"
+                  className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-amber-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="kpg-support-icon w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                      Layanan Cuti
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                        {pendingCutiCount}
+                      </p>
+                      <span className="kpg-support-badge text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                        {approvedCutiCount} Disetujui
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                      Permohonan Cuti Menunggu
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
 
-          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
-            <Link
-              href="/kepegawaian/surat-masuk"
-              className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-indigo-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
-            >
-              <div className="flex items-center justify-between">
-                <div className="kpg-support-icon w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
-                  <Archive className="w-5 h-5" />
-                </div>
-                <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
-                  Surat Masuk
-                </span>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {totalSuratMasuk}
-                  </p>
-                  <span className="kpg-support-badge text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
-                    {unrepliedSuratMasuk} Belum Dibalas
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
-                  Total Agenda Surat Masuk
-                </p>
-              </div>
-            </Link>
-          </motion.div>
+              <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+                <Link
+                  href="/kepegawaian/surat-masuk"
+                  className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-indigo-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="kpg-support-icon w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-500/20 flex items-center justify-center">
+                      <Archive className="w-5 h-5" />
+                    </div>
+                    <span className="kpg-support-badge text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                      Surat Masuk
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                        {totalSuratMasuk}
+                      </p>
+                      <span className="kpg-support-badge text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
+                        {unrepliedSuratMasuk} Belum Dibalas
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium truncate mt-1">
+                      Total Agenda Surat Masuk
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            </>
+          )}
 
-          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className="h-full">
+          <motion.div whileHover={reducedMotion ? undefined : { y: -3 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.15 }} className={`h-full ${canWrite ? "" : "sm:col-span-2"}`}>
             <Link
               href="/kepegawaian/employees?status=active"
               className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs hover:border-emerald-400/70 transition-colors flex flex-col justify-between cursor-pointer h-full"
@@ -398,9 +402,9 @@ export default function KepegawaianDashboardPage() {
       </div>
 
       {/* 3. Bottom Split Cards (Satker Distribution + Recent ST Feed) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className={`grid grid-cols-1 ${canWrite ? "lg:grid-cols-2" : "lg:grid-cols-1"} gap-4`}>
         <SatkerDistributionCard satkerBreakdown={satkerBreakdown} />
-        <RecentActivitiesFeedCard activities={stList} />
+        {canWrite && <RecentActivitiesFeedCard activities={stList} />}
       </div>
       </div>
     </div>

@@ -2493,3 +2493,37 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - **Playwright [`portal-notifications-live-e2e.playwright.cjs`](file:///e:/bksda-superapp/frontend/tests/portal-notifications-live-e2e.playwright.cjs)**: `9 PASS`, `E2E-LIVE-07 STOPPED / BLOCKED` (`NEXT_PUBLIC_REVERB_APP_KEY` belum dikonfigurasi di `frontend/.env.local`); verifikasi DB sesudahnya tetap `0` di `onlyTrashed()`.
   - **Frontend Build & TypeScript**: `npx tsc --noEmit` (`0` error) dan `cd frontend; npm run build` (`86/86` static pages, exit `0`), serta `graphify update .` selesai.
 - **Status**: ✅ Selesai Diimplementasikan, Diverifikasi, & Di-commit pada `codex/portal-security-pentest`.
+
+
+---
+
+## 115. Implementasi RBAC (`User` vs `Admin` vs `Super Admin`) Modul Persuratan & Kepegawaian (16 November 2026)
+
+- **Dokumen Perencanaan (`/grill-me` Final)**: [`docs/security/rbac-persuratan-dan-kepegawaian-plan-2026-11-16.md`](file:///e:/bksda-superapp/docs/security/rbac-persuratan-dan-kepegawaian-plan-2026-11-16.md)
+- **Keputusan Arsitektur & Implementasi (`/ponytail` + `/security-audit`)**:
+  1. **Engine Permission Terpusat ([`User.php`](file:///e:/bksda-superapp/backend/app/Models/User.php) & [`useRole.ts`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts))**:
+     - Mempertahankan model 1 Role Global (`user` / `admin` / `super_admin`) + `access_modules` tanpa menambah skema tabel baru.
+     - Mengunci `surat.manage`, `kepegawaian.manage`, dan `bmn.asset.force_delete` khusus `super_admin`.
+     - Menyediakan izin pembuatan/pengelolaan Surat Keluar mandiri (`surat.create`, `surat.update`, `surat.delete`, `surat.keluar.*`) bagi `role: user` yang memiliki modul `surat`, sambil mengunci `surat.masuk.*` dan `surat.export` khusus `admin` & `super_admin`.
+  2. **Modul Persuratan (`/surat`)**:
+     - **Backend** ([`Surat/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Routes/api.php), [`SuratKeluarController.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Controllers/SuratKeluarController.php)):
+       - Seluruh route `surat-masuk*` dikunci `role:admin,super_admin`.
+       - Route mutasi `templates*` dikunci `role:super_admin` + `permission:surat.manage` (endpoint `GET /templates` tetap dapat dibaca `user` untuk Tata Naskah Dinas).
+       - `SuratKeluarController::index()` memfilter `where('created_by', $user->id)` untuk `role: user`; `show()`, `update()`, dan `destroy()` memvalidasi kepemilikan `created_by === $user->id` (anti-IDOR `403`).
+     - **Frontend** ([`surat/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/layout.tsx), [`surat/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/page.tsx), [`SuratHubComponents.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratHubComponents.tsx)):
+       - Guard terpusat di `surat/layout.tsx` menyembunyikan menu & me-redirect `user` dari `/surat/masuk*`, `/surat/laporan`, dan `/surat/settings`, serta me-redirect `admin` dari `/surat/settings`.
+       - Dashboard `/surat` bagi `user` hanya memanggil API `/surat/surat-keluar` dan menampilkan metrik, pintasan, serta daftar terbaru Surat Keluar miliknya sendiri.
+  3. **Modul Kepegawaian (`/kepegawaian`) & IAM**:
+     - **Backend** ([`Kepegawaian/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Routes/api.php), [`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php), [`EmployeeLeaveController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php), [`LocationController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/LocationController.php)):
+       - Route `/api/kepegawaian/surat-masuk*` dikunci `role:super_admin,admin`.
+       - Route `DELETE /employees/{id}/force` (`forceDestroy`) dan seluruh mutasi pengaturan di `/kepegawaian/settings` (`st-templates`, `st-expense-templates`, `leave-types`, `st-task-types`, `settings/holidays*`, `settings/employee-banks*`, `settings/registered-banks*`) dikunci khusus `role:super_admin`.
+       - `EmployeeController::index()` & `show()` menyembunyikan `nama_bank`, `nomor_rekening`, dan `inactive_notes` pegawai lain bagi `role: user`; `assignmentLetters()`, `mealAllowances()`, dan `EmployeeLeaveController::show()` menolak akses `role: user` terhadap pegawai lain (`403`), serta `dashboardStats()` menyembunyikan feed ST dan counter inbox internal untuk `role: user`.
+     - **Frontend** ([`kepegawaian/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/layout.tsx), [`kepegawaian/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/page.tsx), [`employees/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/page.tsx), [`employees/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/%5Bid%5D/page.tsx), [`EmployeeAccessSheet.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx)):
+       - Guard terpusat di `kepegawaian/layout.tsx` membatasi `user` hanya pada `Dashboard` & `Daftar Pegawai`, serta membatasi `/kepegawaian/settings` khusus `super_admin`.
+       - Di `employees/[id]/page.tsx`, `user` yang melihat profil pegawai lain hanya melihat tab **Biodata Lengkap** tanpa informasi rekening bank dan tanpa tab ST/Cuti/Uang Makan/Audit.
+       - Tombol **Hapus Permanen** di `employees/page.tsx` dikunci khusus `Super Admin` (`canManageAccess`), dan opsi modul `Keuangan` ditambahkan ke `EmployeeAccessSheet.tsx`.
+- **Verifikasi Aktual**:
+  - **PHPUnit**: [`SuratAndKepegawaianRbacTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/SuratAndKepegawaianRbacTest.php), [`SuratModuleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/SuratModuleTest.php), [`StTemplateTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/StTemplateTest.php), [`MealAllowanceSecurityAndReconciliationTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php), [`PortalPersonalSecurityTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/PortalPersonalSecurityTest.php), [`StKepegawaianSecurityClosureTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/StKepegawaianSecurityClosureTest.php), [`EmployeeAccessLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/EmployeeAccessLifecycleTest.php) -> **`108/108 tests PASSED` (`612 assertions`, `0 failed`)**.
+  - **TypeScript (`tsc --noEmit`)**: **`0 errors`**.
+  - **Knowledge Graph**: `graphify update .` selesai diperbarui.
+- **Status**: ✅ Selesai Diimplementasikan, Diverifikasi, & Di-commit pada `codex/portal-security-pentest`.

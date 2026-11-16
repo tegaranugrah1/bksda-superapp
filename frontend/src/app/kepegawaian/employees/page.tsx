@@ -744,15 +744,17 @@ export default function EmployeeListPage() {
                                   <RotateCcw className="w-3.5 h-3.5" />
                                   <span>{restoringId === emp.id ? "..." : "Pulihkan"}</span>
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleForceDelete(emp)}
-                                  title="Hapus Permanen"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-xl text-[var(--ds-status-danger-fg)] text-xs font-bold transition-colors cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  <span>Hapus Permanen</span>
-                                </button>
+                                {canManageAccess && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleForceDelete(emp)}
+                                    title="Hapus Permanen"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-xl text-[var(--ds-status-danger-fg)] text-xs font-bold transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <span>Hapus Permanen</span>
+                                  </button>
+                                )}
                               </>
                             )
                           ) : (

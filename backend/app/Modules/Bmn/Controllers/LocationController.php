@@ -409,10 +409,7 @@ class LocationController extends Controller
         }
 
         if ($user->role === 'super_admin'
-            || $user->hasPermission('bmn.asset.update')
-            || $user->hasPermission('kepegawaian.edit')
-            || $user->hasPermission('kepegawaian.update')
-            || $user->hasPermission('kepegawaian.employee.update')) {
+            || $user->hasPermission('bmn.asset.update')) {
             return;
         }
 

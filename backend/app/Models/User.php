@@ -174,8 +174,8 @@ class User extends Authenticatable
             return true;
         }
 
-        // bmn.asset.force_delete HANYA untuk super_admin
-        if ($permission === 'bmn.asset.force_delete') {
+        // bmn.asset.force_delete, surat.manage, dan kepegawaian.manage HANYA untuk super_admin
+        if (in_array($permission, ['bmn.asset.force_delete', 'surat.manage', 'kepegawaian.manage'], true)) {
             return false;
         }
 
@@ -216,11 +216,27 @@ class User extends Authenticatable
             }
 
             if (str_starts_with($permission, 'surat.')) {
-                $isReadPermission = in_array($permission, ['surat.view', 'surat.document.view']);
-                if ($isReadPermission) {
-                    return in_array('surat', $this->access_modules ?? []);
+                $hasSuratModule = in_array('surat', $this->access_modules ?? []);
+                if (! $hasSuratModule) {
+                    return false;
                 }
-                return $this->role === 'admin' && in_array('surat', $this->access_modules ?? []);
+                if (str_starts_with($permission, 'surat.masuk.') || $permission === 'surat.export') {
+                    return $this->role === 'admin';
+                }
+                if (in_array($permission, [
+                    'surat.view',
+                    'surat.document.view',
+                    'surat.create',
+                    'surat.update',
+                    'surat.delete',
+                    'surat.keluar.view',
+                    'surat.keluar.create',
+                    'surat.keluar.update',
+                    'surat.keluar.delete',
+                ], true)) {
+                    return true;
+                }
+                return $this->role === 'admin';
             }
 
             return false;

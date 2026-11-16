@@ -32,7 +32,13 @@ function formatDisplayDate(dateStr?: string | null): string {
   return y && m && d ? `${d}/${m}/${y}` : String(dateStr);
 }
 
-export function HeaderBanner({ canCreate = true }: { canCreate?: boolean }) {
+export function HeaderBanner({
+  canCreate = true,
+  canManageMasuk = true,
+}: {
+  canCreate?: boolean;
+  canManageMasuk?: boolean;
+}) {
   return (
     <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
       <div className="flex items-start sm:items-center gap-3.5">
@@ -44,7 +50,9 @@ export function HeaderBanner({ canCreate = true }: { canCreate?: boolean }) {
             Dashboard Persuratan
           </h1>
           <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
-            Pusat penatausahaan surat masuk, surat keluar, lembar disposisi, dan tata naskah dinas BKSDA Kalimantan Timur.
+            {canManageMasuk
+              ? "Pusat penatausahaan surat masuk, surat keluar, lembar disposisi, dan tata naskah dinas BKSDA Kalimantan Timur."
+              : "Pusat pembuatan naskah dinas dan pengagendaan surat keluar pribadi Anda."}
           </p>
         </div>
       </div>
@@ -62,12 +70,14 @@ export function HeaderBanner({ canCreate = true }: { canCreate?: boolean }) {
               Input Surat Keluar
             </Link>
           </Button>
-          <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
-            <Link href="/surat/masuk/create">
-              <Plus className="h-4 w-4" />
-              Input Surat Masuk
-            </Link>
-          </Button>
+          {canManageMasuk && (
+            <Button asChild className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5">
+              <Link href="/surat/masuk/create">
+                <Plus className="h-4 w-4" />
+                Input Surat Masuk
+              </Link>
+            </Button>
+          )}
         </div>
       )}
     </div>
@@ -77,16 +87,18 @@ export function HeaderBanner({ canCreate = true }: { canCreate?: boolean }) {
 export function BentoStatCards({
   totalSuratMasuk,
   totalSuratKeluar,
+  canManageMasuk = true,
 }: {
   totalSuratMasuk: number;
   totalSuratKeluar: number;
+  canManageMasuk?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const totalVolume = totalSuratMasuk + totalSuratKeluar;
   const masukPct = totalVolume > 0 ? Math.max(10, Math.round((totalSuratMasuk / totalVolume) * 100)) : 50;
   const keluarPct = totalVolume > 0 ? Math.max(10, 100 - masukPct) : 50;
 
-  const stats = [
+  const allStats = [
     {
       label: "Surat Masuk",
       subLabel: "Agenda Aktif",
@@ -98,18 +110,20 @@ export function BentoStatCards({
       barClass: "bg-[var(--ds-accent-solid)]",
       pct: masukPct,
       delay: 0,
+      masukOnly: true,
     },
     {
       label: "Surat Keluar",
-      subLabel: "Terarsip",
-      desc: "Penomoran Naskah Resmi",
+      subLabel: canManageMasuk ? "Terarsip" : "Surat Saya",
+      desc: canManageMasuk ? "Penomoran Naskah Resmi" : "Surat Keluar yang Anda Input",
       value: totalSuratKeluar,
       href: "/surat/keluar",
       icon: Send,
       toneClass: "text-blue-700 dark:text-blue-300",
       barClass: "bg-blue-600 dark:bg-blue-500",
-      pct: keluarPct,
+      pct: canManageMasuk ? keluarPct : 100,
       delay: 0.1,
+      masukOnly: false,
     },
     {
       label: "Disposisi Cetak",
@@ -123,11 +137,12 @@ export function BentoStatCards({
       barClass: "bg-amber-500",
       pct: 100,
       delay: 0.15,
+      masukOnly: true,
     },
     {
       label: "Tata Kelola",
       subLabel: "Terdata",
-      desc: "Penatausahaan Naskah Resmi",
+      desc: "Generator 20 Format Permen 1/2025",
       value: "100%",
       href: "/surat/keluar/dinas",
       icon: CheckCircle2,
@@ -135,11 +150,14 @@ export function BentoStatCards({
       barClass: "bg-amber-500",
       pct: 100,
       delay: 0.2,
+      masukOnly: false,
     },
   ];
 
+  const stats = allStats.filter((s) => canManageMasuk || !s.masukOnly);
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className={`grid grid-cols-2 ${canManageMasuk ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-3`}>
       {stats.map((card) => {
         const Icon = card.icon;
         return (
@@ -202,12 +220,14 @@ export function BentoStatCards({
 export function RecentSuratWidget({
   suratMasukList,
   suratKeluarList,
+  canManageMasuk = true,
   isLoading = false,
   isError = false,
   onRetry,
 }: {
   suratMasukList: SuratMasukItem[];
   suratKeluarList: SuratKeluarItem[];
+  canManageMasuk?: boolean;
   isLoading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -239,8 +259,9 @@ export function RecentSuratWidget({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Kolom Kiri: Tabel Mini Surat Masuk Terbaru */}
+    <div className={`grid grid-cols-1 ${canManageMasuk ? "lg:grid-cols-2" : "lg:grid-cols-1"} gap-4`}>
+      {/* Kolom Kiri: Tabel Mini Surat Masuk Terbaru (Khusus Admin & Super Admin) */}
+      {canManageMasuk && (
       <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-3.5 md:px-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
           <div className="flex items-center gap-2.5">
@@ -346,6 +367,7 @@ export function RecentSuratWidget({
           )}
         </div>
       </div>
+      )}
 
       {/* Kolom Kanan: Tabel Mini Surat Keluar Terbaru */}
       <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden flex flex-col">

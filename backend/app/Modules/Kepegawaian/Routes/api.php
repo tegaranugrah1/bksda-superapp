@@ -25,22 +25,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function () {
 
-    // Arsip riwayat surat masuk Kepegawaian.
-    Route::get('/surat-masuk', [EmployeeIncomingLetterController::class, 'index']);
-    Route::get('/surat-masuk/export/excel', [EmployeeIncomingLetterController::class, 'export']);
-    Route::get('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'show']);
-    Route::get('/surat-masuk/{letter}/attachments/{attachment}/preview', [EmployeeIncomingLetterController::class, 'preview']);
-    Route::get('/surat-masuk/{letter}/attachments/{attachment}/download/{filename?}', [EmployeeIncomingLetterController::class, 'download'])
-        ->where('filename', '.*');
-
+    // Arsip riwayat surat masuk Kepegawaian (Khusus Admin & Super Admin)
     Route::middleware('role:super_admin,admin')->group(function () {
+        Route::get('/surat-masuk', [EmployeeIncomingLetterController::class, 'index']);
+        Route::get('/surat-masuk/export/excel', [EmployeeIncomingLetterController::class, 'export']);
+        Route::get('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'show']);
+        Route::get('/surat-masuk/{letter}/attachments/{attachment}/preview', [EmployeeIncomingLetterController::class, 'preview']);
+        Route::get('/surat-masuk/{letter}/attachments/{attachment}/download/{filename?}', [EmployeeIncomingLetterController::class, 'download'])
+            ->where('filename', '.*');
         Route::post('/surat-masuk', [EmployeeIncomingLetterController::class, 'store']);
         Route::post('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'update']);
         Route::delete('/surat-masuk/{letter}/attachments/{attachment}', [EmployeeIncomingLetterController::class, 'destroyAttachment']);
         Route::delete('/surat-masuk/{letter}', [EmployeeIncomingLetterController::class, 'destroy']);
     });
 
-    // --- MANAJEMEN DATA PEGAWAI (CRUD) ---
+    // --- MANAJEMEN DATA PEGAWAI (DIREKTORI & PROFIL) ---
     Route::get('/dashboard-stats', [EmployeeController::class, 'dashboardStats']);
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
@@ -48,51 +47,17 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
     Route::get('/employees/{employee}/meal-allowances', [EmployeeController::class, 'mealAllowances']);
     Route::get('/settings/registered-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getRegisteredBanks']);
 
-    // --- TEMPLATE SURAT TUGAS ---
+    // --- BACA TEMPLATE SURAT TUGAS, BIAYA, & JENIS TUGAS ---
     Route::get('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'index']);
     Route::get('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'show']);
-    Route::middleware('role:super_admin,admin')->group(function () {
-        Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
-        Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
-        Route::post('/st-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'setDefault']);
-        Route::patch('/st-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'toggleActive']);
-        Route::post('/st-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'duplicate']);
-        Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
-        Route::post('/st-templates/upload-kop', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'uploadKop']);
-    });
-
-    // --- TEMPLATE BIAYA / SUMBER DANA ---
     Route::get('/st-expense-templates', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'index']);
     Route::get('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'show']);
-    Route::middleware('role:super_admin,admin')->group(function () {
-        Route::post('/st-expense-templates', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'store']);
-        Route::put('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'update']);
-        Route::post('/st-expense-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'setDefault']);
-        Route::patch('/st-expense-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'toggleActive']);
-        Route::post('/st-expense-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'duplicate']);
-        Route::delete('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'destroy']);
-    });
-
-    // --- MASTER JENIS SURAT CUTI (ADMIN MUTATIONS) ---
-    Route::middleware('role:super_admin,admin')->group(function () {
-        Route::post('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'store']);
-        Route::put('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'update']);
-        Route::patch('/leave-types/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'toggleActive']);
-        Route::delete('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'destroy']);
-    });
-
-    // --- MASTER JENIS TUGAS ST (SETTINGS & ADMIN MUTATIONS) ---
     Route::get('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'index']);
-    Route::middleware('role:super_admin,admin')->group(function () {
-        Route::post('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'store']);
-        Route::put('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'update']);
-        Route::delete('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'destroy']);
-    });
 
-    // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE) ---
+    // --- MANAJEMEN CUTI PEGAWAI (READ BALANCE - SCOPED DI CONTROLLER UNTUK USER) ---
     Route::get('/employees/{employee}/leaves', [\App\Modules\Kepegawaian\Controllers\EmployeeLeaveController::class, 'show']);
 
-    // Operasi tulis/hapus hanya untuk Admin/SuperAdmin
+    // Operasi operasional SDM untuk Admin & SuperAdmin (tanpa Setting Master & tanpa Force Delete)
     Route::middleware('role:super_admin,admin')->group(function () {
         Route::get('/employees/{employee}/histories', [EmployeeController::class, 'histories']);
         Route::post('/employees', [EmployeeController::class, 'store']);
@@ -103,7 +68,6 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
         Route::get('/employees/{employee}/bmn-clearance', [EmployeeController::class, 'bmnClearance']);
         Route::delete('/employees/{employee}/2fa', [EmployeeController::class, 'reset2Fa']);
         Route::post('/employees/{id}/restore', [EmployeeController::class, 'restore']);
-        Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDestroy']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
 
         // --- MANAJEMEN CUTI PEGAWAI WRITE (PERBKN 24/2017 & 7/2021) ---
@@ -128,13 +92,6 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
 
         // --- HITUNG UANG MAKAN & REKONSILIASI PRESENSI SIKADIR ---
         Route::get('/uang-makan/calendar', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getCalendar']);
-        Route::get('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getHolidaySettings']);
-        Route::post('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeHolidaySetting']);
-        Route::delete('/settings/holidays/{id}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyHolidaySetting']);
-        Route::get('/settings/employee-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getEmployeeBanks']);
-        Route::put('/settings/employee-banks/batch', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'batchUpdateEmployeeBanks']);
-        Route::post('/settings/registered-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeRegisteredBank']);
-        Route::delete('/settings/registered-banks/{bank}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyRegisteredBank']);
         Route::post('/uang-makan/reconcile', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'reconcile'])
             ->middleware('throttle:60,1');
         Route::post('/uang-makan/batches', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeBatch']);
@@ -145,9 +102,43 @@ Route::middleware(['auth:sanctum', 'module.access:kepegawaian'])->group(function
             ->middleware('throttle:60,1');
     });
 
-    // --- MANAJEMEN HAK AKSES (IAM) ---
-    // Hanya Super Admin yang boleh mengelola akses pintu ke modul lain
+    // --- KONFIGURASI SETTING KEPEGAWAIAN, HAPUS PERMANEN, & MANAJEMEN HAK AKSES (IAM) ---
+    // Khusus Super Admin (Admin biasa tidak dapat membuka /kepegawaian/settings, IAM, maupun Force Delete)
     Route::middleware('role:super_admin')->group(function () {
+        Route::delete('/employees/{id}/force', [EmployeeController::class, 'forceDestroy']);
+
+        Route::post('/st-templates', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'store']);
+        Route::put('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'update']);
+        Route::post('/st-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'setDefault']);
+        Route::patch('/st-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'toggleActive']);
+        Route::post('/st-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'duplicate']);
+        Route::delete('/st-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'destroy']);
+        Route::post('/st-templates/upload-kop', [\App\Modules\Kepegawaian\Controllers\StTemplateController::class, 'uploadKop']);
+
+        Route::post('/st-expense-templates', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'store']);
+        Route::put('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'update']);
+        Route::post('/st-expense-templates/{id}/set-default', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'setDefault']);
+        Route::patch('/st-expense-templates/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'toggleActive']);
+        Route::post('/st-expense-templates/{id}/duplicate', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'duplicate']);
+        Route::delete('/st-expense-templates/{id}', [\App\Modules\Kepegawaian\Controllers\StExpenseTemplateController::class, 'destroy']);
+
+        Route::post('/leave-types', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'store']);
+        Route::put('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'update']);
+        Route::patch('/leave-types/{id}/toggle-active', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'toggleActive']);
+        Route::delete('/leave-types/{id}', [\App\Modules\Kepegawaian\Controllers\LeaveTypeController::class, 'destroy']);
+
+        Route::post('/st-task-types', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'store']);
+        Route::put('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'update']);
+        Route::delete('/st-task-types/{id}', [\App\Modules\Kepegawaian\Controllers\StTaskTypeController::class, 'destroy']);
+
+        Route::get('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getHolidaySettings']);
+        Route::post('/settings/holidays', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeHolidaySetting']);
+        Route::delete('/settings/holidays/{id}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyHolidaySetting']);
+        Route::get('/settings/employee-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'getEmployeeBanks']);
+        Route::put('/settings/employee-banks/batch', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'batchUpdateEmployeeBanks']);
+        Route::post('/settings/registered-banks', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'storeRegisteredBank']);
+        Route::delete('/settings/registered-banks/{bank}', [\App\Modules\Kepegawaian\Controllers\MealAllowanceController::class, 'destroyRegisteredBank']);
+
         Route::get('/employees/{employee}/access', [EmployeeAccessController::class, 'show']);
         Route::put('/employees/{employee}/access', [EmployeeAccessController::class, 'update']);
     });

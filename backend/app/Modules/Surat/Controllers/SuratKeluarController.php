@@ -11,10 +11,29 @@ use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
 {
+    private function isScopedToOwnLetters(Request $request): bool
+    {
+        return ! in_array($request->user()?->role, ['admin', 'super_admin'], true);
+    }
+
+    private function findAuthorizedSuratKeluar(Request $request, int $id): SuratKeluar
+    {
+        $suratKeluar = SuratKeluar::findOrFail($id);
+        if ($this->isScopedToOwnLetters($request) && (int) $suratKeluar->created_by !== (int) $request->user()?->id) {
+            abort(403, 'Anda hanya dapat mengakses surat keluar yang Anda input sendiri.');
+        }
+
+        return $suratKeluar;
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = SuratKeluar::with(['penandatangan', 'creator'])
             ->orderBy('id', 'desc');
+
+        if ($this->isScopedToOwnLetters($request)) {
+            $query->where('created_by', (int) $request->user()?->id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -82,10 +101,9 @@ class SuratKeluarController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::with(['penandatangan', 'creator'])
-            ->findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id)->load(['penandatangan', 'creator']);
 
         return response()->json([
             'data' => $suratKeluar,
@@ -94,7 +112,7 @@ class SuratKeluarController extends Controller
 
     public function update(SuratKeluarRequest $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id);
         $validated = $request->validated();
 
         if ($request->hasFile('file_surat')) {
@@ -122,9 +140,9 @@ class SuratKeluarController extends Controller
         ]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id);
         $suratKeluar->delete();
 
         return response()->json([

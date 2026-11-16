@@ -28,7 +28,7 @@ const QUICK_LINKS = [
     href: "/surat/masuk",
     icon: Inbox,
     iconStyle: "text-[var(--ds-accent-fg)]",
-    writeOnly: false,
+    minRole: "admin" as const,
   },
   {
     title: "Input Surat Masuk",
@@ -36,7 +36,7 @@ const QUICK_LINKS = [
     href: "/surat/masuk/create",
     icon: Plus,
     iconStyle: "text-[var(--ds-accent-fg)]",
-    writeOnly: true,
+    minRole: "admin" as const,
   },
   {
     title: "Daftar Surat Keluar",
@@ -44,7 +44,15 @@ const QUICK_LINKS = [
     href: "/surat/keluar",
     icon: Send,
     iconStyle: "text-blue-700 dark:text-blue-300",
-    writeOnly: false,
+    minRole: "user" as const,
+  },
+  {
+    title: "Input Surat Keluar",
+    description: "Penomoran & Registrasi Manual",
+    href: "/surat/keluar/create",
+    icon: Plus,
+    iconStyle: "text-blue-700 dark:text-blue-300",
+    minRole: "user" as const,
   },
   {
     title: "Tata Naskah Dinas",
@@ -52,7 +60,7 @@ const QUICK_LINKS = [
     href: "/surat/keluar/dinas",
     icon: FileText,
     iconStyle: "text-amber-700 dark:text-amber-300",
-    writeOnly: true,
+    minRole: "user" as const,
   },
 ];
 
@@ -67,10 +75,10 @@ export default function SuratHubPage() {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["surat-hub-summary"],
+    queryKey: ["surat-hub-summary", canWrite ? "admin" : "user"],
     queryFn: async () => {
       const [resMasuk, resKeluar] = await Promise.all([
-        api.get("/surat-masuk?per_page=5"),
+        canWrite ? api.get("/surat-masuk?per_page=5") : Promise.resolve({ data: { data: [], meta: { total: 0 } } }),
         api.get("/surat/surat-keluar?per_page=5").catch(() => api.get("/surat-keluar?per_page=5")),
       ]);
 
@@ -104,17 +112,18 @@ export default function SuratHubPage() {
   const suratMasukList = hubData?.suratMasukList ?? [];
   const suratKeluarList = hubData?.suratKeluarList ?? [];
 
-  const visibleQuickLinks = QUICK_LINKS.filter((item) => !item.writeOnly || canCreate);
+  const visibleQuickLinks = QUICK_LINKS.filter((item) => item.minRole === "user" || canWrite);
 
   return (
     <div className="psr-ui psr-dashboard w-full p-4 md:p-5 space-y-4 text-[var(--ds-fg)] font-sans">
       {/* 1. Header Banner Bersih & Formal */}
-      <HeaderBanner canCreate={canCreate} />
+      <HeaderBanner canCreate={canCreate} canManageMasuk={canWrite} />
 
-      {/* 2. Kartu Statistik Operasional (4 Cards) */}
+      {/* 2. Kartu Statistik Operasional */}
       <BentoStatCards
         totalSuratMasuk={totalSuratMasuk}
         totalSuratKeluar={totalSuratKeluar}
+        canManageMasuk={canWrite}
       />
 
       {/* 3. Akses Pintas Modul Persuratan */}
@@ -167,6 +176,7 @@ export default function SuratHubPage() {
       <RecentSuratWidget
         suratMasukList={suratMasukList}
         suratKeluarList={suratKeluarList}
+        canManageMasuk={canWrite}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => refetch()}

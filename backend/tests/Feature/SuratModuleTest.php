@@ -43,7 +43,11 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat/surat-masuk')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk');
 
         $response->assertStatus(200)
@@ -65,7 +69,7 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk?per_page=10');
 
         $response->assertStatus(200)
@@ -163,7 +167,11 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat/surat-masuk/next-agenda?year=2026')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk/next-agenda?year=2026');
 
         $response->assertStatus(200)
@@ -217,7 +225,11 @@ class SuratModuleTest extends TestCase
 
     public function test_can_fetch_surat_masuk_locations_with_surat_view(): void
     {
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat-masuk/locations')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat-masuk/locations');
 
         $response->assertStatus(200)

@@ -62,6 +62,7 @@ import { formatNipLabel } from "@/lib/letter-utils";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -131,6 +132,7 @@ export default function EmployeeDetailPage() {
 
   const tabs = useKepegawaianTabs(activeTab, "Dossier pegawai");
 
+  const { user: currentUser } = useAuth();
   const { canManageAccess, canWrite, isAdmin } = useRole();
 
   // Copy feedback state
@@ -176,6 +178,13 @@ export default function EmployeeDetailPage() {
     },
   });
 
+  const isSelfProfile = Boolean(
+    currentUser?.username &&
+      employee?.nip &&
+      currentUser.username.trim() === employee.nip.trim()
+  );
+  const canViewSensitive = canWrite || isSelfProfile;
+
   const currentYear = new Date().getFullYear();
   const { data: leaveBalance } = useQuery({
     queryKey: ["employeeLeave", id, currentYear],
@@ -189,7 +198,7 @@ export default function EmployeeDetailPage() {
         return null;
       }
     },
-    enabled: !!id && !isMmpEmployee(employee),
+    enabled: !!id && !isMmpEmployee(employee) && canViewSensitive,
   });
 
   // Query Assignment Letters count for metric card
@@ -201,7 +210,7 @@ export default function EmployeeDetailPage() {
       );
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && canViewSensitive,
   });
 
   // Query Latest Meal Allowance for metric card
@@ -218,7 +227,7 @@ export default function EmployeeDetailPage() {
         return null;
       }
     },
-    enabled: !!id && !isMmpEmployee(employee),
+    enabled: !!id && !isMmpEmployee(employee) && canViewSensitive,
   });
 
   // Query Bank Terdaftar yang tersinkronisasi dari Pengaturan
@@ -238,6 +247,7 @@ export default function EmployeeDetailPage() {
         ];
       }
     },
+    enabled: canWrite,
   });
 
   const availableBanks = useMemo(() => {
@@ -255,10 +265,10 @@ export default function EmployeeDetailPage() {
   );
 
   useEffect(() => {
-    if (isMmp && (activeTab === "leave" || activeTab === "meal_allowance")) {
+    if ((!canViewSensitive && activeTab !== "biodata") || (isMmp && (activeTab === "leave" || activeTab === "meal_allowance"))) {
       setActiveTab("biodata");
     }
-  }, [isMmp, activeTab]);
+  }, [isMmp, canViewSensitive, activeTab]);
 
   useEffect(() => {
     if (!isEditing || !employee || !masterLocations.length || editParentId) return;
@@ -819,7 +829,7 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* Rekening Penyalur Uang Makan (Non-MMP) */}
-              {!isMmp && (
+              {!isMmp && canViewSensitive && (
                 <div className="flex items-start justify-between gap-2 text-[var(--ds-fg-muted)]">
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     <CreditCard className="w-4 h-4 text-[#1e5433] shrink-0 mt-0.5" />
@@ -911,6 +921,7 @@ export default function EmployeeDetailPage() {
             </div>
 
             {/* Metric 2: Riwayat Penugasan */}
+            {canViewSensitive && (
             <div
 
               onClick={() => setActiveTab("history")}
@@ -928,9 +939,10 @@ export default function EmployeeDetailPage() {
               </div>
               <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 truncate">Total Surat Tugas</p>
             </div>
+            )}
 
             {/* Metric 3: Sisa Cuti PNS */}
-            {!isMmp && (
+            {!isMmp && canViewSensitive && (
             <div
 
               onClick={() => setActiveTab("leave")}
@@ -952,7 +964,7 @@ export default function EmployeeDetailPage() {
             )}
 
             {/* Metric 4: Uang Makan Terakhir */}
-            {!isMmp && (
+            {!isMmp && canViewSensitive && (
             <div
 
               onClick={() => setActiveTab("meal_allowance")}
@@ -1002,6 +1014,7 @@ export default function EmployeeDetailPage() {
               </button>
 
               {/* Tab 2: Riwayat Penugasan */}
+              {canViewSensitive && (
               <button
                 type="button"
                 onClick={() => setActiveTab("history")}
@@ -1033,9 +1046,10 @@ export default function EmployeeDetailPage() {
                   </span>
                 )}
               </button>
+              )}
 
               {/* Tab 3: Cuti Pegawai (PNS) */}
-              {!isMmp && (
+              {!isMmp && canViewSensitive && (
               <button
                 type="button"
                 onClick={() => setActiveTab("leave")}
@@ -1070,7 +1084,7 @@ export default function EmployeeDetailPage() {
               )}
 
               {/* Tab 4: Presensi & Uang Makan */}
-              {!isMmp && (
+              {!isMmp && canViewSensitive && (
               <button
                 type="button"
                 onClick={() => setActiveTab("meal_allowance")}
@@ -1346,7 +1360,7 @@ export default function EmployeeDetailPage() {
                   </div>
 
                   {/* Bagian 3: Finansial & Rekening Uang Makan */}
-                  {!isMmp && (
+                  {!isMmp && canViewSensitive && (
                   <div>
                     <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />

@@ -45,6 +45,7 @@ const AVAILABLE_MODULES = [
   { id: "drive", label: "BKSDA Drive", description: "Admin Penyimpanan Cloud & Manajemen Berkas" },
   { id: "cms", label: "CMS Panel", description: "Manajemen Konten Website & Portal Publik" },
   { id: "surat", label: "Persuratan & Disposisi", description: "Pengelolaan Surat Masuk & Keluar" },
+  { id: "keuangan", label: "Keuangan", description: "Visum SPD, SPJ, & Pembayaran" },
 ];
 
 const BMN_PERMISSIONS = [

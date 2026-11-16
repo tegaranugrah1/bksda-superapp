@@ -405,7 +405,7 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
      */
     public function test_holiday_settings_crud_and_security(): void
     {
-        // 1. Regular user is forbidden
+        // 1. Regular user and module admin are forbidden from mutating settings
         Sanctum::actingAs($this->regularUser);
         $this->getJson('/api/kepegawaian/settings/holidays?year=2027')->assertStatus(403);
         $this->postJson('/api/kepegawaian/settings/holidays', [
@@ -413,8 +413,20 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
             'nama' => 'Libur Kustom',
         ])->assertStatus(403);
 
-        // 2. Admin can create, list, and delete
         Sanctum::actingAs($this->adminUser);
+        $this->getJson('/api/kepegawaian/settings/holidays?year=2027')->assertStatus(403);
+        $this->postJson('/api/kepegawaian/settings/holidays', [
+            'tanggal' => '2027-05-15',
+            'nama' => 'Libur Kustom',
+        ])->assertStatus(403);
+
+        // 2. Super Admin can create, list, and delete
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_holiday_test',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+        Sanctum::actingAs($superAdmin);
 
         // Create
         $storeResp = $this->postJson('/api/kepegawaian/settings/holidays', [
@@ -450,7 +462,7 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
      */
     public function test_employee_bank_settings_batch_update_and_security(): void
     {
-        // 1. Regular user is forbidden
+        // 1. Regular user and module admin are forbidden from settings endpoints
         Sanctum::actingAs($this->regularUser);
         $this->getJson('/api/kepegawaian/settings/employee-banks')->assertStatus(403);
         $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
@@ -458,8 +470,20 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
             'nama_bank' => 'Mandiri',
         ])->assertStatus(403);
 
-        // 2. Admin with empty employee_ids should be rejected
         Sanctum::actingAs($this->adminUser);
+        $this->getJson('/api/kepegawaian/settings/employee-banks')->assertStatus(403);
+        $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
+            'employee_ids' => [$this->employeeSyafey->id],
+            'nama_bank' => 'Mandiri',
+        ])->assertStatus(403);
+
+        // 2. Super Admin with empty employee_ids should be rejected
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_bank_test',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+        Sanctum::actingAs($superAdmin);
         $invalidResp = $this->putJson('/api/kepegawaian/settings/employee-banks/batch', [
             'employee_ids' => [],
             'nama_bank' => 'BSI',
@@ -654,12 +678,24 @@ class MealAllowanceSecurityAndReconciliationTest extends TestCase
     {
         Sanctum::actingAs($this->adminUser);
 
-        // 1. GET registered banks (seeded BRI & Mandiri)
+        // 1. GET registered banks (seeded BRI & Mandiri) is allowed for module users/admins
         $res = $this->getJson('/api/kepegawaian/settings/registered-banks');
         $res->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        // 2. POST new bank (BSI)
+        // Admin cannot mutate registered banks (Settings is super_admin only)
+        $this->postJson('/api/kepegawaian/settings/registered-banks', [
+            'nama_bank' => 'BSI',
+        ])->assertStatus(403);
+
+        // 2. Super Admin POST new bank (BSI)
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_reg_bank_test',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+        Sanctum::actingAs($superAdmin);
+
         $storeRes = $this->postJson('/api/kepegawaian/settings/registered-banks', [
             'nama_bank' => 'BSI',
         ]);

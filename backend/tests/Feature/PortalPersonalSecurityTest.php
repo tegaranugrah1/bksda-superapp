@@ -619,12 +619,20 @@ class PortalPersonalSecurityTest extends TestCase
         $archived->delete();
         $type = LeaveType::where('kode', 'CT')->firstOrFail();
         [$admin] = $this->actor('Dummy Leave Type Admin', 'admin', ['kepegawaian']);
+        [$superAdmin] = $this->actor('Dummy Leave Type Super Admin', 'super_admin', ['kepegawaian']);
         Sanctum::actingAs($admin);
         $this->putJson("/api/kepegawaian/leave-types/{$type->id}", [
             'nama' => 'Dummy Renamed Annual', 'kode' => 'CT-DUMMY',
             'hitung_hari' => 'hari_kerja', 'potong_kuota_tahunan' => true,
             'maks_hari' => 12, 'is_active' => true,
+        ])->assertForbidden();
+        Sanctum::actingAs($superAdmin);
+        $this->putJson("/api/kepegawaian/leave-types/{$type->id}", [
+            'nama' => 'Dummy Renamed Annual', 'kode' => 'CT-DUMMY',
+            'hitung_hari' => 'hari_kerja', 'potong_kuota_tahunan' => true,
+            'maks_hari' => 12, 'is_active' => true,
         ])->assertOk();
+        Sanctum::actingAs($admin);
         $this->assertSame('Dummy Renamed Annual', $approved->fresh()->jenis_cuti);
         $this->assertSame('Dummy Renamed Annual', $pending->fresh()->jenis_cuti);
         $this->assertSame('Dummy Renamed Annual', EmployeeLeaveRequest::withTrashed()->findOrFail($archived->id)->jenis_cuti);

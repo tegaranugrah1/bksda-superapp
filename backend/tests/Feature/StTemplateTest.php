@@ -54,7 +54,11 @@ class StTemplateTest extends TestCase
             ->postJson('/api/kepegawaian/st-templates', $payload)
             ->assertForbidden();
 
-        $response = $this->actingAs($this->admin, 'sanctum')
+        $this->actingAs($this->admin, 'sanctum')
+            ->postJson('/api/kepegawaian/st-templates', $payload)
+            ->assertForbidden();
+
+        $response = $this->actingAs($this->superadmin, 'sanctum')
             ->postJson('/api/kepegawaian/st-templates', $payload)
             ->assertCreated();
 

@@ -184,6 +184,17 @@ class EmployeeController extends Controller
         $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
 
+        $actor = $request->user();
+        $isAdminActor = in_array($actor?->role, ['super_admin', 'admin'], true);
+        if (! $isAdminActor) {
+            $actorNip = trim((string) $actor?->username);
+            $employees->getCollection()->each(function (Employee $emp) use ($actorNip) {
+                if ($actorNip === '' || trim((string) $emp->nip) !== $actorNip) {
+                    $emp->makeHidden(['nama_bank', 'nomor_rekening', 'inactive_notes']);
+                }
+            });
+        }
+
         // Rule 5.1 & 5.3: Format Response Seragam
         return response()->json([
             'message' => 'Data pegawai berhasil diambil.',
@@ -236,7 +247,7 @@ class EmployeeController extends Controller
     /**
      * Lihat detail 1 Pegawai
      */
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         $employee = Employee::with(['user', 'location.parent'])->findOrFail($id);
 
@@ -244,6 +255,13 @@ class EmployeeController extends Controller
         unset($data['user']);
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
         $data['email'] = $employee->email ?? $employee->user?->email ?? null;
+
+        $actor = $request->user();
+        $isAdminActor = in_array($actor?->role, ['super_admin', 'admin'], true);
+        $isSelf = $actor && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $actor->username);
+        if (! $isAdminActor && ! $isSelf) {
+            unset($data['nama_bank'], $data['nomor_rekening'], $data['inactive_notes']);
+        }
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
@@ -837,12 +855,17 @@ class EmployeeController extends Controller
     public function assignmentLetters(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $user = $request->user();
+        $isAdmin = $user && ($user->role === 'super_admin'
+            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])));
+        $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
+        if (! $isAdmin && ! $isSelf) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat surat tugas pegawai lain.');
+        }
+
         $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
 
         $query = $employee->assignmentLetters();
-        $user = $request->user();
-        $isAdmin = $user->role === 'super_admin'
-            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
         if (! $isAdmin) {
             $query->where(function ($q) use ($user) {
                 $q->whereIn(DB::raw('LOWER(status)'), \App\Modules\SuratTugas\Models\AssignmentLetter::OFFICIAL_STATUSES)
@@ -870,6 +893,14 @@ class EmployeeController extends Controller
     public function mealAllowances(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $user = $request->user();
+        $isAdmin = $user && ($user->role === 'super_admin'
+            || ($user->role === 'admin' && in_array('kepegawaian', $user->access_modules ?? [], true)));
+        $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
+        if (! $isAdmin && ! $isSelf) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat uang makan pegawai lain.');
+        }
+
         $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
 
         if ($employee->is_mmp) {
@@ -911,8 +942,10 @@ class EmployeeController extends Controller
      * GET /api/kepegawaian/dashboard-stats
      * Mengambil data statistik real-time dari database untuk Kepegawaian Dashboard
      */
-    public function dashboardStats(): JsonResponse
+    public function dashboardStats(Request $request): JsonResponse
     {
+        $isAdminActor = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+
         $baseQuery = Employee::query()
             ->with([
                 'location:id,parent_id,location_type,unit_kerja,name,code,is_restricted',
@@ -1050,14 +1083,14 @@ class EmployeeController extends Controller
                 'pppk_count' => $pppkCount,
                 'mmp_count' => $mmpCount,
                 'active_rate' => $activeRate,
-                'active_surat_tugas' => $activeStCount,
-                'pending_surat_tugas' => $pendingStCount,
-                'pending_cuti' => $pendingCutiCount,
-                'approved_cuti' => $approvedCutiCount,
-                'total_surat_masuk' => $totalSuratMasuk,
-                'unreplied_surat_masuk' => $unrepliedSuratMasuk,
+                'active_surat_tugas' => $isAdminActor ? $activeStCount : 0,
+                'pending_surat_tugas' => $isAdminActor ? $pendingStCount : 0,
+                'pending_cuti' => $isAdminActor ? $pendingCutiCount : 0,
+                'approved_cuti' => $isAdminActor ? $approvedCutiCount : 0,
+                'total_surat_masuk' => $isAdminActor ? $totalSuratMasuk : 0,
+                'unreplied_surat_masuk' => $isAdminActor ? $unrepliedSuratMasuk : 0,
                 'satker_breakdown' => $satkerBreakdown,
-                'recent_activities' => $recentSt,
+                'recent_activities' => $isAdminActor ? $recentSt : [],
             ],
         ]);
     }

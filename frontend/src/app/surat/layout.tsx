@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "framer-motion";
 import {
   Mail,
@@ -36,26 +36,26 @@ type SuratSidebarItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  permission: string;
+  minRole: "user" | "admin" | "super_admin";
   group: SuratSidebarGroup;
 };
 
 const SURAT_SIDEBAR_ITEMS: SuratSidebarItem[] = [
   // 1. Ringkasan
-  { href: "/surat", label: "Dashboard", icon: Mail, permission: "surat.view", group: "Ringkasan" },
+  { href: "/surat", label: "Dashboard", icon: Mail, minRole: "user", group: "Ringkasan" },
 
   // 2. Penatausahaan Surat
-  { href: "/surat/masuk", label: "Agenda Surat Masuk", icon: Inbox, permission: "surat.view", group: "Penatausahaan Surat" },
-  { href: "/surat/masuk/create", label: "Input Surat Masuk & Disposisi", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
-  { href: "/surat/keluar", label: "Agenda Surat Keluar", icon: Send, permission: "surat.view", group: "Penatausahaan Surat" },
-  { href: "/surat/keluar/create", label: "Input Surat Keluar", icon: Plus, permission: "surat.create", group: "Penatausahaan Surat" },
+  { href: "/surat/masuk", label: "Agenda Surat Masuk", icon: Inbox, minRole: "admin", group: "Penatausahaan Surat" },
+  { href: "/surat/masuk/create", label: "Input Surat Masuk & Disposisi", icon: Plus, minRole: "admin", group: "Penatausahaan Surat" },
+  { href: "/surat/keluar", label: "Agenda Surat Keluar", icon: Send, minRole: "user", group: "Penatausahaan Surat" },
+  { href: "/surat/keluar/create", label: "Input Surat Keluar", icon: Plus, minRole: "user", group: "Penatausahaan Surat" },
 
   // 3. Tata Naskah & Laporan
-  { href: "/surat/keluar/dinas", label: "Tata Naskah Dinas", icon: FileText, permission: "surat.create", group: "Tata Naskah & Laporan" },
-  { href: "/surat/laporan", label: "Rekapitulasi & Laporan", icon: Layers, permission: "surat.view", group: "Tata Naskah & Laporan" },
+  { href: "/surat/keluar/dinas", label: "Tata Naskah Dinas", icon: FileText, minRole: "user", group: "Tata Naskah & Laporan" },
+  { href: "/surat/laporan", label: "Rekapitulasi & Laporan", icon: Layers, minRole: "admin", group: "Tata Naskah & Laporan" },
 
   // 4. Pengaturan & Konfigurasi
-  { href: "/surat/settings", label: "Pengaturan Template", icon: Settings2, permission: "surat.manage", group: "Pengaturan & Konfigurasi" },
+  { href: "/surat/settings", label: "Pengaturan Template", icon: Settings2, minRole: "super_admin", group: "Pengaturan & Konfigurasi" },
 ];
 
 const GROUP_ORDER: SuratSidebarGroup[] = [
@@ -89,14 +89,25 @@ export default function SuratLayout({
     return () => window.removeEventListener("keydown", close);
   }, [isOpen]);
 
+  const router = useRouter();
   const { user } = useAuth();
-  const { hasPermission, canWrite } = useRole();
+  const { hasPermission, canWrite, isSuperAdmin } = useRole();
+
+  const isRouteForbidden =
+    (pathname.startsWith("/surat/settings") && !isSuperAdmin && !hasPermission("surat.manage")) ||
+    (!canWrite && (pathname.startsWith("/surat/masuk") || pathname.startsWith("/surat/laporan")));
+
+  useEffect(() => {
+    if (user && isRouteForbidden) {
+      router.replace("/surat");
+    }
+  }, [user, isRouteForbidden, router]);
 
   const visibleItems = SURAT_SIDEBAR_ITEMS.filter((item) => {
-    if (item.permission === "surat.view") return true;
-    if (item.permission === "surat.create") return canWrite || hasPermission("surat.create");
-    if (item.permission === "surat.manage") return user?.role === "super_admin" || hasPermission("surat.manage");
-    return true;
+    if (item.minRole === "user") return true;
+    if (item.minRole === "admin") return canWrite;
+    if (item.minRole === "super_admin") return isSuperAdmin || hasPermission("surat.manage");
+    return false;
   });
 
   const isItemActive = (href: string) => {
@@ -329,7 +340,7 @@ export default function SuratLayout({
                   transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
                   className="w-full min-h-full"
                 >
-                  {children}
+                  {isRouteForbidden ? null : children}
                 </motion.div>
               </AnimatePresence>
             </main>

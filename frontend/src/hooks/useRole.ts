@@ -19,8 +19,8 @@ export function useRole() {
     hasPermission: (permission: string) => {
       if (role === "super_admin") return true;
 
-      // bmn.asset.force_delete strictly super_admin
-      if (permission === "bmn.asset.force_delete") return false;
+      // bmn.asset.force_delete, surat.manage, dan kepegawaian.manage strictly super_admin
+      if (["bmn.asset.force_delete", "surat.manage", "kepegawaian.manage"].includes(permission)) return false;
 
       // Fallback untuk backward compatibility jika data permissions tidak ada atau kosong []
       if (!user?.permissions || user.permissions.length === 0) {
@@ -56,6 +56,30 @@ export function useRole() {
             return hasModuleAccess;
           }
           return role === "admin" && hasModuleAccess;
+        }
+
+        if (permission.startsWith("surat.")) {
+          const hasSuratModule = user?.access_modules?.includes("surat") || false;
+          if (!hasSuratModule) return false;
+          if (permission.startsWith("surat.masuk.") || permission === "surat.export") {
+            return role === "admin";
+          }
+          if (
+            [
+              "surat.view",
+              "surat.document.view",
+              "surat.create",
+              "surat.update",
+              "surat.delete",
+              "surat.keluar.view",
+              "surat.keluar.create",
+              "surat.keluar.update",
+              "surat.keluar.delete",
+            ].includes(permission)
+          ) {
+            return true;
+          }
+          return role === "admin";
         }
 
         return false;
