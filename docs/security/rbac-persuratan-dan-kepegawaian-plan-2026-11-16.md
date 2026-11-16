@@ -103,87 +103,64 @@ Berdasarkan sesi `/grill-me` lanjutan untuk **Modul BMN (`/bmn`)**, berikut adal
 
 ---
 
-## 5. Daftar Celah (Root Causes) yang Akan Diperbaiki pada Tahap 1
+## 6. Daftar Celah (Root Causes) yang Telah Diperbaiki
 
 ### A. Modul Persuratan (`/surat`)
-1. **`User::hasPermission()` ([`User.php`](file:///e:/bksda-superapp/backend/app/Models/User.php#L218-L224)) & [`useRole.ts`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts)**:
-   - Di `User.php`, fallback `surat.*` saat ini hanya mengizinkan `surat.view` dan `surat.document.view` untuk `role = user`, sedangkan `surat.create`, `surat.update`, `surat.delete` dikunci untuk `role = admin`, dan `surat.manage` ikut diberikan ke `role = admin`!
-   - Di `useRole.ts`, belum ada blok fallback `permission.startsWith("surat.")`, sehingga `hasPermission("surat.create")` untuk `user` bernilai `false`.
+1. **`User::hasPermission()` ([`User.php`](file:///e:/bksda-superapp/backend/app/Models/User.php)) & [`useRole.ts`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts)**:
+   - Di `User.php`, fallback `surat.*` sebelumnya hanya mengizinkan `surat.view` dan `surat.document.view` untuk `role = user`, sedangkan `surat.create`, `surat.update`, `surat.delete` dikunci untuk `role = admin`, dan `surat.manage` ikut diberikan ke `role = admin`.
+   - Di `useRole.ts`, sebelumnya belum ada blok fallback `permission.startsWith("surat.")`, sehingga `hasPermission("surat.create")` untuk `user` bernilai `false`.
 2. **Routing & Controller Persuratan ([`backend/app/Modules/Surat/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Routes/api.php), [`SuratKeluarController.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Controllers/SuratKeluarController.php))**:
-   - Route `surat-masuk*` saat ini menggunakan `permission:surat.view`, sehingga `role = user` masih bisa memanggil API Surat Masuk.
-   - `SuratKeluarController::index()` belum memfilter `where('created_by', $request->user()->id)` ketika diakses oleh `role = user`.
-   - `SuratKeluarController::show()`, `update()`, dan `destroy()` belum memvalidasi kepemilikan (`$suratKeluar->created_by === $user->id`) ketika diakses oleh `role = user`.
-3. **UI Sidebar & Halaman Persuratan ([`surat/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/layout.tsx), [`surat/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/page.tsx), [`surat/masuk/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/page.tsx), [`surat/laporan/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/laporan/page.tsx), [`surat/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/settings/page.tsx))**:
-   - Sidebar `surat/layout.tsx` masih menampilkan *Agenda Surat Masuk* dan *Rekapitulasi & Laporan* kepada `user`, serta menyembunyikan *Input Surat Keluar* dan *Tata Naskah Dinas* dari `user`.
-   - Dashboard `surat/page.tsx` masih memanggil `/surat-masuk` dan menampilkan statistik Surat Masuk untuk `user`.
-   - Halaman `/surat/masuk*`, `/surat/laporan`, dan `/surat/settings` belum memiliki *client-side role guard* jika URL diketik langsung di browser.
+   - Route `surat-masuk*` sebelumnya hanya memakai `permission:surat.view`, sehingga `role = user` masih bisa memanggil API Surat Masuk.
+   - `SuratKeluarController::index()` sebelumnya belum memfilter `where('created_by', $request->user()->id)` ketika diakses oleh `role = user`.
+   - `SuratKeluarController::show()`, `update()`, dan `destroy()` sebelumnya belum memvalidasi kepemilikan (`$suratKeluar->created_by === $user->id`) ketika diakses oleh `role = user`.
+3. **UI Sidebar & Halaman Persuratan ([`surat/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/layout.tsx), [`surat/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/page.tsx), [`SuratHubComponents.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratHubComponents.tsx))**:
+   - Sidebar `surat/layout.tsx` kini menampilkan `Dashboard`, `Agenda Surat Keluar`, `Input Surat Keluar`, dan `Tata Naskah Dinas` kepada `user`, serta dilengkapi guard redirect otomatis jika `user` membuka `/surat/masuk*`, `/surat/laporan`, atau `/surat/settings`, maupun jika `admin` membuka `/surat/settings`.
+   - Dashboard `surat/page.tsx` untuk `user` kini hanya memanggil `/surat/surat-keluar` dan menampilkan metrik/daftar Surat Keluar milik sendiri.
 
 ### B. Modul Kepegawaian (`/kepegawaian`)
-1. **Route & Controller Backend Kepegawaian ([`backend/app/Modules/Kepegawaian/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Routes/api.php), [`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php))**:
-   - Route `GET /api/kepegawaian/surat-masuk*` masih berada di luar grup `role:super_admin,admin` sehingga `role = user` masih bisa mengakses API Arsip Surat Masuk.
-   - Route `DELETE /api/kepegawaian/employees/{id}/force` (`forceDestroy`) dan route mutasi pengaturan di `/kepegawaian/settings` (`POST/PUT/DELETE` pada `st-templates`, `st-expense-templates`, `leave-types`, `st-task-types`, `settings/holidays`, `settings/registered-banks`, `settings/employee-banks/batch`) masih berada di dalam `role:super_admin,admin` (seharusnya khusus `role:super_admin`).
-   - `EmployeeController::index()` dan `EmployeeController::show()` masih mengembalikan `nama_bank` dan `nomor_rekening` pegawai lain kepada `role = user`.
-   - `EmployeeController::assignmentLetters()`, `EmployeeController::mealAllowances()`, dan `EmployeeLeaveController::show()` masih dapat dipanggil oleh `role = user` untuk mengintip ST, Uang Makan, dan Cuti pegawai lain.
-2. **UI Sidebar & Halaman Kepegawaian ([`kepegawaian/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/layout.tsx), [`kepegawaian/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/page.tsx), [`employees/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/page.tsx), [`employees/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/%5Bid%5D/page.tsx), [`kepegawaian/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/page.tsx))**:
-   - Di `kepegawaian/layout.tsx`, menu `Arsip Surat Masuk` masih diset `minRole: "user"` (seharusnya `"admin"`).
-   - Di `kepegawaian/page.tsx` (Dashboard), kartu layanan (Surat Tugas, Layanan Cuti, Surat Masuk) dan feed ST masih dapat diklik oleh `user` menuju halaman yang terkunci.
-   - Di `employees/[id]/page.tsx`, `role = user` yang melihat profil pegawai lain masih melihat kartu & tab **Riwayat Penugasan**, **Cuti Pegawai**, **Presensi & Uang Makan**, serta informasi **Rekening Penyalur**.
-   - Di `employees/page.tsx`, tombol **Hapus Permanen** pada tab `Data Terhapus` masih tampil untuk `canWrite` (`admin`), padahal seharusnya hanya untuk `isSuperAdmin`.
-   - Di `kepegawaian/settings/page.tsx` dan halaman-halaman khusus Admin (`employees/create`, `surat-tugas/inbox`, `cuti`, `uang-makan`, `surat-masuk`), perlu guard redirect jika diakses langsung via URL oleh role yang tidak berwenang.
+1. **Route & Controller Backend Kepegawaian ([`backend/app/Modules/Kepegawaian/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Routes/api.php), [`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php), [`EmployeeLeaveController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php))**:
+   - Route `GET /api/kepegawaian/surat-masuk*` telah dipindahkan ke dalam grup `role:super_admin,admin`.
+   - Route `DELETE /api/kepegawaian/employees/{id}/force` (`forceDestroy`) dan seluruh route mutasi pengaturan di `/kepegawaian/settings` (`st-templates`, `st-expense-templates`, `leave-types`, `st-task-types`, `settings/holidays*`, `settings/registered-banks*`, `settings/employee-banks*`) telah dikunci khusus `role:super_admin`.
+   - `EmployeeController::index()` dan `EmployeeController::show()` kini menyembunyikan `nama_bank`, `nomor_rekening`, dan `inactive_notes` pegawai lain dari `role = user`.
+   - `EmployeeController::assignmentLetters()`, `EmployeeController::mealAllowances()`, dan `EmployeeLeaveController::show()` kini memblokir akses `role = user` terhadap pegawai lain (`403 Forbidden`), serta `dashboardStats()` menyembunyikan feed ST dan counter inbox internal bagi `role = user`.
+2. **UI Sidebar & Halaman Kepegawaian ([`kepegawaian/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/layout.tsx), [`kepegawaian/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/page.tsx), [`employees/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/page.tsx), [`employees/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/%5Bid%5D/page.tsx))**:
+   - Di `kepegawaian/layout.tsx`, menu `Arsip Surat Masuk` diubah menjadi `minRole: "admin"`, dan ditambahkan guard redirect terpusat untuk `user` maupun `admin` (pada `/kepegawaian/settings`).
+   - Di `kepegawaian/page.tsx` (Dashboard), kartu pintas ke Inbox ST, Layanan Cuti, Surat Masuk, dan feed ST disembunyikan bagi `user`.
+   - Di `employees/[id]/page.tsx`, `role = user` yang melihat profil pegawai lain hanya melihat tab **Biodata Lengkap** tanpa informasi rekening bank dan tanpa tab ST/Cuti/Uang Makan/Audit.
+   - Di `employees/page.tsx`, tombol **Hapus Permanen** pada tab `Data Terhapus` dibatasi hanya untuk `Super Admin` (`canManageAccess`).
+
+### C. Modul BMN (`/bmn`) & Modal IAM (`EmployeeAccessSheet.tsx`)
+1. **`User::hasPermission()` ([`User.php`](file:///e:/bksda-superapp/backend/app/Models/User.php)) & [`useRole.ts`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts)**:
+   - `bmn.manage` dan `bmn.asset.force_delete` dikunci khusus `super_admin`.
+   - Pada fallback `bmn.*`, `role = user` dengan akses modul `bmn` hanya memperoleh `bmn.view`, sedangkan `role = admin` otomatis memperoleh seluruh izin operasional BMN tanpa perlu mencentang 16 permission satu per satu.
+2. **Route & Controller Pengaturan Master BMN ([`backend/app/Modules/Bmn/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Routes/api.php), [`LocationController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/LocationController.php))**:
+   - Route mutasi `POST/PUT/PATCH/DELETE` untuk `tags`, `locations`, dan `asset-types` dikunci `role:super_admin` + `permission:bmn.manage` (sementara pembacaan `GET` tetap `bmn.view` dan pemasangan tag ke aset tetap `bmn.asset.update` bagi `Admin BMN`).
+3. **UI Sidebar BMN, Dashboard BMN, & Modal IAM ([`bmn/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/layout.tsx), [`bmn/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/bmn/page.tsx), [`EmployeeAccessSheet.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/_components/EmployeeAccessSheet.tsx))**:
+   - Menu `Pengaturan Master` (`/bmn/settings`) dikunci `bmn.manage` (khusus `Super Admin`), disertai guard redirect terpusat di `bmn/layout.tsx` dan penyaringan pintasan `/bmn/reports` di `bmn/page.tsx`.
+   - Di `EmployeeAccessSheet.tsx`, opsi modul `Keuangan` (`keuangan`) telah ditambahkan dan 16 kotak centang permission granular BMN dihapus agar pengaturan akses seragam di seluruh modul.
 
 ---
 
-## 6. Rencana Perubahan File (Implementasi `/ponytail`)
+## 7. Hasil Verifikasi & Status Akhir
 
-### Backend (`backend/`)
-1. [`backend/app/Models/User.php`](file:///e:/bksda-superapp/backend/app/Models/User.php):
-   - Perbarui fallback `surat.*` pada `hasPermission()`:
-     - `surat.view`, `surat.document.view`, `surat.keluar.create`, `surat.keluar.update`, `surat.keluar.delete` (atau `surat.create`/`surat.update`/`surat.delete` khusus surat keluar) diizinkan bagi `user` & `admin` yang memiliki modul `surat`.
-     - `surat.masuk.*` dan `surat.export` hanya untuk `admin` & `super_admin` yang memiliki modul `surat`.
-     - `surat.manage` dikunci **hanya untuk `super_admin`** (kecuali tertulis eksplisit di `permissions`).
-2. [`backend/app/Modules/Surat/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Routes/api.php) & [`SuratKeluarController.php`](file:///e:/bksda-superapp/backend/app/Modules/Surat/Controllers/SuratKeluarController.php):
-   - Kunci seluruh route `surat-masuk*` dengan middleware `role:admin,super_admin`.
-   - Kunci route mutasi `templates*` (`store`, `update`, `destroy`, `resetDefaults`) dengan `permission:surat.manage` (khusus `super_admin`).
-   - Pada `SuratKeluarController`:
-     - `index()`: jika `$request->user()->role === 'user'`, tambahkan `$query->where('created_by', $request->user()->id)`.
-     - `show()`, `update()`, `destroy()`: jika `$request->user()->role === 'user'` dan `(int) $suratKeluar->created_by !== (int) $request->user()->id`, kembalikan `403 Forbidden`.
-3. [`backend/app/Modules/Kepegawaian/Routes/api.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Routes/api.php), [`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php), & [`EmployeeLeaveController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php):
-   - Pindahkan route `GET /surat-masuk*` ke dalam grup `role:super_admin,admin`.
-   - Pindahkan route `DELETE /employees/{id}/force` dan route mutasi pengaturan (`/st-templates`, `/st-expense-templates`, `/leave-types`, `/st-task-types`, `/settings/holidays*`, `/settings/registered-banks*`, `/settings/employee-banks/batch`) ke grup `role:super_admin` (endpoint `GET` baca template/jenis cuti/hari libur/bank tetap dapat diakses `admin` untuk operasional ST/Cuti/Uang Makan).
-   - Pada [`LocationController.php`](file:///e:/bksda-superapp/backend/app/Modules/Bmn/Controllers/LocationController.php), pastikan mutasi lokasi (`store`, `update`, `destroy`) bila dipanggil oleh non-`super_admin` ditolak `403` sesuai aturan Setting Master.
-   - Pada `EmployeeController::index()` & `show()`: sembunyikan (`makeHidden(['nama_bank', 'nomor_rekening', 'inactive_notes'])`) ketika diakses oleh `role === 'user'` (kecuali jika sedang melihat record dirinya sendiri `nip === user->username`).
-   - Pada `EmployeeController::assignmentLetters()`, `EmployeeController::mealAllowances()`, dan `EmployeeLeaveController::show()`: tolak dengan `403 Forbidden` jika diakses oleh `role === 'user'` untuk pegawai lain (`$employee->nip !== $user->username`).
-
-### Frontend (`frontend/`)
-1. [`frontend/src/hooks/useRole.ts`](file:///e:/bksda-superapp/frontend/src/hooks/useRole.ts):
-   - Selaraskan logika fallback `surat.*` dan `kepegawaian.*` dengan `User.php`.
-2. **Modul Persuratan (`frontend/src/app/surat/`)**:
-   - [`surat/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/layout.tsx): atur visibilitas menu sidebar:
-     - `User`: `Dashboard`, `Agenda Surat Keluar`, `Input Surat Keluar`, `Tata Naskah Dinas`.
-     - `Admin`: Semua menu kecuali `Pengaturan Template`.
-     - `Super Admin`: Semua menu termasuk `Pengaturan Template`.
-   - [`surat/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/page.tsx) & [`SuratHubComponents.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratHubComponents.tsx): untuk `role = user`, hanya fetch `/surat/surat-keluar`, sembunyikan metrik/tab Surat Masuk, dan sesuaikan Quick Links ke fitur Surat Keluar.
-   - [`surat/masuk/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/page.tsx), [`surat/masuk/create/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/masuk/create/page.tsx), [`surat/laporan/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/laporan/page.tsx): tambahkan guard redirect ke `/surat` jika `role === "user"`.
-   - [`surat/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/settings/page.tsx): tambahkan guard redirect ke `/surat` jika bukan `super_admin` (dan tidak punya `surat.manage`).
-3. **Modul Kepegawaian (`frontend/src/app/kepegawaian/`)**:
-   - [`kepegawaian/layout.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/layout.tsx): ubah `Arsip Surat Masuk` menjadi `minRole: "admin"`.
-   - [`kepegawaian/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/page.tsx): untuk `role = user`, sembunyikan tautan kartu menuju `/kepegawaian/surat-tugas/inbox`, `/kepegawaian/cuti`, `/kepegawaian/surat-masuk`, serta `RecentActivitiesFeedCard`.
-   - [`employees/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/page.tsx): batasi tombol **Hapus Permanen** hanya untuk `isSuperAdmin` (`canManageAccess`).
-   - [`employees/[id]/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/employees/%5Bid%5D/page.tsx): untuk `role = user` (saat melihat pegawai lain), sembunyikan informasi Rekening Penyalur, kartu metrik ST/Cuti/Uang Makan, serta tab `Riwayat Penugasan`, `Cuti Pegawai`, dan `Presensi & Uang Makan` (hanya tampilkan `Biodata Lengkap`).
-   - [`kepegawaian/settings/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/settings/page.tsx) & halaman khusus Admin (`employees/create`, `surat-tugas/inbox`, `cuti`, `uang-makan`, `surat-masuk`): tambahkan guard redirect ke `/kepegawaian` bila diakses langsung oleh role yang tidak berhak.
-
----
-
-## 7. Rencana Verifikasi & Pengujian
-
-1. **Automated Feature Test (PHPUnit)**:
-   - Membuat/memperbarui test suite `SuratAndKepegawaianRbacTest.php` yang menguji ketiga role (`user`, `admin`, `super_admin`) untuk:
-     - `User` Persuratan: bisa buat/lihat/edit/hapus Surat Keluar sendiri, tidak melihat Surat Keluar user lain di `GET /api/surat/surat-keluar`, ditolak `403` saat akses/edit/hapus Surat Keluar user lain, ditolak `403` di seluruh endpoint Surat Masuk & mutasi Template.
-     - `Admin` Persuratan: bisa akses semua Surat Masuk & semua Surat Keluar, tetapi ditolak `403` saat memutasi Template (`/api/surat/templates`).
-     - `User` Kepegawaian: bisa lihat daftar & biodata pegawai (tanpa `nomor_rekening` pegawai lain), ditolak `403` saat akses ST/Cuti/Uang Makan pegawai lain, ditolak `403` di Arsip Surat Masuk, Tambah/Edit/Hapus Pegawai, Setting, dan IAM.
-     - `Admin` Kepegawaian: bisa kelola pegawai (termasuk soft-delete, restore, lifecycle), ST, Cuti, Uang Makan, dan Arsip Surat Masuk, tetapi ditolak `403` saat memanggil `forceDestroy`, mutasi Setting Master, dan IAM.
-     - `Super Admin`: lolos seluruh operasi Persuratan & Kepegawaian.
-2. **TypeScript & Next.js Build Check**:
-   - Menjalankan `npx tsc --noEmit` dan `npm run build` di `frontend/`.
-3. **Knowledge Graph Update**:
-   - Menjalankan `graphify update .` setelah kode selesai dimodifikasi.
+1. **Automated Feature Test Suite (PHPUnit)**:
+   - [`SuratAndKepegawaianRbacTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/SuratAndKepegawaianRbacTest.php) (3 suite komprehensif: Persuratan RBAC, Kepegawaian RBAC, & BMN RBAC)
+   - [`SuratModuleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/SuratModuleTest.php)
+   - [`StTemplateTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/StTemplateTest.php)
+   - [`MealAllowanceSecurityAndReconciliationTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php)
+   - [`PortalPersonalSecurityTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/PortalPersonalSecurityTest.php)
+   - [`StKepegawaianSecurityClosureTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/StKepegawaianSecurityClosureTest.php)
+   - [`EmployeeAccessLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/EmployeeAccessLifecycleTest.php)
+   - [`BmnLayoutAndSecurityRegressionTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/BmnLayoutAndSecurityRegressionTest.php)
+   - [`BmnMasterDataTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/BmnMasterDataTest.php)
+   - [`BmnTagTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/BmnTagTest.php)
+   - [`NotificationBmnLifecycleTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/NotificationBmnLifecycleTest.php)
+   - [`LocationHierarchyAndDriveSyncTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/LocationHierarchyAndDriveSyncTest.php)
+   - **Total Hasil**: **`178/178 tests PASSED` (`1.059 assertions`, `0 failed`)**.
+2. **TypeScript Compiler Check (`tsc --noEmit`)**:
+   - `node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit --incremental false` -> **`0 errors`**.
+3. **Knowledge Graph**:
+   - `graphify update .` -> **100% updated**.
+4. **Riwayat Commit Lokal (`codex/portal-security-pentest`)**:
+   - `62ded7a3` — `feat(rbac): enforce user/admin/super_admin boundaries in Persuratan and Kepegawaian`
+   - `0cd371fb` — `feat(bmn): enforce user/admin/super_admin RBAC in BMN and simplify IAM sheet`
